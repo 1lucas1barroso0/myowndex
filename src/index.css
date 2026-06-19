@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --slate-950: #020617; --slate-900: #0f172a; --slate-800: #1e293b; 
+  --slate-700: #334155; --slate-400: #94a3b8; --blue-500: #3b82f6;
+}
+
+body { 
+  background-color: var(--slate-950); color: #f8fafc; font-family: 'Inter', sans-serif; 
+  -webkit-font-smoothing: antialiased; margin: 0; overflow-x: hidden; 
+}
+
+.pixelated { image-rendering: pixelated; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--slate-900); }
+::-webkit-scrollbar-thumb { background: var(--slate-700); border-radius: 10px; border: 2px solid var(--slate-900); }
+::-webkit-scrollbar-thumb:hover { background: var(--slate-400); }
+
+.card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, border-color 0.2s ease; }
+.card-hover:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 25px -5px rgba(59, 130, 246, 0.2); border-color: var(--blue-500); z-index: 10; }
+
+.skeleton { background: linear-gradient(90deg, var(--slate-800) 25%, var(--slate-700) 50%, var(--slate-800) 75%); background-size: 200% 100%; animation: loading 1.5s infinite linear; }
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--blue-500); cursor: pointer; margin-top: -6px; box-shadow: 0 0 0 2px var(--slate-900); transition: transform 0.1s; }
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--slate-700); border-radius: 2px; }
+input::-webkit-calendar-picker-indicator { display: none !important; }

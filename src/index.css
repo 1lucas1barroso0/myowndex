@@ -15,6 +15,7 @@
 }
 
 html { font-size: 16px; }
+* { box-sizing: border-box; }
 body { 
   background-color: var(--pokedex-dark-red); 
   color: #ffffff; 
@@ -22,7 +23,9 @@ body {
   -webkit-font-smoothing: antialiased; 
   margin: 0; 
   overflow-x: hidden;
-  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
   /* Uma textura sutil no fundo para lembrar o plástico fosco e resistente dos portáteis dos jogos */
   background-image: radial-gradient(var(--pokedex-red) 20%, transparent 20%),
                     radial-gradient(var(--pokedex-red) 20%, transparent 20%);

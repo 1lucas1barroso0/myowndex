@@ -129,13 +129,22 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     {/* Campo Responsivo de Seleção de Gêneros */}
                     <div>
                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Gênero</label>
-                        <div className="flex bg-slate-50 p-1.5 rounded-xl border-2 border-slate-200 shadow-inner items-center justify-between">
-                            <div className="flex gap-1 items-center">
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'M', genderRate: currentGenderRate})} disabled={currentGenderRate === 8 || currentGenderRate === -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'M' ? 'bg-blue-500 text-white shadow-[0_3px_0_#1d4ed8]' : 'text-slate-400 disabled:opacity-20'}`}>♂</button>
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'F', genderRate: currentGenderRate})} disabled={currentGenderRate === 0 || currentGenderRate === -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'F' ? 'bg-pink-500 text-white shadow-[0_3px_0_#be185d]' : 'text-slate-400 disabled:opacity-20'}`}>♀</button>
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'N', genderRate: currentGenderRate})} disabled={currentGenderRate !== -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'N' ? 'bg-slate-400 text-white shadow-[0_3px_0_#475569]' : 'text-slate-400 disabled:opacity-20'}`}>⚲</button>
-                                <button type="button" onClick={() => randomize('gender')} disabled={currentGenderRate === -1} className="text-slate-400 hover:text-blue-500 disabled:opacity-30 font-black text-base px-3 outline-none" title="Aleatorizar Gênero">🎲</button>
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 p-2 shadow-inner">
+                            <div className="flex flex-wrap gap-2">
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'M', genderRate: currentGenderRate})} disabled={currentGenderRate === 8} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all ${pk.gender === 'M' ? 'bg-blue-500 text-white shadow-[0_3px_0_#1d4ed8]' : 'text-slate-600 disabled:opacity-30 hover:bg-blue-100'}`}>
+                                    <span className="text-base">♂</span>
+                                    <span>Masculino</span>
+                                </button>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'F', genderRate: currentGenderRate})} disabled={currentGenderRate === 0} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all ${pk.gender === 'F' ? 'bg-pink-500 text-white shadow-[0_3px_0_#be185d]' : 'text-slate-600 disabled:opacity-30 hover:bg-pink-100'}`}>
+                                    <span className="text-base">♀</span>
+                                    <span>Feminino</span>
+                                </button>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'N', genderRate: currentGenderRate})} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all ${pk.gender === 'N' ? 'bg-slate-500 text-white shadow-[0_3px_0_#475569]' : 'text-slate-600 hover:bg-slate-200'}`}>
+                                    <span className="text-base">⚲</span>
+                                    <span>Neutro</span>
+                                </button>
                             </div>
+                            <button type="button" onClick={() => randomize('gender')} className="rounded-xl px-3 py-2 text-sm font-black text-slate-500 transition-all hover:bg-blue-100 hover:text-blue-600" title="Aleatorizar Gênero">🎲</button>
                         </div>
                     </div>
 

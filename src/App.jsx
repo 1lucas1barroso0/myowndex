@@ -16,7 +16,14 @@ const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
 });
 
 export default function App() {
-    const [species, setSpecies] = useState([]);
+    const [species, setSpecies] = useState(() => {
+        try {
+            const cached = localStorage.getItem('myowndex_dex_cache');
+            return cached ? JSON.parse(cached) : [];
+        } catch {
+            return [];
+        }
+    });
     const [searchInput, setSearchInput] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [isTTRPG, setIsTTRPG] = useState(false);
@@ -89,6 +96,9 @@ export default function App() {
         return () => { mounted = false; };
     }, [view, envLoaded, envLoading]);
 
+    const handleOpenPokedex = useCallback(() => setView('pokedex'), []);
+    const handleOpenTeambuilder = useCallback(() => setView('teambuilder'), []);
+
     const visible = useMemo(() => {
         if (!deferredSearchTerm) return species.slice(0, limit);
         const query = deferredSearchTerm.toLowerCase();
@@ -107,9 +117,6 @@ export default function App() {
         isHackmon,
         onSearchClick: handleOpenPokedex
     }), [teams, setTeams, env.items, env.moves, env.abilities, activeTeamId, setActiveTeamId, isTTRPG, isHackmon, handleOpenPokedex]);
-
-    const handleOpenPokedex = useCallback(() => setView('pokedex'), []);
-    const handleOpenTeambuilder = useCallback(() => setView('teambuilder'), []);
     const handleSearchInputChange = useCallback((e) => { setSearchInput(e.target.value); setLimit(60); }, []);
     const handleSelectPokemon = useCallback((url) => setSelectedUrl(url), []);
     const handleLoadMore = useCallback(() => setLimit(prev => prev + 60), []);

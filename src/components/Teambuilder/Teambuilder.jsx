@@ -17,12 +17,12 @@ export default function Teambuilder({ envProps }) {
     
     const createTeam = () => { 
         const id = Date.now().toString(); 
-        setTeams([...teams, { id, name: 'Nova Caixa', pokemon: [] }]); 
+        setTeams(prev => [...prev, { id, name: 'Nova Caixa', pokemon: [] }]); 
         setActiveTeamId(id); 
         setEditingSlot(null); 
     };
     
-    const updateActive = (cb) => setTeams(teams.map(t => t.id === activeTeamId ? cb(t) : t));
+    const updateActive = (cb) => setTeams(prev => prev.map(t => t.id === activeTeamId ? cb(t) : t));
 
     const generateLinkCode = () => {
         try {
@@ -111,7 +111,7 @@ export default function Teambuilder({ envProps }) {
             }));
             
             newTeam.pokemon = reconstructed.filter(Boolean);
-            setTeams([...teams, newTeam]);
+            setTeams(prev => [...prev, newTeam]);
             setActiveTeamId(newTeam.id);
             setImporting(false);
             setImportData('');
@@ -122,7 +122,18 @@ export default function Teambuilder({ envProps }) {
         }
     };
 
-    if (!teams.length) return null; // App.jsx cuida do estado vazio inicial
+    if (!teams.length) {
+        return (
+            <div className="flex min-h-[60vh] w-full items-center justify-center">
+                <div className="w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#cbd5e1] sm:p-8">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl">📦</div>
+                    <h2 className="text-2xl font-black text-slate-800">Nenhuma caixa ainda</h2>
+                    <p className="mt-3 text-sm text-slate-500">Crie uma caixa para guardar seus parceiros, importar um link ou abrir a Pokédex e levar um Pokémon para o time.</p>
+                    <button onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b] transition-all hover:bg-red-600">Criar primeira caixa</button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col xl:flex-row gap-6 animate-fade-in">

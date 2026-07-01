@@ -192,11 +192,14 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                         if (multi === 0) cardStyle = 'text-slate-400 border-slate-300 bg-slate-100 opacity-70';
                                         
                                         return (
-                                            <div key={t} className={`flex items-center justify-between p-4 rounded-xl border-2 shadow-sm ${cardStyle}`}>
-                                                <div className="flex items-center gap-2.5"><div className="w-3 h-3 rounded-full shadow-sm border border-black/10" style={{ backgroundColor: TYPE_COLORS[t] || TYPE_COLORS.normal }}></div><span className="text-[10px] font-black uppercase tracking-widest">{t}</span></div>
-                                                <span className="text-sm font-black">{multi === 0 ? '0x' : `${multi}x`}</span>
-                                            </div>
-                                        );
+  <div key={t} className={"flex items-center justify-between p-4 rounded-xl border-2 shadow-sm " + cardStyle}>
+    <div className="flex items-center gap-2.5">
+      <div className="w-3 h-3 rounded-full shadow-sm border border-black/10" style={{ backgroundColor: TYPE_COLORS[t] || TYPE_COLORS.normal }}></div>
+      <span className="text-[10px] font-black uppercase tracking-widest">{t}</span>
+    </div>
+    <span className="text-sm font-black">{multi === 0 ? '0x' : multi + 'x'}</span>
+  </div>
+);
                                     })}
                                 </div>
                             </div>

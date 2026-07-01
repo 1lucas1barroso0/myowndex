@@ -158,8 +158,8 @@ export default function App() {
     }, [activeTeamId, teams]);
 
     return (
-        <div className="min-h-screen flex flex-col pb-6 sm:pb-10 lg:pb-24">
-            <header className="bg-red-600 border-b-8 border-red-800 p-3 sm:p-4 md:p-5 sticky top-0 z-40 shadow-xl">
+        <div className="h-[100dvh] flex flex-col overflow-hidden">
+            <header className="shrink-0 bg-red-600 border-b-8 border-red-800 p-3 sm:p-4 md:p-5 sticky top-0 z-40 shadow-xl">
                 <div className="max-w-[1700px] mx-auto flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
                     <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
                         <div className="flex items-center gap-4">
@@ -193,8 +193,8 @@ export default function App() {
                 </div>
             </header>
 
-            <main className="max-w-[1700px] mx-auto p-3 sm:p-4 md:p-8 w-full flex-grow relative z-10">
-                <div className="pokedex-screen p-3 sm:p-5 md:p-8 min-h-[70vh]">
+            <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-8 relative z-10">
+                <div className="max-w-[1700px] mx-auto pokedex-screen p-3 sm:p-5 md:p-8 min-h-[70vh]">
                     {view === 'pokedex' ? (
                         species.length === 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">

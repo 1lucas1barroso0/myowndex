@@ -68,17 +68,17 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-6 animate-fade-in" onClick={onClose}>
             
-            {/* O Botão de Fechar agora é independente da caixa de rolagem para não sumir no celular! */}
-            <button onClick={onClose} className="fixed sm:absolute top-5 right-5 sm:top-8 sm:right-8 w-12 h-12 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[70] transition-all border-4 border-slate-200 shadow-xl outline-none">
+            {/* O Botão de Fechar agora fica flutuando na tela para nunca sumir ao rolar no celular */}
+            <button onClick={onClose} className="fixed md:absolute top-5 right-5 md:top-4 md:right-4 w-12 h-12 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[70] transition-all border-4 border-slate-200 shadow-xl outline-none">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
 
-            {/* A Caixa Principal agora rola suavemente no Mobile e trava a altura no Desktop */}
-            <div className="bg-slate-50 rounded-[2rem] w-full max-w-6xl max-h-[95vh] md:h-[90vh] flex flex-col md:flex-row overflow-y-auto md:overflow-hidden border-8 border-red-600 relative shadow-2xl" onClick={e => e.stopPropagation()}>
+            {/* Contêiner Híbrido: Rolagem livre no Celular, Travado e Dividido no PC */}
+            <div className="bg-slate-50 rounded-3xl w-full max-w-6xl max-h-[95vh] md:h-[90vh] flex flex-col md:flex-row overflow-y-auto md:overflow-hidden border-8 border-red-600 relative shadow-2xl" onClick={e => e.stopPropagation()}>
                 
-                {/* Painel Esquerdo (Topo no Celular) */}
-                <div className="w-full md:w-5/12 p-6 sm:p-8 bg-white flex flex-col flex-shrink-0 md:overflow-y-auto no-scrollbar border-b-4 md:border-b-0 md:border-r-4 border-slate-200 shadow-md z-10">
-                    <div className="z-10 mb-6 flex flex-col items-start pr-12 sm:pr-0">
+                {/* Coluna Esquerda: Dados Principais e Visualização */}
+                <div className="w-full md:w-5/12 p-6 sm:p-8 bg-white flex flex-col flex-shrink-0 md:h-full md:overflow-y-auto no-scrollbar border-b-8 md:border-b-0 md:border-r-8 border-slate-200 z-10">
+                    <div className="z-10 mb-6 flex flex-col items-start pr-12 md:pr-0">
                         <span className="text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">No. {String(baseInfo.id).padStart(4, '0')}</span>
                         <h2 className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-4 tracking-tight leading-none drop-shadow-sm break-words w-full">{activeForm?.name?.split('-')[0] || baseInfo.name}</h2>
                         {activeForm?.name?.includes('-') && <span className="text-sm font-black text-red-500 capitalize block mt-2">{activeForm.name.substring(activeForm.name.indexOf('-') + 1).replace(/-/g, ' ')} Form</span>}
@@ -86,7 +86,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     
                     <div className="flex-grow flex justify-center items-center py-8 relative group mb-8 bg-slate-50 rounded-3xl border-4 border-slate-200 overflow-hidden shadow-inner min-h-[220px]">
                         <div className="absolute inset-0 opacity-10 transition-opacity duration-500 group-hover:opacity-20" style={{ background: `radial-gradient(circle at center, ${primaryColor} 0%, transparent 70%)` }}></div>
-                        {sprite ? <img src={sprite} alt="pkmn" className="max-h-56 sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" /> : <span className="text-sm font-black text-slate-400">Imagem não encontrada na Dex!</span>}
+                        {sprite ? <img src={sprite} alt="pkmn" className="max-h-56 sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" /> : <span className="text-sm font-black text-slate-400">Imagem Ausente!</span>}
                     </div>
                     
                     <button onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1); onClose(); }} className="w-full py-4 mb-8 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991b1b] active:shadow-[0_0px_0_#991b1b] active:translate-y-1.5 transition-all flex justify-center items-center gap-2 outline-none flex-shrink-0">
@@ -116,18 +116,19 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     </div>
                 </div>
 
-                {/* Painel Direito (Tabelas de Informação no Celular) */}
-                <div className="w-full md:w-7/12 flex flex-col bg-slate-100 relative min-h-[50vh] md:min-h-0 md:h-full">
+                {/* Coluna Direita: Guias Interativas (Aba de Fichário) */}
+                <div className="w-full md:w-7/12 flex flex-col bg-slate-100 relative md:h-full overflow-visible md:overflow-hidden">
                     
-                    {/* A navegação fixa o cabeçalho no topo! */}
-                    <div className="flex bg-slate-200 border-b-4 border-slate-300 sticky top-0 z-20 flex-shrink-0">
+                    {/* Cabeçalho de Abas Magnético: Fica fixo no topo ao rolar pelo celular! */}
+                    <div className="flex bg-slate-200 pt-4 px-2 sm:px-4 gap-1 sm:gap-2 pr-20 md:pr-24 z-20 flex-shrink-0 border-b-4 border-red-500 sticky top-0 md:relative">
                         {['stats', 'defenses', 'moves'].map(t => (
-                            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-4 sm:py-5 text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all outline-none ${tab === t ? 'text-white bg-red-500 border-b-4 border-red-700 shadow-inner' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-300 border-b-4 border-transparent'}`}>
-                                {t === 'stats' ? 'Dados da Dex' : t === 'defenses' ? 'Tipagem' : 'Golpes'}
+                            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-3 sm:py-4 text-[9px] sm:text-[11px] font-black uppercase tracking-widest transition-all outline-none rounded-t-xl border-t-4 border-x-4 border-b-0 ${tab === t ? 'text-white bg-red-500 border-red-600 shadow-inner' : 'text-slate-400 bg-white border-slate-300 hover:bg-slate-100'}`}>
+                                {t === 'stats' ? 'Dados Dex' : t === 'defenses' ? 'Tipagem' : 'Golpes'}
                             </button>
                         ))}
                     </div>
                     
+                    {/* Área de Conteúdo Proporcional */}
                     <div className="flex-1 p-5 sm:p-8 md:p-10 md:overflow-y-auto no-scrollbar pb-10">
                         {tab === 'stats' && (
                             <div className="animate-fade-in space-y-8">
@@ -178,7 +179,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         
                         {tab === 'defenses' && (
                             <div className="animate-fade-in">
-                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Eficiência de Tipo (Recebendo Dano)</h3>
+                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Eficiência de Tipo (Dano Recebido)</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
                                     {Object.entries(defenses).map(([t, multi]) => {
                                         let cardStyle = 'text-slate-600 border-slate-300 bg-white';

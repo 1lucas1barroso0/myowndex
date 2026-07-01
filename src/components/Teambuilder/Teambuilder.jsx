@@ -17,7 +17,7 @@ export default function Teambuilder({ envProps }) {
     
     const createTeam = () => { 
         const id = Date.now().toString(); 
-        setTeams(prev => [...prev, { id, name: 'Nova Caixa', pokemon: [] }]); 
+        setTeams(prev => [...prev, { id, name: 'New Box', pokemon: [] }]); 
         setActiveTeamId(id); 
         setEditingSlot(null); 
     };
@@ -77,7 +77,7 @@ export default function Teambuilder({ envProps }) {
             const incomingTeam = decoded.team || decoded;
 
             const newTeamId = Date.now().toString();
-            let newTeam = { id: newTeamId, name: incomingTeam.name || incomingTeam.id || 'Nova Caixa Recebida', pokemon: [] };
+            let newTeam = { id: newTeamId, name: incomingTeam.name || incomingTeam.id || 'Received Box', pokemon: [] };
             const pkmns = incomingTeam.pokemon || [];
             
             const reconstructed = await Promise.all(pkmns.map(async (pk) => {
@@ -127,9 +127,9 @@ export default function Teambuilder({ envProps }) {
             <div className="flex min-h-[60vh] w-full items-center justify-center">
                 <div className="w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#cbd5e1] sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl">📦</div>
-                    <h2 className="text-2xl font-black text-slate-800">Sua primeira box está pronta para começar</h2>
-                    <p className="mt-3 text-sm text-slate-500">Crie uma box, reúna seus parceiros e prepare sua equipe com uma ideia simples: Pokémon, estratégia e diversão.</p>
-                    <button onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b] transition-all hover:bg-red-600">Criar primeira box</button>
+                    <h2 className="text-2xl font-black text-slate-800">Your first box is waiting</h2>
+                    <p className="mt-3 text-sm text-slate-500">Create a box, gather your partners and start building your team with strategy and style.</p>
+                    <button onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b] transition-all hover:bg-red-600">Create first box</button>
                 </div>
             </div>
         );
@@ -137,32 +137,32 @@ export default function Teambuilder({ envProps }) {
 
     return (
         <div className="flex flex-col xl:flex-row gap-6 animate-fade-in">
-            <div className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-6 flex flex-col gap-3 h-fit">
-                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Caixas do PC</h3>
+            <div className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-6 flex flex-col gap-3 h-full xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-6">
+                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">PC Boxes</h3>
                 {teams.map(t => (
                     <button key={t.id} onClick={() => {setActiveTeamId(t.id); setEditingSlot(null); setShareCode('');}} className={`w-full p-4 rounded-2xl text-left font-black text-xs border-2 transition-all outline-none shadow-sm ${activeTeamId === t.id ? 'bg-blue-500 border-blue-600 text-white shadow-[0_4px_0_#1d4ed8] translate-y-[-2px]' : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-white'}`}>
                         {t.name}
                     </button>
                 ))}
                 <button onClick={createTeam} className="w-full p-4 mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl hover:text-red-500 hover:border-red-300 hover:bg-red-50 transition-all outline-none">
-                    + Nova Caixa
+                    + New Box
                 </button>
 
                 <div className="mt-4 pt-4 border-t-2 border-slate-100">
                     {importing ? (
                         <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl shadow-inner animate-fade-in">
                             <input type="text" disabled={isProcessing} value={importData} onChange={e => { setImportData(e.target.value); setImportError(false); }} className="w-full p-2 rounded-xl border-2 border-blue-200 text-xs font-bold text-slate-700 outline-none mb-2 focus:border-blue-500 shadow-inner" />
-                            {importError && <span className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-2 block">Erro no cabo link!</span>}
+                            {importError && <span className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-2 block">Link Cable error!</span>}
                             {isProcessing ? <div className="h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div> : (
                                 <div className="flex gap-2">
-                                    <button onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest py-2 rounded-xl shadow-[0_3px_0_#1d4ed8] outline-none">Conectar</button>
-                                    <button onClick={() => { setImporting(false); setImportData(''); setImportError(false); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:border-red-200 transition-colors outline-none">X</button>
+                                    <button onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest py-2 rounded-xl shadow-[0_3px_0_#1d4ed8] outline-none">Connect</button>
+                                    <button onClick={() => { setImporting(false); setImportData(''); setImportError(false); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:border-red-200 transition-colors outline-none">Cancel</button>
                                 </div>
                             )}
                         </div>
                     ) : (
                         <button onClick={() => setImporting(true)} className="w-full p-4 text-[10px] font-black uppercase tracking-widest text-blue-500 bg-white border-2 border-blue-200 rounded-2xl hover:text-white hover:bg-blue-500 transition-all outline-none shadow-sm">
-                            🔗 Conectar Cabo Link
+                            🔗 Connect Link Cable
                         </button>
                     )}
                 </div>
@@ -189,7 +189,7 @@ export default function Teambuilder({ envProps }) {
                                     <input type="text" readOnly value={shareCode} className="w-full bg-white border-2 border-blue-200 rounded-xl p-3 text-xs font-bold text-slate-600 outline-none shadow-sm" />
                                 </div>
                                 <div className="flex gap-2 w-full lg:w-auto">
-                                    <button onClick={copyToClipboard} className="flex-1 lg:flex-none px-6 py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none">{copied ? 'Copiado!' : 'Copiar'}</button>
+                                    <button onClick={copyToClipboard} className="flex-1 lg:flex-none px-6 py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none">{copied ? 'Copied!' : 'Copy'}</button>
                                     <button onClick={() => setShareCode('')} className="px-4 py-3.5 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 rounded-xl outline-none">X</button>
                                 </div>
                             </div>
@@ -207,13 +207,13 @@ export default function Teambuilder({ envProps }) {
                                             <div className="font-black text-sm text-slate-800 capitalize truncate">{formatName(pk.species?.name)}</div>
                                             <span className={`text-xs font-black px-1.5 py-0.5 rounded border ${pk.gender === 'M' ? 'text-blue-500 bg-blue-50 border-blue-200' : pk.gender === 'F' ? 'text-pink-500 bg-pink-50 border-pink-200' : 'text-slate-400 bg-slate-100 border-slate-200'}`}>{pk.gender === 'M' ? '♂' : pk.gender === 'F' ? '♀' : '⚲'}</span>
                                         </div>
-                                        <div className="text-[10px] font-bold text-slate-400 mt-1 truncate">Nv.{pk.level||1} • {pk.item ? formatName(pk.item) : 'Sem Item'}</div>
+                                        <div className="text-[10px] font-bold text-slate-400 mt-1 truncate">Lv.{pk.level||1} • {pk.item ? formatName(pk.item) : 'No Item'}</div>
                                     </div>
                                 </div>
                             ))}
                             {(active.pokemon?.length || 0) < 6 && (
                                 <div onClick={onSearchClick} className="p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center cursor-pointer text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[96px]">
-                                    + Convidar Parceiro
+                                    + Add Partner
                                 </div>
                             )}
                         </div>

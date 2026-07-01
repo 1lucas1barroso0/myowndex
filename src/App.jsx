@@ -150,9 +150,16 @@ export default function App() {
         
         if (!teams.length) {
             const id = Date.now().toString();
-            setTeams([{ id, name: 'Caixa 1', pokemon: [pTemplate] }]); setActiveTeamId(id);
+            setTeams([{ id, name: 'Box 1', pokemon: [pTemplate] }]);
+            setActiveTeamId(id);
         } else {
-            setTeams(prev => prev.map(t => { if (t.id === (activeTeamId || teams[0].id) && (t.pokemon?.length || 0) < 6) return { ...t, pokemon: [...(t.pokemon||[]), pTemplate] }; return t; }));
+            const targetTeamId = activeTeamId || teams[0]?.id;
+            setTeams(prev => prev.map(t => {
+                if (t.id === targetTeamId && (t.pokemon?.length || 0) < 6) {
+                    return { ...t, pokemon: [...(t.pokemon || []), pTemplate] };
+                }
+                return t;
+            }));
         }
         setView('teambuilder');
     }, [activeTeamId, teams]);
@@ -174,14 +181,14 @@ export default function App() {
                             </div>
                             <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[220px]">
                                 <button onClick={handleOpenPokedex} className={`game-button flex-1 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest outline-none ${view==='pokedex'?'bg-red-500 text-white':'bg-slate-100 text-slate-600'}`}>Pokédex</button>
-                                <button onClick={handleOpenTeambuilder} className={`game-button flex-1 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest outline-none ${view==='teambuilder'?'bg-red-500 text-white':'bg-slate-100 text-slate-600'}`}>PC</button>
+                                <button onClick={handleOpenTeambuilder} className={`game-button flex-1 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest outline-none ${view==='teambuilder'?'bg-red-500 text-white':'bg-slate-100 text-slate-600'}`}>Box</button>
                             </div>
                         </div>
                         
                         <div className="flex gap-3 w-full lg:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
                             {view === 'pokedex' && (
                                 <div className="relative flex-grow w-full sm:w-80">
-                                    <input type="text" value={searchInput} placeholder="Buscar Pokémon" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
+                                    <input type="text" value={searchInput} placeholder="Search Pokémon" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
                                     <svg className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                 </div>
                             )}
@@ -203,6 +210,18 @@ export default function App() {
                             </div>
                         ) : (
                             <>
+                                <div className="game-panel p-5 mb-6">
+                                    <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+                                        <div>
+                                            <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">Search Hub</p>
+                                            <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Explore the Pokédex and build your perfect team.</h2>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <span className="px-3 py-2 rounded-full bg-red-500 text-white text-[10px] font-black uppercase tracking-widest">Searching</span>
+                                            <span className="px-3 py-2 rounded-full bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest">{visible.length} Pokémon</span>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3 sm:gap-5">
                                     {visible.map(sp => {
                                         if (!sp?.url) return null;
@@ -212,7 +231,7 @@ export default function App() {
                                 </div>
                                 {limit < species.length && !deferredSearchTerm && (
                                     <button onClick={handleLoadMore} className="mt-8 sm:mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
-                                        Procurar Mais Pokémon
+                                        Load more Pokémon
                                     </button>
                                 )}
                             </>

@@ -31,11 +31,11 @@ export default function MoveAccordion({ moveData, isTTRPG }) {
                             <div className="flex flex-wrap gap-2 items-center">
                                 <span className="text-[9px] px-2.5 py-1 rounded text-white font-black uppercase tracking-wider shadow-sm" style={{ backgroundColor: TYPE_COLORS[data.type?.name] || TYPE_COLORS.normal }}>{data.type?.name || '---'}</span>
                                 <span className="text-[9px] px-2.5 py-1 rounded bg-slate-200 text-slate-600 font-black uppercase tracking-wider border border-slate-300">{data.damage_class?.name || '---'}</span>
-                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Poder: <span className={isTTRPG ? 'text-red-600' : 'text-slate-800'}>{data.power ? (isTTRPG ? convertToTTRPG(data.power) : data.power) : '--'}</span></span>
-                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Precisão: <span className="text-slate-800">{data.accuracy ? `${data.accuracy}%` : '--'}</span></span>
+                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Power: <span className={isTTRPG ? 'text-red-600' : 'text-slate-800'}>{data.power ? (isTTRPG ? convertToTTRPG(data.power) : data.power) : '--'}</span></span>
+                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Accuracy: <span className="text-slate-800">{data.accuracy ? `${data.accuracy}%` : '--'}</span></span>
                             </div>
                             <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                                {data.effect_entries?.find(e => e.language.name === 'en')?.effect?.replace(/\$effect_chance/g, data.effect_chance || '') || 'Um golpe direto, sem efeitos secundários.'}
+                                {data.effect_entries?.find(e => e.language.name === 'en')?.effect?.replace(/\$effect_chance/g, data.effect_chance || '') || 'A straightforward attack with no secondary effects.'}
                             </p>
                         </div>
                     )}

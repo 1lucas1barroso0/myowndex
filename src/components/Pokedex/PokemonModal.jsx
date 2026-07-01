@@ -141,7 +141,10 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     <button 
       key={v.pokemon?.name || Math.random()} 
       onClick={() => setActiveForm(v.pokemon)} 
-      className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-2 outline-none shadow-sm ${activeForm?.name === v.pokemon?.name ? 'bg-blue-500 text-white border-blue-700 shadow-[0_3px_0_#1d4ed8] scale-105' : 'bg-slate-50 text-slate-600 border-slate-300 hover:border-blue-400 hover:bg-white shadow-sm'}`}
+      className={
+        "px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-2 outline-none shadow-sm " + 
+        (activeForm?.name === v.pokemon?.name ? "bg-blue-500 text-white border-blue-700 shadow-[0_3px_0_#1d4ed8] scale-105" : "bg-slate-50 text-slate-600 border-slate-300 hover:border-blue-400 hover:bg-white shadow-sm")
+      }
     >
       {btnName}
     </button>

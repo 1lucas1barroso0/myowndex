@@ -135,22 +135,19 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                     <div className="flex flex-col gap-3">{formData.abilities?.map((a, i) => <AbilityCard key={i} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
                                 </div>
                                 
-                                {baseInfo.varieties?.length > 1 && (
-                                    <div>
-                                        <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Other Forms</h3>
-                                        <div className="flex flex-wrap gap-2 bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm">
-                                            {baseInfo.varieties.map(v => {
-                                                const btnName = v.pokemon?.name === baseInfo.name ? 'Base Form' : (v.pokemon?.name || '').replace(baseInfo.name + '-', '').replace(/-/g, ' ') || 'Base';
-                                                return (
-                                                     <button 
-  key={v.pokemon?.name || Math.random()} 
-  onClick={() => setActiveForm(v.pokemon)} 
-  className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-2 outline-none shadow-sm ${activeForm?.name === v.pokemon?.name ? 'bg-blue-500 text-white border-blue-700 shadow-[0_3px_0_#1d4ed8] scale-105' : 'bg-slate-50 text-slate-600 border-slate-300 hover:border-blue-400 hover:bg-white shadow-sm'}`}
->
-  {btnName}
-</button>
-                                                )
-                                            })}
+                                {baseInfo.varieties.map(v => {
+  const btnName = v.pokemon?.name === baseInfo.name ? 'Base Form' : (v.pokemon?.name || '').replace(baseInfo.name + '-', '').replace(/-/g, ' ') || 'Base';
+  return (
+    <button 
+      key={v.pokemon?.name || Math.random()} 
+      onClick={() => setActiveForm(v.pokemon)} 
+      className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-2 outline-none shadow-sm ${activeForm?.name === v.pokemon?.name ? 'bg-blue-500 text-white border-blue-700 shadow-[0_3px_0_#1d4ed8] scale-105' : 'bg-slate-50 text-slate-600 border-slate-300 hover:border-blue-400 hover:bg-white shadow-sm'}`}
+    >
+      {btnName}
+    </button>
+  );
+})}
+
                                         </div>
                                     </div>
                                 )}

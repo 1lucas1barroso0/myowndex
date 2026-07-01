@@ -5,9 +5,9 @@ import Teambuilder from './components/Teambuilder/Teambuilder';
 
 const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
     return (
-        <div onClick={onSelect} className="pokemon-grid-card p-4 flex flex-col items-center cursor-pointer group relative">
+        <div onClick={onSelect} className="game-card p-4 flex flex-col items-center cursor-pointer group relative">
             <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">No. {id.padStart(4, '0')}</span>
-            <div className="w-full h-20 mt-4 flex justify-center items-center">
+            <div className="w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
                 <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`} className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200" loading="lazy" decoding="async" onError={e=>e.target.style.display='none'} />
             </div>
             <span className="text-[11px] font-black text-slate-700 mt-3 capitalize truncate w-full text-center group-hover:text-red-600 transition-colors">{formatName(species.name)}</span>
@@ -158,43 +158,44 @@ export default function App() {
     }, [activeTeamId, teams]);
 
     return (
-        <div className="h-[100dvh] flex flex-col overflow-hidden">
-            <header className="shrink-0 bg-red-600 border-b-8 border-red-800 p-3 sm:p-4 md:p-5 sticky top-0 z-40 shadow-xl">
-                <div className="max-w-[1700px] mx-auto flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
-                    <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-sky-400 rounded-full border-4 border-white shadow-[0_0_15px_#00d2ff] relative overflow-hidden cursor-pointer shrink-0" onClick={handleOpenPokedex}>
-                                <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full opacity-70"></div>
+        <div className="h-[100dvh] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_30%)]">
+            <header className="shrink-0 px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 md:pt-5 pb-2 z-40">
+                <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-4 md:p-5">
+                    <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+                        <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-sky-400 rounded-full border-4 border-white shadow-[0_0_18px_#00d2ff] relative overflow-hidden cursor-pointer shrink-0" onClick={handleOpenPokedex}>
+                                    <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-white rounded-full opacity-70"></div>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Pokémon</span>
+                                    <h1 className="text-xl sm:text-2xl font-black text-slate-800">MyOwnDex</h1>
+                                </div>
                             </div>
-                            <div className="flex gap-1.5 self-start mt-1">
-                                <div className="w-3 h-3 bg-rose-500 rounded-full border border-rose-700 shadow-[0_0_5px_rgba(239,68,68,1)]"></div>
-                                <div className="w-3 h-3 bg-amber-400 rounded-full border border-amber-600 shadow-[0_0_5px_rgba(251,191,36,1)]"></div>
-                                <div className="w-3 h-3 bg-emerald-400 rounded-full border border-emerald-600 shadow-[0_0_5px_rgba(52,211,153,1)]"></div>
+                            <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[220px]">
+                                <button onClick={handleOpenPokedex} className={`game-button flex-1 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest outline-none ${view==='pokedex'?'bg-red-500 text-white':'bg-slate-100 text-slate-600'}`}>Pokédex</button>
+                                <button onClick={handleOpenTeambuilder} className={`game-button flex-1 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest outline-none ${view==='teambuilder'?'bg-red-500 text-white':'bg-slate-100 text-slate-600'}`}>PC</button>
                             </div>
                         </div>
-                        <div className="flex bg-red-800 rounded-xl p-1 border-2 border-red-950 shadow-inner w-full max-w-[220px]">
-                            <button onClick={handleOpenPokedex} className={`flex-1 px-4 py-2 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all outline-none ${view==='pokedex'?'bg-red-500 text-white shadow-md border-b-2 border-red-700':'text-red-300 hover:text-white'}`}>Pokédex</button>
-                            <button onClick={handleOpenTeambuilder} className={`flex-1 px-4 py-2 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all outline-none ${view==='teambuilder'?'bg-red-500 text-white shadow-md border-b-2 border-red-700':'text-red-300 hover:text-white'}`}>PC</button>
-                        </div>
-                    </div>
-                    
-                    <div className="flex gap-3 w-full lg:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
-                        {view === 'pokedex' && (
-                            <div className="relative flex-grow w-full sm:w-80">
-                                <input type="text" value={searchInput} placeholder="Buscar Pokémon" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-xl text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
-                                <svg className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        
+                        <div className="flex gap-3 w-full lg:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
+                            {view === 'pokedex' && (
+                                <div className="relative flex-grow w-full sm:w-80">
+                                    <input type="text" value={searchInput} placeholder="Buscar Pokémon" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
+                                    <svg className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                            )}
+                            <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700">
+                                <button onClick={toggleHackmon} className={`px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ${isHackmon?'bg-purple-600 text-white':'text-slate-300'}`}>Hackmon</button>
+                                <button onClick={toggleTTRPG} className={`px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 ${isTTRPG?'bg-amber-500 text-white':'text-slate-300'}`}>TTRPG</button>
                             </div>
-                        )}
-                        <div className="flex bg-red-800 rounded-xl p-1 border-2 border-red-950">
-                            <button onClick={toggleHackmon} className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none ${isHackmon?'bg-purple-600 text-white border-b-2 border-purple-800':'text-red-300'}`}>Hackmon</button>
-                            <button onClick={toggleTTRPG} className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 ${isTTRPG?'bg-amber-500 text-white border-b-2 border-amber-700':'text-red-300'}`}>TTRPG</button>
                         </div>
                     </div>
                 </div>
             </header>
 
             <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-8 relative z-10">
-                <div className="max-w-[1700px] mx-auto pokedex-screen p-3 sm:p-5 md:p-8 min-h-[70vh]">
+                <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-5 md:p-8 min-h-[70vh]">
                     {view === 'pokedex' ? (
                         species.length === 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">

@@ -137,7 +137,7 @@ export default function Teambuilder({ envProps }) {
 
     return (
         <div className="flex flex-col xl:flex-row gap-6 animate-fade-in">
-            <div className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start bg-white border-4 border-slate-200 rounded-3xl p-4 sm:p-6 flex flex-col gap-3 h-fit shadow-[0_8px_0_#cbd5e1]">
+            <div className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-6 flex flex-col gap-3 h-fit">
                 <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Caixas do PC</h3>
                 {teams.map(t => (
                     <button key={t.id} onClick={() => {setActiveTeamId(t.id); setEditingSlot(null); setShareCode('');}} className={`w-full p-4 rounded-2xl text-left font-black text-xs border-2 transition-all outline-none shadow-sm ${activeTeamId === t.id ? 'bg-blue-500 border-blue-600 text-white shadow-[0_4px_0_#1d4ed8] translate-y-[-2px]' : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-white'}`}>
@@ -170,7 +170,7 @@ export default function Teambuilder({ envProps }) {
             
             <div className="w-full xl:w-3/4 min-w-0">
                 {active && (
-                    <div className="bg-white border-4 border-slate-200 p-4 sm:p-6 md:p-8 rounded-3xl shadow-[0_8px_0_#cbd5e1]">
+                    <div className="game-panel p-4 sm:p-6 md:p-8">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b-4 border-slate-100 pb-5">
                             <input type="text" value={active.name || ''} onChange={e => updateActive(t => ({...t, name: e.target.value}))} className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full max-w-md tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" />
                             <div className="flex gap-3 self-end sm:self-auto">

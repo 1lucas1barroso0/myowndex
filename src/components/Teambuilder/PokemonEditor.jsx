@@ -80,7 +80,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const hasStructuralShift = baseForm && ((baseForm.types?.map(t=>t.type?.name).join() !== pk.species?.types?.map(t=>t.type?.name).join()) || (baseForm.abilities?.[0]?.ability?.name !== pk.species?.abilities?.[0]?.ability?.name) || (baseForm.stats?.some((s, idx) => s.base_stat !== pk.species?.stats?.[idx]?.base_stat)));
 
     return (
-        <div className="bg-white border-4 border-slate-200 rounded-3xl p-4 sm:p-6 lg:p-8 mt-6 shadow-[0_8px_0_#cbd5e1] animate-fade-in relative overflow-hidden">
+        <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
             <datalist id="eItems">{allItems.map(i => <option key={i.name} value={i.name} />)}</datalist>
             <datalist id="eAbs">{validAbs.map(a => <option key={a.name} value={a.name} />)}</datalist>
             <datalist id="eMvs">{validMoves.map(m => <option key={m.name} value={m.name} />)}</datalist>

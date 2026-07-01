@@ -5,6 +5,7 @@ import { formatName } from '../../core/mechanics';
 export default function Teambuilder({ envProps }) {
     const { teams, setTeams, allItems, allMoves, allAbilities, activeTeamId, setActiveTeamId, isTTRPG, isHackmon, onSearchClick } = envProps;
     const [editingSlot, setEditingSlot] = useState(null);
+    const [shareText, setShareText] = useState('');
     
     const active = teams.find(t => t.id === activeTeamId);
     
@@ -16,6 +17,31 @@ export default function Teambuilder({ envProps }) {
     };
     
     const updateActive = (cb) => setTeams(teams.map(t => t.id === activeTeamId ? cb(t) : t));
+
+    const generateTradeLink = () => {
+        if (!active || !active.pokemon.length) return;
+        
+        // Compactador de Dados da MyOwnDex
+        const liteTeam = {
+            name: active.name,
+            p: active.pokemon.map(pk => ({
+                u: pk.species?.url, l: pk.level, f: pk.friendship, g: pk.canGMax, 
+                i: pk.item, t: pk.teraType, a: pk.ability, n: pk.nature, m: pk.moves, 
+                iv: pk.ivs, ev: pk.evs, cs: pk.customStats, ct: pk.customTypes
+            }))
+        };
+        
+        const encoded = encodeURIComponent(btoa(JSON.stringify(liteTeam)));
+        const url = `${window.location.origin}${window.location.pathname}?trade=${encoded}`;
+        
+        navigator.clipboard.writeText(url).then(() => {
+            setShareText('Sinal Enviado!');
+            setTimeout(() => setShareText(''), 3000);
+        }).catch(() => {
+            setShareText('Falha no Rotom Phone');
+            setTimeout(() => setShareText(''), 3000);
+        });
+    };
 
     if (!teams.length) return (
         <div className="flex flex-col items-center justify-center py-20 animate-fade-in text-center max-w-lg mx-auto">
@@ -47,11 +73,18 @@ export default function Teambuilder({ envProps }) {
             <div className="w-full xl:w-3/4">
                 {active && (
                     <div className="bg-white border-4 border-slate-200 p-6 md:p-8 rounded-3xl shadow-[0_8px_0_#cbd5e1]">
-                        <div className="flex justify-between items-center mb-8 border-b-4 border-slate-100 pb-5">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b-4 border-slate-100 pb-5">
                             <input type="text" placeholder="" value={active.name || ''} onChange={e => updateActive(t => ({...t, name: e.target.value}))} className="bg-transparent text-3xl font-black text-slate-800 focus:outline-none w-full max-w-md tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" />
-                            <button onClick={() => { const nT = teams.filter(t=>t.id!==activeTeamId); setTeams(nT); setActiveTeamId(nT.length > 0 ? nT[0].id : null); setEditingSlot(null); }} className="p-3.5 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-colors border-2 border-slate-200 shadow-sm outline-none">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
+                            
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                <button onClick={generateTradeLink} className="flex-1 sm:flex-none px-4 py-3.5 bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white rounded-2xl transition-colors border-2 border-blue-200 hover:border-blue-600 shadow-sm outline-none flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                                    {shareText || 'Cabo Link'}
+                                </button>
+                                <button onClick={() => { const nT = teams.filter(t=>t.id!==activeTeamId); setTeams(nT); setActiveTeamId(nT.length > 0 ? nT[0].id : null); setEditingSlot(null); }} className="p-3.5 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-colors border-2 border-slate-200 shadow-sm outline-none flex items-center justify-center">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

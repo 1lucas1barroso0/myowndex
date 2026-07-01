@@ -14,7 +14,7 @@ export default function App() {
     
     const [teams, setTeams] = useState(() => { 
         try { 
-            const local = localStorage.getItem('myowndex_rotom_v2'); 
+            const local = localStorage.getItem('myowndex_rotom_v3'); 
             if (local) { const parsed = JSON.parse(local); return Array.isArray(parsed) ? parsed : []; }
             return [];
         } catch { return []; } 
@@ -36,7 +36,7 @@ export default function App() {
                     if (mounted && spRes?.results) { setSpecies(spRes.results); try { localStorage.setItem(cKey, JSON.stringify(spRes.results)); } catch{} }
                 }
                 
-                const [iRes, mRes, aRes] = await Promise.all([ fetchCached('https://pokeapi.co/api/v2/item?limit=2500'), fetchCached('https://pokeapi.co/api/v2/move?limit=1000'), fetchCached('https://pokeapi.co/api/v2/ability?limit=350') ]);
+                const [iRes, mRes, aRes] = await Promise.all([ fetchCached('https://pokeapi.co/api/v2/item?limit=2500'), fetchCached('https://pokeapi.co/api/v2/move?limit=1500'), fetchCached('https://pokeapi.co/api/v2/ability?limit=500') ]);
                 if (mounted) {
                     const spamRx = /tm\d+|tr\d+|hm\d+|dynamax|dummy-|data-card|z-ring|mega-bracelet|candy|mint/i;
                     setEnv({
@@ -54,8 +54,23 @@ export default function App() {
         return species.filter(s => (s.name||'').includes(query) || extractId(s.url) === query).slice(0, limit);
     }, [species, searchTerm, limit]);
 
-    const integrateTeam = (formData) => {
-        const pTemplate = { species: formData, level: 50, friendship: 150, canGMax: false, teraType: '', item: '', ability: formData.abilities?.[0]?.ability?.name || '', nature: 'hardy', moves: ['', '', '', ''], ivs: { hp:31, attack:31, defense:31, 'special-attack':31, 'special-defense':31, speed:31 }, evs: { hp:0, attack:0, defense:0, 'special-attack':0, 'special-defense':0, speed:0 } };
+    const integrateTeam = (formData, genderRate) => {
+        // Atribuição de gênero responsiva baseada na taxa da espécie
+        let initialGender = 'N';
+        if (genderRate === 0) initialGender = 'M';
+        else if (genderRate === 8) initialGender = 'F';
+        else if (genderRate !== -1) {
+            initialGender = (Math.random() * 8) < genderRate ? 'F' : 'M';
+        }
+
+        const pTemplate = { 
+            species: formData, level: 50, friendship: 150, canGMax: false, teraType: '', item: '', 
+            ability: formData.abilities?.[0]?.ability?.name || '', nature: 'hardy', moves: ['', '', '', ''], 
+            ivs: { hp:31, attack:31, defense:31, 'special-attack':31, 'special-defense':31, speed:31 }, 
+            evs: { hp:0, attack:0, defense:0, 'special-attack':0, 'special-defense':0, speed:0 },
+            gender: initialGender, genderRate: genderRate ?? -1
+        };
+        
         if (!teams.length) {
             const id = Date.now().toString();
             setTeams([{ id, name: 'Caixa 1', pokemon: [pTemplate] }]); setActiveTeamId(id);
@@ -127,7 +142,7 @@ export default function App() {
                                 </div>
                                 {limit < species.length && !searchTerm && (
                                     <button onClick={() => setLimit(p => p + 60)} className="mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
-                                        Carregar Mais Registros
+                                        Procurar Mais Pokémon
                                     </button>
                                 )}
                             </>

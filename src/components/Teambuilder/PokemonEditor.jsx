@@ -66,17 +66,17 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const hasStructuralShift = baseForm && ((baseForm.types?.map(t=>t.type?.name).join() !== pk.species?.types?.map(t=>t.type?.name).join()) || (baseForm.abilities?.[0]?.ability?.name !== pk.species?.abilities?.[0]?.ability?.name) || (baseForm.stats?.some((s, idx) => s.base_stat !== pk.species?.stats?.[idx]?.base_stat)));
 
     return (
-        <div className="bg-white border-4 border-slate-200 rounded-3xl p-6 lg:p-8 mt-6 shadow-[0_8px_0_#cbd5e1] animate-fade-in relative overflow-hidden">
+        <div className="bg-white border-4 border-slate-200 rounded-3xl p-6 lg:p-8 mt-8 shadow-[0_8px_0_#cbd5e1] animate-fade-in relative overflow-hidden">
             <datalist id="eItems">{allItems.map(i => <option key={i.name} value={i.name} />)}</datalist>
             <datalist id="eAbs">{validAbs.map(a => <option key={a.name} value={a.name} />)}</datalist>
             <datalist id="eMvs">{validMoves.map(m => <option key={m.name} value={m.name} />)}</datalist>
             <datalist id="eTera">{TYPES.map(t => <option key={t} value={t} />)}</datalist>
             
-            <div className="flex flex-col md:flex-row justify-between gap-6 mb-8 border-b-2 border-slate-200 pb-6">
+            <div className="flex flex-col md:flex-row justify-between gap-6 mb-8 border-b-4 border-slate-100 pb-6">
                 <div className="flex gap-5 items-center">
                     <div className="w-28 h-28 bg-slate-50 rounded-2xl border-4 border-slate-200 flex justify-center items-center flex-shrink-0 relative shadow-inner">
                         {pk.canGMax && <div className="absolute inset-0 bg-red-500/10 rounded-xl animate-pulse"></div>}
-                        {sprite ? <img src={sprite} className="w-24 h-24 object-contain drop-shadow-md relative z-10" /> : <span className="text-[10px] text-slate-400 font-black uppercase">Falta Img</span>}
+                        {sprite ? <img src={sprite} className="w-24 h-24 object-contain drop-shadow-md relative z-10" /> : <span className="text-[10px] text-slate-400 font-black uppercase">N/A</span>}
                     </div>
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
@@ -98,22 +98,22 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         </div>
                     </div>
                 </div>
-                <button onClick={onRemove} className="self-start px-4 py-2 bg-white text-slate-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm outline-none">Remover Parceiro</button>
+                <button onClick={onRemove} className="self-start px-5 py-2.5 bg-white text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm outline-none">Remover Parceiro</button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Item Segurado</label><input list="eItems" value={pk.item||''} onChange={e=>updatePk({...pk, item:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
-                        <div><label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Fenômeno Terastal</label><input list="eTera" value={pk.teraType||''} onChange={e=>updatePk({...pk, teraType:(e.target.value||'').toLowerCase()})} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 text-blue-800 text-sm font-black focus:border-blue-500 outline-none capitalize shadow-inner" /></div>
+                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Item Segurado</label><input list="eItems" placeholder="" value={pk.item||''} onChange={e=>updatePk({...pk, item:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
+                        <div><label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Fenômeno Terastal</label><input list="eTera" placeholder="" value={pk.teraType||''} onChange={e=>updatePk({...pk, teraType:(e.target.value||'').toLowerCase()})} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3.5 text-blue-800 text-sm font-black focus:border-blue-500 outline-none capitalize shadow-inner" /></div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Habilidade Atual</label><input list="eAbs" value={pk.ability||''} onChange={e=>updatePk({...pk, ability:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
-                        <div className="relative"><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Natureza</label><select value={pk.nature||'hardy'} onChange={e=>updatePk({...pk, nature:e.target.value})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">{Object.keys(NATURES).map(n=><option key={n} value={n}>{n} {NATURES[n].up?`(+${STAT_MAP[NATURES[n].up]}, -${STAT_MAP[NATURES[n].down]})`:''}</option>)}</select><button onClick={()=>randomize('nature')} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button></div>
+                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Habilidade Atual</label><input list="eAbs" placeholder="" value={pk.ability||''} onChange={e=>updatePk({...pk, ability:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
+                        <div className="relative"><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Natureza</label><select value={pk.nature||'hardy'} onChange={e=>updatePk({...pk, nature:e.target.value})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">{Object.keys(NATURES).map(n=><option key={n} value={n}>{n} {NATURES[n].up?`(+${STAT_MAP[NATURES[n].up]}, -${STAT_MAP[NATURES[n].down]})`:''}</option>)}</select><button onClick={()=>randomize('nature')} className="absolute right-4 top-[38px] text-slate-400 hover:text-blue-500 text-xl outline-none">🎲</button></div>
                     </div>
                     <div>
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1 flex justify-between"><span>Golpes Aprendidos</span><span className="bg-slate-200 px-2 py-0.5 rounded text-slate-600">{pk.moves?.filter(Boolean).length||0}/4</span></label>
-                        <div className="grid grid-cols-2 gap-3">{[0,1,2,3].map(i=><input key={i} list="eMvs" value={pk.moves?.[i]||''} onChange={e=>{const n=[...(pk.moves||[])]; n[i]=(e.target.value||'').toLowerCase(); updatePk({...pk, moves:n});}} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />)}</div>
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1 flex justify-between"><span>Golpes</span><span className="bg-slate-200 px-2 py-0.5 rounded text-slate-600">{pk.moves?.filter(Boolean).length||0}/4</span></label>
+                        <div className="grid grid-cols-2 gap-3">{[0,1,2,3].map(i=><input key={i} list="eMvs" placeholder="" value={pk.moves?.[i]||''} onChange={e=>{const n=[...(pk.moves||[])]; n[i]=(e.target.value||'').toLowerCase(); updatePk({...pk, moves:n});}} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />)}</div>
                     </div>
                     
                     {(hasStructuralShift || pk.canGMax) && (
@@ -128,7 +128,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             {pk.canGMax && (
                                 <div className="flex flex-col gap-2 text-[10px]">
                                     <div className="flex justify-between border-b-2 border-slate-200 pb-2"><span className="font-black text-slate-400">HP Expandido (Dynamax 10):</span><span className="uppercase font-black text-red-500">{getHpBeforeAfter().base} <span className="text-slate-300 mx-1">➔</span> {getHpBeforeAfter().gmax}</span></div>
-                                    <p className="text-[10px] font-semibold text-slate-500 leading-relaxed mt-2">O seu Pokémon vai mudar de forma quando o Dynamax for ativado. A vida será duplicada e seus ataques recebem o efeito especial <span className="text-red-500 font-black">G-Max</span>.</p>
+                                    <p className="text-[10px] font-semibold text-slate-500 leading-relaxed mt-2">A vida do parceiro será duplicada e seus ataques recebem o efeito especial <span className="text-red-500 font-black">G-Max</span>.</p>
                                 </div>
                             )}
                         </div>
@@ -160,9 +160,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             return (
                                 <div key={sN} className="grid grid-cols-[minmax(45px,1fr)_minmax(45px,1fr)_minmax(150px,3fr)_minmax(50px,1fr)_minmax(45px,1fr)] gap-2 items-center bg-white p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
                                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[sN] || sN}</div>
-                                    <div className="flex justify-center">{isHackmon ? <input type="number" min="1" max="255" value={base===''? '':base} onChange={e=>updatePk({...pk, customStats: {...(pk.customStats||{}), [sN]: e.target.value===''? '':parseInt(e.target.value)}})} className="w-10 bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" /> : <div className="text-[11px] font-black text-slate-700">{base}</div>}</div>
-                                    <div className="flex items-center gap-3"><input type="range" min="0" max="252" step="4" value={ev===''?0:ev} onChange={e=>handleChange('evs', sN, e.target.value)} /><input type="number" min="0" max="252" value={ev===''? '':ev} onChange={e=>handleChange('evs', sN, e.target.value)} className="w-11 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" /></div>
-                                    <div className="flex justify-center"><input type="number" min="0" max="31" value={iv===''? '':iv} onChange={e=>handleChange('ivs', sN, e.target.value)} className="w-11 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" /></div>
+                                    <div className="flex justify-center">{isHackmon ? <input type="number" min="1" max="255" placeholder="" value={base===''? '':base} onChange={e=>updatePk({...pk, customStats: {...(pk.customStats||{}), [sN]: e.target.value===''? '':parseInt(e.target.value)}})} className="w-10 bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" /> : <div className="text-[11px] font-black text-slate-700">{base}</div>}</div>
+                                    <div className="flex items-center gap-3"><input type="range" min="0" max="252" step="4" value={ev===''?0:ev} onChange={e=>handleChange('evs', sN, e.target.value)} /><input type="number" min="0" max="252" placeholder="" value={ev===''? '':ev} onChange={e=>handleChange('evs', sN, e.target.value)} className="w-11 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" /></div>
+                                    <div className="flex justify-center"><input type="number" min="0" max="31" placeholder="" value={iv===''? '':iv} onChange={e=>handleChange('ivs', sN, e.target.value)} className="w-11 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" /></div>
                                     <div className={`text-sm font-black flex justify-end gap-1 ${cCol}`}>{!isTTRPG && multi>1&&<span className="text-emerald-500">↑</span>}{!isTTRPG && multi<1&&<span className="text-red-500">↓</span>} {finalVal}</div>
                                 </div>
                             );

@@ -180,8 +180,8 @@ export default function App() {
                                 </div>
                             </div>
                             <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[220px]">
-                                <button onClick={handleOpenPokedex} className={`game-button flex-1 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest outline-none ${view==='pokedex'?'bg-red-500 text-white':'bg-slate-100 text-slate-600'}`}>Pokédex</button>
-                                <button onClick={handleOpenTeambuilder} className={`game-button flex-1 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest outline-none ${view==='teambuilder'?'bg-red-500 text-white':'bg-slate-100 text-slate-600'}`}>Box</button>
+                                <button onClick={handleOpenPokedex} className={'game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none ' + (view === 'pokedex' ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-600')}>Pokédex</button>
+                                <button onClick={handleOpenTeambuilder} className={'game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none ' + (view === 'teambuilder' ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-600')}>Box</button>
                             </div>
                         </div>
                         

@@ -134,8 +134,8 @@ export default function App() {
 
         const pTemplate = { 
             species: formData,
-            level: 50,
-            friendship: 150,
+            level: 5,
+            friendship: 70,
             canGMax: false,
             teraType: '',
             item: '', 

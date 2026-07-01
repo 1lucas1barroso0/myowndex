@@ -12,69 +12,6 @@ export const fetchCached = async (url) => {
     } catch { return null; }
 };
 
-// Hierarquia Oficial de Lançamentos: Do mais recente ao mais antigo!
-export const VERSION_PRIORITY = [
-    'champions', 'scarlet-violet', 'legends-arceus', 'brilliant-diamond-shining-pearl', 
-    'sword-shield', 'lets-go-pikachu-lets-go-eevee', 'ultra-sun-ultra-moon', 'sun-moon', 
-    'omega-ruby-alpha-sapphire', 'x-y', 'black-2-white-2', 'black-white', 'heartgold-soulsilver', 
-    'platinum', 'diamond-pearl', 'firered-leafgreen', 'emerald', 'ruby-sapphire', 
-    'crystal', 'gold-silver', 'yellow', 'red-blue'
-];
-
-export const filterMovesByLatestVersion = (moves) => {
-    if (!moves || !moves.length) return [];
-    return moves.map(m => {
-        let bestDetail = null;
-        let bestRank = 999;
-        m.version_group_details.forEach(d => {
-            const rank = VERSION_PRIORITY.indexOf(d.version_group?.name);
-            if (rank !== -1 && rank < bestRank) { bestRank = rank; bestDetail = d; }
-        });
-        if (!bestDetail && m.version_group_details.length > 0) {
-            bestDetail = m.version_group_details[m.version_group_details.length - 1];
-        }
-        return { move: m.move, latest_detail: bestDetail };
-    }).filter(m => m.latest_detail);
-};
-
-// Compressão de Dados Atômica: Torna o código do Cabo Link minúsculo!
-export const packTeam = (team) => {
-    const pkmns = team.pokemon.map(pk => {
-        const m = pk.moves || ['','','',''];
-        const iv = pk.ivs || {hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31};
-        const ev = pk.evs || {hp:0,attack:0,defense:0,'special-attack':0,'special-defense':0,speed:0};
-        return [
-            pk.species?.name || '', pk.level || 50, pk.item || '', pk.ability || '', pk.nature || 'hardy',
-            [m[0],m[1],m[2],m[3]], [iv.hp, iv.attack, iv.defense, iv['special-attack'], iv['special-defense'], iv.speed],
-            [ev.hp, ev.attack, ev.defense, ev['special-attack'], ev['special-defense'], ev.speed],
-            pk.canGMax ? 1 : 0, pk.teraType || '', pk.friendship ?? 150, pk.gender || 'N', pk.genderRate ?? -1,
-            pk.customStats ? [pk.customStats.hp||0, pk.customStats.attack||0, pk.customStats.defense||0, pk.customStats['special-attack']||0, pk.customStats['special-defense']||0, pk.customStats.speed||0] : 0,
-            pk.customTypes ? [pk.customTypes[0]||'', pk.customTypes[1]||''] : 0
-        ];
-    });
-    return [team.name, pkmns];
-};
-
-export const unpackTeam = async (packedData) => {
-    const [name, pkmnsArr] = packedData;
-    const newTeamId = Date.now().toString();
-    const reconstructed = await Promise.all(pkmnsArr.map(async (arr) => {
-        const [sName, lvl, itm, abil, nat, mvs, ivsArr, evsArr, gx, tera, friend, gen, genRate, csArr, ctArr] = arr;
-        if (!sName) return null;
-        const spData = await fetchCached(`https://pokeapi.co/api/v2/pokemon/${sName}`);
-        if (!spData) return null;
-        return {
-            species: spData, level: lvl, item: itm, ability: abil, nature: nat, moves: mvs,
-            ivs: {hp:ivsArr[0], attack:ivsArr[1], defense:ivsArr[2], 'special-attack':ivsArr[3], 'special-defense':ivsArr[4], speed:ivsArr[5]},
-            evs: {hp:evsArr[0], attack:evsArr[1], defense:evsArr[2], 'special-attack':evsArr[3], 'special-defense':evsArr[4], speed:evsArr[5]},
-            canGMax: gx === 1, teraType: tera, friendship: friend, gender: gen, genderRate: genRate,
-            customStats: csArr !== 0 ? {hp:csArr[0], attack:csArr[1], defense:csArr[2], 'special-attack':csArr[3], 'special-defense':csArr[4], speed:csArr[5]} : null,
-            customTypes: ctArr !== 0 ? ctArr : null
-        };
-    }));
-    return { id: newTeamId, name: name || 'Caixa Recebida', pokemon: reconstructed.filter(Boolean) };
-};
-
 export const convertToTTRPG = (value, isHp = false) => {
     if (!value) return isHp ? 1 : 0;
     const result = value / 20;
@@ -93,5 +30,50 @@ export const calculateStat = (base, ev, iv, level, natureMulti, isHp, speciesNam
 export const formatName = (str) => str ? str.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
 export const extractId = (url) => url ? url.split('/').filter(Boolean).pop() : '0';
 
+// Cronologia oficial de lançamentos para filtragem de integridade de dados
+export const VERSION_PRIORITY = ['scarlet-violet', 'legends-arceus', 'brilliant-diamond-shining-pearl', 'sword-shield', 'ultra-sun-ultra-moon', 'sun-moon'];
+
+export const filterMovesByLatestVersion = (moves) => {
+    if (!moves || !moves.length) return [];
+    
+    let bestVersion = null;
+    for (const v of VERSION_PRIORITY) {
+        const hasVersion = moves.some(m => m.version_group_details?.some(d => d.version_group?.name === v));
+        if (hasVersion) {
+            bestVersion = v;
+            break;
+        }
+    }
+    
+    if (!bestVersion && moves[0]?.version_group_details?.length) {
+        const lastIdx = moves[0].version_group_details.length - 1;
+        bestVersion = moves[0].version_group_details[lastIdx].version_group?.name;
+    }
+    
+    return moves.map(m => {
+        const detail = m.version_group_details?.find(d => d.version_group?.name === bestVersion) || m.version_group_details?.[m.version_group_details.length - 1];
+        return {
+            move: m.move,
+            latest_detail: detail
+        };
+    }).filter(m => m.latest_detail);
+};
+
 export const STAT_MAP = { 'hp': 'HP', 'attack': 'Atk', 'defense': 'Def', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Spe' };
-export const NATURES = { hardy: {up: null, down: null}, lonely: {up: 'attack', down: 'defense'}, brave: {up: 'attack', down: 'speed'}, adamant: {up: 'attack', down: 'special-attack'}, naughty: {up: 'attack', down: 'special-defense'}, bold: {up: 'defense', down: 'attack'}, docile: {up: null, down: null}, relaxed: {up: 'defense', down: 'speed
+export const NATURES = { hardy: {up: null, down: null}, lonely: {up: 'attack', down: 'defense'}, brave: {up: 'attack', down: 'speed'}, adamant: {up: 'attack', down: 'special-attack'}, naughty: {up: 'attack', down: 'special-defense'}, bold: {up: 'defense', down: 'attack'}, docile: {up: null, down: null}, relaxed: {up: 'defense', down: 'speed'}, impish: {up: 'defense', down: 'special-attack'}, lax: {up: 'defense', down: 'special-defense'}, timid: {up: 'speed', down: 'attack'}, hasty: {up: 'speed', down: 'defense'}, serious: {up: null, down: null}, jolly: {up: 'speed', down: 'special-attack'}, naive: {up: 'speed', down: 'special-defense'}, modest: {up: 'special-attack', down: 'attack'}, mild: {up: 'special-attack', down: 'defense'}, quiet: {up: 'special-attack', down: 'speed'}, bashful: {up: null, down: null}, rash: {up: 'special-attack', down: 'special-defense'}, calm: {up: 'special-defense', down: 'attack'}, gentle: {up: 'special-defense', down: 'defense'}, sassy: {up: 'special-defense', down: 'speed'}, careful: {up: 'special-defense', down: 'special-attack'}, quirky: {up: null, down: null} };
+export const TYPES = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy', 'stellar'];
+export const TYPE_COLORS = { normal: '#9ca3af', fire: '#f97316', water: '#3b82f6', electric: '#eab308', grass: '#22c55e', ice: '#67e8f9', fighting: '#ef4444', poison: '#a855f7', ground: '#d97706', flying: '#818cf8', psychic: '#ec4899', bug: '#84cc16', rock: '#b45309', ghost: '#6366f1', dragon: '#6366f1', dark: '#334155', steel: '#94a3b8', fairy: '#f472b6', stellar: '#14b8a6' };
+export const MATCHUPS = { normal: {fighting: 2, ghost: 0}, fire: {fire: 0.5, water: 2, grass: 0.5, ice: 0.5, ground: 2, bug: 0.5, rock: 2, steel: 0.5, fairy: 0.5}, water: {fire: 0.5, water: 0.5, electric: 2, grass: 2, ice: 0.5, steel: 0.5}, electric: {electric: 0.5, ground: 2, flying: 0.5, steel: 0.5}, grass: {fire: 2, water: 0.5, grass: 0.5, electric: 0.5, ice: 2, poison: 2, ground: 0.5, flying: 2, bug: 2}, ice: {fire: 2, ice: 0.5, fighting: 2, rock: 2, steel: 2}, fighting: {flying: 2, psychic: 2, bug: 0.5, rock: 0.5, dark: 0.5, fairy: 2}, poison: {grass: 0.5, fighting: 0.5, poison: 0.5, ground: 2, psychic: 2, bug: 0.5, fairy: 0.5}, ground: {water: 2, electric: 0, grass: 2, ice: 2, poison: 0.5, rock: 0.5}, flying: {electric: 2, grass: 0.5, ice: 2, fighting: 0.5, ground: 0, bug: 0.5, rock: 2}, psychic: {fighting: 0.5, psychic: 0.5, bug: 2, ghost: 2, dark: 2}, bug: {fire: 2, grass: 0.5, fighting: 0.5, ground: 0.5, flying: 2, rock: 2}, rock: {normal: 0.5, fire: 0.5, water: 2, grass: 2, poison: 0.5, ground: 2, flying: 0.5, fighting: 2, steel: 2}, ghost: {normal: 0, fighting: 0, poison: 0.5, bug: 0.5, ghost: 2, dark: 2}, dragon: {fire: 0.5, water: 0.5, electric: 0.5, grass: 0.5, ice: 2, dragon: 2, fairy: 2}, dark: {fighting: 2, psychic: 0, bug: 2, ghost: 0.5, dark: 0.5, fairy: 2}, steel: {normal: 0.5, fire: 2, water: 1, electric: 1, grass: 0.5, ice: 0.5, fighting: 2, poison: 0, ground: 2, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 0.5, ghost: 1, dragon: 0.5, dark: 1, steel: 0.5, fairy: 0.5}, fairy: {fighting: 0.5, poison: 2, bug: 0.5, dragon: 0, dark: 0.5, steel: 2} };
+
+export const calculateDefenses = (typesArr) => {
+    if (!typesArr) return {};
+    const defs = {}; TYPES.forEach(t => defs[t] = 1);
+    typesArr.forEach(tObj => {
+        const tName = tObj?.type?.name;
+        if (!tName) return;
+        Object.keys(MATCHUPS).forEach(atkType => {
+            if (MATCHUPS[atkType] && MATCHUPS[atkType][tName] !== undefined) defs[atkType] *= MATCHUPS[atkType][tName];
+        });
+    });
+    return defs;
+};

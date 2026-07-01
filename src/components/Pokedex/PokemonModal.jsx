@@ -76,7 +76,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 
                 <div className="w-full md:w-5/12 p-4 sm:p-6 md:p-8 bg-slate-50/90 flex flex-col overflow-y-auto no-scrollbar app-scroll-area border-b-4 md:border-b-0 md:border-r-4 border-slate-200 shadow-md z-10">
                     <div className="z-10 mb-6 flex flex-col items-start">
-                        <span className="whitespace-nowrap text-[9px] sm:text-[11px] font-black text...
+                        <span className="whitespace-nowrap text-[9px] sm:text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">No. {String(baseInfo.id).padStart(4, '0')}</span>
                         <h2 className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-4 tracking-tight leading-none drop-shadow-sm">{activeForm?.name?.split('-')[0] || baseInfo.name}</h2>
                         {activeForm?.name?.includes('-') && <span className="text-sm font-black text-red-500 capitalize block mt-2">{activeForm.name.substring(activeForm.name.indexOf('-') + 1).replace(/-/g, ' ')} Form</span>}
                     </div>

@@ -66,15 +66,15 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const sprite = formData.sprites?.other?.['official-artwork']?.front_default || formData.sprites?.front_default;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 sm:p-8 animate-fade-in" onClick={onClose}>
-            <div className="bg-slate-50 rounded-[2rem] w-full max-w-6xl h-[90vh] flex flex-col md:flex-row overflow-hidden border-8 border-red-600 relative shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-2 sm:p-4 md:p-8 animate-fade-in" onClick={onClose}>
+            <div className="bg-slate-50 rounded-[1.5rem] sm:rounded-[2rem] w-full max-w-6xl max-h-[95vh] h-[95vh] sm:h-[90vh] flex flex-col md:flex-row overflow-hidden border-4 sm:border-8 border-red-600 relative shadow-2xl" onClick={e => e.stopPropagation()}>
                 
                 {/* Botão de Fechar com cara de botão físico */}
                 <button onClick={onClose} className="absolute top-4 right-4 w-12 h-12 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-30 transition-all border-4 border-slate-200 shadow-sm">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 
-                <div className="w-full md:w-5/12 p-8 bg-white flex flex-col overflow-y-auto no-scrollbar border-r-4 border-slate-200 shadow-md z-10">
+                <div className="w-full md:w-5/12 p-4 sm:p-6 md:p-8 bg-white flex flex-col overflow-y-auto no-scrollbar border-b-4 md:border-b-0 md:border-r-4 border-slate-200 shadow-md z-10">
                     <div className="z-10 mb-6 flex flex-col items-start">
                         <span className="text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">No. {String(baseInfo.id).padStart(4, '0')}</span>
                         <h2 className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-4 tracking-tight leading-none drop-shadow-sm">{activeForm?.name?.split('-')[0] || baseInfo.name}</h2>
@@ -113,8 +113,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     </div>
                 </div>
 
-                <div className="w-full md:w-7/12 flex flex-col bg-slate-100 relative">
-                    <div className="flex bg-slate-200 border-b-4 border-slate-300 sticky top-0 z-20">
+                <div className="w-full md:w-7/12 flex flex-col bg-slate-100 relative min-h-0">
+                    <div className="flex flex-wrap bg-slate-200 border-b-4 border-slate-300 sticky top-0 z-20">
                         {['stats', 'defenses', 'moves'].map(t => (
                             <button key={t} onClick={() => setTab(t)} className={`flex-1 py-5 text-[10px] font-black uppercase tracking-widest transition-all outline-none ${tab === t ? 'text-white bg-red-500 border-b-4 border-red-700 shadow-inner' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-300 border-b-4 border-transparent'}`}>
                                 {t === 'stats' ? 'Dados da Dex' : t === 'defenses' ? 'Tipagem' : 'Golpes'}
@@ -122,7 +122,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         ))}
                     </div>
                     
-                    <div className="flex-1 p-6 md:p-10 overflow-y-auto no-scrollbar">
+                    <div className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto no-scrollbar">
                         {tab === 'stats' && (
                             <div className="animate-fade-in space-y-8">
                                 <div className="flex gap-4">

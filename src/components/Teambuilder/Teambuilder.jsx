@@ -126,14 +126,14 @@ export default function Teambuilder({ envProps }) {
 
     return (
         <div className="flex flex-col xl:flex-row gap-6 animate-fade-in">
-            <div className="w-full xl:w-1/4 bg-white border-4 border-slate-200 rounded-3xl p-6 flex flex-col gap-3 h-fit shadow-[0_8px_0_#cbd5e1]">
-                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Caixas do PC</h3>
+            <div className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start bg-white border-4 border-slate-200 rounded-3xl p-4 sm:p-6 flex flex-col gap-3 h-fit shadow-[0_8px_0_#cbd5e1]">
+                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Caixas do PC</h3>
                 {teams.map(t => (
-                    <button key={t.id} onClick={() => {setActiveTeamId(t.id); setEditingSlot(null); setShareCode('');}} className={`p-4 rounded-2xl text-left font-black text-xs border-2 transition-all outline-none shadow-sm ${activeTeamId === t.id ? 'bg-blue-500 border-blue-600 text-white shadow-[0_4px_0_#1d4ed8] translate-y-[-2px]' : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-white'}`}>
+                    <button key={t.id} onClick={() => {setActiveTeamId(t.id); setEditingSlot(null); setShareCode('');}} className={`w-full p-4 rounded-2xl text-left font-black text-xs border-2 transition-all outline-none shadow-sm ${activeTeamId === t.id ? 'bg-blue-500 border-blue-600 text-white shadow-[0_4px_0_#1d4ed8] translate-y-[-2px]' : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-white'}`}>
                         {t.name}
                     </button>
                 ))}
-                <button onClick={createTeam} className="p-4 mt-3 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl hover:text-red-500 hover:border-red-300 hover:bg-red-50 transition-all outline-none">
+                <button onClick={createTeam} className="w-full p-4 mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl hover:text-red-500 hover:border-red-300 hover:bg-red-50 transition-all outline-none">
                     + Nova Caixa
                 </button>
 
@@ -157,12 +157,12 @@ export default function Teambuilder({ envProps }) {
                 </div>
             </div>
             
-            <div className="w-full xl:w-3/4">
+            <div className="w-full xl:w-3/4 min-w-0">
                 {active && (
-                    <div className="bg-white border-4 border-slate-200 p-6 md:p-8 rounded-3xl shadow-[0_8px_0_#cbd5e1]">
-                        <div className="flex justify-between items-center mb-8 border-b-4 border-slate-100 pb-5">
-                            <input type="text" value={active.name || ''} onChange={e => updateActive(t => ({...t, name: e.target.value}))} className="bg-transparent text-3xl font-black text-slate-800 focus:outline-none w-full max-w-md tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" />
-                            <div className="flex gap-3">
+                    <div className="bg-white border-4 border-slate-200 p-4 sm:p-6 md:p-8 rounded-3xl shadow-[0_8px_0_#cbd5e1]">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b-4 border-slate-100 pb-5">
+                            <input type="text" value={active.name || ''} onChange={e => updateActive(t => ({...t, name: e.target.value}))} className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full max-w-md tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" />
+                            <div className="flex gap-3 self-end sm:self-auto">
                                 <button onClick={generateLinkCode} className="px-4 py-3.5 bg-white text-blue-500 hover:bg-blue-50 hover:text-blue-600 border-2 border-slate-200 shadow-sm rounded-2xl outline-none">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                                 </button>
@@ -173,12 +173,12 @@ export default function Teambuilder({ envProps }) {
                         </div>
 
                         {shareCode && (
-                            <div className="mb-8 p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between shadow-inner animate-fade-in">
+                            <div className="mb-8 p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl flex flex-col lg:flex-row gap-4 items-center justify-between shadow-inner animate-fade-in">
                                 <div className="flex-1 w-full">
                                     <input type="text" readOnly value={shareCode} className="w-full bg-white border-2 border-blue-200 rounded-xl p-3 text-xs font-bold text-slate-600 outline-none shadow-sm" />
                                 </div>
-                                <div className="flex gap-2 w-full sm:w-auto">
-                                    <button onClick={copyToClipboard} className="px-6 py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none">{copied ? 'Copiado!' : 'Copiar'}</button>
+                                <div className="flex gap-2 w-full lg:w-auto">
+                                    <button onClick={copyToClipboard} className="flex-1 lg:flex-none px-6 py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none">{copied ? 'Copiado!' : 'Copiar'}</button>
                                     <button onClick={() => setShareCode('')} className="px-4 py-3.5 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 rounded-xl outline-none">X</button>
                                 </div>
                             </div>
@@ -189,10 +189,10 @@ export default function Teambuilder({ envProps }) {
                                 <div key={i} onClick={() => setEditingSlot(i)} className={`p-4 rounded-2xl border-2 cursor-pointer flex gap-4 items-center transition-all relative overflow-hidden group shadow-sm ${editingSlot === i ? 'bg-blue-50 border-blue-400 shadow-[0_4px_0_#60a5fa] translate-y-[-2px]' : 'bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white'}`}>
                                     {pk.canGMax && <div className="absolute -bottom-4 -right-4 text-red-500/10 text-8xl font-black rotate-12 pointer-events-none">X</div>}
                                     <div className="w-16 h-16 bg-white rounded-xl border-2 border-slate-100 flex items-center justify-center shadow-inner relative z-10 flex-shrink-0">
-                                        {pk.species?.sprites?.front_default ? <img src={pk.species.sprites.front_default} className="w-14 h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" /> : <span className="text-[9px] font-black text-slate-400 uppercase">---</span>}
+                                        {pk.species?.sprites?.front_default ? <img src={pk.species.sprites.front_default} className="w-14 h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" alt={pk.species?.name} /> : <span className="text-[9px] font-black text-slate-400 uppercase">---</span>}
                                     </div>
                                     <div className="relative z-10 min-w-0 flex-1">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between gap-2">
                                             <div className="font-black text-sm text-slate-800 capitalize truncate">{formatName(pk.species?.name)}</div>
                                             <span className={`text-xs font-black px-1.5 py-0.5 rounded border ${pk.gender === 'M' ? 'text-blue-500 bg-blue-50 border-blue-200' : pk.gender === 'F' ? 'text-pink-500 bg-pink-50 border-pink-200' : 'text-slate-400 bg-slate-100 border-slate-200'}`}>{pk.gender === 'M' ? '♂' : pk.gender === 'F' ? '♀' : '⚲'}</span>
                                         </div>

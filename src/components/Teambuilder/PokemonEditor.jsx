@@ -80,15 +80,15 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const hasStructuralShift = baseForm && ((baseForm.types?.map(t=>t.type?.name).join() !== pk.species?.types?.map(t=>t.type?.name).join()) || (baseForm.abilities?.[0]?.ability?.name !== pk.species?.abilities?.[0]?.ability?.name) || (baseForm.stats?.some((s, idx) => s.base_stat !== pk.species?.stats?.[idx]?.base_stat)));
 
     return (
-        <div className="bg-white border-4 border-slate-200 rounded-3xl p-6 lg:p-8 mt-6 shadow-[0_8px_0_#cbd5e1] animate-fade-in relative overflow-hidden">
+        <div className="bg-white border-4 border-slate-200 rounded-3xl p-4 sm:p-6 lg:p-8 mt-6 shadow-[0_8px_0_#cbd5e1] animate-fade-in relative overflow-hidden">
             <datalist id="eItems">{allItems.map(i => <option key={i.name} value={i.name} />)}</datalist>
             <datalist id="eAbs">{validAbs.map(a => <option key={a.name} value={a.name} />)}</datalist>
             <datalist id="eMvs">{validMoves.map(m => <option key={m.name} value={m.name} />)}</datalist>
             <datalist id="eTera">{TYPES.map(t => <option key={t} value={t} />)}</datalist>
             
             <div className="flex flex-col md:flex-row justify-between gap-6 mb-8 border-b-2 border-slate-200 pb-6">
-                <div className="flex gap-5 items-center">
-                    <div className="w-28 h-28 bg-slate-50 rounded-2xl border-4 border-slate-200 flex justify-center items-center flex-shrink-0 relative shadow-inner">
+                <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 bg-slate-50 rounded-2xl border-4 border-slate-200 flex justify-center items-center flex-shrink-0 relative shadow-inner">
                         {pk.canGMax && <div className="absolute inset-0 bg-red-500/10 rounded-xl animate-pulse"></div>}
                         {sprite ? <img src={sprite} className="w-24 h-24 object-contain drop-shadow-md relative z-10" /> : <span className="text-[10px] text-slate-400 font-black uppercase">---</span>}
                     </div>
@@ -115,9 +115,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <button onClick={onRemove} className="self-start px-4 py-2 bg-white text-slate-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm outline-none">Remover Parceiro</button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-10">
                 <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Item Segurado</label><input list="eItems" value={pk.item||''} onChange={e=>updatePk({...pk, item:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus-within:border-blue-400 outline-none capitalize shadow-inner" /></div>
                         <div><label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Fenômeno Terastal</label><input list="eTera" value={pk.teraType||''} onChange={e=>updatePk({...pk, teraType:(e.target.value||'').toLowerCase()})} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 text-blue-800 text-sm font-black focus:border-blue-500 outline-none capitalize shadow-inner" /></div>
                     </div>
@@ -141,7 +141,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
                     <div>
                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1 flex justify-between"><span>Golpes</span><span className="bg-slate-200 px-2 py-0.5 rounded text-slate-600">{pk.moves?.filter(Boolean).length||0}/4</span></label>
-                        <div className="grid grid-cols-2 gap-3">{[0,1,2,3].map(i=><input key={i} list="eMvs" value={pk.moves?.[i]||''} onChange={e=>{const n=[...(pk.moves||[])]; n[i]=(e.target.value||'').toLowerCase(); updatePk({...pk, moves:n});}} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />)}</div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{[0,1,2,3].map(i=><input key={i} list="eMvs" value={pk.moves?.[i]||''} onChange={e=>{const n=[...(pk.moves||[])]; n[i]=(e.target.value||'').toLowerCase(); updatePk({...pk, moves:n});}} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />)}</div>
                     </div>
                 </div>
 
@@ -150,8 +150,10 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Treinamento Físico</h3>
                         <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">EVs Livres: <span className={evTotal>508?'text-red-500':'text-blue-500'}>{510-evTotal}</span>/510</div>
                     </div>
-                    <div className="grid grid-cols-[minmax(45px,1fr)_minmax(45px,1fr)_minmax(150px,3fr)_minmax(50px,1fr)_minmax(45px,1fr)] gap-2 mb-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center items-center">
-                        <div className="text-left">Stat</div><div>Base</div><div>Esforço (EVs)</div><div className="flex items-center justify-center gap-1 cursor-pointer hover:text-blue-500 transition-colors" onClick={()=>randomize('ivs')}>IVs 🎲</div><div className={`text-right ${isTTRPG ? 'text-red-500' : 'text-slate-800'}`}>Total</div>
+                    <div className="overflow-x-auto">
+                        <div className="grid grid-cols-[minmax(45px,1fr)_minmax(45px,1fr)_minmax(150px,3fr)_minmax(50px,1fr)_minmax(45px,1fr)] gap-2 mb-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center items-center min-w-[640px]">
+                            <div className="text-left">Stat</div><div>Base</div><div>Esforço (EVs)</div><div className="flex items-center justify-center gap-1 cursor-pointer hover:text-blue-500 transition-colors" onClick={()=>randomize('ivs')}>IVs 🎲</div><div className={`text-right ${isTTRPG ? 'text-red-500' : 'text-slate-800'}`}>Total</div>
+                        </div>
                     </div>
                     <div className="flex flex-col gap-3">
                         {pk.species?.stats?.map(s => {
@@ -168,7 +170,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             else if (multi < 1) cCol = "text-red-500";
                             
                             return (
-                                <div key={sN} className="grid grid-cols-[minmax(45px,1fr)_minmax(45px,1fr)_minmax(150px,3fr)_minmax(50px,1fr)_minmax(45px,1fr)] gap-2 items-center bg-white p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
+                                <div key={sN} className="grid grid-cols-[minmax(45px,1fr)_minmax(45px,1fr)_minmax(150px,3fr)_minmax(50px,1fr)_minmax(45px,1fr)] gap-2 items-center bg-white p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors min-w-[640px]">
                                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[sN] || sN}</div>
                                     <div className="flex justify-center">{isHackmon ? <input type="number" min="1" max="255" value={base===''? '':base} onChange={e=>updatePk({...pk, customStats: {...(pk.customStats||{}), [sN]: e.target.value===''? '':parseInt(e.target.value)}})} className="w-10 bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" /> : <div className="text-[11px] font-black text-slate-700">{base}</div>}</div>
                                     <div className="flex items-center gap-3"><input type="range" min="0" max="252" step="4" value={ev===''?0:ev} onChange={e=>handleChange('evs', sN, e.target.value)} /><input type="number" min="0" max="252" value={ev===''? '':ev} onChange={e=>handleChange('evs', sN, e.target.value)} className="w-11 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" /></div>

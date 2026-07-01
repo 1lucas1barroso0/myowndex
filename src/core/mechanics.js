@@ -30,6 +30,35 @@ export const calculateStat = (base, ev, iv, level, natureMulti, isHp, speciesNam
 export const formatName = (str) => str ? str.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
 export const extractId = (url) => url ? url.split('/').filter(Boolean).pop() : '0';
 
+// Cronologia oficial de lançamentos para filtragem de integridade de dados
+export const VERSION_PRIORITY = ['scarlet-violet', 'legends-arceus', 'brilliant-diamond-shining-pearl', 'sword-shield', 'ultra-sun-ultra-moon', 'sun-moon'];
+
+export const filterMovesByLatestVersion = (moves) => {
+    if (!moves || !moves.length) return [];
+    
+    let bestVersion = null;
+    for (const v of VERSION_PRIORITY) {
+        const hasVersion = moves.some(m => m.version_group_details?.some(d => d.version_group?.name === v));
+        if (hasVersion) {
+            bestVersion = v;
+            break;
+        }
+    }
+    
+    if (!bestVersion && moves[0]?.version_group_details?.length) {
+        const lastIdx = moves[0].version_group_details.length - 1;
+        bestVersion = moves[0].version_group_details[lastIdx].version_group?.name;
+    }
+    
+    return moves.map(m => {
+        const detail = m.version_group_details?.find(d => d.version_group?.name === bestVersion) || m.version_group_details?.[m.version_group_details.length - 1];
+        return {
+            move: m.move,
+            latest_detail: detail
+        };
+    }).filter(m => m.latest_detail);
+};
+
 export const STAT_MAP = { 'hp': 'HP', 'attack': 'Atk', 'defense': 'Def', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Spe' };
 export const NATURES = { hardy: {up: null, down: null}, lonely: {up: 'attack', down: 'defense'}, brave: {up: 'attack', down: 'speed'}, adamant: {up: 'attack', down: 'special-attack'}, naughty: {up: 'attack', down: 'special-defense'}, bold: {up: 'defense', down: 'attack'}, docile: {up: null, down: null}, relaxed: {up: 'defense', down: 'speed'}, impish: {up: 'defense', down: 'special-attack'}, lax: {up: 'defense', down: 'special-defense'}, timid: {up: 'speed', down: 'attack'}, hasty: {up: 'speed', down: 'defense'}, serious: {up: null, down: null}, jolly: {up: 'speed', down: 'special-attack'}, naive: {up: 'speed', down: 'special-defense'}, modest: {up: 'special-attack', down: 'attack'}, mild: {up: 'special-attack', down: 'defense'}, quiet: {up: 'special-attack', down: 'speed'}, bashful: {up: null, down: null}, rash: {up: 'special-attack', down: 'special-defense'}, calm: {up: 'special-defense', down: 'attack'}, gentle: {up: 'special-defense', down: 'defense'}, sassy: {up: 'special-defense', down: 'speed'}, careful: {up: 'special-defense', down: 'special-attack'}, quirky: {up: null, down: null} };
 export const TYPES = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy', 'stellar'];

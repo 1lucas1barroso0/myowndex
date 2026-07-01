@@ -5,42 +5,53 @@ import { formatName } from '../../core/mechanics';
 export default function Teambuilder({ envProps }) {
     const { teams, setTeams, allItems, allMoves, allAbilities, activeTeamId, setActiveTeamId, isTTRPG, isHackmon, onSearchClick } = envProps;
     const [editingSlot, setEditingSlot] = useState(null);
-    const [shareText, setShareText] = useState('');
+    
+    // Estados do Cabo Link (Importação e Exportação)
+    const [importing, setImporting] = useState(false);
+    const [importData, setImportData] = useState('');
+    const [importError, setImportError] = useState(false);
+    const [shareCode, setShareCode] = useState('');
+    const [copied, setCopied] = useState(false);
     
     const active = teams.find(t => t.id === activeTeamId);
     
     const createTeam = () => { 
         const id = Date.now().toString(); 
-        setTeams([...teams, { id, name: 'Nova Caixa', pokemon: [] }]); 
+        setTeams([...teams, { id, name: 'Caixa Vazia', pokemon: [] }]); 
         setActiveTeamId(id); 
         setEditingSlot(null); 
     };
     
     const updateActive = (cb) => setTeams(teams.map(t => t.id === activeTeamId ? cb(t) : t));
 
-    const generateTradeLink = () => {
-        if (!active || !active.pokemon.length) return;
-        
-        // Compactador de Dados da MyOwnDex
-        const liteTeam = {
-            name: active.name,
-            p: active.pokemon.map(pk => ({
-                u: pk.species?.url, l: pk.level, f: pk.friendship, g: pk.canGMax, 
-                i: pk.item, t: pk.teraType, a: pk.ability, n: pk.nature, m: pk.moves, 
-                iv: pk.ivs, ev: pk.evs, cs: pk.customStats, ct: pk.customTypes
-            }))
-        };
-        
-        const encoded = encodeURIComponent(btoa(JSON.stringify(liteTeam)));
-        const url = `${window.location.origin}${window.location.pathname}?trade=${encoded}`;
-        
-        navigator.clipboard.writeText(url).then(() => {
-            setShareText('Sinal Enviado!');
-            setTimeout(() => setShareText(''), 3000);
-        }).catch(() => {
-            setShareText('Falha no Rotom Phone');
-            setTimeout(() => setShareText(''), 3000);
-        });
+    // Lógicas de Transferência
+    const generateLinkCode = () => {
+        try {
+            const code = btoa(encodeURIComponent(JSON.stringify(active)));
+            setShareCode(`MYOWNDEX-${code}`);
+            setCopied(false);
+        } catch { /* Ignorado silenciosamente em caso de erro extremo */ }
+    };
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(shareCode);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
+    };
+
+    const receiveViaLinkCable = () => {
+        try {
+            const cleanCode = importData.replace('MYOWNDEX-', '').trim();
+            const decodedTeam = JSON.parse(decodeURIComponent(atob(cleanCode)));
+            decodedTeam.id = Date.now().toString(); 
+            setTeams([...teams, decodedTeam]);
+            setActiveTeamId(decodedTeam.id);
+            setImporting(false);
+            setImportData('');
+            setImportError(false);
+        } catch {
+            setImportError(true);
+        }
     };
 
     if (!teams.length) return (
@@ -48,11 +59,30 @@ export default function Teambuilder({ envProps }) {
             <div className="w-24 h-24 bg-white rounded-full border-4 border-slate-200 shadow-sm flex items-center justify-center mb-6">
                 <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
             </div>
-            <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">O PC está vazio!</h2>
-            <p className="text-sm text-slate-500 mb-8 leading-relaxed font-semibold">Organize sua mochila, escolha seus parceiros e prepare sua próxima tática de batalha.</p>
-            <button onClick={createTeam} className="px-8 py-4 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991b1b] active:shadow-none active:translate-y-1.5 transition-all outline-none">
-                Acessar Sistema de Caixas
-            </button>
+            <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">O Sistema de Caixas está vazio!</h2>
+            <p className="text-sm text-slate-500 mb-8 leading-relaxed font-semibold">Organize sua mochila, escolha seus parceiros e prepare-se para o próximo desafio, ou receba uma equipe de um amigo.</p>
+            
+            <div className="flex flex-col gap-4 w-full">
+                <button onClick={createTeam} className="w-full py-4 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991b1b] active:shadow-none active:translate-y-1.5 transition-all outline-none">
+                    Iniciar Nova Caixa
+                </button>
+                
+                {importing ? (
+                    <div className="p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl shadow-inner animate-fade-in text-left">
+                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 block">Conexão do Cabo Link</span>
+                        <input type="text" value={importData} onChange={e => { setImportData(e.target.value); setImportError(false); }} className="w-full p-3 rounded-xl border-2 border-blue-200 text-xs font-bold text-slate-700 outline-none mb-2 focus:border-blue-500 shadow-inner" />
+                        {importError && <span className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-3 block">Sinal corrompido! Verifique o código.</span>}
+                        <div className="flex gap-2">
+                            <button onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all outline-none">Conectar</button>
+                            <button onClick={() => { setImporting(false); setImportData(''); setImportError(false); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:border-red-200 transition-colors outline-none">Cancelar</button>
+                        </div>
+                    </div>
+                ) : (
+                    <button onClick={() => setImporting(true)} className="w-full py-4 bg-white border-2 border-slate-200 hover:border-blue-300 text-slate-500 hover:text-blue-500 text-xs font-black uppercase tracking-widest rounded-2xl shadow-sm transition-all outline-none">
+                        🔗 Receber via Cabo Link
+                    </button>
+                )}
+            </div>
         </div>
     );
 
@@ -61,38 +91,74 @@ export default function Teambuilder({ envProps }) {
             <div className="w-full xl:w-1/4 bg-white border-4 border-slate-200 rounded-3xl p-6 flex flex-col gap-3 h-fit shadow-[0_8px_0_#cbd5e1]">
                 <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Caixas do PC</h3>
                 {teams.map(t => (
-                    <button key={t.id} onClick={() => {setActiveTeamId(t.id); setEditingSlot(null);}} className={`p-4 rounded-2xl text-left font-black text-xs border-2 transition-all outline-none shadow-sm ${activeTeamId === t.id ? 'bg-blue-500 border-blue-600 text-white shadow-[0_4px_0_#1d4ed8] translate-y-[-2px]' : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-white'}`}>
+                    <button key={t.id} onClick={() => {setActiveTeamId(t.id); setEditingSlot(null); setShareCode('');}} className={`p-4 rounded-2xl text-left font-black text-xs border-2 transition-all outline-none shadow-sm ${activeTeamId === t.id ? 'bg-blue-500 border-blue-600 text-white shadow-[0_4px_0_#1d4ed8] translate-y-[-2px]' : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-white'}`}>
                         {t.name}
                     </button>
                 ))}
                 <button onClick={createTeam} className="p-4 mt-3 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl hover:text-red-500 hover:border-red-300 hover:bg-red-50 transition-all outline-none">
                     + Nova Caixa
                 </button>
+                
+                <div className="mt-4 pt-4 border-t-2 border-slate-100">
+                    {importing ? (
+                        <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl shadow-inner animate-fade-in">
+                            <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-2 block">Sinal do Cabo Link</span>
+                            <input type="text" value={importData} onChange={e => { setImportData(e.target.value); setImportError(false); }} className="w-full p-2 rounded-xl border-2 border-blue-200 text-xs font-bold text-slate-700 outline-none mb-2 focus:border-blue-500 shadow-inner" />
+                            {importError && <span className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-2 block">Sinal corrompido!</span>}
+                            <div className="flex gap-2">
+                                <button onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest py-2 rounded-xl shadow-[0_3px_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all outline-none">OK</button>
+                                <button onClick={() => { setImporting(false); setImportData(''); setImportError(false); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:border-red-200 transition-colors outline-none">X</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button onClick={() => setImporting(true)} className="w-full p-4 text-[10px] font-black uppercase tracking-widest text-blue-500 bg-white border-2 border-blue-200 rounded-2xl hover:text-white hover:bg-blue-500 transition-all outline-none shadow-sm">
+                            🔗 Cabo Link
+                        </button>
+                    )}
+                </div>
             </div>
             
             <div className="w-full xl:w-3/4">
                 {active && (
                     <div className="bg-white border-4 border-slate-200 p-6 md:p-8 rounded-3xl shadow-[0_8px_0_#cbd5e1]">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b-4 border-slate-100 pb-5">
-                            <input type="text" placeholder="" value={active.name || ''} onChange={e => updateActive(t => ({...t, name: e.target.value}))} className="bg-transparent text-3xl font-black text-slate-800 focus:outline-none w-full max-w-md tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" />
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-4 border-slate-100 pb-5 gap-4">
+                            <input type="text" value={active.name || ''} onChange={e => updateActive(t => ({...t, name: e.target.value}))} className="bg-transparent text-3xl font-black text-slate-800 focus:outline-none w-full max-w-md tracking-tight border-b-2 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" />
                             
-                            <div className="flex gap-2 w-full sm:w-auto">
-                                <button onClick={generateTradeLink} className="flex-1 sm:flex-none px-4 py-3.5 bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white rounded-2xl transition-colors border-2 border-blue-200 hover:border-blue-600 shadow-sm outline-none flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-                                    {shareText || 'Cabo Link'}
+                            <div className="flex gap-3 w-full sm:w-auto">
+                                <button onClick={generateLinkCode} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3.5 bg-white text-blue-500 hover:bg-blue-50 hover:text-blue-600 rounded-2xl transition-colors border-2 border-slate-200 shadow-sm outline-none" title="Gerar Código de Transferência">
+                                    <span className="text-[10px] font-black uppercase tracking-widest block sm:hidden">Transferir</span>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                                 </button>
-                                <button onClick={() => { const nT = teams.filter(t=>t.id!==activeTeamId); setTeams(nT); setActiveTeamId(nT.length > 0 ? nT[0].id : null); setEditingSlot(null); }} className="p-3.5 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-colors border-2 border-slate-200 shadow-sm outline-none flex items-center justify-center">
+                                <button onClick={() => { const nT = teams.filter(t=>t.id!==activeTeamId); setTeams(nT); setActiveTeamId(nT.length > 0 ? nT[0].id : null); setEditingSlot(null); setShareCode(''); }} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3.5 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-colors border-2 border-slate-200 shadow-sm outline-none">
+                                    <span className="text-[10px] font-black uppercase tracking-widest block sm:hidden">Deletar</span>
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>
                         </div>
+
+                        {shareCode && (
+                            <div className="mb-8 p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between shadow-inner animate-fade-in">
+                                <div className="flex-1 w-full">
+                                    <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 block">Código de Transferência Gerado</span>
+                                    <input type="text" readOnly value={shareCode} className="w-full bg-white border-2 border-blue-200 rounded-xl p-3 text-xs font-bold text-slate-600 outline-none shadow-sm" />
+                                </div>
+                                <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-4 sm:pt-0 items-end">
+                                    <button onClick={copyToClipboard} className="flex-1 sm:flex-none px-6 py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all outline-none">
+                                        {copied ? 'Copiado!' : 'Copiar'}
+                                    </button>
+                                    <button onClick={() => setShareCode('')} className="flex-1 sm:flex-none px-4 py-3.5 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 hover:border-red-200 text-[11px] font-black uppercase tracking-widest rounded-xl transition-colors outline-none">
+                                        X
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             {active.pokemon?.map((pk, i) => (
                                 <div key={i} onClick={() => setEditingSlot(i)} className={`p-4 rounded-2xl border-2 cursor-pointer flex gap-4 items-center transition-all relative overflow-hidden group shadow-sm ${editingSlot === i ? 'bg-blue-50 border-blue-400 shadow-[0_4px_0_#60a5fa] translate-y-[-2px]' : 'bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white'}`}>
                                     {pk.canGMax && <div className="absolute -bottom-4 -right-4 text-red-500/10 text-8xl font-black rotate-12 pointer-events-none">X</div>}
                                     <div className="w-16 h-16 bg-white rounded-xl border-2 border-slate-100 flex items-center justify-center shadow-inner relative z-10 flex-shrink-0">
-                                        {pk.species?.sprites?.front_default ? <img src={pk.species.sprites.front_default} className="w-14 h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" /> : <span className="text-[9px] font-black text-slate-400">N/A</span>}
+                                        {pk.species?.sprites?.front_default ? <img src={pk.species.sprites.front_default} className="w-14 h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" /> : <span className="text-[9px] font-black text-slate-400 uppercase">Ausente</span>}
                                     </div>
                                     <div className="relative z-10 min-w-0">
                                         <div className="font-black text-sm text-slate-800 capitalize truncate">{formatName(pk.species?.name)}</div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchCached, calculateStat, formatName, convertToTTRPG, NATURES, STAT_MAP, TYPES } from '../../core/mechanics';
+import { fetchCached, calculateStat, formatName, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics';
 
 export default function PokemonEditor({ pk, updatePk, envProps }) {
     const { allItems, allMoves, allAbilities, onRemove, isTTRPG, isHackmon } = envProps;
@@ -24,7 +24,13 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         return () => { mounted = false; };
     }, [pk.species?.name]);
 
-    const validMoves = useMemo(() => isHackmon ? allMoves : pk.species?.moves?.map(m => m.move).filter(Boolean) || [], [isHackmon, allMoves, pk.species?.moves]);
+    // Aplicação da completude filtrada de golpes pela última versão geracional ativa
+    const validMoves = useMemo(() => {
+        if (isHackmon) return allMoves;
+        const processed = filterMovesByLatestVersion(pk.species?.moves || []);
+        return processed.map(m => m.move);
+    }, [isHackmon, allMoves, pk.species?.moves]);
+
     const validAbs = useMemo(() => {
         if (isHackmon) return allAbilities;
         const map = new Map();
@@ -48,6 +54,16 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const randomize = (t) => {
         if (t === 'ivs') updatePk({ ...pk, ivs: { hp: Math.floor(Math.random()*32), attack: Math.floor(Math.random()*32), defense: Math.floor(Math.random()*32), 'special-attack': Math.floor(Math.random()*32), 'special-defense': Math.floor(Math.random()*32), speed: Math.floor(Math.random()*32) } });
         else if (t === 'nature') updatePk({ ...pk, nature: Object.keys(NATURES)[Math.floor(Math.random() * 25)] });
+    };
+
+    // Algoritmo Responsivo de Gênero conforme as taxas oficiais de espécies
+    const rollGender = () => {
+        const rate = pk.genderRate ?? -1;
+        if (rate === -1) return;
+        if (rate === 0) { updatePk({...pk, gender: 'M'}); return; }
+        if (rate === 8) { updatePk({...pk, gender: 'F'}); return; }
+        const result = (Math.random() * 8) < rate ? 'F' : 'M';
+        updatePk({...pk, gender: result});
     };
 
     const getMulti = (sN) => { const n = NATURES[pk.nature || 'hardy']; return !n ? 1 : n.up === sN ? 1.1 : n.down === sN ? 0.9 : 1; };
@@ -76,7 +92,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="flex gap-5 items-center">
                     <div className="w-28 h-28 bg-slate-50 rounded-2xl border-4 border-slate-200 flex justify-center items-center flex-shrink-0 relative shadow-inner">
                         {pk.canGMax && <div className="absolute inset-0 bg-red-500/10 rounded-xl animate-pulse"></div>}
-                        {sprite ? <img src={sprite} className="w-24 h-24 object-contain drop-shadow-md relative z-10" /> : <span className="text-[10px] text-slate-400 font-black uppercase">Ausente</span>}
+                        {sprite ? <img src={sprite} className="w-24 h-24 object-contain drop-shadow-md relative z-10" /> : <span className="text-[10px] text-slate-400 font-black uppercase">---</span>}
                     </div>
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
@@ -104,35 +120,33 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Item Segurado</label><input list="eItems" value={pk.item||''} onChange={e=>updatePk({...pk, item:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
-                        <div><label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Fenômeno Terastal</label><input list="eTera" value={pk.teraType||''} onChange={e=>updatePk({...pk, teraType:(e.target.value||'').toLowerCase()})} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3.5 text-blue-800 text-sm font-black focus:border-blue-500 outline-none capitalize shadow-inner" /></div>
+                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Item Segurado</label><input list="eItems" value={pk.item||''} onChange={e=>updatePk({...pk, item:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus-within:border-blue-400 outline-none capitalize shadow-inner" /></div>
+                        <div><label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Fenômeno Terastal</label><input list="eTera" value={pk.teraType||''} onChange={e=>updatePk({...pk, teraType:(e.target.value||'').toLowerCase()})} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 text-blue-800 text-sm font-black focus:border-blue-500 outline-none capitalize shadow-inner" /></div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Habilidade Atual</label><input list="eAbs" value={pk.ability||''} onChange={e=>updatePk({...pk, ability:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
-                        <div className="relative"><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Natureza</label><select value={pk.nature||'hardy'} onChange={e=>updatePk({...pk, nature:e.target.value})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">{Object.keys(NATURES).map(n=><option key={n} value={n}>{n} {NATURES[n].up?`(+${STAT_MAP[NATURES[n].up]}, -${STAT_MAP[NATURES[n].down]})`:''}</option>)}</select><button onClick={()=>randomize('nature')} className="absolute right-4 top-[38px] text-slate-400 hover:text-blue-500 text-xl outline-none">🎲</button></div>
-                    </div>
-                    <div>
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1 flex justify-between"><span>Golpes</span><span className="bg-slate-200 px-2 py-0.5 rounded text-slate-600">{pk.moves?.filter(Boolean).length||0}/4</span></label>
-                        <div className="grid grid-cols-2 gap-3">{[0,1,2,3].map(i=><input key={i} list="eMvs" value={pk.moves?.[i]||''} onChange={e=>{const n=[...(pk.moves||[])]; n[i]=(e.target.value||'').toLowerCase(); updatePk({...pk, moves:n});}} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />)}</div>
+                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Habilidade Atual</label><input list="eAbs" value={pk.ability||''} onChange={e=>updatePk({...pk, ability:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
+                        <div className="relative"><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Natureza</label><select value={pk.nature||'hardy'} onChange={e=>updatePk({...pk, nature:e.target.value})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">{Object.keys(NATURES).map(n=><option key={n} value={n}>{n} {NATURES[n].up?`(+${STAT_MAP[NATURES[n].up]}, -${STAT_MAP[NATURES[n].down]})`:''}</option>)}</select><button onClick={()=>randomize('nature')} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button></div>
                     </div>
                     
-                    {(hasStructuralShift || pk.canGMax) && (
-                        <div className="mt-6 p-6 bg-slate-50 rounded-2xl border-2 border-slate-200 shadow-sm">
-                            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div> Transformação em Combate</h4>
-                            {hasStructuralShift && (
-                                <div className="flex flex-col gap-3 text-[10px] text-slate-600 mb-4">
-                                    <div className="flex justify-between border-b-2 border-slate-200 pb-2"><span className="font-black text-slate-400">Novo Tipo:</span><span className="uppercase font-black text-slate-800">{baseForm.types?.map(t=>t.type?.name).join('/') || '---'} <span className="text-blue-400 mx-1">➔</span> {pk.species?.types?.map(t=>t.type?.name).join('/') || '---'}</span></div>
-                                    <div className="flex justify-between border-b-2 border-slate-200 pb-2"><span className="font-black text-slate-400">Nova Habilidade:</span><span className="uppercase font-black text-slate-800 truncate max-w-[150px]">{(baseForm.abilities?.[0]?.ability?.name || '').replace(/-/g, ' ')} <span className="text-blue-400 mx-1">➔</span> {(pk.species?.abilities?.[0]?.ability?.name || '').replace(/-/g, ' ')}</span></div>
-                                </div>
-                            )}
-                            {pk.canGMax && (
-                                <div className="flex flex-col gap-2 text-[10px]">
-                                    <div className="flex justify-between border-b-2 border-slate-200 pb-2"><span className="font-black text-slate-400">HP Expandido (Dynamax 10):</span><span className="uppercase font-black text-red-500">{getHpBeforeAfter().base} <span className="text-slate-300 mx-1">➔</span> {getHpBeforeAfter().gmax}</span></div>
-                                    <p className="text-[10px] font-semibold text-slate-500 leading-relaxed mt-2">A vida do parceiro será duplicada e seus ataques recebem o efeito especial <span className="text-red-500 font-black">G-Max</span>.</p>
-                                </div>
+                    {/* Campo Responsivo de Seleção de Gêneros */}
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Gênero</label>
+                        <div className="flex bg-slate-50 p-1.5 rounded-xl border-2 border-slate-200 shadow-inner items-center justify-between">
+                            <div className="flex gap-1">
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'M'})} disabled={pk.genderRate === 8 || pk.genderRate === -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'M' ? 'bg-blue-500 text-white shadow-[0_3px_0_#1d4ed8]' : 'text-slate-400 disabled:opacity-20'}`}>♂</button>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'F'})} disabled={pk.genderRate === 0 || pk.genderRate === -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'F' ? 'bg-pink-500 text-white shadow-[0_3px_0_#be185d]' : 'text-slate-400 disabled:opacity-20'}`}>♀</button>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'N'})} disabled={pk.genderRate !== -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'N' ? 'bg-slate-400 text-white shadow-[0_3px_0_#475569]' : 'text-slate-400 disabled:opacity-20'}`}>⚲</button>
+                            </div>
+                            {pk.genderRate !== -1 && pk.genderRate !== 0 && pk.genderRate !== 8 && (
+                                <button type="button" onClick={rollGender} className="text-slate-400 hover:text-blue-500 font-black text-base px-3 outline-none" title="Aleatorizar Gênero">🎲</button>
                             )}
                         </div>
-                    )}
+                    </div>
+
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1 flex justify-between"><span>Golpes</span><span className="bg-slate-200 px-2 py-0.5 rounded text-slate-600">{pk.moves?.filter(Boolean).length||0}/4</span></label>
+                        <div className="grid grid-cols-2 gap-3">{[0,1,2,3].map(i=><input key={i} list="eMvs" value={pk.moves?.[i]||''} onChange={e=>{const n=[...(pk.moves||[])]; n[i]=(e.target.value||'').toLowerCase(); updatePk({...pk, moves:n});}} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />)}</div>
+                    </div>
                 </div>
 
                 <div className="bg-slate-50 p-6 rounded-2xl border-2 border-slate-200 shadow-sm">
@@ -141,7 +155,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">EVs Livres: <span className={evTotal>508?'text-red-500':'text-blue-500'}>{510-evTotal}</span>/510</div>
                     </div>
                     <div className="grid grid-cols-[minmax(45px,1fr)_minmax(45px,1fr)_minmax(150px,3fr)_minmax(50px,1fr)_minmax(45px,1fr)] gap-2 mb-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center items-center">
-                        <div className="text-left">Stat</div><div>{isHackmon?'Base Modificada':'Base'}</div><div>Esforço (EVs)</div><div className="flex items-center justify-center gap-1 cursor-pointer hover:text-blue-500 transition-colors" onClick={()=>randomize('ivs')}>IVs 🎲</div><div className={`text-right ${isTTRPG ? 'text-red-500' : 'text-slate-800'}`}>Total</div>
+                        <div className="text-left">Stat</div><div>Base</div><div>Esforço (EVs)</div><div className="flex items-center justify-center gap-1 cursor-pointer hover:text-blue-500 transition-colors" onClick={()=>randomize('ivs')}>IVs 🎲</div><div className={`text-right ${isTTRPG ? 'text-red-500' : 'text-slate-800'}`}>Total</div>
                     </div>
                     <div className="flex flex-col gap-3">
                         {pk.species?.stats?.map(s => {

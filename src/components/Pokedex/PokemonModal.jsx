@@ -116,7 +116,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 <div className="w-full md:w-7/12 flex flex-col bg-slate-100 relative min-h-0">
                     <div className="flex bg-slate-200 border-b-4 border-slate-300 z-20 w-full overflow-hidden">
                         {['stats', 'defenses', 'moves'].map(t => (
-                            <button key={t} onClick={() => setTab(t)} className={'flex-1 py-3 px-1 text-[8.5px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all outline-none break-words sm:py-5 ' + (tab === t ? ...
+                            <button key={t} onClick={() => setTab(t)} className={'flex-1 py-3 px-1 text-[8.5px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all outline-none break-words sm:py-5 ' + (tab === t ? 'text-white bg-red-500 border-b-4 border-red-700 shadow-inner' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-300 border-b-4 border-transparent')`}>
                                 {t === 'stats' ? 'Dex Data' : t === 'defenses' ? 'Type Chart' : 'Moves'}
                             </button>
                         ))}

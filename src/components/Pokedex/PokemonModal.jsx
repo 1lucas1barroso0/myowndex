@@ -163,7 +163,13 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                 {path.map((node, i) => (
                                                     <React.Fragment key={node.name + i}>
                                                         <div className="flex flex-col items-center min-w-[85px] group">
-                                                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-4 border-slate-200 shadow-inner group-hover:border-red-400 transition-colors"><img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${node.id}.png`} className="w-16 h-16 pixelated drop-shadow-md" alt={node.name} onError={e=>e.target.style.display='none'} /></div>
+                                                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-4 border-slate-200 shadow-inner group-hover:border-red-400 transition-colors"><img 
+  src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + node.id + ".png"} 
+  className="w-16 h-16 object-contain drop-shadow-md" 
+  alt={node.name} 
+  onError={(e) => { e.target.style.display = 'none'; }} 
+/>
+</div>
                                                             <span className="text-[10px] font-black uppercase text-slate-600 mt-3 truncate w-full text-center group-hover:text-red-600 transition-colors">{node.name}</span>
                                                         </div>
                                                         {i < path.length - 1 && <svg className="w-8 h-8 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>}

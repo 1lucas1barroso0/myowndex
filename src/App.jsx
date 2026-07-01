@@ -44,7 +44,7 @@ export default function App() {
                         moves: mRes?.results || [], abilities: aRes?.results || []
                     });
                 }
-            } catch (err) { console.error("A conexão com o laboratório falhou.", err); }
+            } catch (err) { console.error("A conexão com o Centro Pokémon falhou.", err); }
         }; bootPokedex(); return () => { mounted = false; };
     }, []);
 
@@ -127,7 +127,7 @@ export default function App() {
                                 </div>
                                 {limit < species.length && !searchTerm && (
                                     <button onClick={() => setLimit(p => p + 60)} className="mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
-                                        Procurar Mais Pokémon
+                                        Carregar Mais Registros
                                     </button>
                                 )}
                             </>

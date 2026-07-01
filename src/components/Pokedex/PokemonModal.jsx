@@ -169,6 +169,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
   alt={node.name} 
   onError={(e) => { e.target.style.display = 'none'; }} 
 />
+
 </div>
                                                             <span className="text-[10px] font-black uppercase text-slate-600 mt-3 truncate w-full text-center group-hover:text-red-600 transition-colors">{node.name}</span>
                                                         </div>

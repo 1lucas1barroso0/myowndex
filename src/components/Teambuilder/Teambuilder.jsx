@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PokemonEditor from './PokemonEditor';
-import { formatName, fetchCached } from '../../core/mechanics';
+import { formatName, fetchCached, encodeTeamShare, decodeTeamShare } from '../../core/mechanics';
 
 export default function Teambuilder({ envProps }) {
     const { teams, setTeams, allItems, allMoves, allAbilities, activeTeamId, setActiveTeamId, isTTRPG, isHackmon, onSearchClick } = envProps;
@@ -26,19 +26,32 @@ export default function Teambuilder({ envProps }) {
 
     const generateLinkCode = () => {
         try {
-            // Preservando a integridade do Cabo Link com inclusão de Gênero
-            const slimTeam = {
-                n: active.name,
-                p: active.pokemon.map(pk => ({
-                    n: pk.species?.name, l: pk.level, i: pk.item, a: pk.ability, na: pk.nature, m: pk.moves,
-                    iv: pk.ivs, ev: pk.evs, gx: pk.canGMax, tt: pk.teraType, f: pk.friendship,
-                    cs: pk.customStats, ct: pk.customTypes, g: pk.gender, gr: pk.genderRate
+            const exportTeam = {
+                id: active.id,
+                name: active.name,
+                pokemon: active.pokemon.map(pk => ({
+                    species: { name: pk.species?.name, url: pk.species?.url },
+                    level: pk.level,
+                    item: pk.item,
+                    ability: pk.ability,
+                    nature: pk.nature,
+                    moves: pk.moves,
+                    ivs: pk.ivs,
+                    evs: pk.evs,
+                    canGMax: pk.canGMax,
+                    teraType: pk.teraType,
+                    friendship: pk.friendship,
+                    customStats: pk.customStats,
+                    customTypes: pk.customTypes,
+                    gender: pk.gender,
+                    genderRate: pk.genderRate
                 }))
             };
-            const code = btoa(encodeURIComponent(JSON.stringify(slimTeam)));
-            setShareCode(`MYOWNDEX-${code}`);
+            setShareCode(encodeTeamShare(exportTeam));
             setCopied(false);
-        } catch { /* Ignorado silenciosamente */ }
+        } catch {
+            setShareCode('');
+        }
     };
 
     const copyToClipboard = async () => {
@@ -60,30 +73,44 @@ export default function Teambuilder({ envProps }) {
         try {
             setIsProcessing(true);
             setImportError(false);
-            const cleanCode = importData.replace('MYOWNDEX-', '').trim();
-            const jsonStr = decodeURIComponent(atob(cleanCode));
-            const decoded = JSON.parse(jsonStr);
-            
+            const decoded = decodeTeamShare(importData);
+            const incomingTeam = decoded.team || decoded;
+
             const newTeamId = Date.now().toString();
-            let newTeam = { id: newTeamId, name: decoded.n || decoded.name || 'Nova Caixa Recebida', pokemon: [] };
-            const pkmns = decoded.p || decoded.pokemon || [];
+            let newTeam = { id: newTeamId, name: incomingTeam.name || incomingTeam.id || 'Nova Caixa Recebida', pokemon: [] };
+            const pkmns = incomingTeam.pokemon || [];
             
             const reconstructed = await Promise.all(pkmns.map(async (pk) => {
-                if (pk.species && pk.species.sprites) return pk; 
-                const spData = await fetchCached(`https://pokeapi.co/api/v2/pokemon/${pk.n || pk.species?.name}`);
+                const speciesName = pk.species?.name || pk.species;
+                const speciesUrl = pk.species?.url || (speciesName ? `https://pokeapi.co/api/v2/pokemon/${speciesName}` : null);
+                const spData = await fetchCached(speciesUrl);
+                if (!spData) return null;
+
+                const genderRate = typeof pk.genderRate === 'number' ? pk.genderRate : (spData.gender_rate ?? -1);
+                const gender = pk.gender === 'M' || pk.gender === 'F' || pk.gender === 'N'
+                    ? pk.gender
+                    : (genderRate === 0 ? 'M' : genderRate === 8 ? 'F' : 'N');
+
                 return {
                     species: spData,
-                    level: pk.l ?? pk.level ?? 50, item: pk.i ?? pk.item ?? '', ability: pk.a ?? pk.ability ?? '',
-                    nature: pk.na ?? pk.nature ?? 'hardy', moves: pk.m ?? pk.moves ?? ['', '', '', ''],
-                    ivs: pk.iv ?? pk.ivs ?? {hp:31, attack:31, defense:31, 'special-attack':31, 'special-defense':31, speed:31},
-                    evs: pk.ev ?? pk.evs ?? {hp:0, attack:0, defense:0, 'special-attack':0, 'special-defense':0, speed:0},
-                    canGMax: pk.gx ?? pk.canGMax ?? false, teraType: pk.tt ?? pk.teraType ?? '', friendship: pk.f ?? pk.friendship ?? 150,
-                    customStats: pk.cs ?? pk.customStats ?? null, customTypes: pk.ct ?? pk.customTypes ?? null,
-                    gender: pk.g ?? 'N', genderRate: pk.gr ?? -1
+                    level: pk.level ?? 50,
+                    item: pk.item ?? '',
+                    ability: pk.ability ?? '',
+                    nature: pk.nature ?? 'hardy',
+                    moves: pk.moves ?? ['', '', '', ''],
+                    ivs: pk.ivs ?? { hp:31, attack:31, defense:31, 'special-attack':31, 'special-defense':31, speed:31 },
+                    evs: pk.evs ?? { hp:0, attack:0, defense:0, 'special-attack':0, 'special-defense':0, speed:0 },
+                    canGMax: pk.canGMax ?? false,
+                    teraType: pk.teraType ?? '',
+                    friendship: pk.friendship ?? 150,
+                    customStats: pk.customStats ?? null,
+                    customTypes: pk.customTypes ?? null,
+                    gender,
+                    genderRate
                 };
             }));
             
-            newTeam.pokemon = reconstructed.filter(p => p.species);
+            newTeam.pokemon = reconstructed.filter(Boolean);
             setTeams([...teams, newTeam]);
             setActiveTeamId(newTeam.id);
             setImporting(false);

@@ -31,7 +31,29 @@ export const formatName = (str) => str ? str.replace(/-/g, ' ').replace(/\b\w/g,
 export const extractId = (url) => url ? url.split('/').filter(Boolean).pop() : '0';
 
 // Cronologia oficial de lançamentos para filtragem de integridade de dados
-export const VERSION_PRIORITY = ['scarlet-violet', 'legends-arceus', 'brilliant-diamond-shining-pearl', 'sword-shield', 'ultra-sun-ultra-moon', 'sun-moon'];
+export const VERSION_PRIORITY = [
+    'champion-stadium',
+    'legends-arceus',
+    'scarlet-violet',
+    'brilliant-diamond-shining-pearl',
+    'sword-shield',
+    'ultra-sun-ultra-moon',
+    'sun-moon',
+    'x-y',
+    'omega-ruby-alpha-sapphire',
+    'black-2-white-2',
+    'black-white',
+    'heartgold-soulsilver',
+    'diamond-pearl',
+    'platinum',
+    'ruby-sapphire',
+    'emerald',
+    'firered-leafgreen',
+    'gold-silver',
+    'crystal',
+    'red-blue',
+    'yellow'
+];
 
 export const filterMovesByLatestVersion = (moves) => {
     if (!moves || !moves.length) return [];
@@ -57,6 +79,398 @@ export const filterMovesByLatestVersion = (moves) => {
             latest_detail: detail
         };
     }).filter(m => m.latest_detail);
+};
+
+const keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+
+const _compress = (uncompressed, bitsPerChar, getCharFromInt) => {
+    if (uncompressed == null) return '';
+    let i, value;
+    const context_dictionary = {};
+    const context_dictionaryToCreate = {};
+    let context_c = '';
+    let context_wc = '';
+    let context_w = '';
+    let context_enlargeIn = 2;
+    let context_dictSize = 3;
+    let context_numBits = 2;
+    const context_data = [];
+    let context_data_val = 0;
+    let context_data_position = 0;
+
+    for (i = 0; i < uncompressed.length; i += 1) {
+        context_c = uncompressed.charAt(i);
+        if (!Object.prototype.hasOwnProperty.call(context_dictionary, context_c)) {
+            context_dictionary[context_c] = context_dictSize++;
+            context_dictionaryToCreate[context_c] = true;
+        }
+
+        context_wc = context_w + context_c;
+        if (Object.prototype.hasOwnProperty.call(context_dictionary, context_wc)) {
+            context_w = context_wc;
+        } else {
+            if (Object.prototype.hasOwnProperty.call(context_dictionaryToCreate, context_w)) {
+                value = context_w.charCodeAt(0);
+                if (value < 256) {
+                    for (let j = 0; j < context_numBits; j += 1) {
+                        context_data_val = (context_data_val << 1);
+                        if (context_data_position === bitsPerChar - 1) {
+                            context_data_position = 0;
+                            context_data.push(getCharFromInt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position += 1;
+                        }
+                    }
+                    for (let j = 0; j < 8; j += 1) {
+                        context_data_val = (context_data_val << 1) | (value & 1);
+                        if (context_data_position === bitsPerChar - 1) {
+                            context_data_position = 0;
+                            context_data.push(getCharFromInt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position += 1;
+                        }
+                        value = value >> 1;
+                    }
+                } else {
+                    value = 1;
+                    for (let j = 0; j < context_numBits; j += 1) {
+                        context_data_val = (context_data_val << 1) | value;
+                        if (context_data_position === bitsPerChar - 1) {
+                            context_data_position = 0;
+                            context_data.push(getCharFromInt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position += 1;
+                        }
+                    }
+                    value = context_w.charCodeAt(0);
+                    for (let j = 0; j < 16; j += 1) {
+                        context_data_val = (context_data_val << 1) | (value & 1);
+                        if (context_data_position === bitsPerChar - 1) {
+                            context_data_position = 0;
+                            context_data.push(getCharFromInt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position += 1;
+                        }
+                        value = value >> 1;
+                    }
+                }
+                context_enlargeIn -= 1;
+                if (context_enlargeIn === 0) {
+                    context_enlargeIn = 2 ** context_numBits;
+                    context_numBits += 1;
+                }
+                delete context_dictionaryToCreate[context_w];
+            } else {
+                value = context_dictionary[context_w];
+                for (let j = 0; j < context_numBits; j += 1) {
+                    context_data_val = (context_data_val << 1) | (value & 1);
+                    if (context_data_position === bitsPerChar - 1) {
+                        context_data_position = 0;
+                        context_data.push(getCharFromInt(context_data_val));
+                        context_data_val = 0;
+                    } else {
+                        context_data_position += 1;
+                    }
+                    value = value >> 1;
+                }
+            }
+            context_enlargeIn -= 1;
+            if (context_enlargeIn === 0) {
+                context_enlargeIn = 2 ** context_numBits;
+                context_numBits += 1;
+            }
+            context_dictionary[context_wc] = context_dictSize++;
+            context_w = context_c;
+        }
+    }
+
+    if (context_w !== '') {
+        if (Object.prototype.hasOwnProperty.call(context_dictionaryToCreate, context_w)) {
+            value = context_w.charCodeAt(0);
+            if (value < 256) {
+                for (let j = 0; j < context_numBits; j += 1) {
+                    context_data_val = (context_data_val << 1);
+                    if (context_data_position === bitsPerChar - 1) {
+                        context_data_position = 0;
+                        context_data.push(getCharFromInt(context_data_val));
+                        context_data_val = 0;
+                    } else {
+                        context_data_position += 1;
+                    }
+                }
+                for (let j = 0; j < 8; j += 1) {
+                    context_data_val = (context_data_val << 1) | (value & 1);
+                    if (context_data_position === bitsPerChar - 1) {
+                        context_data_position = 0;
+                        context_data.push(getCharFromInt(context_data_val));
+                        context_data_val = 0;
+                    } else {
+                        context_data_position += 1;
+                    }
+                    value = value >> 1;
+                }
+            } else {
+                value = 1;
+                for (let j = 0; j < context_numBits; j += 1) {
+                    context_data_val = (context_data_val << 1) | value;
+                    if (context_data_position === bitsPerChar - 1) {
+                        context_data_position = 0;
+                        context_data.push(getCharFromInt(context_data_val));
+                        context_data_val = 0;
+                    } else {
+                        context_data_position += 1;
+                    }
+                }
+                value = context_w.charCodeAt(0);
+                for (let j = 0; j < 16; j += 1) {
+                    context_data_val = (context_data_val << 1) | (value & 1);
+                    if (context_data_position === bitsPerChar - 1) {
+                        context_data_position = 0;
+                        context_data.push(getCharFromInt(context_data_val));
+                        context_data_val = 0;
+                    } else {
+                        context_data_position += 1;
+                    }
+                    value = value >> 1;
+                }
+            }
+            context_enlargeIn -= 1;
+            if (context_enlargeIn === 0) {
+                context_enlargeIn = 2 ** context_numBits;
+                context_numBits += 1;
+            }
+            delete context_dictionaryToCreate[context_w];
+        } else {
+            value = context_dictionary[context_w];
+            for (let j = 0; j < context_numBits; j += 1) {
+                context_data_val = (context_data_val << 1) | (value & 1);
+                if (context_data_position === bitsPerChar - 1) {
+                    context_data_position = 0;
+                    context_data.push(getCharFromInt(context_data_val));
+                    context_data_val = 0;
+                } else {
+                    context_data_position += 1;
+                }
+                value = value >> 1;
+            }
+        }
+    }
+
+    value = 2;
+    for (let j = 0; j < context_numBits; j += 1) {
+        context_data_val = (context_data_val << 1) | (value & 1);
+        if (context_data_position === bitsPerChar - 1) {
+            context_data_position = 0;
+            context_data.push(getCharFromInt(context_data_val));
+            context_data_val = 0;
+        } else {
+            context_data_position += 1;
+        }
+        value = value >> 1;
+    }
+
+    while (true) {
+        context_data_val = (context_data_val << 1);
+        if (context_data_position === bitsPerChar - 1) {
+            context_data.push(getCharFromInt(context_data_val));
+            break;
+        } else {
+            context_data_position += 1;
+        }
+    }
+    return context_data.join('');
+};
+
+const _decompress = (length, resetValue, getNextValue) => {
+    const dictionary = [
+        '',
+        '\n',
+    ];
+    let next, enlargeIn = 4;
+    let dictSize = 4;
+    let numBits = 3;
+    let entry = '';
+    let result = '';
+    let i, w;
+    let bits, resb, maxpower, power;
+    let c;
+    let data = { val: getNextValue(0), position: resetValue, index: 1 };
+
+    const readBits = (bitsCount) => {
+        let bitsRead = 0;
+        let res = 0;
+        while (bitsRead < bitsCount) {
+            res |= (data.val & data.position) ? 1 << bitsRead : 0;
+            data.position >>= 1;
+            if (data.position === 0) {
+                data.position = resetValue;
+                data.val = getNextValue(data.index++);
+            }
+            bitsRead += 1;
+        }
+        return res;
+    };
+
+    next = readBits(2);
+    switch (next) {
+        case 0:
+            bits = 0;
+            maxpower = 2;
+            power = 1;
+            while (power !== maxpower) {
+                resb = data.val & data.position;
+                data.position >>= 1;
+                if (data.position === 0) {
+                    data.position = resetValue;
+                    data.val = getNextValue(data.index++);
+                }
+                bits |= (resb > 0 ? 1 : 0) * power;
+                power <<= 1;
+            }
+            c = String.fromCharCode(bits);
+            break;
+        case 1:
+            bits = 0;
+            maxpower = 2;
+            power = 1;
+            while (power !== maxpower) {
+                resb = data.val & data.position;
+                data.position >>= 1;
+                if (data.position === 0) {
+                    data.position = resetValue;
+                    data.val = getNextValue(data.index++);
+                }
+                bits |= (resb > 0 ? 1 : 0) * power;
+                power <<= 1;
+            }
+            c = String.fromCharCode(bits);
+            break;
+        case 2:
+            return '';
+    }
+    result = c;
+    w = c;
+    while (true) {
+        if (data.index > length) return ''; // malformed
+        next = readBits(numBits);
+        switch (next) {
+            case 0:
+                bits = 0;
+                maxpower = 2;
+                power = 1;
+                while (power !== maxpower) {
+                    resb = data.val & data.position;
+                    data.position >>= 1;
+                    if (data.position === 0) {
+                        data.position = resetValue;
+                        data.val = getNextValue(data.index++);
+                    }
+                    bits |= (resb > 0 ? 1 : 0) * power;
+                    power <<= 1;
+                }
+                dictionary[dictSize++] = String.fromCharCode(bits);
+                next = dictSize - 1;
+                enlargeIn -= 1;
+                break;
+            case 1:
+                bits = 0;
+                maxpower = 2;
+                power = 1;
+                while (power !== maxpower) {
+                    resb = data.val & data.position;
+                    data.position >>= 1;
+                    if (data.position === 0) {
+                        data.position = resetValue;
+                        data.val = getNextValue(data.index++);
+                    }
+                    bits |= (resb > 0 ? 1 : 0) * power;
+                    power <<= 1;
+                }
+                dictionary[dictSize++] = String.fromCharCode(bits);
+                next = dictSize - 1;
+                enlargeIn -= 1;
+                break;
+            case 2:
+                return result;
+        }
+
+        if (enlargeIn === 0) {
+            enlargeIn = 2 ** numBits;
+            numBits += 1;
+        }
+
+        if (dictionary[next]) {
+            entry = dictionary[next];
+        } else {
+            if (next === dictSize) {
+                entry = w + w.charAt(0);
+            } else {
+                return null;
+            }
+        }
+        result += entry;
+
+        dictionary[dictSize++] = w + entry.charAt(0);
+        enlargeIn -= 1;
+
+        w = entry;
+
+        if (enlargeIn === 0) {
+            enlargeIn = 2 ** numBits;
+            numBits += 1;
+        }
+    }
+};
+
+export const compressToBase64 = (input) => {
+    if (input == null) return '';
+    const output = _compress(input, 6, (a) => keyStr.charAt(a));
+    switch (output.length % 4) {
+        case 0:
+            return output;
+        case 1:
+            return `${output}===`;
+        case 2:
+            return `${output}==`;
+        case 3:
+            return `${output}=`;
+        default:
+            return output;
+    }
+};
+
+export const decompressFromBase64 = (input) => {
+    if (input == null || input === '') return '';
+    return _decompress(input.length, 32, (index) => keyStr.indexOf(input.charAt(index)));
+};
+
+export const TEAM_EXPORT_PREFIX = 'MYOWNDEX:v2:';
+export const TEAM_LEGACY_PREFIX = 'MYOWNDEX-';
+
+export const encodeTeamShare = (team) => {
+    const payload = JSON.stringify({ version: 2, team });
+    return `${TEAM_EXPORT_PREFIX}${compressToBase64(payload)}`;
+};
+
+export const decodeTeamShare = (value) => {
+    const raw = value?.trim();
+    if (!raw) throw new Error('Payload vazio');
+
+    if (raw.startsWith(TEAM_EXPORT_PREFIX)) {
+        const compressed = raw.slice(TEAM_EXPORT_PREFIX.length);
+        return JSON.parse(decompressFromBase64(compressed));
+    }
+
+    if (raw.startsWith(TEAM_LEGACY_PREFIX)) {
+        const payload = raw.slice(TEAM_LEGACY_PREFIX.length);
+        return JSON.parse(decodeURIComponent(atob(payload)));
+    }
+
+    throw new Error('Formato de link inválido');
 };
 
 export const STAT_MAP = { 'hp': 'HP', 'attack': 'Atk', 'defense': 'Def', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Spe' };

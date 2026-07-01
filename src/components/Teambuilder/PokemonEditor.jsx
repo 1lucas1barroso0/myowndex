@@ -51,19 +51,17 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         updatePk({ ...pk, [cat]: { ...(pk[cat] || {}), [stat]: v } });
     };
 
+    const currentGenderRate = Number(pk.genderRate ?? pk.species?.gender_rate ?? -1);
     const randomize = (t) => {
         if (t === 'ivs') updatePk({ ...pk, ivs: { hp: Math.floor(Math.random()*32), attack: Math.floor(Math.random()*32), defense: Math.floor(Math.random()*32), 'special-attack': Math.floor(Math.random()*32), 'special-defense': Math.floor(Math.random()*32), speed: Math.floor(Math.random()*32) } });
         else if (t === 'nature') updatePk({ ...pk, nature: Object.keys(NATURES)[Math.floor(Math.random() * 25)] });
-    };
-
-    // Algoritmo Responsivo de Gênero conforme as taxas oficiais de espécies
-    const rollGender = () => {
-        const rate = pk.genderRate ?? -1;
-        if (rate === -1) return;
-        if (rate === 0) { updatePk({...pk, gender: 'M'}); return; }
-        if (rate === 8) { updatePk({...pk, gender: 'F'}); return; }
-        const result = (Math.random() * 8) < rate ? 'F' : 'M';
-        updatePk({...pk, gender: result});
+        else if (t === 'gender') {
+            if (currentGenderRate === -1) return;
+            if (currentGenderRate === 0) { updatePk({ ...pk, gender: 'M', genderRate: 0 }); return; }
+            if (currentGenderRate === 8) { updatePk({ ...pk, gender: 'F', genderRate: 8 }); return; }
+            const result = (Math.random() * 8) < currentGenderRate ? 'F' : 'M';
+            updatePk({ ...pk, gender: result, genderRate: currentGenderRate });
+        }
     };
 
     const getMulti = (sN) => { const n = NATURES[pk.nature || 'hardy']; return !n ? 1 : n.up === sN ? 1.1 : n.down === sN ? 0.9 : 1; };
@@ -132,14 +130,12 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     <div>
                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Gênero</label>
                         <div className="flex bg-slate-50 p-1.5 rounded-xl border-2 border-slate-200 shadow-inner items-center justify-between">
-                            <div className="flex gap-1">
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'M'})} disabled={pk.genderRate === 8 || pk.genderRate === -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'M' ? 'bg-blue-500 text-white shadow-[0_3px_0_#1d4ed8]' : 'text-slate-400 disabled:opacity-20'}`}>♂</button>
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'F'})} disabled={pk.genderRate === 0 || pk.genderRate === -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'F' ? 'bg-pink-500 text-white shadow-[0_3px_0_#be185d]' : 'text-slate-400 disabled:opacity-20'}`}>♀</button>
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'N'})} disabled={pk.genderRate !== -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'N' ? 'bg-slate-400 text-white shadow-[0_3px_0_#475569]' : 'text-slate-400 disabled:opacity-20'}`}>⚲</button>
+                            <div className="flex gap-1 items-center">
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'M', genderRate: currentGenderRate})} disabled={currentGenderRate === 8 || currentGenderRate === -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'M' ? 'bg-blue-500 text-white shadow-[0_3px_0_#1d4ed8]' : 'text-slate-400 disabled:opacity-20'}`}>♂</button>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'F', genderRate: currentGenderRate})} disabled={currentGenderRate === 0 || currentGenderRate === -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'F' ? 'bg-pink-500 text-white shadow-[0_3px_0_#be185d]' : 'text-slate-400 disabled:opacity-20'}`}>♀</button>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'N', genderRate: currentGenderRate})} disabled={currentGenderRate !== -1} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${pk.gender === 'N' ? 'bg-slate-400 text-white shadow-[0_3px_0_#475569]' : 'text-slate-400 disabled:opacity-20'}`}>⚲</button>
+                                <button type="button" onClick={() => randomize('gender')} disabled={currentGenderRate === -1} className="text-slate-400 hover:text-blue-500 disabled:opacity-30 font-black text-base px-3 outline-none" title="Aleatorizar Gênero">🎲</button>
                             </div>
-                            {pk.genderRate !== -1 && pk.genderRate !== 0 && pk.genderRate !== 8 && (
-                                <button type="button" onClick={rollGender} className="text-slate-400 hover:text-blue-500 font-black text-base px-3 outline-none" title="Aleatorizar Gênero">🎲</button>
-                            )}
                         </div>
                     </div>
 

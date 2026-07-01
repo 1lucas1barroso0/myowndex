@@ -22,7 +22,7 @@ export default function App() {
     const [activeTeamId, setActiveTeamId] = useState(teams[0]?.id || null);
     const [env, setEnv] = useState({ items: [], moves: [], abilities: [] });
 
-    useEffect(() => { try { localStorage.setItem('myowndex_rotom_v2', JSON.stringify(teams)); } catch{} }, [teams]);
+    useEffect(() => { try { localStorage.setItem('myowndex_rotom_v3', JSON.stringify(teams)); } catch{} }, [teams]);
 
     useEffect(() => {
         let mounted = true;
@@ -55,20 +55,28 @@ export default function App() {
     }, [species, searchTerm, limit]);
 
     const integrateTeam = (formData, genderRate) => {
-        // Atribuição de gênero responsiva baseada na taxa da espécie
+        const resolvedGenderRate = typeof genderRate === 'number' ? genderRate : (formData.gender_rate ?? formData.species?.gender_rate ?? -1);
         let initialGender = 'N';
-        if (genderRate === 0) initialGender = 'M';
-        else if (genderRate === 8) initialGender = 'F';
-        else if (genderRate !== -1) {
-            initialGender = (Math.random() * 8) < genderRate ? 'F' : 'M';
+        if (resolvedGenderRate === 0) initialGender = 'M';
+        else if (resolvedGenderRate === 8) initialGender = 'F';
+        else if (resolvedGenderRate !== -1) {
+            initialGender = (Math.random() * 8) < resolvedGenderRate ? 'F' : 'M';
         }
 
         const pTemplate = { 
-            species: formData, level: 50, friendship: 150, canGMax: false, teraType: '', item: '', 
-            ability: formData.abilities?.[0]?.ability?.name || '', nature: 'hardy', moves: ['', '', '', ''], 
+            species: formData,
+            level: 50,
+            friendship: 150,
+            canGMax: false,
+            teraType: '',
+            item: '', 
+            ability: formData.abilities?.[0]?.ability?.name || '',
+            nature: 'hardy',
+            moves: ['', '', '', ''], 
             ivs: { hp:31, attack:31, defense:31, 'special-attack':31, 'special-defense':31, speed:31 }, 
             evs: { hp:0, attack:0, defense:0, 'special-attack':0, 'special-defense':0, speed:0 },
-            gender: initialGender, genderRate: genderRate ?? -1
+            gender: initialGender,
+            genderRate: resolvedGenderRate
         };
         
         if (!teams.length) {

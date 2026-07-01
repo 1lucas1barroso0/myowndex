@@ -68,17 +68,17 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-3 sm:p-6 animate-fade-in" onClick={onClose}>
             
-            {/* O Botão de Fechar com âncora inteligente para nunca sumir ou encobrir o nome */}
-            <button onClick={onClose} className="fixed sm:absolute top-4 right-4 sm:top-6 sm:right-6 w-12 h-12 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[70] transition-all border-4 border-slate-200 shadow-xl outline-none">
+            {/* Botão de Fechar com âncora fixa para não sumir ou encobrir o nome no Mobile */}
+            <button onClick={onClose} className="fixed sm:absolute top-5 right-5 sm:top-8 sm:right-8 w-12 h-12 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[70] transition-all border-4 border-slate-200 shadow-xl outline-none">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
 
-            {/* A Carcaça Principal: Rola no Mobile, Divide no PC */}
+            {/* Contêiner Responsivo: Rolagem vertical livre no Mobile, Telas Divididas no Desktop */}
             <div className="bg-slate-50 rounded-[2rem] w-full max-w-6xl max-h-[95vh] md:h-[90vh] flex flex-col md:flex-row overflow-y-auto md:overflow-hidden border-8 border-red-600 relative shadow-2xl" onClick={e => e.stopPropagation()}>
                 
-                {/* Coluna Esquerda: O display visual e biométrico */}
-                <div className="w-full md:w-5/12 p-6 pt-16 sm:p-8 bg-white flex flex-col flex-shrink-0 md:h-full md:overflow-y-auto no-scrollbar border-b-8 md:border-b-0 md:border-r-8 border-slate-200 z-10 relative">
-                    <div className="z-10 mb-6 flex flex-col items-start">
+                {/* Coluna Esquerda: Informações Fixas */}
+                <div className="w-full md:w-5/12 p-6 sm:p-8 bg-white flex flex-col flex-shrink-0 md:h-full md:overflow-y-auto no-scrollbar border-b-8 md:border-b-0 md:border-r-8 border-slate-200 z-10 relative">
+                    <div className="z-10 mb-6 flex flex-col items-start pr-14 md:pr-0">
                         <span className="text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">No. {String(baseInfo.id).padStart(4, '0')}</span>
                         <h2 className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-4 tracking-tight leading-none drop-shadow-sm break-words w-full">{activeForm?.name?.split('-')[0] || baseInfo.name}</h2>
                         {activeForm?.name?.includes('-') && <span className="text-sm font-black text-red-500 capitalize block mt-2">{activeForm.name.substring(activeForm.name.indexOf('-') + 1).replace(/-/g, ' ')} Form</span>}
@@ -116,20 +116,20 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     </div>
                 </div>
 
-                {/* Coluna Direita: Os dados extras rolando de forma suave */}
-                <div className="w-full md:w-7/12 flex flex-col bg-slate-100 relative md:h-full">
+                {/* Coluna Direita: Guias Interativas */}
+                <div className="w-full md:w-7/12 flex flex-col bg-slate-100 relative md:h-full overflow-visible md:overflow-hidden">
                     
-                    {/* Botões de Fichário magnéticos */}
-                    <div className="flex bg-slate-200 border-b-4 border-slate-300 sticky top-0 z-20 flex-shrink-0">
+                    {/* Cabeçalho Magnético: Abas estilo fichário que fixam no topo do mobile */}
+                    <div className="flex bg-slate-200 pt-4 px-2 sm:px-4 gap-1 sm:gap-2 pr-16 md:pr-24 z-20 flex-shrink-0 border-b-4 border-red-500 sticky top-0 md:relative">
                         {['stats', 'defenses', 'moves'].map(t => (
-                            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-4 sm:py-5 text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all outline-none ${tab === t ? 'text-white bg-red-500 border-b-4 border-red-700 shadow-inner' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-300 border-b-4 border-transparent'}`}>
+                            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-3 sm:py-4 text-[9px] sm:text-[11px] font-black uppercase tracking-widest transition-all outline-none rounded-t-xl border-t-4 border-x-4 border-b-0 ${tab === t ? 'text-white bg-red-500 border-red-600 shadow-inner' : 'text-slate-400 bg-white border-slate-300 hover:bg-slate-100'}`}>
                                 {t === 'stats' ? 'Dados Dex' : t === 'defenses' ? 'Tipagem' : 'Golpes'}
                             </button>
                         ))}
                     </div>
                     
-                    {/* Área de conteúdo do Fichário */}
-                    <div className="flex-1 p-6 sm:p-8 md:p-10 md:overflow-y-auto no-scrollbar pb-10">
+                    {/* Área de Conteúdo */}
+                    <div className="flex-1 p-5 sm:p-8 md:p-10 md:overflow-y-auto no-scrollbar pb-10">
                         {tab === 'stats' && (
                             <div className="animate-fade-in space-y-8">
                                 <div className="flex gap-3 sm:gap-4">

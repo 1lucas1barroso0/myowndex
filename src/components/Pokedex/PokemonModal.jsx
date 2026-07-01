@@ -81,7 +81,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         {activeForm?.name?.includes('-') && <span className="text-sm font-black text-red-500 capitalize block mt-2">{activeForm.name.substring(activeForm.name.indexOf('-') + 1).replace(/-/g, ' ')} Form</span>}
                     </div>
                     
-                    <div className="flex-grow flex justify-center items-center py-6 relative group mb-8 bg-slate-50 rounded-3xl border-4 border-slate-200 overflow-hidden shadow-inner">
+                    <div className="flex-grow min-h-[220px] shrink-0 flex justify-center items-center py-6 relative group mb-8 bg-slate-50 rounded-3xl border-4 border-slate-200 shadow-inner">
                         <div className="absolute inset-0 opacity-10 transition-opacity duration-500 group-hover:opacity-20" style={{ background: `radial-gradient(circle at center, ${primaryColor} 0%, transparent 70%)` }}></div>
                         {sprite ? <img src={sprite} alt="pkmn" className="max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" /> : <span className="text-sm font-black text-slate-400">Image not found in Dex</span>}
                     </div>

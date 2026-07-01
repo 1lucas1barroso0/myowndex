@@ -18,18 +18,20 @@ export default function Teambuilder({ envProps }) {
     const updateActive = (cb) => setTeams(teams.map(t => t.id === activeTeamId ? cb(t) : t));
 
     if (!teams.length) return (
-        <div className="flex flex-col items-center justify-center py-32 animate-fade-in text-center max-w-lg mx-auto">
-            <div className="w-24 h-24 bg-slate-100 rounded-full border-4 border-slate-200 shadow-inner flex items-center justify-center mb-8">
-                <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+        <div className="flex flex-col items-center justify-center py-20 animate-fade-in text-center max-w-lg mx-auto">
+            <div className="w-24 h-24 bg-white rounded-full border-4 border-slate-200 shadow-sm flex items-center justify-center mb-6">
+                <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
             </div>
-            <h2 className="text-3xl font-black text-slate-800 mb-4 tracking-tight">O Sistema de Caixas está vazio!</h2>
-            <p className="text-sm text-slate-500 mb-8 leading-relaxed font-medium">Você ainda não tem nenhuma equipe registrada no PC. Organize sua mochila, escolha seus parceiros e prepare-se para o próximo desafio.</p>
-            <button onClick={createTeam} className="px-8 py-4 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991b1b] active:shadow-[0_0px_0_#991b1b] active:translate-y-1.5 transition-all outline-none">Criar Primeira Equipe</button>
+            <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">O PC está vazio!</h2>
+            <p className="text-sm text-slate-500 mb-8 leading-relaxed font-semibold">Organize sua mochila, escolha seus parceiros e prepare sua próxima tática de batalha.</p>
+            <button onClick={createTeam} className="px-8 py-4 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991b1b] active:shadow-none active:translate-y-1.5 transition-all outline-none">
+                Acessar Sistema de Caixas
+            </button>
         </div>
     );
 
     return (
-        <div className="flex flex-col xl:flex-row gap-8 animate-fade-in">
+        <div className="flex flex-col xl:flex-row gap-6 animate-fade-in">
             <div className="w-full xl:w-1/4 bg-white border-4 border-slate-200 rounded-3xl p-6 flex flex-col gap-3 h-fit shadow-[0_8px_0_#cbd5e1]">
                 <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Caixas do PC</h3>
                 {teams.map(t => (
@@ -37,8 +39,8 @@ export default function Teambuilder({ envProps }) {
                         {t.name}
                     </button>
                 ))}
-                <button onClick={createTeam} className="p-4 mt-3 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl hover:text-red-500 hover:border-red-300 transition-all outline-none">
-                    + Organizar Nova Caixa
+                <button onClick={createTeam} className="p-4 mt-3 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl hover:text-red-500 hover:border-red-300 hover:bg-red-50 transition-all outline-none">
+                    + Nova Caixa
                 </button>
             </div>
             
@@ -46,9 +48,9 @@ export default function Teambuilder({ envProps }) {
                 {active && (
                     <div className="bg-white border-4 border-slate-200 p-6 md:p-8 rounded-3xl shadow-[0_8px_0_#cbd5e1]">
                         <div className="flex justify-between items-center mb-8 border-b-4 border-slate-100 pb-5">
-                            <input type="text" value={active.name || ''} onChange={e => updateActive(t => ({...t, name: e.target.value}))} className="bg-transparent text-3xl font-black text-slate-800 focus:outline-none w-full max-w-md tracking-tight border-b-2 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" placeholder="Nome da Equipe" />
+                            <input type="text" placeholder="" value={active.name || ''} onChange={e => updateActive(t => ({...t, name: e.target.value}))} className="bg-transparent text-3xl font-black text-slate-800 focus:outline-none w-full max-w-md tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" />
                             <button onClick={() => { const nT = teams.filter(t=>t.id!==activeTeamId); setTeams(nT); setActiveTeamId(nT.length > 0 ? nT[0].id : null); setEditingSlot(null); }} className="p-3.5 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-colors border-2 border-slate-200 shadow-sm outline-none">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                         

@@ -11,6 +11,7 @@ export default function App() {
     const [limit, setLimit] = useState(60);
     const [selectedUrl, setSelectedUrl] = useState(null);
     const [view, setView] = useState('pokedex'); 
+    const [isTrading, setIsTrading] = useState(false);
     
     const [teams, setTeams] = useState(() => { 
         try { 
@@ -24,6 +25,7 @@ export default function App() {
 
     useEffect(() => { try { localStorage.setItem('myowndex_v1', JSON.stringify(teams)); } catch{} }, [teams]);
 
+    // Inicialização da Dex
     useEffect(() => {
         let mounted = true;
         const bootDex = async () => {
@@ -39,8 +41,54 @@ export default function App() {
                         moves: mRes?.results || [], abilities: aRes?.results || []
                     });
                 }
-            } catch (err) { console.error("Erro ao conectar com a rede principal.", err); }
+            } catch (err) {}
         }; bootDex(); return () => { mounted = false; };
+    }, []);
+
+    // Conexão via Cabo Link (Importação de Equipes Compartilhadas)
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tradeData = params.get('trade');
+        
+        if (tradeData) {
+            const receiveTeam = async () => {
+                setIsTrading(true);
+                try {
+                    const decoded = JSON.parse(atob(decodeURIComponent(tradeData)));
+                    const newTeam = { id: Date.now().toString(), name: `${decoded.name} (Recebida)`, pokemon: [] };
+                    
+                    for (const pk of decoded.p) {
+                        if (pk.u) {
+                            const speciesData = await fetchCached(pk.u);
+                            newTeam.pokemon.push({
+                                species: speciesData,
+                                level: pk.l || 50,
+                                friendship: pk.f || 150,
+                                canGMax: pk.g || false,
+                                item: pk.i || '',
+                                teraType: pk.t || '',
+                                ability: pk.a || '',
+                                nature: pk.n || 'hardy',
+                                moves: pk.m || ['', '', '', ''],
+                                ivs: pk.iv || {hp:31, attack:31, defense:31, 'special-attack':31, 'special-defense':31, speed:31},
+                                evs: pk.ev || {hp:0, attack:0, defense:0, 'special-attack':0, 'special-defense':0, speed:0},
+                                customStats: pk.cs || null,
+                                customTypes: pk.ct || null
+                            });
+                        }
+                    }
+                    setTeams(prev => [...prev, newTeam]);
+                    setActiveTeamId(newTeam.id);
+                    setView('teambuilder');
+                } catch (e) {
+                    // Sinal corrompido, ignora a troca silenciosamente
+                } finally {
+                    setIsTrading(false);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            };
+            receiveTeam();
+        }
     }, []);
 
     const visible = useMemo(() => {
@@ -61,24 +109,30 @@ export default function App() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col pb-24">
-            {/* O cabeçalho agora simula o painel superior físico de uma Pokédex clássica */}
+        <div className="min-h-screen flex flex-col pb-24 relative">
+            
+            {/* Tela de Transferência do Cabo Link */}
+            {isTrading && (
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-md animate-fade-in">
+                    <div className="w-20 h-20 border-8 border-blue-500 border-t-white rounded-full animate-spin shadow-[0_0_30px_#3b82f6] mb-8"></div>
+                    <h2 className="text-3xl font-black text-white tracking-widest uppercase mb-3">Conexão Estabelecida</h2>
+                    <p className="text-blue-400 font-black tracking-widest uppercase">Recebendo dados da equipe...</p>
+                </div>
+            )}
+
             <header className="bg-red-600 border-b-8 border-red-800 p-4 md:p-5 sticky top-0 z-40 shadow-xl">
                 <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row justify-between items-center gap-5">
                     <div className="flex items-center gap-6 w-full md:w-auto">
                         <div className="flex items-center gap-4">
-                            {/* O grande LED azul brilhante de inicialização da Pokédex */}
                             <div className="w-12 h-12 bg-sky-400 rounded-full border-4 border-white shadow-[0_0_15px_#00d2ff] relative overflow-hidden cursor-pointer" onClick={() => setView('pokedex')}>
                                 <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full opacity-70"></div>
                             </div>
-                            {/* Os três LEDs menores de status (Verde, Amarelo, Vermelho) */}
                             <div className="flex gap-1.5 self-start mt-1">
                                 <div className="w-3 h-3 bg-rose-500 rounded-full border border-rose-700 shadow-[0_0_5px_rgba(239,68,68,1)]"></div>
                                 <div className="w-3 h-3 bg-amber-400 rounded-full border border-amber-600 shadow-[0_0_5px_rgba(251,191,36,1)]"></div>
                                 <div className="w-3 h-3 bg-emerald-400 rounded-full border border-emerald-600 shadow-[0_0_5px_rgba(52,211,153,1)]"></div>
                             </div>
                         </div>
-                        {/* Chaves de aba no estilo botões físicos de console portátil */}
                         <div className="flex bg-red-800 rounded-xl p-1 border-2 border-red-950 shadow-inner">
                             <button onClick={() => setView('pokedex')} className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all outline-none ${view==='pokedex'?'bg-red-500 text-white shadow-md border-b-2 border-red-700':'text-red-300 hover:text-white'}`}>Pokédex</button>
                             <button onClick={() => setView('teambuilder')} className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all outline-none ${view==='teambuilder'?'bg-red-500 text-white shadow-md border-b-2 border-red-700':'text-red-300 hover:text-white'}`}>Equipes</button>
@@ -100,7 +154,6 @@ export default function App() {
                 </div>
             </header>
 
-            {/* A tela principal agora simula o display interno LCD fosco dos jogos */}
             <main className="max-w-[1700px] mx-auto p-4 md:p-8 w-full flex-grow relative z-10">
                 <div className="pokedex-screen p-6 md:p-8 min-h-[70vh]">
                     {view === 'pokedex' ? (

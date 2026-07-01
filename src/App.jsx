@@ -62,56 +62,80 @@ export default function App() {
 
     return (
         <div className="min-h-screen flex flex-col pb-24">
-            <header className="bg-slate-900/90 border-b border-slate-800 p-4 md:p-5 sticky top-0 z-40 backdrop-blur-xl shadow-lg">
+            {/* O cabeçalho agora simula o painel superior físico de uma Pokédex clássica */}
+            <header className="bg-red-600 border-b-8 border-red-800 p-4 md:p-5 sticky top-0 z-40 shadow-xl">
                 <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row justify-between items-center gap-5">
                     <div className="flex items-center gap-6 w-full md:w-auto">
-                        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView('pokedex')}>
-                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-blue-400 group-hover:scale-105 transition-transform"><svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
-                            <h1 className="text-2xl font-black text-white tracking-tight hidden sm:block">MyOwnDex</h1>
+                        <div className="flex items-center gap-4">
+                            {/* O grande LED azul brilhante de inicialização da Pokédex */}
+                            <div className="w-12 h-12 bg-sky-400 rounded-full border-4 border-white shadow-[0_0_15px_#00d2ff] relative overflow-hidden cursor-pointer" onClick={() => setView('pokedex')}>
+                                <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full opacity-70"></div>
+                            </div>
+                            {/* Os três LEDs menores de status (Verde, Amarelo, Vermelho) */}
+                            <div className="flex gap-1.5 self-start mt-1">
+                                <div className="w-3 h-3 bg-rose-500 rounded-full border border-rose-700 shadow-[0_0_5px_rgba(239,68,68,1)]"></div>
+                                <div className="w-3 h-3 bg-amber-400 rounded-full border border-amber-600 shadow-[0_0_5px_rgba(251,191,36,1)]"></div>
+                                <div className="w-3 h-3 bg-emerald-400 rounded-full border border-emerald-600 shadow-[0_0_5px_rgba(52,211,153,1)]"></div>
+                            </div>
                         </div>
-                        <div className="flex bg-slate-950 rounded-xl p-1.5 border border-slate-800 shadow-inner">
-                            <button onClick={() => setView('pokedex')} className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all outline-none ${view==='pokedex'?'bg-slate-800 text-white shadow-md':'text-slate-500 hover:text-slate-300'}`}>Pokédex</button>
-                            <button onClick={() => setView('teambuilder')} className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all outline-none ${view==='teambuilder'?'bg-slate-800 text-white shadow-md':'text-slate-500 hover:text-slate-300'}`}>Equipes</button>
+                        {/* Chaves de aba no estilo botões físicos de console portátil */}
+                        <div className="flex bg-red-800 rounded-xl p-1 border-2 border-red-950 shadow-inner">
+                            <button onClick={() => setView('pokedex')} className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all outline-none ${view==='pokedex'?'bg-red-500 text-white shadow-md border-b-2 border-red-700':'text-red-300 hover:text-white'}`}>Pokédex</button>
+                            <button onClick={() => setView('teambuilder')} className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all outline-none ${view==='teambuilder'?'bg-red-500 text-white shadow-md border-b-2 border-red-700':'text-red-300 hover:text-white'}`}>Equipes</button>
                         </div>
                     </div>
+                    
                     <div className="flex gap-4 w-full md:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
                         {view === 'pokedex' && (
                             <div className="relative flex-grow md:w-80 w-full">
-                                <input type="text" placeholder="" className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors shadow-inner" onChange={e => {setSearchTerm(e.target.value); setLimit(60);}} />
-                                <svg className="w-4 h-4 absolute left-4 top-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-xl text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={e => {setSearchTerm(e.target.value); setLimit(60);}} />
+                                <svg className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                             </div>
                         )}
-                        <div className="flex bg-slate-950 rounded-xl p-1.5 border border-slate-800">
-                            <button onClick={() => setIsHackmon(!isHackmon)} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none ${isHackmon?'bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.3)]':'text-slate-500 hover:text-slate-300'}`} title="Modo Livre">Hackmon</button>
-                            <button onClick={() => setIsTTRPG(!isTTRPG)} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 ${isTTRPG?'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.3)]':'text-slate-500 hover:text-slate-300'}`} title="Modo RPG de Mesa">TTRPG</button>
+                        <div className="flex bg-red-800 rounded-xl p-1 border-2 border-red-950">
+                            <button onClick={() => setIsHackmon(!isHackmon)} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none ${isHackmon?'bg-purple-600 text-white border-b-2 border-purple-800':'text-red-300'}`}>Hackmon</button>
+                            <button onClick={() => setIsTTRPG(!isTTRPG)} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 ${isTTRPG?'bg-amber-500 text-white border-b-2 border-amber-700':'text-red-300'}`}>TTRPG</button>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-[1700px] mx-auto p-6 md:p-8 w-full flex-grow relative z-10">
-                {view === 'pokedex' ? (
-                    species.length === 0 ? <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-5 w-full">{[...Array(40)].map((_, i) => <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl h-36 skeleton"></div>)}</div> : (
-                        <>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-5">
-                                {visible.map(sp => {
-                                    if (!sp?.url) return null;
-                                    const id = extractId(sp.url);
-                                    return (
-                                        <div key={sp.name || Math.random()} onClick={() => setSelectedUrl(sp.url)} className="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col items-center cursor-pointer group relative">
-                                            <span className="absolute top-3.5 left-4 text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-blue-400 transition-colors">#{id.padStart(4, '0')}</span>
-                                            <div className="w-full h-20 mt-4 flex justify-center items-center"><img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`} className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-300" loading="lazy" onError={e=>e.target.style.display='none'} /></div>
-                                            <span className="text-[10px] font-bold text-slate-400 mt-3 capitalize truncate w-full text-center group-hover:text-white transition-colors">{formatName(sp.name)}</span>
-                                        </div>
-                                    );
-                                })}
+            {/* A tela principal agora simula o display interno LCD fosco dos jogos */}
+            <main className="max-w-[1700px] mx-auto p-4 md:p-8 w-full flex-grow relative z-10">
+                <div className="pokedex-screen p-6 md:p-8 min-h-[70vh]">
+                    {view === 'pokedex' ? (
+                        species.length === 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-5 w-full">
+                                {[...Array(40)].map((_, i) => <div key={i} className="bg-slate-200 border-2 border-slate-300 rounded-2xl h-36 skeleton"></div>)}
                             </div>
-                            {limit < species.length && !searchTerm && <button onClick={() => setLimit(p => p + 60)} className="mt-10 w-full py-4 bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-blue-500 text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-sm outline-none">Carregar Mais</button>}
-                        </>
-                    )
-                ) : <Teambuilder envProps={{ teams, setTeams, allItems: env.items, allMoves: env.moves, allAbilities: env.abilities, activeTeamId, setActiveTeamId, isTTRPG, isHackmon, onSearchClick: () => setView('pokedex') }} />}
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-5">
+                                    {visible.map(sp => {
+                                        if (!sp?.url) return null;
+                                        const id = extractId(sp.url);
+                                        return (
+                                            <div key={sp.name || Math.random()} onClick={() => setSelectedUrl(sp.url)} className="pokemon-grid-card p-4 flex flex-col items-center cursor-pointer group relative">
+                                                <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">No. {id.padStart(4, '0')}</span>
+                                                <div className="w-full h-20 mt-4 flex justify-center items-center">
+                                                    <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`} className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200" loading="lazy" onError={e=>e.target.style.display='none'} />
+                                                </div>
+                                                <span className="text-[11px] font-black text-slate-700 mt-3 capitalize truncate w-full text-center group-hover:text-red-600 transition-colors">{formatName(sp.name)}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                {limit < species.length && !searchTerm && (
+                                    <button onClick={() => setLimit(p => p + 60)} className="mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
+                                        Carregar Mais Registros
+                                    </button>
+                                )}
+                            </>
+                        )
+                    ) : <Teambuilder envProps={{ teams, setTeams, allItems: env.items, allMoves: env.moves, allAbilities: env.abilities, activeTeamId, setActiveTeamId, isTTRPG, isHackmon, onSearchClick: () => setView('pokedex') }} />}
+                </div>
             </main>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
         </div>
     );
-      }
+}

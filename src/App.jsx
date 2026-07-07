@@ -210,18 +210,16 @@ export default function App() {
                             </div>
                         ) : (
                             <>
-                                <div className="game-panel p-5 mb-6">
-                                    <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-                                        <div>
-                                            <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">Search Hub</p>
-                                            <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Explore the Pokédex and build your perfect team.</h2>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <span className="px-3 py-2 rounded-full bg-red-500 text-white text-[10px] font-black uppercase tracking-widest">Searching</span>
-                                            <span className="px-3 py-2 rounded-full bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest">{visible.length} Pokémon</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div className="bg-slate-900 border-4 border-slate-800 rounded-2xl p-5 mb-8 shadow-xl relative overflow-hidden">
+    <div className="flex items-center gap-2 mb-2">
+        <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]"></div>
+        <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest uppercase">System Online</span>
+    </div>
+    <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
+        Pokémon Storage<br />
+        <span className="text-slate-400 text-sm font-bold animate-pulse">&gt; Awaiting Input...</span>
+    </h2>
+</div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3 sm:gap-5">
                                     {visible.map(sp => {
                                         if (!sp?.url) return null;

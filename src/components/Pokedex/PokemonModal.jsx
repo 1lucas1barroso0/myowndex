@@ -9,7 +9,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const [formData, setFormData] = useState(null);
     const [evoChain, setEvoChain] = useState([]);
     const [tab, setTab] = useState('stats');
-    const [isExpanded, setIsExpanded] = useState(false); // Lógica da Cortina
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         let mounted = true;
@@ -71,21 +71,21 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             
             <div className="game-shell w-full max-w-6xl h-[100vh] md:h-[90vh] flex flex-col md:flex-row overflow-hidden relative shadow-2xl bg-slate-50 md:rounded-3xl" onClick={e => e.stopPropagation()}>
                 
-                {/* BOTÃO DE FECHAR (Fica acima de tudo, z-[60]) */}
-                <button onClick={onClose} className="absolute top-4 right-4 w-11 h-11 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[60] transition-all border-4 border-slate-200 shadow-sm">
+                {/* BOTÃO DE FECHAR (Agora com mais margem: top-5 right-5 e sm:top-6 sm:right-6) */}
+                <button onClick={onClose} className="absolute top-5 right-5 sm:top-6 sm:right-6 w-11 h-11 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[60] transition-all border-4 border-slate-200 shadow-sm">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 
                 {/* === TELA 1: APRESENTAÇÃO DO POKÉMON === */}
-                {/* O pb-[80px] no mobile garante que consegues fazer scroll até ao botão sem que a cortina recolhida tape */}
-                <div className="w-full h-full md:w-5/12 p-5 sm:p-6 md:p-8 flex flex-col overflow-y-auto no-scrollbar app-scroll-area border-r-0 md:border-r-4 border-slate-200 z-10 pb-[80px] md:pb-8 relative bg-slate-50/90">
+                {/* Padding reforçado no topo (pt-7) e laterais (px-6) para dar espaço ao "No. XXXX" */}
+                <div className="w-full h-full md:w-5/12 pt-7 px-6 pb-[85px] sm:pt-8 sm:px-8 md:pb-8 flex flex-col overflow-y-auto no-scrollbar app-scroll-area border-r-0 md:border-r-4 border-slate-200 z-10 relative bg-slate-50/90">
                     
                     <div className="z-10 mb-6 flex flex-col items-start">
-                        {/* O teu design original do No. XXXX intocado */}
-                        <span className="whitespace-nowrap text-[10px] sm:text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">
+                        {/* O teu design original do No. XXXX respirando perfeitamente */}
+                        <span className="whitespace-nowrap text-[9px] sm:text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">
                             No. {String(baseInfo.id).padStart(4, '0')}
                         </span>
-                        <h2 className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-4 tracking-tight leading-none drop-shadow-sm">
+                        <h2 className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-5 tracking-tight leading-none drop-shadow-sm">
                             {activeForm?.name?.split('-')[0] || baseInfo.name}
                         </h2>
                         {activeForm?.name?.includes('-') && (
@@ -98,7 +98,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     <div className="flex-grow min-h-[220px] shrink-0 flex justify-center items-center py-6 relative group mb-8 bg-slate-50 rounded-3xl border-4 border-slate-200 shadow-inner">
                         <div className="absolute inset-0 opacity-10 transition-opacity duration-500 group-hover:opacity-20" style={{ background: "radial-gradient(circle at center, " + primaryColor + " 0%, transparent 70%)" }}></div>
                         {sprite ? (
-                            <img src={sprite} alt="pkmn" className="max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                            <img src={sprite} alt="pkmn" className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" />
                         ) : (
                             <span className="text-sm font-black text-slate-400">Image not found in Dex</span>
                         )}
@@ -142,15 +142,15 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     </div>
                 </div>
 
-                {/* === TELA 2: A CORTINA (Excesso de Informação) === */}
-                {/* No telemóvel: Começa no fundo com 70px. Quando isExpanded=true, sobe até 96% e cobre a Tela 1 de forma limpa. */}
-                <div className={"absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-10px_30px_rgba(0,0,0,0.15)] md:shadow-none " + (isExpanded ? "h-[96%] md:h-full" : "h-[70px] md:h-full")}>
+                {/* === TELA 2: A CORTINA (Efeito Pokébola) === */}
+                {/* Adicionado border-t-[8px] border-slate-900 para simular o meio de uma pokébola */}
+                <div className={"absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-15px_40px_rgba(0,0,0,0.2)] md:shadow-none border-t-[8px] md:border-t-0 border-slate-900 " + (isExpanded ? "h-[96%] md:h-full" : "h-[76px] md:h-full")}>
                     
                     {/* Títulos das Abas e Puxador */}
-                    <div className="flex bg-slate-200 border-b-4 border-slate-300 w-full shrink-0 pt-3 md:pt-0 rounded-t-[2rem] md:rounded-none relative z-20 cursor-pointer md:cursor-auto" onClick={() => !isExpanded && setIsExpanded(true)}>
+                    <div className="flex bg-slate-200 border-b-4 border-slate-300 w-full shrink-0 pt-3 md:pt-0 rounded-t-[1.5rem] md:rounded-none relative z-20 cursor-pointer md:cursor-auto" onClick={() => !isExpanded && setIsExpanded(true)}>
                         
-                        {/* Puxador Físico (Apenas telemóvel) */}
-                        <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-400/50 rounded-full md:hidden" onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}></div>
+                        {/* Puxador Físico */}
+                        <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-400 rounded-full md:hidden" onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}></div>
                         
                         {['stats', 'defenses', 'moves'].map(t => (
                             <button 
@@ -163,7 +163,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         ))}
                     </div>
                     
-                    {/* Conteúdo das Abas (Tudo mantido como pediu, original e seguro) */}
+                    {/* Conteúdo das Abas */}
                     <div className="flex-1 p-5 sm:p-6 md:p-10 overflow-y-auto no-scrollbar app-scroll-area">
                         {tab === 'stats' && (
                             <div className="animate-fade-in space-y-8">

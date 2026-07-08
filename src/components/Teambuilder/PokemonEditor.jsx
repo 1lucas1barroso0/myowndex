@@ -76,18 +76,16 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <datalist id="eMvs">{validMoves.map(m => <option key={m.name} value={m.name} />)}</datalist>
             <datalist id="eTera">{TYPES.map(t => <option key={t} value={t} />)}</datalist>
             
-            {/* CABEÇALHO DO EDITOR: SPRITE, NICKNAME E REMOVE PARTNER */}
             <div className="flex flex-col xl:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b-2 border-slate-200 pb-5 sm:pb-6">
                 
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center w-full min-w-0">
-                    {/* Sprite */}
                     <div className="w-20 h-20 sm:w-28 sm:h-28 bg-slate-50 rounded-2xl border-4 border-slate-200 flex justify-center items-center flex-shrink-0 relative shadow-inner">
                         {pk.canGMax && <div className="absolute inset-0 bg-red-500/10 rounded-xl animate-pulse"></div>}
                         {sprite ? <img src={sprite} className="w-full h-full p-2 object-contain drop-shadow-md relative z-10" /> : <span className="text-[10px] text-slate-400 font-black uppercase">---</span>}
                     </div>
                     
                     <div className="flex flex-col gap-2 sm:gap-3 w-full min-w-0">
-                        {/* Nickname Editor Ultra-Clean */}
+                        {/* Nickname Editor Ultra-Clean - CORRIGIDO O ERRO DE VARIÁVEL AQUI */}
                         <div className="flex flex-col w-full min-w-0">
                             <input 
                                 type="text" 
@@ -97,13 +95,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 placeholder={formatName(pk.species?.name)}
                                 title="Edit Nickname"
                             />
-                            {/* Nome Original Pequenino Embaixo */}
                             <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 truncate">
-                                {formatName(pk.species?.name)} {activeForm?.name?.includes('-') ? "(" + activeForm.name.substring(activeForm.name.indexOf('-') + 1).replace(/-/g, ' ') + ")" : ""}
+                                {formatName(pk.species?.name)} {pk.species?.name?.includes('-') ? "(" + pk.species.name.substring(pk.species.name.indexOf('-') + 1).replace(/-/g, ' ') + ")" : ""}
                             </span>
                         </div>
 
-                        {/* Level & Friendship */}
                         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                             <div className="flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 shadow-sm">
                                 <label className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Level</label>
@@ -123,7 +119,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </div>
                 </div>
 
-                {/* BOTÃO REMOVE PARTNER - Totalmente visível e responsivo */}
                 <button onClick={onRemove} className="w-full xl:w-auto flex items-center justify-center gap-2 self-stretch xl:self-start px-4 py-3 xl:py-2.5 mt-2 xl:mt-0 bg-white text-slate-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm outline-none shrink-0">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     Remove Partner
@@ -148,7 +143,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         </div>
                     </div>
                     
-                    {/* GENDER */}
                     <div>
                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Gender</label>
                         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 p-2 shadow-inner">
@@ -167,14 +161,12 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         </div>
                     </div>
 
-                    {/* MOVES */}
                     <div>
                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1 flex justify-between"><span>Moves</span><span className="bg-slate-200 px-2 py-0.5 rounded text-slate-600">{pk.moves?.filter(Boolean).length||0}/4</span></label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{[0,1,2,3].map(i=><input key={i} list="eMvs" value={pk.moves?.[i]||''} onChange={e=>{const n=[...(pk.moves||[])]; n[i]=(e.target.value||'').toLowerCase(); updatePk({...pk, moves:n});}} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />)}</div>
                     </div>
                 </div>
 
-                {/* THE FLUID TRAINING SECTION */}
                 <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 shadow-sm mt-2 sm:mt-0">
                     <div className="flex justify-between items-center mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-slate-200">
                         <div className="flex items-center gap-3">

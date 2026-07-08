@@ -102,7 +102,7 @@ export default function App() {
     const visible = useMemo(() => {
         if (!deferredSearchTerm) return species.slice(0, limit);
         const query = deferredSearchTerm.toLowerCase();
-        return species.filter(s => (s.name||'').includes(query) || extractId(s.url) === query).slice(0, limit);
+        return species.filter(s => (s.name||'').startsWith(query) || extractId(s.url) === query).slice(0, limit);
     }, [species, deferredSearchTerm, limit]);
 
     const teamBuilderProps = useMemo(() => ({

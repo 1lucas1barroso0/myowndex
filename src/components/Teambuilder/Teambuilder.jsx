@@ -30,6 +30,7 @@ export default function Teambuilder({ envProps }) {
                 id: active.id,
                 name: active.name,
                 pokemon: active.pokemon.map(pk => ({
+                    nickname: pk.nickname,
                     species: { name: pk.species?.name, url: pk.species?.url },
                     level: pk.level,
                     item: pk.item,
@@ -92,6 +93,7 @@ export default function Teambuilder({ envProps }) {
                     : (genderRate === 0 ? 'M' : genderRate === 8 ? 'F' : 'N');
 
                 return {
+                    nickname: pk.nickname ?? '',
                     species: spData,
                     level: pk.level ?? 50,
                     item: pk.item ?? '',
@@ -137,7 +139,6 @@ export default function Teambuilder({ envProps }) {
 
     return (
         <div className="flex flex-col xl:flex-row gap-6 animate-fade-in w-full">
-            {/* SIDEBAR - BOX LIST */}
             <div className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-6 flex flex-col gap-3 h-full xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-6">
                 <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">PC Boxes</h3>
                 {teams.map(t => (
@@ -169,12 +170,10 @@ export default function Teambuilder({ envProps }) {
                 </div>
             </div>
             
-            {/* MAIN CONTENT - ACTIVE BOX */}
             <div className="w-full xl:w-3/4 min-w-0 flex-1">
                 {active && (
                     <div className="game-panel p-4 sm:p-6 md:p-8 overflow-hidden">
                         
-                        {/* BOX HEADER (Name & Actions) */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b-4 border-slate-100 pb-5">
                             <input 
                                 type="text" 
@@ -196,7 +195,6 @@ export default function Teambuilder({ envProps }) {
                             </div>
                         </div>
 
-                        {/* SHARE CODE BOX */}
                         {shareCode && (
                             <div className="mb-8 p-4 sm:p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl flex flex-col sm:flex-row gap-3 sm:gap-4 items-center justify-between shadow-inner animate-fade-in w-full min-w-0">
                                 <div className="flex-1 w-full min-w-0">
@@ -209,7 +207,6 @@ export default function Teambuilder({ envProps }) {
                             </div>
                         )}
                         
-                        {/* POKEMON GRID */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 w-full">
                             {active.pokemon?.map((pk, i) => (
                                 <div key={i} onClick={() => setEditingSlot(i)} className={"p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative overflow-hidden group shadow-sm " + (editingSlot === i ? "bg-blue-50 border-blue-400 shadow-[0_4px_0_#60a5fa] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white")}>
@@ -218,11 +215,17 @@ export default function Teambuilder({ envProps }) {
                                         {pk.species?.sprites?.front_default ? <img src={pk.species.sprites.front_default} className="w-10 h-10 sm:w-14 sm:h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" alt={pk.species?.name} /> : <span className="text-[9px] font-black text-slate-400 uppercase">---</span>}
                                     </div>
                                     <div className="relative z-10 min-w-0 flex-1">
-                                        <div className="flex items-center justify-between gap-1 sm:gap-2 mb-1">
-                                            <div className="font-black text-xs sm:text-sm text-slate-800 capitalize truncate">{formatName(pk.species?.name)}</div>
+                                        <div className="flex items-center justify-between gap-1 sm:gap-2 mb-0.5">
+                                            {/* Renderiza o Nickname ou o nome da Espécie se não houver Nickname */}
+                                            <div className="font-black text-xs sm:text-sm text-slate-800 capitalize truncate">
+                                                {pk.nickname ? pk.nickname : formatName(pk.species?.name)}
+                                            </div>
                                             <span className={"text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 " + (pk.gender === 'M' ? "text-blue-500 bg-blue-50 border-blue-200" : pk.gender === 'F' ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200")}>{pk.gender === 'M' ? '♂' : pk.gender === 'F' ? '♀' : '⚲'}</span>
                                         </div>
-                                        <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 truncate">Lv.{pk.level||1} • {pk.item ? formatName(pk.item) : 'No Item'}</div>
+                                        <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 truncate">
+                                            {/* Mostra a espécie original pequena caso tenha dado Nickname */}
+                                            {pk.nickname ? <span className="uppercase tracking-wider">{formatName(pk.species?.name)} • </span> : ""}Lv.{pk.level||1} • {pk.item ? formatName(pk.item) : 'No Item'}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -233,7 +236,6 @@ export default function Teambuilder({ envProps }) {
                             )}
                         </div>
                         
-                        {/* POKEMON EDITOR COMPONENT */}
                         {editingSlot !== null && active.pokemon?.[editingSlot] && (
                             <div className="mt-4 sm:mt-6">
                                 <PokemonEditor 

@@ -38,6 +38,35 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         return Array.from(map.values()).sort((a,b) => (a.name || '').localeCompare(b.name || ''));
     }, [isHackmon, allAbilities, pk.species?.abilities, baseForm]);
 
+    const cleanItems = useMemo(() => {
+        if (!allItems) return [];
+        const trash = [
+            "candy", "mint", "mulch", "apricorn", "mail", "ticket", "pass", "key", "card", 
+            "permit", "charm", "petal", "lure", "fossil", "potion", "elixir", "repel", 
+            "revive", "heal", "soda", "lemonade", "moomoo", "mushroom", "flute", 
+            "shard", "fused", "crest", "x-", "dire-", "guard-", "ingredient", 
+            "sauce", "apple", "cheese", "curry", "lettuce", "pepper", "onion", "tomato", 
+            "bacon", "prosciutto", "hamburger", "fillet", "noodle", "rice", "salt", 
+            "butter", "mustard", "mayo", "vinegar", "jam", "marmalade", "oil", "cream", 
+            "yogurt", "wasabi", "extract", "pickles", "sausage", "plant", "drop", "nectar", 
+            "syrup", "sweet", "treasure", "relic", "nugget", "pearl", "stardust", "piece", 
+            "comet", "feather", "shoal", "bottle", "spray", "scent"
+        ];
+        return allItems
+            .map(i => typeof i === "string" ? i : (i?.name || ""))
+            .filter(name => {
+                if (!name) return false;
+                const n = name.toLowerCase();
+                if (/^(tm|hm|tr)\d/.test(n)) return false;
+                for (let i = 0; i < trash.length; i++) {
+                    if (n.includes(trash[i])) return false;
+                }
+                if (/(master|ultra|great|poke|safari|net|dive|nest|repeat|timer|luxury|premier|dusk|heal|quick|cherish|fast|level|lure|heavy|love|friend|moon|sport|dream|beast)-ball$/.test(n)) return false;
+                return true;
+            })
+            .slice(0, 450);
+    }, [allItems]);
+
     const handleChange = (cat, stat, val) => {
         if (val === '') { updatePk({ ...pk, [cat]: { ...(pk[cat] || {}), [stat]: '' } }); return; }
         let v = parseInt(val) || 0;
@@ -68,47 +97,15 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const evTotal = Object.values(pk.evs || {}).reduce((s, v) => s + (parseInt(v)||0), 0);
     const sprite = pk.species?.sprites?.other?.['official-artwork']?.front_default || pk.species?.sprites?.front_default;
     const customT = isHackmon && pk.customTypes ? pk.customTypes : (pk.species?.types?.map(t => t.type?.name) || []);
-    
-    const cleanItems = useMemo(() => {
-        if (!allItems) return [];
-        
-        const trash = [
-            "candy", "mint", "mulch", "apricorn", "mail", "ticket", "pass", "key", "card", 
-            "permit", "charm", "petal", "lure", "fossil", "potion", "elixir", "repel", 
-            "revive", "heal", "soda", "lemonade", "moomoo", "mushroom", "flute", 
-            "shard", "fused", "crest", "x-", "dire-", "guard-", "ingredient", 
-            "sauce", "apple", "cheese", "curry", "lettuce", "pepper", "onion", "tomato", 
-            "bacon", "prosciutto", "hamburger", "fillet", "noodle", "rice", "salt", 
-            "butter", "mustard", "mayo", "vinegar", "jam", "marmalade", "oil", "cream", 
-            "yogurt", "wasabi", "extract", "pickles", "sausage", "plant", "drop", "nectar", 
-            "syrup", "sweet", "treasure", "relic", "nugget", "pearl", "stardust", "piece", 
-            "comet", "feather", "shoal", "bottle", "spray", "scent"
-        ];
-
-        return allItems
-            .map(i => typeof i === "string" ? i : (i?.name || ""))
-            .filter(name => {
-                if (!name) return false;
-                const n = name.toLowerCase();
-                if (/^(tm|hm|tr)\d/.test(n)) return false; // Remove TMs e afins
-                for (let i = 0; i < trash.length; i++) {
-                    if (n.includes(trash[i])) return false;
-                }
-                if (/(master|ultra|great|poke|safari|net|dive|nest|repeat|timer|luxury|premier|dusk|heal|quick|cherish|fast|level|lure|heavy|love|friend|moon|sport|dream|beast)-ball$/.test(n)) return false;
-                return true;
-            })
-            .slice(0, 450); // Trava de segurança para o telemóvel não crashar
-    }, [allItems]);
 
     return (
         <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
-            <datalist id="eItems">{cleanItems.map(v => <option key={v} value={v} />)}</datalist>
-            <datalist id="eAbs">{validAbs.map(a => <option key={a.name} value={a.name} />)}</datalist>
-            <datalist id="eMvs">{validMoves.map(m => <option key={m.name} value={m.name} />)}</datalist>
-            <datalist id="eTera">{TYPES.map(t => <option key={t} value={t} />)}</datalist>
+            <datalist id="eItems">{cleanItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
+            <datalist id="eAbs">{validAbs.map(a => { const v = typeof a === "string" ? a : (a?.name || ""); return v ? <option key={"ab-" + v} value={v}></option> : null; })}</datalist>
+            <datalist id="eMvs">{validMoves.map(m => { const v = typeof m === "string" ? m : (m?.name || ""); return v ? <option key={"mv-" + v} value={v}></option> : null; })}</datalist>
+            <datalist id="eTera">{TYPES.map(t => { const v = typeof t === "string" ? t : (t?.name || t); return v ? <option key={"tr-" + v} value={v}></option> : null; })}</datalist>
             
             <div className="flex flex-col xl:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b-2 border-slate-200 pb-5 sm:pb-6">
-                
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center w-full min-w-0">
                     <div className="w-20 h-20 sm:w-28 sm:h-28 bg-slate-50 rounded-2xl border-4 border-slate-200 flex justify-center items-center flex-shrink-0 relative shadow-inner">
                         {pk.canGMax && <div className="absolute inset-0 bg-red-500/10 rounded-xl animate-pulse"></div>}
@@ -116,18 +113,17 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </div>
                     
                     <div className="flex flex-col gap-2 sm:gap-3 w-full min-w-0">
-                        {/* Nickname Editor Ultra-Clean - CORRIGIDO O ERRO DE VARIÁVEL AQUI */}
                         <div className="flex flex-col w-full min-w-0">
                             <input 
                                 type="text" 
-                                value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name)} 
+                                value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} 
                                 onChange={e => updatePk({...pk, nickname: e.target.value})} 
                                 className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-2 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-0.5 truncate capitalize placeholder-slate-300" 
-                                placeholder={formatName(pk.species?.name)}
+                                placeholder={formatName(pk.species?.name || "")}
                                 title="Edit Nickname"
                             />
                             <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 truncate">
-                                {formatName(pk.species?.name)} {pk.species?.name?.includes('-') ? "(" + pk.species.name.substring(pk.species.name.indexOf('-') + 1).replace(/-/g, ' ') + ")" : ""}
+                                {formatName(pk.species?.name || "")} {pk.species?.name?.includes('-') ? "(" + pk.species.name.substring(pk.species.name.indexOf('-') + 1).replace(/-/g, ' ') + ")" : ""}
                             </span>
                         </div>
 
@@ -146,6 +142,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 <span className={"text-[9px] sm:text-[10px] font-black uppercase tracking-widest " + (pk.canGMax ? "text-red-500" : "text-slate-500")}>G-Max</span>
                                 <input type="checkbox" className="hidden" checked={pk.canGMax||false} disabled={isNativeGMax} onChange={e => updatePk({...pk, canGMax: e.target.checked})} />
                             </label>
+                            {isHackmon && (
+                                <div className="flex gap-1.5 ml-1">
+                                    {[0, 1].map(idx => <select key={idx} value={customT[idx] || ''} onChange={e => { const nT = [...customT]; nT[idx] = e.target.value; updatePk({...pk, customTypes: nT.filter(Boolean)}); }} className="bg-purple-50 border-2 border-purple-200 rounded-lg text-[10px] text-purple-600 uppercase font-black px-2 py-1 outline-none shadow-sm"><option value=""></option>{TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>)}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -154,7 +155,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     Remove Partner
                 </button>
-
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-10">
@@ -210,68 +210,4 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             Free EVs: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
                         </div>
                     </div>
-                    
-                    <div className="w-full">
-                        <div className="hidden sm:flex items-center gap-2 mb-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-2">
-                            <div className="w-12 text-left">Stat</div>
-                            <div className="w-10">Base</div>
-                            <div className="flex-1 text-left">Effort (EVs)</div>
-                            <div className="w-12 cursor-pointer hover:text-blue-500 flex items-center justify-center gap-1 transition-colors" onClick={() => randomize('ivs')}>IVs 🎲</div>
-                            <div className={"w-12 text-right " + (isTTRPG ? "text-red-500" : "text-slate-800")}>Total</div>
-                        </div>
-                        
-                        <div className="flex flex-col gap-2.5">
-                            {pk.species?.stats?.map(s => {
-                                const sN = s.stat?.name;
-                                if (!sN) return null;
-                                const base = isHackmon && pk.customStats?.[sN] !== undefined ? pk.customStats[sN] : (s.base_stat || 0);
-                                const ev = pk.evs?.[sN] ?? 0; const iv = pk.ivs?.[sN] ?? 31; const multi = getMulti(sN);
-                                const rawVal = calculateStat(base, ev, iv, pk.level, multi, sN === 'hp', pk.species?.name);
-                                const finalVal = isTTRPG ? convertToTTRPG(rawVal, sN === 'hp') : rawVal;
-                                
-                                let cCol = "text-slate-800";
-                                if (isTTRPG) cCol = "text-red-600";
-                                else if (multi > 1) cCol = "text-emerald-600";
-                                else if (multi < 1) cCol = "text-red-500";
-                                
-                                return (
-                                    <div key={sN} className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 bg-white p-3 sm:p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
-                                        <div className="flex justify-between items-center w-full sm:w-12 shrink-0">
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[sN] || sN}</span>
-                                            <div className={"sm:hidden text-sm font-black flex items-center gap-1 " + cCol}>
-                                                {!isTTRPG && multi > 1 && <span className="text-emerald-500">↑</span>}
-                                                {!isTTRPG && multi < 1 && <span className="text-red-500">↓</span>}
-                                                {finalVal}
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-2 w-full sm:flex-1">
-                                            <div className="w-10 flex justify-center shrink-0">
-                                                {isHackmon ? (
-                                                    <input type="number" min="1" max="255" value={base === '' ? '' : base} onChange={e => updatePk({...pk, customStats: {...(pk.customStats || {}), [sN]: e.target.value === '' ? '' : parseInt(e.target.value)}})} className="w-full bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" />
-                                                ) : (
-                                                    <div className="text-[11px] font-black text-slate-700">{base}</div>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 flex items-center gap-2 min-w-0">
-                                                <input type="range" min="0" max="252" step="4" value={ev === '' ? 0 : ev} onChange={e => handleChange('evs', sN, e.target.value)} className="w-full min-w-0 accent-red-500" />
-                                                <input type="number" min="0" max="252" value={ev === '' ? '' : ev} onChange={e => handleChange('evs', sN, e.target.value)} className="w-11 shrink-0 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
-                                            </div>
-                                            <div className="w-10 sm:w-12 flex justify-center shrink-0">
-                                                <input type="number" min="0" max="31" value={iv === '' ? '' : iv} onChange={e => handleChange('ivs', sN, e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
-                                            </div>
-                                        </div>
-                                        <div className={"hidden sm:flex w-12 justify-end items-center gap-1 text-sm font-black shrink-0 " + cCol}>
-                                            {!isTTRPG && multi > 1 && <span className="text-emerald-500">↑</span>}
-                                            {!isTTRPG && multi < 1 && <span className="text-red-500">↓</span>}
-                                            {finalVal}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+          

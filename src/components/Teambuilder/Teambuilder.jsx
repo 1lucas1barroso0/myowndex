@@ -30,7 +30,6 @@ export default function Teambuilder({ envProps }) {
                 id: active.id,
                 name: active.name,
                 pokemon: active.pokemon.map(pk => ({
-                    nickname: pk.nickname,
                     species: { name: pk.species?.name, url: pk.species?.url },
                     level: pk.level,
                     item: pk.item,
@@ -93,7 +92,7 @@ export default function Teambuilder({ envProps }) {
                     : (genderRate === 0 ? 'M' : genderRate === 8 ? 'F' : 'N');
 
                 return {
-                    nickname: pk.nickname ?? '',
+                    nickname: '',
                     species: spData,
                     level: pk.level ?? 50,
                     item: pk.item ?? '',
@@ -216,14 +215,12 @@ export default function Teambuilder({ envProps }) {
                                     </div>
                                     <div className="relative z-10 min-w-0 flex-1">
                                         <div className="flex items-center justify-between gap-1 sm:gap-2 mb-0.5">
-                                            {/* Renderiza o Nickname ou o nome da Espécie se não houver Nickname */}
                                             <div className="font-black text-xs sm:text-sm text-slate-800 capitalize truncate">
                                                 {pk.nickname ? pk.nickname : formatName(pk.species?.name)}
                                             </div>
                                             <span className={"text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 " + (pk.gender === 'M' ? "text-blue-500 bg-blue-50 border-blue-200" : pk.gender === 'F' ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200")}>{pk.gender === 'M' ? '♂' : pk.gender === 'F' ? '♀' : '⚲'}</span>
                                         </div>
                                         <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 truncate">
-                                            {/* Mostra a espécie original pequena caso tenha dado Nickname */}
                                             {pk.nickname ? <span className="uppercase tracking-wider">{formatName(pk.species?.name)} • </span> : ""}Lv.{pk.level||1} • {pk.item ? formatName(pk.item) : 'No Item'}
                                         </div>
                                     </div>

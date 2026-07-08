@@ -37,6 +37,35 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         if (map.size === 0 && baseForm?.abilities) baseForm.abilities.forEach(a => { if (a?.ability?.name) map.set(a.ability.name, a.ability) });
         return Array.from(map.values()).sort((a,b) => (a.name || '').localeCompare(b.name || ''));
     }, [isHackmon, allAbilities, pk.species?.abilities, baseForm]);
+    const filteredItems = useMemo(() => {
+        if (!allItems) return [];
+        const search = (pk.item || "").toLowerCase();
+        
+        // 1. Não mostra absolutamente nada inicialmente
+        if (!search) return [];
+
+        // 2. Filtro bloqueador de lixo (TMs, HMs, TRs, Key Items, Doces, etc.)
+        const isGarbage = (name) => {
+            const n = name.toLowerCase();
+            const garbagePatterns = [
+                /^(tm|hm|tr)\d+/, 
+                /candy$/, /mint$/, /mulch$/, /apricorn$/, /mail$/, 
+                /ticket/, /pass/, /key/, /card/, /permit/, /charm/, /petal/, /lure/, /fossil/
+            ];
+            for (let i = 0; i < garbagePatterns.length; i++) {
+                if (garbagePatterns[i].test(n)) return true;
+            }
+            return false;
+        };
+
+        // Extrai apenas os nomes válidos e passa-os pelo detetor de lixo
+        const validNames = allItems
+            .map(i => typeof i === "string" ? i : (i?.name || ""))
+            .filter(name => name && !isGarbage(name));
+        
+        // 3. Mostra apenas os itens válidos que COMEÇAM com a letra/texto digitado
+        return validNames.filter(v => v.toLowerCase().startsWith(search));
+    }, [allItems, pk.item]);
 
     const handleChange = (cat, stat, val) => {
         if (val === '') { updatePk({ ...pk, [cat]: { ...(pk[cat] || {}), [stat]: '' } }); return; }
@@ -71,12 +100,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     return (
         <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
-            <datalist id="eItems">
-    {allItems?.map(i => {
-        const v = typeof i === "string" ? i : (i?.name || "");
-        return <option key={v} value={v}></option>;
-    })}
-</datalist>
+                        <datalist id="eItems">{filteredItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
 <datalist id="eAbs">
     {validAbs?.map(a => {
         const v = typeof a === "string" ? a : (a?.name || "");

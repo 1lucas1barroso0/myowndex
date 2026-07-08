@@ -71,10 +71,10 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     return (
         <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
-            <datalist id="eItems">{allItems.map(i => <option key={i.name} value={i.name} />)}</datalist>
-            <datalist id="eAbs">{validAbs.map(a => <option key={a.name} value={a.name} />)}</datalist>
-            <datalist id="eMvs">{validMoves.map(m => <option key={m.name} value={m.name} />)}</datalist>
-            <datalist id="eTera">{TYPES.map(t => <option key={t} value={t} />)}</datalist>
+            <datalist id="eItems">{allItems?.map(i => <option key={i.name || i} value={i.name || i} />)}</datalist>
+<datalist id="eAbs">{validAbs?.map(a => <option key={a.name || a} value={a.name || a} />)}</datalist>
+<datalist id="eMvs">{validMoves?.map(m => <option key={m.name || m} value={m.name || m} />)}</datalist>
+<datalist id="eTera">{TYPES.map(t => <option key={t} value={t} />)}</datalist>
             
             <div className="flex flex-col xl:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b-2 border-slate-200 pb-5 sm:pb-6">
                 

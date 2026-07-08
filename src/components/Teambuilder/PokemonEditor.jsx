@@ -97,28 +97,42 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const evTotal = Object.values(pk.evs || {}).reduce((s, v) => s + (parseInt(v)||0), 0);
     const sprite = pk.species?.sprites?.other?.['official-artwork']?.front_default || pk.species?.sprites?.front_default;
     const customT = isHackmon && pk.customTypes ? pk.customTypes : (pk.species?.types?.map(t => t.type?.name) || []);
+    const cleanItems = useMemo(() => {
+        if (!allItems) return [];
+        
+        const isGarbage = (name) => {
+            const n = name.toLowerCase();
+            const garbagePatterns = [
+                /^(tm|hm|tr)\d+/, 
+                /candy$/, /mint$/, /mulch$/, /apricorn$/, /mail$/, 
+                /ticket/, /pass/, /key/, /card/, /permit/, /charm/, /petal/, /lure/, /fossil/
+            ];
+            for (let i = 0; i < garbagePatterns.length; i++) {
+                if (garbagePatterns[i].test(n)) return true;
+            }
+            return false;
+        };
 
+        // Filtra o lixo uma única vez. O telemóvel não vai crashar a lista!
+        return allItems
+            .map(i => typeof i === "string" ? i : (i?.name || ""))
+            .filter(name => name && !isGarbage(name));
+    }, [allItems]);
+    
     return (
         <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
-                        <datalist id="eItems">{filteredItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
-<datalist id="eAbs">
-    {validAbs?.map(a => {
-        const v = typeof a === "string" ? a : (a?.name || "");
-        return <option key={v} value={v}></option>;
-    })}
-</datalist>
-<datalist id="eMvs">
-    {validMoves?.map(m => {
-        const v = typeof m === "string" ? m : (m?.name || "");
-        return <option key={v} value={v}></option>;
-    })}
-</datalist>
-<datalist id="eTera">
-    {TYPES?.map(t => {
-        const v = typeof t === "string" ? t : (t?.name || t);
-        return <option key={v} value={v}></option>;
-    })}
-</datalist>
+                                    <datalist id="eItems">
+                {cleanItems.map(v => <option key={"item-" + v} value={v}></option>)}
+            </datalist>
+            <datalist id="eAbs">
+                {validAbs.map(a => { const v = typeof a === "string" ? a : (a?.name || ""); return <option key={"ab-" + v} value={v}></option>; })}
+            </datalist>
+            <datalist id="eMvs">
+                {validMoves.map(m => { const v = typeof m === "string" ? m : (m?.name || ""); return <option key={"mv-" + v} value={v}></option>; })}
+            </datalist>
+            <datalist id="eTera">
+                {TYPES.map(t => { const v = typeof t === "string" ? t : (t?.name || t); return <option key={"tr-" + v} value={v}></option>; })}
+            </datalist>
             
             <div className="flex flex-col xl:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b-2 border-slate-200 pb-5 sm:pb-6">
                 

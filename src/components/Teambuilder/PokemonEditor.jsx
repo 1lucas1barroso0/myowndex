@@ -68,10 +68,41 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const evTotal = Object.values(pk.evs || {}).reduce((s, v) => s + (parseInt(v)||0), 0);
     const sprite = pk.species?.sprites?.other?.['official-artwork']?.front_default || pk.species?.sprites?.front_default;
     const customT = isHackmon && pk.customTypes ? pk.customTypes : (pk.species?.types?.map(t => t.type?.name) || []);
+    
+    const cleanItems = useMemo(() => {
+        if (!allItems) return [];
+        
+        const trash = [
+            "candy", "mint", "mulch", "apricorn", "mail", "ticket", "pass", "key", "card", 
+            "permit", "charm", "petal", "lure", "fossil", "potion", "elixir", "repel", 
+            "revive", "heal", "soda", "lemonade", "moomoo", "mushroom", "flute", 
+            "shard", "fused", "crest", "x-", "dire-", "guard-", "ingredient", 
+            "sauce", "apple", "cheese", "curry", "lettuce", "pepper", "onion", "tomato", 
+            "bacon", "prosciutto", "hamburger", "fillet", "noodle", "rice", "salt", 
+            "butter", "mustard", "mayo", "vinegar", "jam", "marmalade", "oil", "cream", 
+            "yogurt", "wasabi", "extract", "pickles", "sausage", "plant", "drop", "nectar", 
+            "syrup", "sweet", "treasure", "relic", "nugget", "pearl", "stardust", "piece", 
+            "comet", "feather", "shoal", "bottle", "spray", "scent"
+        ];
+
+        return allItems
+            .map(i => typeof i === "string" ? i : (i?.name || ""))
+            .filter(name => {
+                if (!name) return false;
+                const n = name.toLowerCase();
+                if (/^(tm|hm|tr)\d/.test(n)) return false; // Remove TMs e afins
+                for (let i = 0; i < trash.length; i++) {
+                    if (n.includes(trash[i])) return false;
+                }
+                if (/(master|ultra|great|poke|safari|net|dive|nest|repeat|timer|luxury|premier|dusk|heal|quick|cherish|fast|level|lure|heavy|love|friend|moon|sport|dream|beast)-ball$/.test(n)) return false;
+                return true;
+            })
+            .slice(0, 450); // Trava de segurança para o telemóvel não crashar
+    }, [allItems]);
 
     return (
         <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
-            <datalist id="eItems">{allItems.map(i => <option key={i.name} value={i.name} />)}</datalist>
+            <datalist id="eItems">{cleanItems.map(v => <option key={v} value={v} />)}</datalist>
             <datalist id="eAbs">{validAbs.map(a => <option key={a.name} value={a.name} />)}</datalist>
             <datalist id="eMvs">{validMoves.map(m => <option key={m.name} value={m.name} />)}</datalist>
             <datalist id="eTera">{TYPES.map(t => <option key={t} value={t} />)}</datalist>

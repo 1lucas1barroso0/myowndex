@@ -37,35 +37,44 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         if (map.size === 0 && baseForm?.abilities) baseForm.abilities.forEach(a => { if (a?.ability?.name) map.set(a.ability.name, a.ability) });
         return Array.from(map.values()).sort((a,b) => (a.name || '').localeCompare(b.name || ''));
     }, [isHackmon, allAbilities, pk.species?.abilities, baseForm]);
-    const filteredItems = useMemo(() => {
+    
+    const cleanItems = useMemo(() => {
         if (!allItems) return [];
-        const search = (pk.item || "").toLowerCase();
         
-        // 1. Não mostra absolutamente nada inicialmente
-        if (!search) return [];
-
-        // 2. Filtro bloqueador de lixo (TMs, HMs, TRs, Key Items, Doces, etc.)
         const isGarbage = (name) => {
             const n = name.toLowerCase();
-            const garbagePatterns = [
-                /^(tm|hm|tr)\d+/, 
-                /candy$/, /mint$/, /mulch$/, /apricorn$/, /mail$/, 
-                /ticket/, /pass/, /key/, /card/, /permit/, /charm/, /petal/, /lure/, /fossil/
+            // Bloqueia todos os TMs, HMs e TRs
+            if (/^(tm|hm|tr)\d/.test(n)) return true;
+            
+            // Bloqueia ingredientes, doces, passes e itens de história que inundam a API
+            const trash = [
+                'candy', 'mint', 'mulch', 'apricorn', 'mail', 'ticket', 'pass', 'key', 'card', 
+                'permit', 'charm', 'petal', 'lure', 'fossil', 'potion', 'elixir', 'repel', 
+                'revive', 'heal', 'soda', 'lemonade', 'moomoo', 'mushroom', 'flute', 
+                'shard', 'fused', 'crest', 'x-', 'dire-', 'guard-', 'ingredient', 
+                'sauce', 'apple', 'cheese', 'curry', 'lettuce', 'pepper', 'onion', 'tomato', 
+                'bacon', 'prosciutto', 'hamburger', 'fillet', 'noodle', 'rice', 'salt', 
+                'butter', 'mustard', 'mayo', 'vinegar', 'jam', 'marmalade', 'oil', 'cream', 
+                'yogurt', 'wasabi', 'extract', 'pickles', 'sausage', 'plant', 'drop', 'nectar', 
+                'syrup', 'sweet', 'treasure', 'relic', 'nugget', 'pearl', 'stardust', 'piece', 
+                'comet', 'feather', 'shoal', 'bottle', 'spray', 'scent'
             ];
-            for (let i = 0; i < garbagePatterns.length; i++) {
-                if (garbagePatterns[i].test(n)) return true;
+            for (let i = 0; i < trash.length; i++) {
+                if (n.includes(trash[i])) return true;
             }
+            
+            // Bloqueia pokébolas padrão para limpar ainda mais a lista
+            if (/(master|ultra|great|poke|safari|net|dive|nest|repeat|timer|luxury|premier|dusk|heal|quick|cherish|fast|level|lure|heavy|love|friend|moon|sport|dream|beast)-ball$/.test(n)) return true;
+            
             return false;
         };
 
-        // Extrai apenas os nomes válidos e passa-os pelo detetor de lixo
-        const validNames = allItems
+        // Filtra o lixo e impõe um limite matemático absoluto de 450 itens para o Android nunca bloquear
+        return allItems
             .map(i => typeof i === "string" ? i : (i?.name || ""))
-            .filter(name => name && !isGarbage(name));
-        
-        // 3. Mostra apenas os itens válidos que COMEÇAM com a letra/texto digitado
-        return validNames.filter(v => v.toLowerCase().startsWith(search));
-    }, [allItems, pk.item]);
+            .filter(name => name && !isGarbage(name))
+            .slice(0, 450);
+    }, [allItems]);
 
     const handleChange = (cat, stat, val) => {
         if (val === '') { updatePk({ ...pk, [cat]: { ...(pk[cat] || {}), [stat]: '' } }); return; }
@@ -121,17 +130,17 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     
     return (
         <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
-                                    <datalist id="eItems">
-                {cleanItems.map(v => <option key={"item-" + v} value={v}></option>)}
+                                                <datalist id="eItems">
+                {cleanItems.map(v => <option key={"item-" + v} value={v} label={formatName(v)} />)}
             </datalist>
             <datalist id="eAbs">
-                {validAbs.map(a => { const v = typeof a === "string" ? a : (a?.name || ""); return <option key={"ab-" + v} value={v}></option>; })}
+                {validAbs.map(a => { const v = typeof a === "string" ? a : (a?.name || ""); return <option key={"ab-" + v} value={v} label={formatName(v)} />; })}
             </datalist>
             <datalist id="eMvs">
-                {validMoves.map(m => { const v = typeof m === "string" ? m : (m?.name || ""); return <option key={"mv-" + v} value={v}></option>; })}
+                {validMoves.map(m => { const v = typeof m === "string" ? m : (m?.name || ""); return <option key={"mv-" + v} value={v} label={formatName(v)} />; })}
             </datalist>
             <datalist id="eTera">
-                {TYPES.map(t => { const v = typeof t === "string" ? t : (t?.name || t); return <option key={"tr-" + v} value={v}></option>; })}
+                {TYPES.map(t => { const v = typeof t === "string" ? t : (t?.name || t); return <option key={"tr-" + v} value={v} label={formatName(v)} />; })}
             </datalist>
             
             <div className="flex flex-col xl:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b-2 border-slate-200 pb-5 sm:pb-6">

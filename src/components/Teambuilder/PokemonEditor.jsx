@@ -73,26 +73,27 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
             <datalist id="eItems">
     {allItems?.map(i => {
-        const v = i.name || i;
-        return <option key={v} value={v}>{formatName(v)}</option>;
+        const v = typeof i === "string" ? i : (i?.name || "");
+        return <option key={v} value={v}></option>;
     })}
 </datalist>
 <datalist id="eAbs">
     {validAbs?.map(a => {
-        const v = a.name || a;
-        return <option key={v} value={v}>{formatName(v)}</option>;
+        const v = typeof a === "string" ? a : (a?.name || "");
+        return <option key={v} value={v}></option>;
     })}
 </datalist>
 <datalist id="eMvs">
     {validMoves?.map(m => {
-        const v = m.name || m;
-        return <option key={v} value={v}>{formatName(v)}</option>;
+        const v = typeof m === "string" ? m : (m?.name || "");
+        return <option key={v} value={v}></option>;
     })}
 </datalist>
 <datalist id="eTera">
-    {TYPES.map(t => (
-        <option key={t} value={t}>{formatName(t)}</option>
-    ))}
+    {TYPES?.map(t => {
+        const v = typeof t === "string" ? t : (t?.name || t);
+        return <option key={v} value={v}></option>;
+    })}
 </datalist>
             
             <div className="flex flex-col xl:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b-2 border-slate-200 pb-5 sm:pb-6">

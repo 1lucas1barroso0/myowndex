@@ -24,27 +24,29 @@ export default function Teambuilder({ envProps }) {
     
     const updateActive = (cb) => setTeams(prev => prev.map(t => t.id === activeTeamId ? cb(t) : t));
 
+    // 1. Exportação Segura: Garante que todos os campos existem para não crashar o compressor
     const generateLinkCode = () => {
         try {
             const exportTeam = {
                 id: active.id,
                 name: active.name,
-                pokemon: active.pokemon.map(pk => ({
+                pokemon: (active.pokemon || []).map(pk => ({
+                    nickname: pk.nickname || "",
                     species: { name: pk.species?.name, url: pk.species?.url },
-                    level: pk.level,
-                    item: pk.item,
-                    ability: pk.ability,
-                    nature: pk.nature,
-                    moves: pk.moves,
-                    ivs: pk.ivs,
-                    evs: pk.evs,
-                    canGMax: pk.canGMax,
-                    teraType: pk.teraType,
-                    friendship: pk.friendship,
-                    customStats: pk.customStats,
-                    customTypes: pk.customTypes,
-                    gender: pk.gender,
-                    genderRate: pk.genderRate
+                    level: pk.level || 1,
+                    item: pk.item || "",
+                    ability: pk.ability || "",
+                    nature: pk.nature || "hardy",
+                    moves: pk.moves || ["", "", "", ""],
+                    ivs: pk.ivs || { hp:31, attack:31, defense:31, "special-attack":31, "special-defense":31, speed:31 },
+                    evs: pk.evs || { hp:0, attack:0, defense:0, "special-attack":0, "special-defense":0, speed:0 },
+                    canGMax: pk.canGMax || false,
+                    teraType: pk.teraType || "",
+                    friendship: pk.friendship || 150,
+                    customStats: pk.customStats || null,
+                    customTypes: pk.customTypes || null,
+                    gender: pk.gender || "N",
+                    genderRate: pk.genderRate || -1
                 }))
             };
             setShareCode(encodeTeamShare(exportTeam));
@@ -54,35 +56,54 @@ export default function Teambuilder({ envProps }) {
         }
     };
 
+    // 2. Cópia Infalível: Funciona mesmo se o telemóvel bloquear a API moderna de Clipboard
     const copyToClipboard = async () => {
         try {
-            await navigator.clipboard.writeText(shareCode);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 3000);
-        } catch (e) {
-            const textArea = document.createElement("textarea");
-            textArea.value = shareCode;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try { document.execCommand('copy'); setCopied(true); setTimeout(() => setCopied(false), 3000); } catch (err) { }
-            document.body.removeChild(textArea);
-        }
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(shareCode);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 3000);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = shareCode;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand("copy");
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 3000);
+                } catch (err) { }
+                document.body.removeChild(textArea);
+            }
+        } catch (e) { }
     };
 
+    // 3. Importação Blindada: Corta espaços fantasmas do teclado e protege contra falhas de API
     const receiveViaLinkCable = async () => {
         try {
             setIsProcessing(true);
             setImportError(false);
-            const decoded = decodeTeamShare(importData);
+            
+            const cleanCode = importData.trim();
+            if (!cleanCode) throw new Error("Empty code");
+            
+            const decoded = decodeTeamShare(cleanCode);
+            if (!decoded) throw new Error("Decode failed");
+            
             const incomingTeam = decoded.team || decoded;
-
             const newTeamId = Date.now().toString();
             let newTeam = { id: newTeamId, name: incomingTeam.name || incomingTeam.id || 'Received Box', pokemon: [] };
             const pkmns = incomingTeam.pokemon || [];
             
             const reconstructed = await Promise.all(pkmns.map(async (pk) => {
                 const speciesName = pk.species?.name || pk.species;
-                const speciesUrl = pk.species?.url || (speciesName ? "https://pokeapi.co/api/v2/pokemon/" + speciesName : null);
+                if (!speciesName) return null;
+
+                const speciesUrl = pk.species?.url || "https://pokeapi.co/api/v2/pokemon/" + speciesName;
                 const spData = await fetchCached(speciesUrl);
                 if (!spData) return null;
 
@@ -92,7 +113,7 @@ export default function Teambuilder({ envProps }) {
                     : (genderRate === 0 ? 'M' : genderRate === 8 ? 'F' : 'N');
 
                 return {
-                    nickname: '',
+                    nickname: pk.nickname || "",
                     species: spData,
                     level: pk.level ?? 50,
                     item: pk.item ?? '',

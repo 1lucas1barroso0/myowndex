@@ -24,39 +24,39 @@ export default function Teambuilder({ envProps }) {
     
     const updateActive = (cb) => setTeams(prev => prev.map(t => t.id === activeTeamId ? cb(t) : t));
 
-    // 1. Exportação Segura: Garante que todos os campos existem para não crashar o compressor
+    // NOVA FUNÇÃO: Gera códigos minúsculos salvando apenas o estritamente necessário
     const generateLinkCode = () => {
         try {
-            const exportTeam = {
+            if (!active || !active.pokemon) return;
+            const minimalistTeam = {
                 id: active.id,
                 name: active.name,
-                pokemon: (active.pokemon || []).map(pk => ({
-                    nickname: pk.nickname || "",
-                    species: { name: pk.species?.name, url: pk.species?.url },
-                    level: pk.level || 1,
-                    item: pk.item || "",
-                    ability: pk.ability || "",
-                    nature: pk.nature || "hardy",
-                    moves: pk.moves || ["", "", "", ""],
-                    ivs: pk.ivs || { hp:31, attack:31, defense:31, "special-attack":31, "special-defense":31, speed:31 },
-                    evs: pk.evs || { hp:0, attack:0, defense:0, "special-attack":0, "special-defense":0, speed:0 },
-                    canGMax: pk.canGMax || false,
-                    teraType: pk.teraType || "",
-                    friendship: pk.friendship || 150,
-                    customStats: pk.customStats || null,
-                    customTypes: pk.customTypes || null,
-                    gender: pk.gender || "N",
-                    genderRate: pk.genderRate || -1
+                pokemon: active.pokemon.map(pk => ({
+                    n: pk.nickname || "",
+                    s: pk.species?.name || "", // Apenas o nome da espécie, reduz 95% do peso!
+                    l: pk.level || 1,
+                    i: pk.item || "",
+                    a: pk.ability || "",
+                    nt: pk.nature || "hardy",
+                    m: pk.moves || ["", "", "", ""],
+                    iv: pk.ivs || { hp:31, attack:31, defense:31, "special-attack":31, "special-defense":31, speed:31 },
+                    ev: pk.evs || { hp:0, attack:0, defense:0, "special-attack":0, "special-defense":0, speed:0 },
+                    g: pk.canGMax || false,
+                    t: pk.teraType || "",
+                    f: pk.friendship || 150,
+                    cs: pk.customStats || null,
+                    ct: pk.customTypes || null,
+                    gd: pk.gender || "N",
+                    gr: pk.genderRate || -1
                 }))
             };
-            setShareCode(encodeTeamShare(exportTeam));
+            setShareCode(encodeTeamShare(minimalistTeam));
             setCopied(false);
         } catch (e) {
             setShareCode('');
         }
     };
 
-    // 2. Cópia Infalível: Funciona mesmo se o telemóvel bloquear a API moderna de Clipboard
     const copyToClipboard = async () => {
         try {
             if (navigator.clipboard && window.isSecureContext) {
@@ -82,51 +82,52 @@ export default function Teambuilder({ envProps }) {
         } catch (e) { }
     };
 
-    // 3. Importação Blindada: Corta espaços fantasmas do teclado e protege contra falhas de API
+    // NOVA FUNÇÃO: Reconstrói o Pokémon fazendo o fetch na API a partir do nome enxuto
     const receiveViaLinkCable = async () => {
         try {
             setIsProcessing(true);
             setImportError(false);
             
             const cleanCode = importData.trim();
-            if (!cleanCode) throw new Error("Empty code");
+            if (!cleanCode) throw new Error("Empty");
             
             const decoded = decodeTeamShare(cleanCode);
-            if (!decoded) throw new Error("Decode failed");
+            if (!decoded) throw new Error("Decode Error");
             
             const incomingTeam = decoded.team || decoded;
             const newTeamId = Date.now().toString();
-            let newTeam = { id: newTeamId, name: incomingTeam.name || incomingTeam.id || 'Received Box', pokemon: [] };
+            let newTeam = { id: newTeamId, name: incomingTeam.name || "Received Box", pokemon: [] };
             const pkmns = incomingTeam.pokemon || [];
             
             const reconstructed = await Promise.all(pkmns.map(async (pk) => {
-                const speciesName = pk.species?.name || pk.species;
-                if (!speciesName) return null;
+                const specName = pk.s || pk.species?.name || pk.species;
+                if (!specName) return null;
 
-                const speciesUrl = pk.species?.url || "https://pokeapi.co/api/v2/pokemon/" + speciesName;
+                // Vai buscar os dados pesados direto à cache/API local usando o nome enxuto
+                const speciesUrl = "https://pokeapi.co/api/v2/pokemon/" + specName.toLowerCase();
                 const spData = await fetchCached(speciesUrl);
                 if (!spData) return null;
 
-                const genderRate = typeof pk.genderRate === 'number' ? pk.genderRate : (spData.gender_rate ?? -1);
-                const gender = pk.gender === 'M' || pk.gender === 'F' || pk.gender === 'N'
-                    ? pk.gender
+                const genderRate = typeof (pk.gr || pk.genderRate) === 'number' ? (pk.gr || pk.genderRate) : (spData.gender_rate ?? -1);
+                const gender = (pk.gd || pk.gender) === 'M' || (pk.gd || pk.gender) === 'F' || (pk.gd || pk.gender) === 'N'
+                    ? (pk.gd || pk.gender)
                     : (genderRate === 0 ? 'M' : genderRate === 8 ? 'F' : 'N');
 
                 return {
-                    nickname: pk.nickname || "",
+                    nickname: pk.n || pk.nickname || "",
                     species: spData,
-                    level: pk.level ?? 50,
-                    item: pk.item ?? '',
-                    ability: pk.ability ?? '',
-                    nature: pk.nature ?? 'hardy',
-                    moves: pk.moves ?? ['', '', '', ''],
-                    ivs: pk.ivs ?? { hp:31, attack:31, defense:31, "special-attack":31, "special-defense":31, speed:31 },
-                    evs: pk.evs ?? { hp:0, attack:0, defense:0, "special-attack":0, "special-defense":0, speed:0 },
-                    canGMax: pk.canGMax ?? false,
-                    teraType: pk.teraType ?? '',
-                    friendship: pk.friendship ?? 150,
-                    customStats: pk.customStats ?? null,
-                    customTypes: pk.customTypes ?? null,
+                    level: pk.l ?? pk.level ?? 50,
+                    item: pk.i ?? pk.item ?? '',
+                    ability: pk.a ?? pk.ability ?? '',
+                    nature: pk.nt ?? pk.nature ?? 'hardy',
+                    moves: pk.m ?? pk.moves ?? ['', '', '', ''],
+                    ivs: pk.iv ?? pk.ivs ?? { hp:31, attack:31, defense:31, "special-attack":31, "special-defense":31, speed:31 },
+                    evs: pk.ev ?? pk.evs ?? { hp:0, attack:0, defense:0, "special-attack":0, "special-defense":0, speed:0 },
+                    canGMax: pk.g ?? pk.canGMax ?? false,
+                    teraType: pk.t ?? pk.teraType ?? '',
+                    friendship: pk.f ?? pk.friendship ?? 150,
+                    customStats: pk.cs ?? pk.customStats ?? null,
+                    customTypes: pk.ct ?? pk.customTypes ?? null,
                     gender,
                     genderRate
                 };
@@ -268,4 +269,5 @@ export default function Teambuilder({ envProps }) {
             </div>
         </div>
     );
-}
+                                                              }
+            

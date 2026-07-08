@@ -210,4 +210,68 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             Free EVs: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
                         </div>
                     </div>
-          
+                    
+                    <div className="w-full">
+                        <div className="hidden sm:flex items-center gap-2 mb-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-2">
+                            <div className="w-12 text-left">Stat</div>
+                            <div className="w-10">Base</div>
+                            <div className="flex-1 text-left">Effort (EVs)</div>
+                            <div className="w-12 cursor-pointer hover:text-blue-500 flex items-center justify-center gap-1 transition-colors" onClick={() => randomize('ivs')}>IVs 🎲</div>
+                            <div className={"w-12 text-right " + (isTTRPG ? "text-red-500" : "text-slate-800")}>Total</div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2.5">
+                            {pk.species?.stats?.map(s => {
+                                const sN = s.stat?.name;
+                                if (!sN) return null;
+                                const base = isHackmon && pk.customStats?.[sN] !== undefined ? pk.customStats[sN] : (s.base_stat || 0);
+                                const ev = pk.evs?.[sN] ?? 0; const iv = pk.ivs?.[sN] ?? 31; const multi = getMulti(sN);
+                                const rawVal = calculateStat(base, ev, iv, pk.level, multi, sN === 'hp', pk.species?.name);
+                                const finalVal = isTTRPG ? convertToTTRPG(rawVal, sN === 'hp') : rawVal;
+                                
+                                let cCol = "text-slate-800";
+                                if (isTTRPG) cCol = "text-red-600";
+                                else if (multi > 1) cCol = "text-emerald-600";
+                                else if (multi < 1) cCol = "text-red-500";
+                                
+                                return (
+                                    <div key={sN} className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 bg-white p-3 sm:p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
+                                        <div className="flex justify-between items-center w-full sm:w-12 shrink-0">
+                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[sN] || sN}</span>
+                                            <div className={"sm:hidden text-sm font-black flex items-center gap-1 " + cCol}>
+                                                {!isTTRPG && multi > 1 && <span className="text-emerald-500">↑</span>}
+                                                {!isTTRPG && multi < 1 && <span className="text-red-500">↓</span>}
+                                                {finalVal}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2 w-full sm:flex-1">
+                                            <div className="w-10 flex justify-center shrink-0">
+                                                {isHackmon ? (
+                                                    <input type="number" min="1" max="255" value={base === '' ? '' : base} onChange={e => updatePk({...pk, customStats: {...(pk.customStats || {}), [sN]: e.target.value === '' ? '' : parseInt(e.target.value)}})} className="w-full bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" />
+                                                ) : (
+                                                    <div className="text-[11px] font-black text-slate-700">{base}</div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 flex items-center gap-2 min-w-0">
+                                                <input type="range" min="0" max="252" step="4" value={ev === '' ? 0 : ev} onChange={e => handleChange('evs', sN, e.target.value)} className="w-full min-w-0 accent-red-500" />
+                                                <input type="number" min="0" max="252" value={ev === '' ? '' : ev} onChange={e => handleChange('evs', sN, e.target.value)} className="w-11 shrink-0 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
+                                            </div>
+                                            <div className="w-10 sm:w-12 flex justify-center shrink-0">
+                                                <input type="number" min="0" max="31" value={iv === '' ? '' : iv} onChange={e => handleChange('ivs', sN, e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
+                                            </div>
+                                        </div>
+                                        <div className={"hidden sm:flex w-12 justify-end items-center gap-1 text-sm font-black shrink-0 " + cCol}>
+                                            {!isTTRPG && multi > 1 && <span className="text-emerald-500">↑</span>}
+                                            {!isTTRPG && multi < 1 && <span className="text-red-500">↓</span>}
+                                            {finalVal}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

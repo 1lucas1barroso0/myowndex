@@ -38,6 +38,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         return Array.from(map.values()).sort((a,b) => (a.name || '').localeCompare(b.name || ''));
     }, [isHackmon, allAbilities, pk.species?.abilities, baseForm]);
 
+    // O Filtro Aniquilador de Lixo para o Telemóvel não sofrer por excesso de dados
     const cleanItems = useMemo(() => {
         if (!allItems) return [];
         const trash = [
@@ -64,7 +65,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 if (/(master|ultra|great|poke|safari|net|dive|nest|repeat|timer|luxury|premier|dusk|heal|quick|cherish|fast|level|lure|heavy|love|friend|moon|sport|dream|beast)-ball$/.test(n)) return false;
                 return true;
             })
-            .slice(0, 450);
+            .slice(0, 450); // Trava de segurança absoluta para o Chrome Mobile renderizar
     }, [allItems]);
 
     const handleChange = (cat, stat, val) => {

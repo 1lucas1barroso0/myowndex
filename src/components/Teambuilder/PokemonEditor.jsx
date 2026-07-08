@@ -160,13 +160,19 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 </div>
 
                 {/* THE FLUID TRAINING SECTION */}
-                <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 shadow-sm mt-2 sm:mt-0">
-                    <div className="flex justify-between items-center mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-slate-200">
-                        <h3 className="text-[10px] sm:text-[11px] font-black text-slate-500 uppercase tracking-widest">Training</h3>
-                        <div className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">
-                            Free EVs: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
-                        </div>
-                    </div>
+<div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 shadow-sm mt-2 sm:mt-0">
+    <div className="flex justify-between items-center mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-slate-200">
+        <div className="flex items-center gap-3">
+            <h3 className="text-[10px] sm:text-[11px] font-black text-slate-500 uppercase tracking-widest">Training</h3>
+            {/* O Dadinho dos IVs reaparece no mobile aqui! */}
+            <button onClick={() => randomize('ivs')} className="sm:hidden flex items-center gap-1 text-[9px] font-black text-slate-500 hover:text-blue-500 transition-colors outline-none bg-white px-2 py-1 rounded-md border-2 border-slate-200 shadow-sm active:translate-y-px">
+                IVs 🎲
+            </button>
+        </div>
+        <div className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">
+            Free EVs: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
+        </div>
+    </div>
                     
                     <div className="w-full">
                         {/* Headers (Desktop apenas) */}

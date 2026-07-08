@@ -24,7 +24,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         return () => { mounted = false; };
     }, [pk.species?.name]);
 
-    // Filter moves by latest version for the active Pokémon form
     const validMoves = useMemo(() => {
         if (isHackmon) return allMoves;
         const processed = filterMovesByLatestVersion(pk.species?.moves || []);
@@ -53,7 +52,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const currentGenderRate = Number(pk.genderRate ?? pk.species?.gender_rate ?? -1);
     const randomize = (t) => {
-        if (t === 'ivs') updatePk({ ...pk, ivs: { hp: Math.floor(Math.random()*32), attack: Math.floor(Math.random()*32), defense: Math.floor(Math.random()*32), 'special-attack': Math.floor(Math.random()*32), 'special-defense': Math.floor(Math.random()*32), speed: Math.floor(Math.random()*32) } });
+        if (t === 'ivs') updatePk({ ...pk, ivs: { hp: Math.floor(Math.random()*32), attack: Math.floor(Math.random()*32), defense: Math.floor(Math.random()*32), "special-attack": Math.floor(Math.random()*32), "special-defense": Math.floor(Math.random()*32), speed: Math.floor(Math.random()*32) } });
         else if (t === 'nature') updatePk({ ...pk, nature: Object.keys(NATURES)[Math.floor(Math.random() * 25)] });
         else if (t === 'gender') {
             if (currentGenderRate === -1) return;
@@ -104,9 +103,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border-2 border-slate-200 shadow-sm"><label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Level</label><input type="number" min="1" max={isHackmon?200:100} value={pk.level===''? '':pk.level} onChange={e => updatePk({...pk, level: e.target.value===''? '':Math.min(parseInt(e.target.value)||1, isHackmon?200:100)})} className="w-12 bg-transparent text-slate-800 text-sm font-black focus:outline-none text-center" /></div>
                             <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border-2 border-slate-200 shadow-sm"><label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Friendship</label><input type="number" min="0" max="255" value={pk.friendship===''? '':pk.friendship} onChange={e => updatePk({...pk, friendship: e.target.value===''? '':Math.min(parseInt(e.target.value)||0, 255)})} className="w-12 bg-transparent text-slate-800 text-sm font-black focus:outline-none text-center" />{isTTRPG && <span className="text-xs font-black text-red-500 border-l-2 border-slate-200 pl-3 ml-1">{Math.ceil((pk.friendship||0)/20)}</span>}</div>
-                            <label className={`flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border-2 border-slate-200 transition-colors shadow-sm ${isNativeGMax ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-red-400'}`}>
-                                <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center ${pk.canGMax ? 'bg-red-500 border-red-500' : 'bg-white border-slate-300'}`}>{pk.canGMax && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>}</div>
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${pk.canGMax ? 'text-red-500' : 'text-slate-500'}`}>G-Max Factor</span>
+                            <label className={"flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border-2 border-slate-200 transition-colors shadow-sm " + (isNativeGMax ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-red-400")}>
+                                <div className={"w-4 h-4 rounded-md border-2 flex items-center justify-center " + (pk.canGMax ? "bg-red-500 border-red-500" : "bg-white border-slate-300")}>{pk.canGMax && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>}</div>
+                                <span className={"text-[10px] font-black uppercase tracking-widest " + (pk.canGMax ? "text-red-500" : "text-slate-500")}>G-Max Factor</span>
                                 <input type="checkbox" className="hidden" checked={pk.canGMax||false} disabled={isNativeGMax} onChange={e => updatePk({...pk, canGMax: e.target.checked})} />
                             </label>
                         </div>
@@ -123,7 +122,13 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Current Ability</label><input list="eAbs" value={pk.ability||''} onChange={e=>updatePk({...pk, ability:(e.target.value||'').toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
-                        <div className="relative"><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Nature</label><select value={pk.nature||'hardy'} onChange={e=>updatePk({...pk, nature:e.target.value})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">{Object.keys(NATURES).map(n=><option key={n} value={n}>{n} {NATURES[n].up?`(+${STAT_MAP[NATURES[n].up]}, -${STAT_MAP[NATURES[n].down]})`:''}</option>)}</select><button onClick={()=>randomize('nature')} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button></div>
+                        <div className="relative">
+                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Nature</label>
+                            <select value={pk.nature||'hardy'} onChange={e=>updatePk({...pk, nature:e.target.value})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">
+                                {Object.keys(NATURES).map(n => <option key={n} value={n}>{n} {NATURES[n].up ? "(+" + STAT_MAP[NATURES[n].up] + ", -" + STAT_MAP[NATURES[n].down] + ")" : ""}</option>)}
+                            </select>
+                            <button onClick={()=>randomize('nature')} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>
+                        </div>
                     </div>
                     
                     {/* Responsive gender selection controls */}
@@ -131,15 +136,15 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Gender</label>
                         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 p-2 shadow-inner">
                             <div className="flex flex-wrap gap-2">
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'M', genderRate: currentGenderRate})} disabled={currentGenderRate === 8} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all ${pk.gender === 'M' ? 'bg-blue-500 text-white shadow-[0_3px_0_#1d4ed8]' : 'text-slate-600 disabled:opacity-30 hover:bg-blue-100'}`}>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'M', genderRate: currentGenderRate})} disabled={currentGenderRate === 8} className={"flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all " + (pk.gender === 'M' ? "bg-blue-500 text-white shadow-[0_3px_0_#1d4ed8]" : "text-slate-600 disabled:opacity-30 hover:bg-blue-100")}>
                                     <span className="text-base">♂</span>
                                     <span>Male</span>
                                 </button>
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'F', genderRate: currentGenderRate})} disabled={currentGenderRate === 0} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all ${pk.gender === 'F' ? 'bg-pink-500 text-white shadow-[0_3px_0_#be185d]' : 'text-slate-600 disabled:opacity-30 hover:bg-pink-100'}`}>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'F', genderRate: currentGenderRate})} disabled={currentGenderRate === 0} className={"flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all " + (pk.gender === 'F' ? "bg-pink-500 text-white shadow-[0_3px_0_#be185d]" : "text-slate-600 disabled:opacity-30 hover:bg-pink-100")}>
                                     <span className="text-base">♀</span>
                                     <span>Female</span>
                                 </button>
-                                <button type="button" onClick={() => updatePk({...pk, gender: 'N', genderRate: currentGenderRate})} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all ${pk.gender === 'N' ? 'bg-slate-500 text-white shadow-[0_3px_0_#475569]' : 'text-slate-600 hover:bg-slate-200'}`}>
+                                <button type="button" onClick={() => updatePk({...pk, gender: 'N', genderRate: currentGenderRate})} className={"flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition-all " + (pk.gender === 'N' ? "bg-slate-500 text-white shadow-[0_3px_0_#475569]" : "text-slate-600 hover:bg-slate-200")}>
                                     <span className="text-base">⚲</span>
                                     <span>Neutral</span>
                                 </button>
@@ -154,40 +159,85 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </div>
                 </div>
 
-                <div className="bg-slate-50 p-6 rounded-2xl border-2 border-slate-200 shadow-sm">
-                    <div className="flex justify-between items-end mb-6 pb-4 border-b-2 border-slate-200">
-                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Training</h3>
-                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">Free EVs: <span className={evTotal>508?'text-red-500':'text-blue-500'}>{510-evTotal}</span>/510</div>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <div className="grid grid-cols-[minmax(45px,1fr)_minmax(45px,1fr)_minmax(150px,3fr)_minmax(50px,1fr)_minmax(45px,1fr)] gap-2 mb-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center items-center min-w-[640px]">
-                            <div className="text-left">Stat</div><div>Base</div><div>Effort (EVs)</div><div className="flex items-center justify-center gap-1 cursor-pointer hover:text-blue-500 transition-colors" onClick={()=>randomize('ivs')}>IVs 🎲</div><div className={`text-right ${isTTRPG ? 'text-red-500' : 'text-slate-800'}`}>Total</div>
+                {/* THE FLUID TRAINING SECTION */}
+                <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 shadow-sm mt-2 sm:mt-0">
+                    <div className="flex justify-between items-center mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-slate-200">
+                        <h3 className="text-[10px] sm:text-[11px] font-black text-slate-500 uppercase tracking-widest">Training</h3>
+                        <div className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">
+                            Free EVs: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
                         </div>
                     </div>
-                    <div className="flex flex-col gap-3">
-                        {pk.species?.stats?.map(s => {
-                            const sN = s.stat?.name;
-                            if (!sN) return null;
-                            const base = isHackmon && pk.customStats?.[sN] !== undefined ? pk.customStats[sN] : (s.base_stat || 0);
-                            const ev = pk.evs?.[sN] ?? 0; const iv = pk.ivs?.[sN] ?? 31; const multi = getMulti(sN);
-                            const rawVal = calculateStat(base, ev, iv, pk.level, multi, sN === 'hp', pk.species?.name);
-                            const finalVal = isTTRPG ? convertToTTRPG(rawVal, sN === 'hp') : rawVal;
-                            
-                            let cCol = "text-slate-800";
-                            if (isTTRPG) cCol = "text-red-600";
-                            else if (multi > 1) cCol = "text-emerald-600";
-                            else if (multi < 1) cCol = "text-red-500";
-                            
-                            return (
-                                <div key={sN} className="grid grid-cols-[minmax(45px,1fr)_minmax(45px,1fr)_minmax(150px,3fr)_minmax(50px,1fr)_minmax(45px,1fr)] gap-2 items-center bg-white p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors min-w-[640px]">
-                                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[sN] || sN}</div>
-                                    <div className="flex justify-center">{isHackmon ? <input type="number" min="1" max="255" value={base===''? '':base} onChange={e=>updatePk({...pk, customStats: {...(pk.customStats||{}), [sN]: e.target.value===''? '':parseInt(e.target.value)}})} className="w-10 bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" /> : <div className="text-[11px] font-black text-slate-700">{base}</div>}</div>
-                                    <div className="flex items-center gap-3"><input type="range" min="0" max="252" step="4" value={ev===''?0:ev} onChange={e=>handleChange('evs', sN, e.target.value)} /><input type="number" min="0" max="252" value={ev===''? '':ev} onChange={e=>handleChange('evs', sN, e.target.value)} className="w-11 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" /></div>
-                                    <div className="flex justify-center"><input type="number" min="0" max="31" value={iv===''? '':iv} onChange={e=>handleChange('ivs', sN, e.target.value)} className="w-11 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" /></div>
-                                    <div className={`text-sm font-black flex justify-end gap-1 ${cCol}`}>{!isTTRPG && multi>1&&<span className="text-emerald-500">↑</span>}{!isTTRPG && multi<1&&<span className="text-red-500">↓</span>} {finalVal}</div>
-                                </div>
-                            );
-                        })}
+                    
+                    <div className="w-full">
+                        {/* Headers (Desktop apenas) */}
+                        <div className="hidden sm:flex items-center gap-2 mb-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-2">
+                            <div className="w-12 text-left">Stat</div>
+                            <div className="w-10">Base</div>
+                            <div className="flex-1 text-left">Effort (EVs)</div>
+                            <div className="w-12 cursor-pointer hover:text-blue-500 flex items-center justify-center gap-1 transition-colors" onClick={() => randomize('ivs')}>IVs 🎲</div>
+                            <div className={"w-12 text-right " + (isTTRPG ? "text-red-500" : "text-slate-800")}>Total</div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2.5">
+                            {pk.species?.stats?.map(s => {
+                                const sN = s.stat?.name;
+                                if (!sN) return null;
+                                const base = isHackmon && pk.customStats?.[sN] !== undefined ? pk.customStats[sN] : (s.base_stat || 0);
+                                const ev = pk.evs?.[sN] ?? 0; const iv = pk.ivs?.[sN] ?? 31; const multi = getMulti(sN);
+                                const rawVal = calculateStat(base, ev, iv, pk.level, multi, sN === 'hp', pk.species?.name);
+                                const finalVal = isTTRPG ? convertToTTRPG(rawVal, sN === 'hp') : rawVal;
+                                
+                                let cCol = "text-slate-800";
+                                if (isTTRPG) cCol = "text-red-600";
+                                else if (multi > 1) cCol = "text-emerald-600";
+                                else if (multi < 1) cCol = "text-red-500";
+                                
+                                return (
+                                    <div key={sN} className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 bg-white p-3 sm:p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
+                                        
+                                        {/* Mobile Linha 1: Nome do Stat e Valor Final */}
+                                        <div className="flex justify-between items-center w-full sm:w-12 shrink-0">
+                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[sN] || sN}</span>
+                                            <div className={"sm:hidden text-sm font-black flex items-center gap-1 " + cCol}>
+                                                {!isTTRPG && multi > 1 && <span className="text-emerald-500">↑</span>}
+                                                {!isTTRPG && multi < 1 && <span className="text-red-500">↓</span>}
+                                                {finalVal}
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Mobile Linha 2 / Desktop: Inputs */}
+                                        <div className="flex items-center justify-between gap-2 w-full sm:flex-1">
+                                            {/* Base */}
+                                            <div className="w-10 flex justify-center shrink-0">
+                                                {isHackmon ? (
+                                                    <input type="number" min="1" max="255" value={base === '' ? '' : base} onChange={e => updatePk({...pk, customStats: {...(pk.customStats || {}), [sN]: e.target.value === '' ? '' : parseInt(e.target.value)}})} className="w-full bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" />
+                                                ) : (
+                                                    <div className="text-[11px] font-black text-slate-700">{base}</div>
+                                                )}
+                                            </div>
+                                            
+                                            {/* EVs */}
+                                            <div className="flex-1 flex items-center gap-2 min-w-0">
+                                                <input type="range" min="0" max="252" step="4" value={ev === '' ? 0 : ev} onChange={e => handleChange('evs', sN, e.target.value)} className="w-full min-w-0 accent-red-500" />
+                                                <input type="number" min="0" max="252" value={ev === '' ? '' : ev} onChange={e => handleChange('evs', sN, e.target.value)} className="w-11 shrink-0 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
+                                            </div>
+                                            
+                                            {/* IVs */}
+                                            <div className="w-10 sm:w-12 flex justify-center shrink-0">
+                                                <input type="number" min="0" max="31" value={iv === '' ? '' : iv} onChange={e => handleChange('ivs', sN, e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
+                                            </div>
+                                        </div>
+
+                                        {/* Valor Final (Apenas Desktop) */}
+                                        <div className={"hidden sm:flex w-12 justify-end items-center gap-1 text-sm font-black shrink-0 " + cCol}>
+                                            {!isTTRPG && multi > 1 && <span className="text-emerald-500">↑</span>}
+                                            {!isTTRPG && multi < 1 && <span className="text-red-500">↓</span>}
+                                            {finalVal}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             </div>

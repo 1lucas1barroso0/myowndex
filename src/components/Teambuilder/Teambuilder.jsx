@@ -24,7 +24,7 @@ export default function Teambuilder({ envProps }) {
     
     const updateActive = (cb) => setTeams(prev => prev.map(t => t.id === activeTeamId ? cb(t) : t));
 
-    // NOVO ECOSSISTEMA: Serializador ultra-compacto por array mapping
+    // NOVO ECOSSISTEMA DE PARTILHA: Compactação nativa por Array-Mapping ultra-leve
     const generateLinkCode = () => {
         try {
             if (!active || !active.pokemon) return;
@@ -63,7 +63,6 @@ export default function Teambuilder({ envProps }) {
                 }))
             };
 
-            // Conversão nativa segura para strings com acentos/caracteres especiais
             const jsonStr = JSON.stringify(minimalistPayload);
             const b64 = btoa(encodeURIComponent(jsonStr));
             
@@ -99,7 +98,7 @@ export default function Teambuilder({ envProps }) {
         } catch (e) { }
     };
 
-    // NOVO ECOSSISTEMA: Deserializador e Reconstrutor Dinâmico Autônomo
+    // NOVO ECOSSISTEMA DE IMPORTAÇÃO: Deserializador e Reconstrutor Dinâmico Autónomo
     const receiveViaLinkCable = async () => {
         try {
             setIsProcessing(true);
@@ -297,4 +296,7 @@ export default function Teambuilder({ envProps }) {
                         )}
                     </div>
                 )}
-      
+            </div>
+        </div>
+    );
+}

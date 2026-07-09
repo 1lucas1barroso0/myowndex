@@ -6,9 +6,18 @@ import Teambuilder from './components/Teambuilder/Teambuilder';
 const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
     return (
         <div onClick={onSelect} className="game-card p-4 flex flex-col items-center cursor-pointer group relative">
-            <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">No. {id.padStart(4, '0')}</span>
+            <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">No. {id.padStart(4, "0")}</span>
             <div className="w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
-                <img src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png"} className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200" loading="lazy" decoding="async" onError={e=>e.target.style.display='none'} />
+                <img 
+                    src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png"} 
+                    className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200" 
+                    loading="lazy" 
+                    onError={(e) => {
+                        // Se o sprite falhar, puxa a arte oficial como plano B infalível!
+                        e.target.onerror = null;
+                        e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + id + ".png";
+                    }} 
+                />
             </div>
             <span className="text-[11px] font-black text-slate-700 mt-3 capitalize truncate w-full text-center group-hover:text-red-600 transition-colors">{formatName(species.name)}</span>
         </div>
@@ -117,6 +126,7 @@ export default function App() {
         isHackmon,
         onSearchClick: handleOpenPokedex
     }), [teams, setTeams, env.items, env.moves, env.abilities, activeTeamId, setActiveTeamId, isTTRPG, isHackmon, handleOpenPokedex]);
+    
     const handleSearchInputChange = useCallback((e) => { setSearchInput(e.target.value); setLimit(60); }, []);
     const handleSelectPokemon = useCallback((url) => setSelectedUrl(url), []);
     const handleLoadMore = useCallback(() => setLimit(prev => prev + 60), []);
@@ -142,8 +152,8 @@ export default function App() {
             ability: formData.abilities?.[0]?.ability?.name || '',
             nature: 'hardy',
             moves: ['', '', '', ''], 
-            ivs: { hp:31, attack:31, defense:31, 'special-attack':31, 'special-defense':31, speed:31 }, 
-            evs: { hp:0, attack:0, defense:0, 'special-attack':0, 'special-defense':0, speed:0 },
+            ivs: { hp:31, attack:31, defense:31, "special-attack":31, "special-defense":31, speed:31 }, 
+            evs: { hp:0, attack:0, defense:0, "special-attack":0, "special-defense":0, speed:0 },
             gender: initialGender,
             genderRate: resolvedGenderRate
         };
@@ -180,8 +190,8 @@ export default function App() {
                                 </div>
                             </div>
                             <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[220px]">
-                                <button onClick={handleOpenPokedex} className={'game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none ' + (view === 'pokedex' ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-600')}>Pokédex</button>
-                                <button onClick={handleOpenTeambuilder} className={'game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none ' + (view === 'teambuilder' ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-600')}>Box</button>
+                                <button onClick={handleOpenPokedex} className={"game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none " + (view === 'pokedex' ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600")}>Pokédex</button>
+                                <button onClick={handleOpenTeambuilder} className={"game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none " + (view === 'teambuilder' ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600")}>Box</button>
                             </div>
                         </div>
                         
@@ -193,8 +203,8 @@ export default function App() {
                                 </div>
                             )}
                             <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700">
-                                <button onClick={toggleHackmon} className={"px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none " + (isHackmon ? "bg-purple-600 text-white" : "text-slate-300")}>Hackmon</button>
-                                <button onClick={toggleTTRPG} className={"px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 " + (isTTRPG ? "bg-amber-500 text-white" : "text-slate-300")}>TTRPG</button>
+                                <button onClick={toggleHackmon} className={"px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none " + (isHackmon?"bg-purple-600 text-white":"text-slate-300")}>Hackmon</button>
+                                <button onClick={toggleTTRPG} className={"px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 " + (isTTRPG?"bg-amber-500 text-white":"text-slate-300")}>TTRPG</button>
                             </div>
                         </div>
                     </div>

@@ -98,10 +98,14 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         {sprite ? (
                             <img 
                                 src={sprite} 
-                                alt="pkmn" 
+                                alt={activeForm?.name || baseInfo.name} 
                                 fetchPriority="high" 
-                                decoding="async" 
                                 className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" 
+                                onError={(e) => {
+                                    // Se a rede estiver engasgada na arte oficial, puxamos o sprite leve IMEDIATAMENTE!
+                                    e.target.onerror = null; 
+                                    e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + baseInfo.id + ".png";
+                                }}
                             />
                         ) : (
                             <span className="text-sm font-black text-slate-400">Image not found in Dex</span>
@@ -212,10 +216,12 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                                 <img 
                                                                     src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + node.id + ".png"} 
                                                                     loading="lazy"
-                                                                    decoding="async"
                                                                     className="w-16 h-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
                                                                     alt={node.name} 
-                                                                    onError={(e) => { e.target.style.display = 'none'; }} 
+                                                                    onError={(e) => { 
+                                                                        e.target.onerror = null;
+                                                                        e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + node.id + ".png";
+                                                                    }} 
                                                                 />
                                                             </div>
                                                             <span className="text-[10px] font-black uppercase text-slate-600 mt-3 truncate w-full text-center group-hover:text-red-600 transition-colors">{node.name}</span>

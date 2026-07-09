@@ -21,40 +21,41 @@ export const convertToTTRPG = (value, isHp = false) => {
 };
 
 export const calculateStat = (base, ev, iv, level, natureMulti, isHp, speciesName) => {
-    if (isHp && speciesName?.toLowerCase() === 'shedinja') return 1; 
+    if (isHp && speciesName?.toLowerCase() === "shedinja") return 1; 
     const b = parseInt(base) || 1, e = parseInt(ev) || 0, i = parseInt(iv) || 0, l = parseInt(level) || 1;
     if (isHp) return Math.floor(((2 * b + i + Math.floor(e / 4)) * l) / 100) + l + 10;
     return Math.floor((Math.floor(((2 * b + i + Math.floor(e / 4)) * l) / 100) + 5) * natureMulti);
 };
 
-export const formatName = (str) => str ? str.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
-export const extractId = (url) => url ? url.split('/').filter(Boolean).pop() : '0';
+export const formatName = (str) => str ? str.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()) : "Unknown";
+export const extractId = (url) => url ? url.split("/").filter(Boolean).pop() : "0";
 
 // Cronologia oficial de lançamentos para filtragem de integridade de dados
 export const VERSION_PRIORITY = [
-    'champion-stadium',
-    'legends-arceus',
-    'scarlet-violet',
-    'brilliant-diamond-shining-pearl',
-    'sword-shield',
-    'ultra-sun-ultra-moon',
-    'sun-moon',
-    'x-y',
-    'omega-ruby-alpha-sapphire',
-    'black-2-white-2',
-    'black-white',
-    'heartgold-soulsilver',
-    'diamond-pearl',
-    'platinum',
-    'ruby-sapphire',
-    'emerald',
-    'firered-leafgreen',
-    'gold-silver',
-    'crystal',
-    'red-blue',
-    'yellow'
+    "champion-stadium",
+    "legends-arceus",
+    "scarlet-violet",
+    "brilliant-diamond-shining-pearl",
+    "sword-shield",
+    "ultra-sun-ultra-moon",
+    "sun-moon",
+    "x-y",
+    "omega-ruby-alpha-sapphire",
+    "black-2-white-2",
+    "black-white",
+    "heartgold-soulsilver",
+    "diamond-pearl",
+    "platinum",
+    "ruby-sapphire",
+    "emerald",
+    "firered-leafgreen",
+    "gold-silver",
+    "crystal",
+    "red-blue",
+    "yellow"
 ];
 
+// O Novo Algoritmo Híbrido: Filtra a versão mais recente e organiza por hierarquia de aprendizado
 export const filterMovesByLatestVersion = (moves) => {
     if (!moves || !moves.length) return [];
     
@@ -72,422 +73,112 @@ export const filterMovesByLatestVersion = (moves) => {
         bestVersion = moves[0].version_group_details[lastIdx].version_group?.name;
     }
     
-    return moves.map(m => {
+    const processed = moves.map(m => {
         const detail = m.version_group_details?.find(d => d.version_group?.name === bestVersion) || m.version_group_details?.[m.version_group_details.length - 1];
         return {
             move: m.move,
             latest_detail: detail
         };
     }).filter(m => m.latest_detail);
+
+    return processed.sort((a, b) => {
+        const getSortData = (detail) => {
+            let bestMethod = 4;
+            let bestLevel = 999;
+            if (!detail) return { method: 4, level: 999 };
+            const mName = detail.move_learn_method?.name;
+            const lvl = detail.level_learned_at || 0;
+            if (mName === "level-up") { bestMethod = 1; if (lvl > 0) bestLevel = lvl; }
+            else if (mName === "machine") bestMethod = 2;
+            else if (mName === "egg") bestMethod = 3;
+            return { method: bestMethod, level: bestLevel === 999 ? 0 : bestLevel };
+        };
+
+        const aData = getSortData(a.latest_detail);
+        const bData = getSortData(b.latest_detail);
+
+        if (aData.method !== bData.method) return aData.method - bData.method;
+        if (aData.method === 1) return aData.level - bData.level;
+        return (a.move?.name || "").localeCompare(b.move?.name || "");
+    });
 };
 
-const keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+// ==========================================
+// NOVO SISTEMA DE COMPARTILHAMENTO DE EQUIPES (Ultra-leve)
+// ==========================================
+export const TEAM_EXPORT_PREFIX = "MYOWNDEX-V3-";
 
-const _compress = (uncompressed, bitsPerChar, getCharFromInt) => {
-    if (uncompressed == null) return '';
-    let i, value;
-    const context_dictionary = {};
-    const context_dictionaryToCreate = {};
-    let context_c = '';
-    let context_wc = '';
-    let context_w = '';
-    let context_enlargeIn = 2;
-    let context_dictSize = 3;
-    let context_numBits = 2;
-    const context_data = [];
-    let context_data_val = 0;
-    let context_data_position = 0;
-
-    for (i = 0; i < uncompressed.length; i += 1) {
-        context_c = uncompressed.charAt(i);
-        if (!Object.prototype.hasOwnProperty.call(context_dictionary, context_c)) {
-            context_dictionary[context_c] = context_dictSize++;
-            context_dictionaryToCreate[context_c] = true;
-        }
-
-        context_wc = context_w + context_c;
-        if (Object.prototype.hasOwnProperty.call(context_dictionary, context_wc)) {
-            context_w = context_wc;
-        } else {
-            if (Object.prototype.hasOwnProperty.call(context_dictionaryToCreate, context_w)) {
-                value = context_w.charCodeAt(0);
-                if (value < 256) {
-                    for (let j = 0; j < context_numBits; j += 1) {
-                        context_data_val = (context_data_val << 1);
-                        if (context_data_position === bitsPerChar - 1) {
-                            context_data_position = 0;
-                            context_data.push(getCharFromInt(context_data_val));
-                            context_data_val = 0;
-                        } else {
-                            context_data_position += 1;
-                        }
-                    }
-                    for (let j = 0; j < 8; j += 1) {
-                        context_data_val = (context_data_val << 1) | (value & 1);
-                        if (context_data_position === bitsPerChar - 1) {
-                            context_data_position = 0;
-                            context_data.push(getCharFromInt(context_data_val));
-                            context_data_val = 0;
-                        } else {
-                            context_data_position += 1;
-                        }
-                        value = value >> 1;
-                    }
-                } else {
-                    value = 1;
-                    for (let j = 0; j < context_numBits; j += 1) {
-                        context_data_val = (context_data_val << 1) | value;
-                        if (context_data_position === bitsPerChar - 1) {
-                            context_data_position = 0;
-                            context_data.push(getCharFromInt(context_data_val));
-                            context_data_val = 0;
-                        } else {
-                            context_data_position += 1;
-                        }
-                    }
-                    value = context_w.charCodeAt(0);
-                    for (let j = 0; j < 16; j += 1) {
-                        context_data_val = (context_data_val << 1) | (value & 1);
-                        if (context_data_position === bitsPerChar - 1) {
-                            context_data_position = 0;
-                            context_data.push(getCharFromInt(context_data_val));
-                            context_data_val = 0;
-                        } else {
-                            context_data_position += 1;
-                        }
-                        value = value >> 1;
-                    }
-                }
-                context_enlargeIn -= 1;
-                if (context_enlargeIn === 0) {
-                    context_enlargeIn = 2 ** context_numBits;
-                    context_numBits += 1;
-                }
-                delete context_dictionaryToCreate[context_w];
-            } else {
-                value = context_dictionary[context_w];
-                for (let j = 0; j < context_numBits; j += 1) {
-                    context_data_val = (context_data_val << 1) | (value & 1);
-                    if (context_data_position === bitsPerChar - 1) {
-                        context_data_position = 0;
-                        context_data.push(getCharFromInt(context_data_val));
-                        context_data_val = 0;
-                    } else {
-                        context_data_position += 1;
-                    }
-                    value = value >> 1;
-                }
-            }
-            context_enlargeIn -= 1;
-            if (context_enlargeIn === 0) {
-                context_enlargeIn = 2 ** context_numBits;
-                context_numBits += 1;
-            }
-            context_dictionary[context_wc] = context_dictSize++;
-            context_w = context_c;
-        }
+export const encodeTeamShare = (teamPayload) => {
+    try {
+        const jsonStr = JSON.stringify(teamPayload);
+        const b64 = btoa(encodeURIComponent(jsonStr));
+        return TEAM_EXPORT_PREFIX + b64;
+    } catch {
+        return "";
     }
-
-    if (context_w !== '') {
-        if (Object.prototype.hasOwnProperty.call(context_dictionaryToCreate, context_w)) {
-            value = context_w.charCodeAt(0);
-            if (value < 256) {
-                for (let j = 0; j < context_numBits; j += 1) {
-                    context_data_val = (context_data_val << 1);
-                    if (context_data_position === bitsPerChar - 1) {
-                        context_data_position = 0;
-                        context_data.push(getCharFromInt(context_data_val));
-                        context_data_val = 0;
-                    } else {
-                        context_data_position += 1;
-                    }
-                }
-                for (let j = 0; j < 8; j += 1) {
-                    context_data_val = (context_data_val << 1) | (value & 1);
-                    if (context_data_position === bitsPerChar - 1) {
-                        context_data_position = 0;
-                        context_data.push(getCharFromInt(context_data_val));
-                        context_data_val = 0;
-                    } else {
-                        context_data_position += 1;
-                    }
-                    value = value >> 1;
-                }
-            } else {
-                value = 1;
-                for (let j = 0; j < context_numBits; j += 1) {
-                    context_data_val = (context_data_val << 1) | value;
-                    if (context_data_position === bitsPerChar - 1) {
-                        context_data_position = 0;
-                        context_data.push(getCharFromInt(context_data_val));
-                        context_data_val = 0;
-                    } else {
-                        context_data_position += 1;
-                    }
-                }
-                value = context_w.charCodeAt(0);
-                for (let j = 0; j < 16; j += 1) {
-                    context_data_val = (context_data_val << 1) | (value & 1);
-                    if (context_data_position === bitsPerChar - 1) {
-                        context_data_position = 0;
-                        context_data.push(getCharFromInt(context_data_val));
-                        context_data_val = 0;
-                    } else {
-                        context_data_position += 1;
-                    }
-                    value = value >> 1;
-                }
-            }
-            context_enlargeIn -= 1;
-            if (context_enlargeIn === 0) {
-                context_enlargeIn = 2 ** context_numBits;
-                context_numBits += 1;
-            }
-            delete context_dictionaryToCreate[context_w];
-        } else {
-            value = context_dictionary[context_w];
-            for (let j = 0; j < context_numBits; j += 1) {
-                context_data_val = (context_data_val << 1) | (value & 1);
-                if (context_data_position === bitsPerChar - 1) {
-                    context_data_position = 0;
-                    context_data.push(getCharFromInt(context_data_val));
-                    context_data_val = 0;
-                } else {
-                    context_data_position += 1;
-                }
-                value = value >> 1;
-            }
-        }
-    }
-
-    value = 2;
-    for (let j = 0; j < context_numBits; j += 1) {
-        context_data_val = (context_data_val << 1) | (value & 1);
-        if (context_data_position === bitsPerChar - 1) {
-            context_data_position = 0;
-            context_data.push(getCharFromInt(context_data_val));
-            context_data_val = 0;
-        } else {
-            context_data_position += 1;
-        }
-        value = value >> 1;
-    }
-
-    while (true) {
-        context_data_val = (context_data_val << 1);
-        if (context_data_position === bitsPerChar - 1) {
-            context_data.push(getCharFromInt(context_data_val));
-            break;
-        } else {
-            context_data_position += 1;
-        }
-    }
-    return context_data.join('');
-};
-
-const _decompress = (length, resetValue, getNextValue) => {
-    const dictionary = [
-        '',
-        '\n',
-    ];
-    let next, enlargeIn = 4;
-    let dictSize = 4;
-    let numBits = 3;
-    let entry = '';
-    let result = '';
-    let i, w;
-    let bits, resb, maxpower, power;
-    let c;
-    let data = { val: getNextValue(0), position: resetValue, index: 1 };
-
-    const readBits = (bitsCount) => {
-        let bitsRead = 0;
-        let res = 0;
-        while (bitsRead < bitsCount) {
-            res |= (data.val & data.position) ? 1 << bitsRead : 0;
-            data.position >>= 1;
-            if (data.position === 0) {
-                data.position = resetValue;
-                data.val = getNextValue(data.index++);
-            }
-            bitsRead += 1;
-        }
-        return res;
-    };
-
-    next = readBits(2);
-    switch (next) {
-        case 0:
-            bits = 0;
-            maxpower = 2;
-            power = 1;
-            while (power !== maxpower) {
-                resb = data.val & data.position;
-                data.position >>= 1;
-                if (data.position === 0) {
-                    data.position = resetValue;
-                    data.val = getNextValue(data.index++);
-                }
-                bits |= (resb > 0 ? 1 : 0) * power;
-                power <<= 1;
-            }
-            c = String.fromCharCode(bits);
-            break;
-        case 1:
-            bits = 0;
-            maxpower = 2;
-            power = 1;
-            while (power !== maxpower) {
-                resb = data.val & data.position;
-                data.position >>= 1;
-                if (data.position === 0) {
-                    data.position = resetValue;
-                    data.val = getNextValue(data.index++);
-                }
-                bits |= (resb > 0 ? 1 : 0) * power;
-                power <<= 1;
-            }
-            c = String.fromCharCode(bits);
-            break;
-        case 2:
-            return '';
-    }
-    result = c;
-    w = c;
-    while (true) {
-        if (data.index > length) return ''; // malformed
-        next = readBits(numBits);
-        switch (next) {
-            case 0:
-                bits = 0;
-                maxpower = 2;
-                power = 1;
-                while (power !== maxpower) {
-                    resb = data.val & data.position;
-                    data.position >>= 1;
-                    if (data.position === 0) {
-                        data.position = resetValue;
-                        data.val = getNextValue(data.index++);
-                    }
-                    bits |= (resb > 0 ? 1 : 0) * power;
-                    power <<= 1;
-                }
-                dictionary[dictSize++] = String.fromCharCode(bits);
-                next = dictSize - 1;
-                enlargeIn -= 1;
-                break;
-            case 1:
-                bits = 0;
-                maxpower = 2;
-                power = 1;
-                while (power !== maxpower) {
-                    resb = data.val & data.position;
-                    data.position >>= 1;
-                    if (data.position === 0) {
-                        data.position = resetValue;
-                        data.val = getNextValue(data.index++);
-                    }
-                    bits |= (resb > 0 ? 1 : 0) * power;
-                    power <<= 1;
-                }
-                dictionary[dictSize++] = String.fromCharCode(bits);
-                next = dictSize - 1;
-                enlargeIn -= 1;
-                break;
-            case 2:
-                return result;
-        }
-
-        if (enlargeIn === 0) {
-            enlargeIn = 2 ** numBits;
-            numBits += 1;
-        }
-
-        if (dictionary[next]) {
-            entry = dictionary[next];
-        } else {
-            if (next === dictSize) {
-                entry = w + w.charAt(0);
-            } else {
-                return null;
-            }
-        }
-        result += entry;
-
-        dictionary[dictSize++] = w + entry.charAt(0);
-        enlargeIn -= 1;
-
-        w = entry;
-
-        if (enlargeIn === 0) {
-            enlargeIn = 2 ** numBits;
-            numBits += 1;
-        }
-    }
-};
-
-export const compressToBase64 = (input) => {
-    if (input == null) return '';
-    const output = _compress(input, 6, (a) => keyStr.charAt(a));
-    switch (output.length % 4) {
-        case 0:
-            return output;
-        case 1:
-            return `${output}===`;
-        case 2:
-            return `${output}==`;
-        case 3:
-            return `${output}=`;
-        default:
-            return output;
-    }
-};
-
-export const decompressFromBase64 = (input) => {
-    if (input == null || input === '') return '';
-    return _decompress(input.length, 32, (index) => keyStr.indexOf(input.charAt(index)));
-};
-
-export const TEAM_EXPORT_PREFIX = 'MYOWNDEX:v2:';
-export const TEAM_LEGACY_PREFIX = 'MYOWNDEX-';
-
-export const encodeTeamShare = (team) => {
-    const payload = JSON.stringify({ version: 2, team });
-    return `${TEAM_EXPORT_PREFIX}${compressToBase64(payload)}`;
 };
 
 export const decodeTeamShare = (value) => {
     const raw = value?.trim();
-    if (!raw) throw new Error('Payload vazio');
-
-    if (raw.startsWith(TEAM_EXPORT_PREFIX)) {
-        const compressed = raw.slice(TEAM_EXPORT_PREFIX.length);
-        return JSON.parse(decompressFromBase64(compressed));
+    if (!raw) throw new Error("Payload vazio");
+    
+    let cleanCode = raw;
+    if (cleanCode.startsWith(TEAM_EXPORT_PREFIX)) {
+        cleanCode = cleanCode.substring(TEAM_EXPORT_PREFIX.length);
     }
-
-    if (raw.startsWith(TEAM_LEGACY_PREFIX)) {
-        const payload = raw.slice(TEAM_LEGACY_PREFIX.length);
-        return JSON.parse(decodeURIComponent(atob(payload)));
+    
+    try {
+        const jsonStr = decodeURIComponent(atob(cleanCode));
+        return JSON.parse(jsonStr);
+    } catch {
+        throw new Error("Formato de link inválido ou corrompido");
     }
-
-    throw new Error('Formato de link inválido');
 };
 
-export const STAT_MAP = { 'hp': 'HP', 'attack': 'Atk', 'defense': 'Def', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Spe' };
-export const NATURES = { hardy: {up: null, down: null}, lonely: {up: 'attack', down: 'defense'}, brave: {up: 'attack', down: 'speed'}, adamant: {up: 'attack', down: 'special-attack'}, naughty: {up: 'attack', down: 'special-defense'}, bold: {up: 'defense', down: 'attack'}, docile: {up: null, down: null}, relaxed: {up: 'defense', down: 'speed'}, impish: {up: 'defense', down: 'special-attack'}, lax: {up: 'defense', down: 'special-defense'}, timid: {up: 'speed', down: 'attack'}, hasty: {up: 'speed', down: 'defense'}, serious: {up: null, down: null}, jolly: {up: 'speed', down: 'special-attack'}, naive: {up: 'speed', down: 'special-defense'}, modest: {up: 'special-attack', down: 'attack'}, mild: {up: 'special-attack', down: 'defense'}, quiet: {up: 'special-attack', down: 'speed'}, bashful: {up: null, down: null}, rash: {up: 'special-attack', down: 'special-defense'}, calm: {up: 'special-defense', down: 'attack'}, gentle: {up: 'special-defense', down: 'defense'}, sassy: {up: 'special-defense', down: 'speed'}, careful: {up: 'special-defense', down: 'special-attack'}, quirky: {up: null, down: null} };
-export const TYPES = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy', 'stellar'];
-export const TYPE_COLORS = { normal: '#9ca3af', fire: '#f97316', water: '#3b82f6', electric: '#eab308', grass: '#22c55e', ice: '#67e8f9', fighting: '#ef4444', poison: '#a855f7', ground: '#d97706', flying: '#818cf8', psychic: '#ec4899', bug: '#84cc16', rock: '#b45309', ghost: '#6366f1', dragon: '#6366f1', dark: '#334155', steel: '#94a3b8', fairy: '#f472b6', stellar: '#14b8a6' };
-export const MATCHUPS = { normal: {fighting: 2, ghost: 0}, fire: {fire: 0.5, water: 2, grass: 0.5, ice: 0.5, ground: 2, bug: 0.5, rock: 2, steel: 0.5, fairy: 0.5}, water: {fire: 0.5, water: 0.5, electric: 2, grass: 2, ice: 0.5, steel: 0.5}, electric: {electric: 0.5, ground: 2, flying: 0.5, steel: 0.5}, grass: {fire: 2, water: 0.5, grass: 0.5, electric: 0.5, ice: 2, poison: 2, ground: 0.5, flying: 2, bug: 2}, ice: {fire: 2, ice: 0.5, fighting: 2, rock: 2, steel: 2}, fighting: {flying: 2, psychic: 2, bug: 0.5, rock: 0.5, dark: 0.5, fairy: 2}, poison: {grass: 0.5, fighting: 0.5, poison: 0.5, ground: 2, psychic: 2, bug: 0.5, fairy: 0.5}, ground: {water: 2, electric: 0, grass: 2, ice: 2, poison: 0.5, rock: 0.5}, flying: {electric: 2, grass: 0.5, ice: 2, fighting: 0.5, ground: 0, bug: 0.5, rock: 2}, psychic: {fighting: 0.5, psychic: 0.5, bug: 2, ghost: 2, dark: 2}, bug: {fire: 2, grass: 0.5, fighting: 0.5, ground: 0.5, flying: 2, rock: 2}, rock: {normal: 0.5, fire: 0.5, water: 2, grass: 2, poison: 0.5, ground: 2, flying: 0.5, fighting: 2, steel: 2}, ghost: {normal: 0, fighting: 0, poison: 0.5, bug: 0.5, ghost: 2, dark: 2}, dragon: {fire: 0.5, water: 0.5, electric: 0.5, grass: 0.5, ice: 2, dragon: 2, fairy: 2}, dark: {fighting: 2, psychic: 0, bug: 2, ghost: 0.5, dark: 0.5, fairy: 2}, steel: {normal: 0.5, fire: 2, water: 1, electric: 1, grass: 0.5, ice: 0.5, fighting: 2, poison: 0, ground: 2, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 0.5, ghost: 1, dragon: 0.5, dark: 1, steel: 0.5, fairy: 0.5}, fairy: {fighting: 0.5, poison: 2, bug: 0.5, dragon: 0, dark: 0.5, steel: 2} };
+// ==========================================
+// DADOS CONSTANTES E MATEMÁTICA DE COMBATE
+// ==========================================
+export const STAT_MAP = { "hp": "HP", "attack": "Atk", "defense": "Def", "special-attack": "Sp. Atk", "special-defense": "Sp. Def", "speed": "Spe" };
+export const NATURES = { hardy: {up: null, down: null}, lonely: {up: "attack", down: "defense"}, brave: {up: "attack", down: "speed"}, adamant: {up: "attack", down: "special-attack"}, naughty: {up: "attack", down: "special-defense"}, bold: {up: "defense", down: "attack"}, docile: {up: null, down: null}, relaxed: {up: "defense", down: "speed"}, impish: {up: "defense", down: "special-attack"}, lax: {up: "defense", down: "special-defense"}, timid: {up: "speed", down: "attack"}, hasty: {up: "speed", down: "defense"}, serious: {up: null, down: null}, jolly: {up: "speed", down: "special-attack"}, naive: {up: "speed", down: "special-defense"}, modest: {up: "special-attack", down: "attack"}, mild: {up: "special-attack", down: "defense"}, quiet: {up: "special-attack", down: "speed"}, bashful: {up: null, down: null}, rash: {up: "special-attack", down: "special-defense"}, calm: {up: "special-defense", down: "attack"}, gentle: {up: "special-defense", down: "defense"}, sassy: {up: "special-defense", down: "speed"}, careful: {up: "special-defense", down: "special-attack"}, quirky: {up: null, down: null} };
+export const TYPES = ["normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy", "stellar"];
+export const TYPE_COLORS = { normal: "#9ca3af", fire: "#f97316", water: "#3b82f6", electric: "#eab308", grass: "#22c55e", ice: "#67e8f9", fighting: "#ef4444", poison: "#a855f7", ground: "#d97706", flying: "#818cf8", psychic: "#ec4899", bug: "#84cc16", rock: "#b45309", ghost: "#6366f1", dragon: "#6366f1", dark: "#334155", steel: "#94a3b8", fairy: "#f472b6", stellar: "#14b8a6" };
 
+// Tabela Oficial Gen 6+ (Mapeamento: Tipo do Defensor -> { Tipo do Atacante: Multiplicador })
+export const MATCHUPS = { 
+    normal: { fighting: 2, ghost: 0 }, 
+    fire: { water: 2, ground: 2, rock: 2, fire: 0.5, grass: 0.5, ice: 0.5, bug: 0.5, steel: 0.5, fairy: 0.5 }, 
+    water: { electric: 2, grass: 2, fire: 0.5, water: 0.5, ice: 0.5, steel: 0.5 }, 
+    electric: { ground: 2, electric: 0.5, flying: 0.5, steel: 0.5 }, 
+    grass: { fire: 2, ice: 2, poison: 2, flying: 2, bug: 2, water: 0.5, electric: 0.5, grass: 0.5, ground: 0.5 }, 
+    ice: { fire: 2, fighting: 2, rock: 2, steel: 2, ice: 0.5 }, 
+    fighting: { flying: 2, psychic: 2, fairy: 2, bug: 0.5, rock: 0.5, dark: 0.5 }, 
+    poison: { ground: 2, psychic: 2, grass: 0.5, fighting: 0.5, poison: 0.5, bug: 0.5, fairy: 0.5 }, 
+    ground: { water: 2, grass: 2, ice: 2, poison: 0.5, rock: 0.5, electric: 0 }, 
+    flying: { electric: 2, ice: 2, rock: 2, grass: 0.5, fighting: 0.5, bug: 0.5, ground: 0 }, 
+    psychic: { bug: 2, ghost: 2, dark: 2, fighting: 0.5, psychic: 0.5 }, 
+    bug: { fire: 2, flying: 2, rock: 2, grass: 0.5, fighting: 0.5, ground: 0.5 }, 
+    rock: { water: 2, grass: 2, fighting: 2, ground: 2, steel: 2, normal: 0.5, fire: 0.5, poison: 0.5, flying: 0.5 }, 
+    ghost: { ghost: 2, dark: 2, poison: 0.5, bug: 0.5, normal: 0, fighting: 0 }, 
+    dragon: { ice: 2, dragon: 2, fairy: 2, fire: 0.5, water: 0.5, electric: 0.5, grass: 0.5 }, 
+    dark: { fighting: 2, bug: 2, fairy: 2, ghost: 0.5, dark: 0.5, psychic: 0 }, 
+    steel: { fire: 2, fighting: 2, ground: 2, normal: 0.5, grass: 0.5, ice: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 0.5, dragon: 0.5, steel: 0.5, fairy: 0.5, poison: 0 }, 
+    fairy: { poison: 2, steel: 2, fighting: 0.5, bug: 0.5, dark: 0.5, dragon: 0 } 
+};
+
+// Loop Matemático Corrigido
 export const calculateDefenses = (typesArr) => {
     if (!typesArr) return {};
-    const defs = {}; TYPES.forEach(t => defs[t] = 1);
+    const defs = {}; 
+    TYPES.forEach(t => defs[t] = 1);
+    
     typesArr.forEach(tObj => {
-        const tName = tObj?.type?.name;
-        if (!tName) return;
-        Object.keys(MATCHUPS).forEach(atkType => {
-            if (MATCHUPS[atkType] && MATCHUPS[atkType][tName] !== undefined) defs[atkType] *= MATCHUPS[atkType][tName];
-        });
+        const tName = tObj?.type?.name; // tName é o tipo do Defensor
+        if (tName && MATCHUPS[tName]) {
+            // Varre todos os atacantes que afetam este defensor e multiplica as fraquezas/resistências
+            Object.keys(MATCHUPS[tName]).forEach(atkType => {
+                defs[atkType] *= MATCHUPS[tName][atkType];
+            });
+        }
     });
     return defs;
 };

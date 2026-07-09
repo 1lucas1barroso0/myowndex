@@ -8,7 +8,7 @@ const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
         <div onClick={onSelect} className="game-card p-4 flex flex-col items-center cursor-pointer group relative">
             <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">No. {id.padStart(4, '0')}</span>
             <div className="w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
-                <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`} className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200" loading="lazy" decoding="async" onError={e=>e.target.style.display='none'} />
+                <img src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png"} className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200" loading="lazy" decoding="async" onError={e=>e.target.style.display='none'} />
             </div>
             <span className="text-[11px] font-black text-slate-700 mt-3 capitalize truncate w-full text-center group-hover:text-red-600 transition-colors">{formatName(species.name)}</span>
         </div>
@@ -193,8 +193,8 @@ export default function App() {
                                 </div>
                             )}
                             <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700">
-                                <button onClick={toggleHackmon} className={`px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ${isHackmon?'bg-purple-600 text-white':'text-slate-300'}`}>Hackmon</button>
-                                <button onClick={toggleTTRPG} className={`px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 ${isTTRPG?'bg-amber-500 text-white':'text-slate-300'}`}>TTRPG</button>
+                                <button onClick={toggleHackmon} className={"px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none " + (isHackmon ? "bg-purple-600 text-white" : "text-slate-300")}>Hackmon</button>
+                                <button onClick={toggleTTRPG} className={"px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 " + (isTTRPG ? "bg-amber-500 text-white" : "text-slate-300")}>TTRPG</button>
                             </div>
                         </div>
                     </div>
@@ -211,15 +211,15 @@ export default function App() {
                         ) : (
                             <>
                                 <div className="bg-slate-900 border-4 border-slate-800 rounded-2xl p-5 mb-8 shadow-xl relative overflow-hidden">
-    <div className="flex items-center gap-2 mb-2">
-        <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]"></div>
-        <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest uppercase">System Online</span>
-    </div>
-    <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
-        Pokémon Storage<br />
-        <span className="text-slate-400 text-sm font-bold animate-pulse">&gt; Awaiting Input...</span>
-    </h2>
-</div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]"></div>
+                                        <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest uppercase">System Online</span>
+                                    </div>
+                                    <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
+                                        Pokémon Storage<br />
+                                        <span className="text-slate-400 text-sm font-bold animate-pulse">&gt; Awaiting Input...</span>
+                                    </h2>
+                                </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3 sm:gap-5">
                                     {visible.map(sp => {
                                         if (!sp?.url) return null;

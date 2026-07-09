@@ -71,17 +71,15 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             
             <div className="game-shell w-full max-w-6xl h-[100vh] md:h-[90vh] flex flex-col md:flex-row overflow-hidden relative shadow-2xl bg-slate-50 md:rounded-3xl" onClick={e => e.stopPropagation()}>
                 
-                {/* BOTÃO DE FECHAR (Agora com mais margem: top-5 right-5 e sm:top-6 sm:right-6) */}
+                {/* BOTÃO DE FECHAR */}
                 <button onClick={onClose} className="absolute top-5 right-5 sm:top-6 sm:right-6 w-11 h-11 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[60] transition-all border-4 border-slate-200 shadow-sm">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 
                 {/* === TELA 1: APRESENTAÇÃO DO POKÉMON === */}
-                {/* Padding reforçado no topo (pt-7) e laterais (px-6) para dar espaço ao "No. XXXX" */}
                 <div className="w-full h-full md:w-5/12 pt-7 px-6 pb-[85px] sm:pt-8 sm:px-8 md:pb-8 flex flex-col overflow-y-auto no-scrollbar app-scroll-area border-r-0 md:border-r-4 border-slate-200 z-10 relative bg-slate-50/90">
                     
                     <div className="z-10 mb-6 flex flex-col items-start">
-                        {/* O teu design original do No. XXXX respirando perfeitamente */}
                         <span className="whitespace-nowrap text-[9px] sm:text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">
                             No. {String(baseInfo.id).padStart(4, '0')}
                         </span>
@@ -98,7 +96,13 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     <div className="flex-grow min-h-[220px] shrink-0 flex justify-center items-center py-6 relative group mb-8 bg-slate-50 rounded-3xl border-4 border-slate-200 shadow-inner">
                         <div className="absolute inset-0 opacity-10 transition-opacity duration-500 group-hover:opacity-20" style={{ background: "radial-gradient(circle at center, " + primaryColor + " 0%, transparent 70%)" }}></div>
                         {sprite ? (
-                            <img src={sprite} alt="pkmn" className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                            <img 
+                                src={sprite} 
+                                alt="pkmn" 
+                                fetchPriority="high" 
+                                decoding="async" 
+                                className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" 
+                            />
                         ) : (
                             <span className="text-sm font-black text-slate-400">Image not found in Dex</span>
                         )}
@@ -143,7 +147,6 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 </div>
 
                 {/* === TELA 2: A CORTINA (Efeito Pokébola) === */}
-                {/* Adicionado border-t-[8px] border-slate-900 para simular o meio de uma pokébola */}
                 <div className={"absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-15px_40px_rgba(0,0,0,0.2)] md:shadow-none border-t-[8px] md:border-t-0 border-slate-900 " + (isExpanded ? "h-[96%] md:h-full" : "h-[76px] md:h-full")}>
                     
                     {/* Títulos das Abas e Puxador */}
@@ -206,7 +209,14 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                     <React.Fragment key={node.name + i}>
                                                         <div className="flex flex-col items-center min-w-[85px] group">
                                                             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-4 border-slate-200 shadow-inner group-hover:border-red-400 transition-colors">
-                                                                <img src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + node.id + ".png"} className="w-16 h-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform" alt={node.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                                                                <img 
+                                                                    src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + node.id + ".png"} 
+                                                                    loading="lazy"
+                                                                    decoding="async"
+                                                                    className="w-16 h-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
+                                                                    alt={node.name} 
+                                                                    onError={(e) => { e.target.style.display = 'none'; }} 
+                                                                />
                                                             </div>
                                                             <span className="text-[10px] font-black uppercase text-slate-600 mt-3 truncate w-full text-center group-hover:text-red-600 transition-colors">{node.name}</span>
                                                         </div>

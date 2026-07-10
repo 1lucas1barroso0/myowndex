@@ -116,8 +116,19 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const currentGenderRate = Number(pk.genderRate ?? pk.species?.gender_rate ?? -1);
     const randomize = (t) => {
         dismissKeyboard();
-        if (t === "ivs") updatePk({ ...pk, ivs: { hp: Math.floor(Math.random()*32), attack: Math.floor(Math.random()*32), defense: Math.floor(Math.random()*32), "special-attack": Math.floor(Math.random()*32), "special-defense": Math.floor(Math.random()*32), speed: Math.floor(Math.random()*32) } });
-        else if (t === "nature") updatePk({ ...pk, nature: Object.keys(NATURES)[Math.floor(Math.random() * 25)] });
+        if (t === "ivs") {
+            updatePk({ ...pk, ivs: { hp: Math.floor(Math.random()*32), attack: Math.floor(Math.random()*32), defense: Math.floor(Math.random()*32), "special-attack": Math.floor(Math.random()*32), "special-defense": Math.floor(Math.random()*32), speed: Math.floor(Math.random()*32) } });
+        }
+        else if (t === "nature") {
+            updatePk({ ...pk, nature: Object.keys(NATURES)[Math.floor(Math.random() * 25)] });
+        }
+        else if (t === "ability") {
+            if (validAbs.length > 0) {
+                const randomAb = validAbs[Math.floor(Math.random() * validAbs.length)];
+                const abName = typeof randomAb === "string" ? randomAb : (randomAb?.name || "");
+                if (abName) updatePk({ ...pk, ability: abName });
+            }
+        }
         else if (t === "gender") {
             if (currentGenderRate === -1) return;
             if (currentGenderRate === 0) { updatePk({ ...pk, gender: "M", genderRate: 0 }); return; }
@@ -200,10 +211,14 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <div><label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Tera Type</label><input list="eTera" value={pk.teraType||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, teraType:(e.target.value||"").toLowerCase()})} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 text-blue-800 text-sm font-black focus:border-blue-500 outline-none capitalize shadow-inner" /></div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Current Ability</label><input list="eAbs" value={pk.ability||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, ability:(e.target.value||"").toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" /></div>
+                        <div className="relative">
+                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Current Ability</label>
+                            <input list="eAbs" value={pk.ability||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, ability:(e.target.value||"").toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 pr-10 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />
+                            <button onClick={()=>randomize("ability")} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>
+                        </div>
                         <div className="relative">
                             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Nature</label>
-                            <select value={pk.nature||"hardy"} onChange={e=> { dismissKeyboard(); updatePk({...pk, nature:e.target.value}); }} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">
+                            <select value={pk.nature||"hardy"} onChange={e=> { dismissKeyboard(); updatePk({...pk, nature:e.target.value}); }} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 pr-10 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">
                                 {Object.keys(NATURES).map(n => <option key={n} value={n}>{n} {NATURES[n].up ? "(+" + STAT_MAP[NATURES[n].up] + ", -" + STAT_MAP[NATURES[n].down] + ")" : ""}</option>)}
                             </select>
                             <button onClick={()=>randomize("nature")} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>

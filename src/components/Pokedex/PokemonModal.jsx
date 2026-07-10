@@ -8,8 +8,11 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const [activeForm, setActiveForm] = useState(null);
     const [formData, setFormData] = useState(null);
     const [evoChain, setEvoChain] = useState([]);
-    const [tab, setTab] = useState('stats');
+    const [tab, setTab] = useState("stats");
     const [isExpanded, setIsExpanded] = useState(false);
+    
+    // Estado para detetar o arrastar do dedo (Swipe)
+    const [touchStartY, setTouchStartY] = useState(null);
 
     useEffect(() => {
         let mounted = true;
@@ -51,7 +54,36 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         if (bData?.moves) moves = bData.moves;
                     }
                 }
-                moves.sort((a, b) => (a.version_group_details?.[a.version_group_details.length - 1]?.level_learned_at || 0) - (b.version_group_details?.[b.version_group_details.length - 1]?.level_learned_at || 0));
+                
+                moves.sort((a, b) => {
+                    const getSortData = (move) => {
+                        let bestMethod = 4;
+                        let bestLevel = 999;
+                        if (!move.version_group_details) return { method: 4, level: 999 };
+                        
+                        move.version_group_details.forEach(v => {
+                            const mName = v.move_learn_method?.name;
+                            const lvl = v.level_learned_at || 0;
+                            if (mName === "level-up") {
+                                bestMethod = 1;
+                                if (lvl < bestLevel && lvl > 0) bestLevel = lvl;
+                            } else if (bestMethod > 2 && mName === "machine") {
+                                bestMethod = 2;
+                            } else if (bestMethod > 3 && mName === "egg") {
+                                bestMethod = 3;
+                            }
+                        });
+                        return { method: bestMethod, level: bestLevel === 999 ? 0 : bestLevel };
+                    };
+
+                    const aData = getSortData(a);
+                    const bData = getSortData(b);
+
+                    if (aData.method !== bData.method) return aData.method - bData.method;
+                    if (aData.method === 1) return aData.level - bData.level;
+                    return (a.move?.name || "").localeCompare(b.move?.name || "");
+                });
+                
                 data.moves = moves;
                 setFormData(data);
             });
@@ -59,36 +91,55 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         return () => mounted = false;
     }, [activeForm, baseInfo]);
 
+    const handleTouchStart = (e) => {
+        setTouchStartY(e.targetTouches[0].clientY);
+    };
+
+    const handleTouchEnd = (e) => {
+        if (!touchStartY) return;
+        const touchEndY = e.changedTouches[0].clientY;
+        const swipeDistance = touchEndY - touchStartY;
+        
+        // Se deslizou o dedo para baixo (fechar cortina)
+        if (swipeDistance > 40 && isExpanded) {
+            setIsExpanded(false);
+        }
+        // Se deslizou o dedo para cima (abrir cortina)
+        else if (swipeDistance < -40 && !isExpanded) {
+            setIsExpanded(true);
+        }
+        setTouchStartY(null);
+    };
+
     if (!baseInfo || !formData) return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"><div className="w-16 h-16 border-8 border-red-500 border-t-white rounded-full animate-spin shadow-lg"></div></div>;
 
     const defenses = calculateDefenses(formData.types);
-    const bst = formData.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === 'hp') : (s.base_stat || 0)), 0) || 0;
-    const primaryColor = formData.types?.[0]?.type?.name ? TYPE_COLORS[formData.types[0].type.name] : '#3b82f6';
-    const sprite = formData.sprites?.other?.['official-artwork']?.front_default || formData.sprites?.front_default;
+    const bst = formData.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
+    const primaryColor = formData.types?.[0]?.type?.name ? TYPE_COLORS[formData.types[0].type.name] : "#3b82f6";
+    const sprite = formData.sprites?.other?.["official-artwork"]?.front_default || formData.sprites?.front_default;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 md:p-8 animate-fade-in" onClick={onClose}>
             
             <div className="game-shell w-full max-w-6xl h-[100vh] md:h-[90vh] flex flex-col md:flex-row overflow-hidden relative shadow-2xl bg-slate-50 md:rounded-3xl" onClick={e => e.stopPropagation()}>
                 
-                {/* BOTÃO DE FECHAR */}
                 <button onClick={onClose} className="absolute top-5 right-5 sm:top-6 sm:right-6 w-11 h-11 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[60] transition-all border-4 border-slate-200 shadow-sm">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 
-                {/* === TELA 1: APRESENTAÇÃO DO POKÉMON === */}
+                {/* === TELA 1: APRESENTAÇÃO === */}
                 <div className="w-full h-full md:w-5/12 pt-7 px-6 pb-[85px] sm:pt-8 sm:px-8 md:pb-8 flex flex-col overflow-y-auto no-scrollbar app-scroll-area border-r-0 md:border-r-4 border-slate-200 z-10 relative bg-slate-50/90">
                     
                     <div className="z-10 mb-6 flex flex-col items-start">
                         <span className="whitespace-nowrap text-[9px] sm:text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">
-                            No. {String(baseInfo.id).padStart(4, '0')}
+                            No. {String(baseInfo.id).padStart(4, "0")}
                         </span>
                         <h2 className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-5 tracking-tight leading-none drop-shadow-sm">
-                            {activeForm?.name?.split('-')[0] || baseInfo.name}
+                            {activeForm?.name?.split("-")[0] || baseInfo.name}
                         </h2>
-                        {activeForm?.name?.includes('-') && (
+                        {activeForm?.name?.includes("-") && (
                             <span className="text-sm font-black text-red-500 capitalize block mt-2">
-                                {activeForm.name.substring(activeForm.name.indexOf('-') + 1).replace(/-/g, ' ')} Form
+                                {activeForm.name.substring(activeForm.name.indexOf("-") + 1).replace(/-/g, " ")} Form
                             </span>
                         )}
                     </div>
@@ -102,7 +153,6 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 fetchPriority="high" 
                                 className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" 
                                 onError={(e) => {
-                                    // Se a rede estiver engasgada na arte oficial, puxamos o sprite leve IMEDIATAMENTE!
                                     e.target.onerror = null; 
                                     e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + baseInfo.id + ".png";
                                 }}
@@ -128,7 +178,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         <div className="bg-slate-50 p-5 rounded-2xl border-2 border-slate-200 shadow-inner flex flex-col gap-3">
                             {formData.stats?.map(s => {
                                 if (!s.stat?.name) return null;
-                                const val = isTTRPG ? convertToTTRPG(s.base_stat, s.stat.name === 'hp') : (s.base_stat || 0);
+                                const val = isTTRPG ? convertToTTRPG(s.base_stat, s.stat.name === "hp") : (s.base_stat || 0);
                                 const pct = Math.min((val / (isTTRPG ? 13 : 255)) * 100, 100);
                                 return (
                                     <div key={s.stat.name}>
@@ -150,29 +200,38 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     </div>
                 </div>
 
-                {/* === TELA 2: A CORTINA (Efeito Pokébola) === */}
+                {/* === ESCUDO PROTETOR (Backdrop) === */}
+                {/* Bloqueia cliques no fundo apenas quando a cortina está aberta no telemóvel */}
+                <div 
+                    className={"absolute inset-0 z-30 md:hidden transition-opacity duration-500 ease-out " + (isExpanded ? "opacity-100 pointer-events-auto bg-slate-900/30 backdrop-blur-[2px]" : "opacity-0 pointer-events-none")}
+                    onClick={() => setIsExpanded(false)}
+                ></div>
+
+                {/* === TELA 2: A CORTINA === */}
                 <div className={"absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-15px_40px_rgba(0,0,0,0.2)] md:shadow-none border-t-[8px] md:border-t-0 border-slate-900 " + (isExpanded ? "h-[96%] md:h-full" : "h-[76px] md:h-full")}>
                     
-                    {/* Títulos das Abas e Puxador */}
-                    <div className="flex bg-slate-200 border-b-4 border-slate-300 w-full shrink-0 pt-3 md:pt-0 rounded-t-[1.5rem] md:rounded-none relative z-20 cursor-pointer md:cursor-auto" onClick={() => !isExpanded && setIsExpanded(true)}>
-                        
-                        {/* Puxador Físico */}
+                    {/* Cabeçalho com Sensor de Swipe Integrado */}
+                    <div 
+                        className="flex bg-slate-200 border-b-4 border-slate-300 w-full shrink-0 pt-3 md:pt-0 rounded-t-[1.5rem] md:rounded-none relative z-20 cursor-pointer md:cursor-auto select-none" 
+                        onClick={() => !isExpanded && setIsExpanded(true)}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                    >
                         <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-400 rounded-full md:hidden" onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}></div>
                         
-                        {['stats', 'defenses', 'moves'].map(t => (
+                        {["stats", "defenses", "moves"].map(t => (
                             <button 
                                 key={t} 
                                 onClick={(e) => { e.stopPropagation(); setTab(t); setIsExpanded(true); }} 
                                 className={"flex-1 pb-3 pt-2 md:py-5 px-1 text-[10px] sm:text-[11px] md:text-[12px] font-black uppercase tracking-wider transition-all outline-none text-center border-b-4 " + (tab === t ? "text-white bg-red-500 border-red-700 shadow-inner" : "text-slate-500 hover:text-slate-700 hover:bg-slate-300 border-transparent")}
                             >
-                                {t === 'stats' ? 'Dex Data' : t === 'defenses' ? 'Type Chart' : 'Moves'}
+                                {t === "stats" ? "Dex Data" : t === "defenses" ? "Type Chart" : "Moves"}
                             </button>
                         ))}
                     </div>
                     
-                    {/* Conteúdo das Abas */}
                     <div className="flex-1 p-5 sm:p-6 md:p-10 overflow-y-auto no-scrollbar app-scroll-area">
-                        {tab === 'stats' && (
+                        {tab === "stats" && (
                             <div className="animate-fade-in space-y-8">
                                 <div className="flex gap-4">
                                     <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Height</span><span className="text-3xl font-black text-slate-800">{((formData.height || 0) / 10).toFixed(1)}m</span></div>
@@ -189,7 +248,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                         <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Other Forms</h3>
                                         <div className="flex flex-wrap gap-2 bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm">
                                             {baseInfo.varieties.map(v => {
-                                                const btnName = v.pokemon?.name === baseInfo.name ? 'Base Form' : (v.pokemon?.name || '').replace(baseInfo.name + '-', '').replace(/-/g, ' ') || 'Base';
+                                                const btnName = v.pokemon?.name === baseInfo.name ? "Base Form" : (v.pokemon?.name || "").replace(baseInfo.name + "-", "").replace(/-/g, " ") || "Base";
                                                 return (
                                                     <button 
                                                         key={v.pokemon?.name || Math.random()} 
@@ -235,15 +294,15 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 </div>
                             </div>
                         )}
-                        {tab === 'defenses' && (
+                        {tab === "defenses" && (
                             <div className="animate-fade-in">
                                 <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Type Effectiveness (Damage Taken)</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
                                     {Object.entries(defenses).map(([t, multi]) => {
-                                        let cardStyle = 'text-slate-600 border-slate-300 bg-white';
-                                        if (multi > 1) cardStyle = 'text-red-700 border-red-300 bg-red-50';
-                                        if (multi < 1 && multi > 0) cardStyle = 'text-emerald-700 border-emerald-300 bg-emerald-50';
-                                        if (multi === 0) cardStyle = 'text-slate-400 border-slate-300 bg-slate-100 opacity-70';
+                                        let cardStyle = "text-slate-600 border-slate-300 bg-white";
+                                        if (multi > 1) cardStyle = "text-red-700 border-red-300 bg-red-50";
+                                        if (multi < 1 && multi > 0) cardStyle = "text-emerald-700 border-emerald-300 bg-emerald-50";
+                                        if (multi === 0) cardStyle = "text-slate-400 border-slate-300 bg-slate-100 opacity-70";
                                         
                                         return (
                                             <div key={t} className={"flex items-center justify-between p-4 rounded-xl border-2 shadow-sm " + cardStyle}>
@@ -258,7 +317,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 </div>
                             </div>
                         )}
-                        {tab === 'moves' && (
+                        {tab === "moves" && (
                             <div className="animate-fade-in">
                                 <div className="flex justify-between items-center mb-6">
                                     <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500"></div> Move Database</h3>

@@ -8,24 +8,32 @@ export default function Teambuilder({ envProps }) {
     
     const [importing, setImporting] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [importData, setImportData] = useState('');
+    const [importData, setImportData] = useState("");
     const [importError, setImportError] = useState(false);
-    const [shareCode, setShareCode] = useState('');
+    const [shareCode, setShareCode] = useState("");
     const [copied, setCopied] = useState(false);
     
     const active = teams.find(t => t.id === activeTeamId);
     
+    // UTILIDADE DE UX: Força o fecho do teclado no mobile
+    const dismissKeyboard = () => {
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
+    };
+    
     const createTeam = () => { 
+        dismissKeyboard();
         const id = Date.now().toString(); 
-        setTeams(prev => [...prev, { id, name: 'New Box', pokemon: [] }]); 
+        setTeams(prev => [...prev, { id, name: "New Box", pokemon: [] }]); 
         setActiveTeamId(id); 
         setEditingSlot(null); 
     };
     
     const updateActive = (cb) => setTeams(prev => prev.map(t => t.id === activeTeamId ? cb(t) : t));
 
-    // NOVO ECOSSISTEMA DE PARTILHA: Compactação nativa por Array-Mapping ultra-leve
     const generateLinkCode = () => {
+        dismissKeyboard();
         try {
             if (!active || !active.pokemon) return;
 
@@ -74,6 +82,7 @@ export default function Teambuilder({ envProps }) {
     };
 
     const copyToClipboard = async () => {
+        dismissKeyboard();
         try {
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(shareCode);
@@ -98,8 +107,8 @@ export default function Teambuilder({ envProps }) {
         } catch (e) { }
     };
 
-    // NOVO ECOSSISTEMA DE IMPORTAÇÃO: Deserializador e Reconstrutor Dinâmico Autónomo
     const receiveViaLinkCable = async () => {
+        dismissKeyboard();
         try {
             setIsProcessing(true);
             setImportError(false);
@@ -167,11 +176,17 @@ export default function Teambuilder({ envProps }) {
             setTeams(prev => [...prev, newTeam]);
             setActiveTeamId(newTeam.id);
             setImporting(false);
-            setImportData('');
+            setImportData("");
         } catch (e) {
             setImportError(true);
         } finally {
             setIsProcessing(false);
+        }
+    };
+
+    const handleEnter = (e) => {
+        if (e.key === "Enter") {
+            e.target.blur();
         }
     };
 
@@ -193,7 +208,7 @@ export default function Teambuilder({ envProps }) {
             <div className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-6 flex flex-col gap-3 h-full xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-6">
                 <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">PC Boxes</h3>
                 {teams.map(t => (
-                    <button key={t.id} onClick={() => {setActiveTeamId(t.id); setEditingSlot(null); setShareCode('');}} className={"w-full p-4 rounded-2xl text-left font-black text-xs border-2 transition-all outline-none shadow-sm break-words " + (activeTeamId === t.id ? "bg-blue-500 border-blue-600 text-white shadow-[0_4px_0_#1d4ed8] translate-y-[-2px]" : "bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-white")}>
+                    <button key={t.id} onClick={() => { dismissKeyboard(); setActiveTeamId(t.id); setEditingSlot(null); setShareCode(""); }} className={"w-full p-4 rounded-2xl text-left font-black text-xs border-2 transition-all outline-none shadow-sm break-words " + (activeTeamId === t.id ? "bg-blue-500 border-blue-600 text-white shadow-[0_4px_0_#1d4ed8] translate-y-[-2px]" : "bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-white")}>
                         {t.name}
                     </button>
                 ))}
@@ -204,17 +219,17 @@ export default function Teambuilder({ envProps }) {
                 <div className="mt-4 pt-4 border-t-2 border-slate-100">
                     {importing ? (
                         <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl shadow-inner animate-fade-in">
-                            <input type="text" disabled={isProcessing} value={importData} onChange={e => { setImportData(e.target.value); setImportError(false); }} className="w-full p-2 rounded-xl border-2 border-blue-200 text-xs font-bold text-slate-700 outline-none mb-2 focus:border-blue-500 shadow-inner" placeholder="Paste code here..." />
+                            <input type="text" disabled={isProcessing} value={importData} onKeyDown={handleEnter} onChange={e => { setImportData(e.target.value); setImportError(false); }} className="w-full p-2 rounded-xl border-2 border-blue-200 text-xs font-bold text-slate-700 outline-none mb-2 focus:border-blue-500 shadow-inner" placeholder="Paste code here..." />
                             {importError && <span className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-2 block">Link Cable error!</span>}
                             {isProcessing ? <div className="h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div> : (
                                 <div className="flex gap-2">
                                     <button onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest py-2 rounded-xl shadow-[0_3px_0_#1d4ed8] outline-none">Connect</button>
-                                    <button onClick={() => { setImporting(false); setImportData(''); setImportError(false); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:border-red-200 transition-colors outline-none">Cancel</button>
+                                    <button onClick={() => { dismissKeyboard(); setImporting(false); setImportData(""); setImportError(false); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:border-red-200 transition-colors outline-none">Cancel</button>
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <button onClick={() => setImporting(true)} className="w-full p-4 text-[10px] font-black uppercase tracking-widest text-blue-500 bg-white border-2 border-blue-200 rounded-2xl hover:text-white hover:bg-blue-500 transition-all outline-none shadow-sm">
+                        <button onClick={() => { dismissKeyboard(); setImporting(true); }} className="w-full p-4 text-[10px] font-black uppercase tracking-widest text-blue-500 bg-white border-2 border-blue-200 rounded-2xl hover:text-white hover:bg-blue-500 transition-all outline-none shadow-sm">
                             🔗 Connect Link Cable
                         </button>
                     )}
@@ -228,7 +243,8 @@ export default function Teambuilder({ envProps }) {
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b-4 border-slate-100 pb-5">
                             <input 
                                 type="text" 
-                                value={active.name || ''} 
+                                value={active.name || ""} 
+                                onKeyDown={handleEnter}
                                 onChange={e => updateActive(t => ({...t, name: e.target.value}))} 
                                 className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1 truncate" 
                                 placeholder="Box Name"
@@ -239,7 +255,7 @@ export default function Teambuilder({ envProps }) {
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                                     <span className="text-[10px] font-black uppercase tracking-widest sm:hidden">Share</span>
                                 </button>
-                                <button onClick={() => { const nT = teams.filter(t=>t.id!==activeTeamId); setTeams(nT); setActiveTeamId(nT.length > 0 ? nT[0].id : null); setEditingSlot(null); setShareCode(''); }} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 border-2 border-slate-200 shadow-sm rounded-2xl outline-none">
+                                <button onClick={() => { dismissKeyboard(); const nT = teams.filter(t=>t.id!==activeTeamId); setTeams(nT); setActiveTeamId(nT.length > 0 ? nT[0].id : null); setEditingSlot(null); setShareCode(""); }} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 border-2 border-slate-200 shadow-sm rounded-2xl outline-none">
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     <span className="text-[10px] font-black uppercase tracking-widest sm:hidden">Delete</span>
                                 </button>
@@ -252,15 +268,15 @@ export default function Teambuilder({ envProps }) {
                                     <input type="text" readOnly value={shareCode} className="w-full bg-white border-2 border-blue-200 rounded-xl p-2.5 sm:p-3 text-[10px] sm:text-xs font-bold text-slate-600 outline-none shadow-sm truncate" />
                                 </div>
                                 <div className="flex gap-2 w-full sm:w-auto shrink-0">
-                                    <button onClick={copyToClipboard} className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none active:translate-y-1 active:shadow-none transition-all">{copied ? 'Copied!' : 'Copy'}</button>
-                                    <button onClick={() => setShareCode('')} className="px-3 sm:px-4 py-2.5 sm:py-3.5 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 rounded-xl outline-none font-black text-sm">X</button>
+                                    <button onClick={copyToClipboard} className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none active:translate-y-1 active:shadow-none transition-all">{copied ? "Copied!" : "Copy"}</button>
+                                    <button onClick={() => { dismissKeyboard(); setShareCode(""); }} className="px-3 sm:px-4 py-2.5 sm:py-3.5 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 rounded-xl outline-none font-black text-sm">X</button>
                                 </div>
                             </div>
                         )}
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 w-full">
                             {active.pokemon?.map((pk, i) => (
-                                <div key={i} onClick={() => setEditingSlot(i)} className={"p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative overflow-hidden group shadow-sm " + (editingSlot === i ? "bg-blue-50 border-blue-400 shadow-[0_4px_0_#60a5fa] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white")}>
+                                <div key={i} onClick={() => { dismissKeyboard(); setEditingSlot(i); }} className={"p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative overflow-hidden group shadow-sm " + (editingSlot === i ? "bg-blue-50 border-blue-400 shadow-[0_4px_0_#60a5fa] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white")}>
                                     {pk.canGMax && <div className="absolute -bottom-4 -right-4 text-red-500/10 text-[80px] font-black rotate-12 pointer-events-none">X</div>}
                                     <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl border-2 border-slate-100 flex items-center justify-center shadow-inner relative z-10 flex-shrink-0">
                                         {pk.species?.sprites?.front_default ? <img src={pk.species.sprites.front_default} className="w-10 h-10 sm:w-14 sm:h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" alt={pk.species?.name} /> : <span className="text-[9px] font-black text-slate-400 uppercase">---</span>}
@@ -270,16 +286,16 @@ export default function Teambuilder({ envProps }) {
                                             <div className="font-black text-xs sm:text-sm text-slate-800 capitalize truncate">
                                                 {pk.nickname ? pk.nickname : formatName(pk.species?.name)}
                                             </div>
-                                            <span className={"text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 " + (pk.gender === 'M' ? "text-blue-500 bg-blue-50 border-blue-200" : pk.gender === 'F' ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200")}>{pk.gender === 'M' ? '♂' : pk.gender === 'F' ? '♀' : '⚲'}</span>
+                                            <span className={"text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 " + (pk.gender === "M" ? "text-blue-500 bg-blue-50 border-blue-200" : pk.gender === "F" ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200")}>{pk.gender === "M" ? "♂" : pk.gender === "F" ? "♀" : "⚲"}</span>
                                         </div>
                                         <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 truncate">
-                                            {pk.nickname ? <span className="uppercase tracking-wider">{formatName(pk.species?.name)} • </span> : ""}Lv.{pk.level||1} • {pk.item ? formatName(pk.item) : 'No Item'}
+                                            {pk.nickname ? <span className="uppercase tracking-wider">{formatName(pk.species?.name)} • </span> : ""}Lv.{pk.level||1} • {pk.item ? formatName(pk.item) : "No Item"}
                                         </div>
                                     </div>
                                 </div>
                             ))}
                             {(active.pokemon?.length || 0) < 6 && (
-                                <div onClick={onSearchClick} className="p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center cursor-pointer text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">
+                                <div onClick={() => { dismissKeyboard(); onSearchClick(); }} className="p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center cursor-pointer text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">
                                     + Add Partner
                                 </div>
                             )}
@@ -290,7 +306,7 @@ export default function Teambuilder({ envProps }) {
                                 <PokemonEditor 
                                     pk={active.pokemon[editingSlot]} 
                                     updatePk={n => updateActive(t => { const arr = [...(t.pokemon||[])]; arr[editingSlot] = n; return {...t, pokemon: arr}; })} 
-                                    envProps={{allItems, allMoves, allAbilities, onRemove: () => { updateActive(t => ({...t, pokemon: (t.pokemon||[]).filter((_, idx)=>idx!==editingSlot)})); setEditingSlot(null); }, isTTRPG, isHackmon}} 
+                                    envProps={{allItems, allMoves, allAbilities, onRemove: () => { dismissKeyboard(); updateActive(t => ({...t, pokemon: (t.pokemon||[]).filter((_, idx)=>idx!==editingSlot)})); setEditingSlot(null); }, isTTRPG, isHackmon}} 
                                 />
                             </div>
                         )}

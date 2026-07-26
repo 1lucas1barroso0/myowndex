@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { formatName, VERSION_GROUPS } from "../../core/mechanics.js";
-import { createTeam as makeTeam, createId, hydrateTeam, mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
+import { createTeam as makeTeam, createId, hydrateTeam, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, touchTeam } from "../../core/team.js";
 import { decodeTeam, encodeTeam } from "../../core/teamShare.js";
+import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonEditor from "./PokemonEditor.jsx";
 
 const dismissKeyboard = () => {
@@ -34,6 +35,7 @@ export default function Teambuilder({ envProps }) {
         setActiveTeamId,
         isTTRPG,
         isHackmon,
+        experienceMode,
         envLoading,
         envError,
         setNotice,
@@ -47,6 +49,7 @@ export default function Teambuilder({ envProps }) {
     const [importError, setImportError] = useState("");
     const [shareCode, setShareCode] = useState("");
     const [copied, setCopied] = useState(false);
+    const [pendingDelete, setPendingDelete] = useState(null);
     const active = useMemo(() => teams.find(team => team.id === activeTeamId), [teams, activeTeamId]);
 
     useEffect(() => {
@@ -135,13 +138,29 @@ export default function Teambuilder({ envProps }) {
         }
     };
 
-    const deleteActive = () => {
-        if (!active || !window.confirm(`Delete “${active.name}”?`)) return;
-        const remaining = teams.filter(team => team.id !== active.id);
-        setTeams(remaining);
-        setActiveTeamId(remaining[0]?.id || null);
+    const confirmDeleteActive = () => {
+        if (!pendingDelete) return;
+        const result = removeTeamById(teams, pendingDelete.id);
+        if (!result.removed) {
+            setPendingDelete(null);
+            return;
+        }
+        const nextActive = result.teams[Math.min(result.index, result.teams.length - 1)] || null;
+        setTeams(result.teams);
+        setActiveTeamId(nextActive?.id || null);
         setEditingSlot(null);
         setShareCode("");
+        setPendingDelete(null);
+        setNotice?.({
+            tone: "amber",
+            text: `A Box “${result.removed.name}” foi apagada.`,
+            actionLabel: "Desfazer",
+            onAction: () => {
+                setTeams(current => restoreTeamAt(current, result.removed, result.index));
+                setActiveTeamId(result.removed.id);
+                setNotice?.({ tone: "blue", text: `A Box “${result.removed.name}” foi restaurada.` });
+            }
+        });
     };
 
     if (!teams.length) {
@@ -149,9 +168,9 @@ export default function Teambuilder({ envProps }) {
             <div className="flex min-h-[60vh] w-full items-center justify-center p-4">
                 <div className="w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#cbd5e1] sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl" aria-hidden="true">📦</div>
-                    <h2 className="text-2xl font-black text-slate-800">Your first box is waiting</h2>
-                    <p className="mt-3 text-sm text-slate-500">Create a box, gather your partners and start building your team with strategy and style.</p>
-                    <button type="button" onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b] transition-all hover:bg-red-600 outline-none">Create first box</button>
+                    <h2 className="text-2xl font-black text-slate-800">Seu primeiro Box está esperando</h2>
+                    <p className="mt-3 text-sm text-slate-500">Crie um Box, reúna seus parceiros e monte a equipe no seu ritmo.</p>
+                    <button type="button" onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b] transition-all hover:bg-red-600 outline-none">Criar primeiro Box</button>
                 </div>
             </div>
         );
@@ -160,7 +179,10 @@ export default function Teambuilder({ envProps }) {
     return (
         <div className="flex flex-col xl:flex-row gap-6 animate-fade-in w-full">
             <aside className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-6 flex flex-col gap-3 h-full xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-6" aria-label="PC Boxes">
-                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">PC Boxes</h3>
+                <div className="mb-2 flex items-center justify-between gap-3 px-1">
+                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">PC do Bill</h3>
+                    <span className="rounded-full bg-blue-100 px-2 py-1 text-[9px] font-black text-blue-600">{teams.length} Boxes</span>
+                </div>
                 {teams.map(team => (
                     <button
                         type="button"
@@ -179,23 +201,23 @@ export default function Teambuilder({ envProps }) {
                         </span>
                     </button>
                 ))}
-                <button type="button" onClick={createTeam} className="w-full p-4 mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl hover:text-red-500 hover:border-red-300 hover:bg-red-50 transition-all outline-none">+ New Box</button>
+                <button type="button" onClick={createTeam} className="w-full p-4 mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl hover:text-red-500 hover:border-red-300 hover:bg-red-50 transition-all outline-none">+ Novo Box</button>
 
                 <div className="mt-4 pt-4 border-t-2 border-slate-100">
                     {importing ? (
                         <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl shadow-inner animate-fade-in">
-                            <label htmlFor="link-cable-code" className="block text-[9px] font-black uppercase tracking-widest text-blue-700 mb-2">Box code or link</label>
-                            <textarea id="link-cable-code" disabled={isProcessing} value={importData} onChange={event => { setImportData(event.target.value); setImportError(""); }} className="w-full min-h-24 resize-y p-2 rounded-xl border-2 border-blue-200 text-xs font-bold text-slate-700 outline-none mb-2 focus:border-blue-500 shadow-inner" placeholder="Paste code here…" />
+                            <label htmlFor="link-cable-code" className="block text-[9px] font-black uppercase tracking-widest text-blue-700 mb-2">Código ou link do Box</label>
+                            <textarea id="link-cable-code" disabled={isProcessing} value={importData} onChange={event => { setImportData(event.target.value); setImportError(""); }} className="w-full min-h-24 resize-y p-2 rounded-xl border-2 border-blue-200 text-xs font-bold text-slate-700 outline-none mb-2 focus:border-blue-500 shadow-inner" placeholder="Cole aqui…" />
                             {importError && <span role="alert" className="text-[9px] font-black text-red-500 mb-2 block">{importError}</span>}
                             {isProcessing ? <div aria-label="Connecting" className="h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" /> : (
                                 <div className="flex gap-2">
-                                    <button type="button" onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest py-2 rounded-xl shadow-[0_3px_0_#1d4ed8] outline-none">Connect</button>
-                                    <button type="button" onClick={() => { setImporting(false); setImportData(""); setImportError(""); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:border-red-200 transition-colors outline-none">Cancel</button>
+                                    <button type="button" onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest py-2 rounded-xl shadow-[0_3px_0_#1d4ed8] outline-none">Conectar</button>
+                                    <button type="button" onClick={() => { setImporting(false); setImportData(""); setImportError(""); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:border-red-200 transition-colors outline-none">Cancelar</button>
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <button type="button" onClick={() => setImporting(true)} className="w-full p-4 text-[10px] font-black uppercase tracking-widest text-blue-500 bg-white border-2 border-blue-200 rounded-2xl hover:text-white hover:bg-blue-500 transition-all outline-none shadow-sm">🔗 Connect Link Cable</button>
+                        <button type="button" onClick={() => setImporting(true)} className="w-full p-4 text-[10px] font-black uppercase tracking-widest text-blue-500 bg-white border-2 border-blue-200 rounded-2xl hover:text-white hover:bg-blue-500 transition-all outline-none shadow-sm">🔗 Receber por Link Cable</button>
                     )}
                 </div>
             </aside>
@@ -205,39 +227,40 @@ export default function Teambuilder({ envProps }) {
                     <div className="game-panel p-4 sm:p-6 md:p-8 overflow-hidden">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b-4 border-slate-100 pb-5">
                             <div className="w-full min-w-0">
-                                <label htmlFor="active-box-name" className="sr-only">Box name</label>
-                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1 truncate" placeholder="Box Name" />
+                                <label htmlFor="active-box-name" className="sr-only">Nome do Box</label>
+                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1 truncate" placeholder="Nome do Box" />
                                 <label className="mt-3 flex max-w-md items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                                    Game / ruleset
+                                    Jogo de referência
                                     <select value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="min-w-0 flex-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-[10px] text-slate-700 outline-none focus:border-blue-400">
                                         {VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}
                                     </select>
                                 </label>
+                                <p className="mt-2 text-[9px] font-bold text-slate-400">As sugestões seguem este jogo; campos manuais aceitam exceções do anime.</p>
                             </div>
 
                             <div className="flex gap-2 sm:gap-3 self-stretch sm:self-auto shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
-                                <button type="button" onClick={generateLinkCode} disabled={isProcessing} title="Share Box" className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-blue-500 hover:bg-blue-50 hover:text-blue-600 border-2 border-slate-200 shadow-sm rounded-2xl outline-none disabled:opacity-50">
-                                    <span aria-hidden="true">↗</span><span className="text-[10px] font-black uppercase tracking-widest">Share</span>
+                                <button type="button" onClick={generateLinkCode} disabled={isProcessing} title="Compartilhar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-blue-500 hover:bg-blue-50 hover:text-blue-600 border-2 border-slate-200 shadow-sm rounded-2xl outline-none disabled:opacity-50">
+                                    <span aria-hidden="true">↗</span><span className="text-[9px] font-black uppercase tracking-wider">Compartilhar</span>
                                 </button>
-                                <button type="button" onClick={cloneTeam} title="Clone Box" className="flex-1 sm:flex-none px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-500 hover:bg-slate-50 border-2 border-slate-200 shadow-sm rounded-2xl outline-none"><span aria-hidden="true">⧉</span><span className="sr-only">Clone Box</span></button>
-                                <button type="button" onClick={deleteActive} title="Delete Box" className="flex-1 sm:flex-none px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-400 hover:bg-red-50 hover:text-red-500 border-2 border-slate-200 shadow-sm rounded-2xl outline-none"><span aria-hidden="true">⌫</span><span className="sr-only">Delete Box</span></button>
+                                <button type="button" onClick={cloneTeam} title="Clonar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-500 hover:bg-slate-50 border-2 border-slate-200 shadow-sm rounded-2xl outline-none"><span aria-hidden="true">⧉</span><span className="text-[9px] font-black uppercase tracking-wider">Clonar</span></button>
+                                <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-red-500 hover:bg-red-50 border-2 border-red-200 shadow-sm rounded-2xl outline-none"><span aria-hidden="true">⌫</span><span className="text-[9px] font-black uppercase tracking-wider">Apagar</span></button>
                             </div>
                         </div>
 
                         {(envLoading || envError) && (
                             <div className="mb-6 rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-bold text-slate-500">
-                                {envLoading ? "Synchronizing moves, abilities and items…" : envError}
+                                {envLoading ? "Sincronizando golpes, habilidades e itens…" : envError}
                             </div>
                         )}
 
                         {shareCode && (
                             <div className="mb-8 p-4 sm:p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl flex flex-col sm:flex-row gap-3 sm:gap-4 items-center justify-between shadow-inner animate-fade-in w-full min-w-0">
                                 <label className="flex-1 w-full min-w-0">
-                                    <span className="sr-only">Share code</span>
+                                    <span className="sr-only">Código de compartilhamento</span>
                                     <input type="text" readOnly value={shareCode} onFocus={event => event.currentTarget.select()} className="w-full bg-white border-2 border-blue-200 rounded-xl p-2.5 sm:p-3 text-[10px] sm:text-xs font-bold text-slate-600 outline-none shadow-sm" />
                                 </label>
                                 <div className="flex gap-2 w-full sm:w-auto shrink-0">
-                                    <button type="button" onClick={copyToClipboard} className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none active:translate-y-1 active:shadow-none transition-all">{copied ? "Copied!" : "Copy"}</button>
+                                    <button type="button" onClick={copyToClipboard} className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none active:translate-y-1 active:shadow-none transition-all">{copied ? "Copiado!" : "Copiar"}</button>
                                     <button type="button" onClick={() => setShareCode("")} className="px-3 sm:px-4 py-2.5 sm:py-3.5 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 rounded-xl outline-none font-black text-sm" aria-label="Close share code">×</button>
                                 </div>
                             </div>
@@ -265,7 +288,7 @@ export default function Teambuilder({ envProps }) {
                                 );
                             })}
                             {(active.pokemon?.length || 0) < 6 && (
-                                <button type="button" onClick={onSearchClick} className="p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">+ Add Partner</button>
+                                <button type="button" onClick={onSearchClick} className="p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">+ Adicionar parceiro</button>
                             )}
                         </div>
 
@@ -283,6 +306,7 @@ export default function Teambuilder({ envProps }) {
                                         allMoves,
                                         allAbilities,
                                         selectedVersionGroup: active.versionGroup || "auto",
+                                        experienceMode,
                                         onRemove: () => {
                                             updateActive(team => ({ ...team, pokemon: (team.pokemon || []).filter((_, index) => index !== editingSlot) }));
                                             setEditingSlot(null);
@@ -296,6 +320,14 @@ export default function Teambuilder({ envProps }) {
                     </div>
                 )}
             </section>
+            <ConfirmDialog
+                open={Boolean(pendingDelete)}
+                title="Apagar este Box?"
+                description={pendingDelete ? `“${pendingDelete.name}” tem ${pendingDelete.pokemon?.length || 0} parceiro(s). Você poderá desfazer logo depois.` : ""}
+                confirmLabel="Apagar Box"
+                onConfirm={confirmDeleteActive}
+                onCancel={() => setPendingDelete(null)}
+            />
         </div>
     );
 }

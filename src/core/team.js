@@ -5,6 +5,7 @@ export const TEAM_STORAGE_KEY = "myowndex_rotom_v4";
 export const LEGACY_TEAM_STORAGE_KEY = "myowndex_rotom_v3";
 export const TEAM_SCHEMA_VERSION = 4;
 export const STAT_KEYS = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"];
+export const RPG_STATUSES = ["", "burn", "freeze", "paralysis", "poison", "bad-poison", "sleep"];
 
 const now = () => Date.now();
 const asArray = value => Array.isArray(value) ? value : [];
@@ -29,6 +30,30 @@ const normalizeMoves = moves => {
     const normalized = asArray(moves).slice(0, 4).map(asText);
     while (normalized.length < 4) normalized.push("");
     return normalized;
+};
+
+const normalizeOptionalNumber = (value, minimum, maximum) => {
+    if (value === "" || value == null) return null;
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return null;
+    return Math.min(maximum, Math.max(minimum, parsed));
+};
+
+export const normalizeRpgData = (value = {}) => {
+    const source = value && typeof value === "object" ? value : {};
+    const status = asText(source.status);
+    const pp = asArray(source.pp).slice(0, 4).map(entry => normalizeOptionalNumber(entry, 0, 99));
+    while (pp.length < 4) pp.push(null);
+    return {
+        xp: normalizeOptionalNumber(source.xp, 0, 999999) ?? 0,
+        currentHp: normalizeOptionalNumber(source.currentHp, 0, 99999),
+        status: RPG_STATUSES.includes(status) ? status : "",
+        caughtWith: asText(source.caughtWith).slice(0, 80),
+        originalTrainer: asText(source.originalTrainer).slice(0, 120),
+        notes: asText(source.notes).slice(0, 2000),
+        animeNotes: asText(source.animeNotes).slice(0, 1000),
+        pp
+    };
 };
 
 const normalizeGender = (gender, rate) => {
@@ -83,7 +108,8 @@ export const normalizePokemon = input => {
         genderRate,
         genderLocked: Boolean(source.genderLocked),
         customStats,
-        customTypes: asArray(source.customTypes).filter(Boolean).slice(0, 2).map(value => asText(value).toLowerCase())
+        customTypes: asArray(source.customTypes).filter(Boolean).slice(0, 2).map(value => asText(value).toLowerCase()),
+        rpg: normalizeRpgData(source.rpg)
     };
 };
 
@@ -143,6 +169,28 @@ export const dedupeTeams = teams => {
 export const createTeam = (name = "New Box") => {
     const id = createId("box");
     return normalizeTeam({ id, shareId: id, name, updatedAt: now(), pokemon: [] });
+};
+
+export const removeTeamById = (teams, teamId) => {
+    const source = asArray(teams);
+    const index = source.findIndex(team => team.id === teamId);
+    if (index < 0) return { teams: source, removed: null, index: -1 };
+    return {
+        teams: source.filter((_, teamIndex) => teamIndex !== index),
+        removed: source[index],
+        index
+    };
+};
+
+export const restoreTeamAt = (teams, team, index = 0) => {
+    if (!team) return asArray(teams);
+    const withoutDuplicate = asArray(teams).filter(candidate => candidate.id !== team.id && candidate.shareId !== team.shareId);
+    const targetIndex = Math.min(withoutDuplicate.length, Math.max(0, Number(index) || 0));
+    return [
+        ...withoutDuplicate.slice(0, targetIndex),
+        team,
+        ...withoutDuplicate.slice(targetIndex)
+    ];
 };
 
 export const touchTeam = team => ({

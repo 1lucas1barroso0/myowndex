@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mergeHydratedTeams, mergeImportedTeam, normalizeTeam } from "../src/core/team.js";
+import { mergeHydratedTeams, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt } from "../src/core/team.js";
 import { decodeTeam, encodeTeam, LEGACY_SHARE_PREFIX } from "../src/core/teamShare.js";
 
 const completeTeam = normalizeTeam({
@@ -30,6 +30,16 @@ const completeTeam = normalizeTeam({
     genderLocked: true,
     customStats: { hp: 50, attack: 51, defense: 52, "special-attack": 53, "special-defense": 54, speed: 55 },
     customTypes: ["electric", "fairy"],
+    rpg: {
+      xp: 22.5,
+      currentHp: 7,
+      status: "paralysis",
+      caughtWith: "luxury-ball",
+      originalTrainer: "Lucas",
+      notes: "Parceira principal",
+      animeNotes: "Pode usar o campo como para-raios.",
+      pp: [10, 15, 20, 5],
+    },
   }],
 });
 
@@ -44,6 +54,10 @@ test("V4 share code round-trips Unicode and every editable factor", async () => 
   assert.equal(decoded.pokemon[0].dynamaxLevel, 10);
   assert.deepEqual(decoded.pokemon[0].moves, completeTeam.pokemon[0].moves);
   assert.deepEqual(decoded.pokemon[0].customTypes, ["electric", "fairy"]);
+  assert.equal(decoded.pokemon[0].rpg.currentHp, 7);
+  assert.equal(decoded.pokemon[0].rpg.status, "paralysis");
+  assert.equal(decoded.pokemon[0].rpg.animeNotes, "Pode usar o campo como para-raios.");
+  assert.deepEqual(decoded.pokemon[0].rpg.pp, [10, 15, 20, 5]);
 });
 
 test("legacy V3 codes remain importable", async () => {
@@ -106,4 +120,16 @@ test("partial custom base stats stay partial after normalization", () => {
     pokemon: [{ formName: "mew", customStats: { attack: 123 } }],
   });
   assert.deepEqual(team.pokemon[0].customStats, { attack: 123 });
+});
+
+test("box deletion returns an undo-safe snapshot and restoration keeps its position", () => {
+  const first = normalizeTeam({ id: "one", shareId: "one", name: "One" });
+  const second = normalizeTeam({ id: "two", shareId: "two", name: "Two" });
+  const third = normalizeTeam({ id: "three", shareId: "three", name: "Three" });
+  const deleted = removeTeamById([first, second, third], second.id);
+  assert.deepEqual(deleted.teams.map(team => team.id), ["one", "three"]);
+  assert.equal(deleted.removed.id, "two");
+  assert.equal(deleted.index, 1);
+  const restored = restoreTeamAt(deleted.teams, deleted.removed, deleted.index);
+  assert.deepEqual(restored.map(team => team.id), ["one", "two", "three"]);
 });

@@ -1,6 +1,9 @@
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { dedupeByNameLatest, extractId, fetchCached, formatName } from "./core/mechanics.js";
 import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
+import { EXPERIENCE_MODES } from "./core/rpgRules.js";
+import { readStorage, writeStorage } from "./core/storage.js";
+import TrainerGuide from "./components/Guide/TrainerGuide.jsx";
 import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
 import Teambuilder from "./components/Teambuilder/Teambuilder.jsx";
 
@@ -34,7 +37,7 @@ const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
     );
 });
 
-const StatusNotice = ({ tone = "blue", children, onClose }) => {
+const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction }) => {
     const tones = {
         blue: "bg-blue-50 border-blue-200 text-blue-800",
         amber: "bg-amber-50 border-amber-200 text-amber-800",
@@ -43,7 +46,10 @@ const StatusNotice = ({ tone = "blue", children, onClose }) => {
     return (
         <div role="status" className={`mb-5 flex items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-xs font-bold ${tones[tone]}`}>
             <span>{children}</span>
-            {onClose && <button type="button" onClick={onClose} className="text-base leading-none" aria-label="Dismiss message">×</button>}
+            <span className="flex shrink-0 items-center gap-2">
+                {actionLabel && onAction && <button type="button" onClick={onAction} className="rounded-lg border-2 border-current/20 bg-white/70 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest">{actionLabel}</button>}
+                {onClose && <button type="button" onClick={onClose} className="text-base leading-none" aria-label="Fechar mensagem">×</button>}
+            </span>
         </div>
     );
 };
@@ -55,8 +61,8 @@ export default function App() {
     const [dexAttempt, setDexAttempt] = useState(0);
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [isTTRPG, setIsTTRPG] = useState(false);
-    const [isHackmon, setIsHackmon] = useState(false);
+    const [experienceMode, setExperienceMode] = useState("rpg");
+    const [modeBooted, setModeBooted] = useState(false);
     const [limit, setLimit] = useState(60);
     const [selectedUrl, setSelectedUrl] = useState(null);
     const [view, setView] = useState("pokedex");
@@ -72,6 +78,9 @@ export default function App() {
     const [envLoading, setEnvLoading] = useState(false);
     const [envLoaded, setEnvLoaded] = useState(false);
     const [envError, setEnvError] = useState("");
+    const currentMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
+    const isTTRPG = currentMode.isTTRPG;
+    const isHackmon = currentMode.isFreeform;
 
     useEffect(() => {
         const stored = loadTeams();
@@ -86,6 +95,17 @@ export default function App() {
         }
         return () => { active = false; };
     }, []);
+
+    useEffect(() => {
+        const savedMode = readStorage("myowndex_preferences_v1", {})?.experienceMode;
+        if (EXPERIENCE_MODES[savedMode]) setExperienceMode(savedMode);
+        setModeBooted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!modeBooted) return;
+        writeStorage("myowndex_preferences_v1", { experienceMode });
+    }, [experienceMode, modeBooted]);
 
     useEffect(() => {
         if (!teamsBooted) return;
@@ -187,6 +207,7 @@ export default function App() {
 
     const handleOpenPokedex = useCallback(() => setView("pokedex"), []);
     const handleOpenTeambuilder = useCallback(() => setView("teambuilder"), []);
+    const handleOpenGuide = useCallback(() => setView("guide"), []);
     const handleSearchInputChange = useCallback(event => {
         setSearchInput(event.target.value);
         setLimit(60);
@@ -245,14 +266,15 @@ export default function App() {
         setActiveTeamId,
         isTTRPG,
         isHackmon,
+        experienceMode,
         envLoading,
         envError,
         setNotice,
         onSearchClick: handleOpenPokedex
-    }), [teams, env, activeTeamId, isTTRPG, isHackmon, envLoading, envError, handleOpenPokedex]);
+    }), [teams, env, activeTeamId, isTTRPG, isHackmon, experienceMode, envLoading, envError, handleOpenPokedex]);
 
     return (
-        <div className="h-[100dvh] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_30%)]">
+        <div className={`app-root view-${view} h-[100dvh] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_30%)]`}>
             <header className="shrink-0 px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 md:pt-5 pb-2 z-40">
                 <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-4 md:p-5">
                     <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
@@ -266,24 +288,27 @@ export default function App() {
                                     <h1 className="text-xl sm:text-2xl font-black text-slate-800">MyOwnDex</h1>
                                 </div>
                             </div>
-                            <nav aria-label="Main navigation" className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[220px]">
-                                <button type="button" onClick={handleOpenPokedex} className={`game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none ${view === "pokedex" ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600"}`}>Pokédex</button>
-                                <button type="button" onClick={handleOpenTeambuilder} className={`game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none ${view === "teambuilder" ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600"}`}>Box</button>
+                            <nav aria-label="Navegação principal" className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[300px]">
+                                <button type="button" onClick={handleOpenPokedex} className={`nav-capsule flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider outline-none ${view === "pokedex" ? "is-active bg-red-500 text-white" : "bg-slate-100 text-slate-600"}`}>Pokédex</button>
+                                <button type="button" onClick={handleOpenTeambuilder} className={`nav-capsule flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider outline-none ${view === "teambuilder" ? "is-active bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>PC</button>
+                                <button type="button" onClick={handleOpenGuide} className={`nav-capsule flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider outline-none ${view === "guide" ? "is-active bg-orange-500 text-white" : "bg-slate-100 text-slate-600"}`}>Guia</button>
                             </nav>
                         </div>
 
                         <div className="flex gap-3 w-full lg:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
                             {view === "pokedex" && (
                                 <div className="relative flex-grow w-full sm:w-80">
-                                    <label htmlFor="pokemon-search" className="sr-only">Search Pokémon by name or number</label>
-                                    <input id="pokemon-search" type="search" value={searchInput} placeholder="Name or number…" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
+                                    <label htmlFor="pokemon-search" className="sr-only">Buscar Pokémon por nome ou número</label>
+                                    <input id="pokemon-search" type="search" value={searchInput} placeholder="Nome ou número…" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
                                     <svg aria-hidden="true" className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                 </div>
                             )}
-                            <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700">
-                                <button type="button" aria-pressed={isHackmon} onClick={() => setIsHackmon(value => !value)} className={`px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ${isHackmon ? "bg-purple-600 text-white" : "text-slate-300"}`}>Hackmon</button>
-                                <button type="button" aria-pressed={isTTRPG} onClick={() => setIsTTRPG(value => !value)} className={`px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 ${isTTRPG ? "bg-amber-500 text-white" : "text-slate-300"}`}>TTRPG</button>
-                            </div>
+                            <label className="mode-select flex items-center gap-2 rounded-full border-2 border-slate-700 bg-slate-800/95 px-3 py-1.5 shadow-inner">
+                                <span className="hidden text-[8px] font-black uppercase tracking-[0.18em] text-slate-400 sm:block">Modo</span>
+                                <select aria-label="Modo da experiência" value={experienceMode} onChange={event => setExperienceMode(event.target.value)} className="cursor-pointer bg-transparent py-1 text-[9px] font-black uppercase tracking-wider text-white outline-none">
+                                    {Object.values(EXPERIENCE_MODES).map(mode => <option key={mode.id} value={mode.id} className="bg-slate-800">{mode.label}</option>)}
+                                </select>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -293,7 +318,7 @@ export default function App() {
                 <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-5 md:p-8 min-h-[70vh]">
                     {!online && <StatusNotice tone="amber">Modo offline: os dados já vistos continuam disponíveis.</StatusNotice>}
                     {storageError && <StatusNotice tone="red">O navegador não conseguiu salvar a Box. Libere espaço ou permita armazenamento local.</StatusNotice>}
-                    {notice && <StatusNotice tone={notice.tone} onClose={() => setNotice(null)}>{notice.text}</StatusNotice>}
+                    {notice && <StatusNotice tone={notice.tone} actionLabel={notice.actionLabel} onAction={notice.onAction} onClose={() => setNotice(null)}>{notice.text}</StatusNotice>}
 
                     {view === "pokedex" ? (
                         dexLoading ? (
@@ -312,11 +337,11 @@ export default function App() {
                                 <div className="bg-slate-900 border-4 border-slate-800 rounded-2xl p-5 mb-8 shadow-xl relative overflow-hidden">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className={`w-3 h-3 rounded-full shadow-[0_0_8px_currentColor] ${online ? "bg-emerald-400 text-emerald-400 animate-pulse" : "bg-amber-400 text-amber-400"}`} />
-                                        <span className={`text-[10px] font-mono font-bold tracking-widest uppercase ${online ? "text-emerald-400" : "text-amber-400"}`}>{online ? "System Online" : "Offline Cache"}</span>
+                                        <span className={`text-[10px] font-mono font-bold tracking-widest uppercase ${online ? "text-emerald-400" : "text-amber-400"}`}>{online ? "Sistema Online" : "Cache Offline"}</span>
                                     </div>
                                     <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
-                                        Pokémon Storage<br />
-                                        <span className="text-slate-400 text-sm font-bold">&gt; {filteredSpecies.length} entries ready</span>
+                                        Arquivo Pokémon<br />
+                                        <span className="text-slate-400 text-sm font-bold">&gt; {filteredSpecies.length} registros prontos</span>
                                     </h2>
                                 </div>
                                 {visible.length ? (
@@ -324,16 +349,16 @@ export default function App() {
                                         {visible.map(entry => <PokemonCard key={entry.name} species={entry} id={extractId(entry.url)} onSelect={() => setSelectedUrl(entry.url)} />)}
                                     </div>
                                 ) : (
-                                    <div className="py-16 text-center text-sm font-bold text-slate-500">No Pokémon matched “{deferredSearchTerm}”.</div>
+                                    <div className="py-16 text-center text-sm font-bold text-slate-500">Nenhum Pokémon corresponde a “{deferredSearchTerm}”.</div>
                                 )}
                                 {limit < filteredSpecies.length && (
                                     <button type="button" onClick={() => setLimit(value => value + 60)} className="mt-8 sm:mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
-                                        Load more Pokémon
+                                        Carregar mais Pokémon
                                     </button>
                                 )}
                             </>
                         )
-                    ) : <Teambuilder envProps={teamBuilderProps} />}
+                    ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} onModeChange={setExperienceMode} />}
                 </div>
             </main>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}

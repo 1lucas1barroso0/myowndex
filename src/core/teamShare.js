@@ -55,7 +55,17 @@ const packPokemon = pokemon => ({
     y: pokemon.teraType || "",
     h: pokemon.friendship ?? 70,
     c: pokemon.customStats || null,
-    x: pokemon.customTypes || null
+    x: pokemon.customTypes || null,
+    j: pokemon.rpg ? {
+        x: pokemon.rpg.xp ?? 0,
+        h: pokemon.rpg.currentHp,
+        s: pokemon.rpg.status || "",
+        b: pokemon.rpg.caughtWith || "",
+        o: pokemon.rpg.originalTrainer || "",
+        n: pokemon.rpg.notes || "",
+        a: pokemon.rpg.animeNotes || "",
+        p: pokemon.rpg.pp || [null, null, null, null]
+    } : null
 });
 
 const unpackPokemon = pokemon => ({
@@ -78,7 +88,17 @@ const unpackPokemon = pokemon => ({
     teraType: pokemon.y || "",
     friendship: pokemon.h ?? 70,
     customStats: pokemon.c || null,
-    customTypes: pokemon.x || null
+    customTypes: pokemon.x || null,
+    rpg: pokemon.j ? {
+        xp: pokemon.j.x ?? 0,
+        currentHp: pokemon.j.h,
+        status: pokemon.j.s || "",
+        caughtWith: pokemon.j.b || "",
+        originalTrainer: pokemon.j.o || "",
+        notes: pokemon.j.n || "",
+        animeNotes: pokemon.j.a || "",
+        pp: pokemon.j.p
+    } : undefined
 });
 
 const packTeam = team => {

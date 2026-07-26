@@ -11,8 +11,19 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "dist/**",
+    "dist-static/**",
     "next-env.d.ts",
   ]),
+  {
+    files: ["src/**/*.{js,jsx}"],
+    rules: {
+      // This client-first app intentionally restores browser state in effects.
+      "react-hooks/set-state-in-effect": "off",
+      // PokéAPI artwork URLs are dynamic and cannot use the Next image optimizer.
+      "@next/next/no-img-element": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

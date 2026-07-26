@@ -70,6 +70,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const isNativeGMax = Boolean(pk.species?.name?.includes("-gmax"));
 
+    // The form identity is the trigger; updatePk is intentionally excluded because
+    // the parent creates a slot-scoped callback on each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { if (isNativeGMax && !pk.canGMax) updatePk({ ...pk, canGMax: true }); }, [pk.species?.name, pk.canGMax, isNativeGMax]);
 
     useEffect(() => {
@@ -85,6 +88,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             } else setBaseForm(null);
         }; checkBase();
         return () => { mounted = false; };
+    // The form name is the stable identity for the species URL in PokéAPI.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pk.species?.name]);
 
     const validMoves = useMemo(() => {
@@ -132,6 +137,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         if (forcedGender && pk.gender !== forcedGender) {
             updatePk({ ...pk, gender: forcedGender, genderRate: currentGenderRate });
         }
+    // Only a ratio or selected-gender change can require normalization.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentGenderRate, pk.gender]);
 
     const randomize = (t) => {

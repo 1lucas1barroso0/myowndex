@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "MyOwnDex",
-  description: "Pokédex, PC, regras e Sala RPG Pokémon em tempo real.",
+  description: "Sua Pokédex, seu PC e sua Sala RPG Pokémon reunidos para a próxima aventura.",
   manifest: "/manifest.webmanifest",
   applicationName: "MyOwnDex",
   appleWebApp: {

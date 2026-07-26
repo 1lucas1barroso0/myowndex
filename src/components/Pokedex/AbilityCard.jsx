@@ -23,13 +23,13 @@ export default function AbilityCard({ url, isHidden }) {
 
     if (loadError) return (
         <div className="w-full rounded-xl border-2 border-slate-300 bg-white p-4 text-[11px] font-semibold text-slate-500">
-            Os detalhes da habilidade estão temporariamente indisponíveis.
+            A Pokédex não conseguiu mostrar os detalhes desta habilidade agora.
         </div>
     );
     if (!data) return <div className="h-16 w-full skeleton rounded-xl border-2 border-slate-300" />;
 
     const effectEntry = preferredLocalizedEntry(data.effect_entries);
-    const effect = effectEntry?.short_effect || "Nenhum efeito adicional está registrado.";
+    const effect = effectEntry?.short_effect || "A Pokédex ainda não tem um efeito adicional registrado para esta habilidade.";
     const effectLanguage = effectEntry?.language?.name?.startsWith("pt") ? "pt-BR" : "en";
 
     return (

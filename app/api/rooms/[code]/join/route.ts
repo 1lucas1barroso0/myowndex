@@ -28,11 +28,11 @@ export async function POST(request: Request, context: RouteContext) {
     };
     const displayName = safeText(payload.displayName, 32);
     const inviteCode = safeText(payload.inviteCode, 64);
-    if (!displayName) return noStoreJson({ error: "Informe o nome do Jogador." }, { status: 400 });
+    if (!displayName) return noStoreJson({ error: "Escreva o nome que você quer usar na sala." }, { status: 400 });
     const room = await getRoom(code);
-    if (!room) return noStoreJson({ error: "Sala não encontrada." }, { status: 404 });
+    if (!room) return noStoreJson({ error: "Não encontramos essa sala. Confira o código e tente novamente." }, { status: 404 });
     if (room.invite_secret_hash !== await hashSecret(inviteCode)) {
-      return noStoreJson({ error: "Convite incorreto." }, { status: 401 });
+      return noStoreJson({ error: "Este convite não corresponde à sala. Peça um novo link ao Narrador." }, { status: 401 });
     }
 
     const playerId = `player_${crypto.randomUUID()}`;

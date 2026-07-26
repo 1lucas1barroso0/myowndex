@@ -111,7 +111,7 @@ export default function AudioDeck({
         const active = await activateAudio();
         heardEventRef.current = Math.max(0, ...events.map(event => Number(event.id) || 0));
         setEnabled(active);
-        if (!active) onError(new Error("Este navegador não disponibilizou áudio."));
+        if (!active) onError(new Error("O áudio não pôde ser ativado neste aparelho."));
     };
 
     const triggerEffect = async effect => {
@@ -180,8 +180,8 @@ export default function AudioDeck({
         <details className="room-tool" open>
             <summary>
                 <span>
-                    <small>Studio Rotom</small>
-                    <strong>Áudio e ambientação</strong>
+                    <small>Rádio Rotom</small>
+                    <strong>Trilha da aventura</strong>
                 </span>
                 <span className={`audio-indicator ${enabled ? "is-on" : ""}`} aria-hidden="true" />
             </summary>
@@ -198,7 +198,7 @@ export default function AudioDeck({
                             type="button"
                             disabled={role !== "narrator"}
                             onClick={() => triggerEffect(effect)}
-                            title={role === "narrator" ? `Tocar ${effect.label} para a sala` : "O Narrador controla os efeitos"}
+                            title={role === "narrator" ? `Tocar ${effect.label} para a sala` : "O Narrador escolhe os efeitos sonoros"}
                         >
                             {effect.label}
                         </button>
@@ -208,7 +208,7 @@ export default function AudioDeck({
                 <div className="audio-now">
                     <div>
                         <small>Trilha atual</small>
-                        <strong>{snapshot.audio.title || "Nenhuma faixa selecionada"}</strong>
+                        <strong>{snapshot.audio.title || "Escolha uma trilha para a cena"}</strong>
                     </div>
                     {role === "narrator" && snapshot.audio.trackId && (
                         <button
@@ -232,7 +232,7 @@ export default function AudioDeck({
                         </button>
                     )}
                 </div>
-                <audio ref={audioRef} src={audioUrl} loop preload="metadata" onLoadedMetadata={syncPlayback} />
+                <audio ref={audioRef} src={audioUrl || undefined} loop preload="metadata" onLoadedMetadata={syncPlayback} />
                 <label className="audio-volume">
                     <span>Volume</span>
                     <input
@@ -251,7 +251,7 @@ export default function AudioDeck({
 
                 {role === "narrator" && (
                     isLocal ? (
-                        <p className="audio-local-note">Trilhas compartilhadas ficam disponíveis quando a sala está conectada. Os efeitos sonoros continuam funcionando localmente.</p>
+                        <p className="audio-local-note">Crie uma Sala RPG compartilhada para tocar trilhas para todos. Os efeitos sonoros continuam disponíveis neste aparelho.</p>
                     ) : (
                         <label className={`audio-upload ${uploading ? "is-uploading" : ""}`}>
                             <input type="file" accept="audio/*" disabled={uploading} onChange={upload} />
@@ -269,7 +269,7 @@ export default function AudioDeck({
                                     <small>{formatBytes(item.size)}</small>
                                 </button>
                                 {role === "narrator" && (
-                                    <button type="button" className="audio-remove" onClick={() => setPendingRemove(item)} aria-label={`Apagar ${item.title}`}>×</button>
+                                    <button type="button" className="audio-remove" onClick={() => setPendingRemove(item)} aria-label={`Remover ${item.title}`}>×</button>
                                 )}
                             </div>
                         ))}
@@ -278,9 +278,9 @@ export default function AudioDeck({
             </div>
             <ConfirmDialog
                 open={Boolean(pendingRemove)}
-                title="Apagar esta trilha?"
-                description={pendingRemove ? `“${pendingRemove.title}” será removida da Sala RPG para todos os participantes.` : ""}
-                confirmLabel="Apagar trilha"
+                title="Remover esta trilha?"
+                description={pendingRemove ? `“${pendingRemove.title}” deixará de ficar disponível nesta aventura para todos os participantes.` : ""}
+                confirmLabel="Remover trilha"
                 onConfirm={() => pendingRemove && void removeTrack(pendingRemove)}
                 onCancel={() => setPendingRemove(null)}
             />

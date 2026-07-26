@@ -6,6 +6,7 @@ import {
     NATURES,
     STAT_MAP,
 } from "./mechanics.js";
+import { RPG_STATUS_LABELS } from "./copy.js";
 import {
     calculateStagedStats,
     getDefensiveTypes,
@@ -49,15 +50,7 @@ export const ROOM_SCENARIOS = [
     { id: "distorcao", label: "Mundo Distorcido", icon: "🌀", tone: "#7c3aed" },
 ];
 
-export const STATUS_LABELS = {
-    "": "Sem condição",
-    burn: "Queimadura",
-    freeze: "Congelamento",
-    paralysis: "Paralisia",
-    poison: "Envenenamento",
-    "bad-poison": "Envenenamento grave",
-    sleep: "Sono",
-};
+export const STATUS_LABELS = RPG_STATUS_LABELS;
 
 const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
@@ -285,7 +278,7 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
         pokemonId: pokemon?.id,
         teamId: team?.id,
         teamShareId: team?.shareId,
-        name: pokemon?.nickname || pokemon?.species?.species?.name || pokemon?.species?.name || "Pokémon",
+        name: pokemon?.nickname || formatName(pokemon?.species?.species?.name || pokemon?.species?.name) || "Pokémon",
         speciesName: pokemon?.species?.species?.name || pokemon?.species?.name || "",
         speciesId: pokemon?.species?.id,
         sprite: getPokemonSprite(pokemon),
@@ -482,17 +475,19 @@ export const eventSummary = event => {
     const payload = event?.payload || {};
     if (event?.type === "roll") return `${event.author} rolou ${payload.label || "um teste"}: ${payload.result ?? "—"}.`;
     if (event?.type === "move-declared") {
-        return `${event.author} declarou ${payload.moveName ? formatName(payload.moveName) : "um Movimento"}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
+        return `${event.author} escolheu ${payload.moveName ? formatName(payload.moveName) : "um movimento"}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
     }
     if (event?.type === "move") {
         const damage = Number(payload.damage) || 0;
-        const result = payload.hit ? `${damage} de dano` : "sem dano";
-        const fainted = payload.fainted ? " O alvo ficou sem HP." : "";
-        return `${event.author}: ${payload.attackerName || "Pokémon"} usou ${payload.moveName || "um Movimento"} — ${result}.${fainted}`;
+        const result = payload.hit ? `causou ${damage} de dano` : "não causou dano";
+        const fainted = payload.fainted ? " O alvo não pode mais batalhar." : "";
+        return `${event.author}: ${payload.attackerName || "Pokémon"} usou ${payload.moveName || "um movimento"} e ${result}.${fainted}`;
     }
     if (event?.type === "message") return `${event.author}: ${asText(payload.text)}`;
-    if (event?.type === "ready") return `${event.author} está ${payload.ready ? "pronto" : "aguardando"}.`;
+    if (event?.type === "ready") return payload.ready
+        ? `${event.author} confirmou presença.`
+        : `${event.author} voltou a se preparar.`;
     if (event?.type === "team-offer") return `${event.author} enviou a equipe “${payload.team?.name || "sem nome"}”.`;
-    if (event?.type === "sfx") return `Efeito sonoro: ${payload.label || "efeito"}.`;
-    return asText(payload.text) || `${event?.author || "Sistema"} realizou uma ação.`;
+    if (event?.type === "sfx") return `Som da cena: ${payload.label || "efeito"}.`;
+    return asText(payload.text) || `${event?.author || "MyOwnDex"} registrou uma ação.`;
 };

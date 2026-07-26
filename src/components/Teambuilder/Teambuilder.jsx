@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { formatCount, formatPartnerArrival } from "../../core/copy.js";
 import { formatName, VERSION_GROUPS } from "../../core/mechanics.js";
 import { createTeam as makeTeam, createId, hydrateTeam, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, touchTeam } from "../../core/team.js";
 import { decodeTeam, encodeTeam } from "../../core/teamShare.js";
@@ -81,7 +82,7 @@ export default function Teambuilder({ envProps }) {
         setActiveTeamId(clone.id);
         setEditingSlot(null);
         setShareCode("");
-        setNotice?.({ tone: "blue", text: "A Box foi clonada como uma equipe independente." });
+        setNotice?.({ tone: "blue", text: `Uma nova Box foi criada a partir de “${active.name}”.` });
     };
 
     const updateActive = callback => {
@@ -97,7 +98,7 @@ export default function Teambuilder({ envProps }) {
             setShareCode(await encodeTeam(active));
             setCopied(false);
         } catch {
-            setNotice?.({ tone: "red", text: "Não foi possível preparar o código desta Box." });
+            setNotice?.({ tone: "red", text: "O Link Cable não conseguiu preparar esta Box. Tente novamente." });
         } finally {
             setIsProcessing(false);
         }
@@ -109,7 +110,7 @@ export default function Teambuilder({ envProps }) {
             setCopied(true);
             window.setTimeout(() => setCopied(false), 3000);
         } catch {
-            setNotice?.({ tone: "red", text: "Não foi possível copiar. Selecione o código manualmente." });
+            setNotice?.({ tone: "red", text: "A cópia automática não funcionou. Selecione o código e copie manualmente." });
         }
     };
 
@@ -127,13 +128,13 @@ export default function Teambuilder({ envProps }) {
             setImporting(false);
             setImportData("");
             const messages = {
-                added: "Box recebida com todos os parceiros e ajustes.",
-                replaced: "A versão mais nova substituiu a cópia anterior desta Box.",
-                ignored: "Esta Box já está atualizada; nenhuma duplicata foi criada."
+                added: `Box recebida! ${formatPartnerArrival(result.team.pokemon?.length)}`,
+                replaced: "A versão mais recente desta Box chegou e substituiu a anterior.",
+                ignored: "Esta Box já está na versão mais recente. Nenhuma cópia foi criada."
             };
             setNotice?.({ tone: "blue", text: messages[result.status] });
         } catch (error) {
-            setImportError(error?.message || "Não foi possível concluir a conexão por Link Cable.");
+            setImportError(error?.message || "O Link Cable não conseguiu receber esta Box. Confira o código e tente novamente.");
         } finally {
             setIsProcessing(false);
         }
@@ -154,12 +155,12 @@ export default function Teambuilder({ envProps }) {
         setPendingDelete(null);
         setNotice?.({
             tone: "amber",
-            text: `A Box “${result.removed.name}” foi apagada.`,
+            text: `“${result.removed.name}” foi removida do PC.`,
             actionLabel: "Desfazer",
             onAction: () => {
                 setTeams(current => restoreTeamAt(current, result.removed, result.index));
                 setActiveTeamId(result.removed.id);
-                setNotice?.({ tone: "blue", text: `A Box “${result.removed.name}” foi restaurada.` });
+                setNotice?.({ tone: "blue", text: `“${result.removed.name}” voltou ao PC.` });
             }
         });
     };
@@ -178,7 +179,7 @@ export default function Teambuilder({ envProps }) {
         setPendingPartnerDelete(null);
         setNotice?.({
             tone: "amber",
-            text: `${partner.nickname || formatName(partner.species?.name)} foi removido da Box.`,
+            text: `${partner.nickname || formatName(partner.species?.name)} saiu da Box.`,
             actionLabel: "Desfazer",
             onAction: () => {
                 setTeams(current => current.map(team => {
@@ -199,9 +200,9 @@ export default function Teambuilder({ envProps }) {
             <div className="flex min-h-[60vh] w-full items-center justify-center p-4">
                 <div className="w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#cbd5e1] sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl" aria-hidden="true">📦</div>
-                    <h2 className="text-2xl font-black text-slate-800">Sua primeira Box está esperando</h2>
-                    <p className="mt-3 text-sm text-slate-500">Crie uma Box, reúna seus parceiros e monte a equipe no seu ritmo.</p>
-                    <button type="button" onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b] transition-all hover:bg-red-600 outline-none">Criar primeira Box</button>
+                    <h2 className="text-2xl font-black text-slate-800">Seu PC está pronto para a primeira equipe</h2>
+                    <p className="mt-3 text-sm text-slate-500">Abra uma Box, reúna seus parceiros e prepare a próxima aventura no seu ritmo.</p>
+                    <button type="button" onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b] transition-all hover:bg-red-600 outline-none">Abrir primeira Box</button>
                 </div>
             </div>
         );
@@ -212,7 +213,7 @@ export default function Teambuilder({ envProps }) {
             <aside className="w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-6 flex flex-col gap-3 h-full xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-6" aria-label="Boxes do PC">
                 <div className="mb-2 flex items-center justify-between gap-3 px-1">
                     <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">PC do Bill</h3>
-                    <span className="rounded-full bg-blue-100 px-2 py-1 text-[9px] font-black text-blue-600">{teams.length} {teams.length === 1 ? "Box" : "Boxes"}</span>
+                    <span className="rounded-full bg-blue-100 px-2 py-1 text-[9px] font-black text-blue-600">{formatCount(teams.length, "Box", "Boxes")}</span>
                 </div>
                 {teams.map(team => (
                     <button
@@ -237,12 +238,12 @@ export default function Teambuilder({ envProps }) {
                 <div className="mt-4 pt-4 border-t-2 border-slate-100">
                     {importing ? (
                         <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl shadow-inner animate-fade-in">
-                            <label htmlFor="link-cable-code" className="block text-[9px] font-black uppercase tracking-widest text-blue-700 mb-2">Código ou link da Box</label>
+                            <label htmlFor="link-cable-code" className="block text-[9px] font-black uppercase tracking-widest text-blue-700 mb-2">Código ou link compartilhado</label>
                             <textarea id="link-cable-code" disabled={isProcessing} value={importData} onChange={event => { setImportData(event.target.value); setImportError(""); }} className="w-full min-h-24 resize-y p-2 rounded-xl border-2 border-blue-200 text-xs font-bold text-slate-700 outline-none mb-2 focus:border-blue-500 shadow-inner" placeholder="Cole aqui…" />
                             {importError && <span role="alert" className="text-[9px] font-black text-red-500 mb-2 block">{importError}</span>}
-                            {isProcessing ? <div aria-label="Conectando" className="h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" /> : (
+                            {isProcessing ? <div aria-label="Recebendo Box" className="h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" /> : (
                                 <div className="flex gap-2">
-                                    <button type="button" onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest py-2 rounded-xl shadow-[0_3px_0_#1d4ed8] outline-none">Conectar</button>
+                                    <button type="button" onClick={receiveViaLinkCable} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest py-2 rounded-xl shadow-[0_3px_0_#1d4ed8] outline-none">Receber Box</button>
                                     <button type="button" onClick={() => { setImporting(false); setImportData(""); setImportError(""); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:border-red-200 transition-colors outline-none">Cancelar</button>
                                 </div>
                             )}
@@ -266,21 +267,21 @@ export default function Teambuilder({ envProps }) {
                                         {VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}
                                     </select>
                                 </label>
-                                <p className="mt-2 text-[9px] font-bold text-slate-400">As sugestões seguem este jogo; campos manuais aceitam exceções do anime.</p>
+                                <p className="mt-2 text-[9px] font-bold text-slate-400">As sugestões acompanham o jogo escolhido. Você continua livre para registrar escolhas próprias da aventura.</p>
                             </div>
 
                             <div className="flex gap-2 sm:gap-3 self-stretch sm:self-auto shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
                                 <button type="button" onClick={generateLinkCode} disabled={isProcessing} title="Compartilhar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-blue-500 hover:bg-blue-50 hover:text-blue-600 border-2 border-slate-200 shadow-sm rounded-2xl outline-none disabled:opacity-50">
                                     <span aria-hidden="true">↗</span><span className="text-[9px] font-black uppercase tracking-wider">Compartilhar</span>
                                 </button>
-                                <button type="button" onClick={cloneTeam} title="Clonar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-500 hover:bg-slate-50 border-2 border-slate-200 shadow-sm rounded-2xl outline-none"><span aria-hidden="true">⧉</span><span className="text-[9px] font-black uppercase tracking-wider">Clonar</span></button>
+                                <button type="button" onClick={cloneTeam} title="Duplicar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-500 hover:bg-slate-50 border-2 border-slate-200 shadow-sm rounded-2xl outline-none"><span aria-hidden="true">⧉</span><span className="text-[9px] font-black uppercase tracking-wider">Duplicar</span></button>
                                 <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-red-500 hover:bg-red-50 border-2 border-red-200 shadow-sm rounded-2xl outline-none"><span aria-hidden="true">⌫</span><span className="text-[9px] font-black uppercase tracking-wider">Apagar</span></button>
                             </div>
                         </div>
 
                         {(envLoading || envError) && (
                             <div className="mb-6 rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-bold text-slate-500">
-                                {envLoading ? "Sincronizando golpes, habilidades e itens…" : envError}
+                                {envLoading ? "Rotom está preparando movimentos, habilidades e itens…" : envError}
                             </div>
                         )}
 
@@ -291,7 +292,7 @@ export default function Teambuilder({ envProps }) {
                                     <input type="text" readOnly value={shareCode} onFocus={event => event.currentTarget.select()} className="w-full bg-white border-2 border-blue-200 rounded-xl p-2.5 sm:p-3 text-[10px] sm:text-xs font-bold text-slate-600 outline-none shadow-sm" />
                                 </label>
                                 <div className="flex gap-2 w-full sm:w-auto shrink-0">
-                                    <button type="button" onClick={copyToClipboard} className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none active:translate-y-1 active:shadow-none transition-all">{copied ? "Copiado!" : "Copiar"}</button>
+                                    <button type="button" onClick={copyToClipboard} className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3.5 bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_0_#1d4ed8] outline-none active:translate-y-1 active:shadow-none transition-all">{copied ? "Código copiado!" : "Copiar código"}</button>
                                     <button type="button" onClick={() => setShareCode("")} className="px-3 sm:px-4 py-2.5 sm:py-3.5 bg-white border-2 border-slate-200 text-slate-500 hover:text-red-500 rounded-xl outline-none font-black text-sm" aria-label="Fechar código de compartilhamento">×</button>
                                 </div>
                             </div>
@@ -319,7 +320,7 @@ export default function Teambuilder({ envProps }) {
                                 );
                             })}
                             {(active.pokemon?.length || 0) < 6 && (
-                                <button type="button" onClick={onSearchClick} className="p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">+ Adicionar parceiro</button>
+                                <button type="button" onClick={onSearchClick} className="p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">+ Buscar um Pokémon</button>
                             )}
                         </div>
 
@@ -355,7 +356,7 @@ export default function Teambuilder({ envProps }) {
             <ConfirmDialog
                 open={Boolean(pendingDelete)}
                 title="Apagar esta Box?"
-                description={pendingDelete ? `“${pendingDelete.name}” tem ${pendingDelete.pokemon?.length || 0} ${(pendingDelete.pokemon?.length || 0) === 1 ? "parceiro" : "parceiros"}. Você poderá desfazer logo depois.` : ""}
+                description={pendingDelete ? `“${pendingDelete.name}” guarda ${formatCount(pendingDelete.pokemon?.length || 0, "parceiro")}. Se mudar de ideia, você poderá desfazer logo depois.` : ""}
                 confirmLabel="Apagar Box"
                 onConfirm={confirmDeleteActive}
                 onCancel={() => setPendingDelete(null)}
@@ -363,7 +364,7 @@ export default function Teambuilder({ envProps }) {
             <ConfirmDialog
                 open={Boolean(pendingPartnerDelete)}
                 title="Remover este parceiro?"
-                description={pendingPartnerDelete ? `${pendingPartnerDelete.partner.nickname || formatName(pendingPartnerDelete.partner.species?.name)} será retirado da Box. Você poderá desfazer logo depois.` : ""}
+                description={pendingPartnerDelete ? `${pendingPartnerDelete.partner.nickname || formatName(pendingPartnerDelete.partner.species?.name)} sairá desta Box. Se mudar de ideia, você poderá desfazer logo depois.` : ""}
                 confirmLabel="Remover parceiro"
                 onConfirm={confirmDeletePartner}
                 onCancel={() => setPendingPartnerDelete(null)}

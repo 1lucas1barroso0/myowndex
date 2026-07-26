@@ -16,7 +16,7 @@ import {
     STATUS_LABELS,
     syncTeamsWithRoomProgress,
 } from "../../core/room.js";
-import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
+import { formatName, formatNumberPtBr, formatType, STAT_MAP } from "../../core/mechanics.js";
 import {
     buildPlayerInvite,
     clearRoomSession,
@@ -38,12 +38,12 @@ import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
 
 const connectionLabels = {
-    connected: "Sincronizado",
-    connecting: "Conectando",
-    saving: "Salvando",
-    offline: "Offline",
-    local: "Mesa local",
-    error: "Reconectar",
+    connected: "Aventura conectada",
+    connecting: "Chegando à sala…",
+    saving: "Guardando mudanças…",
+    offline: "Sem conexão",
+    local: "Neste aparelho",
+    error: "Conexão interrompida",
 };
 
 const roleLabel = role => role === "narrator" ? "Narrador" : "Jogador";
@@ -63,7 +63,7 @@ const isPlayerPresent = player => {
     return !Number.isNaN(lastSeen.getTime()) && Date.now() - lastSeen.getTime() < 20_000;
 };
 
-const errorMessage = error => error instanceof Error ? error.message : "Não foi possível concluir a ação.";
+const errorMessage = error => error instanceof Error ? error.message : "Algo impediu esta ação. Tente novamente.";
 
 function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onLocal, onResume }) {
     const [title, setTitle] = useState("Minha aventura Pokémon");
@@ -76,9 +76,9 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
         <div className="room-lobby animate-fade-in">
             <section className="room-lobby-hero">
                 <div>
-                    <span className="room-kicker">MyOwnDex Live</span>
-                    <h2>O RPG inteiro, em uma única sala.</h2>
-                    <p>Campo 2D, fichas, regras, cálculos, iniciativa, progressão e áudio conectados ao mesmo estado da aventura.</p>
+                    <span className="room-kicker">Sala RPG MyOwnDex</span>
+                    <h2>Sua aventura Pokémon começa aqui.</h2>
+                    <p>Reúna o campo, as fichas, as regras, as rolagens, o progresso e a trilha em uma sala preparada para Narrador e jogadores.</p>
                 </div>
                 <div className="room-live-orb" aria-hidden="true">
                     <span />
@@ -90,10 +90,10 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
             {savedSession && !defaultInvite && (
                 <button type="button" className="room-resume" disabled={busy} onClick={() => onResume(savedSession)}>
                     <span>
-                        <small>Sala recente</small>
+                        <small>Última aventura</small>
                         <strong>{savedSession.code} • {roleLabel(savedSession.role)}</strong>
                     </span>
-                    <b>Retomar</b>
+                    <b>Continuar</b>
                 </button>
             )}
 
@@ -108,7 +108,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     <header>
                         <span className="room-role-mark">N</span>
                         <div>
-                            <small>Autoridade da campanha</small>
+                            <small>Quem conduz a aventura</small>
                             <h3>Criar como Narrador</h3>
                         </div>
                     </header>
@@ -117,13 +117,13 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         <input value={title} maxLength={80} required onChange={event => setTitle(event.target.value)} />
                     </label>
                     <label>
-                        <span>Como será chamado</span>
+                        <span>Nome exibido na sala</span>
                         <input value={narratorName} maxLength={32} required onChange={event => setNarratorName(event.target.value)} />
                     </label>
                     <ul>
-                        <li>Controla campo, rodada, HP e iniciativa.</li>
-                        <li>Importa equipes e decide o estado oficial.</li>
-                        <li>Compartilha um convite separado da chave de controle.</li>
+                        <li>Organiza o campo, as rodadas, o HP e a iniciativa.</li>
+                        <li>Leva equipes para a cena e acompanha cada resultado.</li>
+                        <li>Convida jogadores sem compartilhar os controles do Narrador.</li>
                     </ul>
                     <button type="submit" className="room-primary-button" disabled={busy}>
                         {busy ? "Preparando sala…" : "Criar Sala RPG"}
@@ -140,7 +140,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     <header>
                         <span className="room-role-mark">J</span>
                         <div>
-                            <small>Acesso por convite</small>
+                            <small>Um lugar na aventura</small>
                             <h3>Entrar como Jogador</h3>
                         </div>
                     </header>
@@ -155,13 +155,13 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         </label>
                     </div>
                     <label>
-                        <span>Nome do Jogador</span>
+                        <span>Nome exibido na sala</span>
                         <input value={displayName} maxLength={32} required onChange={event => setDisplayName(event.target.value)} />
                     </label>
                     <ul>
-                        <li>Acompanha o campo e a progressão em tempo quase real.</li>
-                        <li>Rola dados, conversa e envia sua equipe.</li>
-                        <li>Não pode substituir decisões do Narrador.</li>
+                        <li>Acompanha o campo e o progresso conforme a aventura acontece.</li>
+                        <li>Rola dados, conversa e apresenta sua equipe ao Narrador.</li>
+                        <li>Declara movimentos e controla os próprios Pokémon.</li>
                     </ul>
                     <button type="submit" className="room-primary-button" disabled={busy}>
                         {busy ? "Entrando…" : "Entrar na aventura"}
@@ -175,12 +175,12 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                 onClick={() => onLocal({ title, narratorName })}
             >
                 <span>
-                    <small>Sem conexão ou apenas neste aparelho</small>
-                    <strong>Abrir uma mesa local</strong>
+                    <small>Para jogar sozinho ou no mesmo aparelho</small>
+                    <strong>Começar uma aventura local</strong>
                 </span>
-                <b>Modo offline</b>
+                <b>Neste aparelho</b>
             </button>
-            <p className="room-lobby-footnote">A Sala RPG preserva uma cópia local das suas Boxes. O estado compartilhado usa acesso protegido e revisão contra alterações simultâneas.</p>
+            <p className="room-lobby-footnote">Suas Boxes continuam salvas neste aparelho. Nas salas compartilhadas, o MyOwnDex mantém as mudanças de todos em ordem, mesmo quando acontecem juntas.</p>
         </div>
     );
 }
@@ -236,10 +236,10 @@ function QuickRoller({ onEvent, onError }) {
         <details className="room-tool" open>
             <summary>
                 <span>
-                    <small>Dados oficiais</small>
+                    <small>Dados da aventura</small>
                     <strong>Rolagem rápida</strong>
                 </span>
-                <span className="room-tool-badge">LIVE</span>
+                <span className="room-tool-badge">Ao vivo</span>
             </summary>
             <div className="room-tool-body">
                 <div className="quick-roll-kind">
@@ -258,7 +258,7 @@ function QuickRoller({ onEvent, onError }) {
                         />
                     </label>
                     <label>
-                        <span>Condição</span>
+                        <span>Como rolar</span>
                         <select value={mode} onChange={event => setMode(event.target.value)}>
                             <option value="normal">Normal</option>
                             <option value="advantage">Vantagem</option>
@@ -266,7 +266,7 @@ function QuickRoller({ onEvent, onError }) {
                         </select>
                     </label>
                 </div>
-                <button type="button" className="room-primary-button" disabled={busy} onClick={roll}>Rolar para a sala</button>
+                <button type="button" className="room-primary-button" disabled={busy} onClick={roll}>Rolar e compartilhar</button>
                 {result && (
                     <div className="quick-roll-result" aria-live="polite">
                         <strong>{result.title}</strong>
@@ -383,7 +383,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         try {
             if (targetSession.local) {
                 const localRoom = readStorage(LOCAL_ROOM_STORAGE_KEY, null);
-                if (!localRoom?.snapshot) throw new Error("A mesa local salva não foi encontrada.");
+                if (!localRoom?.snapshot) throw new Error("Não encontramos a aventura salva neste aparelho.");
                 setSession(targetSession);
                 setRoom(localRoom);
                 setConnection("local");
@@ -456,7 +456,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             saveRoomSession(nextSession);
             const bundle = await fetchRemoteRoom(nextSession);
             applyBundle(bundle);
-            setNotice?.({ tone: "blue", text: `Sala ${result.code} criada. O convite de Jogador já está pronto.` });
+            setNotice?.({ tone: "blue", text: `A sala ${result.code} está pronta! O convite dos jogadores também.` });
         } catch (value) {
             showError(value);
         } finally {
@@ -623,9 +623,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 document.execCommand("copy");
                 textArea.remove();
             }
-            setNotice?.({ tone: "blue", text: `${label} copiado.` });
+            setNotice?.({ tone: "blue", text: `${label} está na área de transferência.` });
         } catch {
-            showError(new Error("O navegador não permitiu copiar automaticamente."));
+            showError(new Error("A cópia automática não funcionou. Selecione o conteúdo e copie manualmente."));
         }
     };
 
@@ -652,7 +652,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             if (session.local) removeStorage(LOCAL_ROOM_STORAGE_KEY);
             else await deleteRemoteRoom(session);
             await leave();
-            setNotice?.({ tone: "blue", text: "A Sala RPG foi encerrada." });
+            setNotice?.({ tone: "blue", text: "A aventura foi encerrada. Suas Boxes continuam no PC." });
         } catch (value) {
             showError(value);
         } finally {
@@ -666,7 +666,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         const result = addTeamToSnapshot(snapshot, selectedTeam, side);
         commitSnapshot(result.room);
         await sendEvent("system", {
-            text: `${selectedTeam.name} entrou em campo${side === "opponent" ? " como oposição" : ""}.`,
+            text: `${selectedTeam.name} entrou em campo${side === "opponent" ? " no lado dos oponentes" : ""}.`,
         });
         if (result.tokens[0]) setSelectedTokenId(result.tokens[0].id);
     };
@@ -749,8 +749,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         if (!sourceTeam || !sourcePokemon) {
             updateToken({ level: selectedToken.level + 1, xp: 0 });
             if (announce) {
-                setNotice?.({ tone: "blue", text: `${selectedToken.name} avançou automaticamente para o nível ${selectedToken.level + 1}.` });
-                void sendEvent("system", { text: `${selectedToken.name} avançou para o nível ${selectedToken.level + 1}.` });
+                setNotice?.({ tone: "blue", text: `${selectedToken.name} alcançou o nível ${selectedToken.level + 1}!` });
+                void sendEvent("system", { text: `${selectedToken.name} alcançou o nível ${selectedToken.level + 1}!` });
             }
             return;
         }
@@ -790,8 +790,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
         });
         if (announce) {
-            setNotice?.({ tone: "blue", text: `${selectedToken.name} avançou automaticamente para o nível ${nextPokemon.level}.` });
-            void sendEvent("system", { text: `${selectedToken.name} avançou para o nível ${nextPokemon.level}.` });
+            setNotice?.({ tone: "blue", text: `${selectedToken.name} alcançou o nível ${nextPokemon.level}!` });
+            void sendEvent("system", { text: `${selectedToken.name} alcançou o nível ${nextPokemon.level}!` });
         }
     };
 
@@ -803,7 +803,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         const generated = buildInitiative(snapshot);
         commitSnapshot(generated.room);
         await sendEvent("system", {
-            text: `Iniciativa definida: ${generated.results.map(result => `${snapshot.tokens.find(token => token.id === result.tokenId)?.name} (${result.total})`).join(", ")}.`,
+            text: `Ordem da rodada: ${generated.results.map(result => `${snapshot.tokens.find(token => token.id === result.tokenId)?.name} (${result.total})`).join(", ")}.`,
         });
     };
 
@@ -824,7 +824,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         const active = next.tokens.find(token => token.id === activeId);
         await sendEvent("system", {
             text: closingRound
-                ? `Rodada ${next.round} preparada. As declarações e prioridades foram renovadas.`
+                ? `Rodada ${next.round} pronta! Escolha os movimentos para formar a nova ordem.`
                 : active
                     ? `Turno de ${active.name}. Rodada ${next.round}.`
                     : `Rodada ${next.round}.`,
@@ -846,7 +846,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             });
             setNotice?.({
                 tone: "blue",
-                text: `${formatName(moveName)} definiu automaticamente a prioridade de ${token.name} em ${priority > 0 ? `+${priority}` : priority}.`,
+                text: `${token.name} vai usar ${formatName(moveName)}. A prioridade ficou em ${priority > 0 ? `+${priority}` : priority}.`,
             });
             return;
         }
@@ -871,7 +871,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const offerTeam = async () => {
         if (!selectedTeam) return;
         await sendEvent("team-offer", { team: compactTeamOffer(selectedTeam) });
-        setNotice?.({ tone: "blue", text: `${selectedTeam.name} foi enviada ao Narrador.` });
+        setNotice?.({ tone: "blue", text: `${selectedTeam.name} chegou ao Narrador.` });
     };
 
     const acceptTeamOffer = async event => {
@@ -883,7 +883,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         commitSnapshot(result.room);
         await sendEvent("team-accepted", {
             offerId: event.id,
-            text: `${event.author}: equipe aceita pelo Narrador.`,
+            text: `${event.author}: equipe pronta para entrar em campo.`,
         });
     };
 
@@ -942,7 +942,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 <div className="room-title">
                     <span className={`room-connection is-${connection}`} />
                     <div>
-                        <small>{connectionLabels[connection]} • Sala {session.code}</small>
+                        <small>{session.local ? "Aventura neste aparelho" : `${connectionLabels[connection]} • Sala ${session.code}`}</small>
                         <h2>{snapshot.title}</h2>
                     </div>
                 </div>
@@ -951,7 +951,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     {role === "narrator" && !session.local && (
                         <>
                             <button type="button" onClick={() => copy(session.code, "Código da sala")}>Código</button>
-                            <button type="button" onClick={() => copy(inviteUrl, "Convite de Jogador")}>Copiar convite</button>
+                            <button type="button" onClick={() => copy(inviteUrl, "Convite dos jogadores")}>Copiar convite</button>
                         </>
                     )}
                     <button type="button" onClick={onOpenGuide}>Regras</button>
@@ -961,7 +961,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 </div>
             </header>
 
-            {error && <button type="button" className="room-error is-action" onClick={() => refresh(session).catch(showError)}>{error} • tentar novamente</button>}
+            {error && <button type="button" className="room-error is-action" onClick={() => refresh(session).catch(showError)}>{error} • tentar reconectar</button>}
 
             <nav className="room-mobile-nav" aria-label="Painéis da Sala RPG">
                 <button type="button" aria-pressed={mobilePane === "roster"} onClick={() => setMobilePane("roster")}>Equipe</button>
@@ -974,22 +974,22 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     <section className="room-section">
                         <div className="room-section-heading">
                             <div>
-                                <span className="room-kicker">Sala ao vivo</span>
+                                <span className="room-kicker">Na aventura</span>
                                 <h3>Treinadores</h3>
                             </div>
-                            <span>{players.length}</span>
+                            <span>{players.length + 1}</span>
                         </div>
                         <div className="room-player-list">
                             <div className="room-player is-narrator">
                                 <i />
-                                <span><strong>Narrador</strong><small>Autoridade da sala</small></span>
+                                <span><strong>Narrador</strong><small>Conduz a aventura</small></span>
                             </div>
                             {players.map(player => {
                                 const present = isPlayerPresent(player);
                                 return (
                                 <div key={player.id} className={`room-player ${player.ready ? "is-ready" : ""} ${present ? "is-online" : "is-away"}`}>
                                     <i style={{ background: player.accent }} />
-                                    <span><strong>{player.displayName}</strong><small>{present ? (player.ready ? "Pronto" : "Preparando-se") : "Ausente"}</small></span>
+                                    <span><strong>{player.displayName}</strong><small>{present ? (player.ready ? "Tudo pronto" : "Preparando-se") : "Ausente"}</small></span>
                                     {present && player.ready && <b>✓</b>}
                                 </div>
                                 );
@@ -997,7 +997,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         </div>
                         {role === "player" && (
                             <button type="button" className="room-secondary-button" onClick={toggleReady}>
-                                {players.find(player => player.id === session.playerId)?.ready ? "Ainda não estou pronto" : "Estou pronto"}
+                                {players.find(player => player.id === session.playerId)?.ready ? "Quero me preparar mais" : "Tudo pronto"}
                             </button>
                         )}
                     </section>
@@ -1006,7 +1006,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <div className="room-section-heading">
                             <div>
                                 <span className="room-kicker">PC do Bill</span>
-                                <h3>Equipe local</h3>
+                                <h3>Equipe escolhida</h3>
                             </div>
                             <span>{teams.length}</span>
                         </div>
@@ -1023,12 +1023,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                                 : <i />}
                                         </span>
                                     ))}
-                                    {!selectedTeam?.pokemon.length && <small>Esta Box está vazia.</small>}
+                                    {!selectedTeam?.pokemon.length && <small>Esta Box ainda está vazia.</small>}
                                 </div>
                                 {role === "narrator" ? (
                                     <div className="room-button-row">
-                                        <button type="button" onClick={() => addSelectedTeam("ally")}>Adicionar aliados</button>
-                                        <button type="button" onClick={() => addSelectedTeam("opponent")}>Adicionar oposição</button>
+                                        <button type="button" onClick={() => addSelectedTeam("ally")}>Levar como aliados</button>
+                                        <button type="button" onClick={() => addSelectedTeam("opponent")}>Levar como oponentes</button>
                                     </div>
                                 ) : (
                                     <button type="button" className="room-secondary-button" disabled={!selectedTeam?.pokemon.length} onClick={offerTeam}>Enviar ao Narrador</button>
@@ -1053,19 +1053,19 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <li key={tokenId} className={currentTokenId === tokenId ? "is-current" : ""}>
                                         <span>{index + 1}</span>
                                         <button type="button" onClick={() => setSelectedTokenId(tokenId)}>{token.name}</button>
-                                        <small title={token.declaredMove ? "Movimento declarado e prioridade automática" : "Velocidade atual"}>
+                                        <small title={token.declaredMove ? "Movimento escolhido e prioridade correspondente" : "Velocidade atual"}>
                                             {token.declaredMove
                                                 ? `${formatName(token.declaredMove)} • ${token.priority > 0 ? `+${token.priority}` : token.priority}`
-                                                : `VEL ${token.stats?.speed ?? "—"}`}
+                                                : `Velocidade ${token.stats?.speed ?? "—"}`}
                                         </small>
                                     </li>
                                 );
                             })}
-                            {!snapshot.initiative.length && <li className="is-empty">A ordem ainda não foi rolada.</li>}
+                            {!snapshot.initiative.length && <li className="is-empty">Escolha os movimentos e role a iniciativa.</li>}
                         </ol>
                         {role === "narrator" && (
                             <div className="room-button-row">
-                                <button type="button" disabled={!snapshot.tokens.length} onClick={generateInitiative}>Gerar ordem</button>
+                                <button type="button" disabled={!snapshot.tokens.length} onClick={generateInitiative}>Rolar iniciativa</button>
                                 <button type="button" disabled={!snapshot.initiative.length} onClick={nextTurn}>
                                     {snapshot.initiative.length && snapshot.turnIndex >= snapshot.initiative.length - 1 ? "Encerrar rodada" : "Próximo turno"}
                                 </button>
@@ -1077,7 +1077,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 <main className="room-field">
                     <div className="room-scene-strip">
                         <label>
-                            <span>Momento</span>
+                            <span>Fase da aventura</span>
                             <select value={snapshot.phase} disabled={role !== "narrator"} onChange={event => commitSnapshot({ ...snapshot, phase: event.target.value })}>
                                 {ROOM_PHASES.map(phase => <option key={phase.id} value={phase.id}>{phase.label}</option>)}
                             </select>
@@ -1109,7 +1109,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 <span>
                                     <small>Nível {selectedToken.level}</small>
                                     <strong>{selectedToken.name}</strong>
-                                    <em>{selectedToken.types.map(formatType).join(" / ") || "Tipo livre"}</em>
+                                    <em>{selectedToken.types.map(formatType).join(" / ") || "Tipo personalizado"}</em>
                                     {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
                                 </span>
                             </div>
@@ -1147,7 +1147,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                             {Object.entries(selectedToken.stages || {}).some(([, value]) => value !== 0) && (
                                 <div className="token-stage-list" aria-label="Estágios de atributo ativos">
                                     {Object.entries(selectedToken.stages).filter(([, value]) => value !== 0).map(([stat, value]) => (
-                                        <span key={stat}>{stat.replace("special-", "esp. ").replace(/-/g, " ")} {value > 0 ? `+${value}` : value}</span>
+                                        <span key={stat}>{STAT_MAP[stat] || formatName(stat)} {value > 0 ? `+${value}` : value}</span>
                                     ))}
                                 </div>
                             )}
@@ -1159,26 +1159,26 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                             className={`token-tera ${selectedToken.teraActive ? "is-active" : ""}`}
                                             onClick={() => updateToken({ teraActive: !selectedToken.teraActive })}
                                         >
-                                            {selectedToken.teraActive ? `Tera ${formatType(selectedToken.teraType)} ativo` : `Terastalizar em ${formatType(selectedToken.teraType)}`}
+                                            {selectedToken.teraActive ? `Tipo Tera ${formatType(selectedToken.teraType)} ativo` : `Terastalizar como ${formatType(selectedToken.teraType)}`}
                                         </button>
                                     )}
                                     <label>
                                         <span>Lado</span>
                                         <select value={selectedToken.side} onChange={event => updateToken({ side: event.target.value })}>
                                             <option value="ally">Treinadores</option>
-                                            <option value="opponent">Oposição</option>
-                                            <option value="neutral">Neutro</option>
+                                            <option value="opponent">Oponentes</option>
+                                            <option value="neutral">Sem lado</option>
                                         </select>
                                     </label>
                                     <label>
-                                        <span>Controle</span>
+                                        <span>Quem controla</span>
                                         <select value={selectedToken.ownerPlayerId} onChange={event => updateToken({ ownerPlayerId: event.target.value })}>
                                             <option value="">Narrador</option>
                                             {players.map(player => <option key={player.id} value={player.id}>{player.displayName}</option>)}
                                         </select>
                                     </label>
                                     <label>
-                                        <span>Prioridade livre</span>
+                                        <span>Ajustar prioridade</span>
                                         <select value={selectedToken.priority || 0} onChange={event => updateToken({ priority: Number(event.target.value) })}>
                                             {[7,6,5,4,3,2,1,0,-1,-2,-3,-4,-5,-6,-7].map(value => <option key={value} value={value}>{value > 0 ? `+${value}` : value}</option>)}
                                         </select>
@@ -1234,8 +1234,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     <details className="room-tool" open>
                         <summary>
                             <span>
-                                <small>Registro compartilhado</small>
-                                <strong>Acontecimentos</strong>
+                                <small>O que aconteceu</small>
+                                <strong>Diário da aventura</strong>
                             </span>
                             <span className="room-tool-badge">{events.length}</span>
                         </summary>
@@ -1253,7 +1253,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                         )}
                                     </article>
                                 ))}
-                                {!events.length && <p className="room-empty-copy">Os acontecimentos aparecerão aqui.</p>}
+                                {!events.length && <p className="room-empty-copy">As ações da aventura aparecerão aqui.</p>}
                             </div>
                             <form
                                 className="room-message"
@@ -1266,7 +1266,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     void sendEvent("message", { text: text.slice(0, 500) });
                                 }}
                             >
-                                <input name="message" maxLength={500} placeholder="Falar com a sala…" aria-label="Mensagem para a sala" />
+                                <input name="message" maxLength={500} placeholder="Escreva para a sala…" aria-label="Mensagem para a sala" />
                                 <button type="submit">Enviar</button>
                             </form>
                         </div>
@@ -1276,10 +1276,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <details className="room-tool">
                             <summary>
                                 <span>
-                                    <small>Preferências da mesa</small>
-                                    <strong>Controles de exibição</strong>
+                                    <small>Visão do campo</small>
+                                    <strong>Preferências da cena</strong>
                                 </span>
-                                <span className="room-tool-badge">GM</span>
+                                <span className="room-tool-badge">N</span>
                             </summary>
                             <div className="room-tool-body room-settings">
                                 <label>
@@ -1302,9 +1302,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
             <ConfirmDialog
                 open={ending}
-                title="Encerrar esta Sala RPG?"
-                description="A sala, o registro compartilhado e as trilhas enviadas serão apagados. Suas Boxes locais continuarão intactas."
-                confirmLabel={busy ? "Encerrando…" : "Encerrar sala"}
+                title="Encerrar esta aventura?"
+                description="A sala, o diário compartilhado e as trilhas serão apagados para todos. Suas Boxes continuarão seguras no PC."
+                confirmLabel={busy ? "Encerrando…" : "Encerrar aventura"}
                 cancelLabel="Continuar aventura"
                 danger
                 onConfirm={endRoom}

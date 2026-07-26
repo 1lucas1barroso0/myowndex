@@ -1,4 +1,5 @@
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { formatPokemonCount } from "./core/copy.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
@@ -14,7 +15,7 @@ const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
             type="button"
             onClick={onSelect}
             className="game-card p-4 flex flex-col items-center cursor-pointer group relative text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
-            aria-label={`Abrir ${formatName(species.name)} na Pokédex`}
+            aria-label={`Consultar ${formatName(species.name)} na Pokédex`}
         >
             <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">
                 No. {id.padStart(4, "0")}
@@ -49,7 +50,7 @@ const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction 
             <span>{children}</span>
             <span className="flex shrink-0 items-center gap-2">
                 {actionLabel && onAction && <button type="button" onClick={onAction} className="rounded-lg border-2 border-current/20 bg-white/70 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest">{actionLabel}</button>}
-                {onClose && <button type="button" onClick={onClose} className="text-base leading-none" aria-label="Fechar mensagem">×</button>}
+                {onClose && <button type="button" onClick={onClose} className="text-base leading-none" aria-label="Dispensar aviso">×</button>}
             </span>
         </div>
     );
@@ -151,7 +152,7 @@ export default function App() {
         }).then(result => {
             if (!mounted) return;
             if (!result?.results?.length) {
-                setDexError("A conexão com o Centro Pokémon falhou. Tente novamente.");
+                setDexError("A Pokédex não conseguiu se conectar ao Centro Pokémon. Vamos tentar de novo?");
                 return;
             }
             setSpecies(result.results);
@@ -196,7 +197,7 @@ export default function App() {
                 abilities: dedupeByNameLatest(abilities?.results)
             });
             if (!items?.results || !moves?.results || !abilities?.results) {
-                setEnvError("Algumas listas estão usando o modo offline. Seus dados continuam seguros.");
+                setEnvError("Algumas opções ainda não chegaram, mas sua Box continua salva neste aparelho.");
             }
             setEnvLoaded(true);
         }).finally(() => {
@@ -262,12 +263,12 @@ export default function App() {
             targetId = first.id;
             setTeams([{ ...first, pokemon: [partner] }]);
             setActiveTeamId(first.id);
-            setNotice({ tone: "blue", text: `${formatName(formData.name)} entrou na Box 1.` });
+            setNotice({ tone: "blue", text: `${formatName(formData.name)} foi para a Box 1.` });
         } else {
             const target = targetTeam;
             targetId = target.id;
             if ((target.pokemon?.length || 0) >= 6) {
-                setNotice({ tone: "amber", text: `${target.name} está cheia. Escolha ou crie outra Box.` });
+                setNotice({ tone: "amber", text: `${target.name} já tem seis parceiros. Escolha outra Box ou crie uma nova.` });
                 setView("teambuilder");
                 return;
             }
@@ -276,7 +277,7 @@ export default function App() {
                 : team
             ));
             setActiveTeamId(targetId);
-            setNotice({ tone: "blue", text: `${formatName(formData.name)} foi adicionado à equipe.` });
+            setNotice({ tone: "blue", text: `${formatName(formData.name)} agora faz parte de ${target.name}.` });
         }
         setView("teambuilder");
     }, [activeTeamId, teams]);
@@ -305,7 +306,7 @@ export default function App() {
                     <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
                         <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
                             <div className="flex items-center gap-4">
-                                <button type="button" aria-label="Abrir Sala RPG" onClick={handleOpenRoom} className="dex-lens relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
+                                <button type="button" aria-label="Abrir a Sala RPG" onClick={handleOpenRoom} className="dex-lens relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
                                     <span />
                                 </button>
                                 <div className="app-brand flex flex-col">
@@ -314,7 +315,7 @@ export default function App() {
                                 </div>
                             </div>
                             <nav aria-label="Navegação principal" className="app-nav">
-                                <button type="button" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><span aria-hidden="true">◆</span>Mesa</button>
+                                <button type="button" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><span aria-hidden="true">◆</span>Sala RPG</button>
                                 <button type="button" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule ${view === "pokedex" ? "is-active" : ""}`}><span aria-hidden="true">◉</span>Pokédex</button>
                                 <button type="button" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule ${view === "teambuilder" ? "is-active" : ""}`}><span aria-hidden="true">▦</span>PC</button>
                                 <button type="button" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><span aria-hidden="true">≡</span>Regras</button>
@@ -342,8 +343,8 @@ export default function App() {
 
             <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-2.5 sm:px-4 md:px-5 pt-1.5 pb-3 sm:pb-5 relative z-10">
                 <div className="max-w-[1900px] mx-auto game-shell app-main-shell p-3 sm:p-5 md:p-6 min-h-[70vh]">
-                    {!online && <StatusNotice tone="amber">Modo offline: os dados já vistos continuam disponíveis.</StatusNotice>}
-                    {storageError && <StatusNotice tone="red">O navegador não conseguiu salvar a Box. Libere espaço ou permita armazenamento local.</StatusNotice>}
+                    {!online && <StatusNotice tone="amber">Você está sem internet, mas tudo o que já consultou na Pokédex continua disponível.</StatusNotice>}
+                    {storageError && <StatusNotice tone="red">Não conseguimos salvar esta Box neste aparelho. Libere espaço ou permita o armazenamento do site e tente novamente.</StatusNotice>}
                     {notice && <StatusNotice tone={notice.tone} actionLabel={notice.actionLabel} onAction={notice.onAction} onClose={() => setNotice(null)}>{notice.text}</StatusNotice>}
 
                     {view === "room" ? (
@@ -355,26 +356,26 @@ export default function App() {
                         />
                     ) : view === "pokedex" ? (
                         dexLoading ? (
-                            <div aria-label="Carregando Pokédex" className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">
+                            <div aria-label="Abrindo a Pokédex" className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">
                                 {[...Array(40)].map((_, index) => <div key={index} className="bg-slate-200 border-2 border-slate-300 rounded-2xl h-36 skeleton" />)}
                             </div>
                         ) : dexError && !species.length ? (
                             <div className="min-h-[55vh] flex flex-col items-center justify-center text-center">
                                 <div className="text-5xl mb-4" aria-hidden="true">📡</div>
-                                <h2 className="text-xl font-black text-slate-800">Pokédex temporariamente offline</h2>
+                                <h2 className="text-xl font-black text-slate-800">A Pokédex precisa de mais um instante</h2>
                                 <p className="mt-2 text-sm text-slate-500">{dexError}</p>
-                                <button type="button" onClick={() => setDexAttempt(value => value + 1)} className="mt-5 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b]">Tentar novamente</button>
+                                <button type="button" onClick={() => setDexAttempt(value => value + 1)} className="mt-5 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b]">Buscar novamente</button>
                             </div>
                         ) : (
                             <>
                                 <div className="bg-slate-900 border-4 border-slate-800 rounded-2xl p-5 mb-8 shadow-xl relative overflow-hidden">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className={`w-3 h-3 rounded-full shadow-[0_0_8px_currentColor] ${online ? "bg-emerald-400 text-emerald-400 animate-pulse" : "bg-amber-400 text-amber-400"}`} />
-                                        <span className={`text-[10px] font-mono font-bold tracking-widest uppercase ${online ? "text-emerald-400" : "text-amber-400"}`}>{online ? "Sistema Online" : "Cache Offline"}</span>
+                                        <span className={`text-[10px] font-mono font-bold tracking-widest uppercase ${online ? "text-emerald-400" : "text-amber-400"}`}>{online ? "Pokédex conectada" : "Consulta offline"}</span>
                                     </div>
                                     <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
-                                        Arquivo Pokémon<br />
-                                        <span className="text-slate-400 text-sm font-bold">&gt; {filteredSpecies.length} {filteredSpecies.length === 1 ? "registro pronto" : "registros prontos"}</span>
+                                        Pokédex Nacional<br />
+                                        <span className="text-slate-400 text-sm font-bold">&gt; {formatPokemonCount(filteredSpecies.length)}</span>
                                     </h2>
                                 </div>
                                 {visible.length ? (
@@ -382,11 +383,11 @@ export default function App() {
                                         {visible.map(entry => <PokemonCard key={entry.name} species={entry} id={extractId(entry.url)} onSelect={() => setSelectedUrl(entry.url)} />)}
                                     </div>
                                 ) : (
-                                    <div className="py-16 text-center text-sm font-bold text-slate-500">Nenhum Pokémon corresponde a “{deferredSearchTerm}”.</div>
+                                    <div className="py-16 text-center text-sm font-bold text-slate-500">Nenhum Pokémon apareceu para “{deferredSearchTerm}”. Tente outro nome ou número.</div>
                                 )}
                                 {limit < filteredSpecies.length && (
                                     <button type="button" onClick={() => setLimit(value => value + 60)} className="mt-8 sm:mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
-                                        Carregar mais Pokémon
+                                        Mostrar mais Pokémon
                                     </button>
                                 )}
                             </>

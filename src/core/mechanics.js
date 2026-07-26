@@ -138,7 +138,7 @@ export const calculateStat = (base, ev, iv, level, natureMulti, isHp, speciesNam
     return Math.floor((Math.floor(((2 * b + i + Math.floor(e / 4)) * l) / 100) + 5) * natureMulti);
 };
 
-export const formatName = str => str ? String(str).replace(/-/g, " ").replace(/\b\w/g, letter => letter.toUpperCase()) : "Desconhecido";
+export const formatName = str => str ? String(str).replace(/-/g, " ").replace(/\b\w/g, letter => letter.toUpperCase()) : "Sem registro";
 const PT_BR_NUMBER_FORMAT = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
 export const formatNumberPtBr = value => {
     const numericValue = Number(value);

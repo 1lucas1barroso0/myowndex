@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "MyOwnDex — Sala RPG Pokémon",
     short_name: "MyOwnDex",
-    description: "Pokédex, PC, regras, progressão e Sala RPG Pokémon em um único aplicativo.",
+    description: "Pokédex, PC do Bill, regras e Sala RPG reunidos para acompanhar toda a sua aventura Pokémon.",
     start_url: "/",
     display: "standalone",
     background_color: "#7f1d1d",

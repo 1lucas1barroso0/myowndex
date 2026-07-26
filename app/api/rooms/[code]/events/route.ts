@@ -26,7 +26,7 @@ export async function POST(request: Request, context: RouteContext) {
     const params = await context.params;
     const code = safeRoomCode(params.code);
     const auth = await authenticateRoom(code, readRoomKey(request));
-    if (!auth) return noStoreJson({ error: "Acesso inválido ou sala inexistente." }, { status: 401 });
+    if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta sala. Confira o convite e entre novamente." }, { status: 401 });
     const payload = await request.json().catch(() => ({})) as {
       type?: string;
       payload?: Record<string, unknown>;
@@ -35,7 +35,7 @@ export async function POST(request: Request, context: RouteContext) {
     const allowed = auth.role === "narrator"
       ? NARRATOR_EVENTS.has(type)
       : COMMON_EVENTS.has(type);
-    if (!allowed) return noStoreJson({ error: "Esta ação não é permitida para este papel." }, { status: 403 });
+    if (!allowed) return noStoreJson({ error: "Esta ação não está disponível para você nesta sala." }, { status: 403 });
     const eventPayload = payload.payload && typeof payload.payload === "object"
       ? payload.payload
       : {};
@@ -96,7 +96,7 @@ export async function POST(request: Request, context: RouteContext) {
           && safeText((item as Record<string, unknown>).id, 100) === tokenId
         ) as Record<string, unknown> | undefined;
         if (!room || !settings.allowPlayerMovement || !token || token.ownerPlayerId !== auth.playerId) {
-          return noStoreJson({ error: "Este Pokémon não está liberado para movimentação." }, { status: 403 });
+          return noStoreJson({ error: "Você só pode mover os Pokémon que estão sob seu controle." }, { status: 403 });
         }
         const nextSnapshot = {
           ...snapshot,
@@ -117,7 +117,7 @@ export async function POST(request: Request, context: RouteContext) {
         }
       }
       return noStoreJson({
-        error: "A sala mudou durante o movimento. Tente arrastar novamente.",
+        error: "Outra mudança chegou enquanto você movia este Pokémon. Arraste-o novamente.",
         conflict: true,
       }, { status: 409 });
     }
@@ -130,7 +130,7 @@ export async function POST(request: Request, context: RouteContext) {
       const { db } = getBindings();
       for (let attempt = 0; attempt < 3; attempt += 1) {
         const room = await getRoom(code);
-        if (!room) return noStoreJson({ error: "Sala não encontrada." }, { status: 404 });
+        if (!room) return noStoreJson({ error: "Não encontramos essa sala. Confira o código e tente novamente." }, { status: 404 });
         const snapshot = parseJson<Record<string, unknown>>(room.state_json, {});
         const tokens = Array.isArray(snapshot.tokens) ? snapshot.tokens : [];
         const token = tokens.find(item =>
@@ -141,7 +141,7 @@ export async function POST(request: Request, context: RouteContext) {
           ? token.moves.map(move => safeText(move, 80).toLowerCase().replace(/\s+/g, "-"))
           : [];
         if (!token || token.ownerPlayerId !== auth.playerId || !moveName || !moves.includes(moveName)) {
-          return noStoreJson({ error: "Este Movimento não pertence a um Pokémon sob seu controle." }, { status: 403 });
+          return noStoreJson({ error: "Escolha um movimento de um Pokémon que esteja sob seu controle." }, { status: 403 });
         }
         const nextSnapshot = {
           ...snapshot,
@@ -174,7 +174,7 @@ export async function POST(request: Request, context: RouteContext) {
         }
       }
       return noStoreJson({
-        error: "A sala mudou durante a declaração. Escolha o Movimento novamente.",
+        error: "Outra mudança chegou enquanto você escolhia o movimento. Faça sua escolha novamente.",
         conflict: true,
       }, { status: 409 });
     }

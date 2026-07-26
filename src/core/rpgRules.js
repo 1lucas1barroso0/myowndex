@@ -7,7 +7,7 @@ export const EXPERIENCE_MODES = {
         id: "rpg",
         label: "RPG",
         shortLabel: "RPG",
-        description: "Matemática do VGC, escala de mesa e liberdade narrativa.",
+        description: "Regras dos jogos adaptadas à mesa, com espaço para soluções criativas.",
         isTTRPG: true,
         isFreeform: false,
         color: "amber"
@@ -15,17 +15,17 @@ export const EXPERIENCE_MODES = {
     game: {
         id: "game",
         label: "Videogame",
-        shortLabel: "Game",
-        description: "Números originais e sugestões legais do jogo selecionado.",
+        shortLabel: "Jogo",
+        description: "Atributos originais e sugestões compatíveis com o jogo escolhido.",
         isTTRPG: false,
         isFreeform: false,
         color: "blue"
     },
     free: {
         id: "free",
-        label: "Modo Livre",
+        label: "Modo livre",
         shortLabel: "Livre",
-        description: "Todos os golpes, habilidades, tipos e atributos personalizados.",
+        description: "Crie sem limites: movimentos, habilidades, tipos e atributos ficam à sua escolha.",
         isTTRPG: true,
         isFreeform: true,
         color: "purple"
@@ -36,17 +36,17 @@ export const RPG_RULE_SECTIONS = [
     {
         id: "rolagens",
         number: 1,
-        title: "Sistema de Rolagens",
-        summary: "2d6, vantagem, críticos e probabilidades.",
+        title: "Sistema de rolagens",
+        summary: "Testes com 2d6, vantagem, críticos e chances percentuais.",
         rules: [
             {
                 id: "1.1",
-                title: "Testes Básicos",
-                body: "Role 2d6 e some o atributo correspondente do Pokémon. Em disputas, o alvo passivo ou defensivo vence empates."
+                title: "Testes básicos",
+                body: "Role 2d6 e some o atributo correspondente do Pokémon. Em uma disputa, o alvo que se defende vence os empates."
             },
             {
                 id: "1.2",
-                title: "Vantagem e Desvantagem",
+                title: "Vantagem e desvantagem",
                 body: "A cena, o clima e o ambiente podem alterar os dados do teste.",
                 bullets: [
                     "Vantagem: role 3d6 e mantenha os dois maiores.",
@@ -55,51 +55,51 @@ export const RPG_RULE_SECTIONS = [
             },
             {
                 id: "1.3",
-                title: "Acertos e Erros Críticos",
+                title: "Acertos e erros críticos",
                 bullets: [
-                    "Acerto crítico: 6 e 6 nos dados mantidos; funciona como um crítico do VGC.",
-                    "Erro crítico: 1 e 1 nos dados mantidos; produz uma consequência narrativa ou mecânica catastrófica."
+                    "Acerto crítico: obtenha 6 e 6 nos dados mantidos; o resultado funciona como um golpe crítico dos jogos.",
+                    "Erro crítico: obtenha 1 e 1 nos dados mantidos; o resultado traz uma consequência narrativa ou mecânica grave."
                 ]
             },
             {
                 id: "1.4",
-                title: "Probabilidades e Efeitos Secundários",
-                body: "Para chances percentuais, role 1d100 e obtenha um valor igual ou menor que a chance. Se o teste de Movimento superar a oposição por mais de 1, role o d100 duas vezes e mantenha o resultado mais favorável. Nunca há mais de dois d100 por Movimento."
+                title: "Probabilidades e efeitos secundários",
+                body: "Para uma chance percentual, role 1d100: o teste tem sucesso quando o resultado é igual ou menor que a chance. Se o teste do movimento superar a oposição por mais de 1, role o d100 duas vezes e use o melhor resultado. Um movimento nunca concede mais de dois d100."
             }
         ]
     },
     {
         id: "matematica",
         number: 2,
-        title: "Matemática do Sistema",
-        summary: "Atributos, divisão por 20, estágios, XP e mínimos.",
+        title: "Matemática do RPG",
+        summary: "Atributos, escala por 20, estágios, XP e valores mínimos.",
         rules: [
             {
                 id: "2.1",
-                title: "Construção dos Atributos",
-                body: "IVs, EVs, Naturezas e nível funcionam normalmente. O Narrador pode entregar os atributos já calculados para preservar o ritmo da aventura."
+                title: "Construção dos atributos",
+                body: "IVs, EVs, naturezas e nível funcionam como nos jogos. Para manter a aventura fluida, o Narrador pode entregar os atributos já calculados."
             },
             {
                 id: "2.2",
                 title: "Divisão por 20",
-                body: "Atributos, Dano Base dos Movimentos e Amizade são divididos por 20. Decimais de 0,55 ou menores descem; decimais de 0,56 ou maiores sobem."
+                body: "Atributos, dano base dos movimentos e Amizade são divididos por 20. Partes decimais de 0,55 ou menos são arredondadas para baixo; partes de 0,56 ou mais, para cima."
             },
             {
                 id: "2.3",
-                title: "Estágios de Atributos",
-                body: "Buffs e debuffs seguem o VGC e são aplicados ao valor original. Somente depois da alteração o resultado é dividido por 20."
+                title: "Estágios de atributos",
+                body: "Aumentos e reduções de atributos seguem as regras dos jogos e são aplicados ao valor original. Só depois disso o resultado é dividido por 20."
             },
             {
                 id: "2.4",
-                title: "Zeros e Limites Mínimos",
+                title: "Zeros e limites mínimos",
                 body: "Um atributo pode chegar a 0; nesse caso, role apenas os dados. HP máximo nunca fica abaixo de 1. Ataques causam ao menos 1 de dano, salvo imunidade ou redução final para 0,55 ou menos."
             },
             {
                 id: "2.5",
-                title: "Experiência e Evolução",
+                title: "Experiência e evolução",
                 bullets: [
-                    "Para subir de nível, acumule XP igual à metade do nível desejado; a contagem zera ao subir.",
-                    "Em batalhas com vários aliados, divida a XP proporcionalmente; todo Pokémon que entrou em campo recebe ao menos 1."
+                    "Para alcançar o próximo nível, acumule XP igual à metade desse novo nível. A contagem volta a zero depois do avanço.",
+                    "Em batalhas com vários aliados, divida a XP proporcionalmente. Todo Pokémon que entrou em campo recebe pelo menos 1 XP."
                 ]
             }
         ]
@@ -107,82 +107,82 @@ export const RPG_RULE_SECTIONS = [
     {
         id: "combate",
         number: 3,
-        title: "Combate e Movimentos",
-        summary: "Iniciativa, precisão, dano, VGC e espaço narrativo.",
+        title: "Combate e movimentos",
+        summary: "Iniciativa, precisão, dano e liberdade de movimento na cena.",
         rules: [
             {
                 id: "3.1",
-                title: "Ordem de Turnos",
-                body: "A cada rodada, todos testam Velocidade. Prioridade age antes; empates de iniciativa usam uma rolagem rápida de desempate."
+                title: "Ordem dos turnos",
+                body: "No início de cada rodada, todos testam Velocidade. Movimentos com prioridade são resolvidos primeiro; empates de iniciativa usam uma rolagem rápida de desempate."
             },
             {
                 id: "3.2",
                 title: "Precisão",
-                body: "Movimentos que não checam precisão/evasão no VGC não rolam. Se o ataque não for interrompido, acerta. Nos demais, role 1d100 e obtenha um valor igual ou menor que a precisão; uma margem superior a 1 no teste de Movimento concede o segundo d100 previsto na regra 1.4."
+                body: "Movimentos que ignoram precisão e evasão nos jogos não exigem rolagem: se a ação não for interrompida, ela acerta. Nos demais casos, role 1d100 e obtenha um valor igual ou menor que a precisão. Uma margem superior a 1 na disputa concede o segundo d100 previsto na regra 1.4."
             },
             {
                 id: "3.3",
-                title: "Resolução de Dano",
+                title: "Resolução do dano",
                 body: "Físicos testam Ataque contra Defesa; Especiais testam Ataque Especial contra Defesa Especial.",
                 bullets: [
-                    "O atacante precisa superar o defensor. Empate ou resultado menor não causa dano, embora efeitos secundários ainda possam ocorrer.",
-                    "Dano final combina Dano Base, STAB e modificadores de tipagem.",
-                    "Um golpe não causa mais que metade do nível do atacante; no nível 1, prevalece o mínimo de 1 de dano. Buffs temporários elevam esse teto proporcionalmente."
+                    "O atacante precisa superar o defensor. Um empate ou resultado menor não causa dano, embora os efeitos secundários ainda possam acontecer.",
+                    "O dano final combina dano base, STAB e modificadores de tipo.",
+                    "Um golpe não causa mais que metade do nível do atacante; no nível 1, vale o mínimo de 1 de dano. Aumentos temporários elevam esse limite proporcionalmente."
                 ]
             },
             {
                 id: "3.4",
-                title: "Mecânicas Herdadas do VGC",
-                body: "Tipagem, STAB, imunidades, condições, multihit, recuo, drenagem e outras mecânicas preservam sua intenção original, adaptadas apenas à escala e à narrativa."
+                title: "Regras herdadas dos jogos",
+                body: "Tipos, STAB, imunidades, condições, golpes de múltiplos acertos, recuo, drenagem e outras regras mantêm sua intenção original, adaptadas apenas à escala e à narrativa."
             },
             {
                 id: "3.5",
-                title: "Posicionamento e Espaço",
-                body: "Não há grid. As distâncias são narrativas: Perto, Longe e Muito Longe. Área, alcance, cenário e Velocidade são interpretados conforme a cena."
+                title: "Posicionamento e espaço",
+                body: "O jogo não exige um tabuleiro quadriculado. As distâncias são narrativas: Perto, Longe e Muito Longe. Área, alcance, cenário e Velocidade são interpretados conforme a cena."
             }
         ]
     },
     {
         id: "treinador",
         number: 4,
-        title: "Treinador e Logística",
+        title: "Treinador e jornada",
         summary: "Intervenções, captura, PP, cura e recursos.",
         rules: [
             {
                 id: "4.1",
-                title: "Intervenções em Combate",
-                body: "Usar um item ou lançar uma Pokébola não consome o turno do Pokémon, mas o treinador só realiza uma intervenção por rodada."
+                title: "Intervenções em combate",
+                body: "Usar um item ou lançar uma Poké Bola não consome o turno do Pokémon, mas o Treinador pode fazer apenas uma intervenção por rodada."
             },
             {
                 id: "4.2",
                 title: "Capturas",
-                body: "Role 1d100 contra a chance dinâmica da fórmula dos jogos, considerando Pokébola, HP restante e condições do alvo."
+                body: "Role 1d100 contra a chance dinâmica da fórmula dos jogos, considerando a Poké Bola, o HP restante e as condições do alvo."
             },
             {
                 id: "4.3",
                 title: "PP e Cura",
                 bullets: [
-                    "Os PP originais são mantidos e valem para toda a sessão ou capítulo, o que durar mais.",
-                    "Curar HP, restaurar PP ou acessar o PC exige segurança narrativa, como um Centro Pokémon ou refúgio equivalente."
+                    "Os PP originais são mantidos por toda a sessão ou capítulo e só são restaurados ao fim do período mais longo.",
+                    "Curar HP, restaurar PP ou acessar o PC exige um lugar seguro na narrativa, como um Centro Pokémon ou refúgio equivalente."
                 ]
             },
             {
                 id: "4.4",
-                title: "Recursos e Dinheiro",
-                body: "Pokédólares e itens surgem organicamente. O inventário é informal e nunca deve travar o ritmo da aventura."
+                title: "Recursos e dinheiro",
+                body: "Pokédólares e itens aparecem naturalmente ao longo da jornada. O inventário é leve e acompanha a aventura sem interromper seu ritmo."
             }
         ]
     },
     {
         id: "filosofia",
         number: 5,
-        title: "Filosofia do Jogo",
+        title: "Espírito da aventura",
         summary: "A matemática serve à aventura, não o contrário.",
         rules: [
             {
                 id: "5.1",
-                title: "A Regra de Ouro",
-                body: "A Matemática do VGC com o Coração do Anime. Preserve simultaneamente a intenção mecânica original, a fluidez da cena e o espírito dramático do anime. Use terreno, improvisos, defesas criativas e combinações inesperadas; quando houver dúvida, faça a aventura continuar."
+                title: "A regra de ouro",
+                body: "A precisão dos jogos com o coração das grandes aventuras Pokémon. Preserve a intenção das regras, a fluidez da cena e o espírito da franquia. Use o terreno, improvisos, defesas criativas e combinações inesperadas; quando surgir uma dúvida, escolha o caminho que mantém a aventura em movimento."
             }
         ]
     }

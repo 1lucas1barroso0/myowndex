@@ -24,14 +24,14 @@ const roomRequest = async (path, key, options = {}) => {
             ? await response.json()
             : await response.text();
         if (!response.ok) {
-            const error = new Error(data?.error || "Não foi possível conectar à Sala RPG.");
+            const error = new Error(data?.error || "A conexão com a Sala RPG foi interrompida. Tente novamente.");
             error.status = response.status;
             error.data = data;
             throw error;
         }
         return data;
     } catch (error) {
-        if (error?.name === "AbortError") throw new Error("A Sala RPG demorou demais para responder.");
+        if (error?.name === "AbortError") throw new Error("A Sala RPG está levando mais tempo que o esperado. Tente novamente.");
         throw error;
     } finally {
         window.clearTimeout(timeout);
@@ -98,7 +98,7 @@ export const fetchRoomAudioUrl = async (session, mediaId) => {
     );
     if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Não foi possível carregar a faixa.");
+        throw new Error(data.error || "Esta trilha não pôde ser aberta agora.");
     }
     return URL.createObjectURL(await response.blob());
 };

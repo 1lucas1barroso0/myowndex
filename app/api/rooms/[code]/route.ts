@@ -25,9 +25,9 @@ export async function GET(request: Request, context: RouteContext) {
     await ensureRoomSchema();
     const code = await roomCode(context);
     const auth = await authenticateRoom(code, readRoomKey(request));
-    if (!auth) return noStoreJson({ error: "Acesso inválido ou sala inexistente." }, { status: 401 });
+    if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta sala. Confira o convite e entre novamente." }, { status: 401 });
     const bundle = await getRoomBundle(code, auth.role);
-    if (!bundle) return noStoreJson({ error: "Sala não encontrada." }, { status: 404 });
+    if (!bundle) return noStoreJson({ error: "Não encontramos essa sala. Confira o código e tente novamente." }, { status: 404 });
     return noStoreJson({ ...bundle, role: auth.role, playerId: auth.playerId });
   } catch (error) {
     return routeError(error);
@@ -39,9 +39,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     await ensureRoomSchema();
     const code = await roomCode(context);
     const auth = await authenticateRoom(code, readRoomKey(request));
-    if (!auth) return noStoreJson({ error: "Acesso inválido ou sala inexistente." }, { status: 401 });
+    if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta sala. Confira o convite e entre novamente." }, { status: 401 });
     if (auth.role !== "narrator") {
-      return noStoreJson({ error: "Somente o Narrador pode alterar o estado oficial da sala." }, { status: 403 });
+      return noStoreJson({ error: "Só o Narrador pode alterar a aventura para todos." }, { status: 403 });
     }
     const payload = await request.json().catch(() => ({})) as {
       snapshot?: Record<string, unknown>;
@@ -49,12 +49,12 @@ export async function PATCH(request: Request, context: RouteContext) {
       title?: string;
     };
     if (!payload.snapshot || typeof payload.snapshot !== "object" || Array.isArray(payload.snapshot)) {
-      return noStoreJson({ error: "Estado da sala inválido." }, { status: 400 });
+      return noStoreJson({ error: "Não conseguimos reconhecer as informações desta sala." }, { status: 400 });
     }
     assertStateSize(payload.snapshot);
     const expectedRevision = Number(payload.expectedRevision);
     if (!Number.isInteger(expectedRevision) || expectedRevision < 0) {
-      return noStoreJson({ error: "Revisão da sala inválida." }, { status: 400 });
+      return noStoreJson({ error: "A sala mudou enquanto você editava. Tente esta ação novamente." }, { status: 400 });
     }
     const title = safeText(payload.title ?? payload.snapshot.title, 80) || "Aventura Pokémon";
     const { db } = getBindings();
@@ -66,7 +66,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!result.meta.changes) {
       const latest = await getRoomBundle(code, "narrator");
       return noStoreJson({
-        error: "A sala recebeu outra alteração antes desta.",
+        error: "Outra mudança chegou primeiro. O MyOwnDex atualizou a sala; tente novamente.",
         conflict: true,
         room: latest,
       }, { status: 409 });
@@ -84,7 +84,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     const code = await roomCode(context);
     const auth = await authenticateRoom(code, readRoomKey(request));
     if (!auth || auth.role !== "narrator") {
-      return noStoreJson({ error: "Somente o Narrador pode encerrar esta sala." }, { status: 403 });
+      return noStoreJson({ error: "Só o Narrador pode encerrar esta aventura." }, { status: 403 });
     }
     const { db, bucket } = getBindings();
     const media = await db.prepare("SELECT object_key FROM room_media WHERE room_code = ?")

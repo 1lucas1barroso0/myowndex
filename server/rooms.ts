@@ -29,7 +29,7 @@ export function getBindings() {
   const runtime = (globalThis as typeof globalThis & {
     __MYOWNDEX_ENV__?: { DB?: D1Database; BUCKET?: R2Bucket };
   }).__MYOWNDEX_ENV__;
-  if (!runtime?.DB) throw new Error("A conexão persistente da Sala RPG não está disponível.");
+  if (!runtime?.DB) throw new Error("A Sala RPG não conseguiu acessar os dados desta aventura agora. Tente novamente em instantes.");
   return {
     db: runtime.DB,
     bucket: runtime.BUCKET,
@@ -169,13 +169,13 @@ export function jsonSize(value: unknown) {
 
 export function assertStateSize(value: unknown) {
   if (jsonSize(value) > MAX_STATE_BYTES) {
-    throw new Error("A sala excedeu o limite seguro de dados. Remova anotações ou elementos antigos.");
+    throw new Error("Esta aventura ficou grande demais para ser salva de uma vez. Encurte as anotações ou retire elementos antigos e tente novamente.");
   }
 }
 
 export function assertEventSize(value: unknown) {
   if (jsonSize(value) > MAX_EVENT_BYTES) {
-    throw new Error("Esta ação contém dados demais para a sala.");
+    throw new Error("Esta mensagem ou ação é longa demais para a sala. Encurte-a e tente novamente.");
   }
 }
 
@@ -293,7 +293,7 @@ export async function appendRoomEvent(input: {
 }
 
 export function routeError(error: unknown) {
-  const message = error instanceof Error ? error.message : "Não foi possível concluir a operação.";
+  const message = error instanceof Error ? error.message : "Algo impediu esta ação. Tente novamente.";
   return Response.json({ error: message }, { status: 500 });
 }
 

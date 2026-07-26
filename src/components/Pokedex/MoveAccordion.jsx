@@ -44,7 +44,7 @@ export default function MoveAccordion({ moveData, isTTRPG }) {
             {isOpen && (
                 <div id={panelId} className="p-4 bg-white border-t-2 border-slate-100">
                     {!data && !loadError ? <div className="h-10 skeleton rounded-lg" /> : loadError ? (
-                        <p className="text-[11px] font-bold text-slate-500">Os detalhes do movimento estão temporariamente indisponíveis.</p>
+                        <p className="text-[11px] font-bold text-slate-500">A Pokédex não conseguiu mostrar os detalhes deste movimento agora.</p>
                     ) : (
                         <div className="flex flex-col gap-3 animate-fade-in">
                             <div className="flex flex-wrap gap-2 items-center">
@@ -54,7 +54,7 @@ export default function MoveAccordion({ moveData, isTTRPG }) {
                                 <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Precisão: <span className="text-slate-800">{data.accuracy ? `${data.accuracy}%` : "--"}</span></span>
                             </div>
                             <p lang={effectEntry?.language?.name?.startsWith("pt") ? "pt-BR" : "en"} className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                                {effectEntry?.effect?.replace(/\$effect_chance/g, data.effect_chance || "") || "Nenhum efeito adicional está registrado."}
+                                {effectEntry?.effect?.replace(/\$effect_chance/g, data.effect_chance || "") || "A Pokédex ainda não tem um efeito adicional registrado para este movimento."}
                             </p>
                         </div>
                     )}

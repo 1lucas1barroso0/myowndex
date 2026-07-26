@@ -12,13 +12,14 @@ import {
     getMoveAutomationTags,
     getMovePpState,
 } from "../../core/automation.js";
+import { formatRemainingPp } from "../../core/copy.js";
 import { calculateMoveResolution, STATUS_LABELS } from "../../core/room.js";
 
 const modifierLabel = value => {
-    if (value === 0) return "Imune";
-    if (value > 1) return `${formatNumberPtBr(value)}× super efetivo`;
-    if (value < 1) return `${formatNumberPtBr(value)}× pouco efetivo`;
-    return "Efetividade neutra";
+    if (value === 0) return "Sem efeito";
+    if (value > 1) return `Super efetivo (${formatNumberPtBr(value)}×)`;
+    if (value < 1) return `Pouco efetivo (${formatNumberPtBr(value)}×)`;
+    return "Efetividade normal";
 };
 
 const stageSummary = changes => {
@@ -101,7 +102,7 @@ export default function CombatAssistant({
         setDeclaring(true);
         try {
             const detail = await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`);
-            if (!detail) throw new Error("Os dados deste Movimento não estão disponíveis.");
+            if (!detail) throw new Error("A Pokédex não conseguiu abrir este movimento agora.");
             setMoveData(detail);
             await onDeclareMove?.(attacker.id, detail);
         } catch (error) {
@@ -116,7 +117,7 @@ export default function CombatAssistant({
         setRunning(true);
         try {
             const move = moveData || await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(moveName)}`);
-            if (!move) throw new Error("Os dados deste Movimento não estão disponíveis.");
+            if (!move) throw new Error("A Pokédex não conseguiu abrir este movimento agora.");
             const resolution = calculateMoveResolution({ attacker, defender, move, mode });
             if (role === "narrator") {
                 const automated = applyMoveConsequences({
@@ -172,8 +173,8 @@ export default function CombatAssistant({
         <details className="room-tool">
             <summary>
                 <span>
-                    <small>Resolução reativa</small>
-                    <strong>Assistente de Movimento</strong>
+                    <small>Assistente Rotom</small>
+                    <strong>Resolver movimento</strong>
                 </span>
                 <span className="room-tool-badge">Rotom</span>
             </summary>
@@ -194,12 +195,12 @@ export default function CombatAssistant({
                     <label>
                         <span>Movimento</span>
                         <select value={moveName} onChange={event => void selectMove(event.target.value)}>
-                            {!moves.length && <option value="">Sem Movimento</option>}
+                            {!moves.length && <option value="">Nenhum movimento</option>}
                             {moves.map(move => <option key={move} value={move}>{formatName(move)}</option>)}
                         </select>
                     </label>
                     <label>
-                        <span>Condição</span>
+                        <span>Situação</span>
                         <select value={mode} onChange={event => setMode(event.target.value)}>
                             <option value="normal">Normal</option>
                             <option value="advantage">Vantagem</option>
@@ -214,25 +215,25 @@ export default function CombatAssistant({
                         <span>{formatDamageClass(moveData.damage_class?.name)}</span>
                         <span>PP {formatNumberPtBr(ppState.remaining ?? moveData.pp ?? 0)}/{formatNumberPtBr(ppState.maximum ?? moveData.pp ?? 0)}</span>
                         {automationTags.map(tag => <span key={tag}>{tag}</span>)}
-                        {declaring && <span className="is-syncing">Sincronizando prioridade…</span>}
+                        {declaring && <span className="is-syncing">Preparando a prioridade…</span>}
                     </div>
                 )}
                 {!canControlAttacker && role === "player" && (
-                    <p className="combat-permission-note">Você pode simular este Pokémon; a declaração automática é reservada aos Pokémon sob seu controle.</p>
+                    <p className="combat-permission-note">Você pode testar este Pokémon aqui. Para declarar o movimento na rodada, escolha um Pokémon sob seu controle.</p>
                 )}
                 <button type="button" className="room-primary-button" disabled={!canResolve || running || declaring} onClick={resolve}>
                     {outOfPp
-                        ? "Sem PP disponível"
+                        ? "Sem PP para este movimento"
                         : running
-                            ? "Resolvendo Movimento…"
+                            ? "Calculando a jogada…"
                             : role === "narrator"
-                                ? "Resolver e aplicar tudo"
-                                : "Simular e enviar"}
+                                ? "Resolver movimento"
+                                : "Simular e compartilhar"}
                 </button>
                 {result && (
                     <div className={`combat-result ${result.hit ? "is-hit" : "is-miss"}`} aria-live="polite">
                         <div>
-                            <small>Ataque × defesa</small>
+                            <small>Disputa de atributos</small>
                             <strong>{result.attackTest.total} × {result.defenseTest.total}</strong>
                         </div>
                         <div>
@@ -240,21 +241,21 @@ export default function CombatAssistant({
                             <strong>{formatNumberPtBr(result.consequences?.damage ?? result.damage)}</strong>
                         </div>
                         <p>
-                            {result.hit ? "O atacante superou a defesa." : "A defesa venceu, inclusive em empate."}
+                            {result.hit ? "O ataque venceu a disputa." : "A defesa levou a melhor; os empates favorecem o defensor."}
                             {" "}{result.accuracyTest.automatic
-                                ? "Precisão automática."
-                                : `Precisão ${result.accuracyTest.result}/${result.accuracyTest.chance}${result.accuracyTest.rolls.length > 1 ? " com vantagem" : ""}.`}
-                            {" "}{modifierLabel(result.effectiveness)}; STAB {formatNumberPtBr(result.stab)}×
-                            {result.attackTest.critical ? "; crítico 1,5×" : ""}; teto {formatNumberPtBr(result.ceiling)}.
+                                ? "O movimento acerta sem teste de precisão."
+                                : `Precisão: ${result.accuracyTest.result}/${result.accuracyTest.chance}${result.accuracyTest.rolls.length > 1 ? " com vantagem" : ""}.`}
+                            {" "}Eficácia do tipo: {modifierLabel(result.effectiveness).toLowerCase()}. STAB: {formatNumberPtBr(result.stab)}×
+                            {result.attackTest.critical ? "; golpe crítico: 1,5×" : ""}. Limite de dano: {formatNumberPtBr(result.ceiling)}.
                         </p>
                         {result.consequences && (
                             <ul className="combat-consequences">
-                                {result.consequences.ppAfter != null && <li>PP restante: {formatNumberPtBr(result.consequences.ppAfter)}</li>}
-                                {result.consequences.healed > 0 && <li>Cura automática: {formatNumberPtBr(result.consequences.healed)} HP</li>}
-                                {result.consequences.recoil > 0 && <li>Recuo automático: {formatNumberPtBr(result.consequences.recoil)} HP</li>}
-                                {result.consequences.appliedStatus && <li>Condição aplicada: {STATUS_LABELS[result.consequences.appliedStatus]}</li>}
-                                {result.consequences.stageChanges.length > 0 && <li>Estágios: {stageSummary(result.consequences.stageChanges)}</li>}
-                                {result.consequences.fainted && <li>O alvo ficou sem HP.</li>}
+                                {result.consequences.ppAfter != null && <li>{formatRemainingPp(result.consequences.ppAfter)}</li>}
+                                {result.consequences.healed > 0 && <li>Recuperou {formatNumberPtBr(result.consequences.healed)} HP.</li>}
+                                {result.consequences.recoil > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.recoil)} HP com o recuo.</li>}
+                                {result.consequences.appliedStatus && <li>Condição: {STATUS_LABELS[result.consequences.appliedStatus]}.</li>}
+                                {result.consequences.stageChanges.length > 0 && <li>Mudanças de atributo: {stageSummary(result.consequences.stageChanges)}.</li>}
+                                {result.consequences.fainted && <li>O alvo não pode mais batalhar.</li>}
                             </ul>
                         )}
                     </div>

@@ -1,4 +1,5 @@
 import { convertToTTRPG, formatName } from "./mechanics.js";
+import { RPG_STATUS_LABELS } from "./copy.js";
 import { rollPercentTest } from "./rpgRules.js";
 
 export const STAGE_STAT_KEYS = ["attack", "defense", "special-attack", "special-defense", "speed"];
@@ -9,15 +10,6 @@ export const MOVE_STATUS_MAP = {
     paralysis: "paralysis",
     poison: "poison",
     sleep: "sleep",
-};
-
-const STATUS_NAMES = {
-    burn: "Queimadura",
-    freeze: "Congelamento",
-    paralysis: "Paralisia",
-    poison: "Envenenamento",
-    "bad-poison": "Envenenamento grave",
-    sleep: "Sono",
 };
 
 const USER_TARGETS = new Set([
@@ -137,7 +129,7 @@ export const getMoveAutomationTags = move => {
     if (move.power) tags.push("Dano");
     if (move.priority) tags.push(`Prioridade ${move.priority > 0 ? "+" : ""}${move.priority}`);
     const status = statusForMove(move);
-    if (status) tags.push(STATUS_NAMES[status] || formatName(status));
+    if (status) tags.push(RPG_STATUS_LABELS[status] || formatName(status));
     if (asNumber(move?.meta?.drain) > 0) tags.push("Drenagem");
     if (asNumber(move?.meta?.drain) < 0) tags.push("Recuo");
     if (asNumber(move?.meta?.healing) > 0) tags.push("Cura");

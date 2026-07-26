@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { RPG_STATUS_LABELS } from '../../core/copy.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
 import { RPG_STATUSES } from '../../core/team.js';
@@ -167,7 +168,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         setFormError("");
         try {
             const nextSpecies = await fetchCached(formUrl);
-            if (!nextSpecies) throw new Error("Forma indisponível");
+            if (!nextSpecies) throw new Error("Esta forma ainda não está disponível.");
             const profile = nextSpecies.species?.url
                 ? await fetchCached(nextSpecies.species.url)
                 : speciesProfile;
@@ -188,7 +189,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             });
             setSpeciesProfile(profile || null);
         } catch {
-            setFormError("Não foi possível trocar a forma agora. A ficha atual foi preservada.");
+            setFormError("A Pokédex não conseguiu abrir essa forma agora, mas sua ficha continua intacta.");
         } finally {
             setSwitchingForm(false);
         }
@@ -308,16 +309,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     };
 
     const awardXp = amount => applyXpProgression((Number(rpg.xp) || 0) + Number(amount || 0));
-    const statusLabels = {
-        "": "Sem condição",
-        burn: "Queimado",
-        freeze: "Congelado",
-        paralysis: "Paralisado",
-        poison: "Envenenado",
-        "bad-poison": "Gravemente envenenado",
-        sleep: "Dormindo"
-    };
-
     return (
         <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
             <datalist id="eItems">{validItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
@@ -362,7 +353,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                         </select>
                                     </label>
                                 )}
-                                {switchingForm && <span className="text-[8px] font-black uppercase tracking-widest text-blue-500">Sincronizando forma…</span>}
+                                {switchingForm && <span className="text-[8px] font-black uppercase tracking-widest text-blue-500">Abrindo esta forma…</span>}
                                 {formError && <span role="alert" className="text-[8px] font-black text-red-500">{formError}</span>}
                             </div>
                         </div>
@@ -379,7 +370,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             </div>
                             <label className={"flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 transition-colors shadow-sm " + (isNativeGMax ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-red-400")}>
                                 <div className={"w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md border-2 flex items-center justify-center " + (pk.canGMax ? "bg-red-500 border-red-500" : "bg-white border-slate-300")}>{pk.canGMax && <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>}</div>
-                                <span className={"text-[9px] sm:text-[10px] font-black uppercase tracking-widest " + (pk.canGMax ? "text-red-500" : "text-slate-500")}>G-Max</span>
+                                <span className={"text-[9px] sm:text-[10px] font-black uppercase tracking-widest " + (pk.canGMax ? "text-red-500" : "text-slate-500")}>Gigantamax</span>
                                 <input type="checkbox" className="hidden" checked={pk.canGMax||false} disabled={isNativeGMax} onChange={e => { dismissKeyboard(); updatePk({...pk, canGMax: e.target.checked}); }} />
                             </label>
                             <label className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-1.5 shadow-sm transition-colors hover:border-amber-300">
@@ -387,7 +378,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 <span className={"text-[9px] sm:text-[10px] font-black uppercase tracking-widest " + (pk.shiny ? "text-amber-600" : "text-slate-500")}>Shiny</span>
                             </label>
                             <label className="flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-1.5 shadow-sm">
-                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">D-Max</span>
+                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">Nível Dynamax</span>
                                 <input type="number" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: Math.max(0, Math.min(10, parseInt(event.target.value, 10) || 0)) })} className="w-9 bg-transparent text-center text-xs font-black text-slate-800 outline-none" />
                             </label>
                             {isHackmon && (
@@ -406,14 +397,14 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             </div>
 
             <div className="rotom-automation-bar" role="status">
-                <strong><span aria-hidden="true">●</span> Rotom automático</strong>
-                <span>Atributos e HP reativos</span>
-                <span>Forma, habilidade e Tera conectados</span>
-                <span>PP e progressão sincronizados</span>
+                <strong><span aria-hidden="true">●</span> Assistente Rotom</strong>
+                <span>Atributos e HP acompanham cada mudança</span>
+                <span>Forma, habilidade e tipo Tera combinam entre si</span>
+                <span>PP e progresso ficam sempre em dia</span>
                 <em className={exceptionCount ? "has-exceptions" : ""}>
                     {exceptionCount
-                        ? `${exceptionCount} ${exceptionCount === 1 ? "exceção manual preservada" : "exceções manuais preservadas"}`
-                        : "Ficha alinhada"}
+                        ? `${exceptionCount} ${exceptionCount === 1 ? "escolha livre mantida" : "escolhas livres mantidas"}`
+                        : "Tudo pronto"}
                 </em>
             </div>
 
@@ -424,8 +415,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <div>
                             <label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Tipo Tera</label>
                             <select value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 text-blue-800 text-sm font-black focus:border-blue-500 outline-none shadow-inner">
-                                {!pk.teraType && <option value="">Escolher automaticamente</option>}
-                                {teraException && <option value={pk.teraType}>{formatName(pk.teraType)} • exceção</option>}
+                                {!pk.teraType && <option value="">Usar o tipo principal</option>}
+                                {teraException && <option value={pk.teraType}>{formatName(pk.teraType)} • escolha livre</option>}
                                 {TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}
                             </select>
                         </div>
@@ -434,15 +425,15 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <div className="relative">
                             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Habilidade</label>
                             <input list="eAbs" value={pk.ability||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, ability:(e.target.value||"").toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 pr-10 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />
-                            <button onClick={()=>randomize("ability")} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>
-                            {abilityException && <span className="mt-1 block text-[8px] font-black uppercase tracking-wider text-amber-600">Exceção manual preservada</span>}
+                            <button type="button" aria-label="Sortear habilidade" title="Sortear habilidade" onClick={()=>randomize("ability")} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>
+                            {abilityException && <span className="mt-1 block text-[8px] font-black uppercase tracking-wider text-amber-600">Escolha livre mantida</span>}
                         </div>
                         <div className="relative">
                             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Natureza</label>
                             <select value={pk.nature||"hardy"} onChange={e=> { dismissKeyboard(); updatePk({...pk, nature:e.target.value}); }} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 pr-10 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize appearance-none shadow-inner">
                                 {Object.keys(NATURES).map(n => <option key={n} value={n}>{n} {NATURES[n].up ? "(+" + STAT_MAP[NATURES[n].up] + ", -" + STAT_MAP[NATURES[n].down] + ")" : ""}</option>)}
                             </select>
-                            <button onClick={()=>randomize("nature")} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>
+                            <button type="button" aria-label="Sortear natureza" title="Sortear natureza" onClick={()=>randomize("nature")} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>
                         </div>
                     </div>
                     
@@ -457,12 +448,12 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                     <span className="text-sm sm:text-base">♀</span><span>Fêmea</span>
                                 </button>
                                 <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "N", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseNeutral} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "N" ? "bg-slate-500 text-white shadow-[0_3px_0_#475569]" : "text-slate-600 disabled:opacity-30 hover:bg-slate-200")}>
-                                    <span className="text-sm sm:text-base">⚲</span><span>Neutro</span>
+                                    <span className="text-sm sm:text-base">⚲</span><span>Sem gênero</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-1">
-                                <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} className={"rounded-xl px-2 py-2 text-xs font-black transition-all outline-none " + (pk.genderLocked ? "bg-slate-700 text-white" : "text-slate-500 hover:bg-slate-200")} title={pk.genderLocked ? "Desbloquear sorteio de gênero" : "Manter o gênero atual"}>{pk.genderLocked ? "🔒" : "🔓"}</button>
-                                <button type="button" disabled={pk.genderLocked || currentGenderRate === -1} onClick={() => randomize("gender")} className="rounded-xl px-3 py-2 text-sm font-black text-slate-500 transition-all hover:bg-blue-100 hover:text-blue-600 outline-none disabled:cursor-not-allowed disabled:opacity-30" title="Sortear pela proporção oficial de gênero">🎲</button>
+                                <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} className={"rounded-xl px-2 py-2 text-xs font-black transition-all outline-none " + (pk.genderLocked ? "bg-slate-700 text-white" : "text-slate-500 hover:bg-slate-200")} aria-label={pk.genderLocked ? "Permitir novo sorteio de gênero" : "Manter o gênero escolhido"} title={pk.genderLocked ? "Permitir novo sorteio" : "Manter esta escolha"}>{pk.genderLocked ? "🔒" : "🔓"}</button>
+                                <button type="button" disabled={pk.genderLocked || currentGenderRate === -1} onClick={() => randomize("gender")} className="rounded-xl px-3 py-2 text-sm font-black text-slate-500 transition-all hover:bg-blue-100 hover:text-blue-600 outline-none disabled:cursor-not-allowed disabled:opacity-30" aria-label="Sortear gênero pela proporção da espécie" title="Sortear pela proporção da espécie">🎲</button>
                             </div>
                         </div>
                     </div>
@@ -494,11 +485,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                         />
                                         {(moveName || detail) && (
                                             <div className="mt-1 flex flex-wrap items-center gap-1 border-t border-slate-200/80 px-2 pt-2">
-                                                {detail?.power != null && <span className="move-chip">POD {isTTRPG ? convertToTTRPG(detail.power) : detail.power}</span>}
-                                                <span className="move-chip">PRE {detail?.accuracy ?? "—"}</span>
+                                                {detail?.power != null && <span className="move-chip">Poder {isTTRPG ? convertToTTRPG(detail.power) : detail.power}</span>}
+                                                <span className="move-chip">Precisão {detail?.accuracy ?? "—"}</span>
                                                 <span className="move-chip">PP {currentPp ?? detail?.pp ?? "—"}/{detail?.pp ?? "—"}</span>
-                                                {detail?.priority !== 0 && detail?.priority != null && <span className="move-chip">PRI {detail.priority > 0 ? "+" : ""}{detail.priority}</span>}
-                                                {isException && <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[8px] font-black uppercase text-amber-800">{experienceMode === "game" ? "Fora do jogo" : "Exceção anime"}</span>}
+                                                {detail?.priority !== 0 && detail?.priority != null && <span className="move-chip">Prioridade {detail.priority > 0 ? "+" : ""}{detail.priority}</span>}
+                                                {isException && <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[8px] font-black uppercase text-amber-800">{experienceMode === "game" ? "Não disponível neste jogo" : "Escolha livre"}</span>}
                                                 {isTTRPG && moveName && (
                                                     <label className="ml-auto flex items-center gap-1 text-[8px] font-black uppercase text-slate-400">
                                                         PP atual
@@ -523,7 +514,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 );
                             })}
                         </div>
-                        <p className="mt-2 text-[9px] font-bold text-slate-400">{isHackmon ? "Modo Livre: todas as opções estão disponíveis." : "A lista sugere opções legais; digitar manualmente cria uma exceção narrativa sem bloquear a ficha."}</p>
+                        <p className="mt-2 text-[9px] font-bold text-slate-400">{isHackmon ? "No Modo livre, todas as opções estão à sua disposição." : "A Pokédex sugere os movimentos disponíveis neste jogo. Você também pode escrever uma escolha própria."}</p>
                     </div>
 
                     <details className="rpg-journey-panel overflow-hidden rounded-2xl border-2 border-orange-200 bg-orange-50/70">
@@ -531,7 +522,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             <span className="flex items-center justify-between gap-3">
                                 <span>
                                     <strong className="block text-[10px] font-black uppercase tracking-widest text-orange-700">Jornada RPG</strong>
-                                    <small className="mt-1 block text-[9px] font-bold text-slate-500">HP, XP, condição, captura, PP e liberdade do anime.</small>
+                                    <small className="mt-1 block text-[9px] font-bold text-slate-500">Acompanhe HP, XP, condição e tudo o que torna este Pokémon único.</small>
                                 </span>
                                 <span className="shrink-0 rounded-full bg-white px-3 py-1 text-[9px] font-black text-slate-600 shadow-sm">
                                     HP {rpg.currentHp ?? "—"}/{displayedMaxHp}
@@ -543,7 +534,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 <span className="editor-label">HP atual</span>
                                 <span className="flex gap-2">
                                     <input type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? ""} placeholder={String(displayedMaxHp)} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : Math.max(0, Math.min(displayedMaxHp, Number(event.target.value) || 0)) })} className="editor-input" />
-                                    <button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rounded-xl border-2 border-emerald-200 bg-emerald-50 px-3 text-[9px] font-black uppercase text-emerald-700">Cheio</button>
+                                    <button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rounded-xl border-2 border-emerald-200 bg-emerald-50 px-3 text-[9px] font-black uppercase text-emerald-700">Recuperar tudo</button>
                                 </span>
                             </label>
                             <label>
@@ -551,24 +542,24 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 <span className="block">
                                     <span className="relative block">
                                         <input type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: Math.max(0, Number(event.target.value) || 0) })} onBlur={() => applyXpProgression()} className="editor-input pr-24" />
-                                        <small className="absolute right-3 top-3 text-[9px] font-black text-slate-400">/{formatNumberPtBr(nextLevelXp)} p/ Nv. {Math.min(isHackmon ? 200 : 100, (Number(pk.level) || 1) + 1)}</small>
+                                        <small className="absolute right-3 top-3 text-[9px] font-black text-slate-400">de {formatNumberPtBr(nextLevelXp)} até o nível {Math.min(isHackmon ? 200 : 100, (Number(pk.level) || 1) + 1)}</small>
                                     </span>
                                     <span className="editor-xp-actions">
                                         <button type="button" onClick={() => awardXp(0.5)}>+0,5</button>
                                         <button type="button" onClick={() => awardXp(1)}>+1 XP</button>
-                                        <small>Nível automático ao atingir a meta</small>
+                                        <small>Ao completar a meta, o próximo nível chega na hora.</small>
                                     </span>
                                 </span>
                             </label>
                             <label>
                                 <span className="editor-label">Condição</span>
                                 <select value={rpg.status || ""} onChange={event => updateRpg({ status: event.target.value })} className="editor-input">
-                                    {RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{statusLabels[status]}</option>)}
+                                    {RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{RPG_STATUS_LABELS[status]}</option>)}
                                 </select>
                             </label>
                             <label>
-                                <span className="editor-label">Pokébola de captura</span>
-                                <input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} placeholder="Ex.: luxury-ball" className="editor-input" />
+                                <span className="editor-label">Poké Bola da captura</span>
+                                <input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} placeholder="Ex.: Bola Luxo" className="editor-input" />
                             </label>
                             <label className="sm:col-span-2">
                                 <span className="editor-label">Treinador original</span>
@@ -579,8 +570,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 <textarea value={rpg.notes || ""} onChange={event => updateRpg({ notes: event.target.value })} placeholder="Personalidade, vínculos, evolução, conquistas…" rows="3" className="editor-input resize-y" />
                             </label>
                             <label className="sm:col-span-2">
-                                <span className="editor-label text-purple-600">Liberdades e exceções do anime</span>
-                                <textarea value={rpg.animeNotes || ""} onChange={event => updateRpg({ animeNotes: event.target.value })} placeholder="Combinações, usos criativos, permissões narrativas, técnicas próprias…" rows="3" className="editor-input resize-y border-purple-200 bg-purple-50/60 focus:border-purple-400" />
+                                <span className="editor-label text-purple-600">Possibilidades da aventura</span>
+                                <textarea value={rpg.animeNotes || ""} onChange={event => updateRpg({ animeNotes: event.target.value })} placeholder="Técnicas próprias, combinações criativas e descobertas especiais…" rows="3" className="editor-input resize-y border-purple-200 bg-purple-50/60 focus:border-purple-400" />
                             </label>
                         </div>
                     </details>
@@ -595,7 +586,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             </button>
                         </div>
                         <div className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">
-                            EVs livres: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
+                            EVs restantes: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
                         </div>
                     </div>
                     

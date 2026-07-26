@@ -2,16 +2,20 @@
 
 MyOwnDex reúne Pokédex, PC do Bill, criação de equipes, regras e uma Sala RPG conectada para Narrador e Jogadores.
 
+A voz da interface segue o guia em
+[`docs/voice-and-terminology.md`](docs/voice-and-terminology.md), que centraliza
+os termos fixos, a concordância e o tom usado em toda a jornada.
+
 ## Experiência
 
-- Pokédex responsiva com espécies, formas, atributos, tipagens, Movimentos, habilidades e evolução.
+- Pokédex responsiva com espécies, formas, atributos, tipos, movimentos, habilidades e evolução.
 - Boxes locais com salvamento automático, compartilhamento sem duplicatas e restauração após exclusões.
-- Fichas reativas: forma, habilidade, Tera, atributos, HP, PP, XP e sugestões legais acompanham o Pokémon e o jogo selecionado.
-- Sala RPG persistente com papéis separados, convites, campo 2D, iniciativa, chat, áudio, progresso e sincronização com as Boxes.
-- Assistente de Movimento que resolve disputa, precisão, crítico, STAB, tipagem, teto de dano, PP, cura, recuo, condições e estágios.
+- Fichas que mantêm forma, habilidade, tipo Tera, atributos, HP, PP, XP e sugestões do jogo sempre em dia.
+- Sala RPG persistente com papéis separados, convites, campo 2D, iniciativa, conversa, áudio e progresso integrado às Boxes.
+- Assistente Rotom que resolve disputa, precisão, golpe crítico, STAB, tipos, limite de dano, PP, cura, recuo, condições e estágios.
 - Modo offline para a interface e os dados da Pokédex já consultados; APIs privadas da sala nunca entram no cache.
 
-Defaults oficiais são automatizados. Campos manuais continuam livres e são preservados como exceções narrativas.
+O MyOwnDex sugere e calcula o que puder, sem tirar a liberdade de registrar escolhas próprias da aventura.
 
 ## Arquitetura
 

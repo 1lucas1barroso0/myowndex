@@ -14,7 +14,7 @@ import {
 const DiceFaces = ({ values, kept = values }) => {
     const remaining = [...kept];
     return (
-        <div className="flex flex-wrap gap-2" aria-label={`Dados: ${values.join(", ")}`}>
+        <div className="flex flex-wrap gap-2" aria-label={`Rolagem: ${values.join(", ")}`}>
             {values.map((value, index) => {
                 const keptIndex = remaining.indexOf(value);
                 const isKept = keptIndex >= 0;
@@ -80,18 +80,18 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
             <section className="rotom-hero relative overflow-hidden rounded-[1.75rem] border-4 border-slate-800 p-5 shadow-[0_8px_0_#334155] sm:p-7">
                 <div className="relative z-10 max-w-3xl">
                     <div className="mb-3 flex flex-wrap items-center gap-2">
-                        <span className="rounded-full border-2 border-white/40 bg-slate-900/80 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">Trainer OS</span>
-                        <span className="rounded-full border-2 border-white/25 bg-white/15 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Guia oficial do sistema</span>
+                        <span className="rounded-full border-2 border-white/40 bg-slate-900/80 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">Guia Rotom</span>
+                        <span className="rounded-full border-2 border-white/25 bg-white/15 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Regras da aventura</span>
                     </div>
                     <h2 className="text-3xl font-black tracking-tight text-white sm:text-5xl">Guia do Treinador</h2>
                     <p className="mt-3 max-w-2xl text-sm font-bold leading-6 text-orange-50 sm:text-base">
-                        A matemática do VGC com o coração do anime — regras claras quando você precisa, liberdade quando a cena merece.
+                        A precisão dos jogos com a liberdade das grandes aventuras Pokémon: regras claras quando você precisa, criatividade sempre que a cena pedir.
                     </p>
                     <div className="mt-5 flex flex-wrap gap-2">
                         <span className="guide-pill">2d6 + atributo</span>
                         <span className="guide-pill">Defensor vence empates</span>
-                        <span className="guide-pill">Máx. 2d100</span>
-                        <span className="guide-pill">Sem grid</span>
+                        <span className="guide-pill">Até 2d100</span>
+                        <span className="guide-pill">Distâncias narrativas</span>
                     </div>
                 </div>
                 <div aria-hidden="true" className="absolute -bottom-16 -right-10 h-56 w-56 rounded-full border-[28px] border-cyan-300/20 bg-white/10 shadow-[0_0_70px_rgba(103,232,249,0.35)]" />
@@ -102,10 +102,10 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                     <article className="game-panel p-4 sm:p-6">
                         <div className="mb-5 flex flex-col justify-between gap-3 border-b-2 border-slate-200 pb-4 sm:flex-row sm:items-end">
                             <div>
-                                <span className="text-[9px] font-black uppercase tracking-[0.22em] text-red-500">Rotom Lab</span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.22em] text-red-500">Laboratório Rotom</span>
                                 <h3 className="mt-1 text-xl font-black text-slate-800">Rolagens rápidas</h3>
                             </div>
-                            <span className="text-[10px] font-bold text-slate-500">Resultados locais — nada sai do seu aparelho.</span>
+                            <span className="text-[10px] font-bold text-slate-500">Estas rolagens ficam somente neste aparelho.</span>
                         </div>
 
                         <div className="grid gap-5 lg:grid-cols-2">
@@ -134,7 +134,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                         <input type="number" value={attribute} onChange={event => setAttribute(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
                                     </label>
                                     <label>
-                                        <ToolLabel>Oposição</ToolLabel>
+                                        <ToolLabel>Dificuldade</ToolLabel>
                                         <input type="number" value={opposition} placeholder="Opcional" onChange={event => setOpposition(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
                                     </label>
                                 </div>
@@ -179,7 +179,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
 
                     <article className="game-panel p-4 sm:p-6">
                         <div className="mb-4">
-                            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-blue-500">Calculadora de bolso</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-blue-500">Calculadora Rotom</span>
                             <h3 className="mt-1 text-xl font-black text-slate-800">Escala do RPG</h3>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-3">
@@ -194,9 +194,9 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                 <span className="mt-1 block text-[10px] font-bold text-slate-400">XP até o próximo: <strong className="text-blue-600">{formatNumberPtBr(getNextLevelXp(level))}</strong></span>
                             </label>
                             <div className="rounded-2xl border-2 border-slate-200 bg-slate-900 p-4 text-white">
-                                <ToolLabel>Teto por golpe</ToolLabel>
+                                <ToolLabel>Limite de dano</ToolLabel>
                                 <strong className="block text-3xl font-black text-amber-300">{formatNumberPtBr(getDamageCeiling(level))}</strong>
-                                <span className="mt-1 block text-[10px] font-bold text-slate-400">Antes de ampliações por buffs.</span>
+                                <span className="mt-1 block text-[10px] font-bold text-slate-400">Antes dos aumentos temporários.</span>
                             </div>
                         </div>
                     </article>
@@ -204,8 +204,8 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
 
                 <aside className="space-y-5">
                     <article className="game-panel p-4 sm:p-5">
-                        <span className="text-[9px] font-black uppercase tracking-[0.22em] text-purple-500">Liberdade com orientação</span>
-                        <h3 className="mt-1 text-lg font-black text-slate-800">Modo da experiência</h3>
+                        <span className="text-[9px] font-black uppercase tracking-[0.22em] text-purple-500">Sua aventura, suas escolhas</span>
+                        <h3 className="mt-1 text-lg font-black text-slate-800">Como você quer jogar?</h3>
                         <div className="mt-4 grid gap-2">
                             {Object.values(EXPERIENCE_MODES).map(mode => (
                                 <button
@@ -225,7 +225,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                     <article className="game-panel p-4 sm:p-5">
                         <div className="flex items-center justify-between gap-3">
                             <div>
-                                <span className="text-[9px] font-black uppercase tracking-[0.22em] text-orange-500">Biblioteca Rotom</span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.22em] text-orange-500">Arquivo do Treinador</span>
                                 <h3 className="mt-1 text-lg font-black text-slate-800">Todas as regras</h3>
                             </div>
                             <span className="rounded-full bg-slate-800 px-3 py-1 text-[9px] font-black text-white">{RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0)}</span>
@@ -262,9 +262,9 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                     </div>
                                 </details>
                             ))}
-                            {!visibleSections.length && <p className="rounded-xl bg-slate-100 p-4 text-center text-xs font-bold text-slate-500">Nenhuma regra encontrada.</p>}
+                            {!visibleSections.length && <p className="rounded-xl bg-slate-100 p-4 text-center text-xs font-bold text-slate-500">Nenhuma regra apareceu para essa busca. Tente outro termo.</p>}
                         </div>
-                        <a href={TRAINER_GUIDE_URL} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-500 transition-colors hover:border-orange-300 hover:text-orange-600">Abrir página canônica ↗</a>
+                        <a href={TRAINER_GUIDE_URL} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-500 transition-colors hover:border-orange-300 hover:text-orange-600">Consultar o Guia completo ↗</a>
                     </article>
                 </aside>
             </section>

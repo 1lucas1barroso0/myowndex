@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from "react";
+import { formatPokemonInScene } from "../../core/copy.js";
+import { formatType } from "../../core/mechanics.js";
 import { ROOM_SCENARIOS, ROOM_WEATHERS } from "../../core/room.js";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
@@ -34,7 +36,7 @@ const Token = ({
                 y: event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0,
             });
         }}
-        aria-label={`${token.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.currentHp <= 0 ? ", sem HP" : ""}${token.teraActive ? `, Tera ${token.teraType} ativo` : ""}${canMove ? ", arrastável" : ""}`}
+        aria-label={`${token.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
             {token.sprite ? (
@@ -115,11 +117,11 @@ export default function Battlefield({
     };
 
     return (
-        <section className="battlefield-card" aria-label="Campo de jogo">
+        <section className="battlefield-card" aria-label="Campo de batalha">
             <div className="battlefield-toolbar">
                 <div>
-                    <span className="room-kicker">Cena ao vivo</span>
-                    <h3>Campo</h3>
+                    <span className="room-kicker">A cena agora</span>
+                    <h3>Campo de batalha</h3>
                 </div>
                 <div className="battlefield-selectors">
                     <label>
@@ -148,7 +150,7 @@ export default function Battlefield({
             <div className={`battlefield-board scene-${snapshot.scenario} weather-${snapshot.weather}`}>
                 <div className="battlefield-depth battlefield-depth-back" />
                 <div className="battlefield-center-line" />
-                <div className="battlefield-side-label label-opponent">Oposição</div>
+                <div className="battlefield-side-label label-opponent">Oponentes</div>
                 <div className="battlefield-side-label label-ally">Treinadores</div>
                 {snapshot.tokens.map(token => {
                     const position = drag?.tokenId === token.id ? drag : token;
@@ -174,7 +176,7 @@ export default function Battlefield({
                     <div className="battlefield-empty">
                         <span aria-hidden="true">◇</span>
                         <strong>O campo está pronto</strong>
-                        <small>Adicione Pokémon usando o painel de equipe.</small>
+                        <small>Leve uma equipe para a cena quando estiver tudo pronto.</small>
                     </div>
                 )}
                 <div className="battlefield-pixel-grid" aria-hidden="true" />
@@ -182,8 +184,8 @@ export default function Battlefield({
 
             <div className="battlefield-footer">
                 <span>{ROOM_SCENARIOS.find(scene => scene.id === snapshot.scenario)?.label}</span>
-                <span>{snapshot.tokens.length} Pokémon em cena</span>
-                <span>{tokenById[currentTokenId]?.name ? `Turno: ${tokenById[currentTokenId].name}` : "Sem iniciativa"}</span>
+                <span>{formatPokemonInScene(snapshot.tokens.length)}</span>
+                <span>{tokenById[currentTokenId]?.name ? `Turno de ${tokenById[currentTokenId].name}` : "Aguardando iniciativa"}</span>
             </div>
         </section>
     );

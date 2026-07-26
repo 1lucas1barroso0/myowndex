@@ -114,8 +114,10 @@ const packTeam = team => {
 };
 
 const unpackTeam = payload => {
-    if (!payload || payload.z !== 4 || !Array.isArray(payload.p)) throw new Error("Código MyOwnDex inválido.");
-    if (payload.p.length > 6) throw new Error("Uma Box pode ter no máximo 6 parceiros.");
+    if (!payload || payload.z !== 4 || !Array.isArray(payload.p)) {
+        throw new Error("Este código não parece pertencer ao MyOwnDex. Confira se ele foi copiado por inteiro.");
+    }
+    if (payload.p.length > 6) throw new Error("Uma Box guarda até seis parceiros.");
     return normalizeTeam({
         shareId: payload.id,
         updatedAt: payload.u,
@@ -144,7 +146,7 @@ const decodeLegacy = code => {
     }
     const payload = JSON.parse(json);
     if (!payload || !Array.isArray(payload.partners) || payload.partners.length > 6) {
-        throw new Error("Código V3 inválido.");
+        throw new Error("Este código antigo de Box não pôde ser lido. Confira se ele foi copiado por inteiro.");
     }
     return normalizeTeam({
         shareId: deterministicId(code),
@@ -175,8 +177,8 @@ const decodeLegacy = code => {
 
 export const extractShareCode = input => {
     const text = String(input || "").trim();
-    if (!text) throw new Error("Cole um código ou link da Box.");
-    if (text.length > MAX_CODE_LENGTH) throw new Error("O código excede o limite de segurança.");
+    if (!text) throw new Error("Cole o código ou o link compartilhado da Box.");
+    if (text.length > MAX_CODE_LENGTH) throw new Error("Este código é longo demais para uma Box do MyOwnDex.");
     const directIndex = [text.indexOf(SHARE_PREFIX), text.indexOf(RAW_SHARE_PREFIX), text.indexOf(LEGACY_SHARE_PREFIX)]
         .filter(index => index >= 0)
         .sort((a, b) => a - b)[0];
@@ -205,16 +207,29 @@ export const encodeTeam = async team => {
 };
 
 export const decodeTeam = async input => {
-    const code = extractShareCode(input);
-    if (code.startsWith(LEGACY_SHARE_PREFIX) || (!code.startsWith(SHARE_PREFIX) && !code.startsWith(RAW_SHARE_PREFIX))) {
-        return decodeLegacy(code);
+    try {
+        const code = extractShareCode(input);
+        if (code.startsWith(LEGACY_SHARE_PREFIX) || (!code.startsWith(SHARE_PREFIX) && !code.startsWith(RAW_SHARE_PREFIX))) {
+            return decodeLegacy(code);
+        }
+        const isCompressed = code.startsWith(SHARE_PREFIX);
+        const payload = code.slice(isCompressed ? SHARE_PREFIX.length : RAW_SHARE_PREFIX.length);
+        let bytes = base64UrlToBytes(payload);
+        if (isCompressed) {
+            if (typeof DecompressionStream !== "function") {
+                throw new Error("Atualize o navegador para abrir este formato de Box.");
+            }
+            bytes = await streamTransform(bytes, DecompressionStream, "deflate");
+        }
+        return unpackTeam(JSON.parse(textDecoder.decode(bytes)));
+    } catch (error) {
+        if (error instanceof Error && (
+            error.message.includes("Box")
+            || error.message.includes("MyOwnDex")
+            || error.message.includes("navegador")
+        )) {
+            throw error;
+        }
+        throw new Error("Esta Box não pôde ser lida. Confira se o código foi copiado por inteiro.");
     }
-    const isCompressed = code.startsWith(SHARE_PREFIX);
-    const payload = code.slice(isCompressed ? SHARE_PREFIX.length : RAW_SHARE_PREFIX.length);
-    let bytes = base64UrlToBytes(payload);
-    if (isCompressed) {
-        if (typeof DecompressionStream !== "function") throw new Error("Este navegador não consegue abrir o código comprimido.");
-        bytes = await streamTransform(bytes, DecompressionStream, "deflate");
-    }
-    return unpackTeam(JSON.parse(textDecoder.decode(bytes)));
 };

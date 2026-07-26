@@ -1,0 +1,341 @@
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { dedupeByNameLatest, extractId, fetchCached, formatName } from "./core/mechanics.js";
+import { createTeam, hydrateTeams, loadTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
+import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
+import Teambuilder from "./components/Teambuilder/Teambuilder.jsx";
+
+const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
+    return (
+        <button
+            type="button"
+            onClick={onSelect}
+            className="game-card p-4 flex flex-col items-center cursor-pointer group relative text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+            aria-label={`Open ${formatName(species.name)} in the Pokédex`}
+        >
+            <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">
+                No. {id.padStart(4, "0")}
+            </span>
+            <span className="w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
+                <img
+                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`}
+                    alt=""
+                    className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200"
+                    loading="lazy"
+                    onError={event => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+                    }}
+                />
+            </span>
+            <span className="text-[11px] font-black text-slate-700 mt-3 capitalize truncate w-full text-center group-hover:text-red-600 transition-colors">
+                {formatName(species.name)}
+            </span>
+        </button>
+    );
+});
+
+const StatusNotice = ({ tone = "blue", children, onClose }) => {
+    const tones = {
+        blue: "bg-blue-50 border-blue-200 text-blue-800",
+        amber: "bg-amber-50 border-amber-200 text-amber-800",
+        red: "bg-red-50 border-red-200 text-red-800"
+    };
+    return (
+        <div role="status" className={`mb-5 flex items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-xs font-bold ${tones[tone]}`}>
+            <span>{children}</span>
+            {onClose && <button type="button" onClick={onClose} className="text-base leading-none" aria-label="Dismiss message">×</button>}
+        </div>
+    );
+};
+
+export default function App() {
+    const [species, setSpecies] = useState([]);
+    const [dexLoading, setDexLoading] = useState(true);
+    const [dexError, setDexError] = useState("");
+    const [dexAttempt, setDexAttempt] = useState(0);
+    const [searchInput, setSearchInput] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isTTRPG, setIsTTRPG] = useState(false);
+    const [isHackmon, setIsHackmon] = useState(false);
+    const [limit, setLimit] = useState(60);
+    const [selectedUrl, setSelectedUrl] = useState(null);
+    const [view, setView] = useState("pokedex");
+    const [online, setOnline] = useState(() => typeof navigator === "undefined" || navigator.onLine);
+    const [notice, setNotice] = useState(null);
+    const deferredSearchTerm = useDeferredValue(searchTerm);
+
+    const [teams, setTeams] = useState([]);
+    const [teamsBooted, setTeamsBooted] = useState(false);
+    const [activeTeamId, setActiveTeamId] = useState(null);
+    const [storageError, setStorageError] = useState(false);
+    const [env, setEnv] = useState({ items: [], moves: [], abilities: [] });
+    const [envLoading, setEnvLoading] = useState(false);
+    const [envLoaded, setEnvLoaded] = useState(false);
+    const [envError, setEnvError] = useState("");
+
+    useEffect(() => {
+        const stored = loadTeams();
+        setTeams(stored);
+        setActiveTeamId(stored[0]?.id || null);
+        setTeamsBooted(true);
+        let active = true;
+        if (stored.length) {
+            hydrateTeams(stored).then(hydrated => {
+                if (active) setTeams(hydrated);
+            });
+        }
+        return () => { active = false; };
+    }, []);
+
+    useEffect(() => {
+        if (!teamsBooted) return;
+        setStorageError(!saveTeams(teams));
+    }, [teams, teamsBooted]);
+
+    useEffect(() => {
+        const onOnline = () => setOnline(true);
+        const onOffline = () => setOnline(false);
+        window.addEventListener("online", onOnline);
+        window.addEventListener("offline", onOffline);
+        return () => {
+            window.removeEventListener("online", onOnline);
+            window.removeEventListener("offline", onOffline);
+        };
+    }, []);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => setSearchTerm(searchInput.trim()), 140);
+        return () => window.clearTimeout(timer);
+    }, [searchInput]);
+
+    useEffect(() => {
+        let mounted = true;
+        setDexLoading(true);
+        setDexError("");
+        fetchCached("https://pokeapi.co/api/v2/pokemon-species?limit=1500", {
+            maxAgeMs: 24 * 60 * 60 * 1000,
+            forceRefresh: dexAttempt > 0
+        }).then(result => {
+            if (!mounted) return;
+            if (!result?.results?.length) {
+                setDexError("A conexão com o Centro Pokémon falhou. Tente novamente.");
+                return;
+            }
+            setSpecies(result.results);
+        }).finally(() => {
+            if (mounted) setDexLoading(false);
+        });
+        return () => { mounted = false; };
+    }, [dexAttempt]);
+
+    useEffect(() => {
+        if (view !== "pokedex" || !species.length) return;
+        let cancelled = false;
+        const prefetch = () => {
+            if (cancelled) return;
+            species.slice(0, 12).forEach(entry => {
+                const image = new Image();
+                image.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${extractId(entry.url)}.png`;
+            });
+        };
+        const task = window.requestIdleCallback ? window.requestIdleCallback(prefetch) : window.setTimeout(prefetch, 500);
+        return () => {
+            cancelled = true;
+            if (window.cancelIdleCallback) window.cancelIdleCallback(task);
+            else window.clearTimeout(task);
+        };
+    }, [species, view]);
+
+    useEffect(() => {
+        if (view !== "teambuilder" || envLoaded || envLoading) return;
+        let mounted = true;
+        setEnvLoading(true);
+        setEnvError("");
+        Promise.all([
+            fetchCached("https://pokeapi.co/api/v2/item?limit=2500", { maxAgeMs: 24 * 60 * 60 * 1000 }),
+            fetchCached("https://pokeapi.co/api/v2/move?limit=2000", { maxAgeMs: 24 * 60 * 60 * 1000 }),
+            fetchCached("https://pokeapi.co/api/v2/ability?limit=1000", { maxAgeMs: 24 * 60 * 60 * 1000 })
+        ]).then(([items, moves, abilities]) => {
+            if (!mounted) return;
+            setEnv({
+                items: dedupeByNameLatest(items?.results),
+                moves: dedupeByNameLatest(moves?.results),
+                abilities: dedupeByNameLatest(abilities?.results)
+            });
+            if (!items?.results || !moves?.results || !abilities?.results) {
+                setEnvError("Algumas listas estão usando o modo offline. Seus dados continuam seguros.");
+            }
+            setEnvLoaded(true);
+        }).finally(() => {
+            if (mounted) setEnvLoading(false);
+        });
+        return () => { mounted = false; };
+    }, [view, envLoaded, envLoading]);
+
+    const filteredSpecies = useMemo(() => {
+        if (!deferredSearchTerm) return species;
+        const query = deferredSearchTerm.toLowerCase();
+        return species.filter(entry => {
+            const name = entry?.name || "";
+            const id = extractId(entry?.url);
+            return name.includes(query) || formatName(name).toLowerCase().includes(query) || id === query;
+        });
+    }, [species, deferredSearchTerm]);
+
+    const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
+
+    const handleOpenPokedex = useCallback(() => setView("pokedex"), []);
+    const handleOpenTeambuilder = useCallback(() => setView("teambuilder"), []);
+    const handleSearchInputChange = useCallback(event => {
+        setSearchInput(event.target.value);
+        setLimit(60);
+    }, []);
+
+    const integrateTeam = useCallback((formData, genderRate) => {
+        const resolvedRate = Number.isFinite(Number(genderRate)) ? Number(genderRate) : -1;
+        let gender = "N";
+        if (resolvedRate === 0) gender = "M";
+        else if (resolvedRate === 8) gender = "F";
+        else if (resolvedRate > 0) gender = Math.random() * 8 < resolvedRate ? "F" : "M";
+
+        const partner = normalizePokemon({
+            species: { ...formData, gender_rate: resolvedRate },
+            level: 5,
+            friendship: 70,
+            ability: formData.abilities?.[0]?.ability?.name || "",
+            nature: "hardy",
+            gender,
+            genderRate: resolvedRate,
+            genderLocked: false
+        });
+
+        let targetId = activeTeamId;
+        if (!teams.length) {
+            const first = createTeam("Box 1");
+            targetId = first.id;
+            setTeams([{ ...first, pokemon: [partner] }]);
+            setActiveTeamId(first.id);
+            setNotice({ tone: "blue", text: `${formatName(formData.name)} entrou na Box 1.` });
+        } else {
+            const target = teams.find(team => team.id === targetId) || teams[0];
+            targetId = target.id;
+            if ((target.pokemon?.length || 0) >= 6) {
+                setNotice({ tone: "amber", text: `${target.name} está cheia. Escolha ou crie outra Box.` });
+                setView("teambuilder");
+                return;
+            }
+            setTeams(current => current.map(team => team.id === targetId
+                ? touchTeam({ ...team, pokemon: [...(team.pokemon || []), partner] })
+                : team
+            ));
+            setActiveTeamId(targetId);
+            setNotice({ tone: "blue", text: `${formatName(formData.name)} foi adicionado à equipe.` });
+        }
+        setView("teambuilder");
+    }, [activeTeamId, teams]);
+
+    const teamBuilderProps = useMemo(() => ({
+        teams,
+        setTeams,
+        allItems: env.items,
+        allMoves: env.moves,
+        allAbilities: env.abilities,
+        activeTeamId,
+        setActiveTeamId,
+        isTTRPG,
+        isHackmon,
+        envLoading,
+        envError,
+        setNotice,
+        onSearchClick: handleOpenPokedex
+    }), [teams, env, activeTeamId, isTTRPG, isHackmon, envLoading, envError, handleOpenPokedex]);
+
+    return (
+        <div className="h-[100dvh] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_30%)]">
+            <header className="shrink-0 px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 md:pt-5 pb-2 z-40">
+                <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-4 md:p-5">
+                    <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+                        <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
+                            <div className="flex items-center gap-4">
+                                <button type="button" aria-label="Open Pokédex" onClick={handleOpenPokedex} className="w-14 h-14 bg-sky-400 rounded-full border-4 border-white shadow-[0_0_18px_#00d2ff] relative overflow-hidden shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
+                                    <span className="absolute top-1.5 left-1.5 w-5 h-5 bg-white rounded-full opacity-70" />
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Pokémon</span>
+                                    <h1 className="text-xl sm:text-2xl font-black text-slate-800">MyOwnDex</h1>
+                                </div>
+                            </div>
+                            <nav aria-label="Main navigation" className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[220px]">
+                                <button type="button" onClick={handleOpenPokedex} className={`game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none ${view === "pokedex" ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600"}`}>Pokédex</button>
+                                <button type="button" onClick={handleOpenTeambuilder} className={`game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none ${view === "teambuilder" ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600"}`}>Box</button>
+                            </nav>
+                        </div>
+
+                        <div className="flex gap-3 w-full lg:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
+                            {view === "pokedex" && (
+                                <div className="relative flex-grow w-full sm:w-80">
+                                    <label htmlFor="pokemon-search" className="sr-only">Search Pokémon by name or number</label>
+                                    <input id="pokemon-search" type="search" value={searchInput} placeholder="Name or number…" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
+                                    <svg aria-hidden="true" className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                </div>
+                            )}
+                            <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700">
+                                <button type="button" aria-pressed={isHackmon} onClick={() => setIsHackmon(value => !value)} className={`px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ${isHackmon ? "bg-purple-600 text-white" : "text-slate-300"}`}>Hackmon</button>
+                                <button type="button" aria-pressed={isTTRPG} onClick={() => setIsTTRPG(value => !value)} className={`px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 ${isTTRPG ? "bg-amber-500 text-white" : "text-slate-300"}`}>TTRPG</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-8 relative z-10">
+                <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-5 md:p-8 min-h-[70vh]">
+                    {!online && <StatusNotice tone="amber">Modo offline: os dados já vistos continuam disponíveis.</StatusNotice>}
+                    {storageError && <StatusNotice tone="red">O navegador não conseguiu salvar a Box. Libere espaço ou permita armazenamento local.</StatusNotice>}
+                    {notice && <StatusNotice tone={notice.tone} onClose={() => setNotice(null)}>{notice.text}</StatusNotice>}
+
+                    {view === "pokedex" ? (
+                        dexLoading ? (
+                            <div aria-label="Loading Pokédex" className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">
+                                {[...Array(40)].map((_, index) => <div key={index} className="bg-slate-200 border-2 border-slate-300 rounded-2xl h-36 skeleton" />)}
+                            </div>
+                        ) : dexError && !species.length ? (
+                            <div className="min-h-[55vh] flex flex-col items-center justify-center text-center">
+                                <div className="text-5xl mb-4" aria-hidden="true">📡</div>
+                                <h2 className="text-xl font-black text-slate-800">Pokédex temporariamente offline</h2>
+                                <p className="mt-2 text-sm text-slate-500">{dexError}</p>
+                                <button type="button" onClick={() => setDexAttempt(value => value + 1)} className="mt-5 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b]">Tentar novamente</button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="bg-slate-900 border-4 border-slate-800 rounded-2xl p-5 mb-8 shadow-xl relative overflow-hidden">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className={`w-3 h-3 rounded-full shadow-[0_0_8px_currentColor] ${online ? "bg-emerald-400 text-emerald-400 animate-pulse" : "bg-amber-400 text-amber-400"}`} />
+                                        <span className={`text-[10px] font-mono font-bold tracking-widest uppercase ${online ? "text-emerald-400" : "text-amber-400"}`}>{online ? "System Online" : "Offline Cache"}</span>
+                                    </div>
+                                    <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
+                                        Pokémon Storage<br />
+                                        <span className="text-slate-400 text-sm font-bold">&gt; {filteredSpecies.length} entries ready</span>
+                                    </h2>
+                                </div>
+                                {visible.length ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3 sm:gap-5">
+                                        {visible.map(entry => <PokemonCard key={entry.name} species={entry} id={extractId(entry.url)} onSelect={() => setSelectedUrl(entry.url)} />)}
+                                    </div>
+                                ) : (
+                                    <div className="py-16 text-center text-sm font-bold text-slate-500">No Pokémon matched “{deferredSearchTerm}”.</div>
+                                )}
+                                {limit < filteredSpecies.length && (
+                                    <button type="button" onClick={() => setLimit(value => value + 60)} className="mt-8 sm:mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
+                                        Load more Pokémon
+                                    </button>
+                                )}
+                            </>
+                        )
+                    ) : <Teambuilder envProps={teamBuilderProps} />}
+                </div>
+            </main>
+            {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
+        </div>
+    );
+}

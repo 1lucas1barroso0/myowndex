@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mergeImportedTeam, normalizeTeam } from "../src/core/team.js";
+import { mergeHydratedTeams, mergeImportedTeam, normalizeTeam } from "../src/core/team.js";
 import { decodeTeam, encodeTeam, LEGACY_SHARE_PREFIX } from "../src/core/teamShare.js";
 
 const completeTeam = normalizeTeam({
@@ -75,4 +75,35 @@ test("import merge keeps one copy and lets only the newest revision win", () => 
   const ignored = mergeImportedTeam(replaced.teams, oldTeam);
   assert.equal(ignored.status, "ignored");
   assert.equal(ignored.teams.length, 1);
+});
+
+test("late API hydration enriches species without overwriting live edits", () => {
+  const stored = normalizeTeam({
+    id: "box-1",
+    shareId: "shared-1",
+    pokemon: [{ id: "partner-1", formName: "pikachu", nickname: "Before" }],
+  });
+  const live = {
+    ...stored,
+    pokemon: [{ ...stored.pokemon[0], nickname: "Edited while loading", item: "light-ball" }],
+  };
+  const hydrated = {
+    ...stored,
+    pokemon: [{
+      ...stored.pokemon[0],
+      species: { name: "pikachu", moves: [{ move: { name: "thunderbolt" } }] },
+      genderRate: 4,
+    }],
+  };
+  const merged = mergeHydratedTeams([live], [hydrated]);
+  assert.equal(merged[0].pokemon[0].nickname, "Edited while loading");
+  assert.equal(merged[0].pokemon[0].item, "light-ball");
+  assert.equal(merged[0].pokemon[0].species.moves[0].move.name, "thunderbolt");
+});
+
+test("partial custom base stats stay partial after normalization", () => {
+  const team = normalizeTeam({
+    pokemon: [{ formName: "mew", customStats: { attack: 123 } }],
+  });
+  assert.deepEqual(team.pokemon[0].customStats, { attack: 123 });
 });

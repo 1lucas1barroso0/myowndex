@@ -56,9 +56,12 @@ export const normalizePokemon = input => {
     const species = speciesShell(source);
     const rawRate = Number(source.genderRate ?? species.gender_rate ?? -1);
     const genderRate = Number.isFinite(rawRate) ? Math.min(8, Math.max(-1, rawRate)) : -1;
-    const customStats = source.customStats && typeof source.customStats === "object"
-        ? Object.fromEntries(STAT_KEYS.map(stat => [stat, clampInteger(source.customStats[stat], 1, 255, 1)]))
-        : null;
+    const customStatEntries = source.customStats && typeof source.customStats === "object"
+        ? STAT_KEYS
+            .filter(stat => Object.prototype.hasOwnProperty.call(source.customStats, stat))
+            .map(stat => [stat, clampInteger(source.customStats[stat], 1, 255, 1)])
+        : [];
+    const customStats = customStatEntries.length ? Object.fromEntries(customStatEntries) : null;
 
     return {
         id: asText(source.id) || createId("partner"),
@@ -196,6 +199,31 @@ export const hydrateTeam = async team => {
 };
 
 export const hydrateTeams = async teams => Promise.all(asArray(teams).map(hydrateTeam));
+
+export const mergeHydratedTeams = (currentTeams, hydratedTeams) => {
+    const hydratedByIdentity = new Map();
+    asArray(hydratedTeams).forEach(team => {
+        hydratedByIdentity.set(team.id, team);
+        hydratedByIdentity.set(team.shareId, team);
+    });
+    return asArray(currentTeams).map(currentTeam => {
+        const hydrated = hydratedByIdentity.get(currentTeam.id) || hydratedByIdentity.get(currentTeam.shareId);
+        if (!hydrated) return currentTeam;
+        return {
+            ...currentTeam,
+            pokemon: asArray(currentTeam.pokemon).map((partner, index) => {
+                const hydratedPartner = hydrated.pokemon?.find(candidate => candidate.id === partner.id)
+                    || hydrated.pokemon?.[index];
+                if (!hydratedPartner?.species?.name) return partner;
+                return {
+                    ...partner,
+                    species: hydratedPartner.species,
+                    genderRate: hydratedPartner.genderRate
+                };
+            })
+        };
+    });
+};
 
 export const mergeImportedTeam = (existingTeams, incomingTeam) => {
     const incoming = normalizeTeam(incomingTeam);

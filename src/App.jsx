@@ -1,6 +1,6 @@
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { dedupeByNameLatest, extractId, fetchCached, formatName } from "./core/mechanics.js";
-import { createTeam, hydrateTeams, loadTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
+import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
 import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
 import Teambuilder from "./components/Teambuilder/Teambuilder.jsx";
 
@@ -60,7 +60,7 @@ export default function App() {
     const [limit, setLimit] = useState(60);
     const [selectedUrl, setSelectedUrl] = useState(null);
     const [view, setView] = useState("pokedex");
-    const [online, setOnline] = useState(() => typeof navigator === "undefined" || navigator.onLine);
+    const [online, setOnline] = useState(true);
     const [notice, setNotice] = useState(null);
     const deferredSearchTerm = useDeferredValue(searchTerm);
 
@@ -81,7 +81,7 @@ export default function App() {
         let active = true;
         if (stored.length) {
             hydrateTeams(stored).then(hydrated => {
-                if (active) setTeams(hydrated);
+                if (active) setTeams(current => mergeHydratedTeams(current, hydrated));
             });
         }
         return () => { active = false; };
@@ -93,6 +93,7 @@ export default function App() {
     }, [teams, teamsBooted]);
 
     useEffect(() => {
+        setOnline(navigator.onLine);
         const onOnline = () => setOnline(true);
         const onOffline = () => setOnline(false);
         window.addEventListener("online", onOnline);
@@ -147,7 +148,7 @@ export default function App() {
     }, [species, view]);
 
     useEffect(() => {
-        if (view !== "teambuilder" || envLoaded || envLoading) return;
+        if (view !== "teambuilder" || envLoaded) return;
         let mounted = true;
         setEnvLoading(true);
         setEnvError("");
@@ -170,7 +171,7 @@ export default function App() {
             if (mounted) setEnvLoading(false);
         });
         return () => { mounted = false; };
-    }, [view, envLoaded, envLoading]);
+    }, [view, envLoaded]);
 
     const filteredSpecies = useMemo(() => {
         if (!deferredSearchTerm) return species;

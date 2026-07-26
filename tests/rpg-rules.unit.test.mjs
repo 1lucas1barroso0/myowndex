@@ -57,5 +57,6 @@ test("RPG scale, XP and damage ceiling follow the guide", () => {
   assert.equal(getRpgScale(51), 2);
   assert.equal(getRpgScale(52), 3);
   assert.equal(getNextLevelXp(10), 5.5);
+  assert.equal(getDamageCeiling(1), 1);
   assert.equal(getDamageCeiling(11), 5.5);
 });

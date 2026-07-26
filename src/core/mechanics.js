@@ -123,8 +123,8 @@ export const convertToTTRPG = (value, isHp = false) => {
     if (!Number.isFinite(numericValue) || numericValue <= 0) return isHp ? 1 : 0;
     const result = numericValue / 20;
     const whole = Math.floor(result);
-    const fractionTenths = Math.round((result - whole) * 10);
-    const finalValue = fractionTenths > 5 ? Math.ceil(result) : whole;
+    const fractionHundredths = Math.round((result - whole) * 100);
+    const finalValue = fractionHundredths >= 56 ? Math.ceil(result) : whole;
     return isHp && finalValue === 0 ? 1 : finalValue;
 };
 
@@ -138,11 +138,24 @@ export const calculateStat = (base, ev, iv, level, natureMulti, isHp, speciesNam
     return Math.floor((Math.floor(((2 * b + i + Math.floor(e / 4)) * l) / 100) + 5) * natureMulti);
 };
 
-export const formatName = str => str ? String(str).replace(/-/g, " ").replace(/\b\w/g, letter => letter.toUpperCase()) : "Unknown";
+export const formatName = str => str ? String(str).replace(/-/g, " ").replace(/\b\w/g, letter => letter.toUpperCase()) : "Desconhecido";
+const PT_BR_NUMBER_FORMAT = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
+export const formatNumberPtBr = value => {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? PT_BR_NUMBER_FORMAT.format(numericValue) : "—";
+};
+export const preferredLocalizedEntry = entries => {
+    const source = Array.isArray(entries) ? entries : [];
+    for (const language of ["pt-br", "pt", "en"]) {
+        const entry = source.find(candidate => String(candidate?.language?.name || "").toLowerCase() === language);
+        if (entry) return entry;
+    }
+    return source[0] || null;
+};
 export const extractId = url => url ? String(url).split("/").filter(Boolean).pop() : "0";
 
 export const VERSION_GROUPS = [
-    { value: "auto", label: "Latest Available" },
+    { value: "auto", label: "Mais recente disponível" },
     { value: "champions", label: "Pokémon Champions" },
     { value: "mega-dimension", label: "Legends: Z-A — Mega Dimension" },
     { value: "legends-za", label: "Pokémon Legends: Z-A" },
@@ -241,7 +254,7 @@ export const dedupeByNameLatest = entries => {
     return [...unique.values()].sort((a, b) => a.name.localeCompare(b.name));
 };
 
-export const STAT_MAP = { hp: "HP", attack: "Atk", defense: "Def", "special-attack": "Sp. Atk", "special-defense": "Sp. Def", speed: "Spe" };
+export const STAT_MAP = { hp: "HP", attack: "Ataque", defense: "Defesa", "special-attack": "Atq. Esp.", "special-defense": "Def. Esp.", speed: "Velocidade" };
 export const NATURES = {
     hardy: {up: null, down: null}, lonely: {up: "attack", down: "defense"}, brave: {up: "attack", down: "speed"}, adamant: {up: "attack", down: "special-attack"}, naughty: {up: "attack", down: "special-defense"},
     bold: {up: "defense", down: "attack"}, docile: {up: null, down: null}, relaxed: {up: "defense", down: "speed"}, impish: {up: "defense", down: "special-attack"}, lax: {up: "defense", down: "special-defense"},
@@ -250,6 +263,15 @@ export const NATURES = {
     calm: {up: "special-defense", down: "attack"}, gentle: {up: "special-defense", down: "defense"}, sassy: {up: "special-defense", down: "speed"}, careful: {up: "special-defense", down: "special-attack"}, quirky: {up: null, down: null}
 };
 export const TYPES = ["normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy", "stellar"];
+export const TYPE_LABELS = {
+    normal: "Normal", fire: "Fogo", water: "Água", electric: "Elétrico", grass: "Planta", ice: "Gelo",
+    fighting: "Lutador", poison: "Venenoso", ground: "Terrestre", flying: "Voador", psychic: "Psíquico",
+    bug: "Inseto", rock: "Pedra", ghost: "Fantasma", dragon: "Dragão", dark: "Sombrio", steel: "Aço",
+    fairy: "Fada", stellar: "Estelar"
+};
+export const DAMAGE_CLASS_LABELS = { physical: "Físico", special: "Especial", status: "Status" };
+export const formatType = type => TYPE_LABELS[type] || formatName(type);
+export const formatDamageClass = damageClass => DAMAGE_CLASS_LABELS[damageClass] || formatName(damageClass);
 export const TYPE_COLORS = { normal: "#9ca3af", fire: "#f97316", water: "#3b82f6", electric: "#eab308", grass: "#22c55e", ice: "#67e8f9", fighting: "#ef4444", poison: "#a855f7", ground: "#d97706", flying: "#818cf8", psychic: "#ec4899", bug: "#84cc16", rock: "#b45309", ghost: "#6366f1", dragon: "#6366f1", dark: "#334155", steel: "#94a3b8", fairy: "#f472b6", stellar: "#14b8a6" };
 export const MATCHUPS = {
     normal: { fighting: 2, ghost: 0 }, fire: { water: 2, ground: 2, rock: 2, fire: .5, grass: .5, ice: .5, bug: .5, steel: .5, fairy: .5 },

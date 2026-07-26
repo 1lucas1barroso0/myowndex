@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchCached, calculateStat, formatName, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
+import { fetchCached, calculateStat, formatName, formatNumberPtBr, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
 import { RPG_STATUSES } from '../../core/team.js';
 
@@ -313,8 +313,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 </button>
                             </div>
                             <div className="flex items-center gap-1">
-                                <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} className={"rounded-xl px-2 py-2 text-xs font-black transition-all outline-none " + (pk.genderLocked ? "bg-slate-700 text-white" : "text-slate-500 hover:bg-slate-200")} title={pk.genderLocked ? "Unlock gender randomizer" : "Lock current gender"}>{pk.genderLocked ? "🔒" : "🔓"}</button>
-                                <button type="button" disabled={pk.genderLocked || currentGenderRate === -1} onClick={() => randomize("gender")} className="rounded-xl px-3 py-2 text-sm font-black text-slate-500 transition-all hover:bg-blue-100 hover:text-blue-600 outline-none disabled:cursor-not-allowed disabled:opacity-30" title="Randomize using the official gender ratio">🎲</button>
+                                <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} className={"rounded-xl px-2 py-2 text-xs font-black transition-all outline-none " + (pk.genderLocked ? "bg-slate-700 text-white" : "text-slate-500 hover:bg-slate-200")} title={pk.genderLocked ? "Desbloquear sorteio de gênero" : "Manter o gênero atual"}>{pk.genderLocked ? "🔒" : "🔓"}</button>
+                                <button type="button" disabled={pk.genderLocked || currentGenderRate === -1} onClick={() => randomize("gender")} className="rounded-xl px-3 py-2 text-sm font-black text-slate-500 transition-all hover:bg-blue-100 hover:text-blue-600 outline-none disabled:cursor-not-allowed disabled:opacity-30" title="Sortear pela proporção oficial de gênero">🎲</button>
                             </div>
                         </div>
                     </div>
@@ -344,8 +344,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                         />
                                         {(moveName || detail) && (
                                             <div className="mt-1 flex flex-wrap items-center gap-1 border-t border-slate-200/80 px-2 pt-2">
-                                                {detail?.power != null && <span className="move-chip">PWR {isTTRPG ? convertToTTRPG(detail.power) : detail.power}</span>}
-                                                <span className="move-chip">ACC {detail?.accuracy ?? "—"}</span>
+                                                {detail?.power != null && <span className="move-chip">POD {isTTRPG ? convertToTTRPG(detail.power) : detail.power}</span>}
+                                                <span className="move-chip">PRE {detail?.accuracy ?? "—"}</span>
                                                 <span className="move-chip">PP {detail?.pp ?? "—"}</span>
                                                 {detail?.priority !== 0 && detail?.priority != null && <span className="move-chip">PRI {detail.priority > 0 ? "+" : ""}{detail.priority}</span>}
                                                 {isException && <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[8px] font-black uppercase text-amber-800">{experienceMode === "game" ? "Fora do jogo" : "Exceção anime"}</span>}
@@ -400,7 +400,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 <span className="editor-label">XP atual</span>
                                 <span className="relative block">
                                     <input type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: Math.max(0, Number(event.target.value) || 0) })} className="editor-input pr-20" />
-                                    <small className="absolute right-3 top-3 text-[9px] font-black text-slate-400">/{nextLevelXp} p/ Nv.{Math.min(200, (Number(pk.level) || 1) + 1)}</small>
+                                    <small className="absolute right-3 top-3 text-[9px] font-black text-slate-400">/{formatNumberPtBr(nextLevelXp)} p/ Nv. {Math.min(200, (Number(pk.level) || 1) + 1)}</small>
                                 </span>
                             </label>
                             <label>
@@ -432,21 +432,21 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 shadow-sm mt-2 sm:mt-0">
                     <div className="flex justify-between items-center mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-slate-200">
                         <div className="flex items-center gap-3">
-                            <h3 className="text-[10px] sm:text-[11px] font-black text-slate-500 uppercase tracking-widest">Training</h3>
+                            <h3 className="text-[10px] sm:text-[11px] font-black text-slate-500 uppercase tracking-widest">Treinamento</h3>
                             <button onClick={() => randomize("ivs")} className="sm:hidden flex items-center gap-1 text-[9px] font-black text-slate-500 hover:text-blue-500 transition-colors outline-none bg-white px-2 py-1 rounded-md border-2 border-slate-200 shadow-sm active:translate-y-px">
                                 IVs 🎲
                             </button>
                         </div>
                         <div className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">
-                            Free EVs: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
+                            EVs livres: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
                         </div>
                     </div>
                     
                     <div className="w-full">
                         <div className="hidden sm:flex items-center gap-2 mb-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-2">
-                            <div className="w-12 text-left">Stat</div>
+                            <div className="w-12 text-left">Atributo</div>
                             <div className="w-10">Base</div>
-                            <div className="flex-1 text-left">Effort (EVs)</div>
+                            <div className="flex-1 text-left">Esforço (EVs)</div>
                             <div className="w-12 cursor-pointer hover:text-blue-500 flex items-center justify-center gap-1 transition-colors" onClick={() => randomize("ivs")}>IVs 🎲</div>
                             <div className={"w-12 text-right " + (isTTRPG ? "text-red-500" : "text-slate-800")}>Total</div>
                         </div>

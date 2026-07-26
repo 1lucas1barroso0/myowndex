@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS } from '../../core/mechanics.js';
+import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
 
@@ -23,7 +23,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         fetchCached(speciesUrl).then(async data => {
             if (!mounted) return;
             if (!data) {
-                setLoadError("This Pokédex entry could not be loaded.");
+                setLoadError("Não foi possível carregar este registro da Pokédex.");
                 return;
             }
             setBaseInfo(data);
@@ -44,7 +44,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     setEvoChain(paths);
                 }
             }
-        }).catch(() => mounted && setLoadError("This Pokédex entry could not be loaded."));
+        }).catch(() => mounted && setLoadError("Não foi possível carregar este registro da Pokédex."));
         return () => mounted = false;
     }, [speciesUrl]);
 
@@ -56,7 +56,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             fetchCached(activeForm.url).then(async data => {
                 if (!mounted) return;
                 if (!data) {
-                    setLoadError("This form could not be loaded.");
+                    setLoadError("Não foi possível carregar esta forma.");
                     return;
                 }
                 let moves = data.moves || [];
@@ -69,7 +69,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 }
                 
                 setFormData({ ...data, moves });
-            }).catch(() => mounted && setLoadError("This form could not be loaded."));
+            }).catch(() => mounted && setLoadError("Não foi possível carregar esta forma."));
         }
         return () => mounted = false;
     }, [activeForm, baseInfo]);
@@ -106,15 +106,15 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     };
 
     if (loadError) return (
-        <div role="dialog" aria-modal="true" aria-label="Pokédex loading error" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-5" onClick={onClose}>
+        <div role="dialog" aria-modal="true" aria-label="Erro ao carregar registro da Pokédex" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-5" onClick={onClose}>
             <div className="game-shell max-w-md p-7 text-center" onClick={event => event.stopPropagation()}>
                 <div className="text-4xl mb-3" aria-hidden="true">📡</div>
                 <p className="font-black text-slate-800">{loadError}</p>
-                <button type="button" onClick={onClose} className="mt-5 rounded-xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white">Close</button>
+                <button type="button" onClick={onClose} className="mt-5 rounded-xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white">Fechar</button>
             </div>
         </div>
     );
-    if (!baseInfo || !formData) return <div role="dialog" aria-modal="true" aria-label="Loading Pokédex entry" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"><div className="w-16 h-16 border-8 border-red-500 border-t-white rounded-full animate-spin shadow-lg"></div></div>;
+    if (!baseInfo || !formData) return <div role="dialog" aria-modal="true" aria-label="Carregando registro da Pokédex" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"><div className="w-16 h-16 border-8 border-red-500 border-t-white rounded-full animate-spin shadow-lg"></div></div>;
 
     const defenses = calculateDefenses(formData.types);
     const bst = formData.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
@@ -126,7 +126,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             
             <div className="game-shell w-full max-w-6xl h-[100vh] md:h-[90vh] flex flex-col md:flex-row overflow-hidden relative shadow-2xl bg-slate-50 md:rounded-3xl" onClick={e => e.stopPropagation()}>
                 
-                <button type="button" aria-label="Close Pokédex entry" onClick={onClose} className="absolute top-5 right-5 sm:top-6 sm:right-6 w-11 h-11 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[60] transition-all border-4 border-slate-200 shadow-sm">
+                <button type="button" aria-label="Fechar registro da Pokédex" onClick={onClose} className="absolute top-5 right-5 sm:top-6 sm:right-6 w-11 h-11 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[60] transition-all border-4 border-slate-200 shadow-sm">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 
@@ -142,7 +142,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         </h2>
                         {activeForm?.name?.includes("-") && (
                             <span className="text-sm font-black text-red-500 capitalize block mt-2">
-                                {activeForm.name.substring(activeForm.name.indexOf("-") + 1).replace(/-/g, " ")} Form
+                                Forma {activeForm.name.substring(activeForm.name.indexOf("-") + 1).replace(/-/g, " ")}
                             </span>
                         )}
                     </div>
@@ -161,19 +161,19 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 }}
                             />
                         ) : (
-                            <span className="text-sm font-black text-slate-400">Image not found in Dex</span>
+                            <span className="text-sm font-black text-slate-400">Imagem indisponível na Pokédex</span>
                         )}
                     </div>
                     
                     <button onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1); onClose(); }} className="w-full py-4 mb-8 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991b1b] active:shadow-[0_0px_0_#991b1b] active:translate-y-1.5 transition-all flex justify-center items-center gap-2 outline-none shrink-0">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path></svg> Add to Team
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path></svg> Adicionar à equipe
                     </button>
 
                     <div className="grid gap-4 shrink-0">
                         <div className="flex flex-wrap gap-2 mb-2">
                             {formData.types?.map(t => (
                                 <span key={t.type?.name} className="text-[10px] px-3 py-1.5 rounded-lg text-white font-black uppercase tracking-widest shadow-sm border border-black/10" style={{ backgroundColor: TYPE_COLORS[t.type?.name] || TYPE_COLORS.normal }}>
-                                    {t.type?.name}
+                                    {formatType(t.type?.name)}
                                 </span>
                             ))}
                         </div>
@@ -196,7 +196,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 );
                             })}
                             <div className="flex justify-between items-center mt-3 pt-3 border-t-2 border-slate-200">
-                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Base Stat Total</span>
+                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Total de atributos base</span>
                                 <span className="text-xl font-black text-slate-800">{bst}</span>
                             </div>
                         </div>
@@ -228,7 +228,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 onClick={(e) => { e.stopPropagation(); setTab(t); setIsExpanded(true); }} 
                                 className={"flex-1 pb-3 pt-2 md:py-5 px-1 text-[10px] sm:text-[11px] md:text-[12px] font-black uppercase tracking-wider transition-all outline-none text-center border-b-4 " + (tab === t ? "text-white bg-red-500 border-red-700 shadow-inner" : "text-slate-500 hover:text-slate-700 hover:bg-slate-300 border-transparent")}
                             >
-                                {t === "stats" ? "Dex Data" : t === "defenses" ? "Type Chart" : "Moves"}
+                                {t === "stats" ? "Dados" : t === "defenses" ? "Tipagem" : "Movimentos"}
                             </button>
                         ))}
                     </div>
@@ -237,21 +237,21 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         {tab === "stats" && (
                             <div className="animate-fade-in space-y-8">
                                 <div className="flex gap-4">
-                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Height</span><span className="text-3xl font-black text-slate-800">{((formData.height || 0) / 10).toFixed(1)}m</span></div>
-                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Weight</span><span className="text-3xl font-black text-slate-800">{((formData.weight || 0) / 10).toFixed(1)}kg</span></div>
+                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Altura</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.height || 0) / 10)} m</span></div>
+                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Peso</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.weight || 0) / 10)} kg</span></div>
                                 </div>
                                 
                                 <div>
-                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500"></div> Abilities</h3>
+                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500"></div> Habilidades</h3>
                                     <div className="flex flex-col gap-3">{formData.abilities?.map((a, i) => <AbilityCard key={i} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
                                 </div>
                                 
                                 {baseInfo.varieties?.length > 1 && (
                                     <div>
-                                        <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Other Forms</h3>
+                                        <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Outras formas</h3>
                                         <div className="flex flex-wrap gap-2 bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm">
                                             {baseInfo.varieties.map((v, index) => {
-                                                const btnName = v.pokemon?.name === baseInfo.name ? "Base Form" : (v.pokemon?.name || "").replace(baseInfo.name + "-", "").replace(/-/g, " ") || "Base";
+                                                const btnName = v.pokemon?.name === baseInfo.name ? "Forma base" : (v.pokemon?.name || "").replace(baseInfo.name + "-", "").replace(/-/g, " ") || "Forma base";
                                                 return (
                                                     <button 
                                                         key={v.pokemon?.name || `form-${index}`} 
@@ -267,7 +267,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 )}
                                 
                                 <div>
-                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Evolution Line</h3>
+                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Linha evolutiva</h3>
                                     <div className="bg-white p-6 rounded-2xl border-2 border-slate-200 flex flex-col gap-6 shadow-sm">
                                         {evoChain.length > 0 ? evoChain.map((path, idx) => (
                                             <div key={idx} className="flex items-center gap-4 overflow-x-auto pb-2 no-scrollbar">
@@ -292,14 +292,14 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                     </React.Fragment>
                                                 ))}
                                             </div>
-                                        )) : <span className="text-xs font-black text-slate-400 text-center w-full block py-4">This Pokémon has no known evolution stages.</span>}
+                                        )) : <span className="text-xs font-black text-slate-400 text-center w-full block py-4">Este Pokémon não possui estágios evolutivos conhecidos.</span>}
                                     </div>
                                 </div>
                             </div>
                         )}
                         {tab === "defenses" && (
                             <div className="animate-fade-in">
-                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Type Effectiveness (Damage Taken)</h3>
+                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Efetividade dos tipos (dano recebido)</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
                                     {Object.entries(defenses).map(([t, multi]) => {
                                         let cardStyle = "text-slate-600 border-slate-300 bg-white";
@@ -311,7 +311,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                             <div key={t} className={"flex items-center justify-between p-4 rounded-xl border-2 shadow-sm " + cardStyle}>
                                                 <div className="flex items-center gap-2.5">
                                                     <div className="w-3 h-3 rounded-full shadow-sm border border-black/10" style={{ backgroundColor: TYPE_COLORS[t] || TYPE_COLORS.normal }}></div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">{t}</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">{formatType(t)}</span>
                                                 </div>
                                                 <span className="text-sm font-black">{multi === 0 ? "0x" : multi + "x"}</span>
                                             </div>
@@ -323,12 +323,12 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         {tab === "moves" && (
                             <div className="animate-fade-in">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500"></div> Move Database</h3>
-                                    <span className="bg-slate-800 px-3 py-1 rounded-full text-white text-[10px] font-black shadow-inner">{legalMoves.length} • {VERSION_LABELS[moveVersion] || "Latest"}</span>
+                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500"></div> Banco de movimentos</h3>
+                                    <span className="bg-slate-800 px-3 py-1 rounded-full text-white text-[10px] font-black shadow-inner">{legalMoves.length} • {VERSION_LABELS[moveVersion] || "Mais recente"}</span>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     {legalMoves.map(move => <MoveAccordion key={move.move?.name} moveData={move} isTTRPG={isTTRPG} />)}
-                                    {!legalMoves.length && <p className="rounded-xl border-2 border-slate-200 bg-white p-5 text-center text-xs font-bold text-slate-500">No move data is available for this form.</p>}
+                                    {!legalMoves.length && <p className="rounded-xl border-2 border-slate-200 bg-white p-5 text-center text-xs font-bold text-slate-500">Não há dados de movimentos disponíveis para esta forma.</p>}
                                 </div>
                             </div>
                         )}

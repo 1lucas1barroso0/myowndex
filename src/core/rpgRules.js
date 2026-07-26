@@ -5,7 +5,7 @@ export const TRAINER_GUIDE_URL = "https://guia-do-treinador-pokemon.vercel.app/"
 export const EXPERIENCE_MODES = {
     rpg: {
         id: "rpg",
-        label: "RPG Anime",
+        label: "RPG",
         shortLabel: "RPG",
         description: "Matemática do VGC, escala de mesa e liberdade narrativa.",
         isTTRPG: true,
@@ -118,7 +118,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.2",
                 title: "Precisão",
-                body: "Movimentos que não checam precisão/evasão no VGC não rolam. Se o ataque não for interrompido, acerta. Os demais exigem o teste de precisão apropriado."
+                body: "Movimentos que não checam precisão/evasão no VGC não rolam. Se o ataque não for interrompido, acerta. Nos demais, role 1d100 e obtenha um valor igual ou menor que a precisão; uma margem superior a 1 no teste de Movimento concede o segundo d100 previsto na regra 1.4."
             },
             {
                 id: "3.3",
@@ -127,7 +127,7 @@ export const RPG_RULE_SECTIONS = [
                 bullets: [
                     "O atacante precisa superar o defensor. Empate ou resultado menor não causa dano, embora efeitos secundários ainda possam ocorrer.",
                     "Dano final combina Dano Base, STAB e modificadores de tipagem.",
-                    "Um golpe não causa mais que metade do nível do atacante; buffs temporários elevam esse teto proporcionalmente."
+                    "Um golpe não causa mais que metade do nível do atacante; no nível 1, prevalece o mínimo de 1 de dano. Buffs temporários elevam esse teto proporcionalmente."
                 ]
             },
             {
@@ -238,4 +238,4 @@ export const getRpgScale = (value, isHp = false) => convertToTTRPG(value, isHp);
 
 export const getNextLevelXp = level => Math.max(1, (Math.max(1, Number(level) || 1) + 1) / 2);
 
-export const getDamageCeiling = level => Math.max(0.5, (Math.max(1, Number(level) || 1)) / 2);
+export const getDamageCeiling = level => Math.max(1, (Math.max(1, Number(level) || 1)) / 2);

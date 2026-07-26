@@ -166,7 +166,7 @@ export const dedupeTeams = teams => {
     return [...byShareId.values()];
 };
 
-export const createTeam = (name = "New Box") => {
+export const createTeam = (name = "Nova Box") => {
     const id = createId("box");
     return normalizeTeam({ id, shareId: id, name, updatedAt: now(), pokemon: [] });
 };

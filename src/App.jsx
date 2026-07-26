@@ -6,6 +6,7 @@ import { readStorage, writeStorage } from "./core/storage.js";
 import TrainerGuide from "./components/Guide/TrainerGuide.jsx";
 import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
 import Teambuilder from "./components/Teambuilder/Teambuilder.jsx";
+import RpgRoom from "./components/Room/RpgRoom.jsx";
 
 const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
     return (
@@ -13,7 +14,7 @@ const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
             type="button"
             onClick={onSelect}
             className="game-card p-4 flex flex-col items-center cursor-pointer group relative text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
-            aria-label={`Open ${formatName(species.name)} in the Pokédex`}
+            aria-label={`Abrir ${formatName(species.name)} na Pokédex`}
         >
             <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">
                 No. {id.padStart(4, "0")}
@@ -65,7 +66,7 @@ export default function App() {
     const [modeBooted, setModeBooted] = useState(false);
     const [limit, setLimit] = useState(60);
     const [selectedUrl, setSelectedUrl] = useState(null);
-    const [view, setView] = useState("pokedex");
+    const [view, setView] = useState("room");
     const [online, setOnline] = useState(true);
     const [notice, setNotice] = useState(null);
     const deferredSearchTerm = useDeferredValue(searchTerm);
@@ -97,15 +98,19 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        const savedMode = readStorage("myowndex_preferences_v1", {})?.experienceMode;
+        const preferences = readStorage("myowndex_preferences_v1", {});
+        const savedMode = preferences?.experienceMode;
         if (EXPERIENCE_MODES[savedMode]) setExperienceMode(savedMode);
+        if (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view)) {
+            setView(preferences.view);
+        }
         setModeBooted(true);
     }, []);
 
     useEffect(() => {
         if (!modeBooted) return;
-        writeStorage("myowndex_preferences_v1", { experienceMode });
-    }, [experienceMode, modeBooted]);
+        writeStorage("myowndex_preferences_v1", { experienceMode, view });
+    }, [experienceMode, modeBooted, view]);
 
     useEffect(() => {
         if (!teamsBooted) return;
@@ -122,6 +127,13 @@ export default function App() {
             window.removeEventListener("online", onOnline);
             window.removeEventListener("offline", onOffline);
         };
+    }, []);
+
+    useEffect(() => {
+        if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return undefined;
+        const register = () => navigator.serviceWorker.register("/sw.js").catch(() => {});
+        window.addEventListener("load", register, { once: true });
+        return () => window.removeEventListener("load", register);
     }, []);
 
     useEffect(() => {
@@ -208,6 +220,7 @@ export default function App() {
     const handleOpenPokedex = useCallback(() => setView("pokedex"), []);
     const handleOpenTeambuilder = useCallback(() => setView("teambuilder"), []);
     const handleOpenGuide = useCallback(() => setView("guide"), []);
+    const handleOpenRoom = useCallback(() => setView("room"), []);
     const handleSearchInputChange = useCallback(event => {
         setSearchInput(event.target.value);
         setLimit(60);
@@ -274,28 +287,29 @@ export default function App() {
     }), [teams, env, activeTeamId, isTTRPG, isHackmon, experienceMode, envLoading, envError, handleOpenPokedex]);
 
     return (
-        <div className={`app-root view-${view} h-[100dvh] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_30%)]`}>
-            <header className="shrink-0 px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 md:pt-5 pb-2 z-40">
-                <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-4 md:p-5">
-                    <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+        <div className={`app-root view-${view} h-[100dvh] flex flex-col overflow-hidden`}>
+            <header className="app-header shrink-0 px-2.5 sm:px-4 md:px-5 pt-2.5 sm:pt-4 pb-2 z-40">
+                <div className="max-w-[1900px] mx-auto game-shell app-header-shell p-2.5 sm:p-3.5">
+                    <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
                         <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
                             <div className="flex items-center gap-4">
-                                <button type="button" aria-label="Open Pokédex" onClick={handleOpenPokedex} className="w-14 h-14 bg-sky-400 rounded-full border-4 border-white shadow-[0_0_18px_#00d2ff] relative overflow-hidden shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
-                                    <span className="absolute top-1.5 left-1.5 w-5 h-5 bg-white rounded-full opacity-70" />
+                                <button type="button" aria-label="Abrir Sala RPG" onClick={handleOpenRoom} className="dex-lens relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
+                                    <span />
                                 </button>
-                                <div className="flex flex-col">
+                                <div className="app-brand flex flex-col">
                                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Pokémon</span>
                                     <h1 className="text-xl sm:text-2xl font-black text-slate-800">MyOwnDex</h1>
                                 </div>
                             </div>
-                            <nav aria-label="Navegação principal" className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[300px]">
-                                <button type="button" onClick={handleOpenPokedex} className={`nav-capsule flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider outline-none ${view === "pokedex" ? "is-active bg-red-500 text-white" : "bg-slate-100 text-slate-600"}`}>Pokédex</button>
-                                <button type="button" onClick={handleOpenTeambuilder} className={`nav-capsule flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider outline-none ${view === "teambuilder" ? "is-active bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>PC</button>
-                                <button type="button" onClick={handleOpenGuide} className={`nav-capsule flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider outline-none ${view === "guide" ? "is-active bg-orange-500 text-white" : "bg-slate-100 text-slate-600"}`}>Guia</button>
+                            <nav aria-label="Navegação principal" className="app-nav">
+                                <button type="button" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><span aria-hidden="true">◆</span>Mesa</button>
+                                <button type="button" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule ${view === "pokedex" ? "is-active" : ""}`}><span aria-hidden="true">◉</span>Pokédex</button>
+                                <button type="button" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule ${view === "teambuilder" ? "is-active" : ""}`}><span aria-hidden="true">▦</span>PC</button>
+                                <button type="button" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><span aria-hidden="true">≡</span>Regras</button>
                             </nav>
                         </div>
 
-                        <div className="flex gap-3 w-full lg:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
+                        <div className="app-actions flex gap-2.5 w-full xl:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
                             {view === "pokedex" && (
                                 <div className="relative flex-grow w-full sm:w-80">
                                     <label htmlFor="pokemon-search" className="sr-only">Buscar Pokémon por nome ou número</label>
@@ -303,10 +317,10 @@ export default function App() {
                                     <svg aria-hidden="true" className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                 </div>
                             )}
-                            <label className="mode-select flex items-center gap-2 rounded-full border-2 border-slate-700 bg-slate-800/95 px-3 py-1.5 shadow-inner">
+                            <label className="mode-select">
                                 <span className="hidden text-[8px] font-black uppercase tracking-[0.18em] text-slate-400 sm:block">Modo</span>
-                                <select aria-label="Modo da experiência" value={experienceMode} onChange={event => setExperienceMode(event.target.value)} className="cursor-pointer bg-transparent py-1 text-[9px] font-black uppercase tracking-wider text-white outline-none">
-                                    {Object.values(EXPERIENCE_MODES).map(mode => <option key={mode.id} value={mode.id} className="bg-slate-800">{mode.label}</option>)}
+                                <select aria-label="Modo da experiência" value={experienceMode} onChange={event => setExperienceMode(event.target.value)}>
+                                    {Object.values(EXPERIENCE_MODES).map(mode => <option key={mode.id} value={mode.id}>{mode.label}</option>)}
                                 </select>
                             </label>
                         </div>
@@ -314,15 +328,22 @@ export default function App() {
                 </div>
             </header>
 
-            <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-8 relative z-10">
-                <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-5 md:p-8 min-h-[70vh]">
+            <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-2.5 sm:px-4 md:px-5 pt-1.5 pb-3 sm:pb-5 relative z-10">
+                <div className="max-w-[1900px] mx-auto game-shell app-main-shell p-3 sm:p-5 md:p-6 min-h-[70vh]">
                     {!online && <StatusNotice tone="amber">Modo offline: os dados já vistos continuam disponíveis.</StatusNotice>}
                     {storageError && <StatusNotice tone="red">O navegador não conseguiu salvar a Box. Libere espaço ou permita armazenamento local.</StatusNotice>}
                     {notice && <StatusNotice tone={notice.tone} actionLabel={notice.actionLabel} onAction={notice.onAction} onClose={() => setNotice(null)}>{notice.text}</StatusNotice>}
 
-                    {view === "pokedex" ? (
+                    {view === "room" ? (
+                        <RpgRoom
+                            teams={teams}
+                            setTeams={setTeams}
+                            onOpenGuide={handleOpenGuide}
+                            setNotice={setNotice}
+                        />
+                    ) : view === "pokedex" ? (
                         dexLoading ? (
-                            <div aria-label="Loading Pokédex" className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">
+                            <div aria-label="Carregando Pokédex" className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">
                                 {[...Array(40)].map((_, index) => <div key={index} className="bg-slate-200 border-2 border-slate-300 rounded-2xl h-36 skeleton" />)}
                             </div>
                         ) : dexError && !species.length ? (
@@ -341,7 +362,7 @@ export default function App() {
                                     </div>
                                     <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
                                         Arquivo Pokémon<br />
-                                        <span className="text-slate-400 text-sm font-bold">&gt; {filteredSpecies.length} registros prontos</span>
+                                        <span className="text-slate-400 text-sm font-bold">&gt; {filteredSpecies.length} {filteredSpecies.length === 1 ? "registro pronto" : "registros prontos"}</span>
                                     </h2>
                                 </div>
                                 {visible.length ? (

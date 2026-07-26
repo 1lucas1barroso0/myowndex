@@ -3,7 +3,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "MyOwnDex",
-  description: "Sua Pokédex e construtor de equipes Pokémon.",
+  description: "Pokédex, PC, regras e Sala RPG Pokémon em tempo real.",
+  manifest: "/manifest.webmanifest",
+  applicationName: "MyOwnDex",
+  appleWebApp: {
+    capable: true,
+    title: "MyOwnDex",
+    statusBarStyle: "black-translucent",
+  },
   other: {
     "codex-preview": "development",
   },
@@ -12,7 +19,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#991b1b",
+  maximumScale: 5,
+  themeColor: "#7f1d1d",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

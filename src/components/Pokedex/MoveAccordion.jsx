@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { convertToTTRPG, fetchCached, formatName, TYPE_COLORS } from "../../core/mechanics.js";
+import { convertToTTRPG, fetchCached, formatDamageClass, formatName, formatType, preferredLocalizedEntry, TYPE_COLORS } from "../../core/mechanics.js";
 
 const methodLabel = detail => {
     const method = detail?.move_learn_method?.name;
-    if (method === "level-up") return detail.level_learned_at ? `Lv. ${detail.level_learned_at}` : "Level";
-    if (method === "machine") return "Machine";
+    if (method === "level-up") return detail.level_learned_at ? `Nv. ${detail.level_learned_at}` : "Nível";
+    if (method === "machine") return "Máquina";
     if (method === "tutor") return "Tutor";
-    if (method === "egg") return "Egg";
-    return formatName(method || "Other");
+    if (method === "egg") return "Ovo";
+    return formatName(method || "Outro");
 };
 
 export default function MoveAccordion({ moveData, isTTRPG }) {
@@ -29,6 +29,7 @@ export default function MoveAccordion({ moveData, isTTRPG }) {
 
     const details = moveData.latest_detail || moveData.latest_details?.[0];
     const panelId = `move-${moveData.move.name}`;
+    const effectEntry = preferredLocalizedEntry(data?.effect_entries);
 
     return (
         <div className="border-2 border-slate-300 rounded-xl bg-white shadow-sm overflow-hidden mb-2 transition-all hover:border-red-400">
@@ -43,17 +44,17 @@ export default function MoveAccordion({ moveData, isTTRPG }) {
             {isOpen && (
                 <div id={panelId} className="p-4 bg-white border-t-2 border-slate-100">
                     {!data && !loadError ? <div className="h-10 skeleton rounded-lg" /> : loadError ? (
-                        <p className="text-[11px] font-bold text-slate-500">Move details are temporarily unavailable.</p>
+                        <p className="text-[11px] font-bold text-slate-500">Os detalhes do movimento estão temporariamente indisponíveis.</p>
                     ) : (
                         <div className="flex flex-col gap-3 animate-fade-in">
                             <div className="flex flex-wrap gap-2 items-center">
-                                <span className="text-[9px] px-2.5 py-1 rounded text-white font-black uppercase tracking-wider shadow-sm" style={{ backgroundColor: TYPE_COLORS[data.type?.name] || TYPE_COLORS.normal }}>{data.type?.name || "---"}</span>
-                                <span className="text-[9px] px-2.5 py-1 rounded bg-slate-200 text-slate-600 font-black uppercase tracking-wider border border-slate-300">{data.damage_class?.name || "---"}</span>
-                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Power: <span className={isTTRPG ? "text-red-600" : "text-slate-800"}>{data.power ? (isTTRPG ? convertToTTRPG(data.power) : data.power) : "--"}</span></span>
-                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Accuracy: <span className="text-slate-800">{data.accuracy ? `${data.accuracy}%` : "--"}</span></span>
+                                <span className="text-[9px] px-2.5 py-1 rounded text-white font-black uppercase tracking-wider shadow-sm" style={{ backgroundColor: TYPE_COLORS[data.type?.name] || TYPE_COLORS.normal }}>{formatType(data.type?.name)}</span>
+                                <span className="text-[9px] px-2.5 py-1 rounded bg-slate-200 text-slate-600 font-black uppercase tracking-wider border border-slate-300">{formatDamageClass(data.damage_class?.name)}</span>
+                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Poder: <span className={isTTRPG ? "text-red-600" : "text-slate-800"}>{data.power ? (isTTRPG ? convertToTTRPG(data.power) : data.power) : "--"}</span></span>
+                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Precisão: <span className="text-slate-800">{data.accuracy ? `${data.accuracy}%` : "--"}</span></span>
                             </div>
-                            <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                                {data.effect_entries?.find(entry => entry.language.name === "en")?.effect?.replace(/\$effect_chance/g, data.effect_chance || "") || "No additional effect is recorded."}
+                            <p lang={effectEntry?.language?.name?.startsWith("pt") ? "pt-BR" : "en"} className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                                {effectEntry?.effect?.replace(/\$effect_chance/g, data.effect_chance || "") || "Nenhum efeito adicional está registrado."}
                             </p>
                         </div>
                     )}

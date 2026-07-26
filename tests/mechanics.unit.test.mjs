@@ -4,6 +4,9 @@ import {
   VERSION_GROUPS,
   convertToTTRPG,
   filterMovesByLatestVersion,
+  formatNumberPtBr,
+  formatType,
+  preferredLocalizedEntry,
 } from "../src/core/mechanics.js";
 
 const move = (name, groups) => ({
@@ -37,4 +40,14 @@ test("uses the MyOwnDex tabletop half-down rounding rule", () => {
   assert.equal(convertToTTRPG(52), 3);
   assert.equal(convertToTTRPG(49), 2);
   assert.equal(convertToTTRPG(1, true), 1);
+});
+
+test("formats calculated values and type labels for Brazilian Portuguese", () => {
+  assert.equal(formatNumberPtBr(5.5), "5,5");
+  assert.equal(formatType("electric"), "Elétrico");
+  assert.equal(formatType("fairy"), "Fada");
+  assert.equal(preferredLocalizedEntry([
+    { language: { name: "en" }, effect: "English" },
+    { language: { name: "pt-br" }, effect: "Português" },
+  ]).effect, "Português");
 });

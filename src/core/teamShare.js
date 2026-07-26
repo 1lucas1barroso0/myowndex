@@ -149,7 +149,7 @@ const decodeLegacy = code => {
     return normalizeTeam({
         shareId: deterministicId(code),
         updatedAt: 0,
-        name: payload.boxName || "Received Box",
+        name: payload.boxName || "Box recebida",
         versionGroup: "auto",
         pokemon: payload.partners.map(partner => ({
             speciesName: partner.sp,

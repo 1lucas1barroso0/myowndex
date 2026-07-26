@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { formatNumberPtBr } from "../../core/mechanics.js";
 import {
     EXPERIENCE_MODES,
     getDamageCeiling,
@@ -185,16 +186,16 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                             <label className="rounded-2xl border-2 border-slate-200 bg-white p-4">
                                 <ToolLabel>Valor original</ToolLabel>
                                 <input type="number" min="0" value={scaleValue} onChange={event => setScaleValue(event.target.value)} className="w-full bg-transparent text-2xl font-black text-slate-800 outline-none" />
-                                <span className="mt-1 block text-[10px] font-bold text-slate-400">÷ 20 = <strong className="text-red-500">{getRpgScale(scaleValue)}</strong></span>
+                                <span className="mt-1 block text-[10px] font-bold text-slate-400">÷ 20 = <strong className="text-red-500">{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
                             </label>
                             <label className="rounded-2xl border-2 border-slate-200 bg-white p-4">
                                 <ToolLabel>Nível atual</ToolLabel>
                                 <input type="number" min="1" max="200" value={level} onChange={event => setLevel(event.target.value)} className="w-full bg-transparent text-2xl font-black text-slate-800 outline-none" />
-                                <span className="mt-1 block text-[10px] font-bold text-slate-400">XP até o próximo: <strong className="text-blue-600">{getNextLevelXp(level)}</strong></span>
+                                <span className="mt-1 block text-[10px] font-bold text-slate-400">XP até o próximo: <strong className="text-blue-600">{formatNumberPtBr(getNextLevelXp(level))}</strong></span>
                             </label>
                             <div className="rounded-2xl border-2 border-slate-200 bg-slate-900 p-4 text-white">
                                 <ToolLabel>Teto por golpe</ToolLabel>
-                                <strong className="block text-3xl font-black text-amber-300">{getDamageCeiling(level)}</strong>
+                                <strong className="block text-3xl font-black text-amber-300">{formatNumberPtBr(getDamageCeiling(level))}</strong>
                                 <span className="mt-1 block text-[10px] font-bold text-slate-400">Antes de ampliações por buffs.</span>
                             </div>
                         </div>

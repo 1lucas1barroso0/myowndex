@@ -133,6 +133,7 @@ test("battle progress returns to the linked Box without erasing journey details"
     status: "burn",
     xp: 5.5,
     level: 11,
+    pp: [12, 30, null, null],
   };
   const synchronized = syncTeamsWithRoomProgress(
     [team],
@@ -143,7 +144,7 @@ test("battle progress returns to the linked Box without erasing journey details"
   assert.equal(synchronized[0].pokemon[0].rpg.currentHp, 1);
   assert.equal(synchronized[0].pokemon[0].rpg.status, "burn");
   assert.equal(synchronized[0].pokemon[0].rpg.xp, 5.5);
-  assert.deepEqual(synchronized[0].pokemon[0].rpg.pp, team.pokemon[0].rpg.pp);
+  assert.deepEqual(synchronized[0].pokemon[0].rpg.pp, [12, 30, null, null]);
 
   const original = [team];
   const untouched = syncTeamsWithRoomProgress(original, created.room, "another-player");
@@ -171,6 +172,14 @@ test("Move priority is resolved before Speed and ties use a quick roll", () => {
   const priority = { ...base.tokens[0], id: "priority", name: "Prioritário", priority: 1, stats: { ...base.tokens[0].stats, speed: 0 } };
   const result = buildInitiative({ ...base, tokens: [fast, priority] }, sequence([0.999, 0.999, 0, 0, 0, 0.999]));
   assert.equal(result.room.initiative[0], "priority");
+});
+
+test("Pokémon without HP leave the next initiative automatically", () => {
+  const base = addTeamToSnapshot(createRoomSnapshot("Teste"), team, "ally").room;
+  const active = { ...base.tokens[0], id: "active", currentHp: 1 };
+  const fainted = { ...base.tokens[0], id: "fainted", currentHp: 0 };
+  const result = buildInitiative({ ...base, tokens: [active, fainted] }, sequence([0, 0, 0]));
+  assert.deepEqual(result.room.initiative, ["active"]);
 });
 
 test("move resolution honors defender ties, STAB, typing and level ceiling", () => {

@@ -60,6 +60,38 @@ try {
   assert.equal(playerView.role, "player");
   assert.equal(Object.prototype.hasOwnProperty.call(playerView.snapshot, "gmNotes"), false);
 
+  const beforeToken = await request(`/api/rooms/${created.code}`, { key: created.narratorKey });
+  await request(`/api/rooms/${created.code}`, {
+    method: "PATCH",
+    key: created.narratorKey,
+    body: {
+      expectedRevision: beforeToken.revision,
+      snapshot: {
+        ...beforeToken.snapshot,
+        tokens: [{
+          id: "token-qa",
+          ownerPlayerId: joined.playerId,
+          name: "Pikachu QA",
+          moves: ["quick-attack", "", "", ""],
+          maxHp: 5,
+          currentHp: 5,
+        }],
+      },
+    },
+  });
+  await request(`/api/rooms/${created.code}/events`, {
+    method: "POST",
+    key: joined.playerKey,
+    body: {
+      type: "move-declared",
+      payload: { tokenId: "token-qa", moveName: "quick-attack", priority: 1 },
+    },
+  });
+  const afterDeclaration = await request(`/api/rooms/${created.code}`, { key: created.narratorKey });
+  assert.equal(afterDeclaration.snapshot.tokens[0].declaredMove, "quick-attack");
+  assert.equal(afterDeclaration.snapshot.tokens[0].priority, 1);
+  assert.ok(afterDeclaration.events.some(event => event.type === "move-declared"));
+
   await request(`/api/rooms/${created.code}/events`, {
     method: "POST",
     key: joined.playerKey,
@@ -82,7 +114,7 @@ try {
   assert.equal(updated.snapshot.round, 2);
   assert.ok(updated.events.some(event => event.type === "ready"));
 
-  console.log("Sala RPG API: create, authorize, join, redact, event, sync and update passed.");
+  console.log("Sala RPG API: create, authorize, join, redact, declaration, event, sync and update passed.");
 } finally {
   if (session) {
     await request(`/api/rooms/${session.code}`, {

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
+import { calculateStagedStats } from "../../core/automation.js";
 import {
     addTeamToSnapshot,
     advanceInitiative,
@@ -15,7 +16,7 @@ import {
     STATUS_LABELS,
     syncTeamsWithRoomProgress,
 } from "../../core/room.js";
-import { formatNumberPtBr, formatType } from "../../core/mechanics.js";
+import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import {
     buildPlayerInvite,
     clearRoomSession,
@@ -312,11 +313,16 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const saveQueueRef = useRef(Promise.resolve());
     const channelRef = useRef(null);
     const mountedRef = useRef(true);
+    const snapshotRef = useRef(createRoomSnapshot());
 
     const snapshot = useMemo(() => normalizeRoomSnapshot(room?.snapshot), [room?.snapshot]);
     const role = session?.role || "";
     const selectedTeam = teams.find(team => team.id === selectedTeamId) || teams[0] || null;
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId) || null;
+
+    useEffect(() => {
+        snapshotRef.current = snapshot;
+    }, [snapshot]);
 
     useEffect(() => {
         if (!room || !role) return;
@@ -605,7 +611,18 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const copy = async (value, label) => {
         try {
-            await navigator.clipboard.writeText(value);
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(value);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = value;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                textArea.remove();
+            }
             setNotice?.({ tone: "blue", text: `${label} copiado.` });
         } catch {
             showError(new Error("O navegador não permitiu copiar automaticamente."));
@@ -673,6 +690,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 currentHp: nextToken.currentHp,
                                 status: nextToken.status,
                                 xp: nextToken.xp,
+                                pp: nextToken.pp,
                             },
                         }
                         : pokemon),
@@ -684,50 +702,101 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const removeToken = () => {
         if (!selectedToken || role !== "narrator") return;
+        const removed = selectedToken;
+        const tokenIndex = snapshot.tokens.findIndex(token => token.id === removed.id);
+        const initiativeIndex = snapshot.initiative.indexOf(removed.id);
         commitSnapshot({
             ...snapshot,
-            tokens: snapshot.tokens.filter(token => token.id !== selectedToken.id),
-            initiative: snapshot.initiative.filter(id => id !== selectedToken.id),
+            tokens: snapshot.tokens.filter(token => token.id !== removed.id),
+            initiative: snapshot.initiative.filter(id => id !== removed.id),
             turnIndex: 0,
         });
         setSelectedTokenId("");
+        setNotice?.({
+            tone: "amber",
+            text: `${removed.name} saiu da cena.`,
+            actionLabel: "Desfazer",
+            onAction: () => {
+                const latest = normalizeRoomSnapshot(snapshotRef.current);
+                if (latest.tokens.some(token => token.id === removed.id)) return;
+                const tokens = [...latest.tokens];
+                tokens.splice(Math.min(Math.max(0, tokenIndex), tokens.length), 0, removed);
+                const initiative = [...latest.initiative];
+                if (initiativeIndex >= 0) {
+                    initiative.splice(Math.min(initiativeIndex, initiative.length), 0, removed.id);
+                }
+                commitSnapshot({ ...latest, tokens, initiative });
+                setSelectedTokenId(removed.id);
+                setNotice?.({ tone: "blue", text: `${removed.name} voltou à cena.` });
+            },
+        });
     };
 
-    const levelUpSelectedToken = () => {
-        if (!selectedToken || role !== "narrator" || selectedToken.level >= 200) return;
+    const applySelectedExperience = (nextXp, announce = true) => {
+        if (!selectedToken || role !== "narrator") return;
+        const normalizedXp = Math.max(0, Number(nextXp) || 0);
+        if (selectedToken.level >= 200) {
+            updateToken({ xp: normalizedXp });
+            return;
+        }
         const goal = getNextLevelXp(selectedToken.level);
-        if (selectedToken.xp < goal) return;
+        if (normalizedXp < goal) {
+            updateToken({ xp: normalizedXp });
+            return;
+        }
         const sourceTeam = teams.find(team => team.id === selectedToken.teamId);
         const sourcePokemon = sourceTeam?.pokemon.find(pokemon => pokemon.id === selectedToken.pokemonId);
         if (!sourceTeam || !sourcePokemon) {
             updateToken({ level: selectedToken.level + 1, xp: 0 });
+            if (announce) {
+                setNotice?.({ tone: "blue", text: `${selectedToken.name} avançou automaticamente para o nível ${selectedToken.level + 1}.` });
+                void sendEvent("system", { text: `${selectedToken.name} avançou para o nível ${selectedToken.level + 1}.` });
+            }
             return;
         }
         const nextPokemon = {
             ...sourcePokemon,
-            level: sourcePokemon.level + 1,
+            level: selectedToken.level + 1,
             rpg: { ...sourcePokemon.rpg, xp: 0 },
         };
-        const nextTeam = {
-            ...sourceTeam,
-            pokemon: sourceTeam.pokemon.map(pokemon => pokemon.id === nextPokemon.id ? nextPokemon : pokemon),
-        };
-        const recalculated = createTokenFromPokemon(nextPokemon, nextTeam, 0, selectedToken.side);
+        const recalculated = createTokenFromPokemon(nextPokemon, sourceTeam, 0, selectedToken.side);
         const hpGrowth = Math.max(0, recalculated.maxHp - selectedToken.maxHp);
-        const nextToken = {
+        const levelledToken = {
             ...selectedToken,
             level: nextPokemon.level,
             xp: 0,
             maxHp: recalculated.maxHp,
             currentHp: Math.min(recalculated.maxHp, selectedToken.currentHp + hpGrowth),
             stats: recalculated.stats,
+            originalStats: recalculated.originalStats,
+        };
+        const nextToken = { ...levelledToken, stats: calculateStagedStats(levelledToken) };
+        const synchronizedPokemon = {
+            ...nextPokemon,
+            rpg: {
+                ...nextPokemon.rpg,
+                currentHp: nextToken.currentHp,
+                status: nextToken.status,
+                pp: nextToken.pp,
+            },
+        };
+        const nextTeam = {
+            ...sourceTeam,
+            pokemon: sourceTeam.pokemon.map(pokemon => pokemon.id === synchronizedPokemon.id ? synchronizedPokemon : pokemon),
         };
         setTeams(current => current.map(team => team.id === nextTeam.id ? touchTeam(nextTeam) : team));
         commitSnapshot({
             ...snapshot,
             tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
         });
-        setNotice?.({ tone: "blue", text: `${selectedToken.name} avançou para o nível ${nextPokemon.level}.` });
+        if (announce) {
+            setNotice?.({ tone: "blue", text: `${selectedToken.name} avançou automaticamente para o nível ${nextPokemon.level}.` });
+            void sendEvent("system", { text: `${selectedToken.name} avançou para o nível ${nextPokemon.level}.` });
+        }
+    };
+
+    const awardSelectedExperience = amount => {
+        applySelectedExperience((Number(selectedToken?.xp) || 0) + Number(amount || 0));
     };
 
     const generateInitiative = async () => {
@@ -743,14 +812,60 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             && snapshot.turnIndex >= snapshot.initiative.length - 1;
         const next = closingRound
             ? {
-                ...buildInitiative({ ...snapshot, round: snapshot.round + 1 }).room,
+                ...snapshot,
                 round: snapshot.round + 1,
+                turnIndex: 0,
+                initiative: [],
+                tokens: snapshot.tokens.map(token => ({ ...token, declaredMove: "", priority: 0 })),
             }
             : advanceInitiative(snapshot);
         commitSnapshot(next);
         const activeId = next.initiative[next.turnIndex];
         const active = next.tokens.find(token => token.id === activeId);
-        await sendEvent("system", { text: active ? `Turno de ${active.name}. Rodada ${next.round}.` : `Rodada ${next.round}.` });
+        await sendEvent("system", {
+            text: closingRound
+                ? `Rodada ${next.round} preparada. As declarações e prioridades foram renovadas.`
+                : active
+                    ? `Turno de ${active.name}. Rodada ${next.round}.`
+                    : `Rodada ${next.round}.`,
+        });
+    };
+
+    const declareMove = async (tokenId, move) => {
+        const token = snapshot.tokens.find(candidate => candidate.id === tokenId);
+        const moveName = String(move?.name || "").toLowerCase();
+        const priority = Math.max(-7, Math.min(7, Math.round(Number(move?.priority) || 0)));
+        if (!token || !moveName || !token.moves.includes(moveName)) return;
+        if (role === "narrator") {
+            if (token.declaredMove === moveName && token.priority === priority) return;
+            commitSnapshot({
+                ...snapshot,
+                tokens: snapshot.tokens.map(candidate => candidate.id === token.id
+                    ? { ...candidate, declaredMove: moveName, priority }
+                    : candidate),
+            });
+            setNotice?.({
+                tone: "blue",
+                text: `${formatName(moveName)} definiu automaticamente a prioridade de ${token.name} em ${priority > 0 ? `+${priority}` : priority}.`,
+            });
+            return;
+        }
+        if (!session.playerId || token.ownerPlayerId !== session.playerId) return;
+        setRoom(current => current ? {
+            ...current,
+            snapshot: normalizeRoomSnapshot({
+                ...snapshot,
+                tokens: snapshot.tokens.map(candidate => candidate.id === token.id
+                    ? { ...candidate, declaredMove: moveName, priority }
+                    : candidate),
+            }),
+        } : current);
+        await sendEvent("move-declared", {
+            tokenId: token.id,
+            tokenName: token.name,
+            moveName,
+            priority,
+        });
     };
 
     const offerTeam = async () => {
@@ -766,7 +881,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         setTeams(merged.teams);
         const result = addTeamToSnapshot(snapshot, merged.team, "ally", event.playerId || "");
         commitSnapshot(result.room);
-        await sendEvent("team-accepted", { text: `${event.author}: equipe aceita pelo Narrador.` });
+        await sendEvent("team-accepted", {
+            offerId: event.id,
+            text: `${event.author}: equipe aceita pelo Narrador.`,
+        });
     };
 
     const toggleReady = async () => {
@@ -777,6 +895,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const inviteUrl = role === "narrator" && !session.local ? buildPlayerInvite(session) : "";
     const players = room?.players || [];
     const events = room?.events || [];
+    const acceptedOfferIds = new Set(
+        events
+            .filter(event => event.type === "team-accepted")
+            .map(event => Number(event.payload?.offerId))
+            .filter(Number.isFinite),
+    );
     const currentTokenId = snapshot.initiative[snapshot.turnIndex] || "";
     const handleBattlefieldChange = nextSnapshot => {
         if (role === "narrator") {
@@ -929,7 +1053,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <li key={tokenId} className={currentTokenId === tokenId ? "is-current" : ""}>
                                         <span>{index + 1}</span>
                                         <button type="button" onClick={() => setSelectedTokenId(tokenId)}>{token.name}</button>
-                                        <small>{token.stats?.speed ?? "—"}</small>
+                                        <small title={token.declaredMove ? "Movimento declarado e prioridade automática" : "Velocidade atual"}>
+                                            {token.declaredMove
+                                                ? `${formatName(token.declaredMove)} • ${token.priority > 0 ? `+${token.priority}` : token.priority}`
+                                                : `VEL ${token.stats?.speed ?? "—"}`}
+                                        </small>
                                     </li>
                                 );
                             })}
@@ -938,7 +1066,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         {role === "narrator" && (
                             <div className="room-button-row">
                                 <button type="button" disabled={!snapshot.tokens.length} onClick={generateInitiative}>Gerar ordem</button>
-                                <button type="button" disabled={!snapshot.initiative.length} onClick={nextTurn}>Próximo turno</button>
+                                <button type="button" disabled={!snapshot.initiative.length} onClick={nextTurn}>
+                                    {snapshot.initiative.length && snapshot.turnIndex >= snapshot.initiative.length - 1 ? "Encerrar rodada" : "Próximo turno"}
+                                </button>
                             </div>
                         )}
                     </section>
@@ -980,6 +1110,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <small>Nível {selectedToken.level}</small>
                                     <strong>{selectedToken.name}</strong>
                                     <em>{selectedToken.types.map(formatType).join(" / ") || "Tipo livre"}</em>
+                                    {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
                                 </span>
                             </div>
                             <div className="token-hp-control">
@@ -997,16 +1128,14 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     value={selectedToken.xp}
                                     disabled={role !== "narrator"}
                                     onChange={event => updateToken({ xp: Math.max(0, Number(event.target.value) || 0) })}
+                                    onBlur={() => applySelectedExperience(selectedToken.xp)}
                                 />
                                 <small>/ {formatNumberPtBr(getNextLevelXp(selectedToken.level))}</small>
                                 {role === "narrator" && (
-                                    <button
-                                        type="button"
-                                        disabled={selectedToken.xp < getNextLevelXp(selectedToken.level) || selectedToken.level >= 200}
-                                        onClick={levelUpSelectedToken}
-                                    >
-                                        Subir nível
-                                    </button>
+                                    <span className="token-xp-actions">
+                                        <button type="button" disabled={selectedToken.level >= 200} onClick={() => awardSelectedExperience(0.5)}>+0,5</button>
+                                        <button type="button" disabled={selectedToken.level >= 200} onClick={() => awardSelectedExperience(1)}>+1 XP</button>
+                                    </span>
                                 )}
                             </div>
                             <label>
@@ -1015,8 +1144,24 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     {Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                                 </select>
                             </label>
+                            {Object.entries(selectedToken.stages || {}).some(([, value]) => value !== 0) && (
+                                <div className="token-stage-list" aria-label="Estágios de atributo ativos">
+                                    {Object.entries(selectedToken.stages).filter(([, value]) => value !== 0).map(([stat, value]) => (
+                                        <span key={stat}>{stat.replace("special-", "esp. ").replace(/-/g, " ")} {value > 0 ? `+${value}` : value}</span>
+                                    ))}
+                                </div>
+                            )}
                             {role === "narrator" && (
                                 <>
+                                    {selectedToken.teraType && (
+                                        <button
+                                            type="button"
+                                            className={`token-tera ${selectedToken.teraActive ? "is-active" : ""}`}
+                                            onClick={() => updateToken({ teraActive: !selectedToken.teraActive })}
+                                        >
+                                            {selectedToken.teraActive ? `Tera ${formatType(selectedToken.teraType)} ativo` : `Terastalizar em ${formatType(selectedToken.teraType)}`}
+                                        </button>
+                                    )}
                                     <label>
                                         <span>Lado</span>
                                         <select value={selectedToken.side} onChange={event => updateToken({ side: event.target.value })}>
@@ -1033,7 +1178,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                         </select>
                                     </label>
                                     <label>
-                                        <span>Prioridade</span>
+                                        <span>Prioridade livre</span>
                                         <select value={selectedToken.priority || 0} onChange={event => updateToken({ priority: Number(event.target.value) })}>
                                             {[7,6,5,4,3,2,1,0,-1,-2,-3,-4,-5,-6,-7].map(value => <option key={value} value={value}>{value > 0 ? `+${value}` : value}</option>)}
                                         </select>
@@ -1066,9 +1211,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     <QuickRoller onEvent={sendEvent} onError={showError} />
                     <CombatAssistant
                         role={role}
+                        playerId={session.playerId}
                         snapshot={snapshot}
                         selectedTokenId={selectedTokenId}
                         onSnapshotChange={commitSnapshot}
+                        onDeclareMove={declareMove}
                         onEvent={sendEvent}
                         onError={showError}
                     />
@@ -1098,8 +1245,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <article key={event.id} className={`event-${event.type}`}>
                                         <span>{timeLabel(event.createdAt)}</span>
                                         <p>{eventSummary(event)}</p>
-                                        {role === "narrator" && event.type === "team-offer" && (
+                                        {role === "narrator" && event.type === "team-offer" && !acceptedOfferIds.has(Number(event.id)) && (
                                             <button type="button" onClick={() => acceptTeamOffer(event)}>Aceitar equipe</button>
+                                        )}
+                                        {role === "narrator" && event.type === "team-offer" && acceptedOfferIds.has(Number(event.id)) && (
+                                            <small className="event-accepted">Equipe aceita</small>
                                         )}
                                     </article>
                                 ))}

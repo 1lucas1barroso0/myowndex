@@ -50,6 +50,7 @@ export default function Teambuilder({ envProps }) {
     const [shareCode, setShareCode] = useState("");
     const [copied, setCopied] = useState(false);
     const [pendingDelete, setPendingDelete] = useState(null);
+    const [pendingPartnerDelete, setPendingPartnerDelete] = useState(null);
     const active = useMemo(() => teams.find(team => team.id === activeTeamId), [teams, activeTeamId]);
 
     useEffect(() => {
@@ -160,6 +161,36 @@ export default function Teambuilder({ envProps }) {
                 setActiveTeamId(result.removed.id);
                 setNotice?.({ tone: "blue", text: `A Box “${result.removed.name}” foi restaurada.` });
             }
+        });
+    };
+
+    const confirmDeletePartner = () => {
+        if (!pendingPartnerDelete) return;
+        const { teamId, partner, index } = pendingPartnerDelete;
+        setTeams(current => current.map(team => team.id === teamId
+            ? touchTeam({
+                ...team,
+                pokemon: (team.pokemon || []).filter(candidate => candidate.id !== partner.id),
+            })
+            : team
+        ));
+        setEditingSlot(null);
+        setPendingPartnerDelete(null);
+        setNotice?.({
+            tone: "amber",
+            text: `${partner.nickname || formatName(partner.species?.name)} foi removido da Box.`,
+            actionLabel: "Desfazer",
+            onAction: () => {
+                setTeams(current => current.map(team => {
+                    if (team.id !== teamId || team.pokemon.some(candidate => candidate.id === partner.id)) return team;
+                    const pokemon = [...team.pokemon];
+                    pokemon.splice(Math.min(Math.max(0, index), pokemon.length), 0, partner);
+                    return touchTeam({ ...team, pokemon });
+                }));
+                setActiveTeamId(teamId);
+                setEditingSlot(index);
+                setNotice?.({ tone: "blue", text: `${partner.nickname || formatName(partner.species?.name)} voltou para a Box.` });
+            },
         });
     };
 
@@ -307,10 +338,11 @@ export default function Teambuilder({ envProps }) {
                                         allAbilities,
                                         selectedVersionGroup: active.versionGroup || "auto",
                                         experienceMode,
-                                        onRemove: () => {
-                                            updateActive(team => ({ ...team, pokemon: (team.pokemon || []).filter((_, index) => index !== editingSlot) }));
-                                            setEditingSlot(null);
-                                        },
+                                        onRemove: () => setPendingPartnerDelete({
+                                            teamId: active.id,
+                                            partner: active.pokemon[editingSlot],
+                                            index: editingSlot,
+                                        }),
                                         isTTRPG,
                                         isHackmon
                                     }}
@@ -327,6 +359,14 @@ export default function Teambuilder({ envProps }) {
                 confirmLabel="Apagar Box"
                 onConfirm={confirmDeleteActive}
                 onCancel={() => setPendingDelete(null)}
+            />
+            <ConfirmDialog
+                open={Boolean(pendingPartnerDelete)}
+                title="Remover este parceiro?"
+                description={pendingPartnerDelete ? `${pendingPartnerDelete.partner.nickname || formatName(pendingPartnerDelete.partner.species?.name)} será retirado da Box. Você poderá desfazer logo depois.` : ""}
+                confirmLabel="Remover parceiro"
+                onConfirm={confirmDeletePartner}
+                onCancel={() => setPendingPartnerDelete(null)}
             />
         </div>
     );

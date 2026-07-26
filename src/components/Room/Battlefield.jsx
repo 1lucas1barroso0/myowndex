@@ -19,7 +19,7 @@ const Token = ({
 }) => (
     <button
         type="button"
-        className={`room-token side-${token.side} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""}`}
+        className={`room-token side-${token.side} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""}`}
         style={{ left: `${position.x}%`, top: `${position.y}%` }}
         onClick={() => onSelect(token.id)}
         onPointerDown={event => canMove && onPointerDown(event, token)}
@@ -34,7 +34,7 @@ const Token = ({
                 y: event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0,
             });
         }}
-        aria-label={`${token.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${canMove ? ", arrastável" : ""}`}
+        aria-label={`${token.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.currentHp <= 0 ? ", sem HP" : ""}${token.teraActive ? `, Tera ${token.teraType} ativo` : ""}${canMove ? ", arrastável" : ""}`}
     >
         <span className="room-token-sprite-shell">
             {token.sprite ? (

@@ -17,8 +17,8 @@ export const dynamic = "force-dynamic";
 
 type RouteContext = { params: Promise<{ code: string }> | { code: string } };
 
-const COMMON_EVENTS = new Set(["roll", "message", "ready", "team-offer", "token-request", "token-move", "leave"]);
-const NARRATOR_EVENTS = new Set(["system", "sfx", "team-accepted", "roll", "message"]);
+const COMMON_EVENTS = new Set(["roll", "message", "ready", "team-offer", "token-request", "token-move", "move-declared", "leave"]);
+const NARRATOR_EVENTS = new Set(["system", "sfx", "team-accepted", "move", "roll", "message"]);
 
 export async function POST(request: Request, context: RouteContext) {
   try {
@@ -118,6 +118,63 @@ export async function POST(request: Request, context: RouteContext) {
       }
       return noStoreJson({
         error: "A sala mudou durante o movimento. Tente arrastar novamente.",
+        conflict: true,
+      }, { status: 409 });
+    }
+    if (type === "move-declared" && auth.playerId) {
+      const tokenId = safeText(eventPayload.tokenId, 100);
+      const moveName = safeText(eventPayload.moveName, 80)
+        .toLowerCase()
+        .replace(/\s+/g, "-");
+      const priority = Math.min(7, Math.max(-7, Math.round(Number(eventPayload.priority) || 0)));
+      const { db } = getBindings();
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const room = await getRoom(code);
+        if (!room) return noStoreJson({ error: "Sala não encontrada." }, { status: 404 });
+        const snapshot = parseJson<Record<string, unknown>>(room.state_json, {});
+        const tokens = Array.isArray(snapshot.tokens) ? snapshot.tokens : [];
+        const token = tokens.find(item =>
+          item && typeof item === "object"
+          && safeText((item as Record<string, unknown>).id, 100) === tokenId
+        ) as Record<string, unknown> | undefined;
+        const moves = Array.isArray(token?.moves)
+          ? token.moves.map(move => safeText(move, 80).toLowerCase().replace(/\s+/g, "-"))
+          : [];
+        if (!token || token.ownerPlayerId !== auth.playerId || !moveName || !moves.includes(moveName)) {
+          return noStoreJson({ error: "Este Movimento não pertence a um Pokémon sob seu controle." }, { status: 403 });
+        }
+        const nextSnapshot = {
+          ...snapshot,
+          tokens: tokens.map(item => item === token ? { ...token, declaredMove: moveName, priority } : item),
+        };
+        assertStateSize(nextSnapshot);
+        const result = await db.prepare(
+          `UPDATE rooms
+           SET state_json = ?, revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+           WHERE code = ? AND revision = ?`,
+        ).bind(JSON.stringify(nextSnapshot), code, room.revision).run();
+        if (result.meta.changes) {
+          const id = await appendRoomEvent({
+            code,
+            auth,
+            type: "move-declared",
+            payload: {
+              tokenId,
+              tokenName: safeText(token.name, 80),
+              moveName,
+              priority,
+            },
+          });
+          return noStoreJson({
+            ok: true,
+            id,
+            declared: tokenId,
+            revision: room.revision + 1,
+          }, { status: 201 });
+        }
+      }
+      return noStoreJson({
+        error: "A sala mudou durante a declaração. Escolha o Movimento novamente.",
         conflict: true,
       }, { status: 409 });
     }

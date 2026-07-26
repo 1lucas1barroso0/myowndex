@@ -35,7 +35,7 @@ test("the public interface does not revive the retired RPG label or English reco
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v5/);
+  assert.match(worker, /myowndex-shell-v6/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
 });

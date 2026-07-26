@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import { activateAudio, playSoundEffect, SOUND_EFFECTS } from "../../core/audio.js";
 import { formatNumberPtBr } from "../../core/mechanics.js";
 import {
@@ -29,6 +30,7 @@ export default function AudioDeck({
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [audioUrl, setAudioUrl] = useState("");
+    const [pendingRemove, setPendingRemove] = useState(null);
     const audioRef = useRef(null);
     const heardEventRef = useRef(0);
 
@@ -168,6 +170,7 @@ export default function AudioDeck({
                 });
             }
             await onRefresh();
+            setPendingRemove(null);
         } catch (error) {
             onError(error);
         }
@@ -266,13 +269,21 @@ export default function AudioDeck({
                                     <small>{formatBytes(item.size)}</small>
                                 </button>
                                 {role === "narrator" && (
-                                    <button type="button" className="audio-remove" onClick={() => removeTrack(item)} aria-label={`Apagar ${item.title}`}>×</button>
+                                    <button type="button" className="audio-remove" onClick={() => setPendingRemove(item)} aria-label={`Apagar ${item.title}`}>×</button>
                                 )}
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+            <ConfirmDialog
+                open={Boolean(pendingRemove)}
+                title="Apagar esta trilha?"
+                description={pendingRemove ? `“${pendingRemove.title}” será removida da Sala RPG para todos os participantes.` : ""}
+                confirmLabel="Apagar trilha"
+                onConfirm={() => pendingRemove && void removeTrack(pendingRemove)}
+                onCancel={() => setPendingRemove(null)}
+            />
         </details>
     );
 }

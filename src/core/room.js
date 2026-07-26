@@ -2,9 +2,18 @@ import {
     calculateDefenses,
     calculateStat,
     convertToTTRPG,
+    formatName,
     NATURES,
     STAT_MAP,
 } from "./mechanics.js";
+import {
+    calculateStagedStats,
+    getDefensiveTypes,
+    getMoveStab,
+    normalizePpSlots,
+    normalizeSlug,
+    normalizeStageMap,
+} from "./automation.js";
 import { getDamageCeiling, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 
@@ -87,7 +96,22 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
 export const normalizeRoomToken = value => {
     const source = value && typeof value === "object" ? value : {};
     const maxHp = Math.max(1, Math.round(numberInRange(source.maxHp, 1, 99999, 1)));
-    return {
+    const moves = asArray(source.moves).slice(0, 4).map(move => normalizeSlug(move));
+    while (moves.length < 4) moves.push("");
+    const types = asArray(source.types).filter(Boolean).slice(0, 2).map(type => normalizeSlug(type));
+    const originalTypes = asArray(source.originalTypes).length
+        ? asArray(source.originalTypes).filter(Boolean).slice(0, 2).map(type => normalizeSlug(type))
+        : types;
+    const stats = Object.fromEntries(Object.keys(STAT_MAP).map(stat => [
+        stat,
+        numberInRange(source.stats?.[stat], 0, 99999, 0),
+    ]));
+    const originalStats = Object.fromEntries(Object.keys(STAT_MAP).map(stat => [
+        stat,
+        numberInRange(source.originalStats?.[stat], 0, 99999, stats[stat] * 20),
+    ]));
+    const stages = normalizeStageMap(source.stages);
+    const token = {
         id: asText(source.id) || createId("token"),
         pokemonId: asText(source.pokemonId),
         teamId: asText(source.teamId),
@@ -106,11 +130,19 @@ export const normalizeRoomToken = value => {
         level: Math.round(numberInRange(source.level, 1, 200, 5)),
         xp: numberInRange(source.xp, 0, 999999, 0),
         priority: Math.round(numberInRange(source.priority, -7, 7, 0)),
-        types: asArray(source.types).filter(Boolean).slice(0, 2).map(type => asText(type).toLowerCase()),
-        stats: source.stats && typeof source.stats === "object" ? { ...source.stats } : {},
-        moves: asArray(source.moves).slice(0, 4).map(move => asText(move).toLowerCase()),
+        declaredMove: normalizeSlug(source.declaredMove),
+        types,
+        originalTypes,
+        teraType: normalizeSlug(source.teraType),
+        teraActive: Boolean(source.teraActive && source.teraType),
+        stats,
+        originalStats,
+        stages,
+        moves,
+        pp: normalizePpSlots(source.pp),
         hidden: Boolean(source.hidden),
     };
+    return { ...token, stats: calculateStagedStats(token) };
 };
 
 export const normalizeRoomSnapshot = value => {
@@ -268,8 +300,15 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
         types: pokemon?.customTypes?.length
             ? pokemon.customTypes
             : pokemon?.species?.types?.map(entry => entry?.type?.name),
+        originalTypes: pokemon?.customTypes?.length
+            ? pokemon.customTypes
+            : pokemon?.species?.types?.map(entry => entry?.type?.name),
+        teraType: pokemon?.teraType || "",
+        teraActive: false,
         stats: Object.fromEntries(Object.entries(computed).map(([key, values]) => [key, values.rpg])),
+        originalStats: Object.fromEntries(Object.entries(computed).map(([key, values]) => [key, values.original])),
         moves: pokemon?.moves,
+        pp: pokemon?.rpg?.pp,
     });
 };
 
@@ -312,12 +351,14 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 currentHp: token.currentHp,
                 status: token.status,
                 xp: token.xp,
+                pp: token.pp,
             };
             if (
                 Number(partner.level) === token.level
                 && partner.rpg?.currentHp === token.currentHp
                 && (partner.rpg?.status || "") === token.status
                 && Number(partner.rpg?.xp || 0) === token.xp
+                && JSON.stringify(partner.rpg?.pp || []) === JSON.stringify(token.pp || [])
             ) return partner;
             teamChanged = true;
             return { ...partner, level: token.level, rpg };
@@ -342,7 +383,7 @@ export const advanceInitiative = snapshot => {
 
 export const buildInitiative = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
-    const results = room.tokens.filter(token => !token.hidden).map(token => {
+    const results = room.tokens.filter(token => !token.hidden && token.currentHp > 0).map(token => {
         const test = rollAttributeTest({
             mode: "normal",
             attribute: token.stats?.speed || 0,
@@ -397,9 +438,9 @@ export const calculateMoveResolution = ({
     const power = Number(move?.power) || 0;
     const baseDamage = convertToTTRPG(power);
     const moveType = move?.type?.name || "";
-    const stab = asArray(attacker?.types).includes(moveType) ? 1.5 : 1;
+    const stab = getMoveStab(attacker, moveType);
     const effectiveness = calculateDefenses(
-        asArray(defender?.types).map(type => ({ type: { name: type } }))
+        getDefensiveTypes(defender).map(type => ({ type: { name: type } }))
     )[moveType] ?? 1;
     const contestSuccess = attackTest.total > defenseTest.total;
     const accuracyTest = accuracy >= 100
@@ -413,8 +454,9 @@ export const calculateMoveResolution = ({
             }),
         };
     const hit = contestSuccess && accuracyTest.success;
+    const criticalMultiplier = attackTest.critical ? 1.5 : 1;
     const rawDamage = hit && effectiveness > 0
-        ? Math.max(1, Math.round(baseDamage * stab * effectiveness))
+        ? Math.max(1, Math.round(baseDamage * stab * effectiveness * criticalMultiplier))
         : 0;
     const ceiling = getDamageCeiling(attacker?.level || 1);
     const damage = Math.min(rawDamage, ceiling);
@@ -428,6 +470,7 @@ export const calculateMoveResolution = ({
         power,
         baseDamage,
         stab,
+        criticalMultiplier,
         effectiveness,
         hit,
         ceiling,
@@ -438,6 +481,15 @@ export const calculateMoveResolution = ({
 export const eventSummary = event => {
     const payload = event?.payload || {};
     if (event?.type === "roll") return `${event.author} rolou ${payload.label || "um teste"}: ${payload.result ?? "—"}.`;
+    if (event?.type === "move-declared") {
+        return `${event.author} declarou ${payload.moveName ? formatName(payload.moveName) : "um Movimento"}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
+    }
+    if (event?.type === "move") {
+        const damage = Number(payload.damage) || 0;
+        const result = payload.hit ? `${damage} de dano` : "sem dano";
+        const fainted = payload.fainted ? " O alvo ficou sem HP." : "";
+        return `${event.author}: ${payload.attackerName || "Pokémon"} usou ${payload.moveName || "um Movimento"} — ${result}.${fainted}`;
+    }
     if (event?.type === "message") return `${event.author}: ${asText(payload.text)}`;
     if (event?.type === "ready") return `${event.author} está ${payload.ready ? "pronto" : "aguardando"}.`;
     if (event?.type === "team-offer") return `${event.author} enviou a equipe “${payload.team?.name || "sem nome"}”.`;

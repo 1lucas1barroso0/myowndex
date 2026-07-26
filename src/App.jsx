@@ -1,5 +1,5 @@
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { dedupeByNameLatest, extractId, fetchCached, formatName } from "./core/mechanics.js";
+import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
 import { readStorage, writeStorage } from "./core/storage.js";
@@ -228,6 +228,16 @@ export default function App() {
 
     const integrateTeam = useCallback((formData, genderRate) => {
         const resolvedRate = Number.isFinite(Number(genderRate)) ? Number(genderRate) : -1;
+        const targetTeam = teams.find(team => team.id === activeTeamId) || teams[0] || null;
+        const legalMoves = filterMovesByLatestVersion(
+            formData.moves || [],
+            targetTeam?.versionGroup || "auto",
+        );
+        const levelMoves = legalMoves.filter(entry =>
+            entry.latest_detail?.move_learn_method?.name === "level-up"
+            && Number(entry.latest_detail?.level_learned_at || 0) <= 5
+        );
+        const initialMoves = levelMoves.slice(-4).map(entry => entry.move?.name).filter(Boolean);
         let gender = "N";
         if (resolvedRate === 0) gender = "M";
         else if (resolvedRate === 8) gender = "F";
@@ -238,7 +248,9 @@ export default function App() {
             level: 5,
             friendship: 70,
             ability: formData.abilities?.[0]?.ability?.name || "",
+            teraType: formData.types?.[0]?.type?.name || "",
             nature: "hardy",
+            moves: initialMoves,
             gender,
             genderRate: resolvedRate,
             genderLocked: false
@@ -252,7 +264,7 @@ export default function App() {
             setActiveTeamId(first.id);
             setNotice({ tone: "blue", text: `${formatName(formData.name)} entrou na Box 1.` });
         } else {
-            const target = teams.find(team => team.id === targetId) || teams[0];
+            const target = targetTeam;
             targetId = target.id;
             if ((target.pokemon?.length || 0) >= 6) {
                 setNotice({ tone: "amber", text: `${target.name} está cheia. Escolha ou crie outra Box.` });

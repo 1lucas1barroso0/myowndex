@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchCached, calculateStat, formatName, formatNumberPtBr, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
+import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
 import { RPG_STATUSES } from '../../core/team.js';
 
@@ -57,7 +57,10 @@ const POKEMONDB_ITEMS = [
 export default function PokemonEditor({ pk, updatePk, envProps }) {
     const { allItems, allMoves, allAbilities, selectedVersionGroup, experienceMode, onRemove, isTTRPG, isHackmon } = envProps;
     const [baseForm, setBaseForm] = useState(null);
+    const [speciesProfile, setSpeciesProfile] = useState(null);
     const [moveDetails, setMoveDetails] = useState({});
+    const [switchingForm, setSwitchingForm] = useState(false);
+    const [formError, setFormError] = useState("");
 
     const dismissKeyboard = () => {
         if (document.activeElement && document.activeElement.blur) {
@@ -81,9 +84,13 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     useEffect(() => {
         let mounted = true;
         const checkBase = async () => {
-            if(!pk.species?.species?.url) return;
+            if(!pk.species?.species?.url) {
+                setSpeciesProfile(null);
+                return;
+            }
             const sp = await fetchCached(pk.species.species.url);
             if(!sp || !mounted) return;
+            setSpeciesProfile(sp);
             const defVar = sp.varieties?.find(v => v.is_default);
             if(defVar && defVar.pokemon?.name !== pk.species.name) {
                 const bData = await fetchCached(defVar.pokemon.url);
@@ -132,6 +139,60 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         if (map.size === 0 && baseForm?.abilities) baseForm.abilities.forEach(a => { if (a?.ability?.name) map.set(a.ability.name, a.ability) });
         return Array.from(map.values()).sort((a,b) => (a.name || "").localeCompare(b.name || ""));
     }, [isHackmon, allAbilities, pk.species?.abilities, baseForm]);
+    const validAbilityNames = useMemo(
+        () => new Set(validAbs.map(ability => typeof ability === "string" ? ability : ability?.name).filter(Boolean)),
+        [validAbs],
+    );
+    const forms = useMemo(() => speciesProfile?.varieties || [], [speciesProfile]);
+
+    useEffect(() => {
+        const defaultAbility = pk.species?.abilities?.[0]?.ability?.name || "";
+        const defaultTera = pk.species?.types?.[0]?.type?.name || "";
+        if ((!pk.ability && defaultAbility) || (!pk.teraType && defaultTera)) {
+            updatePk({
+                ...pk,
+                ability: pk.ability || defaultAbility,
+                teraType: pk.teraType || defaultTera,
+            });
+        }
+    // Defaults only fill empty dependent fields; manual exceptions stay untouched.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pk.species?.name, pk.ability, pk.teraType]);
+
+    const changeForm = async formUrl => {
+        if (!formUrl || switchingForm) return;
+        const current = forms.find(entry => entry.pokemon?.name === pk.species?.name);
+        if (current?.pokemon?.url === formUrl) return;
+        setSwitchingForm(true);
+        setFormError("");
+        try {
+            const nextSpecies = await fetchCached(formUrl);
+            if (!nextSpecies) throw new Error("Forma indisponível");
+            const profile = nextSpecies.species?.url
+                ? await fetchCached(nextSpecies.species.url)
+                : speciesProfile;
+            const nextRate = Number.isFinite(Number(profile?.gender_rate))
+                ? Number(profile.gender_rate)
+                : currentGenderRate;
+            const oldPrimaryType = pk.species?.types?.[0]?.type?.name || "";
+            const nextPrimaryType = nextSpecies.types?.[0]?.type?.name || "";
+            const forcedGender = nextRate === -1 ? "N" : nextRate === 0 ? "M" : nextRate === 8 ? "F" : pk.gender;
+            updatePk({
+                ...pk,
+                species: { ...nextSpecies, gender_rate: nextRate },
+                genderRate: nextRate,
+                gender: forcedGender,
+                ability: pk.ability || nextSpecies.abilities?.[0]?.ability?.name || "",
+                teraType: !pk.teraType || pk.teraType === oldPrimaryType ? nextPrimaryType : pk.teraType,
+                canGMax: nextSpecies.name?.includes("-gmax") ? true : pk.canGMax,
+            });
+            setSpeciesProfile(profile || null);
+        } catch {
+            setFormError("Não foi possível trocar a forma agora. A ficha atual foi preservada.");
+        } finally {
+            setSwitchingForm(false);
+        }
+    };
 
     const handleChange = (cat, stat, val) => {
         if (val === "") { updatePk({ ...pk, [cat]: { ...(pk[cat] || {}), [stat]: "" } }); return; }
@@ -199,6 +260,54 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const rpg = pk.rpg || {};
     const nextLevelXp = getNextLevelXp(pk.level);
     const updateRpg = patch => updatePk({ ...pk, rpg: { ...rpg, ...patch } });
+    const abilityException = Boolean(pk.ability) && !isHackmon && !validAbilityNames.has(pk.ability);
+    const teraException = Boolean(pk.teraType) && !TYPES.includes(pk.teraType);
+    const moveExceptionCount = (pk.moves || []).filter(move => {
+        const normalized = move.trim().toLowerCase().replace(/\s+/g, "-");
+        return normalized && !isHackmon && !validMoveNames.has(normalized);
+    }).length;
+    const exceptionCount = moveExceptionCount + (abilityException ? 1 : 0) + (teraException ? 1 : 0);
+
+    useEffect(() => {
+        if (rpg.currentHp == null || rpg.currentHp <= displayedMaxHp) return;
+        updatePk({ ...pk, rpg: { ...rpg, currentHp: displayedMaxHp } });
+    // Max HP is the only dependency that can make an existing value invalid.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [displayedMaxHp, rpg.currentHp]);
+
+    const applyXpProgression = (xpValue = rpg.xp) => {
+        const xp = Math.max(0, Number(xpValue) || 0);
+        const levelCap = isHackmon ? 200 : 100;
+        if (xp < nextLevelXp || Number(pk.level) >= levelCap) {
+            if (xp !== Number(rpg.xp || 0)) updateRpg({ xp });
+            return;
+        }
+        const nextLevel = Math.min(levelCap, (Number(pk.level) || 1) + 1);
+        const nextRawMaxHp = calculateStat(
+            hpBase,
+            pk.evs?.hp ?? 0,
+            pk.ivs?.hp ?? 31,
+            nextLevel,
+            1,
+            true,
+            pk.species?.name,
+        );
+        const nextMaxHp = isTTRPG ? convertToTTRPG(nextRawMaxHp, true) : nextRawMaxHp;
+        const hpGrowth = Math.max(0, nextMaxHp - displayedMaxHp);
+        updatePk({
+            ...pk,
+            level: nextLevel,
+            rpg: {
+                ...rpg,
+                xp: 0,
+                currentHp: rpg.currentHp == null
+                    ? null
+                    : Math.min(nextMaxHp, Number(rpg.currentHp) + hpGrowth),
+            },
+        });
+    };
+
+    const awardXp = amount => applyXpProgression((Number(rpg.xp) || 0) + Number(amount || 0));
     const statusLabels = {
         "": "Sem condição",
         burn: "Queimado",
@@ -214,7 +323,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <datalist id="eItems">{validItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
             <datalist id="eAbs">{validAbs.map(a => { const v = typeof a === "string" ? a : (a?.name || ""); return v ? <option key={"ab-" + v} value={v}></option> : null; })}</datalist>
             <datalist id="eMvs">{validMoves.map(m => { const v = typeof m === "string" ? m : (m?.name || ""); return v ? <option key={"mv-" + v} value={v}></option> : null; })}</datalist>
-            <datalist id="eTera">{TYPES.map(t => { const v = typeof t === "string" ? t : (t?.name || t); return v ? <option key={"tr-" + v} value={v}></option> : null; })}</datalist>
             
             <div className="flex flex-col xl:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b-2 border-slate-200 pb-5 sm:pb-6">
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center w-full min-w-0">
@@ -234,9 +342,29 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 placeholder={formatName(pk.species?.name || "")}
                                 title="Editar apelido"
                             />
-                            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 truncate">
-                                {formatName(pk.species?.name || "")} {pk.species?.name?.includes("-") ? "(" + pk.species.name.substring(pk.species.name.indexOf("-") + 1).replace(/-/g, " ") + ")" : ""}
-                            </span>
+                            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
+                                <span className="truncate text-[9px] font-bold uppercase tracking-widest text-slate-400 sm:text-[10px]">
+                                    {formatName(pk.species?.name || "")}
+                                </span>
+                                {forms.length > 1 && (
+                                    <label className="form-switch">
+                                        <span className="sr-only">Forma do Pokémon</span>
+                                        <select
+                                            value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""}
+                                            disabled={switchingForm}
+                                            onChange={event => void changeForm(event.target.value)}
+                                        >
+                                            {forms.map(entry => (
+                                                <option key={entry.pokemon?.name} value={entry.pokemon?.url}>
+                                                    {formatName(entry.pokemon?.name)}{entry.is_default ? " • padrão" : ""}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                )}
+                                {switchingForm && <span className="text-[8px] font-black uppercase tracking-widest text-blue-500">Sincronizando forma…</span>}
+                                {formError && <span role="alert" className="text-[8px] font-black text-red-500">{formError}</span>}
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -247,7 +375,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             <div className="flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 shadow-sm">
                                 <label className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Amizade</label>
                                 <input type="number" min="0" max="255" value={pk.friendship===""? "":pk.friendship} onKeyDown={handleEnter} onChange={e => updatePk({...pk, friendship: e.target.value===""? "":Math.max(0, Math.min(parseInt(e.target.value)||0, 255))})} className="w-10 sm:w-12 bg-transparent text-slate-800 text-xs sm:text-sm font-black focus:outline-none text-center" />
-                                {isTTRPG && <span className="text-[10px] sm:text-xs font-black text-red-500 border-l-2 border-slate-200 pl-2 sm:pl-3 ml-0.5 sm:ml-1">{Math.ceil((pk.friendship||0)/20)}</span>}
+                                {isTTRPG && <span className="text-[10px] sm:text-xs font-black text-red-500 border-l-2 border-slate-200 pl-2 sm:pl-3 ml-0.5 sm:ml-1">{convertToTTRPG(pk.friendship || 0)}</span>}
                             </div>
                             <label className={"flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 transition-colors shadow-sm " + (isNativeGMax ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-red-400")}>
                                 <div className={"w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md border-2 flex items-center justify-center " + (pk.canGMax ? "bg-red-500 border-red-500" : "bg-white border-slate-300")}>{pk.canGMax && <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>}</div>
@@ -264,7 +392,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             </label>
                             {isHackmon && (
                                 <div className="flex gap-1.5 ml-1">
-                                    {[0, 1].map(idx => <select key={idx} value={customT[idx] || ""} onChange={e => { dismissKeyboard(); const nT = [...customT]; nT[idx] = e.target.value; updatePk({...pk, customTypes: nT.filter(Boolean)}); }} className="bg-purple-50 border-2 border-purple-200 rounded-lg text-[10px] text-purple-600 uppercase font-black px-2 py-1 outline-none shadow-sm"><option value=""></option>{TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>)}
+                                    {[0, 1].map(idx => <select key={idx} value={customT[idx] || ""} onChange={e => { dismissKeyboard(); const nT = [...customT]; nT[idx] = e.target.value; updatePk({...pk, customTypes: nT.filter(Boolean)}); }} className="bg-purple-50 border-2 border-purple-200 rounded-lg text-[10px] text-purple-600 uppercase font-black px-2 py-1 outline-none shadow-sm"><option value=""></option>{TYPES.map(t => <option key={t} value={t}>{formatType(t)}</option>)}</select>)}
                                 </div>
                             )}
                         </div>
@@ -277,17 +405,37 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 </button>
             </div>
 
+            <div className="rotom-automation-bar" role="status">
+                <strong><span aria-hidden="true">●</span> Rotom automático</strong>
+                <span>Atributos e HP reativos</span>
+                <span>Forma, habilidade e Tera conectados</span>
+                <span>PP e progressão sincronizados</span>
+                <em className={exceptionCount ? "has-exceptions" : ""}>
+                    {exceptionCount
+                        ? `${exceptionCount} ${exceptionCount === 1 ? "exceção manual preservada" : "exceções manuais preservadas"}`
+                        : "Ficha alinhada"}
+                </em>
+            </div>
+
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-10">
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Item segurado</label><input list="eItems" value={pk.item||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, item:(e.target.value||"").toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus-within:border-blue-400 outline-none capitalize shadow-inner" /></div>
-                        <div><label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Tipo Tera</label><input list="eTera" value={pk.teraType||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, teraType:(e.target.value||"").toLowerCase()})} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 text-blue-800 text-sm font-black focus:border-blue-500 outline-none capitalize shadow-inner" /></div>
+                        <div>
+                            <label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Tipo Tera</label>
+                            <select value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 text-blue-800 text-sm font-black focus:border-blue-500 outline-none shadow-inner">
+                                {!pk.teraType && <option value="">Escolher automaticamente</option>}
+                                {teraException && <option value={pk.teraType}>{formatName(pk.teraType)} • exceção</option>}
+                                {TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}
+                            </select>
+                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="relative">
                             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Habilidade</label>
                             <input list="eAbs" value={pk.ability||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, ability:(e.target.value||"").toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 pr-10 text-slate-800 text-sm font-black focus:border-blue-400 outline-none capitalize shadow-inner" />
                             <button onClick={()=>randomize("ability")} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>
+                            {abilityException && <span className="mt-1 block text-[8px] font-black uppercase tracking-wider text-amber-600">Exceção manual preservada</span>}
                         </div>
                         <div className="relative">
                             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Natureza</label>
@@ -338,7 +486,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                             onChange={event => {
                                                 const moves = [...(pk.moves || [])];
                                                 moves[index] = (event.target.value || "").toLowerCase();
-                                                updatePk({ ...pk, moves });
+                                                const pp = [...(rpg.pp || [null, null, null, null])];
+                                                pp[index] = null;
+                                                updatePk({ ...pk, moves, rpg: { ...rpg, pp } });
                                             }}
                                             className="w-full bg-transparent px-2 py-1.5 text-sm font-black capitalize text-slate-800 outline-none"
                                         />
@@ -346,7 +496,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                             <div className="mt-1 flex flex-wrap items-center gap-1 border-t border-slate-200/80 px-2 pt-2">
                                                 {detail?.power != null && <span className="move-chip">POD {isTTRPG ? convertToTTRPG(detail.power) : detail.power}</span>}
                                                 <span className="move-chip">PRE {detail?.accuracy ?? "—"}</span>
-                                                <span className="move-chip">PP {detail?.pp ?? "—"}</span>
+                                                <span className="move-chip">PP {currentPp ?? detail?.pp ?? "—"}/{detail?.pp ?? "—"}</span>
                                                 {detail?.priority !== 0 && detail?.priority != null && <span className="move-chip">PRI {detail.priority > 0 ? "+" : ""}{detail.priority}</span>}
                                                 {isException && <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[8px] font-black uppercase text-amber-800">{experienceMode === "game" ? "Fora do jogo" : "Exceção anime"}</span>}
                                                 {isTTRPG && moveName && (
@@ -398,9 +548,16 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             </label>
                             <label>
                                 <span className="editor-label">XP atual</span>
-                                <span className="relative block">
-                                    <input type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: Math.max(0, Number(event.target.value) || 0) })} className="editor-input pr-20" />
-                                    <small className="absolute right-3 top-3 text-[9px] font-black text-slate-400">/{formatNumberPtBr(nextLevelXp)} p/ Nv. {Math.min(200, (Number(pk.level) || 1) + 1)}</small>
+                                <span className="block">
+                                    <span className="relative block">
+                                        <input type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: Math.max(0, Number(event.target.value) || 0) })} onBlur={() => applyXpProgression()} className="editor-input pr-24" />
+                                        <small className="absolute right-3 top-3 text-[9px] font-black text-slate-400">/{formatNumberPtBr(nextLevelXp)} p/ Nv. {Math.min(isHackmon ? 200 : 100, (Number(pk.level) || 1) + 1)}</small>
+                                    </span>
+                                    <span className="editor-xp-actions">
+                                        <button type="button" onClick={() => awardXp(0.5)}>+0,5</button>
+                                        <button type="button" onClick={() => awardXp(1)}>+1 XP</button>
+                                        <small>Nível automático ao atingir a meta</small>
+                                    </span>
                                 </span>
                             </label>
                             <label>

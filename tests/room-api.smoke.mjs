@@ -114,7 +114,7 @@ try {
   assert.equal(updated.snapshot.round, 2);
   assert.ok(updated.events.some(event => event.type === "ready"));
 
-  console.log("Sala RPG API: create, authorize, join, redact, declaration, event, sync and update passed.");
+  console.log("Central da Aventura API: create, authorize, join, redact, declaration, event, sync and update passed.");
 } finally {
   if (session) {
     await request(`/api/rooms/${session.code}`, {

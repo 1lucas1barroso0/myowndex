@@ -14,8 +14,8 @@ export const EXPERIENCE_MODES = {
     },
     game: {
         id: "game",
-        label: "Videogame",
-        shortLabel: "Jogo",
+        label: "Como nos jogos",
+        shortLabel: "Jogos",
         description: "Atributos originais e sugestões compatíveis com o jogo escolhido.",
         isTTRPG: false,
         isFreeform: false,
@@ -23,7 +23,7 @@ export const EXPERIENCE_MODES = {
     },
     free: {
         id: "free",
-        label: "Modo livre",
+        label: "Criação livre",
         shortLabel: "Livre",
         description: "Crie sem limites: movimentos, habilidades, tipos e atributos ficam à sua escolha.",
         isTTRPG: true,
@@ -36,7 +36,7 @@ export const RPG_RULE_SECTIONS = [
     {
         id: "rolagens",
         number: 1,
-        title: "Sistema de rolagens",
+        title: "Rolagens e testes",
         summary: "Testes com 2d6, vantagem, críticos e chances percentuais.",
         rules: [
             {
@@ -71,7 +71,7 @@ export const RPG_RULE_SECTIONS = [
     {
         id: "matematica",
         number: 2,
-        title: "Matemática do RPG",
+        title: "Cálculos da aventura",
         summary: "Atributos, escala por 20, estágios, XP e valores mínimos.",
         rules: [
             {

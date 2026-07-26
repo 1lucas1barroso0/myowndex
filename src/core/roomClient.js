@@ -24,14 +24,14 @@ const roomRequest = async (path, key, options = {}) => {
             ? await response.json()
             : await response.text();
         if (!response.ok) {
-            const error = new Error(data?.error || "A conexão com a Sala RPG foi interrompida. Tente novamente.");
+            const error = new Error(data?.error || "A Central da Aventura perdeu a conexão. Tente novamente.");
             error.status = response.status;
             error.data = data;
             throw error;
         }
         return data;
     } catch (error) {
-        if (error?.name === "AbortError") throw new Error("A Sala RPG está levando mais tempo que o esperado. Tente novamente.");
+        if (error?.name === "AbortError") throw new Error("A aventura está levando mais tempo que o esperado. Tente novamente.");
         throw error;
     } finally {
         window.clearTimeout(timeout);
@@ -139,7 +139,7 @@ export const clearRoomSession = () => removeStorage(ROOM_SESSION_STORAGE_KEY);
 export const parseRoomInvite = () => {
     if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const code = (params.get("sala") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+    const code = (params.get("aventura") || params.get("sala") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
     const inviteCode = (params.get("convite") || "").slice(0, 64);
     return code && inviteCode ? { code, inviteCode } : null;
 };
@@ -148,7 +148,7 @@ export const buildPlayerInvite = (session) => {
     if (typeof window === "undefined" || !session?.inviteCode) return "";
     const url = new URL(window.location.href);
     url.hash = new URLSearchParams({
-        sala: session.code,
+        aventura: session.code,
         convite: session.inviteCode,
     }).toString();
     return url.toString();

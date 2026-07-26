@@ -1,6 +1,6 @@
 # MyOwnDex
 
-MyOwnDex reúne Pokédex, PC do Bill, criação de equipes, regras e uma Sala RPG conectada para Narrador e Jogadores.
+MyOwnDex reúne Pokédex, PC do Bill, criação de equipes, Guia do Treinador e uma Central da Aventura conectada para Narrador e Jogadores.
 
 A voz da interface segue o guia em
 [`docs/voice-and-terminology.md`](docs/voice-and-terminology.md), que centraliza
@@ -11,9 +11,9 @@ os termos fixos, a concordância e o tom usado em toda a jornada.
 - Pokédex responsiva com espécies, formas, atributos, tipos, movimentos, habilidades e evolução.
 - Boxes locais com salvamento automático, compartilhamento sem duplicatas e restauração após exclusões.
 - Fichas que mantêm forma, habilidade, tipo Tera, atributos, HP, PP, XP e sugestões do jogo sempre em dia.
-- Sala RPG persistente com papéis separados, convites, campo 2D, iniciativa, conversa, áudio e progresso integrado às Boxes.
+- Central da Aventura persistente com papéis separados, convites, campo 2D, iniciativa, conversa, áudio e progresso integrado às Boxes.
 - Assistente Rotom que resolve disputa, precisão, golpe crítico, STAB, tipos, limite de dano, PP, cura, recuo, condições e estágios.
-- Modo offline para a interface e os dados da Pokédex já consultados; APIs privadas da sala nunca entram no cache.
+- Uso offline para a interface e os dados da Pokédex já consultados; APIs privadas da aventura nunca entram no cache.
 
 O MyOwnDex sugere e calcula o que puder, sem tirar a liberdade de registrar escolhas próprias da aventura.
 
@@ -21,11 +21,11 @@ O MyOwnDex sugere e calcula o que puder, sem tirar a liberdade de registrar esco
 
 - React 19 e Vinext/Vite na interface.
 - PokéAPI com cache em memória e Cache Storage para dados oficiais.
-- Cloudflare D1 para salas, participantes e acontecimentos.
+- Cloudflare D1 para aventuras, participantes e acontecimentos.
 - Cloudflare R2 para trilhas compartilhadas.
 - Estado local versionado para Boxes e preferências do aparelho.
 
-O núcleo de regras fica em `src/core/`; componentes de Pokédex, PC e Sala RPG ficam em `src/components/`; rotas persistentes ficam em `app/api/rooms/`.
+O núcleo de regras fica em `src/core/`; componentes de Pokédex, PC e Central da Aventura ficam em `src/components/`; rotas persistentes ficam em `app/api/rooms/`.
 
 ## Desenvolvimento
 

@@ -81,7 +81,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                 <div className="relative z-10 max-w-3xl">
                     <div className="mb-3 flex flex-wrap items-center gap-2">
                         <span className="rounded-full border-2 border-white/40 bg-slate-900/80 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">Guia Rotom</span>
-                        <span className="rounded-full border-2 border-white/25 bg-white/15 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Regras da aventura</span>
+                        <span className="rounded-full border-2 border-white/25 bg-white/15 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Regras para a aventura</span>
                     </div>
                     <h2 className="text-3xl font-black tracking-tight text-white sm:text-5xl">Guia do Treinador</h2>
                     <p className="mt-3 max-w-2xl text-sm font-bold leading-6 text-orange-50 sm:text-base">
@@ -180,7 +180,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                     <article className="game-panel p-4 sm:p-6">
                         <div className="mb-4">
                             <span className="text-[9px] font-black uppercase tracking-[0.22em] text-blue-500">Calculadora Rotom</span>
-                            <h3 className="mt-1 text-xl font-black text-slate-800">Escala do RPG</h3>
+                            <h3 className="mt-1 text-xl font-black text-slate-800">Conversão para o RPG</h3>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-3">
                             <label className="rounded-2xl border-2 border-slate-200 bg-white p-4">
@@ -226,7 +226,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                         <div className="flex items-center justify-between gap-3">
                             <div>
                                 <span className="text-[9px] font-black uppercase tracking-[0.22em] text-orange-500">Arquivo do Treinador</span>
-                                <h3 className="mt-1 text-lg font-black text-slate-800">Todas as regras</h3>
+                                <h3 className="mt-1 text-lg font-black text-slate-800">Guia completo</h3>
                             </div>
                             <span className="rounded-full bg-slate-800 px-3 py-1 text-[9px] font-black text-white">{RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0)}</span>
                         </div>

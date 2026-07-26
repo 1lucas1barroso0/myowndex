@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MyOwnDex — Sala RPG Pokémon",
+    name: "MyOwnDex — Central da Aventura",
     short_name: "MyOwnDex",
-    description: "Pokédex, PC do Bill, regras e Sala RPG reunidos para acompanhar toda a sua aventura Pokémon.",
+    description: "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura reunidos para acompanhar toda a sua jornada Pokémon.",
     start_url: "/",
     display: "standalone",
     background_color: "#7f1d1d",

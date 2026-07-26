@@ -39,7 +39,7 @@ import CombatAssistant from "./CombatAssistant.jsx";
 
 const connectionLabels = {
     connected: "Aventura conectada",
-    connecting: "Chegando à sala…",
+    connecting: "Entrando na aventura…",
     saving: "Guardando mudanças…",
     offline: "Sem conexão",
     local: "Neste aparelho",
@@ -76,9 +76,9 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
         <div className="room-lobby animate-fade-in">
             <section className="room-lobby-hero">
                 <div>
-                    <span className="room-kicker">Sala RPG MyOwnDex</span>
+                    <span className="room-kicker">Central da Aventura • MyOwnDex</span>
                     <h2>Sua aventura Pokémon começa aqui.</h2>
-                    <p>Reúna o campo, as fichas, as regras, as rolagens, o progresso e a trilha em uma sala preparada para Narrador e jogadores.</p>
+                    <p>Reúna campo, fichas, regras, rolagens, progresso e trilha em um só lugar, com tudo preparado para Narrador e jogadores.</p>
                 </div>
                 <div className="room-live-orb" aria-hidden="true">
                     <span />
@@ -109,7 +109,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         <span className="room-role-mark">N</span>
                         <div>
                             <small>Quem conduz a aventura</small>
-                            <h3>Criar como Narrador</h3>
+                            <h3>Começar como Narrador</h3>
                         </div>
                     </header>
                     <label>
@@ -117,7 +117,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         <input value={title} maxLength={80} required onChange={event => setTitle(event.target.value)} />
                     </label>
                     <label>
-                        <span>Nome exibido na sala</span>
+                        <span>Seu nome na aventura</span>
                         <input value={narratorName} maxLength={32} required onChange={event => setNarratorName(event.target.value)} />
                     </label>
                     <ul>
@@ -126,7 +126,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         <li>Convida jogadores sem compartilhar os controles do Narrador.</li>
                     </ul>
                     <button type="submit" className="room-primary-button" disabled={busy}>
-                        {busy ? "Preparando sala…" : "Criar Sala RPG"}
+                        {busy ? "Preparando a aventura…" : "Abrir nova aventura"}
                     </button>
                 </form>
 
@@ -146,7 +146,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     </header>
                     <div className="room-code-row">
                         <label>
-                            <span>Código da sala</span>
+                            <span>Código da aventura</span>
                             <input value={code} maxLength={8} required autoCapitalize="characters" onChange={event => setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))} />
                         </label>
                         <label>
@@ -155,7 +155,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         </label>
                     </div>
                     <label>
-                        <span>Nome exibido na sala</span>
+                        <span>Seu nome na aventura</span>
                         <input value={displayName} maxLength={32} required onChange={event => setDisplayName(event.target.value)} />
                     </label>
                     <ul>
@@ -180,7 +180,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                 </span>
                 <b>Neste aparelho</b>
             </button>
-            <p className="room-lobby-footnote">Suas Boxes continuam salvas neste aparelho. Nas salas compartilhadas, o MyOwnDex mantém as mudanças de todos em ordem, mesmo quando acontecem juntas.</p>
+            <p className="room-lobby-footnote">Suas Boxes continuam salvas neste aparelho. Em aventuras compartilhadas, o MyOwnDex mantém as mudanças de todos em ordem, mesmo quando acontecem juntas.</p>
         </div>
     );
 }
@@ -236,7 +236,7 @@ function QuickRoller({ onEvent, onError }) {
         <details className="room-tool" open>
             <summary>
                 <span>
-                    <small>Dados da aventura</small>
+                    <small>Rolagens da aventura</small>
                     <strong>Rolagem rápida</strong>
                 </span>
                 <span className="room-tool-badge">Ao vivo</span>
@@ -456,7 +456,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             saveRoomSession(nextSession);
             const bundle = await fetchRemoteRoom(nextSession);
             applyBundle(bundle);
-            setNotice?.({ tone: "blue", text: `A sala ${result.code} está pronta! O convite dos jogadores também.` });
+            setNotice?.({ tone: "blue", text: `A aventura ${result.code} está pronta — e o convite para jogadores também.` });
         } catch (value) {
             showError(value);
         } finally {
@@ -925,7 +925,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         return (
             <Lobby
                 defaultInvite={initialInvite}
-                savedSession={initialSavedSession}
+                savedSession={loadRoomSession()}
                 busy={busy}
                 error={error}
                 onCreate={create}
@@ -942,7 +942,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 <div className="room-title">
                     <span className={`room-connection is-${connection}`} />
                     <div>
-                        <small>{session.local ? "Aventura neste aparelho" : `${connectionLabels[connection]} • Sala ${session.code}`}</small>
+                        <small>{session.local ? "Aventura neste aparelho" : `${connectionLabels[connection]} • Código ${session.code}`}</small>
                         <h2>{snapshot.title}</h2>
                     </div>
                 </div>
@@ -950,11 +950,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     <span className={`room-role-badge is-${role}`}>{roleLabel(role)}</span>
                     {role === "narrator" && !session.local && (
                         <>
-                            <button type="button" onClick={() => copy(session.code, "Código da sala")}>Código</button>
+                            <button type="button" onClick={() => copy(session.code, "Código da aventura")}>Código</button>
                             <button type="button" onClick={() => copy(inviteUrl, "Convite dos jogadores")}>Copiar convite</button>
                         </>
                     )}
-                    <button type="button" onClick={onOpenGuide}>Regras</button>
+                    <button type="button" onClick={onOpenGuide}>Guia</button>
                     <button type="button" className="room-leave" onClick={() => role === "narrator" ? setEnding(true) : void leave()}>
                         {role === "narrator" ? "Encerrar" : "Sair"}
                     </button>
@@ -963,7 +963,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
             {error && <button type="button" className="room-error is-action" onClick={() => refresh(session).catch(showError)}>{error} • tentar reconectar</button>}
 
-            <nav className="room-mobile-nav" aria-label="Painéis da Sala RPG">
+            <nav className="room-mobile-nav" aria-label="Painéis da aventura">
                 <button type="button" aria-pressed={mobilePane === "roster"} onClick={() => setMobilePane("roster")}>Equipe</button>
                 <button type="button" aria-pressed={mobilePane === "field"} onClick={() => setMobilePane("field")}>Campo</button>
                 <button type="button" aria-pressed={mobilePane === "tools"} onClick={() => setMobilePane("tools")}>Ações</button>
@@ -975,7 +975,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <div className="room-section-heading">
                             <div>
                                 <span className="room-kicker">Na aventura</span>
-                                <h3>Treinadores</h3>
+                                <h3>Quem participa</h3>
                             </div>
                             <span>{players.length + 1}</span>
                         </div>
@@ -1006,7 +1006,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <div className="room-section-heading">
                             <div>
                                 <span className="room-kicker">PC do Bill</span>
-                                <h3>Equipe escolhida</h3>
+                                <h3>Equipe para a cena</h3>
                             </div>
                             <span>{teams.length}</span>
                         </div>
@@ -1266,7 +1266,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     void sendEvent("message", { text: text.slice(0, 500) });
                                 }}
                             >
-                                <input name="message" maxLength={500} placeholder="Escreva para a sala…" aria-label="Mensagem para a sala" />
+                                <input name="message" maxLength={500} placeholder="Compartilhe uma mensagem…" aria-label="Mensagem da aventura" />
                                 <button type="submit">Enviar</button>
                             </form>
                         </div>
@@ -1303,7 +1303,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             <ConfirmDialog
                 open={ending}
                 title="Encerrar esta aventura?"
-                description="A sala, o diário compartilhado e as trilhas serão apagados para todos. Suas Boxes continuarão seguras no PC."
+                description="Esta aventura, o diário compartilhado e as trilhas serão apagados para todos. Suas Boxes continuarão seguras no PC."
                 confirmLabel={busy ? "Encerrando…" : "Encerrar aventura"}
                 cancelLabel="Continuar aventura"
                 danger

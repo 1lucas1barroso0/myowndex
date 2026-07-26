@@ -24,11 +24,12 @@ test("the interface keeps dedicated responsive layouts through phone widths", as
   }
   assert.match(room, /room-mobile-nav/);
   assert.match(room, /mobilePane === "field"/);
+  assert.match(room, /savedSession=\{loadRoomSession\(\)\}/);
   assert.match(layout, /device-width/);
   assert.match(layout, /maximumScale:\s*5/);
 });
 
-test("the public interface does not revive the retired RPG label or English recovery copy", async () => {
+test("the public interface keeps the RPG name and the canonical area labels", async () => {
   const sources = await Promise.all([
     read("src/App.jsx"),
     read("src/components/ErrorBoundary.jsx"),
@@ -38,13 +39,18 @@ test("the public interface does not revive the retired RPG label or English reco
   ]);
   const text = sources.join("\n");
   assert.doesNotMatch(text, /RPG Anime/);
+  assert.doesNotMatch(text, /Sala RPG/);
   assert.doesNotMatch(text, /\bVGC\b/);
   assert.doesNotMatch(text, /Recovery Mode|Reload MyOwnDex|Close share code|Add to Team/);
   assert.match(text, /label:\s*"RPG"/);
+  assert.match(text, />Aventura<\/button>/);
+  assert.match(text, />Guia<\/button>/);
 });
 
 test("the editorial glossary keeps names, agreement and Pokémon plurals consistent", () => {
-  assert.equal(MYOWNDEX_TERMS.room, "Sala RPG");
+  assert.equal(MYOWNDEX_TERMS.room, "Central da Aventura");
+  assert.equal(MYOWNDEX_TERMS.adventure, "aventura");
+  assert.equal(MYOWNDEX_TERMS.guide, "Guia do Treinador");
   assert.equal(MYOWNDEX_TERMS.pokeBall, "Poké Bola");
   assert.equal(RPG_STATUS_LABELS.paralysis, "Paralisado");
   assert.equal(formatCount(1, "Box", "Boxes"), "1 Box");
@@ -78,13 +84,13 @@ test("visible copy avoids robotic system language", async () => {
   assert.doesNotMatch(text, /Trainer OS|Rotom Lab|Studio Rotom|Registro compartilhado/);
   assert.doesNotMatch(text, /Sincronizando forma|Sincronizando prioridade|Modo de recuperação/);
   assert.doesNotMatch(text, /Tipagem|G-Max|D-Max|Sem Movimento|p\/ Nv\./);
-  assert.doesNotMatch(text, /Sala ao vivo|Conecte a sala/);
-  assert.match(text, /Gigantamax|Nível Dynamax|Aventura neste aparelho/);
+  assert.doesNotMatch(text, /Sala RPG|Sala ao vivo|Conecte a sala/);
+  assert.match(text, /Gigantamax|Nível Dynamax|Aventura neste aparelho|Central da Aventura/);
 });
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v7/);
+  assert.match(worker, /myowndex-shell-v8/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
 });

@@ -22,7 +22,7 @@ export async function GET(request: Request, context: RouteContext) {
     const code = safeRoomCode(params.code);
     const id = safeText(params.id, 80);
     const auth = await authenticateRoom(code, readRoomKey(request));
-    if (!auth) return noStoreJson({ error: "Não foi possível acessar o áudio desta sala. Entre novamente e tente outra vez." }, { status: 401 });
+    if (!auth) return noStoreJson({ error: "Não foi possível acessar o áudio desta aventura. Entre novamente e tente outra vez." }, { status: 401 });
     const { db, bucket } = getBindings();
     if (!bucket) throw new Error("As trilhas da aventura não estão disponíveis agora. Tente novamente em instantes.");
     const media = await db.prepare(

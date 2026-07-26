@@ -29,7 +29,7 @@ export function getBindings() {
   const runtime = (globalThis as typeof globalThis & {
     __MYOWNDEX_ENV__?: { DB?: D1Database; BUCKET?: R2Bucket };
   }).__MYOWNDEX_ENV__;
-  if (!runtime?.DB) throw new Error("A Sala RPG não conseguiu acessar os dados desta aventura agora. Tente novamente em instantes.");
+  if (!runtime?.DB) throw new Error("A Central da Aventura não conseguiu acessar esta aventura agora. Tente novamente em instantes.");
   return {
     db: runtime.DB,
     bucket: runtime.BUCKET,
@@ -175,7 +175,7 @@ export function assertStateSize(value: unknown) {
 
 export function assertEventSize(value: unknown) {
   if (jsonSize(value) > MAX_EVENT_BYTES) {
-    throw new Error("Esta mensagem ou ação é longa demais para a sala. Encurte-a e tente novamente.");
+    throw new Error("Esta mensagem ou ação ficou longa demais. Encurte-a e tente novamente.");
   }
 }
 

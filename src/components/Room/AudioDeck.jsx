@@ -198,7 +198,7 @@ export default function AudioDeck({
                             type="button"
                             disabled={role !== "narrator"}
                             onClick={() => triggerEffect(effect)}
-                            title={role === "narrator" ? `Tocar ${effect.label} para a sala` : "O Narrador escolhe os efeitos sonoros"}
+                            title={role === "narrator" ? `Tocar ${effect.label} na aventura` : "O Narrador escolhe os efeitos sonoros"}
                         >
                             {effect.label}
                         </button>
@@ -251,7 +251,7 @@ export default function AudioDeck({
 
                 {role === "narrator" && (
                     isLocal ? (
-                        <p className="audio-local-note">Crie uma Sala RPG compartilhada para tocar trilhas para todos. Os efeitos sonoros continuam disponíveis neste aparelho.</p>
+                        <p className="audio-local-note">Comece uma aventura compartilhada para tocar trilhas para todos. Os efeitos sonoros continuam disponíveis neste aparelho.</p>
                     ) : (
                         <label className={`audio-upload ${uploading ? "is-uploading" : ""}`}>
                             <input type="file" accept="audio/*" disabled={uploading} onChange={upload} />

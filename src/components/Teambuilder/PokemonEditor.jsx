@@ -514,14 +514,14 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 );
                             })}
                         </div>
-                        <p className="mt-2 text-[9px] font-bold text-slate-400">{isHackmon ? "No Modo livre, todas as opções estão à sua disposição." : "A Pokédex sugere os movimentos disponíveis neste jogo. Você também pode escrever uma escolha própria."}</p>
+                        <p className="mt-2 text-[9px] font-bold text-slate-400">{isHackmon ? "Na Criação livre, todas as opções estão à sua disposição." : "A Pokédex sugere os movimentos disponíveis neste jogo. Você também pode escrever uma escolha própria."}</p>
                     </div>
 
                     <details className="rpg-journey-panel overflow-hidden rounded-2xl border-2 border-orange-200 bg-orange-50/70">
                         <summary className="cursor-pointer list-none p-4">
                             <span className="flex items-center justify-between gap-3">
                                 <span>
-                                    <strong className="block text-[10px] font-black uppercase tracking-widest text-orange-700">Jornada RPG</strong>
+                                    <strong className="block text-[10px] font-black uppercase tracking-widest text-orange-700">Progresso da jornada</strong>
                                     <small className="mt-1 block text-[9px] font-bold text-slate-500">Acompanhe HP, XP, condição e tudo o que torna este Pokémon único.</small>
                                 </span>
                                 <span className="shrink-0 rounded-full bg-white px-3 py-1 text-[9px] font-black text-slate-600 shadow-sm">

@@ -306,7 +306,7 @@ export default function App() {
                     <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
                         <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
                             <div className="flex items-center gap-4">
-                                <button type="button" aria-label="Abrir a Sala RPG" onClick={handleOpenRoom} className="dex-lens relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
+                                <button type="button" aria-label="Abrir a Central da Aventura" onClick={handleOpenRoom} className="dex-lens relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
                                     <span />
                                 </button>
                                 <div className="app-brand flex flex-col">
@@ -315,10 +315,10 @@ export default function App() {
                                 </div>
                             </div>
                             <nav aria-label="Navegação principal" className="app-nav">
-                                <button type="button" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><span aria-hidden="true">◆</span>Sala RPG</button>
+                                <button type="button" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><span aria-hidden="true">◆</span>Aventura</button>
                                 <button type="button" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule ${view === "pokedex" ? "is-active" : ""}`}><span aria-hidden="true">◉</span>Pokédex</button>
                                 <button type="button" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule ${view === "teambuilder" ? "is-active" : ""}`}><span aria-hidden="true">▦</span>PC</button>
-                                <button type="button" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><span aria-hidden="true">≡</span>Regras</button>
+                                <button type="button" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><span aria-hidden="true">≡</span>Guia</button>
                             </nav>
                         </div>
 
@@ -331,8 +331,8 @@ export default function App() {
                                 </div>
                             )}
                             <label className="mode-select">
-                                <span className="hidden text-[8px] font-black uppercase tracking-[0.18em] text-slate-400 sm:block">Modo</span>
-                                <select aria-label="Modo da experiência" value={experienceMode} onChange={event => setExperienceMode(event.target.value)}>
+                                <span className="hidden text-[8px] font-black uppercase tracking-[0.18em] text-slate-400 sm:block">Estilo de jogo</span>
+                                <select aria-label="Estilo de jogo" value={experienceMode} onChange={event => setExperienceMode(event.target.value)}>
                                     {Object.values(EXPERIENCE_MODES).map(mode => <option key={mode.id} value={mode.id}>{mode.label}</option>)}
                                 </select>
                             </label>

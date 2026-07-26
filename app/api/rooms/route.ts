@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         break;
       }
     }
-    if (!code) throw new Error("Não conseguimos abrir uma nova sala agora. Tente novamente.");
+    if (!code) throw new Error("Não conseguimos abrir uma nova aventura agora. Tente novamente.");
 
     await db.prepare(
       `INSERT INTO rooms

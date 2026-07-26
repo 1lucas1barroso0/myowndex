@@ -9,7 +9,11 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 ## Termos fixos
 
 - MyOwnDex, Pokédex, PC do Bill, Box e Boxes.
-- Sala RPG, Narrador e Jogador quando nomeiam papéis ou áreas da interface.
+- Central da Aventura e Guia do Treinador são os nomes completos das áreas.
+- Aventura, Pokédex, PC e Guia são os rótulos curtos da navegação.
+- “aventura”, em minúsculas, nomeia cada jornada criada; Narrador e Jogador
+  nomeiam os papéis.
+- RPG, Como nos jogos e Criação livre são os três estilos de jogo.
 - Pokémon é invariável no plural.
 - movimento, habilidade, natureza, tipo, condição, equipe e parceiro usam
   minúsculas no meio de frases.
@@ -19,6 +23,8 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 
 ## Padrões de texto
 
+- Conectivos deixam os rótulos naturais: “Código da aventura”, “Equipe para a
+  cena” e “Regras para a aventura”.
 - Estados explicam o que está acontecendo: “Guardando mudanças…” e “Aventura
   conectada”.
 - Erros dizem o que ocorreu e oferecem uma saída simples.
@@ -35,6 +41,6 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Pokédex: curiosa e informativa.
 - PC do Bill: organizada e acolhedora.
 - Guia do Treinador: precisa e encorajadora.
-- Sala RPG: ágil, clara e orientada à ação.
+- Central da Aventura: ágil, clara e orientada à ação.
 - Assistente Rotom: explica resultados em linguagem de batalha, mantendo os
   cálculos disponíveis para consulta.

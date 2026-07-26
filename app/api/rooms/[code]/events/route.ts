@@ -26,7 +26,7 @@ export async function POST(request: Request, context: RouteContext) {
     const params = await context.params;
     const code = safeRoomCode(params.code);
     const auth = await authenticateRoom(code, readRoomKey(request));
-    if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta sala. Confira o convite e entre novamente." }, { status: 401 });
+    if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta aventura. Confira o convite e tente novamente." }, { status: 401 });
     const payload = await request.json().catch(() => ({})) as {
       type?: string;
       payload?: Record<string, unknown>;
@@ -35,7 +35,7 @@ export async function POST(request: Request, context: RouteContext) {
     const allowed = auth.role === "narrator"
       ? NARRATOR_EVENTS.has(type)
       : COMMON_EVENTS.has(type);
-    if (!allowed) return noStoreJson({ error: "Esta ação não está disponível para você nesta sala." }, { status: 403 });
+    if (!allowed) return noStoreJson({ error: "Esta ação não está disponível para você nesta aventura." }, { status: 403 });
     const eventPayload = payload.payload && typeof payload.payload === "object"
       ? payload.payload
       : {};
@@ -51,7 +51,7 @@ export async function POST(request: Request, context: RouteContext) {
         code,
         auth,
         type: "system",
-        payload: { text: `${auth.displayName} saiu da sala.` },
+        payload: { text: `${auth.displayName} saiu da aventura.` },
       });
       const { db } = getBindings();
       for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -130,7 +130,7 @@ export async function POST(request: Request, context: RouteContext) {
       const { db } = getBindings();
       for (let attempt = 0; attempt < 3; attempt += 1) {
         const room = await getRoom(code);
-        if (!room) return noStoreJson({ error: "Não encontramos essa sala. Confira o código e tente novamente." }, { status: 404 });
+        if (!room) return noStoreJson({ error: "Não encontramos essa aventura. Confira o código e tente novamente." }, { status: 404 });
         const snapshot = parseJson<Record<string, unknown>>(room.state_json, {});
         const tokens = Array.isArray(snapshot.tokens) ? snapshot.tokens : [];
         const token = tokens.find(item =>

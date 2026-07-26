@@ -174,7 +174,7 @@ export default function CombatAssistant({
             <summary>
                 <span>
                     <small>Assistente Rotom</small>
-                    <strong>Resolver movimento</strong>
+                    <strong>Resolver um movimento</strong>
                 </span>
                 <span className="room-tool-badge">Rotom</span>
             </summary>
@@ -227,7 +227,7 @@ export default function CombatAssistant({
                         : running
                             ? "Calculando a jogada…"
                             : role === "narrator"
-                                ? "Resolver movimento"
+                                ? "Resolver o movimento"
                                 : "Simular e compartilhar"}
                 </button>
                 {result && (

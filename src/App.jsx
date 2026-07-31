@@ -1,164 +1,331 @@
-import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
-import { fetchCached, extractId, formatName } from './core/mechanics';
-import PokemonModal from './components/Pokedex/PokemonModal';
-import Teambuilder from './components/Teambuilder/Teambuilder';
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { formatPokemonCount } from "./core/copy.js";
+import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
+import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
+import { EXPERIENCE_MODES } from "./core/rpgRules.js";
+import { readStorage, writeStorage } from "./core/storage.js";
+import TrainerGuide from "./components/Guide/TrainerGuide.jsx";
+import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
+import Teambuilder from "./components/Teambuilder/Teambuilder.jsx";
+import RpgRoom from "./components/Room/RpgRoom.jsx";
+import AppearanceControl from "./components/Shared/AppearanceControl.jsx";
+import InstallMyOwnDex from "./components/Shared/InstallMyOwnDex.jsx";
 
 const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
     return (
-        <div onClick={onSelect} className="game-card p-4 flex flex-col items-center cursor-pointer group relative">
-            <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">No. {id.padStart(4, "0")}</span>
-            <div className="w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
-                <img 
-                    src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png"} 
-                    className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200" 
-                    loading="lazy" 
-                    onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + id + ".png";
-                    }} 
+        <button
+            type="button"
+            onClick={onSelect}
+            className="game-card p-4 flex flex-col items-center cursor-pointer group relative text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+            aria-label={`Consultar ${formatName(species.name)} na Pokédex`}
+        >
+            <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">
+                No. {id.padStart(4, "0")}
+            </span>
+            <span className="w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
+                <img
+                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`}
+                    alt=""
+                    className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200"
+                    loading="lazy"
+                    onError={event => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+                    }}
                 />
-            </div>
-            <span className="text-[11px] font-black text-slate-700 mt-3 capitalize truncate w-full text-center group-hover:text-red-600 transition-colors">{formatName(species.name)}</span>
-        </div>
+            </span>
+            <span className="text-[11px] font-black text-slate-700 mt-3 capitalize truncate w-full text-center group-hover:text-red-600 transition-colors">
+                {formatName(species.name)}
+            </span>
+        </button>
     );
 });
 
+const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction }) => {
+    const tones = {
+        blue: "bg-blue-50 border-blue-200 text-blue-800",
+        amber: "bg-amber-50 border-amber-200 text-amber-800",
+        red: "bg-red-50 border-red-200 text-red-800"
+    };
+    return (
+        <div role="status" className={`mb-5 flex items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-xs font-bold ${tones[tone]}`}>
+            <span>{children}</span>
+            <span className="flex shrink-0 items-center gap-2">
+                {actionLabel && onAction && <button type="button" onClick={onAction} className="rounded-lg border-2 border-current/20 bg-white/70 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest">{actionLabel}</button>}
+                {onClose && <button type="button" onClick={onClose} className="text-base leading-none" aria-label="Dispensar aviso">×</button>}
+            </span>
+        </div>
+    );
+};
+
 export default function App() {
-    const [species, setSpecies] = useState(() => {
-        try {
-            const cached = localStorage.getItem("myowndex_dex_cache");
-            return cached ? JSON.parse(cached) : [];
-        } catch {
-            return [];
-        }
-    });
+    const [species, setSpecies] = useState([]);
+    const [dexLoading, setDexLoading] = useState(true);
+    const [dexError, setDexError] = useState("");
+    const [dexAttempt, setDexAttempt] = useState(0);
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [isTTRPG, setIsTTRPG] = useState(false);
-    const [isHackmon, setIsHackmon] = useState(false);
+    const [experienceMode, setExperienceMode] = useState("rpg");
+    const [modeBooted, setModeBooted] = useState(false);
     const [limit, setLimit] = useState(60);
     const [selectedUrl, setSelectedUrl] = useState(null);
-    const [view, setView] = useState("pokedex"); 
-    const [envLoaded, setEnvLoaded] = useState(false);
-    const [envLoading, setEnvLoading] = useState(false);
+    const [view, setView] = useState("room");
+    const [online, setOnline] = useState(true);
+    const [notice, setNotice] = useState(null);
     const deferredSearchTerm = useDeferredValue(searchTerm);
-    
-    const [teams, setTeams] = useState(() => { 
-        try { 
-            const local = localStorage.getItem("myowndex_rotom_v3"); 
-            if (local) { const parsed = JSON.parse(local); return Array.isArray(parsed) ? parsed : []; }
-            return [];
-        } catch { return []; } 
-    });
-    const [activeTeamId, setActiveTeamId] = useState(teams[0]?.id || null);
+
+    const [teams, setTeams] = useState([]);
+    const [teamsBooted, setTeamsBooted] = useState(false);
+    const [activeTeamId, setActiveTeamId] = useState(null);
+    const [storageError, setStorageError] = useState(false);
     const [env, setEnv] = useState({ items: [], moves: [], abilities: [] });
+    const [envLoading, setEnvLoading] = useState(false);
+    const [envLoaded, setEnvLoaded] = useState(false);
+    const [envError, setEnvError] = useState("");
+    const currentMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
+    const isTTRPG = currentMode.isTTRPG;
+    const isHackmon = currentMode.isFreeform;
 
-    // === O NOVO MOTOR DE CACHE PASSIVO ===
-    // Trabalha silenciosamente para que tudo carregue de forma instantânea
     useEffect(() => {
-        if (species.length === 0 || view !== "pokedex") return;
-        let isActive = true;
+        const stored = loadTeams();
+        setTeams(stored);
+        setActiveTeamId(stored[0]?.id || null);
+        setTeamsBooted(true);
+        let active = true;
+        if (stored.length) {
+            hydrateTeams(stored).then(hydrated => {
+                if (active) setTeams(current => mergeHydratedTeams(current, hydrated));
+            });
+        }
+        return () => { active = false; };
+    }, []);
 
-        const runPassiveCache = async () => {
-            // Espera 2 segundos para permitir que a interface inicial carregue livremente
-            await new Promise(r => setTimeout(r, 2000));
-            
-            // Foca em salvar a página atual e a próxima (para não consumir a internet toda de uma vez)
-            const targetBatch = species.slice(0, limit + 60);
-            
-            for (let i = 0; i < targetBatch.length; i++) {
-                if (!isActive) break;
-                const sp = targetBatch[i];
-                if (!sp || !sp.url) continue;
-                
-                const id = extractId(sp.url);
-                
-                // 1. Guarda o Sprite Pequeno nativamente na memória do navegador
-                const sprite = new Image();
-                sprite.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png";
-                
-                // 2. Guarda a Arte Gigante antecipadamente para o Modal não engasgar
-                const artwork = new Image();
-                artwork.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + id + ".png";
-                
-                // 3. Guarda os dados vitais da PokéAPI na localStorage
-                fetchCached(sp.url).catch(() => {});
-                
-                // Respira fundo: 150ms de pausa para manter o scroll do utilizador fluido
-                await new Promise(r => setTimeout(r, 150));
-            }
-        };
+    useEffect(() => {
+        const preferences = readStorage("myowndex_preferences_v1", {});
+        const savedMode = preferences?.experienceMode;
+        if (EXPERIENCE_MODES[savedMode]) setExperienceMode(savedMode);
+        const launchView = {
+            aventura: "room",
+            pokedex: "pokedex",
+            pc: "teambuilder",
+            guia: "guide",
+        }[new URLSearchParams(window.location.search).get("abrir")];
+        if (launchView) {
+            setView(launchView);
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete("abrir");
+            window.history.replaceState({}, "", `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
+        }
+        else if (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view)) setView(preferences.view);
+        setModeBooted(true);
+    }, []);
 
-        // Aproveita os momentos em que o processador do telemóvel está livre
-        const idleTask = window.requestIdleCallback ? window.requestIdleCallback(runPassiveCache) : setTimeout(runPassiveCache, 2000);
+    useEffect(() => {
+        if (!modeBooted) return;
+        writeStorage("myowndex_preferences_v1", { experienceMode, view });
+    }, [experienceMode, modeBooted, view]);
 
+    useEffect(() => {
+        if (!teamsBooted) return;
+        setStorageError(!saveTeams(teams));
+    }, [teams, teamsBooted]);
+
+    useEffect(() => {
+        setOnline(navigator.onLine);
+        const onOnline = () => setOnline(true);
+        const onOffline = () => setOnline(false);
+        window.addEventListener("online", onOnline);
+        window.addEventListener("offline", onOffline);
         return () => {
-            isActive = false;
-            if (window.cancelIdleCallback) window.cancelIdleCallback(idleTask);
-            else clearTimeout(idleTask);
+            window.removeEventListener("online", onOnline);
+            window.removeEventListener("offline", onOffline);
         };
-    }, [species, limit, view]);
-    // =====================================
-
-    useEffect(() => { try { localStorage.setItem("myowndex_rotom_v3", JSON.stringify(teams)); } catch{} }, [teams]);
+    }, []);
 
     useEffect(() => {
-        const timer = window.setTimeout(() => setSearchTerm(searchInput), 140);
+        if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return undefined;
+        let refreshing = false;
+        let offeredWorker = null;
+        let updateTimer = 0;
+        const offerUpdate = worker => {
+            if (!worker || offeredWorker === worker) return;
+            offeredWorker = worker;
+            setNotice({
+                tone: "blue",
+                text: "Uma nova versão do MyOwnDex está pronta para a sua aventura.",
+                actionLabel: "Atualizar agora",
+                onAction: () => worker.postMessage({ type: "SKIP_WAITING" }),
+            });
+        };
+        const watchRegistration = current => {
+            if (current.waiting && navigator.serviceWorker.controller) offerUpdate(current.waiting);
+            current.addEventListener("updatefound", () => {
+                const installing = current.installing;
+                installing?.addEventListener("statechange", () => {
+                    if (installing.state === "installed" && navigator.serviceWorker.controller) offerUpdate(installing);
+                });
+            });
+            updateTimer = window.setInterval(() => current.update().catch(() => {}), 60 * 60 * 1000);
+        };
+        const register = () => navigator.serviceWorker.register("/sw.js").then(watchRegistration).catch(() => {});
+        const onControllerChange = () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+        };
+        navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+        window.addEventListener("load", register, { once: true });
+        return () => {
+            window.removeEventListener("load", register);
+            navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+            window.clearInterval(updateTimer);
+        };
+    }, []);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => setSearchTerm(searchInput.trim()), 140);
         return () => window.clearTimeout(timer);
     }, [searchInput]);
 
     useEffect(() => {
         let mounted = true;
-        const bootPokedex = async () => {
-            try {
-                const cKey = "myowndex_dex_cache";
-                const localDex = localStorage.getItem(cKey);
-                if(localDex) { setSpecies(JSON.parse(localDex)); } 
-                else {
-                    const spRes = await fetchCached("https://pokeapi.co/api/v2/pokemon-species?limit=1500");
-                    if (mounted && spRes?.results) { setSpecies(spRes.results); try { localStorage.setItem(cKey, JSON.stringify(spRes.results)); } catch{} }
-                }
-            } catch (err) { console.error("A conexão com o Centro Pokémon falhou.", err); }
-        }; bootPokedex(); return () => { mounted = false; };
-    }, []);
+        setDexLoading(true);
+        setDexError("");
+        fetchCached("https://pokeapi.co/api/v2/pokemon-species?limit=1500", {
+            maxAgeMs: 24 * 60 * 60 * 1000,
+            forceRefresh: dexAttempt > 0
+        }).then(result => {
+            if (!mounted) return;
+            if (!result?.results?.length) {
+                setDexError("A Pokédex não conseguiu se conectar ao Centro Pokémon. Vamos tentar de novo?");
+                return;
+            }
+            setSpecies(result.results);
+        }).finally(() => {
+            if (mounted) setDexLoading(false);
+        });
+        return () => { mounted = false; };
+    }, [dexAttempt]);
 
     useEffect(() => {
-        if (view !== "teambuilder" || envLoaded || envLoading) return;
-        let mounted = true;
-        const loadEnv = async () => {
-            setEnvLoading(true);
-            try {
-                const [iRes, mRes, aRes] = await Promise.all([
-                    fetchCached("https://pokeapi.co/api/v2/item?limit=2500"),
-                    fetchCached("https://pokeapi.co/api/v2/move?limit=1500"),
-                    fetchCached("https://pokeapi.co/api/v2/ability?limit=500")
-                ]);
-                if (!mounted) return;
-                const spamRx = /tm\d+|tr\d+|hm\d+|dynamax|dummy-|data-card|z-ring|mega-bracelet|candy|mint/i;
-                setEnv({
-                    items: iRes?.results ? iRes.results.filter((v,i,a) => v?.name && a.findIndex(t=>t.name===v.name)===i && !spamRx.test(v.name)).sort((a,b)=>(a.name||"").localeCompare(b.name||"")) : [],
-                    moves: mRes?.results || [], abilities: aRes?.results || []
-                });
-                setEnvLoaded(true);
-            } catch (err) {
-                console.error("A conexão com os dados de equipe falhou.", err);
-            } finally {
-                if (mounted) setEnvLoading(false);
-            }
+        if (view !== "pokedex" || !species.length) return;
+        let cancelled = false;
+        const prefetch = () => {
+            if (cancelled) return;
+            species.slice(0, 12).forEach(entry => {
+                const image = new Image();
+                image.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${extractId(entry.url)}.png`;
+            });
         };
+        const task = window.requestIdleCallback ? window.requestIdleCallback(prefetch) : window.setTimeout(prefetch, 500);
+        return () => {
+            cancelled = true;
+            if (window.cancelIdleCallback) window.cancelIdleCallback(task);
+            else window.clearTimeout(task);
+        };
+    }, [species, view]);
 
-        loadEnv();
+    useEffect(() => {
+        if (view !== "teambuilder" || envLoaded) return;
+        let mounted = true;
+        setEnvLoading(true);
+        setEnvError("");
+        Promise.all([
+            fetchCached("https://pokeapi.co/api/v2/item?limit=2500", { maxAgeMs: 24 * 60 * 60 * 1000 }),
+            fetchCached("https://pokeapi.co/api/v2/move?limit=2000", { maxAgeMs: 24 * 60 * 60 * 1000 }),
+            fetchCached("https://pokeapi.co/api/v2/ability?limit=1000", { maxAgeMs: 24 * 60 * 60 * 1000 })
+        ]).then(([items, moves, abilities]) => {
+            if (!mounted) return;
+            setEnv({
+                items: dedupeByNameLatest(items?.results),
+                moves: dedupeByNameLatest(moves?.results),
+                abilities: dedupeByNameLatest(abilities?.results)
+            });
+            if (!items?.results || !moves?.results || !abilities?.results) {
+                setEnvError("Algumas opções ainda não chegaram, mas sua Box continua salva neste aparelho.");
+            }
+            setEnvLoaded(true);
+        }).finally(() => {
+            if (mounted) setEnvLoading(false);
+        });
         return () => { mounted = false; };
-    }, [view, envLoaded, envLoading]);
+    }, [view, envLoaded]);
+
+    const filteredSpecies = useMemo(() => {
+        if (!deferredSearchTerm) return species;
+        const query = deferredSearchTerm.toLowerCase();
+        return species.filter(entry => {
+            const name = entry?.name || "";
+            const id = extractId(entry?.url);
+            return name.includes(query) || formatName(name).toLowerCase().includes(query) || id === query;
+        });
+    }, [species, deferredSearchTerm]);
+
+    const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 
     const handleOpenPokedex = useCallback(() => setView("pokedex"), []);
     const handleOpenTeambuilder = useCallback(() => setView("teambuilder"), []);
+    const handleOpenGuide = useCallback(() => setView("guide"), []);
+    const handleOpenRoom = useCallback(() => setView("room"), []);
+    const handleSearchInputChange = useCallback(event => {
+        setSearchInput(event.target.value);
+        setLimit(60);
+    }, []);
 
-    const visible = useMemo(() => {
-        if (!deferredSearchTerm) return species.slice(0, limit);
-        const query = deferredSearchTerm.toLowerCase();
-        return species.filter(s => (s.name||"").startsWith(query) || extractId(s.url) === query).slice(0, limit);
-    }, [species, deferredSearchTerm, limit]);
+    const integrateTeam = useCallback((formData, genderRate) => {
+        const resolvedRate = Number.isFinite(Number(genderRate)) ? Number(genderRate) : -1;
+        const targetTeam = teams.find(team => team.id === activeTeamId) || teams[0] || null;
+        const legalMoves = filterMovesByLatestVersion(
+            formData.moves || [],
+            targetTeam?.versionGroup || "auto",
+        );
+        const levelMoves = legalMoves.filter(entry =>
+            entry.latest_detail?.move_learn_method?.name === "level-up"
+            && Number(entry.latest_detail?.level_learned_at || 0) <= 5
+        );
+        const initialMoves = levelMoves.slice(-4).map(entry => entry.move?.name).filter(Boolean);
+        let gender = "N";
+        if (resolvedRate === 0) gender = "M";
+        else if (resolvedRate === 8) gender = "F";
+        else if (resolvedRate > 0) gender = Math.random() * 8 < resolvedRate ? "F" : "M";
+
+        const partner = normalizePokemon({
+            species: { ...formData, gender_rate: resolvedRate },
+            level: 5,
+            friendship: 70,
+            ability: formData.abilities?.[0]?.ability?.name || "",
+            teraType: formData.types?.[0]?.type?.name || "",
+            nature: "hardy",
+            moves: initialMoves,
+            gender,
+            genderRate: resolvedRate,
+            genderLocked: false
+        });
+
+        let targetId = activeTeamId;
+        if (!teams.length) {
+            const first = createTeam("Box 1");
+            targetId = first.id;
+            setTeams([{ ...first, pokemon: [partner] }]);
+            setActiveTeamId(first.id);
+            setNotice({ tone: "blue", text: `${formatName(formData.name)} foi para a Box 1.` });
+        } else {
+            const target = targetTeam;
+            targetId = target.id;
+            if ((target.pokemon?.length || 0) >= 6) {
+                setNotice({ tone: "amber", text: `${target.name} já tem seis parceiros. Escolha outra Box ou crie uma nova.` });
+                setView("teambuilder");
+                return;
+            }
+            setTeams(current => current.map(team => team.id === targetId
+                ? touchTeam({ ...team, pokemon: [...(team.pokemon || []), partner] })
+                : team
+            ));
+            setActiveTeamId(targetId);
+            setNotice({ tone: "blue", text: `${formatName(formData.name)} agora faz parte de ${target.name}.` });
+        }
+        setView("teambuilder");
+    }, [activeTeamId, teams]);
 
     const teamBuilderProps = useMemo(() => ({
         teams,
@@ -170,127 +337,109 @@ export default function App() {
         setActiveTeamId,
         isTTRPG,
         isHackmon,
+        experienceMode,
+        envLoading,
+        envError,
+        setNotice,
         onSearchClick: handleOpenPokedex
-    }), [teams, setTeams, env.items, env.moves, env.abilities, activeTeamId, setActiveTeamId, isTTRPG, isHackmon, handleOpenPokedex]);
-    
-    const handleSearchInputChange = useCallback((e) => { setSearchInput(e.target.value); setLimit(60); }, []);
-    const handleSelectPokemon = useCallback((url) => setSelectedUrl(url), []);
-    const handleLoadMore = useCallback(() => setLimit(prev => prev + 60), []);
-    const toggleHackmon = useCallback(() => setIsHackmon(prev => !prev), []);
-    const toggleTTRPG = useCallback(() => setIsTTRPG(prev => !prev), []);
-
-    const integrateTeam = useCallback((formData, genderRate) => {
-        const resolvedGenderRate = typeof genderRate === "number" ? genderRate : (formData.gender_rate ?? formData.species?.gender_rate ?? -1);
-        let initialGender = "N";
-        if (resolvedGenderRate === 0) initialGender = "M";
-        else if (resolvedGenderRate === 8) initialGender = "F";
-        else if (resolvedGenderRate !== -1) {
-            initialGender = (Math.random() * 8) < resolvedGenderRate ? "F" : "M";
-        }
-
-        const pTemplate = { 
-            species: formData,
-            level: 5,
-            friendship: 70,
-            canGMax: false,
-            teraType: "",
-            item: "", 
-            ability: formData.abilities?.[0]?.ability?.name || "",
-            nature: "hardy",
-            moves: ["", "", "", ""], 
-            ivs: { hp:31, attack:31, defense:31, "special-attack":31, "special-defense":31, speed:31 }, 
-            evs: { hp:0, attack:0, defense:0, "special-attack":0, "special-defense":0, speed:0 },
-            gender: initialGender,
-            genderRate: resolvedGenderRate
-        };
-        
-        if (!teams.length) {
-            const id = Date.now().toString();
-            setTeams([{ id, name: "Box 1", pokemon: [pTemplate] }]);
-            setActiveTeamId(id);
-        } else {
-            const targetTeamId = activeTeamId || teams[0]?.id;
-            setTeams(prev => prev.map(t => {
-                if (t.id === targetTeamId && (t.pokemon?.length || 0) < 6) {
-                    return { ...t, pokemon: [...(t.pokemon || []), pTemplate] };
-                }
-                return t;
-            }));
-        }
-        setView("teambuilder");
-    }, [activeTeamId, teams]);
+    }), [teams, env, activeTeamId, isTTRPG, isHackmon, experienceMode, envLoading, envError, handleOpenPokedex]);
 
     return (
-        <div className="h-[100dvh] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_30%)]">
-            <header className="shrink-0 px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 md:pt-5 pb-2 z-40">
-                <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-4 md:p-5">
-                    <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+        <div className={`app-root view-${view} h-[100dvh] flex flex-col overflow-hidden`}>
+            <header className="app-header shrink-0 px-2.5 sm:px-4 md:px-5 pt-2.5 sm:pt-4 pb-2 z-40">
+                <div className="max-w-[1900px] mx-auto game-shell app-header-shell p-2.5 sm:p-3.5">
+                    <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
                         <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 bg-sky-400 rounded-full border-4 border-white shadow-[0_0_18px_#00d2ff] relative overflow-hidden cursor-pointer shrink-0" onClick={handleOpenPokedex}>
-                                    <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-white rounded-full opacity-70"></div>
-                                </div>
-                                <div className="flex flex-col">
+                                <button type="button" aria-label="Abrir a Central da Aventura" onClick={handleOpenRoom} className="dex-lens relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
+                                    <span />
+                                </button>
+                                <div className="app-brand flex flex-col">
                                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Pokémon</span>
                                     <h1 className="text-xl sm:text-2xl font-black text-slate-800">MyOwnDex</h1>
                                 </div>
                             </div>
-                            <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700 shadow-inner w-full max-w-[220px]">
-                                <button onClick={handleOpenPokedex} className={"game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none " + (view === "pokedex" ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600")}>Pokédex</button>
-                                <button onClick={handleOpenTeambuilder} className={"game-button flex-1 px-2 sm:px-4 py-2 rounded-full text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest outline-none " + (view === "teambuilder" ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600")}>Box</button>
-                            </div>
+                            <nav aria-label="Navegação principal" className="app-nav">
+                                <button type="button" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><span aria-hidden="true">◆</span>Aventura</button>
+                                <button type="button" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule ${view === "pokedex" ? "is-active" : ""}`}><span aria-hidden="true">◉</span>Pokédex</button>
+                                <button type="button" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule ${view === "teambuilder" ? "is-active" : ""}`}><span aria-hidden="true">▦</span>PC</button>
+                                <button type="button" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><span aria-hidden="true">≡</span>Guia</button>
+                            </nav>
+                            <AppearanceControl />
+                            <InstallMyOwnDex />
                         </div>
-                        
-                        <div className="flex gap-3 w-full lg:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
+
+                        <div className="app-actions flex gap-2.5 w-full xl:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
                             {view === "pokedex" && (
                                 <div className="relative flex-grow w-full sm:w-80">
-                                    <input type="text" value={searchInput} className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
-                                    <svg className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <label htmlFor="pokemon-search" className="sr-only">Buscar Pokémon por nome ou número</label>
+                                    <input id="pokemon-search" type="search" value={searchInput} placeholder="Nome ou número…" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
+                                    <svg aria-hidden="true" className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                 </div>
                             )}
-                            <div className="flex bg-slate-800/90 rounded-full p-1 border-2 border-slate-700">
-                                <button onClick={toggleHackmon} className={"px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none " + (isHackmon?"bg-purple-600 text-white":"text-slate-300")}>Hackmon</button>
-                                <button onClick={toggleTTRPG} className={"px-3 sm:px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all outline-none ml-1 " + (isTTRPG?"bg-amber-500 text-white":"text-slate-300")}>TTRPG</button>
-                            </div>
+                            <label className="mode-select">
+                                <span className="hidden text-[8px] font-black uppercase tracking-[0.18em] text-slate-400 sm:block">Estilo de jogo</span>
+                                <select aria-label="Estilo de jogo" value={experienceMode} onChange={event => setExperienceMode(event.target.value)}>
+                                    {Object.values(EXPERIENCE_MODES).map(mode => <option key={mode.id} value={mode.id}>{mode.label}</option>)}
+                                </select>
+                            </label>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-8 relative z-10">
-                <div className="max-w-[1700px] mx-auto game-shell p-3 sm:p-5 md:p-8 min-h-[70vh]">
-                    {view === "pokedex" ? (
-                        species.length === 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">
-                                {[...Array(40)].map((_, i) => <div key={i} className="bg-slate-200 border-2 border-slate-300 rounded-2xl h-36 skeleton"></div>)}
+            <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-2.5 sm:px-4 md:px-5 pt-1.5 pb-3 sm:pb-5 relative z-10">
+                <div className="max-w-[1900px] mx-auto game-shell app-main-shell p-3 sm:p-5 md:p-6 min-h-[70vh]">
+                    {!online && <StatusNotice tone="amber">Você está sem internet, mas tudo o que já consultou na Pokédex continua disponível.</StatusNotice>}
+                    {storageError && <StatusNotice tone="red">Não conseguimos salvar esta Box neste aparelho. Libere espaço ou permita o armazenamento do site e tente novamente.</StatusNotice>}
+                    {notice && <StatusNotice tone={notice.tone} actionLabel={notice.actionLabel} onAction={notice.onAction} onClose={() => setNotice(null)}>{notice.text}</StatusNotice>}
+
+                    {view === "room" ? (
+                        <RpgRoom
+                            teams={teams}
+                            setTeams={setTeams}
+                            onOpenGuide={handleOpenGuide}
+                            setNotice={setNotice}
+                        />
+                    ) : view === "pokedex" ? (
+                        dexLoading ? (
+                            <div aria-label="Abrindo a Pokédex" className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 sm:gap-5 w-full">
+                                {[...Array(40)].map((_, index) => <div key={index} className="bg-slate-200 border-2 border-slate-300 rounded-2xl h-36 skeleton" />)}
+                            </div>
+                        ) : dexError && !species.length ? (
+                            <div className="min-h-[55vh] flex flex-col items-center justify-center text-center">
+                                <div className="text-5xl mb-4" aria-hidden="true">📡</div>
+                                <h2 className="text-xl font-black text-slate-800">A Pokédex precisa de mais um instante</h2>
+                                <p className="mt-2 text-sm text-slate-500">{dexError}</p>
+                                <button type="button" onClick={() => setDexAttempt(value => value + 1)} className="mt-5 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b]">Buscar novamente</button>
                             </div>
                         ) : (
                             <>
                                 <div className="bg-slate-900 border-4 border-slate-800 rounded-2xl p-5 mb-8 shadow-xl relative overflow-hidden">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]"></div>
-                                        <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest uppercase">System Online</span>
+                                        <div className={`w-3 h-3 rounded-full shadow-[0_0_8px_currentColor] ${online ? "bg-emerald-400 text-emerald-400 animate-pulse" : "bg-amber-400 text-amber-400"}`} />
+                                        <span className={`text-[10px] font-mono font-bold tracking-widest uppercase ${online ? "text-emerald-400" : "text-amber-400"}`}>{online ? "Pokédex conectada" : "Consulta offline"}</span>
                                     </div>
                                     <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
-                                        Pokémon Storage<br />
-                                        <span className="text-slate-400 text-sm font-bold animate-pulse">&gt; Awaiting Input...</span>
+                                        Pokédex Nacional<br />
+                                        <span className="text-slate-400 text-sm font-bold">&gt; {formatPokemonCount(filteredSpecies.length)}</span>
                                     </h2>
                                 </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3 sm:gap-5">
-                                    {visible.map(sp => {
-                                        if (!sp?.url) return null;
-                                        const id = extractId(sp.url);
-                                        return <PokemonCard key={sp.name} species={sp} id={id} onSelect={() => handleSelectPokemon(sp.url)} />;
-                                    })}
-                                </div>
-                                {limit < species.length && !deferredSearchTerm && (
-                                    <button onClick={handleLoadMore} className="mt-8 sm:mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
-                                        Load more Pokémon
+                                {visible.length ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3 sm:gap-5">
+                                        {visible.map(entry => <PokemonCard key={entry.name} species={entry} id={extractId(entry.url)} onSelect={() => setSelectedUrl(entry.url)} />)}
+                                    </div>
+                                ) : (
+                                    <div className="py-16 text-center text-sm font-bold text-slate-500">Nenhum Pokémon apareceu para “{deferredSearchTerm}”. Tente outro nome ou número.</div>
+                                )}
+                                {limit < filteredSpecies.length && (
+                                    <button type="button" onClick={() => setLimit(value => value + 60)} className="mt-8 sm:mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
+                                        Mostrar mais Pokémon
                                     </button>
                                 )}
                             </>
                         )
-                    ) : <Teambuilder envProps={teamBuilderProps} />}
+                    ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} onModeChange={setExperienceMode} />}
                 </div>
             </main>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}

@@ -1,0 +1,36 @@
+name: Validar MyOwnDex
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: myowndex-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+      - name: Preparar o Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Instalar dependências verificadas
+        run: npm ci
+      - name: Testar regras e integrações
+        run: npm test
+      - name: Revisar o código
+        run: npm run lint
+      - name: Verificar os tipos
+        run: npx tsc --noEmit --incremental false
+      - name: Compilar o artefato completo
+        run: npm run build

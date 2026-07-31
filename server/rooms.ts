@@ -87,6 +87,32 @@ export async function ensureRoomSchema() {
         FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
       )`),
       db.prepare("CREATE INDEX IF NOT EXISTS room_media_room_code_idx ON room_media (room_code)"),
+      db.prepare(`CREATE TABLE IF NOT EXISTS room_call_members (
+        id TEXT PRIMARY KEY NOT NULL,
+        room_code TEXT NOT NULL,
+        participant_id TEXT NOT NULL,
+        connection_id TEXT NOT NULL,
+        display_name TEXT NOT NULL,
+        role TEXT NOT NULL,
+        muted INTEGER NOT NULL DEFAULT 0,
+        joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
+      )`),
+      db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS room_call_members_participant_idx ON room_call_members (room_code, participant_id)"),
+      db.prepare("CREATE INDEX IF NOT EXISTS room_call_members_presence_idx ON room_call_members (room_code, last_seen_at)"),
+      db.prepare(`CREATE TABLE IF NOT EXISTS room_call_signals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        room_code TEXT NOT NULL,
+        sender_id TEXT NOT NULL,
+        recipient_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        payload_json TEXT NOT NULL DEFAULT '{}',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
+      )`),
+      db.prepare("CREATE INDEX IF NOT EXISTS room_call_signals_recipient_idx ON room_call_signals (room_code, recipient_id, id)"),
+      db.prepare("CREATE INDEX IF NOT EXISTS room_call_signals_created_at_idx ON room_call_signals (created_at)"),
     ]);
   })().catch(error => {
     schemaPromise = null;

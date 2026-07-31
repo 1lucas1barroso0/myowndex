@@ -558,8 +558,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 </select>
                             </label>
                             <label>
-                                <span className="editor-label">Poké Bola da captura</span>
-                                <input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} placeholder="Ex.: Bola Luxo" className="editor-input" />
+                                <span className="editor-label">Poké Ball da captura</span>
+                                <input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} placeholder="Ex.: Luxury Ball" className="editor-input" />
                             </label>
                             <label className="sm:col-span-2">
                                 <span className="editor-label">Treinador original</span>

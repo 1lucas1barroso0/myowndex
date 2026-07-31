@@ -51,3 +51,31 @@ export const roomMedia = sqliteTable("room_media", {
 }, table => [
   index("room_media_room_code_idx").on(table.roomCode),
 ]);
+
+export const roomCallMembers = sqliteTable("room_call_members", {
+  id: text("id").primaryKey(),
+  roomCode: text("room_code").notNull().references(() => rooms.code, { onDelete: "cascade" }),
+  participantId: text("participant_id").notNull(),
+  connectionId: text("connection_id").notNull(),
+  displayName: text("display_name").notNull(),
+  role: text("role").notNull(),
+  muted: integer("muted", { mode: "boolean" }).notNull().default(false),
+  joinedAt: text("joined_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  lastSeenAt: text("last_seen_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, table => [
+  uniqueIndex("room_call_members_participant_idx").on(table.roomCode, table.participantId),
+  index("room_call_members_presence_idx").on(table.roomCode, table.lastSeenAt),
+]);
+
+export const roomCallSignals = sqliteTable("room_call_signals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  roomCode: text("room_code").notNull().references(() => rooms.code, { onDelete: "cascade" }),
+  senderId: text("sender_id").notNull(),
+  recipientId: text("recipient_id").notNull(),
+  type: text("type").notNull(),
+  payloadJson: text("payload_json").notNull().default("{}"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, table => [
+  index("room_call_signals_recipient_idx").on(table.roomCode, table.recipientId, table.id),
+  index("room_call_signals_created_at_idx").on(table.createdAt),
+]);

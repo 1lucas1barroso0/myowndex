@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { formatCount, formatPartnerArrival } from "../../core/copy.js";
+import { formatCanonicalItemName, formatCount, formatPartnerArrival } from "../../core/copy.js";
 import { formatName, VERSION_GROUPS } from "../../core/mechanics.js";
 import { createTeam as makeTeam, createId, hydrateTeam, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, touchTeam } from "../../core/team.js";
 import { decodeTeam, encodeTeam } from "../../core/teamShare.js";
@@ -314,7 +314,7 @@ export default function Teambuilder({ envProps }) {
                                                 <span className="font-black text-xs sm:text-sm text-slate-800 capitalize truncate">{partner.nickname || formatName(partner.species?.name)}</span>
                                                 <span className={`text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 ${partner.gender === "M" ? "text-blue-500 bg-blue-50 border-blue-200" : partner.gender === "F" ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200"}`}>{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
                                             </span>
-                                            <span className="block text-[9px] sm:text-[10px] font-bold text-slate-400 truncate">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatName(partner.item) : "Sem item"}</span>
+                                            <span className="block text-[9px] sm:text-[10px] font-bold text-slate-400 truncate">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span>
                                         </span>
                                     </button>
                                 );

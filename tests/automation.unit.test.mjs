@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   applyMoveConsequences,
+  applyHitKillProtection,
   applyStageChange,
   getDefensiveTypes,
   getMovePpState,
@@ -101,4 +102,47 @@ test("one resolved Move applies PP, HP, drain, status and stages together", () =
   assert.equal(nextDefender.status, "burn");
   assert.equal(result.consequences.healed, 2);
   assert.equal(result.consequences.appliedStatus, "burn");
+});
+
+test("hit kill protection covers damage below, equal to and above three times current HP", () => {
+  const below = applyHitKillProtection({ damage: 29, currentHp: 10 });
+  assert.equal(below.protectedFromKnockout, true);
+  assert.equal(below.appliedDamage, 9);
+  assert.equal(below.remainingHp, 1);
+  assert.equal(below.threshold, 30);
+
+  const equal = applyHitKillProtection({ damage: 30, currentHp: 10 });
+  assert.equal(equal.protectedFromKnockout, false);
+  assert.equal(equal.appliedDamage, 10);
+  assert.equal(equal.remainingHp, 0);
+
+  const above = applyHitKillProtection({ damage: 31, currentHp: 10 });
+  assert.equal(above.protectedFromKnockout, false);
+  assert.equal(above.remainingHp, 0);
+});
+
+test("critical hits and declared knockout moves bypass hit kill protection", () => {
+  const critical = applyHitKillProtection({ damage: 10, currentHp: 10, critical: true });
+  const direct = applyHitKillProtection({ damage: 10, currentHp: 10, directKnockout: true });
+  assert.equal(critical.protectedFromKnockout, false);
+  assert.equal(direct.protectedFromKnockout, false);
+  assert.equal(critical.remainingHp, 0);
+  assert.equal(direct.remainingHp, 0);
+});
+
+test("battle consequences record calculated damage when protection leaves one HP", () => {
+  const fragile = { ...defender, currentHp: 4, maxHp: 10 };
+  const result = applyMoveConsequences({
+    tokens: [attacker, fragile],
+    attackerId: attacker.id,
+    defenderId: fragile.id,
+    move: { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} },
+    resolution: { hit: true, damage: 8, attackTest: { critical: false } },
+  });
+  const target = result.tokens.find(token => token.id === fragile.id);
+  assert.equal(target.currentHp, 1);
+  assert.equal(result.consequences.calculatedDamage, 8);
+  assert.equal(result.consequences.damage, 3);
+  assert.equal(result.consequences.hitKillProtected, true);
+  assert.equal(result.consequences.hitKillThreshold, 12);
 });

@@ -11,6 +11,7 @@ import {
     calculateStagedStats,
     getDefensiveTypes,
     getMoveStab,
+    isDirectKnockoutMove,
     normalizePpSlots,
     normalizeSlug,
     normalizeStageMap,
@@ -128,6 +129,13 @@ export const normalizeRoomToken = value => {
         originalTypes,
         teraType: normalizeSlug(source.teraType),
         teraActive: Boolean(source.teraActive && source.teraType),
+        ability: normalizeSlug(source.ability),
+        item: normalizeSlug(source.item),
+        nature: normalizeSlug(source.nature),
+        gender: asText(source.gender).slice(0, 20),
+        toxicCounter: source.status === "bad-poison"
+            ? Math.round(numberInRange(source.toxicCounter, 1, 15, 1))
+            : 0,
         stats,
         originalStats,
         stages,
@@ -298,6 +306,10 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
             : pokemon?.species?.types?.map(entry => entry?.type?.name),
         teraType: pokemon?.teraType || "",
         teraActive: false,
+        ability: pokemon?.ability || "",
+        item: pokemon?.item || "",
+        nature: pokemon?.nature || "",
+        gender: pokemon?.gender || "",
         stats: Object.fromEntries(Object.entries(computed).map(([key, values]) => [key, values.rpg])),
         originalStats: Object.fromEntries(Object.entries(computed).map(([key, values]) => [key, values.original])),
         moves: pokemon?.moves,
@@ -374,6 +386,47 @@ export const advanceInitiative = snapshot => {
     };
 };
 
+const residualAmount = (maximumHp, fraction) => Math.max(1, Math.floor(Math.max(1, Number(maximumHp) || 1) * fraction));
+const SAND_IMMUNE_ABILITIES = new Set(["magic-guard", "overcoat", "sand-force", "sand-rush", "sand-veil"]);
+
+export const applyEndOfRoundEffects = snapshot => {
+    const room = normalizeRoomSnapshot(snapshot);
+    const effects = [];
+    const tokens = room.tokens.map(token => {
+        if (token.currentHp <= 0) return token;
+        let damage = 0;
+        let toxicCounter = token.status === "bad-poison" ? Math.max(1, token.toxicCounter || 1) : 0;
+        if (token.status === "burn") damage += residualAmount(token.maxHp, 1 / 16);
+        if (token.status === "poison") damage += residualAmount(token.maxHp, 1 / 8);
+        if (token.status === "bad-poison") {
+            damage += residualAmount(token.maxHp, toxicCounter / 16);
+            toxicCounter = Math.min(15, toxicCounter + 1);
+        }
+        const sandImmuneType = token.types.some(type => ["ground", "rock", "steel"].includes(type));
+        if (room.weather === "areia" && !sandImmuneType && !SAND_IMMUNE_ABILITIES.has(token.ability)) {
+            damage += residualAmount(token.maxHp, 1 / 16);
+        }
+        if (!damage) return { ...token, toxicCounter };
+        const applied = Math.min(token.currentHp, damage);
+        const currentHp = Math.max(0, token.currentHp - applied);
+        effects.push({
+            tokenId: token.id,
+            tokenName: token.name,
+            damage: applied,
+            remainingHp: currentHp,
+            fainted: currentHp <= 0,
+            sources: [
+                token.status === "burn" ? "queimadura" : "",
+                token.status === "poison" ? "envenenamento" : "",
+                token.status === "bad-poison" ? "envenenamento grave" : "",
+                room.weather === "areia" && !sandImmuneType && !SAND_IMMUNE_ABILITIES.has(token.ability) ? "tempestade de areia" : "",
+            ].filter(Boolean),
+        });
+        return { ...token, currentHp, toxicCounter };
+    });
+    return { room: { ...room, tokens }, effects };
+};
+
 export const buildInitiative = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
     const results = room.tokens.filter(token => !token.hidden && token.currentHp > 0).map(token => {
@@ -448,11 +501,22 @@ export const calculateMoveResolution = ({
         };
     const hit = contestSuccess && accuracyTest.success;
     const criticalMultiplier = attackTest.critical ? 1.5 : 1;
-    const rawDamage = hit && effectiveness > 0
-        ? Math.max(1, Math.round(baseDamage * stab * effectiveness * criticalMultiplier))
+    const directKnockout = isDirectKnockoutMove(move);
+    const minimumHits = Math.max(1, Number(move?.meta?.min_hits) || 1);
+    const maximumHits = Math.max(minimumHits, Number(move?.meta?.max_hits) || minimumHits);
+    const hitCount = hit && maximumHits > 1
+        ? minimumHits + Math.floor((typeof random === "function" ? random() : Math.random()) * (maximumHits - minimumHits + 1))
+        : 1;
+    const rawDamagePerHit = hit && effectiveness > 0
+        ? directKnockout
+            ? Math.max(1, Number(defender?.currentHp) || 1)
+            : Math.max(1, Math.round(baseDamage * stab * effectiveness * criticalMultiplier))
         : 0;
     const ceiling = getDamageCeiling(attacker?.level || 1);
-    const damage = Math.min(rawDamage, ceiling);
+    const damagePerHit = attackTest.critical || directKnockout
+        ? rawDamagePerHit
+        : Math.min(rawDamagePerHit, ceiling);
+    const damage = damagePerHit * hitCount;
     return {
         attackKey,
         defenseKey,
@@ -467,21 +531,34 @@ export const calculateMoveResolution = ({
         effectiveness,
         hit,
         ceiling,
+        rawDamagePerHit,
+        damagePerHit,
+        hitCount,
+        directKnockout,
         damage,
     };
 };
 
 export const eventSummary = event => {
     const payload = event?.payload || {};
-    if (event?.type === "roll") return `${event.author} rolou ${payload.label || "um teste"}: ${payload.result ?? "—"}.`;
+    if (event?.type === "roll") {
+        const protection = payload.hitKillProtected
+            ? ` A prévia calculou ${Number(payload.calculatedDamage) || 0} de dano, e a proteção contra hit kill manteria o alvo com 1 HP.`
+            : "";
+        return `${event.author} rolou ${payload.label || "um teste"}: ${payload.result ?? "—"}.${protection}`;
+    }
     if (event?.type === "move-declared") {
         return `${event.author} escolheu ${payload.moveName ? formatName(payload.moveName) : "um movimento"}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
     }
     if (event?.type === "move") {
         const damage = Number(payload.damage) || 0;
         const result = payload.hit ? `causou ${damage} de dano` : "não causou dano";
+        const protection = payload.hitKillProtected
+            ? ` O golpe causaria ${Number(payload.calculatedDamage) || damage}, mas a proteção contra hit kill manteve o alvo com 1 HP.`
+            : "";
         const fainted = payload.fainted ? " O alvo não pode mais batalhar." : "";
-        return `${event.author}: ${payload.attackerName || "Pokémon"} usou ${payload.moveName || "um movimento"} e ${result}.${fainted}`;
+        const fumble = payload.fumble ? " O erro crítico pede uma consequência escolhida para esta cena." : "";
+        return `${event.author}: ${payload.attackerName || "Pokémon"} usou ${payload.moveName || "um movimento"} e ${result}.${protection}${fainted}${fumble}`;
     }
     if (event?.type === "message") return `${event.author}: ${asText(payload.text)}`;
     if (event?.type === "ready") return payload.ready

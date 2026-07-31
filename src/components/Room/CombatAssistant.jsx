@@ -9,8 +9,10 @@ import {
 } from "../../core/mechanics.js";
 import {
     applyMoveConsequences,
+    applyHitKillProtection,
     getMoveAutomationTags,
     getMovePpState,
+    isDirectKnockoutMove,
 } from "../../core/automation.js";
 import { formatRemainingPp } from "../../core/copy.js";
 import { calculateMoveResolution, STATUS_LABELS } from "../../core/room.js";
@@ -141,10 +143,14 @@ export default function CombatAssistant({
                     moveName: formatName(move.name),
                     hit: resolution.hit,
                     damage: automated.consequences.damage,
+                    calculatedDamage: automated.consequences.calculatedDamage,
+                    hitKillThreshold: automated.consequences.hitKillThreshold,
+                    hitKillProtected: automated.consequences.hitKillProtected,
                     remainingHp: nextDefender?.currentHp,
                     fainted: automated.consequences.fainted,
                     status: automated.consequences.appliedStatus,
                     ppAfter: automated.consequences.ppAfter,
+                    fumble: resolution.attackTest.fumble,
                 });
                 if (resolution.hit) {
                     await onEvent("sfx", {
@@ -153,11 +159,19 @@ export default function CombatAssistant({
                     });
                 }
             } else {
-                setResult({ ...resolution, move, consequences: null });
+                const previewHitKill = applyHitKillProtection({
+                    damage: resolution.hit ? resolution.damage : 0,
+                    currentHp: defender.currentHp,
+                    critical: resolution.attackTest.critical,
+                    directKnockout: resolution.directKnockout || isDirectKnockoutMove(move),
+                });
+                setResult({ ...resolution, move, consequences: null, previewHitKill });
                 await onEvent("roll", {
                     label: `simulação de ${formatName(move.name)}`,
                     result: `${resolution.attackTest.total} × ${resolution.defenseTest.total}`,
-                    damage: resolution.damage,
+                    damage: previewHitKill.appliedDamage,
+                    calculatedDamage: resolution.damage,
+                    hitKillProtected: previewHitKill.protectedFromKnockout,
                     attackerId: attacker.id,
                     defenderId: defender.id,
                 });
@@ -238,7 +252,7 @@ export default function CombatAssistant({
                         </div>
                         <div>
                             <small>Dano {role === "narrator" ? "aplicado" : "simulado"}</small>
-                            <strong>{formatNumberPtBr(result.consequences?.damage ?? result.damage)}</strong>
+                            <strong>{formatNumberPtBr(result.consequences?.damage ?? result.previewHitKill?.appliedDamage ?? result.damage)}</strong>
                         </div>
                         <p>
                             {result.hit ? "O ataque venceu a disputa." : "A defesa levou a melhor; os empates favorecem o defensor."}
@@ -246,7 +260,8 @@ export default function CombatAssistant({
                                 ? "O movimento acerta sem teste de precisão."
                                 : `Precisão: ${result.accuracyTest.result}/${result.accuracyTest.chance}${result.accuracyTest.rolls.length > 1 ? " com vantagem" : ""}.`}
                             {" "}Eficácia do tipo: {modifierLabel(result.effectiveness).toLowerCase()}. STAB: {formatNumberPtBr(result.stab)}×
-                            {result.attackTest.critical ? "; golpe crítico: 1,5×" : ""}. Limite de dano: {formatNumberPtBr(result.ceiling)}.
+                            {result.attackTest.critical ? "; golpe crítico: 1,5× e sem limite por nível" : ""}. Limite de dano comum: {formatNumberPtBr(result.ceiling)}.
+                            {result.hitCount > 1 ? ` O movimento acertou ${result.hitCount} vezes.` : ""}
                         </p>
                         {result.consequences && (
                             <ul className="combat-consequences">
@@ -255,7 +270,14 @@ export default function CombatAssistant({
                                 {result.consequences.recoil > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.recoil)} HP com o recuo.</li>}
                                 {result.consequences.appliedStatus && <li>Condição: {STATUS_LABELS[result.consequences.appliedStatus]}.</li>}
                                 {result.consequences.stageChanges.length > 0 && <li>Mudanças de atributo: {stageSummary(result.consequences.stageChanges)}.</li>}
+                                {result.consequences.hitKillProtected && <li>Proteção contra hit kill: o cálculo chegou a {formatNumberPtBr(result.consequences.calculatedDamage)} de dano; o limite para a queda era {formatNumberPtBr(result.consequences.hitKillThreshold)}, então o alvo permaneceu com 1 HP.</li>}
+                                {result.attackTest.fumble && <li>Erro crítico: escolha uma consequência coerente com a cena; o MyOwnDex não toma essa decisão pelo grupo.</li>}
                                 {result.consequences.fainted && <li>O alvo não pode mais batalhar.</li>}
+                            </ul>
+                        )}
+                        {!result.consequences && result.previewHitKill?.protectedFromKnockout && (
+                            <ul className="combat-consequences">
+                                <li>Prévia da proteção contra hit kill: o cálculo chegou a {formatNumberPtBr(result.previewHitKill.calculatedDamage)}, abaixo do limite {formatNumberPtBr(result.previewHitKill.threshold)}; o alvo permaneceria com 1 HP.</li>
                             </ul>
                         )}
                     </div>

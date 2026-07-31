@@ -92,6 +92,8 @@ export async function DELETE(request: Request, context: RouteContext) {
       .all<{ object_key: string }>();
     await Promise.all((media.results || []).map(item => bucket?.delete(item.object_key)));
     await db.batch([
+      db.prepare("DELETE FROM room_call_signals WHERE room_code = ?").bind(code),
+      db.prepare("DELETE FROM room_call_members WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_events WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_players WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_media WHERE room_code = ?").bind(code),

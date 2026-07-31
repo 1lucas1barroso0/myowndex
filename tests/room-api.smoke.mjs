@@ -60,6 +60,39 @@ try {
   assert.equal(playerView.role, "player");
   assert.equal(Object.prototype.hasOwnProperty.call(playerView.snapshot, "gmNotes"), false);
 
+  const narratorConnection = "smoke-narrator";
+  const playerConnection = "smoke-player";
+  await request(`/api/rooms/${created.code}/call`, {
+    method: "POST",
+    key: created.narratorKey,
+    body: { action: "join", connectionId: narratorConnection, displayName: "Narrador QA", muted: false },
+  });
+  await request(`/api/rooms/${created.code}/call`, {
+    method: "POST",
+    key: joined.playerKey,
+    body: { action: "join", connectionId: playerConnection, displayName: "Jogador QA", muted: false },
+  });
+  const callView = await request(`/api/rooms/${created.code}/call?connection=${narratorConnection}&after=0`, { key: created.narratorKey });
+  assert.equal(callView.joined, true);
+  assert.equal(callView.members.length, 2);
+  await request(`/api/rooms/${created.code}/call`, {
+    method: "POST",
+    key: created.narratorKey,
+    body: { action: "signal", connectionId: narratorConnection, recipientId: joined.playerId, type: "offer", payload: { type: "offer", sdp: "smoke-test" } },
+  });
+  const playerCallView = await request(`/api/rooms/${created.code}/call?connection=${playerConnection}&after=0`, { key: joined.playerKey });
+  assert.equal(playerCallView.signals.length, 1);
+  assert.equal(playerCallView.signals[0].senderId, "narrator");
+  await request(`/api/rooms/${created.code}/call`, {
+    method: "PATCH",
+    key: joined.playerKey,
+    body: { connectionId: playerConnection, muted: true },
+  });
+  const mutedCallView = await request(`/api/rooms/${created.code}/call?connection=${narratorConnection}&after=0`, { key: created.narratorKey });
+  assert.equal(mutedCallView.members.find(member => member.participantId === joined.playerId)?.muted, true);
+  await request(`/api/rooms/${created.code}/call`, { method: "DELETE", key: joined.playerKey, body: { connectionId: playerConnection } });
+  await request(`/api/rooms/${created.code}/call`, { method: "DELETE", key: created.narratorKey, body: { connectionId: narratorConnection } });
+
   const beforeToken = await request(`/api/rooms/${created.code}`, { key: created.narratorKey });
   await request(`/api/rooms/${created.code}`, {
     method: "PATCH",
@@ -114,7 +147,7 @@ try {
   assert.equal(updated.snapshot.round, 2);
   assert.ok(updated.events.some(event => event.type === "ready"));
 
-  console.log("Central da Aventura API: create, authorize, join, redact, declaration, event, sync and update passed.");
+  console.log("Central da Aventura API: create, authorize, join, call signaling, declaration, event, sync and update passed.");
 } finally {
   if (session) {
     await request(`/api/rooms/${session.code}`, {

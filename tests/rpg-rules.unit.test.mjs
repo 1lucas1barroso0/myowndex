@@ -15,8 +15,9 @@ const sequence = values => {
 };
 
 test("trainer guide contains every canonical rule chapter", () => {
-  assert.deepEqual(RPG_RULE_SECTIONS.map(section => section.number), [1, 2, 3, 4, 5]);
-  assert.equal(RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0), 19);
+  assert.deepEqual(RPG_RULE_SECTIONS.map(section => section.number), [1, 2, 3, 4, 5, 6, 7, 8]);
+  assert.ok(RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0) >= 32);
+  assert.equal(RPG_RULE_SECTIONS[2].rules.some(rule => rule.title === "Proteção contra hit kill"), true);
 });
 
 test("attribute tests implement normal, advantage and defender-wins-ties", () => {

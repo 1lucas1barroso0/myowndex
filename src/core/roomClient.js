@@ -74,6 +74,37 @@ export const postRoomEvent = (session, type, payload = {}) =>
         body: JSON.stringify({ type, payload }),
     });
 
+export const joinRoomCall = (session, connectionId, { displayName, muted = false } = {}) =>
+    roomRequest(`/api/rooms/${encodeURIComponent(session.code)}/call`, session.key, {
+        method: "POST",
+        body: JSON.stringify({ action: "join", connectionId, displayName, muted }),
+    });
+
+export const fetchRoomCall = (session, connectionId, after = 0) =>
+    roomRequest(
+        `/api/rooms/${encodeURIComponent(session.code)}/call?connection=${encodeURIComponent(connectionId)}&after=${Math.max(0, Number(after) || 0)}`,
+        session.key,
+    );
+
+export const sendRoomCallSignal = (session, connectionId, recipientId, type, payload) =>
+    roomRequest(`/api/rooms/${encodeURIComponent(session.code)}/call`, session.key, {
+        method: "POST",
+        body: JSON.stringify({ action: "signal", connectionId, recipientId, type, payload }),
+    });
+
+export const setRoomCallMuted = (session, connectionId, muted) =>
+    roomRequest(`/api/rooms/${encodeURIComponent(session.code)}/call`, session.key, {
+        method: "PATCH",
+        body: JSON.stringify({ connectionId, muted: Boolean(muted) }),
+    });
+
+export const leaveRoomCall = (session, connectionId, { keepalive = false } = {}) =>
+    roomRequest(`/api/rooms/${encodeURIComponent(session.code)}/call`, session.key, {
+        method: "DELETE",
+        body: JSON.stringify({ connectionId }),
+        keepalive,
+    });
+
 export const uploadRoomAudio = (session, file, title, onProgress) => {
     const form = new FormData();
     form.set("file", file);

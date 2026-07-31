@@ -1,9 +1,30 @@
-const CACHE_NAME = "myowndex-shell-v8";
+const CACHE_NAME = "myowndex-shell-v9";
 const CACHE_PREFIX = "myowndex-shell-";
 const ROOT_FALLBACK = "/";
+const CORE_ASSETS = [
+  "/",
+  "/manifest.webmanifest",
+  "/favicon.svg",
+  "/icons/myowndex-icon.svg",
+  "/icons/myowndex-192.png",
+  "/icons/myowndex-512.png",
+  "/icons/myowndex-maskable-512.png",
+  "/icons/apple-touch-icon.png",
+  "/icons/myowndex-shortcut-96.png",
+];
 
-self.addEventListener("install", () => {
-  self.skipWaiting();
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => Promise.all(
+      CORE_ASSETS.map(asset => fetch(asset)
+        .then(response => response.ok ? cache.put(asset, response) : undefined)
+        .catch(() => undefined))
+    ))
+  );
+});
+
+self.addEventListener("message", event => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", event => {

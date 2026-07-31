@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import { activateAudio, playSoundEffect, SOUND_EFFECTS } from "../../core/audio.js";
 import { formatNumberPtBr } from "../../core/mechanics.js";
+import { readStorage, writeStorage } from "../../core/storage.js";
 import {
     deleteRoomAudio,
     fetchRoomAudioUrl,
@@ -31,8 +32,23 @@ export default function AudioDeck({
     const [progress, setProgress] = useState(0);
     const [audioUrl, setAudioUrl] = useState("");
     const [pendingRemove, setPendingRemove] = useState(null);
+    const [localVolume, setLocalVolume] = useState(0.85);
+    const [localMuted, setLocalMuted] = useState(false);
+    const [preferencesReady, setPreferencesReady] = useState(false);
     const audioRef = useRef(null);
     const heardEventRef = useRef(0);
+
+    useEffect(() => {
+        const preferences = readStorage("myowndex_audio_preferences_v1", {});
+        const savedVolume = Number(preferences?.volume);
+        if (Number.isFinite(savedVolume)) setLocalVolume(Math.min(1, Math.max(0, savedVolume)));
+        setLocalMuted(Boolean(preferences?.muted));
+        setPreferencesReady(true);
+    }, []);
+
+    useEffect(() => {
+        if (preferencesReady) writeStorage("myowndex_audio_preferences_v1", { volume: localVolume, muted: localMuted });
+    }, [localMuted, localVolume, preferencesReady]);
 
     useEffect(() => {
         if (isLocal || !enabled || !snapshot.audio.trackId) {
@@ -65,7 +81,7 @@ export default function AudioDeck({
     const syncPlayback = useCallback(() => {
         const audio = audioRef.current;
         if (!audio || !enabled || !audioUrl) return;
-        audio.volume = snapshot.audio.volume;
+        audio.volume = localMuted ? 0 : snapshot.audio.volume * localVolume;
         const elapsed = snapshot.audio.playing && snapshot.audio.startedAt
             ? Math.max(0, (Date.now() - snapshot.audio.startedAt) / 1000)
             : 0;
@@ -89,6 +105,8 @@ export default function AudioDeck({
         snapshot.audio.playing,
         snapshot.audio.startedAt,
         snapshot.audio.volume,
+        localMuted,
+        localVolume,
     ]);
 
     useEffect(() => {
@@ -103,9 +121,9 @@ export default function AudioDeck({
         const recent = events.filter(event => event.id > heardEventRef.current);
         heardEventRef.current = Math.max(heardEventRef.current, ...events.map(event => Number(event.id) || 0));
         recent.filter(event => event.type === "sfx").forEach(event => {
-            void playSoundEffect(event.payload?.effectId, snapshot.audio.volume);
+            void playSoundEffect(event.payload?.effectId, localMuted ? 0 : snapshot.audio.volume * localVolume);
         });
-    }, [enabled, events, snapshot.audio.volume]);
+    }, [enabled, events, localMuted, localVolume, snapshot.audio.volume]);
 
     const enable = async () => {
         const active = await activateAudio();
@@ -234,20 +252,36 @@ export default function AudioDeck({
                 </div>
                 <audio ref={audioRef} src={audioUrl || undefined} loop preload="metadata" onLoadedMetadata={syncPlayback} />
                 <label className="audio-volume">
-                    <span>Volume</span>
+                    <span>Meu volume</span>
                     <input
                         type="range"
                         min="0"
                         max="1"
                         step="0.05"
-                        value={snapshot.audio.volume}
-                        disabled={role !== "narrator"}
-                        onChange={event => onSnapshotChange({
-                            ...snapshot,
-                            audio: { ...snapshot.audio, volume: Number(event.target.value) },
-                        })}
+                        value={localVolume}
+                        onChange={event => setLocalVolume(Number(event.target.value))}
                     />
                 </label>
+                <label className="audio-local-toggle">
+                    <input type="checkbox" checked={localMuted} onChange={event => setLocalMuted(event.target.checked)} />
+                    <span>Silenciar trilha e efeitos neste aparelho</span>
+                </label>
+                {role === "narrator" && (
+                    <label className="audio-volume">
+                        <span>Volume para a aventura</span>
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={snapshot.audio.volume}
+                            onChange={event => onSnapshotChange({
+                                ...snapshot,
+                                audio: { ...snapshot.audio, volume: Number(event.target.value) },
+                            })}
+                        />
+                    </label>
+                )}
 
                 {role === "narrator" && (
                     isLocal ? (

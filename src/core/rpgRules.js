@@ -1,6 +1,14 @@
 import { convertToTTRPG } from "./mechanics.js";
 
-export const TRAINER_GUIDE_URL = "https://guia-do-treinador-pokemon.vercel.app/";
+export const FUMBLE_SUGGESTIONS = Object.freeze([
+    "Perder uma posição favorável ou ficar exposto até a próxima ação.",
+    "Atingir o cenário e criar uma complicação que mude a cena.",
+    "Gastar um recurso adicional, como PP, item ou tempo, quando isso fizer sentido.",
+    "Dar ao oponente uma oportunidade imediata, sem retirar a decisão do Narrador.",
+]);
+
+export const getFumbleSuggestion = (random = Math.random) =>
+    FUMBLE_SUGGESTIONS[Math.floor(random() * FUMBLE_SUGGESTIONS.length)] || FUMBLE_SUGGESTIONS[0];
 
 export const EXPERIENCE_MODES = {
     rpg: {
@@ -58,7 +66,9 @@ export const RPG_RULE_SECTIONS = [
                 title: "Acertos e erros críticos",
                 bullets: [
                     "Acerto crítico: obtenha 6 e 6 nos dados mantidos; o resultado funciona como um golpe crítico dos jogos.",
-                    "Erro crítico: obtenha 1 e 1 nos dados mantidos; o resultado traz uma consequência narrativa ou mecânica grave."
+                    "Acertos críticos superam o limite de dano por nível e a proteção contra hit kill.",
+                    "Erro crítico: obtenha 1 e 1 nos dados mantidos; o MyOwnDex sugere uma consequência, e Narrador e jogadores escolhem a que respeita melhor a cena.",
+                    ...FUMBLE_SUGGESTIONS,
                 ]
             },
             {
@@ -132,11 +142,22 @@ export const RPG_RULE_SECTIONS = [
             },
             {
                 id: "3.4",
+                title: "Proteção contra hit kill",
+                bullets: [
+                    "Se um único movimento ofensivo fosse derrubar um alvo que estava com HP positivo, o dano precisa alcançar pelo menos três vezes o HP atual desse alvo.",
+                    "Abaixo desse valor, o dano é registrado normalmente, mas o alvo permanece com 1 HP.",
+                    "Acertos críticos e movimentos que declaram nocaute direto ignoram essa proteção.",
+                    "Movimentos de múltiplos acertos somam todos os golpes como um único movimento para essa comparação. Dano residual, clima, terreno e condições são resolvidos separadamente.",
+                    "Substitutos e efeitos especiais recebem primeiro o tratamento próprio; a proteção só é verificada no dano que realmente alcança o Pokémon.",
+                ]
+            },
+            {
+                id: "3.5",
                 title: "Regras herdadas dos jogos",
                 body: "Tipos, STAB, imunidades, condições, golpes de múltiplos acertos, recuo, drenagem e outras regras mantêm sua intenção original, adaptadas apenas à escala e à narrativa."
             },
             {
-                id: "3.5",
+                id: "3.6",
                 title: "Posicionamento e espaço",
                 body: "O jogo não exige um tabuleiro quadriculado. As distâncias são narrativas: Perto, Longe e Muito Longe. Área, alcance, cenário e Velocidade são interpretados conforme a cena."
             }
@@ -151,12 +172,12 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "4.1",
                 title: "Intervenções em combate",
-                body: "Usar um item ou lançar uma Poké Bola não consome o turno do Pokémon, mas o Treinador pode fazer apenas uma intervenção por rodada."
+                body: "Usar um item ou lançar uma Poké Ball não consome o turno do Pokémon, mas o Treinador pode fazer apenas uma intervenção por rodada."
             },
             {
                 id: "4.2",
                 title: "Capturas",
-                body: "Role 1d100 contra a chance dinâmica da fórmula dos jogos, considerando a Poké Bola, o HP restante e as condições do alvo."
+                body: "Role 1d100 contra a chance dinâmica da fórmula dos jogos, considerando a Poké Ball escolhida, o HP restante e as condições do alvo."
             },
             {
                 id: "4.3",
@@ -174,15 +195,126 @@ export const RPG_RULE_SECTIONS = [
         ]
     },
     {
-        id: "filosofia",
+        id: "criacao",
         number: 5,
-        title: "Espírito da aventura",
-        summary: "A matemática serve à aventura, não o contrário.",
+        title: "Fichas e criação",
+        summary: "Do conceito do Treinador aos dados completos de cada parceiro.",
         rules: [
             {
                 id: "5.1",
+                title: "Começando um Treinador",
+                body: "Defina nome, aparência, objetivo, origem, vínculos e o tipo de jornada que deseja viver. Esses elementos orientam escolhas e testes; não obrigam o personagem a seguir um caminho único."
+            },
+            {
+                id: "5.2",
+                title: "Criando um Pokémon",
+                bullets: [
+                    "Escolha espécie e forma, nível, natureza, habilidade, gênero, tipos, IVs, EVs, item, até quatro movimentos e os detalhes da jornada.",
+                    "O PC calcula os atributos e a escala do RPG. Campos livres servem a criações próprias sem alterar os identificadores usados na Pokédex e nos códigos de compartilhamento.",
+                    "HP atual, condição, XP e PP formam o progresso vivo da ficha e acompanham o Pokémon quando ele entra em cena."
+                ]
+            },
+            {
+                id: "5.3",
+                title: "Movimentos e repertório",
+                body: "Cada Pokémon mantém até quatro movimentos ativos. Categoria, tipo, poder, precisão, PP, prioridade e efeitos vêm da versão consultada; uma criação livre pode substituir esses valores quando o grupo registrar claramente a exceção."
+            },
+            {
+                id: "5.4",
+                title: "Progressão e evolução",
+                bullets: [
+                    "Ao completar a XP exigida, avance um nível, recalcule os atributos dependentes e volte a contagem de XP para zero.",
+                    "Evoluções por nível, item, amizade, troca, local, horário ou outra condição mantêm a intenção dos jogos. A cena pode transformar a condição em um momento narrativo equivalente.",
+                    "Uma evolução nunca apaga apelido, vínculo, histórico, PP, condição ou escolhas já registradas."
+                ]
+            }
+        ]
+    },
+    {
+        id: "condicoes",
+        number: 6,
+        title: "Condições, cura e efeitos",
+        summary: "Como registrar consequências sem misturar dano direto e efeitos contínuos.",
+        rules: [
+            {
+                id: "6.1",
+                title: "Condições principais",
+                body: "Queimadura, congelamento, paralisia, envenenamento, envenenamento grave e sono mantêm a intenção dos jogos. Marque uma condição por vez na ficha; imunidades, habilidades e efeitos que a removem continuam valendo."
+            },
+            {
+                id: "6.2",
+                title: "Dano contínuo e indireto",
+                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente do movimento ofensivo. Eles não ativam a proteção contra hit kill. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia, e registra cada mudança no Diário."
+            },
+            {
+                id: "6.3",
+                title: "Cura e recuperação",
+                body: "A cura respeita o efeito original e nunca ultrapassa o HP máximo. Drenagem usa o dano realmente aplicado; recuo, restauração de PP e remoção de condições são registrados separadamente para que o resultado permaneça consultável."
+            },
+            {
+                id: "6.4",
+                title: "Empoderamentos e enfraquecimentos",
+                body: "Alterações de atributos usam estágios de −6 a +6 sobre o atributo original. Recalcule o valor e só então aplique a divisão por 20. Habilidades como Unaware ignoram os estágios que sua descrição determina."
+            }
+        ]
+    },
+    {
+        id: "recursos-pokemon",
+        number: 7,
+        title: "Habilidades, itens e formas",
+        summary: "Elementos canônicos preservados com liberdade para exceções registradas.",
+        rules: [
+            {
+                id: "7.1",
+                title: "Habilidades",
+                body: "Leia a habilidade como nos jogos e aplique seu efeito antes ou depois do cálculo conforme a descrição. Quando a automação ainda não cobrir uma habilidade, o Narrador aplica a decisão e a registra no Diário."
+            },
+            {
+                id: "7.2",
+                title: "Itens",
+                body: "Itens segurados e itens do Treinador conservam seus nomes canônicos e sua função reconhecível. Consumo, troca, ativação e recuperação devem atualizar a ficha ou o inventário no momento em que acontecem."
+            },
+            {
+                id: "7.3",
+                title: "Formas e transformações",
+                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastalização e outras mecânicas alteram apenas o que suas regras determinam. A forma escolhida deve manter espécie-base, identidade e progresso vinculados."
+            },
+            {
+                id: "7.4",
+                title: "Tipos, STAB e Terastalização",
+                body: "A defesa usa os tipos atuais do alvo. O STAB é 1,5× quando o movimento corresponde a um tipo original ou ao Tera Type; se corresponder aos dois, torna-se 2×. Imunidade reduz o dano a zero."
+            }
+        ]
+    },
+    {
+        id: "mesa",
+        number: 8,
+        title: "Condução da aventura",
+        summary: "Papéis, decisões manuais, transparência e exceções.",
+        rules: [
+            {
+                id: "8.1",
+                title: "Narrador e jogadores",
+                body: "O Narrador conduz a cena, confirma consequências, aplica mudanças coletivas e resolve exceções. Cada Jogador apresenta sua equipe, declara ações e controla seus próprios Pokémon; todos consultam o mesmo estado da aventura."
+            },
+            {
+                id: "8.2",
+                title: "Automação com liberdade",
+                body: "O MyOwnDex automatiza o que possui resposta objetiva e mostra cada parcela do cálculo. Escolhas criativas, consequências de erro crítico e exceções narrativas continuam com o grupo; registre a decisão para que ela permaneça consistente."
+            },
+            {
+                id: "8.3",
+                title: "Como resolver uma exceção",
+                bullets: [
+                    "Primeiro, confira a descrição do movimento, habilidade, item ou forma.",
+                    "Depois, aplique imunidades, alterações de atributo, precisão, disputa, dano, limites e consequências uma única vez e nessa ordem.",
+                    "Se ainda houver dúvida, escolha a solução que preserva a intenção da regra, a clareza para todos e o movimento da aventura."
+                ]
+            },
+            {
+                id: "8.4",
                 title: "A regra de ouro",
-                body: "A precisão dos jogos com o coração das grandes aventuras Pokémon. Preserve a intenção das regras, a fluidez da cena e o espírito da franquia. Use o terreno, improvisos, defesas criativas e combinações inesperadas; quando surgir uma dúvida, escolha o caminho que mantém a aventura em movimento."
+                body: "A precisão dos jogos com o coração das grandes aventuras Pokémon. Use terreno, improvisos, defesas criativas e combinações inesperadas. A matemática sustenta a aventura; ela não limita a imaginação do grupo."
             }
         ]
     }

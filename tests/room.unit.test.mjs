@@ -3,6 +3,7 @@ import test from "node:test";
 import { convertToTTRPG } from "../src/core/mechanics.js";
 import {
   addTeamToSnapshot,
+  applyEndOfRoundEffects,
   buildInitiative,
   calculateMoveResolution,
   createRoomSnapshot,
@@ -182,6 +183,39 @@ test("Pokémon without HP leave the next initiative automatically", () => {
   assert.deepEqual(result.room.initiative, ["active"]);
 });
 
+test("end-of-round residual damage is separate from hit kill protection and stays recorded", () => {
+  const snapshot = createRoomSnapshot("Condições");
+  snapshot.weather = "areia";
+  snapshot.tokens = [
+    {
+      id: "burned",
+      name: "Queimado",
+      maxHp: 16,
+      currentHp: 2,
+      status: "burn",
+      types: ["water"],
+      stats: {},
+      originalStats: {},
+    },
+    {
+      id: "poisoned",
+      name: "Envenenado",
+      maxHp: 16,
+      currentHp: 1,
+      status: "poison",
+      types: ["rock"],
+      stats: {},
+      originalStats: {},
+    },
+  ];
+  const result = applyEndOfRoundEffects(snapshot);
+  assert.equal(result.room.tokens.find(token => token.id === "burned").currentHp, 0);
+  assert.equal(result.room.tokens.find(token => token.id === "poisoned").currentHp, 0);
+  assert.equal(result.effects.length, 2);
+  assert.deepEqual(result.effects[0].sources, ["queimadura", "tempestade de areia"]);
+  assert.equal(result.effects[0].fainted, true);
+});
+
 test("move resolution honors defender ties, STAB, typing and level ceiling", () => {
   const attacker = {
     id: "attacker",
@@ -207,7 +241,7 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     attacker,
     defender,
     move,
-    random: sequence([0.999, 0.999, 0, 0]),
+    random: sequence([0.8, 0.8, 0, 0]),
   });
   assert.equal(success.hit, true);
   assert.equal(success.baseDamage, 2);
@@ -241,7 +275,7 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     attacker: { ...attacker, level: 11 },
     defender,
     move: { ...move, power: 100 },
-    random: sequence([0.999, 0.999, 0, 0]),
+    random: sequence([0.8, 0.8, 0, 0]),
   });
   assert.equal(fractionalCeiling.ceiling, 5.5);
   assert.equal(fractionalCeiling.damage, 5.5);
@@ -250,8 +284,26 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     attacker: { ...attacker, level: 1 },
     defender,
     move,
-    random: sequence([0.999, 0.999, 0, 0]),
+    random: sequence([0.8, 0.8, 0, 0]),
   });
   assert.equal(firstLevelMinimum.ceiling, 1);
   assert.equal(firstLevelMinimum.damage, 1);
+
+  const critical = calculateMoveResolution({
+    attacker,
+    defender,
+    move: { ...move, power: 100 },
+    random: sequence([0.999, 0.999, 0, 0]),
+  });
+  assert.equal(critical.attackTest.critical, true);
+  assert.ok(critical.damage > critical.ceiling);
+
+  const multiHit = calculateMoveResolution({
+    attacker,
+    defender,
+    move: { ...move, power: 20, meta: { min_hits: 2, max_hits: 5 } },
+    random: sequence([0.8, 0.8, 0, 0, 0.999]),
+  });
+  assert.equal(multiHit.hitCount, 5);
+  assert.equal(multiHit.damage, multiHit.damagePerHit * 5);
 });

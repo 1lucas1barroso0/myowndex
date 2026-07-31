@@ -4,6 +4,7 @@ import { calculateStagedStats } from "../../core/automation.js";
 import {
     addTeamToSnapshot,
     advanceInitiative,
+    applyEndOfRoundEffects,
     buildInitiative,
     compactTeamOffer,
     createTokenFromPokemon,
@@ -30,12 +31,13 @@ import {
     saveRemoteRoom,
     saveRoomSession,
 } from "../../core/roomClient.js";
-import { getNextLevelXp, rollAttributeTest, rollPercentTest } from "../../core/rpgRules.js";
+import { getFumbleSuggestion, getNextLevelXp, rollAttributeTest, rollPercentTest } from "../../core/rpgRules.js";
 import { mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
 import { readStorage, removeStorage, writeStorage } from "../../core/storage.js";
 import AudioDeck from "./AudioDeck.jsx";
 import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
+import VoiceCall from "./VoiceCall.jsx";
 
 const connectionLabels = {
     connected: "Aventura conectada",
@@ -200,7 +202,9 @@ function QuickRoller({ onEvent, onError }) {
                 const test = rollAttributeTest({ mode, attribute });
                 setResult({
                     title: test.critical ? "Acerto crítico" : test.fumble ? "Erro crítico" : `Total ${test.total}`,
-                    detail: `${test.dice.join(" • ")}${Number(attribute) ? ` + ${Number(attribute)}` : ""}`,
+                    detail: test.fumble
+                        ? getFumbleSuggestion()
+                        : `${test.dice.join(" • ")}${Number(attribute) ? ` + ${Number(attribute)}` : ""}`,
                 });
                 await onEvent("roll", {
                     label: mode === "advantage" ? "teste com vantagem" : mode === "disadvantage" ? "teste com desvantagem" : "teste de atributo",
@@ -810,9 +814,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const nextTurn = async () => {
         const closingRound = snapshot.initiative.length > 0
             && snapshot.turnIndex >= snapshot.initiative.length - 1;
+        const roundEnd = closingRound ? applyEndOfRoundEffects(snapshot) : null;
         const next = closingRound
             ? {
-                ...snapshot,
+                ...roundEnd.room,
                 round: snapshot.round + 1,
                 turnIndex: 0,
                 initiative: [],
@@ -824,7 +829,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         const active = next.tokens.find(token => token.id === activeId);
         await sendEvent("system", {
             text: closingRound
-                ? `Rodada ${next.round} pronta! Escolha os movimentos para formar a nova ordem.`
+                ? `${roundEnd.effects.length
+                    ? `${roundEnd.effects.map(effect => `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`).join("; ")}. `
+                    : ""}Rodada ${next.round} pronta! Escolha os movimentos para formar a nova ordem.`
                 : active
                     ? `Turno de ${active.name}. Rodada ${next.round}.`
                     : `Rodada ${next.round}.`,
@@ -1208,6 +1215,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 </main>
 
                 <aside className="room-tools">
+                    <VoiceCall session={session} role={role} />
                     <QuickRoller onEvent={sendEvent} onError={showError} />
                     <CombatAssistant
                         role={role}

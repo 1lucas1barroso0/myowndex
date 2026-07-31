@@ -43,4 +43,4 @@ npm test
 npm run lint
 ```
 
-As regras canônicas do sistema são mantidas em [Guia do Treinador Pokémon](https://guia-do-treinador-pokemon.vercel.app/).
+As regras canônicas do sistema ficam em `src/core/rpgRules.js` e são apresentadas integralmente no Guia do Treinador dentro do próprio MyOwnDex.

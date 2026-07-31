@@ -1,20 +1,9 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="red" x1="14" y1="8" x2="50" y2="36" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FF5A52"/>
-      <stop offset="1" stop-color="#B91C1C"/>
-    </linearGradient>
-    <radialGradient id="lens" cx="0" cy="0" r="1" gradientTransform="translate(28 25) rotate(47.7) scale(15.62)">
-      <stop stop-color="#E0F2FE"/>
-      <stop offset=".35" stop-color="#67E8F9"/>
-      <stop offset="1" stop-color="#0284C7"/>
-    </radialGradient>
-  </defs>
-  <path d="M15 13.5 9 7.5M49 13.5l6-6" stroke="#FB923C" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="32" cy="33" r="25" fill="#F8FAFC" stroke="#0F172A" stroke-width="5"/>
-  <path d="M8.6 31.5a25 25 0 0 1 46.8 0H8.6Z" fill="url(#red)"/>
-  <path d="M7 33h50" stroke="#0F172A" stroke-width="7"/>
-  <circle cx="32" cy="33" r="10" fill="#F8FAFC" stroke="#0F172A" stroke-width="5"/>
-  <circle cx="32" cy="33" r="5.5" fill="url(#lens)"/>
-  <circle cx="30" cy="31" r="1.5" fill="white" fill-opacity=".9"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <defs><linearGradient id="case" x1="9" y1="7" x2="55" y2="57" gradientUnits="userSpaceOnUse"><stop stop-color="#EF4444"/><stop offset="1" stop-color="#7F1D1D"/></linearGradient><radialGradient id="lens" cx="0" cy="0" r="1" gradientTransform="translate(24 22) rotate(48) scale(12)"><stop stop-color="#F0FDFF"/><stop offset=".35" stop-color="#67E8F9"/><stop offset="1" stop-color="#075985"/></radialGradient></defs>
+  <rect width="64" height="64" rx="14" fill="#7F1D1D"/>
+  <rect x="7" y="6" width="50" height="52" rx="8" fill="url(#case)"/>
+  <circle cx="24" cy="22" r="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+  <circle cx="24" cy="22" r="9" fill="url(#lens)" stroke="#0F172A" stroke-width="2"/>
+  <circle cx="40" cy="13" r="2" fill="#FB7185"/><circle cx="47" cy="13" r="2" fill="#FDE047"/>
+  <rect x="14" y="38" width="36" height="14" rx="4" fill="#0F172A"/><rect x="17" y="41" width="30" height="8" rx="2" fill="#BAE6FD"/>
 </svg>

@@ -2,13 +2,13 @@ import React, { useMemo, useState } from "react";
 import { formatNumberPtBr } from "../../core/mechanics.js";
 import {
     EXPERIENCE_MODES,
+    getFumbleSuggestion,
     getDamageCeiling,
     getNextLevelXp,
     getRpgScale,
     RPG_RULE_SECTIONS,
     rollAttributeTest,
     rollPercentTest,
-    TRAINER_GUIDE_URL
 } from "../../core/rpgRules.js";
 
 const DiceFaces = ({ values, kept = values }) => {
@@ -64,11 +64,10 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
         );
     }, [query]);
 
-    const runAttributeTest = () => setAttributeResult(rollAttributeTest({
-        mode: testMode,
-        attribute,
-        opposition
-    }));
+    const runAttributeTest = () => {
+        const result = rollAttributeTest({ mode: testMode, attribute, opposition });
+        setAttributeResult(result.fumble ? { ...result, fumbleSuggestion: getFumbleSuggestion() } : result);
+    };
 
     const runPercentTest = () => setPercentResult(rollPercentTest({
         chance,
@@ -149,6 +148,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                             {attributeResult.success === true && <span className="rounded-full bg-blue-100 px-3 py-1 text-[9px] font-black uppercase text-blue-700">Superou por {attributeResult.margin}</span>}
                                             {attributeResult.success === false && <span className="rounded-full bg-amber-100 px-3 py-1 text-[9px] font-black uppercase text-amber-700">Defesa venceu</span>}
                                         </div>
+                                        {attributeResult.fumbleSuggestion && <p className="mt-3 rounded-xl bg-red-100 p-3 text-[10px] font-bold leading-5 text-red-800">Sugestão para o erro crítico: {attributeResult.fumbleSuggestion}</p>}
                                     </div>
                                 )}
                             </div>
@@ -264,7 +264,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                             ))}
                             {!visibleSections.length && <p className="rounded-xl bg-slate-100 p-4 text-center text-xs font-bold text-slate-500">Nenhuma regra apareceu para essa busca. Tente outro termo.</p>}
                         </div>
-                        <a href={TRAINER_GUIDE_URL} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-500 transition-colors hover:border-orange-300 hover:text-orange-600">Consultar o Guia completo ↗</a>
+                        <p className="mt-4 rounded-xl border-2 border-cyan-200 bg-cyan-50 px-4 py-3 text-center text-[9px] font-black uppercase tracking-widest text-cyan-800">Todas as regras necessárias para jogar estão reunidas aqui.</p>
                     </article>
                 </aside>
             </section>

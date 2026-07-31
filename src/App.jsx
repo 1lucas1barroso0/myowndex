@@ -8,6 +8,8 @@ import TrainerGuide from "./components/Guide/TrainerGuide.jsx";
 import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
 import Teambuilder from "./components/Teambuilder/Teambuilder.jsx";
 import RpgRoom from "./components/Room/RpgRoom.jsx";
+import AppearanceControl from "./components/Shared/AppearanceControl.jsx";
+import InstallMyOwnDex from "./components/Shared/InstallMyOwnDex.jsx";
 
 const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
     return (
@@ -102,9 +104,19 @@ export default function App() {
         const preferences = readStorage("myowndex_preferences_v1", {});
         const savedMode = preferences?.experienceMode;
         if (EXPERIENCE_MODES[savedMode]) setExperienceMode(savedMode);
-        if (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view)) {
-            setView(preferences.view);
+        const launchView = {
+            aventura: "room",
+            pokedex: "pokedex",
+            pc: "teambuilder",
+            guia: "guide",
+        }[new URLSearchParams(window.location.search).get("abrir")];
+        if (launchView) {
+            setView(launchView);
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete("abrir");
+            window.history.replaceState({}, "", `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
         }
+        else if (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view)) setView(preferences.view);
         setModeBooted(true);
     }, []);
 
@@ -132,9 +144,42 @@ export default function App() {
 
     useEffect(() => {
         if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return undefined;
-        const register = () => navigator.serviceWorker.register("/sw.js").catch(() => {});
+        let refreshing = false;
+        let offeredWorker = null;
+        let updateTimer = 0;
+        const offerUpdate = worker => {
+            if (!worker || offeredWorker === worker) return;
+            offeredWorker = worker;
+            setNotice({
+                tone: "blue",
+                text: "Uma nova versão do MyOwnDex está pronta para a sua aventura.",
+                actionLabel: "Atualizar agora",
+                onAction: () => worker.postMessage({ type: "SKIP_WAITING" }),
+            });
+        };
+        const watchRegistration = current => {
+            if (current.waiting && navigator.serviceWorker.controller) offerUpdate(current.waiting);
+            current.addEventListener("updatefound", () => {
+                const installing = current.installing;
+                installing?.addEventListener("statechange", () => {
+                    if (installing.state === "installed" && navigator.serviceWorker.controller) offerUpdate(installing);
+                });
+            });
+            updateTimer = window.setInterval(() => current.update().catch(() => {}), 60 * 60 * 1000);
+        };
+        const register = () => navigator.serviceWorker.register("/sw.js").then(watchRegistration).catch(() => {});
+        const onControllerChange = () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+        };
+        navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
         window.addEventListener("load", register, { once: true });
-        return () => window.removeEventListener("load", register);
+        return () => {
+            window.removeEventListener("load", register);
+            navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+            window.clearInterval(updateTimer);
+        };
     }, []);
 
     useEffect(() => {
@@ -320,6 +365,8 @@ export default function App() {
                                 <button type="button" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule ${view === "teambuilder" ? "is-active" : ""}`}><span aria-hidden="true">▦</span>PC</button>
                                 <button type="button" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><span aria-hidden="true">≡</span>Guia</button>
                             </nav>
+                            <AppearanceControl />
+                            <InstallMyOwnDex />
                         </div>
 
                         <div className="app-actions flex gap-2.5 w-full xl:w-auto items-center justify-end flex-wrap sm:flex-nowrap">

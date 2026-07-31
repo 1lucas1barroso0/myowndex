@@ -123,6 +123,41 @@ const moveEffectChance = (move, field, statusMoveDefault = false) => {
 
 const hpAmount = value => value > 0 ? Math.max(1, Math.round(value)) : 0;
 
+const DIRECT_KNOCKOUT_MOVES = new Set(["fissure", "guillotine", "horn-drill", "sheer-cold"]);
+
+export const isDirectKnockoutMove = move => {
+    const name = normalizeSlug(move?.name);
+    const category = normalizeSlug(move?.meta?.category?.name);
+    return DIRECT_KNOCKOUT_MOVES.has(name) || category === "ohko" || category === "one-hit-ko";
+};
+
+export const applyHitKillProtection = ({
+    damage,
+    currentHp,
+    critical = false,
+    directKnockout = false,
+} = {}) => {
+    const hpBefore = Math.max(0, asNumber(currentHp));
+    const calculatedDamage = Math.max(0, asNumber(damage));
+    const threshold = hpBefore * 3;
+    const wouldKnockOut = hpBefore > 0 && calculatedDamage >= hpBefore;
+    const bypassed = Boolean(critical || directKnockout);
+    const protectedFromKnockout = wouldKnockOut && !bypassed && calculatedDamage < threshold;
+    const appliedDamage = protectedFromKnockout
+        ? Math.max(0, hpBefore - 1)
+        : Math.min(calculatedDamage, hpBefore);
+    return {
+        hpBefore,
+        calculatedDamage,
+        appliedDamage,
+        threshold,
+        wouldKnockOut,
+        protectedFromKnockout,
+        bypassed,
+        remainingHp: Math.max(0, hpBefore - appliedDamage),
+    };
+};
+
 export const getMoveAutomationTags = move => {
     if (!move) return [];
     const tags = ["PP"];
@@ -172,9 +207,16 @@ export const applyMoveConsequences = ({
         attacker.pp[ppState.index] = ppAfter;
     }
 
-    const damage = Math.max(0, asNumber(resolution.damage));
-    if (resolution.hit && damage > 0) {
-        defender.currentHp = clamp(asNumber(defender.currentHp) - damage, 0, Math.max(1, asNumber(defender.maxHp, 1)));
+    const calculatedDamage = Math.max(0, asNumber(resolution.damage));
+    const hitKill = applyHitKillProtection({
+        damage: resolution.hit ? calculatedDamage : 0,
+        currentHp: defender.currentHp,
+        critical: Boolean(resolution.attackTest?.critical),
+        directKnockout: Boolean(resolution.directKnockout || isDirectKnockoutMove(move)),
+    });
+    const damage = resolution.hit ? hitKill.appliedDamage : 0;
+    if (damage > 0) {
+        defender.currentHp = clamp(hitKill.remainingHp, 0, Math.max(1, asNumber(defender.maxHp, 1)));
     }
 
     let healed = 0;
@@ -269,6 +311,11 @@ export const applyMoveConsequences = ({
             ppBefore,
             ppAfter,
             damage: resolution.hit ? damage : 0,
+            calculatedDamage: resolution.hit ? calculatedDamage : 0,
+            hitKillThreshold: hitKill.threshold,
+            hitKillProtected: hitKill.protectedFromKnockout,
+            hitKillBypassed: hitKill.bypassed,
+            hpBefore: hitKill.hpBefore,
             healed,
             recoil,
             appliedStatus,

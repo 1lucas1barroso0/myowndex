@@ -1,0 +1,63 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  getDamageCeiling,
+  getNextLevelXp,
+  getRpgScale,
+  rollAttributeTest,
+  rollPercentTest,
+  RPG_RULE_SECTIONS,
+} from "../src/core/rpgRules.js";
+
+const sequence = values => {
+  let index = 0;
+  return () => values[index++] ?? values.at(-1) ?? 0;
+};
+
+test("trainer guide contains every canonical rule chapter", () => {
+  assert.deepEqual(RPG_RULE_SECTIONS.map(section => section.number), [1, 2, 3, 4, 5, 6, 7, 8]);
+  assert.ok(RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0) >= 32);
+  assert.equal(RPG_RULE_SECTIONS[2].rules.some(rule => rule.title === "Proteção contra hit kill"), true);
+});
+
+test("attribute tests implement normal, advantage and defender-wins-ties", () => {
+  const critical = rollAttributeTest({
+    mode: "normal",
+    attribute: 2,
+    opposition: 14,
+    random: sequence([0.999, 0.999]),
+  });
+  assert.deepEqual(critical.dice, [6, 6]);
+  assert.equal(critical.total, 14);
+  assert.equal(critical.critical, true);
+  assert.equal(critical.success, false);
+
+  const advantage = rollAttributeTest({
+    mode: "advantage",
+    attribute: 0,
+    random: sequence([0, 0.5, 0.999]),
+  });
+  assert.deepEqual(advantage.dice, [1, 4, 6]);
+  assert.deepEqual(advantage.kept, [4, 6]);
+  assert.equal(advantage.total, 10);
+});
+
+test("percent advantage keeps the most favorable d100 and respects equal-or-lower", () => {
+  const result = rollPercentTest({
+    chance: 30,
+    advantage: true,
+    random: sequence([0.79, 0.295]),
+  });
+  assert.deepEqual(result.rolls, [80, 30]);
+  assert.equal(result.result, 30);
+  assert.equal(result.success, true);
+});
+
+test("RPG scale, XP and damage ceiling follow the guide", () => {
+  assert.equal(getRpgScale(50), 2);
+  assert.equal(getRpgScale(51), 2);
+  assert.equal(getRpgScale(52), 3);
+  assert.equal(getNextLevelXp(10), 5.5);
+  assert.equal(getDamageCeiling(1), 1);
+  assert.equal(getDamageCeiling(11), 5.5);
+});

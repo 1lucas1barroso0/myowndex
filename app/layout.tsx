@@ -11,7 +11,9 @@ export const metadata: Metadata = {
       { url: "/favicon-v91.svg", type: "image/svg+xml" },
       { url: "/icons/myowndex-app-192-v91.png", sizes: "192x192", type: "image/png" },
     ],
-    shortcut: [{ url: "/icons/myowndex-shortcut-96-v91.png", sizes: "96x96", type: "image/png" }],
+    // Vinext serializes descriptor objects for `shortcut` as "[object Object]".
+    // A direct URL keeps the generated <link rel="shortcut icon"> valid.
+    shortcut: "/icons/myowndex-shortcut-96-v91.png",
     apple: [{ url: "/icons/apple-touch-icon-v91.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {

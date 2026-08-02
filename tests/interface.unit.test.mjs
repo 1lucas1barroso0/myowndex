@@ -136,6 +136,7 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(manifest, /myowndex-app-192-v91\.png/);
   assert.match(manifest, /purpose:\s*"maskable"/);
   assert.match(manifest, /shortcuts:/);
+  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-shortcut-96-v91\.png"/);
   assert.match(layout, /apple-touch-icon-v91\.png/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);

@@ -351,8 +351,8 @@ export default function App() {
                     <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
                         <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
                             <div className="flex items-center gap-4">
-                                <button type="button" aria-label="Abrir a Central da Aventura" onClick={handleOpenRoom} className="dex-lens relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
-                                    <span />
+                                <button type="button" aria-label="Abrir a Central da Aventura" onClick={handleOpenRoom} className="app-brand-icon relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
+                                    <img src="/icons/myowndex-icon-v91.svg" alt="" />
                                 </button>
                                 <div className="app-brand flex flex-col">
                                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Pokémon</span>

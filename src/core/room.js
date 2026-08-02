@@ -8,18 +8,22 @@ import {
 } from "./mechanics.js";
 import { RPG_STATUS_LABELS } from "./copy.js";
 import {
+    adjustMoveAccuracy,
     calculateStagedStats,
     getDefensiveTypes,
+    getMoveResolutionProfile,
     getMoveStab,
     isDirectKnockoutMove,
     normalizePpSlots,
     normalizeSlug,
     normalizeStageMap,
+    normalizeVolatileEffects,
+    stageMultiplier,
 } from "./automation.js";
 import { getDamageCeiling, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 
-export const ROOM_SCHEMA_VERSION = 1;
+export const ROOM_SCHEMA_VERSION = 2;
 export const ROOM_SESSION_STORAGE_KEY = "myowndex_live_room_v1";
 export const LOCAL_ROOM_STORAGE_KEY = "myowndex_local_room_v1";
 
@@ -37,6 +41,14 @@ export const ROOM_WEATHERS = [
     { id: "neve", label: "Neve" },
     { id: "areia", label: "Tempestade de areia" },
     { id: "nevoa", label: "Névoa" },
+];
+
+export const ROOM_TERRAINS = [
+    { id: "nenhum", label: "Sem terreno" },
+    { id: "eletrico", label: "Terreno Elétrico" },
+    { id: "gramado", label: "Terreno de Grama" },
+    { id: "nevoa", label: "Terreno de Névoa" },
+    { id: "psiquico", label: "Terreno Psíquico" },
 ];
 
 export const ROOM_SCENARIOS = [
@@ -68,6 +80,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     turnIndex: 0,
     scenario: "rota",
     weather: "limpo",
+    terrain: "nenhum",
     sceneNotes: "",
     gmNotes: "",
     tokens: [],
@@ -141,6 +154,7 @@ export const normalizeRoomToken = value => {
         stages,
         moves,
         pp: normalizePpSlots(source.pp),
+        volatileEffects: normalizeVolatileEffects(source.volatileEffects),
         hidden: Boolean(source.hidden),
     };
     return { ...token, stats: calculateStagedStats(token) };
@@ -164,6 +178,7 @@ export const normalizeRoomSnapshot = value => {
             : 0,
         scenario: ROOM_SCENARIOS.some(scene => scene.id === source.scenario) ? source.scenario : fallback.scenario,
         weather: ROOM_WEATHERS.some(weather => weather.id === source.weather) ? source.weather : fallback.weather,
+        terrain: ROOM_TERRAINS.some(terrain => terrain.id === source.terrain) ? source.terrain : fallback.terrain,
         sceneNotes: asText(source.sceneNotes).slice(0, 4000),
         gmNotes: asText(source.gmNotes).slice(0, 6000),
         tokens,
@@ -394,11 +409,35 @@ export const applyEndOfRoundEffects = snapshot => {
     const effects = [];
     const tokens = room.tokens.map(token => {
         if (token.currentHp <= 0) return token;
+        let status = token.status;
+        const volatileEffects = normalizeVolatileEffects(token.volatileEffects).flatMap(effect => {
+            if (effect.id !== "yawn") {
+                if (effect.turns == null) return [effect];
+                const turns = Math.max(0, Number(effect.turns) || 0) - 1;
+                return turns > 0 ? [{ ...effect, turns }] : [];
+            }
+            const turns = Math.max(0, Number(effect.turns) || 0) - 1;
+            if (turns > 0) return [{ ...effect, turns }];
+            if (!status) {
+                status = "sleep";
+                effects.push({
+                    kind: "status",
+                    tokenId: token.id,
+                    tokenName: token.name,
+                    status,
+                    damage: 0,
+                    remainingHp: token.currentHp,
+                    fainted: false,
+                    sources: ["bocejo"],
+                });
+            }
+            return [];
+        });
         let damage = 0;
-        let toxicCounter = token.status === "bad-poison" ? Math.max(1, token.toxicCounter || 1) : 0;
-        if (token.status === "burn") damage += residualAmount(token.maxHp, 1 / 16);
-        if (token.status === "poison") damage += residualAmount(token.maxHp, 1 / 8);
-        if (token.status === "bad-poison") {
+        let toxicCounter = status === "bad-poison" ? Math.max(1, token.toxicCounter || 1) : 0;
+        if (status === "burn") damage += residualAmount(token.maxHp, 1 / 16);
+        if (status === "poison") damage += residualAmount(token.maxHp, 1 / 8);
+        if (status === "bad-poison") {
             damage += residualAmount(token.maxHp, toxicCounter / 16);
             toxicCounter = Math.min(15, toxicCounter + 1);
         }
@@ -406,7 +445,7 @@ export const applyEndOfRoundEffects = snapshot => {
         if (room.weather === "areia" && !sandImmuneType && !SAND_IMMUNE_ABILITIES.has(token.ability)) {
             damage += residualAmount(token.maxHp, 1 / 16);
         }
-        if (!damage) return { ...token, toxicCounter };
+        if (!damage) return { ...token, status, toxicCounter, volatileEffects };
         const applied = Math.min(token.currentHp, damage);
         const currentHp = Math.max(0, token.currentHp - applied);
         effects.push({
@@ -416,13 +455,13 @@ export const applyEndOfRoundEffects = snapshot => {
             remainingHp: currentHp,
             fainted: currentHp <= 0,
             sources: [
-                token.status === "burn" ? "queimadura" : "",
-                token.status === "poison" ? "envenenamento" : "",
-                token.status === "bad-poison" ? "envenenamento grave" : "",
+                status === "burn" ? "queimadura" : "",
+                status === "poison" ? "envenenamento" : "",
+                status === "bad-poison" ? "envenenamento grave" : "",
                 room.weather === "areia" && !sandImmuneType && !SAND_IMMUNE_ABILITIES.has(token.ability) ? "tempestade de areia" : "",
             ].filter(Boolean),
         });
-        return { ...token, currentHp, toxicCounter };
+        return { ...token, status, currentHp, toxicCounter, volatileEffects };
     });
     return { room: { ...room, tokens }, effects };
 };
@@ -467,74 +506,135 @@ export const calculateMoveResolution = ({
     mode = "normal",
     random,
 }) => {
-    const moveCategory = move?.damage_class?.name;
+    const profile = getMoveResolutionProfile(move);
+    const moveCategory = profile.damageClass;
     const attackKey = moveCategory === "special" ? "special-attack" : "attack";
     const defenseKey = moveCategory === "special" ? "special-defense" : "defense";
-    const attackTest = rollAttributeTest({
-        mode,
-        attribute: attacker?.stats?.[attackKey] || 0,
-        random,
-    });
-    const defenseTest = rollAttributeTest({
-        mode: "normal",
-        attribute: defender?.stats?.[defenseKey] || 0,
-        random,
-    });
-    const accuracy = move?.accuracy == null ? 100 : Number(move.accuracy);
+    const attackerStagesIgnored = profile.requiresDamageContest && normalizeSlug(defender?.ability) === "unaware";
+    const defenderStagesIgnored = profile.requiresDamageContest && normalizeSlug(attacker?.ability) === "unaware";
+    const contestAttribute = (token, key, ignoreStages) => {
+        const current = Number(token?.stats?.[key]) || 0;
+        if (!ignoreStages) return current;
+        const original = Number(token?.originalStats?.[key]);
+        if (Number.isFinite(original)) return convertToTTRPG(original);
+        return current / stageMultiplier(normalizeStageMap(token?.stages)[key]);
+    };
+    const attackTest = profile.requiresDamageContest
+        ? rollAttributeTest({
+            mode,
+            attribute: contestAttribute(attacker, attackKey, attackerStagesIgnored),
+            random,
+        })
+        : null;
+    const defenseTest = profile.requiresDamageContest
+        ? rollAttributeTest({
+            mode: "normal",
+            attribute: contestAttribute(defender, defenseKey, defenderStagesIgnored),
+            random,
+        })
+        : null;
+    const contestSuccess = profile.requiresDamageContest
+        ? attackTest.total > defenseTest.total
+        : true;
+    const accuracyState = adjustMoveAccuracy({ move, attacker, defender });
+    const accuracyTest = accuracyState.automatic
+        ? { automatic: true, rolls: [], result: null, chance: accuracyState.adjustedAccuracy, success: true }
+        : {
+            automatic: false,
+            ...rollPercentTest({
+                chance: accuracyState.adjustedAccuracy,
+                advantage: profile.requiresDamageContest && contestSuccess && attackTest.total - defenseTest.total > 1,
+                random,
+            }),
+        };
     const power = Number(move?.power) || 0;
     const baseDamage = convertToTTRPG(power);
     const moveType = move?.type?.name || "";
     const stab = getMoveStab(attacker, moveType);
-    const effectiveness = calculateDefenses(
-        getDefensiveTypes(defender).map(type => ({ type: { name: type } }))
-    )[moveType] ?? 1;
-    const contestSuccess = attackTest.total > defenseTest.total;
-    const accuracyTest = accuracy >= 100
-        ? { automatic: true, rolls: [], result: null, chance: 100, success: true }
-        : {
-            automatic: false,
-            ...rollPercentTest({
-                chance: accuracy,
-                advantage: contestSuccess && attackTest.total - defenseTest.total > 1,
-                random,
-            }),
-        };
-    const hit = contestSuccess && accuracyTest.success;
-    const criticalMultiplier = attackTest.critical ? 1.5 : 1;
+    const effectiveness = defender && moveType
+        ? calculateDefenses(
+            getDefensiveTypes(defender).map(type => ({ type: { name: type } }))
+        )[moveType] ?? 1
+        : 1;
+    const typeSensitiveStatusMoves = new Set(["thunder-wave"]);
+    const typeBlocked = effectiveness === 0
+        && (profile.requiresDamageContest || typeSensitiveStatusMoves.has(normalizeSlug(move?.name)));
+    const moveConnected = accuracyTest.success && !typeBlocked;
+    const damageHit = profile.requiresDamageContest && contestSuccess && moveConnected;
+    const hit = moveConnected;
+    const criticalMultiplier = attackTest?.critical ? 1.5 : 1;
     const directKnockout = isDirectKnockoutMove(move);
     const minimumHits = Math.max(1, Number(move?.meta?.min_hits) || 1);
     const maximumHits = Math.max(minimumHits, Number(move?.meta?.max_hits) || minimumHits);
-    const hitCount = hit && maximumHits > 1
+    const hitCount = damageHit && maximumHits > 1
         ? minimumHits + Math.floor((typeof random === "function" ? random() : Math.random()) * (maximumHits - minimumHits + 1))
         : 1;
-    const rawDamagePerHit = hit && effectiveness > 0
+    const moveName = normalizeSlug(move?.name);
+    const fixedDamage = (() => {
+        if (!damageHit || !defender) return null;
+        if (moveName === "dragon-rage") return convertToTTRPG(40);
+        if (moveName === "sonic-boom") return convertToTTRPG(20);
+        if (["night-shade", "seismic-toss"].includes(moveName)) return convertToTTRPG(attacker?.level || 1);
+        if (["super-fang", "natures-madness", "ruination"].includes(moveName)) {
+            return Math.max(1, Math.ceil((Number(defender.currentHp) || 1) / 2));
+        }
+        if (moveName === "endeavor") {
+            return Math.max(0, (Number(defender.currentHp) || 0) - (Number(attacker?.currentHp) || 0));
+        }
+        return null;
+    })();
+    const manualDamage = profile.requiresDamageContest
+        && fixedDamage == null
+        && !directKnockout
+        && (power <= 0 || ["bide", "comeuppance", "counter", "metal-burst", "mirror-coat"].includes(moveName));
+    const rawDamagePerHit = damageHit && effectiveness > 0
         ? directKnockout
             ? Math.max(1, Number(defender?.currentHp) || 1)
-            : Math.max(1, Math.round(baseDamage * stab * effectiveness * criticalMultiplier))
+            : fixedDamage != null
+                ? fixedDamage
+                : manualDamage
+                    ? 0
+                    : Math.max(1, Math.round(baseDamage * stab * effectiveness * criticalMultiplier))
         : 0;
-    const ceiling = getDamageCeiling(attacker?.level || 1);
-    const damagePerHit = attackTest.critical || directKnockout
+    const offensiveStage = attackerStagesIgnored ? 0 : normalizeStageMap(attacker?.stages)[attackKey];
+    const ceilingMultiplier = Math.max(1, stageMultiplier(offensiveStage));
+    const ceiling = getDamageCeiling(attacker?.level || 1) * ceilingMultiplier;
+    const damagePerHit = attackTest?.critical || directKnockout || fixedDamage != null || manualDamage
         ? rawDamagePerHit
         : Math.min(rawDamagePerHit, ceiling);
     const damage = damagePerHit * hitCount;
     return {
+        profile,
+        resolutionKind: profile.resolutionKind,
+        resolutionLabel: profile.resolutionLabel,
         attackKey,
         defenseKey,
         attackTest,
         defenseTest,
-        accuracy,
+        attackerStagesIgnored,
+        defenderStagesIgnored,
+        contestSuccess,
+        accuracy: accuracyState.baseAccuracy,
+        adjustedAccuracy: accuracyState.adjustedAccuracy,
+        accuracyState,
         accuracyTest,
         power,
         baseDamage,
         stab,
         criticalMultiplier,
         effectiveness,
+        typeBlocked,
+        moveConnected,
+        damageHit,
         hit,
         ceiling,
+        ceilingMultiplier,
         rawDamagePerHit,
         damagePerHit,
         hitCount,
         directKnockout,
+        fixedDamage,
+        manualDamage,
         damage,
     };
 };
@@ -552,7 +652,14 @@ export const eventSummary = event => {
     }
     if (event?.type === "move") {
         const damage = Number(payload.damage) || 0;
-        const result = payload.hit ? `causou ${damage} de dano` : "não causou dano";
+        const connected = Boolean(payload.moveConnected ?? payload.hit);
+        const result = damage > 0
+            ? `causou ${damage} de dano`
+            : connected && payload.effectOnly
+                ? "teve seu efeito resolvido"
+                : connected
+                    ? "alcançou o alvo, mas não causou dano"
+                    : "não alcançou o alvo";
         const protection = payload.hitKillProtected
             ? ` O golpe causaria ${Number(payload.calculatedDamage) || damage}, mas a proteção contra hit kill manteve o alvo com 1 HP.`
             : "";

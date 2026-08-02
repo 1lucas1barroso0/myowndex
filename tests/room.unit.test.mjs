@@ -256,7 +256,9 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     random: sequence([0, 0, 0, 0]),
   });
   assert.equal(tie.attackTest.total, tie.defenseTest.total);
-  assert.equal(tie.hit, false);
+  assert.equal(tie.hit, true);
+  assert.equal(tie.moveConnected, true);
+  assert.equal(tie.damageHit, false);
   assert.equal(tie.damage, 0);
 
   const inaccurate = calculateMoveResolution({
@@ -306,4 +308,139 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
   });
   assert.equal(multiHit.hitCount, 5);
   assert.equal(multiHit.damage, multiHit.damagePerHit * 5);
+});
+
+test("status, declaration and always-hit moves follow distinct resolution paths", () => {
+  const user = {
+    id: "user",
+    name: "Usuário",
+    level: 10,
+    types: ["normal"],
+    stages: {},
+    stats: { attack: 3, defense: 2, "special-attack": 2, "special-defense": 2 },
+  };
+  const target = {
+    id: "target",
+    name: "Alvo",
+    types: ["normal"],
+    stages: {},
+    stats: { attack: 2, defense: 1, "special-attack": 2, "special-defense": 1 },
+  };
+  const growl = calculateMoveResolution({
+    attacker: user,
+    defender: target,
+    move: {
+      name: "growl",
+      accuracy: 100,
+      damage_class: { name: "status" },
+      target: { name: "all-opponents" },
+      type: { name: "normal" },
+    },
+    random: sequence([0.49]),
+  });
+  assert.equal(growl.resolutionKind, "target-effect");
+  assert.equal(growl.attackTest, null);
+  assert.equal(growl.accuracyTest.automatic, false);
+  assert.equal(growl.moveConnected, true);
+  assert.equal(growl.damageHit, false);
+  assert.equal(growl.manualDamage, false);
+
+  const recover = calculateMoveResolution({
+    attacker: user,
+    defender: null,
+    move: {
+      name: "recover",
+      accuracy: null,
+      damage_class: { name: "status" },
+      target: { name: "user" },
+      type: { name: "normal" },
+    },
+  });
+  assert.equal(recover.resolutionKind, "declaration");
+  assert.equal(recover.accuracyTest.automatic, true);
+  assert.equal(recover.hit, true);
+
+  const swift = calculateMoveResolution({
+    attacker: user,
+    defender: target,
+    move: {
+      name: "swift",
+      power: 60,
+      accuracy: null,
+      damage_class: { name: "special" },
+      target: { name: "all-opponents" },
+      type: { name: "normal" },
+    },
+    random: sequence([0.8, 0.8, 0, 0]),
+  });
+  assert.equal(swift.resolutionKind, "attack");
+  assert.equal(swift.accuracyTest.automatic, true);
+  assert.equal(swift.damageHit, true);
+});
+
+test("accuracy and evasion stages adjust even a numeric 100 percent move", () => {
+  const move = {
+    name: "tackle",
+    power: 40,
+    accuracy: 100,
+    damage_class: { name: "physical" },
+    target: { name: "selected-pokemon" },
+    type: { name: "normal" },
+  };
+  const result = calculateMoveResolution({
+    attacker: {
+      id: "attacker",
+      level: 10,
+      types: ["normal"],
+      stages: { accuracy: -1 },
+      stats: { attack: 4 },
+    },
+    defender: {
+      id: "defender",
+      types: ["normal"],
+      stages: { evasion: 1 },
+      stats: { defense: 0 },
+    },
+    move,
+    random: sequence([0.8, 0.8, 0, 0, 0.6, 0.6]),
+  });
+  assert.equal(result.accuracyState.baseAccuracy, 100);
+  assert.equal(result.adjustedAccuracy, 60);
+  assert.equal(result.accuracyTest.rolls.length, 2);
+  assert.equal(result.accuracyTest.success, false);
+  assert.equal(result.moveConnected, false);
+});
+
+test("Yawn becomes sleep at end of the following round", () => {
+  const snapshot = createRoomSnapshot("Bocejo");
+  snapshot.tokens = [
+    {
+      id: "sleepy",
+      name: "Sonolento",
+      maxHp: 8,
+      currentHp: 8,
+      status: "",
+      volatileEffects: [{ id: "yawn", turns: 1 }],
+      types: ["normal"],
+      stats: {},
+      originalStats: {},
+    },
+    {
+      id: "protected",
+      name: "Protegido",
+      maxHp: 8,
+      currentHp: 8,
+      status: "",
+      volatileEffects: [{ id: "protection", sourceMove: "protect", turns: 1 }],
+      types: ["normal"],
+      stats: {},
+      originalStats: {},
+    },
+  ];
+  const result = applyEndOfRoundEffects(snapshot);
+  assert.equal(result.room.tokens[0].status, "sleep");
+  assert.deepEqual(result.room.tokens[0].volatileEffects, []);
+  assert.deepEqual(result.room.tokens[1].volatileEffects, []);
+  assert.equal(result.effects[0].kind, "status");
+  assert.deepEqual(result.effects[0].sources, ["bocejo"]);
 });

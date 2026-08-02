@@ -1,16 +1,16 @@
-const CACHE_NAME = "myowndex-shell-v9";
+const CACHE_NAME = "myowndex-shell-v9.1";
 const CACHE_PREFIX = "myowndex-shell-";
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
-  "/favicon.svg",
-  "/icons/myowndex-icon.svg",
-  "/icons/myowndex-192.png",
-  "/icons/myowndex-512.png",
-  "/icons/myowndex-maskable-512.png",
-  "/icons/apple-touch-icon.png",
-  "/icons/myowndex-shortcut-96.png",
+  "/favicon-v91.svg",
+  "/icons/myowndex-icon-v91.svg",
+  "/icons/myowndex-app-192-v91.png",
+  "/icons/myowndex-app-512-v91.png",
+  "/icons/myowndex-maskable-512-v91.png",
+  "/icons/apple-touch-icon-v91.png",
+  "/icons/myowndex-shortcut-96-v91.png",
 ];
 
 self.addEventListener("install", event => {

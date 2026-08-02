@@ -97,7 +97,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "2.3",
                 title: "Estágios de atributos",
-                body: "Aumentos e reduções de atributos seguem as regras dos jogos e são aplicados ao valor original. Só depois disso o resultado é dividido por 20."
+                body: "Ataque, Defesa, Ataque Especial, Defesa Especial e Velocidade usam estágios de −6 a +6 sobre o valor original; só depois o resultado é dividido por 20. Precisão e Evasão também usam estágios de −6 a +6 e ajustam a chance percentual do movimento."
             },
             {
                 id: "2.4",
@@ -128,14 +128,15 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.2",
                 title: "Precisão",
-                body: "Movimentos que ignoram precisão e evasão nos jogos não exigem rolagem: se a ação não for interrompida, ela acerta. Nos demais casos, role 1d100 e obtenha um valor igual ou menor que a precisão. Uma margem superior a 1 na disputa concede o segundo d100 previsto na regra 1.4."
+                body: "Movimentos que ignoram precisão e evasão nos jogos não exigem rolagem. Uma precisão numérica — inclusive 100% — continua sujeita aos estágios de Precisão e Evasão; role 1d100 e obtenha um valor igual ou menor que a chance ajustada. Em um ataque, margem superior a 1 na disputa concede o segundo d100 previsto na regra 1.4."
             },
             {
                 id: "3.3",
-                title: "Resolução do dano",
-                body: "Físicos testam Ataque contra Defesa; Especiais testam Ataque Especial contra Defesa Especial.",
+                title: "Resolução de movimentos",
+                body: "Só movimentos que causam dano fazem a disputa de atributos: Físicos testam Ataque contra Defesa; Especiais testam Ataque Especial contra Defesa Especial. Movimentos de status dirigidos a outro Pokémon usam precisão e imunidades, mas não inventam uma disputa de dano. Ações sobre o usuário ou o campo, como Recuperar e Dança de Espadas, resolvem-se pela declaração.",
                 bullets: [
-                    "O atacante precisa superar o defensor. Um empate ou resultado menor não causa dano, embora os efeitos secundários ainda possam acontecer.",
+                    "Para causar dano, o atacante precisa superar o defensor. Um empate ou resultado menor impede o dano, mas não apaga efeitos secundários se o movimento alcançou o alvo.",
+                    "O alvo original do movimento determina quem recebe cura, condição e modificadores; efeitos sobre o usuário não são transferidos ao adversário.",
                     "O dano final combina dano base, STAB e modificadores de tipo.",
                     "Um golpe não causa mais que metade do nível do atacante; no nível 1, vale o mínimo de 1 de dano. Aumentos temporários elevam esse limite proporcionalmente."
                 ]
@@ -244,7 +245,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.2",
                 title: "Dano contínuo e indireto",
-                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente do movimento ofensivo. Eles não ativam a proteção contra hit kill. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia, e registra cada mudança no Diário."
+                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente do movimento ofensivo. Eles não ativam a proteção contra hit kill. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia, resolve Bocejo no momento correto e registra cada mudança no Diário."
             },
             {
                 id: "6.3",
@@ -254,7 +255,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.4",
                 title: "Empoderamentos e enfraquecimentos",
-                body: "Alterações de atributos usam estágios de −6 a +6 sobre o atributo original. Recalcule o valor e só então aplique a divisão por 20. Habilidades como Unaware ignoram os estágios que sua descrição determina."
+                body: "Os sete modificadores — Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão — usam estágios de −6 a +6. Os cinco atributos numéricos são recalculados a partir do original antes da divisão por 20; Precisão e Evasão ajustam o d100. Habilidades como Unaware ignoram exatamente os estágios determinados por sua descrição."
             }
         ]
     },

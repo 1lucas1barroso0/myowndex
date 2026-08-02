@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatType } from "../../core/mechanics.js";
-import { ROOM_SCENARIOS, ROOM_WEATHERS } from "../../core/room.js";
+import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS } from "../../core/room.js";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
@@ -144,10 +144,20 @@ export default function Battlefield({
                             {ROOM_WEATHERS.map(weather => <option key={weather.id} value={weather.id}>{weather.label}</option>)}
                         </select>
                     </label>
+                    <label>
+                        <span className="sr-only">Terreno</span>
+                        <select
+                            value={snapshot.terrain}
+                            disabled={role !== "narrator"}
+                            onChange={event => onSnapshotChange({ ...snapshot, terrain: event.target.value })}
+                        >
+                            {ROOM_TERRAINS.map(terrain => <option key={terrain.id} value={terrain.id}>{terrain.label}</option>)}
+                        </select>
+                    </label>
                 </div>
             </div>
 
-            <div className={`battlefield-board scene-${snapshot.scenario} weather-${snapshot.weather}`}>
+            <div className={`battlefield-board scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`}>
                 <div className="battlefield-depth battlefield-depth-back" />
                 <div className="battlefield-center-line" />
                 <div className="battlefield-side-label label-opponent">Oponentes</div>

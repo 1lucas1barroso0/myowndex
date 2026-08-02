@@ -93,11 +93,11 @@ test("visible copy avoids robotic system language", async () => {
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9/);
+  assert.match(worker, /myowndex-shell-v9\.1/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
-  assert.match(worker, /myowndex-maskable-512\.png/);
+  assert.match(worker, /myowndex-maskable-512-v91\.png/);
 });
 
 test("voice calls are room-scoped, accessible and locally controllable", async () => {
@@ -133,14 +133,30 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(installer, /Adicionar ao Dock/);
   assert.match(appearance, /prefers-color-scheme: dark/);
   assert.match(appearance, /myowndex_appearance_v1/);
-  assert.match(manifest, /myowndex-192\.png/);
+  assert.match(manifest, /myowndex-app-192-v91\.png/);
   assert.match(manifest, /purpose:\s*"maskable"/);
   assert.match(manifest, /shortcuts:/);
-  assert.match(layout, /apple-touch-icon\.png/);
+  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-shortcut-96-v91\.png"/);
+  assert.match(layout, /apple-touch-icon-v91\.png/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
+  assert.match(app, /myowndex-icon-v91\.svg/);
+});
+
+test("the adventure exposes every modifier and explains movement resolution", async () => {
+  const [room, combat, rules] = await Promise.all([
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/components/Room/CombatAssistant.jsx"),
+    read("src/core/rpgRules.js"),
+  ]);
+  assert.match(room, /STAGE_STAT_KEYS\.map/);
+  assert.match(room, /Neutralizar todos/);
+  assert.match(combat, /Efeito por precisão|resolutionLabel/);
+  assert.match(combat, /não exige selecionar um adversário/);
+  assert.match(rules, /Os sete modificadores/);
+  assert.match(rules, /Uma precisão numérica — inclusive 100%/);
 });
 
 test("the internal Guide is the canonical source and explains hit kill protection", async () => {

@@ -8,15 +8,24 @@ export const metadata: Metadata = {
   applicationName: "MyOwnDex",
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/icons/myowndex-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon-v91.svg", type: "image/svg+xml" },
+      { url: "/icons/myowndex-app-192-v91.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    // Vinext serializes descriptor objects for `shortcut` as "[object Object]".
+    // A direct URL keeps the generated <link rel="shortcut icon"> valid.
+    shortcut: "/icons/myowndex-shortcut-96-v91.png",
+    apple: [{ url: "/icons/apple-touch-icon-v91.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     title: "MyOwnDex",
     description: "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura reunidos em um só lugar.",
-    images: [{ url: "/icons/myowndex-512.png", width: 512, height: 512, alt: "Ícone do MyOwnDex" }],
+    images: [{ url: "/icons/myowndex-app-512-v91.png", width: 512, height: 512, alt: "Ícone do MyOwnDex" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "MyOwnDex",
+    description: "Sua Pokédex, suas Boxes e sua aventura Pokémon em um só lugar.",
+    images: ["/icons/myowndex-app-512-v91.png"],
   },
   appleWebApp: {
     capable: true,

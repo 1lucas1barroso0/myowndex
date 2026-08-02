@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
-import { calculateStagedStats } from "../../core/automation.js";
+import {
+    accuracyStageMultiplier,
+    applyStageChange,
+    calculateStagedStats,
+    normalizeStageMap,
+    STAGE_LABELS,
+    STAGE_STAT_KEYS,
+} from "../../core/automation.js";
 import {
     addTeamToSnapshot,
     advanceInitiative,
@@ -17,7 +24,7 @@ import {
     STATUS_LABELS,
     syncTeamsWithRoomProgress,
 } from "../../core/room.js";
-import { formatName, formatNumberPtBr, formatType, STAT_MAP } from "../../core/mechanics.js";
+import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import {
     buildPlayerInvite,
     clearRoomSession,
@@ -704,6 +711,21 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         }
     };
 
+    const adjustSelectedStage = (stat, change) => {
+        if (!selectedToken || role !== "narrator") return;
+        const changed = applyStageChange(selectedToken, stat, change);
+        updateToken({ stages: changed.stages, stats: changed.stats });
+    };
+
+    const resetSelectedStages = () => {
+        if (!selectedToken || role !== "narrator") return;
+        const stages = normalizeStageMap({});
+        updateToken({
+            stages,
+            stats: calculateStagedStats({ ...selectedToken, stages }),
+        });
+    };
+
     const removeToken = () => {
         if (!selectedToken || role !== "narrator") return;
         const removed = selectedToken;
@@ -821,7 +843,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 round: snapshot.round + 1,
                 turnIndex: 0,
                 initiative: [],
-                tokens: snapshot.tokens.map(token => ({ ...token, declaredMove: "", priority: 0 })),
+                tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", priority: 0 })),
             }
             : advanceInitiative(snapshot);
         commitSnapshot(next);
@@ -830,7 +852,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         await sendEvent("system", {
             text: closingRound
                 ? `${roundEnd.effects.length
-                    ? `${roundEnd.effects.map(effect => `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`).join("; ")}. `
+                    ? `${roundEnd.effects.map(effect => effect.kind === "status"
+                        ? `${effect.tokenName} adormeceu por causa de Bocejo`
+                        : `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`
+                    ).join("; ")}. `
                     : ""}Rodada ${next.round} pronta! Escolha os movimentos para formar a nova ordem.`
                 : active
                     ? `Turno de ${active.name}. Rodada ${next.round}.`
@@ -1151,13 +1176,48 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     {Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                                 </select>
                             </label>
-                            {Object.entries(selectedToken.stages || {}).some(([, value]) => value !== 0) && (
-                                <div className="token-stage-list" aria-label="Estágios de atributo ativos">
-                                    {Object.entries(selectedToken.stages).filter(([, value]) => value !== 0).map(([stat, value]) => (
-                                        <span key={stat}>{STAT_MAP[stat] || formatName(stat)} {value > 0 ? `+${value}` : value}</span>
+                            {selectedToken.volatileEffects?.length > 0 && (
+                                <div className="token-volatile-list" aria-label="Efeitos temporários ativos">
+                                    {selectedToken.volatileEffects.map(effect => (
+                                        <span key={effect.id}>
+                                            {effect.id === "yawn" ? "Sonolento por Bocejo" : formatName(effect.sourceMove || effect.id)}
+                                            {effect.turns != null ? ` • ${effect.turns} rodada(s)` : ""}
+                                        </span>
                                     ))}
                                 </div>
                             )}
+                            <details className="token-modifiers">
+                                <summary>
+                                    <span>Modificadores</span>
+                                    <strong>
+                                        {Object.values(selectedToken.stages || {}).filter(value => value !== 0).length
+                                            ? `${Object.values(selectedToken.stages || {}).filter(value => value !== 0).length} ativo(s)`
+                                            : "Todos neutros"}
+                                    </strong>
+                                </summary>
+                                <div className="token-modifier-grid">
+                                    {STAGE_STAT_KEYS.map(stat => {
+                                        const value = selectedToken.stages?.[stat] || 0;
+                                        const calculated = stat === "accuracy" || stat === "evasion"
+                                            ? `${formatNumberPtBr(accuracyStageMultiplier(value))}×`
+                                            : formatNumberPtBr(selectedToken.stats?.[stat] || 0);
+                                        return (
+                                            <div className="token-modifier" key={stat}>
+                                                <span>
+                                                    <strong>{STAGE_LABELS[stat]}</strong>
+                                                    <small>Valor atual {calculated}</small>
+                                                </span>
+                                                <button type="button" disabled={role !== "narrator" || value <= -6} onClick={() => adjustSelectedStage(stat, -1)} aria-label={`Reduzir ${STAGE_LABELS[stat]}`}>−</button>
+                                                <b aria-label={`Estágio ${value}`}>{value > 0 ? `+${value}` : value}</b>
+                                                <button type="button" disabled={role !== "narrator" || value >= 6} onClick={() => adjustSelectedStage(stat, 1)} aria-label={`Aumentar ${STAGE_LABELS[stat]}`}>+</button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                {role === "narrator" && (
+                                    <button type="button" className="token-modifier-reset" onClick={resetSelectedStages}>Neutralizar todos</button>
+                                )}
+                            </details>
                             {role === "narrator" && (
                                 <>
                                     {selectedToken.teraType && (

@@ -9,10 +9,16 @@ test("the official Vercel domain transparently reaches the complete MyOwnDex run
   assert.equal(config.framework, "vite");
   assert.equal(config.buildCommand, "npm run build:gateway");
   assert.equal(config.outputDirectory, "dist-gateway");
-  assert.deepEqual(config.rewrites, [{
-    source: "/:path*",
-    destination: "https://myowndex-update.neat-calf-9750.chatgpt.site/:path*",
-  }]);
+  assert.deepEqual(config.rewrites, [
+    {
+      source: "/",
+      destination: "https://myowndex-update.neat-calf-9750.chatgpt.site/",
+    },
+    {
+      source: "/:path*",
+      destination: "https://myowndex-update.neat-calf-9750.chatgpt.site/:path*",
+    },
+  ]);
 
   const packageJson = JSON.parse(await read("package.json"));
   assert.equal(packageJson.scripts["build:gateway"], "bash scripts/build-gateway.sh");

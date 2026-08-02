@@ -5,6 +5,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/",
+      "destination": "https://myowndex-update.neat-calf-9750.chatgpt.site/"
+    },
+    {
       "source": "/:path*",
       "destination": "https://myowndex-update.neat-calf-9750.chatgpt.site/:path*"
     }

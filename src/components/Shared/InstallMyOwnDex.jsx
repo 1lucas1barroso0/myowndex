@@ -65,14 +65,14 @@ export default function InstallMyOwnDex() {
     return (
         <>
             <button type="button" className="install-entry" aria-haspopup="dialog" onClick={() => void install()}>
-                <img src="/icons/myowndex-icon.svg" alt="" />
+                <img src="/icons/myowndex-icon-v91.svg" alt="" />
                 <span>Instalar</span>
             </button>
             {guideOpen && (
                 <div className="install-overlay" role="presentation" onMouseDown={() => setGuideOpen(false)}>
                     <section className="install-dialog" role="dialog" aria-modal="true" aria-labelledby="install-title" onMouseDown={event => event.stopPropagation()}>
                         <button type="button" className="install-close" aria-label="Fechar" onClick={() => setGuideOpen(false)}>×</button>
-                        <img src="/icons/myowndex-icon.svg" alt="" />
+                        <img src="/icons/myowndex-icon-v91.svg" alt="" />
                         <small>MyOwnDex no seu aparelho</small>
                         <h2 id="install-title">Sua aventura, sempre ao alcance.</h2>
                         {platform === "ios" ? (

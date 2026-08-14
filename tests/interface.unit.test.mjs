@@ -149,7 +149,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.5/);
+  assert.match(worker, /myowndex-shell-v9\.6/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -211,11 +211,17 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(layout, /apple-touch-icon-v91\.png/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);
-  const nightContract = css.slice(css.indexOf("Contrato noturno 9.5"));
+  const nightContract = css.slice(css.indexOf("Contrato visual ROM 9.6"));
   assert.ok(nightContract.length > 500);
-  assert.doesNotMatch(nightContract, /#fff(?:fff)?\b|rgba\(255,\s*255,\s*255|\bwhite\b\s*[;),]/i);
-  assert.match(nightContract, /--night-cyan/);
+  assert.doesNotMatch(nightContract, /#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255|#fde047|#facc15|#fbbf24/i);
+  assert.match(nightContract, /--rom-coral/);
+  assert.match(nightContract, /--night-gold:\s*var\(--rom-coral\)/);
   assert.match(nightContract, /\[class~="text-white"\]/);
+  assert.match(nightContract, /\[class\*="bg-blue-50"\]/);
+  assert.match(nightContract, /\.pc-partner-card\.is-selected/);
+  assert.match(nightContract, /\.rotom-automation-bar/);
+  assert.match(nightContract, /\.room-live-orb/);
+  assert.match(nightContract, /::-moz-range-thumb/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
   assert.match(app, /myowndex-icon-v91\.svg/);

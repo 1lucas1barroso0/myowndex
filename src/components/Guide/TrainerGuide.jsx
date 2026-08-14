@@ -22,7 +22,7 @@ const DiceFaces = ({ values, kept = values }) => {
                 return (
                     <span
                         key={`${value}-${index}`}
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl border-2 text-sm font-black shadow-[0_3px_0_#94a3b8] ${isKept ? "border-slate-700 bg-white text-slate-800" : "border-slate-200 bg-slate-100 text-slate-400 opacity-60"}`}
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl border-2 text-sm font-black shadow-[0_3px_0_#0E7490] ${isKept ? "border-slate-700 bg-white text-slate-800" : "border-slate-200 bg-slate-100 text-slate-400 opacity-60"}`}
                     >
                         {value}
                     </span>
@@ -76,7 +76,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
 
     return (
         <div className="trainer-guide animate-fade-in text-slate-800">
-            <section className="rotom-hero relative overflow-hidden rounded-[1.75rem] border-4 border-slate-800 p-5 shadow-[0_8px_0_#334155] sm:p-7">
+            <section className="rotom-hero relative overflow-hidden rounded-[1.75rem] border-4 border-slate-800 p-5 shadow-[0_8px_0_#075985] sm:p-7">
                 <div className="relative z-10 max-w-3xl">
                     <div className="mb-3 flex flex-wrap items-center gap-2">
                         <span className="rounded-full border-2 border-white/40 bg-slate-900/80 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">Guia Rotom</span>
@@ -213,7 +213,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                     type="button"
                                     aria-pressed={experienceMode === mode.id}
                                     onClick={() => onModeChange(mode.id)}
-                                    className={`rounded-2xl border-2 p-3 text-left transition-all ${experienceMode === mode.id ? "border-slate-800 bg-slate-800 text-white shadow-[0_4px_0_#475569]" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"}`}
+                                    className={`rounded-2xl border-2 p-3 text-left transition-all ${experienceMode === mode.id ? "border-slate-800 bg-slate-800 text-white shadow-[0_4px_0_#075985]" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"}`}
                                 >
                                     <strong className="block text-xs font-black">{mode.label}</strong>
                                     <span className={`mt-1 block text-[10px] font-bold leading-4 ${experienceMode === mode.id ? "text-slate-300" : "text-slate-400"}`}>{mode.description}</span>

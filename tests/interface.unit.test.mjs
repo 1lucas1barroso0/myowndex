@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 import {
   formatCount,
@@ -221,6 +221,38 @@ test("the icon is the single palette root in every visual and generated color", 
   ].join("\n").match(/#[0-9a-f]{6}/gi)?.map(color => color.toUpperCase()) || [];
   assert.ok(generatedColors.length >= 20);
   for (const color of generatedColors) assert.ok(allowed.has(color), `cor dinâmica fora do ícone: ${color}`);
+
+  const collectVisualSources = async directory => {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const nested = await Promise.all(entries.map(async entry => {
+      const child = new URL(entry.name + (entry.isDirectory() ? "/" : ""), directory);
+      if (entry.isDirectory()) return collectVisualSources(child);
+      if (!/\.(?:css|html|js|jsx|ts|tsx)$/i.test(entry.name)) return [];
+      return [{ path: child.pathname, text: await readFile(child, "utf8") }];
+    }));
+    return nested.flat();
+  };
+  const visualSources = (await Promise.all([
+    collectVisualSources(new URL("../src/", import.meta.url)),
+    collectVisualSources(new URL("../app/", import.meta.url)),
+    collectVisualSources(new URL("../public/", import.meta.url)),
+  ])).flat();
+  const allowedRgb = new Set([...allowed].map(color => color.slice(1).match(/../g)
+    .map(value => Number.parseInt(value, 16)).join(",")));
+  for (const source of visualSources) {
+    const hexColors = source.text.match(/#[0-9a-f]{3,8}\b/gi) || [];
+    for (const literal of hexColors) {
+      let value = literal.slice(1);
+      if (value.length === 3 || value.length === 4) value = [...value].map(character => character.repeat(2)).join("");
+      const rootColor = `#${value.slice(0, 6).toUpperCase()}`;
+      assert.ok(allowed.has(rootColor), `cor fora do ícone em ${source.path}: ${literal}`);
+    }
+    const rgbColors = source.text.matchAll(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/gi);
+    for (const literal of rgbColors) {
+      const triplet = `${literal[1]},${literal[2]},${literal[3]}`;
+      assert.ok(allowedRgb.has(triplet), `RGB fora do ícone em ${source.path}: ${literal[0]}`);
+    }
+  }
 
   assert.match(css, /html\[data-theme="night"\] \.app-root \[class~="bg-white"\]/);
   assert.match(css, /\.app-root \[class\*="text-red-"\]/);

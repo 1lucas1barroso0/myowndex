@@ -407,7 +407,7 @@ export default function App() {
                                 <div className="text-5xl mb-4" aria-hidden="true">📡</div>
                                 <h2 className="text-xl font-black text-slate-800">A Pokédex precisa de mais um instante</h2>
                                 <p className="mt-2 text-sm text-slate-500">{dexError}</p>
-                                <button type="button" onClick={() => setDexAttempt(value => value + 1)} className="mt-5 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b]">Buscar novamente</button>
+                                <button type="button" onClick={() => setDexAttempt(value => value + 1)} className="mt-5 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991B1B]">Buscar novamente</button>
                             </div>
                         ) : (
                             <>

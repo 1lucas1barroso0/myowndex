@@ -93,11 +93,26 @@ test("visible copy avoids robotic system language", async () => {
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.1/);
+  assert.match(worker, /myowndex-shell-v9\.2/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
   assert.match(worker, /myowndex-maskable-512-v91\.png/);
+});
+
+test("Link Cable previews selective imports and Adventure invitations open in one step", async () => {
+  const [teamBuilder, room, roomClient] = await Promise.all([
+    read("src/components/Teambuilder/Teambuilder.jsx"),
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/core/roomClient.js"),
+  ]);
+  assert.match(teamBuilder, /Pokémon escolhidos/);
+  assert.match(teamBuilder, /Box de destino/);
+  assert.match(teamBuilder, /Adicionar à Box escolhida/);
+  assert.match(teamBuilder, /Conferir conteúdo/);
+  assert.match(room, /Link ou convite da aventura/);
+  assert.match(room, /Enviar convite/);
+  assert.match(roomClient, /searchParams\.set\("abrir", "aventura"\)/);
 });
 
 test("voice calls are room-scoped, accessible and locally controllable", async () => {

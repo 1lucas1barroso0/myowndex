@@ -202,7 +202,7 @@ html:not([data-theme="night"]) .text-slate-500 { color: #526175; }
 .skeleton { background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: loading 1.5s infinite linear; }
 @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-.animate-fade-in { animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-fade-in { animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
 
 .rotom-hero {
   background:
@@ -422,6 +422,73 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   text-transform: uppercase;
 }
 
+/* PC: ações agrupadas e Link Cable com confirmação antes de alterar uma Box. */
+.pc-eyebrow,
+.link-cable-kicker {
+  display: block;
+  color: #1d4ed8;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.pc-import-button { display: flex; align-items: center; justify-content: center; gap: .55rem; }
+.pc-import-button > span:first-child { display: grid; width: 1.55rem; height: 1.55rem; place-items: center; border-radius: .5rem; background: rgba(255,255,255,.72); font-size: 1rem; }
+.link-cable-overlay { position: fixed; z-index: 250; inset: 0; display: grid; place-items: center; overflow-y: auto; background: rgba(15,23,42,.68); padding: 1rem; backdrop-filter: blur(10px); }
+.link-cable-dialog { position: relative; width: min(100%,43rem); max-height: min(92dvh,50rem); overflow-y: auto; border: 1px solid rgba(255,255,255,.82); border-radius: 1.35rem; background: #fff; padding: clamp(1.2rem,4vw,2rem); color: #0f172a; box-shadow: 0 30px 80px rgba(15,23,42,.38); }
+.link-cable-close { position: absolute; top: .8rem; right: .8rem; display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border: 1px solid #e2e8f0; border-radius: .7rem; background: #f8fafc; color: #64748b; font-size: 1.3rem; font-weight: 800; }
+.link-cable-dialog h2 { margin: .28rem 2.6rem .4rem 0; color: #0f172a; font-size: clamp(1.45rem,4vw,2rem); font-weight: 950; letter-spacing: -.04em; line-height: 1.1; }
+.link-cable-intro { max-width: 38rem; margin: 0 0 1.15rem; color: #526175; font-size: .86rem; font-weight: 650; line-height: 1.6; }
+.link-cable-segment { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .6rem; margin: 1rem 0; padding: .28rem; border: 1px solid #e2e8f0; border-radius: .95rem; background: #f1f5f9; }
+.link-cable-segment button { display: flex; min-height: 4rem; flex-direction: column; justify-content: center; border: 1px solid transparent; border-radius: .72rem; background: transparent; padding: .65rem .8rem; color: #526175; text-align: left; }
+.link-cable-segment button[aria-checked=true] { border-color: #bfdbfe; background: #fff; color: #1d4ed8; box-shadow: 0 5px 14px rgba(30,64,175,.1); }
+.link-cable-segment button:disabled { cursor: not-allowed; opacity: .45; }
+.link-cable-segment strong { font-size: .8rem; font-weight: 900; }
+.link-cable-segment small { margin-top: .18rem; color: #64748b; font-size: .68rem; font-weight: 700; }
+.link-cable-partners { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .6rem; margin: .85rem 0; }
+.link-cable-partners > button { position: relative; display: grid; grid-template-columns: 3.2rem minmax(0,1fr); min-height: 4.2rem; align-items: center; gap: .7rem; border: 1px solid #e2e8f0; border-radius: .85rem; background: #f8fafc; padding: .55rem .75rem; color: #334155; text-align: left; }
+.link-cable-partners > button[aria-pressed=true] { border-color: #60a5fa; background: #eff6ff; box-shadow: inset 3px 0 0 #2563eb; }
+.link-cable-partners img,.link-cable-sprite-fallback { width: 3.1rem; height: 3.1rem; object-fit: contain; }
+.link-cable-sprite-fallback { display: grid; place-items: center; border-radius: .65rem; background: #e2e8f0; color: #64748b; font-weight: 900; }
+.link-cable-partners > button > span:last-child { min-width: 0; }
+.link-cable-partners strong,.link-cable-partners small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-cable-partners strong { font-size: .82rem; }
+.link-cable-partners small { margin-top: .16rem; color: #64748b; font-size: .68rem; font-weight: 700; }
+.link-cable-check { position: absolute; top: .45rem; right: .45rem; display: grid; width: 1.2rem; height: 1.2rem; place-items: center; border: 1px solid #cbd5e1; border-radius: .38rem; background: #fff; color: #fff; font-size: .68rem; }
+.link-cable-partners > button[aria-pressed=true] .link-cable-check { border-color: #2563eb; background: #2563eb; }
+.link-cable-footer { display: flex; align-items: center; justify-content: flex-end; gap: .65rem; margin-top: 1.15rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+.link-cable-footer > span { margin-right: auto; color: #526175; font-size: .72rem; font-weight: 800; }
+.link-cable-primary,.link-cable-secondary { min-height: 2.75rem; border-radius: .75rem; padding: .65rem 1rem; font-size: .72rem; font-weight: 900; }
+.link-cable-primary { border: 1px solid #1d4ed8; background: #2563eb; color: #fff; box-shadow: 0 7px 15px rgba(37,99,235,.2); }
+.link-cable-primary:disabled { cursor: not-allowed; opacity: .45; box-shadow: none; }
+.link-cable-secondary { border: 1px solid #cbd5e1; background: #fff; color: #475569; }
+.link-cable-result { display: flex; flex-direction: column; align-items: center; border: 1px solid #bfdbfe; border-radius: 1rem; background: #eff6ff; padding: 1.2rem; text-align: center; }
+.link-cable-success { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: 50%; background: #2563eb; color: #fff; font-size: 1.2rem; font-weight: 900; }
+.link-cable-result > strong { margin-top: .55rem; font-size: 1.05rem; }
+.link-cable-result > p { margin: .3rem 0 .85rem; color: #526175; font-size: .75rem; line-height: 1.5; }
+.link-cable-result label { width: 100%; }
+.link-cable-result textarea,.link-cable-code-field textarea { width: 100%; resize: vertical; border: 1px solid #bfdbfe; border-radius: .75rem; background: #fff; padding: .75rem; color: #334155; font-size: .72rem; font-weight: 700; line-height: 1.45; outline: none; }
+.link-cable-result > div { display: flex; flex-wrap: wrap; justify-content: center; gap: .55rem; margin-top: .8rem; }
+.link-cable-code-field { display: block; }
+.link-cable-code-field > span,.link-cable-destination > span { display: block; margin-bottom: .4rem; color: #334155; font-size: .72rem; font-weight: 900; }
+.link-cable-code-field textarea { min-height: 9rem; border-color: #cbd5e1; background: #f8fafc; }
+.link-cable-error { margin-top: .7rem; border: 1px solid #fecaca; border-radius: .72rem; background: #fef2f2; padding: .65rem .75rem; color: #b91c1c; font-size: .72rem; font-weight: 800; line-height: 1.45; }
+.link-cable-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: .7rem; border: 1px solid #dbeafe; border-radius: .85rem; background: #eff6ff; padding: .75rem .85rem; }
+.link-cable-preview-heading > span { display: flex; min-width: 0; flex-direction: column; }
+.link-cable-preview-heading strong { overflow: hidden; color: #1e3a8a; font-size: .86rem; text-overflow: ellipsis; white-space: nowrap; }
+.link-cable-preview-heading small { margin-top: .12rem; color: #526175; font-size: .68rem; font-weight: 700; }
+.link-cable-preview-heading button { flex: 0 0 auto; border: 0; background: transparent; color: #1d4ed8; font-size: .68rem; font-weight: 900; }
+.link-cable-preview-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .45rem; margin-top: .65rem; }
+.link-cable-preview-list > span { display: grid; grid-template-columns: 2.5rem minmax(0,1fr); align-items: center; column-gap: .4rem; border: 1px solid #e2e8f0; border-radius: .72rem; background: #f8fafc; padding: .4rem .5rem; }
+.link-cable-preview-list img,.link-cable-preview-list i { grid-row: 1/3; width: 2.5rem; height: 2.5rem; object-fit: contain; }
+.link-cable-preview-list i { border-radius: .55rem; background: #e2e8f0; }
+.link-cable-preview-list b,.link-cable-preview-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-cable-preview-list b { color: #334155; font-size: .7rem; }
+.link-cable-preview-list small { color: #64748b; font-size: .62rem; font-weight: 700; }
+.link-cable-destination { display: block; margin-top: .9rem; }
+.link-cable-destination select { width: 100%; min-height: 2.8rem; border: 1px solid #cbd5e1; border-radius: .75rem; background: #fff; padding: .6rem .7rem; color: #0f172a; font-size: .78rem; font-weight: 800; outline: none; }
+.link-cable-destination small { display: block; margin-top: .38rem; color: #64748b; font-size: .68rem; font-weight: 700; line-height: 1.45; }
+
 /* Central da Aventura */
 .room-app {
   color: #0f172a;
@@ -606,6 +673,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   text-transform: uppercase;
 }
 .room-lobby-card input,
+.room-lobby-card textarea,
 .room-lobby-card select,
 .room-wide-select,
 .quick-roll-controls input,
@@ -623,7 +691,9 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   font-weight: 800;
   outline: none;
 }
+.room-lobby-card textarea { resize: vertical; line-height: 1.45; }
 .room-lobby-card input:focus,
+.room-lobby-card textarea:focus,
 .room-lobby-card select:focus,
 .room-wide-select:focus,
 .quick-roll-controls input:focus,
@@ -633,6 +703,8 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   border-color: #38bdf8;
   box-shadow: 0 0 0 3px rgba(56,189,248,.13);
 }
+.room-invite-detection { display: block; color: #64748b; font-size: .68rem; font-weight: 750; line-height: 1.4; }
+.room-invite-detection.is-valid { color: #047857; }
 .room-code-row { display: grid; grid-template-columns: .8fr 1.2fr; gap: .7rem; }
 .room-lobby-card ul {
   display: grid;
@@ -732,6 +804,28 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
 .room-role-badge.is-narrator { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
 .room-role-badge.is-player { border-color: #bae6fd; background: #f0f9ff; color: #0369a1; }
 .room-header-actions .room-leave { color: #b91c1c; }
+
+.room-invite-panel {
+  margin: 0 0 .85rem;
+  overflow: hidden;
+  border: 1px solid #99f6e4;
+  border-radius: .95rem;
+  background: linear-gradient(135deg,#f0fdfa,#ecfeff);
+  box-shadow: 0 7px 20px rgba(15,118,110,.08);
+}
+.room-invite-panel > summary { display: flex; min-height: 3.5rem; cursor: pointer; list-style: none; align-items: center; justify-content: space-between; gap: .8rem; padding: .75rem .9rem; }
+.room-invite-panel > summary::-webkit-details-marker { display: none; }
+.room-invite-panel > summary > span { display: flex; min-width: 0; flex-direction: column; }
+.room-invite-panel > summary strong { color: #115e59; font-size: .82rem; font-weight: 950; }
+.room-invite-panel > summary small { margin-top: .12rem; color: #526175; font-size: .68rem; font-weight: 750; }
+.room-invite-panel > summary b { flex: 0 0 auto; border-radius: .55rem; background: #0f766e; padding: .45rem .6rem; color: #fff; font-size: .64rem; letter-spacing: .06em; text-transform: uppercase; }
+.room-invite-panel > div { display: grid; grid-template-columns: minmax(0,1fr) minmax(15rem,1.1fr); gap: .7rem 1rem; border-top: 1px solid #ccfbf1; padding: .8rem .9rem .9rem; }
+.room-invite-panel p { align-self: center; margin: 0; color: #334155; font-size: .72rem; font-weight: 700; line-height: 1.5; }
+.room-invite-panel label { min-width: 0; }
+.room-invite-panel input { width: 100%; min-height: 2.55rem; border: 1px solid #99f6e4; border-radius: .68rem; background: rgba(255,255,255,.86); padding: .55rem .65rem; color: #334155; font-size: .68rem; font-weight: 750; outline: none; }
+.room-invite-actions { grid-column: 2; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .4rem; }
+.room-invite-actions button { min-height: 2.35rem; border: 1px solid #99f6e4; border-radius: .62rem; background: #fff; padding: .45rem .55rem; color: #0f766e; font-size: .6rem; font-weight: 900; line-height: 1.25; }
+.room-invite-actions button.is-primary { border-color: #0f766e; background: #0f766e; color: #fff; }
 
 .room-mobile-nav { display: none; }
 .room-layout {
@@ -1216,11 +1310,20 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   .room-live-orb { position: absolute; right: -2rem; bottom: -2rem; width: 8rem; opacity: .48; }
   .room-lobby-grid { grid-template-columns: 1fr; }
   .room-code-row { grid-template-columns: 1fr; }
+  .link-cable-overlay { align-items: end; padding: .45rem; }
+  .link-cable-dialog { max-height: 94dvh; border-radius: 1.1rem; padding: 1.1rem; }
+  .link-cable-segment,.link-cable-partners { grid-template-columns: 1fr; }
+  .link-cable-preview-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .link-cable-footer { flex-wrap: wrap; }
+  .link-cable-footer > span { width: 100%; }
+  .link-cable-primary,.link-cable-secondary { flex: 1 1 9rem; }
   .room-header { gap: .5rem; }
   .room-title small { font-size: .48rem; }
   .room-title h2 { font-size: 1rem; }
   .room-role-badge { padding: .45rem .52rem; font-size: .48rem; }
   .room-header-actions .room-leave { padding: .45rem .52rem; font-size: .48rem; }
+  .room-invite-panel > div { grid-template-columns: 1fr; }
+  .room-invite-actions { grid-column: 1; grid-template-columns: 1fr; }
   .room-roster { grid-template-columns: 1fr; }
   .room-roster > .room-section:last-child { grid-column: auto; }
   .room-scene-strip { display: grid; grid-template-columns: 1fr auto auto; }
@@ -1286,6 +1389,7 @@ html[data-theme="night"] .appearance-control > span { color: #67e8f9; }
 
 html[data-theme="night"] .game-panel,
 html[data-theme="night"] .game-card,
+html[data-theme="night"] .link-cable-dialog,
 html[data-theme="night"] .room-lobby-card,
 html[data-theme="night"] .room-local-entry,
 html[data-theme="night"] .room-section,
@@ -1295,6 +1399,7 @@ html[data-theme="night"] .token-inspector,
 html[data-theme="night"] .room-note,
 html[data-theme="night"] .install-dialog { border-color: #334155; background: #12243a; color: #e2e8f0; box-shadow: 0 8px 24px rgba(2,6,23,.24); }
 html[data-theme="night"] .room-lobby-card input,
+html[data-theme="night"] .room-lobby-card textarea,
 html[data-theme="night"] .room-lobby-card select,
 html[data-theme="night"] .room-wide-select,
 html[data-theme="night"] .quick-roll-controls input,
@@ -1303,6 +1408,27 @@ html[data-theme="night"] .combat-grid select { border-color: #334155; background
 html[data-theme="night"] .room-lobby-card label > span,
 html[data-theme="night"] .room-lobby-card ul,
 html[data-theme="night"] .room-lobby-footnote { color: #a8b7ca; }
+html[data-theme="night"] .link-cable-dialog h2,
+html[data-theme="night"] .link-cable-preview-list b { color: #e2e8f0; }
+html[data-theme="night"] .link-cable-intro,
+html[data-theme="night"] .link-cable-partners small,
+html[data-theme="night"] .link-cable-destination small { color: #b8c7d9; }
+html[data-theme="night"] .link-cable-segment,
+html[data-theme="night"] .link-cable-partners > button,
+html[data-theme="night"] .link-cable-preview-list > span { border-color: #334155; background: #0e2034; color: #e2e8f0; }
+html[data-theme="night"] .link-cable-segment button[aria-checked=true],
+html[data-theme="night"] .link-cable-partners > button[aria-pressed=true] { border-color: #2563eb; background: #102a4a; color: #93c5fd; }
+html[data-theme="night"] .link-cable-code-field textarea,
+html[data-theme="night"] .link-cable-result textarea,
+html[data-theme="night"] .link-cable-destination select { border-color: #334155; background: #0e2034; color: #e2e8f0; }
+html[data-theme="night"] .link-cable-result { border-color: #1e40af; background: #102a4a; }
+html[data-theme="night"] .room-invite-panel { border-color: #155e75; background: linear-gradient(135deg,#0d2a34,#102a36); }
+html[data-theme="night"] .room-invite-panel > summary strong { color: #99f6e4; }
+html[data-theme="night"] .room-invite-panel > summary small,
+html[data-theme="night"] .room-invite-panel p { color: #cbd5e1; }
+html[data-theme="night"] .room-invite-panel > div { border-color: #155e75; }
+html[data-theme="night"] .room-invite-panel input,
+html[data-theme="night"] .room-invite-actions button { border-color: #155e75; background: #0e2034; color: #99f6e4; }
 html[data-theme="night"] .room-secondary-button { border-color: #475569; background: #172b43; color: #e2e8f0; }
 html[data-theme="night"] .room-local-entry { color: #e2e8f0; }
 html[data-theme="night"] .room-local-entry b { background: #1e3650; color: #a8b7ca; }

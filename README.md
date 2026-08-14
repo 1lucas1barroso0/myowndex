@@ -9,9 +9,9 @@ os termos fixos, a concordância e o tom usado em toda a jornada.
 ## Experiência
 
 - Pokédex responsiva com espécies, formas, atributos, tipos, movimentos, habilidades e evolução.
-- Boxes locais com salvamento automático, compartilhamento sem duplicatas e restauração após exclusões.
+- Boxes locais com salvamento automático, exportação de uma equipe inteira ou de Pokémon escolhidos, importação com prévia e destino selecionável e restauração após exclusões.
 - Fichas que mantêm forma, habilidade, tipo Tera, atributos, HP, PP, XP e sugestões do jogo sempre em dia.
-- Central da Aventura persistente com papéis separados, convites, campo 2D, iniciativa, conversa, áudio e progresso integrado às Boxes.
+- Central da Aventura persistente com papéis separados, convite único que já abre a aventura correta, campo 2D, iniciativa, conversa, áudio e progresso integrado às Boxes.
 - Assistente Rotom que resolve disputa, precisão, golpe crítico, STAB, tipos, limite de dano, PP, cura, recuo, condições e estágios.
 - Uso offline para a interface e os dados da Pokédex já consultados; APIs privadas da aventura nunca entram no cache.
 

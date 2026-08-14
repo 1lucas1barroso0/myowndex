@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mergeHydratedTeams, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt } from "../src/core/team.js";
-import { decodeTeam, encodeTeam, LEGACY_SHARE_PREFIX } from "../src/core/teamShare.js";
+import { insertImportedPokemon, mergeHydratedTeams, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt } from "../src/core/team.js";
+import { decodeShare, decodeTeam, encodePokemonBundle, encodeTeam, LEGACY_SHARE_PREFIX } from "../src/core/teamShare.js";
 
 const completeTeam = normalizeTeam({
   id: "local-box",
@@ -77,6 +77,71 @@ test("legacy V3 codes remain importable", async () => {
   const decoded = await decodeTeam(legacy);
   assert.equal(decoded.name, "Legacy");
   assert.equal(decoded.pokemon[0].species.name, "bulbasaur");
+});
+
+test("one or more selected Pokémon round-trip without exporting the whole Box", async () => {
+  const second = normalizeTeam({ pokemon: [{ formName: "shellder", nickname: "Concha", level: 12 }] }).pokemon[0];
+  const code = await encodePokemonBundle([completeTeam.pokemon[0], second], completeTeam);
+  const decoded = await decodeShare(code);
+  assert.equal(decoded.kind, "pokemon");
+  assert.equal(decoded.sourceName, completeTeam.name);
+  assert.equal(decoded.versionGroup, "champions");
+  assert.deepEqual(decoded.pokemon.map(partner => partner.speciesName), ["pikachu", "shellder"]);
+  assert.equal(decoded.pokemon[0].nickname, "Faísca ⚡");
+  assert.equal(decoded.pokemon[0].rpg.notes, "Parceira principal");
+  await assert.rejects(() => decodeTeam(code), /Pokémon avulsos/);
+});
+
+test("Link Cable remains portable without browser Base64 or Compression Streams", async () => {
+  const saved = {
+    atob: globalThis.atob,
+    btoa: globalThis.btoa,
+    CompressionStream: globalThis.CompressionStream,
+    DecompressionStream: globalThis.DecompressionStream,
+  };
+  try {
+    globalThis.atob = undefined;
+    globalThis.btoa = undefined;
+    globalThis.CompressionStream = undefined;
+    globalThis.DecompressionStream = undefined;
+    const code = await encodePokemonBundle([completeTeam.pokemon[0]], completeTeam);
+    const decoded = await decodeShare(code);
+    assert.equal(decoded.kind, "pokemon");
+    assert.equal(decoded.pokemon[0].nickname, "Faísca ⚡");
+  } finally {
+    Object.assign(globalThis, saved);
+  }
+});
+
+test("imported Pokémon fill a chosen existing Box and receive local identities", () => {
+  const destination = normalizeTeam({
+    id: "destination",
+    shareId: "destination",
+    name: "Riolu e Luvdisc",
+    pokemon: [{ id: "riolu", formName: "riolu" }, { id: "luvdisc", formName: "luvdisc" }],
+  });
+  const incoming = normalizeTeam({
+    pokemon: [{ id: "remote-shellder", formName: "shellder" }, { id: "remote-eevee", formName: "eevee" }],
+  }).pokemon;
+  const result = insertImportedPokemon([destination], destination.id, incoming);
+  assert.equal(result.status, "added");
+  assert.equal(result.team.id, destination.id);
+  assert.deepEqual(result.team.pokemon.map(partner => partner.species.name), ["riolu", "luvdisc", "shellder", "eevee"]);
+  assert.notEqual(result.added[0].id, "remote-shellder");
+  assert.equal(result.rejected.length, 0);
+});
+
+test("destination capacity is explicit and never overwrites existing partners", () => {
+  const destination = normalizeTeam({
+    id: "almost-full",
+    pokemon: ["a", "b", "c", "d", "e"].map((name, index) => ({ id: `old-${index}`, formName: name })),
+  });
+  const incoming = normalizeTeam({ pokemon: [{ formName: "shellder" }, { formName: "eevee" }] }).pokemon;
+  const result = insertImportedPokemon([destination], destination.id, incoming);
+  assert.equal(result.status, "partial");
+  assert.equal(result.added.length, 1);
+  assert.equal(result.rejected.length, 1);
+  assert.deepEqual(result.team.pokemon.slice(0, 5).map(partner => partner.id), destination.pokemon.map(partner => partner.id));
 });
 
 test("import merge keeps one copy and lets only the newest revision win", () => {

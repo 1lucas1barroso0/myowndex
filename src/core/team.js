@@ -289,3 +289,43 @@ export const mergeImportedTeam = (existingTeams, incomingTeam) => {
     merged[index] = replacement;
     return { teams: merged, team: replacement, status: "replaced" };
 };
+
+export const insertImportedPokemon = (existingTeams, targetTeamId, incomingPokemon) => {
+    const existing = dedupeTeams(existingTeams);
+    const targetIndex = existing.findIndex(team => team.id === targetTeamId);
+    if (targetIndex < 0) {
+        return {
+            teams: existing,
+            team: null,
+            added: [],
+            rejected: asArray(incomingPokemon).map(normalizePokemon),
+            status: "missing-target",
+        };
+    }
+
+    const target = existing[targetIndex];
+    const freeSlots = Math.max(0, 6 - target.pokemon.length);
+    const candidates = asArray(incomingPokemon).map(partner => normalizePokemon({
+        ...partner,
+        id: createId("partner"),
+    }));
+    const added = candidates.slice(0, freeSlots);
+    const rejected = candidates.slice(freeSlots);
+    if (!added.length) {
+        return { teams: existing, team: target, added, rejected, status: "full" };
+    }
+
+    const updated = touchTeam({
+        ...target,
+        pokemon: [...target.pokemon, ...added],
+    });
+    const teams = [...existing];
+    teams[targetIndex] = updated;
+    return {
+        teams,
+        team: updated,
+        added,
+        rejected,
+        status: rejected.length ? "partial" : "added",
+    };
+};

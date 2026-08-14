@@ -27,6 +27,7 @@ import {
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import {
     buildPlayerInvite,
+    buildRoomInviteToken,
     clearRoomSession,
     createRemoteRoom,
     deleteRemoteRoom,
@@ -34,6 +35,7 @@ import {
     joinRemoteRoom,
     loadRoomSession,
     parseRoomInvite,
+    parseRoomInviteValue,
     postRoomEvent,
     saveRemoteRoom,
     saveRoomSession,
@@ -77,9 +79,10 @@ const errorMessage = error => error instanceof Error ? error.message : "Algo imp
 function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onLocal, onResume }) {
     const [title, setTitle] = useState("Minha aventura Pokémon");
     const [narratorName, setNarratorName] = useState("Narrador");
-    const [code, setCode] = useState(defaultInvite?.code || "");
-    const [inviteCode, setInviteCode] = useState(defaultInvite?.inviteCode || "");
+    const [invite, setInvite] = useState(defaultInvite ? buildRoomInviteToken(defaultInvite) : "");
     const [displayName, setDisplayName] = useState("");
+    const parsedInvite = useMemo(() => parseRoomInviteValue(invite), [invite]);
+    const canResumeInvite = savedSession && defaultInvite && savedSession.code === defaultInvite.code;
 
     return (
         <div className="room-lobby animate-fade-in">
@@ -96,13 +99,13 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
             </section>
 
             {error && <div className="room-error" role="alert">{error}</div>}
-            {savedSession && !defaultInvite && (
+            {savedSession && (!defaultInvite || canResumeInvite) && (
                 <button type="button" className="room-resume" disabled={busy} onClick={() => onResume(savedSession)}>
                     <span>
                         <small>Última aventura</small>
                         <strong>{savedSession.code} • {roleLabel(savedSession.role)}</strong>
                     </span>
-                    <b>Continuar</b>
+                    <b>{canResumeInvite ? "Voltar para esta aventura" : "Continuar"}</b>
                 </button>
             )}
 
@@ -143,7 +146,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     className="room-lobby-card is-player"
                     onSubmit={event => {
                         event.preventDefault();
-                        onJoin({ code, inviteCode, displayName });
+                        onJoin({ invite, displayName });
                     }}
                 >
                     <header>
@@ -153,19 +156,24 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                             <h3>Entrar como Jogador</h3>
                         </div>
                     </header>
-                    <div className="room-code-row">
-                        <label>
-                            <span>Código da aventura</span>
-                            <input value={code} maxLength={8} required autoCapitalize="characters" onChange={event => setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))} />
-                        </label>
-                        <label>
-                            <span>Convite</span>
-                            <input value={inviteCode} maxLength={64} required onChange={event => setInviteCode(event.target.value)} />
-                        </label>
-                    </div>
+                    <label>
+                        <span>Link ou convite da aventura</span>
+                        <textarea
+                            value={invite}
+                            rows={3}
+                            required
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            placeholder="Cole aqui o link enviado pelo Narrador"
+                            onChange={event => setInvite(event.target.value)}
+                        />
+                        <small className={`room-invite-detection ${parsedInvite ? "is-valid" : ""}`}>
+                            {parsedInvite ? `Aventura ${parsedInvite.code} encontrada` : "O código e a chave serão reconhecidos juntos."}
+                        </small>
+                    </label>
                     <label>
                         <span>Seu nome na aventura</span>
-                        <input value={displayName} maxLength={32} required onChange={event => setDisplayName(event.target.value)} />
+                        <input value={displayName} maxLength={32} required autoFocus={Boolean(defaultInvite)} onChange={event => setDisplayName(event.target.value)} />
                     </label>
                     <ul>
                         <li>Acompanha o campo e o progresso conforme a aventura acontece.</li>
@@ -513,7 +521,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         setBusy(true);
         setError("");
         try {
-            const result = await joinRemoteRoom(input);
+            const invite = parseRoomInviteValue(input.invite);
+            if (!invite) throw new Error("Cole o link ou convite completo enviado pelo Narrador.");
+            const result = await joinRemoteRoom({ ...invite, displayName: input.displayName });
             const nextSession = {
                 code: result.code,
                 key: result.playerKey,
@@ -637,6 +647,22 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             setNotice?.({ tone: "blue", text: `${label} está na área de transferência.` });
         } catch {
             showError(new Error("A cópia automática não funcionou. Selecione o conteúdo e copie manualmente."));
+        }
+    };
+
+    const shareInvite = async value => {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: `Convite para ${snapshot.title}`,
+                    text: `Entre na aventura “${snapshot.title}” no MyOwnDex.`,
+                    url: value,
+                });
+                return;
+            }
+            await copy(value, "Convite dos jogadores");
+        } catch (value) {
+            if (value?.name !== "AbortError") showError(value);
         }
     };
 
@@ -925,6 +951,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     };
 
     const inviteUrl = role === "narrator" && !session.local ? buildPlayerInvite(session) : "";
+    const inviteToken = role === "narrator" && !session.local ? buildRoomInviteToken(session) : "";
     const players = room?.players || [];
     const events = room?.events || [];
     const acceptedOfferIds = new Set(
@@ -981,10 +1008,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 <div className="room-header-actions">
                     <span className={`room-role-badge is-${role}`}>{roleLabel(role)}</span>
                     {role === "narrator" && !session.local && (
-                        <>
-                            <button type="button" onClick={() => copy(session.code, "Código da aventura")}>Código</button>
-                            <button type="button" onClick={() => copy(inviteUrl, "Convite dos jogadores")}>Copiar convite</button>
-                        </>
+                        <button type="button" onClick={() => copy(inviteUrl, "Convite dos jogadores")}>Convidar</button>
                     )}
                     <button type="button" onClick={onOpenGuide}>Guia</button>
                     <button type="button" className="room-leave" onClick={() => role === "narrator" ? setEnding(true) : void leave()}>
@@ -992,6 +1016,30 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     </button>
                 </div>
             </header>
+
+            {role === "narrator" && !session.local && (
+                <details className="room-invite-panel" open>
+                    <summary>
+                        <span>
+                            <strong>Convidar jogadores</strong>
+                            <small>Link pronto • {players.length ? `${players.length} ${players.length === 1 ? "jogador conectado" : "jogadores conectados"}` : "aguardando jogadores"}</small>
+                        </span>
+                        <b>Código {session.code}</b>
+                    </summary>
+                    <div>
+                        <p>Envie um único link. Quem abrir só precisa escrever o próprio nome; o MyOwnDex reconhece a aventura e o convite automaticamente.</p>
+                        <label>
+                            <span className="sr-only">Link de convite dos jogadores</span>
+                            <input readOnly value={inviteUrl} onFocus={event => event.currentTarget.select()} />
+                        </label>
+                        <div className="room-invite-actions">
+                            <button type="button" className="is-primary" onClick={() => void shareInvite(inviteUrl)}>Enviar convite</button>
+                            <button type="button" onClick={() => copy(inviteUrl, "Link da aventura")}>Copiar link</button>
+                            <button type="button" onClick={() => copy(inviteToken, "Convite curto")}>Copiar convite curto</button>
+                        </div>
+                    </div>
+                </details>
+            )}
 
             {error && <button type="button" className="room-error is-action" onClick={() => refresh(session).catch(showError)}>{error} • tentar reconectar</button>}
 

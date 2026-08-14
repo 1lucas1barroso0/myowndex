@@ -20,7 +20,6 @@ import {
     LOCAL_ROOM_STORAGE_KEY,
     mergeRoomConflictSnapshot,
     normalizeRoomSnapshot,
-    ROOM_PHASES,
     STATUS_LABELS,
     syncTeamsWithRoomProgress,
 } from "../../core/room.js";
@@ -51,6 +50,7 @@ import CombatAssistant from "./CombatAssistant.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
 import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
 import VoiceCall from "./VoiceCall.jsx";
+import AdventurePhaseControl from "./AdventurePhaseControl.jsx";
 
 const connectionLabels = {
     connected: "Aventura conectada",
@@ -158,11 +158,14 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         <span>Seu nome na aventura</span>
                         <input value={narratorName} maxLength={32} required onChange={event => setNarratorName(event.target.value)} />
                     </label>
-                    <ul>
-                        <li>Organiza o campo, as rodadas, o HP e a iniciativa.</li>
-                        <li>Leva equipes para a cena e acompanha cada resultado.</li>
-                        <li>Convida jogadores sem compartilhar os controles do Narrador.</li>
-                    </ul>
+                    <details className="room-role-help">
+                        <summary>O que você pode fazer como Narrador</summary>
+                        <ul>
+                            <li>Organiza o campo, as rodadas, o HP e a iniciativa.</li>
+                            <li>Leva equipes para a cena e acompanha cada resultado.</li>
+                            <li>Convida jogadores sem compartilhar os controles do Narrador.</li>
+                        </ul>
+                    </details>
                     <button type="submit" className="room-primary-button" disabled={busy}>
                         {busy ? "Preparando a aventura…" : "Abrir nova aventura"}
                     </button>
@@ -201,11 +204,14 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         <span>Seu nome na aventura</span>
                         <input value={displayName} maxLength={32} required autoFocus={Boolean(defaultInvite)} onChange={event => setDisplayName(event.target.value)} />
                     </label>
-                    <ul>
-                        <li>Acompanha o campo e o progresso conforme a aventura acontece.</li>
-                        <li>Rola dados, conversa e apresenta sua equipe ao Narrador.</li>
-                        <li>Declara movimentos e controla os próprios Pokémon.</li>
-                    </ul>
+                    <details className="room-role-help">
+                        <summary>O que você pode fazer como Jogador</summary>
+                        <ul>
+                            <li>Acompanha o campo e o progresso conforme a aventura acontece.</li>
+                            <li>Rola dados, conversa e apresenta sua equipe ao Narrador.</li>
+                            <li>Declara movimentos e controla os próprios Pokémon.</li>
+                        </ul>
+                    </details>
                     <button type="submit" className="room-primary-button" disabled={busy}>
                         {busy ? "Entrando…" : "Entrar na aventura"}
                     </button>
@@ -1194,19 +1200,20 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
                 <main className="room-field">
                     <div className="room-scene-strip">
-                        <label>
-                            <span>Fase da aventura</span>
-                            <select value={snapshot.phase} disabled={role !== "narrator"} onChange={event => commitSnapshot({ ...snapshot, phase: event.target.value })}>
-                                {ROOM_PHASES.map(phase => <option key={phase.id} value={phase.id}>{phase.label}</option>)}
-                            </select>
-                        </label>
-                        <div>
-                            <small>Rodada</small>
-                            <strong>{snapshot.round}</strong>
-                        </div>
-                        <div>
-                            <small>Em cena</small>
-                            <strong>{snapshot.tokens.length}</strong>
+                        <AdventurePhaseControl
+                            value={snapshot.phase}
+                            readOnly={role !== "narrator"}
+                            onChange={phase => commitSnapshot({ ...snapshot, phase })}
+                        />
+                        <div className="room-scene-stats" aria-label="Resumo da cena">
+                            <div>
+                                <small>Rodada</small>
+                                <strong>{snapshot.round}</strong>
+                            </div>
+                            <div>
+                                <small>Em cena</small>
+                                <strong>{snapshot.tokens.length}</strong>
+                            </div>
                         </div>
                     </div>
 

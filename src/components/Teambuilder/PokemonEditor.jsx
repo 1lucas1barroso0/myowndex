@@ -346,12 +346,12 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} 
                                 onKeyDown={handleEnter}
                                 onChange={e => updatePk({...pk, nickname: e.target.value})} 
-                                className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-2 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-0.5 truncate capitalize placeholder-slate-300" 
+                                className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-2 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-0.5 capitalize placeholder-slate-300"
                                 placeholder={formatName(pk.species?.name || "")}
                                 title="Editar apelido"
                             />
                             <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
-                                <span className="truncate text-[9px] font-bold uppercase tracking-widest text-slate-400 sm:text-[10px]">
+                                <span className="editor-species-name text-[9px] font-bold uppercase tracking-widest text-slate-400 sm:text-[10px]">
                                     {formatName(pk.species?.name || "")}
                                 </span>
                                 {forms.length > 1 && (

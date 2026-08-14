@@ -18,7 +18,7 @@ export const EXPERIENCE_MODES = {
         description: "Regras dos jogos adaptadas à mesa, com espaço para soluções criativas.",
         isTTRPG: true,
         isFreeform: false,
-        color: "amber"
+        color: "violet"
     },
     game: {
         id: "game",

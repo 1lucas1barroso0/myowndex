@@ -149,11 +149,51 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.6/);
+  assert.match(worker, /myowndex-shell-v9\.8\.1/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
   assert.match(worker, /myowndex-maskable-512-v91\.png/);
+});
+
+test("game style and adventure phase use compact tabs with complete help on demand", async () => {
+  const [app, styleControl, room, phaseControl, rules, roomCore, css] = await Promise.all([
+    read("src/App.jsx"),
+    read("src/components/Shared/GameStyleControl.jsx"),
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/components/Room/AdventurePhaseControl.jsx"),
+    read("src/core/rpgRules.js"),
+    read("src/core/room.js"),
+    read("src/index.css"),
+  ]);
+  assert.match(app, /<GameStyleControl value=\{experienceMode\}/);
+  assert.doesNotMatch(app, /className="mode-select"/);
+  assert.match(styleControl, /role="radiogroup"/);
+  assert.match(styleControl, /aria-checked=\{selected\}/);
+  assert.match(styleControl, /ArrowRight/);
+  assert.match(styleControl, /choice-help-popover/);
+  assert.match(styleControl, /selectedMode\.description/);
+  assert.doesNotMatch(styleControl, /GB|GBA|3DS|consoleLabel/);
+  assert.doesNotMatch(rules, /consoleLabel/);
+  assert.match(room, /<AdventurePhaseControl/);
+  assert.doesNotMatch(room, /<select value=\{snapshot\.phase\}/);
+  assert.match(phaseControl, /aria-readonly=\{readOnly\}/);
+  assert.match(phaseControl, /selectedPhase\.description/);
+  assert.match(phaseControl, /choice-help-popover/);
+  assert.doesNotMatch(phaseControl, /consoleLabel/);
+  assert.doesNotMatch(roomCore, /consoleLabel/);
+  assert.match(roomCore, /Percorra rotas, investigue lugares/);
+  assert.match(roomCore, /Organize o campo, declare movimentos/);
+  const eraContract = css.slice(css.indexOf("Interface ultraclean em abas 9.8.1"));
+  assert.ok(eraContract.length > 500);
+  for (const token of ["--era-gb-moss", "--era-gba-blue", "--era-ds-cyan", "--era-3ds-aqua"]) {
+    assert.match(eraContract, new RegExp(token));
+  }
+  assert.match(eraContract, /\.game-style-options/);
+  assert.match(eraContract, /\.room-phase-options/);
+  assert.match(eraContract, /\.choice-help-popover/);
+  assert.match(eraContract, /min-height:\s*2\.35rem/);
+  assert.match(eraContract, /max-width:\s*390px/);
 });
 
 test("Link Cable previews selective imports and Adventure invitations open in one step", async () => {
@@ -222,9 +262,29 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(nightContract, /\.rotom-automation-bar/);
   assert.match(nightContract, /\.room-live-orb/);
   assert.match(nightContract, /::-moz-range-thumb/);
+  const pixelContract = css.slice(css.indexOf("Contrato de interface Game Boy + DS 9.6.1"));
+  assert.ok(pixelContract.length > 500);
+  assert.match(pixelContract, /--rom-text-special/);
+  assert.match(pixelContract, /\[class\*="text-red-"\]/);
+  assert.match(pixelContract, /image-rendering:\s*pixelated/);
+  assert.match(pixelContract, /background-size:\s*8px 8px/);
+  assert.doesNotMatch(pixelContract, /\bcolor\s*:\s*(?:#(?:b91c1c|991b1b|dc2626|ef4444|e11d48|be123c|ff6075|ff8292|ff9aaa|f04f64|a72143)|var\(--rom-coral(?:-deep)?\))/i);
+  const breathableContract = css.slice(css.indexOf("Contrato ultraclean responsivo 9.7.0"));
+  assert.ok(breathableContract.length > 500);
+  assert.match(breathableContract, /--breath-page/);
+  assert.match(breathableContract, /overflow-y:\s*auto/);
+  assert.match(breathableContract, /\.app-header-primary/);
+  assert.match(breathableContract, /\.pc-partner-grid/);
+  assert.match(breathableContract, /\.room-role-help/);
+  assert.match(breathableContract, /\.pokemon-modal-shell/);
+  assert.match(breathableContract, /\.guide-rule-list/);
+  assert.match(breathableContract, /--night-violet/);
+  assert.doesNotMatch(breathableContract, /#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255|#fde047|#facc15|#fbbf24/i);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
   assert.match(app, /myowndex-icon-v91\.svg/);
+  assert.match(app, /app-header-primary/);
+  assert.match(app, /min-h-\[100dvh\]/);
 });
 
 test("the adventure exposes every modifier and explains movement resolution", async () => {

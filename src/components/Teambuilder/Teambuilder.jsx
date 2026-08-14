@@ -328,10 +328,10 @@ export default function Teambuilder({ envProps }) {
             <section className="w-full xl:w-3/4 min-w-0 flex-1">
                 {active && (
                     <div className="game-panel pc-main-panel p-4 sm:p-6 md:p-8 overflow-hidden">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b-4 border-slate-100 pb-5">
+                        <div className="pc-toolbar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b-4 border-slate-100 pb-5">
                             <div className="w-full min-w-0">
                                 <label htmlFor="active-box-name" className="sr-only">Nome da Box</label>
-                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1 truncate" placeholder="Nome da Box" />
+                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" placeholder="Nome da Box" />
                                 <label className="mt-3 flex max-w-md items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
                                     Jogo de referência
                                     <select value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="min-w-0 flex-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-[10px] text-slate-700 outline-none focus:border-blue-400">
@@ -341,7 +341,7 @@ export default function Teambuilder({ envProps }) {
                                 <p className="mt-2 text-xs font-semibold text-slate-500">As sugestões acompanham o jogo escolhido. Você continua livre para registrar escolhas próprias da aventura.</p>
                             </div>
 
-                            <div className="flex gap-2 sm:gap-3 self-stretch sm:self-auto shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
+                            <div className="pc-toolbar-actions flex gap-2 sm:gap-3 self-stretch sm:self-auto shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
                                 <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="pc-action-button is-share flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 shadow-sm rounded-xl outline-none disabled:opacity-50">
                                     <span aria-hidden="true">↗</span><span className="text-xs font-black">Compartilhar</span>
                                 </button>
@@ -356,7 +356,7 @@ export default function Teambuilder({ envProps }) {
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 w-full">
+                        <div className="pc-partner-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 w-full">
                             {active.pokemon?.map((partner, index) => {
                                 const sprite = partner.shiny
                                     ? partner.species?.sprites?.front_shiny
@@ -369,10 +369,10 @@ export default function Teambuilder({ envProps }) {
                                         </span>
                                         <span className="relative z-10 min-w-0 flex-1">
                                             <span className="flex items-center justify-between gap-1 sm:gap-2 mb-0.5">
-                                                <span className="font-black text-xs sm:text-sm text-slate-800 capitalize truncate">{partner.nickname || formatName(partner.species?.name)}</span>
+                                                <span className="pc-partner-name font-black text-xs sm:text-sm text-slate-800 capitalize">{partner.nickname || formatName(partner.species?.name)}</span>
                                                 <span className={`text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 ${partner.gender === "M" ? "text-blue-500 bg-blue-50 border-blue-200" : partner.gender === "F" ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200"}`}>{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
                                             </span>
-                                            <span className="block text-[9px] sm:text-[10px] font-bold text-slate-400 truncate">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span>
+                                            <span className="pc-partner-meta block text-[9px] sm:text-[10px] font-bold text-slate-400">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span>
                                         </span>
                                     </button>
                                 );

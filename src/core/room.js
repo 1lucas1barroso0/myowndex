@@ -55,10 +55,26 @@ export const ROOM_SESSION_STORAGE_KEY = "myowndex_live_room_v1";
 export const LOCAL_ROOM_STORAGE_KEY = "myowndex_local_room_v1";
 
 export const ROOM_PHASES = [
-    { id: "exploracao", label: "Exploração" },
-    { id: "interpretacao", label: "Interpretação" },
-    { id: "batalha", label: "Batalha" },
-    { id: "intervalo", label: "Intervalo" },
+    {
+        id: "exploracao",
+        label: "Exploração",
+        description: "Percorra rotas, investigue lugares, procure pistas e encontre Pokémon.",
+    },
+    {
+        id: "interpretacao",
+        label: "Interpretação",
+        description: "Converse, tome decisões e dê espaço para cada personagem agir na história.",
+    },
+    {
+        id: "batalha",
+        label: "Batalha",
+        description: "Organize o campo, declare movimentos e acompanhe cada turno do confronto.",
+    },
+    {
+        id: "intervalo",
+        label: "Intervalo",
+        description: "Recupere o fôlego, cuide da equipe e prepare o próximo trecho da aventura.",
+    },
 ];
 
 export const ROOM_WEATHERS = [

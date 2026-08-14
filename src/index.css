@@ -2671,3 +2671,1808 @@ html[data-theme="night"] select:-webkit-autofill {
   .room-lobby-hero { border-radius: .5rem; }
   .room-live-orb { opacity: .72; transform: rotate(1deg) scale(.88); }
 }
+
+/* Contrato de interface Game Boy + DS 9.6.1: texto sem vermelho e pixels legíveis. */
+:root {
+  --rom-text-accent: #0d648c;
+  --rom-text-special: #5b3bb0;
+  --rom-text-success: #08724b;
+  --rom-text-warning: #7355b8;
+  --rom-pixel-line: #174662;
+  --rom-pixel-shadow: #16384f;
+  --rom-screen-glow: rgba(28, 190, 216, .16);
+  --rom-grid-dot: rgba(23, 70, 98, .075);
+}
+
+html[data-theme="night"] {
+  --rom-text-accent: #72e0eb;
+  --rom-text-special: #c5adff;
+  --rom-text-success: #65e2a5;
+  --rom-text-warning: #bda5f4;
+  --rom-pixel-line: #4783a0;
+  --rom-pixel-shadow: #020a14;
+  --rom-screen-glow: rgba(57, 214, 233, .12);
+  --rom-grid-dot: rgba(114, 224, 235, .065);
+}
+
+/* Vermelho fica reservado para LEDs, contornos e sinais; palavras usam cores de interface. */
+[class*="text-red-"],
+[class*="text-rose-"],
+[class*="text-pink-"],
+[class*="text-orange-"],
+[class*="text-amber-"],
+[class*="text-yellow-"],
+[class*="hover:text-red-"],
+[class*="group-hover:text-red-"] {
+  color: var(--rom-text-special) !important;
+}
+
+.nav-capsule span,
+.nav-capsule.is-active span,
+html:not([data-theme="night"]) .nav-capsule.is-active span,
+html[data-theme="night"] .nav-capsule.is-active span,
+.link-cable-error,
+.room-error,
+.room-role-badge.is-narrator,
+.room-header-actions .room-leave,
+.token-remove,
+.call-actions .call-leave,
+.combat-special-block,
+.audio-remove,
+.trait-card.is-item > header small,
+.trait-card.is-item > header strong,
+.trait-card.is-item > header b,
+.trait-card.is-paused > header b,
+.token-special-markers span,
+.trait-integrity-note,
+.room-token-traits .is-item,
+.room-token-traits .is-consumed,
+.call-badge.is-reconnecting,
+.catalog-description-missing,
+.combat-permission-note,
+.token-volatile-list span,
+.rotom-automation-bar em.has-exceptions,
+.pc-action-button.is-delete,
+html[data-theme="night"] .pc-action-button.is-delete,
+html[data-theme="night"] .trait-card.is-item > header small,
+html[data-theme="night"] .trait-card.is-item > header strong,
+html[data-theme="night"] .trait-card.is-item > header b,
+html[data-theme="night"] .room-token-traits .is-item,
+html[data-theme="night"] .token-volatile-list span,
+html[data-theme="night"] .catalog-description-missing,
+html[data-theme="night"] .combat-permission-note,
+html[data-theme="night"] .room-note.is-private,
+html[data-theme="night"] .call-badge.is-connecting,
+html[data-theme="night"] .call-badge.is-reconnecting,
+html[data-theme="night"] .call-local-mute[aria-pressed="true"],
+html[data-theme="night"] .call-actions button.is-muted,
+html[data-theme="night"] .rotom-automation-bar em.has-exceptions {
+  color: var(--rom-text-special) !important;
+}
+
+html[data-theme="night"] .room-mobile-nav button[aria-pressed="true"] {
+  color: var(--rom-text-accent);
+}
+
+.room-connection.is-connected,
+.call-badge.is-connected,
+.trait-card.is-active > header strong,
+.rotom-automation-bar em:not(.has-exceptions) {
+  color: var(--rom-text-success);
+}
+
+/* Casco inspirado no Game Boy; as áreas internas seguem a leitura de duas telas do DS. */
+.app-root {
+  background-color: var(--rom-canvas);
+  background-image:
+    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
+    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, var(--rom-screen-glow), transparent 28%),
+    radial-gradient(circle at 88% 92%, rgba(91, 59, 176, .1), transparent 26%);
+  background-size: 8px 8px, 8px 8px, auto, auto;
+}
+
+.app-header-shell,
+.app-main-shell {
+  position: relative;
+  border: 3px solid var(--rom-pixel-line);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 2px var(--rom-cyan),
+    5px 5px 0 var(--rom-pixel-shadow),
+    inset 0 0 0 2px var(--rom-screen-glow);
+}
+
+.app-header-shell::after,
+.app-main-shell::after {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  width: 26px;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--rom-cyan) 0 4px, transparent 4px 7px);
+  content: "";
+  opacity: .72;
+  pointer-events: none;
+}
+
+.app-header-shell::after { bottom: auto; top: 6px; }
+
+.game-shell,
+.game-panel,
+.game-card,
+.room-lobby-card,
+.room-tool,
+.room-section,
+.battlefield-card,
+.token-inspector,
+.room-note,
+.install-dialog,
+.link-cable-dialog,
+.pc-sidebar,
+.pc-main-panel,
+.pokemon-editor {
+  border-radius: 4px;
+}
+
+.game-panel,
+.room-lobby-card,
+.room-tool,
+.room-section,
+.battlefield-card,
+.token-inspector,
+.pokemon-editor {
+  border-width: 2px;
+  box-shadow:
+    3px 3px 0 var(--rom-pixel-shadow),
+    inset 0 0 0 1px var(--rom-screen-glow);
+}
+
+.game-card {
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 var(--rom-pixel-shadow);
+  transition: transform 120ms steps(2, end), box-shadow 120ms steps(2, end), border-color 120ms steps(2, end);
+}
+
+.game-card:hover {
+  transform: translate(-1px, -2px);
+  box-shadow: 5px 6px 0 var(--rom-pixel-shadow);
+}
+
+.app-nav {
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 2px var(--rom-screen-glow), 3px 3px 0 var(--rom-pixel-shadow);
+}
+
+.nav-capsule,
+.game-button,
+.room-primary-button,
+.room-secondary-button,
+.pc-action-button,
+.pc-import-button,
+.link-cable-primary,
+.link-cable-secondary,
+.install-entry,
+.appearance-control,
+.mode-select,
+button[class*="rounded-"] {
+  border-radius: 3px !important;
+}
+
+.nav-capsule,
+.game-button,
+.room-primary-button,
+.room-secondary-button,
+.pc-action-button,
+.pc-import-button,
+.link-cable-primary,
+.link-cable-secondary {
+  transition: transform 90ms steps(2, end), box-shadow 90ms steps(2, end), background-color 90ms steps(2, end), color 90ms steps(2, end);
+}
+
+.nav-capsule.is-active,
+.pc-box-button.is-selected,
+.pc-partner-card.is-selected {
+  outline: 2px solid var(--rom-cyan-bright);
+  outline-offset: -4px;
+}
+
+.app-brand-icon,
+.app-brand-icon img,
+.pc-partner-sprite,
+.room-token-sprite-shell,
+.room-token-sprite,
+.pokemon-editor img,
+.game-card img,
+.pixelated {
+  border-radius: 3px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.app-brand-icon {
+  box-shadow: 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 2px var(--rom-screen-glow);
+}
+
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  min-height: 2.65rem;
+  border-radius: 3px !important;
+  box-shadow: inset 2px 2px 0 rgba(11, 28, 49, .13);
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid var(--rom-cyan-bright) !important;
+  outline-offset: 2px;
+}
+
+.app-brand-copy span,
+.app-brand h1,
+.pc-eyebrow,
+.room-kicker,
+.room-section-kicker,
+.nav-capsule,
+.mode-select,
+.appearance-control,
+.install-entry,
+.rotom-automation-bar,
+.pokemon-editor label,
+.pc-main-panel label,
+.room-role-badge,
+.guide-pill,
+.room-live-orb::after {
+  font-family: var(--rom-ui-font);
+  text-rendering: geometricPrecision;
+}
+
+.app-brand h1,
+.room-lobby-hero h2,
+.pc-box-name {
+  text-shadow: 2px 2px 0 rgba(23, 70, 98, .15);
+}
+
+.room-lobby-hero {
+  border-radius: 4px;
+  background-size: 8px 8px, 8px 8px, auto;
+  box-shadow: 6px 6px 0 var(--rom-pixel-shadow), inset 0 0 0 3px var(--rom-pixel-line);
+}
+
+.room-live-orb {
+  border-radius: 3px;
+  transform: none;
+  box-shadow: 5px 5px 0 var(--rom-pixel-shadow), inset 0 0 0 4px var(--rom-cyan), inset 0 0 0 8px var(--rom-deep);
+}
+
+.room-live-orb::after {
+  position: absolute;
+  right: 11%;
+  top: 10%;
+  color: var(--rom-text-accent);
+  content: "LINK";
+  font-size: .48rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.pc-workspace {
+  gap: 1.25rem;
+}
+
+.pc-sidebar,
+.pc-main-panel,
+.pokemon-editor {
+  background-image:
+    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
+    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.pc-box-button,
+.pc-partner-card,
+.pc-add-partner,
+.pc-import-button,
+.pc-action-button,
+.pokemon-editor input,
+.pokemon-editor select,
+.pc-main-panel select {
+  border-radius: 3px !important;
+}
+
+.pc-action-button.is-delete {
+  background-color: rgba(91, 59, 176, .08);
+  border-color: var(--rom-text-special);
+}
+
+.rotom-automation-bar {
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 var(--rom-pixel-shadow);
+}
+
+.rotom-automation-bar em.has-exceptions,
+.catalog-description-missing,
+.combat-permission-note,
+.token-volatile-list span,
+.combat-special-block,
+.link-cable-error,
+.room-error,
+.trait-integrity-note {
+  border-color: var(--rom-text-special);
+  background-color: rgba(91, 59, 176, .1);
+}
+
+html[data-theme="night"] .rotom-automation-bar em.has-exceptions,
+html[data-theme="night"] .catalog-description-missing,
+html[data-theme="night"] .combat-permission-note,
+html[data-theme="night"] .token-volatile-list span,
+html[data-theme="night"] .combat-special-block,
+html[data-theme="night"] .link-cable-error,
+html[data-theme="night"] .room-error,
+html[data-theme="night"] .trait-integrity-note,
+html[data-theme="night"] .pc-action-button.is-delete {
+  background-color: rgba(115, 85, 184, .18);
+}
+
+html[data-theme="night"] .app-header-shell,
+html[data-theme="night"] .app-main-shell,
+html[data-theme="night"] .game-panel,
+html[data-theme="night"] .game-card,
+html[data-theme="night"] .room-lobby-card,
+html[data-theme="night"] .room-tool,
+html[data-theme="night"] .room-section,
+html[data-theme="night"] .battlefield-card,
+html[data-theme="night"] .token-inspector,
+html[data-theme="night"] .pokemon-editor {
+  color: var(--rom-ink);
+}
+
+html[data-theme="night"] .app-brand h1,
+html[data-theme="night"] .room-lobby-hero h2,
+html[data-theme="night"] .pc-box-name {
+  text-shadow: 2px 2px 0 var(--rom-pixel-shadow);
+}
+
+html[data-theme="night"] input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-theme="night"] textarea,
+html[data-theme="night"] select {
+  box-shadow: inset 2px 2px 0 var(--rom-pixel-shadow);
+}
+
+@media (max-width: 640px) {
+  .app-header-shell,
+  .app-main-shell,
+  .game-shell,
+  .game-panel,
+  .room-lobby-hero {
+    border-radius: 4px;
+  }
+
+  .app-header-shell,
+  .app-main-shell {
+    box-shadow: 0 0 0 1px var(--rom-cyan), 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 1px var(--rom-screen-glow);
+  }
+
+  .room-live-orb { transform: scale(.88); }
+}
+
+/* Contrato ultraclean responsivo 9.7.0: respiro universal e noite viva. */
+:root {
+  --breath-page: clamp(.75rem, 2vw, 1.5rem);
+  --breath-shell: clamp(1rem, 2.4vw, 2rem);
+  --breath-panel: clamp(1rem, 2vw, 1.65rem);
+  --breath-gap: clamp(.8rem, 1.5vw, 1.25rem);
+  --touch-target: 2.75rem;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  height: auto;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.app-root {
+  width: 100%;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+.app-root > .app-header {
+  padding-top: max(var(--breath-page), env(safe-area-inset-top));
+  padding-right: max(var(--breath-page), env(safe-area-inset-right));
+  padding-left: max(var(--breath-page), env(safe-area-inset-left));
+}
+
+.app-root > .app-scroll-area {
+  padding-right: max(var(--breath-page), env(safe-area-inset-right));
+  padding-bottom: max(var(--breath-page), env(safe-area-inset-bottom));
+  padding-left: max(var(--breath-page), env(safe-area-inset-left));
+}
+
+.app-header-shell,
+.app-main-shell,
+.app-header-row,
+.app-header-primary,
+.app-actions,
+.app-nav,
+.pc-workspace,
+.pc-workspace > *,
+.room-lobby,
+.room-layout,
+.room-layout > *,
+.pokemon-modal-shell,
+.pokemon-modal-overview,
+.pokemon-modal-details,
+.pokemon-modal-body {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-header-shell {
+  padding: clamp(.65rem, 1.3vw, 1rem) !important;
+  overflow: visible;
+}
+
+.app-header-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center !important;
+  gap: var(--breath-gap) !important;
+}
+
+.app-header-primary {
+  display: grid !important;
+  width: 100% !important;
+  grid-template-columns: auto minmax(22rem, 1fr) auto auto;
+  align-items: center;
+  gap: clamp(.45rem, 1vw, .85rem) !important;
+}
+
+.app-brand-cluster {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.app-nav {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  max-width: 34rem;
+  justify-self: center;
+}
+
+.app-header-primary > .appearance-control {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.app-header-primary > .install-entry {
+  grid-column: 4;
+  grid-row: 1;
+}
+
+.app-actions {
+  display: flex !important;
+  width: auto !important;
+  justify-content: flex-end;
+}
+
+.app-actions > *,
+.mode-select {
+  min-width: 0;
+}
+
+.app-main-shell {
+  width: 100%;
+  min-height: 70vh;
+  padding: var(--breath-shell) !important;
+  overflow: visible;
+}
+
+.app-main-shell :where(h1, h2, h3, h4, p, li, label, summary, button, a, strong, small, span) {
+  overflow-wrap: break-word;
+}
+
+.app-main-shell :where(img, video, canvas) {
+  max-width: 100%;
+}
+
+.pokemon-card-name {
+  display: flex;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.status-notice {
+  flex-wrap: wrap;
+}
+
+.status-notice > span:first-child {
+  min-width: min(100%, 14rem);
+  flex: 1 1 18rem;
+  line-height: 1.55;
+}
+
+.editor-species-name {
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.trainer-guide,
+.guide-layout,
+.guide-layout > *,
+.guide-tool-grid > *,
+.guide-conversion-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.guide-rule-list {
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+}
+
+.guide-rule-summary {
+  margin-top: .18rem;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+button,
+[role="button"],
+summary,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  min-height: var(--touch-target);
+}
+
+/* O PC vira uma bancada ampla; nenhuma Box ou ficha ganha rolagem própria. */
+.pc-workspace {
+  display: grid !important;
+  grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--breath-gap) !important;
+}
+
+.pc-sidebar {
+  position: static !important;
+  width: 100% !important;
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+  padding: var(--breath-panel) !important;
+}
+
+.pc-workspace > section {
+  width: 100% !important;
+}
+
+.pc-main-panel,
+.pokemon-editor {
+  width: 100%;
+  padding: var(--breath-panel) !important;
+  overflow: visible !important;
+}
+
+.pc-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start !important;
+  gap: var(--breath-gap) !important;
+}
+
+.pc-toolbar-actions {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, auto));
+  align-items: stretch;
+}
+
+.pc-toolbar-actions > button {
+  min-width: 7.2rem;
+}
+
+.pc-partner-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15.5rem), 1fr)) !important;
+  gap: var(--breath-gap) !important;
+}
+
+.pc-partner-card {
+  min-height: 6.4rem;
+}
+
+.pc-partner-name,
+.pc-partner-meta {
+  display: block;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.pc-box-name {
+  height: auto;
+  min-height: 3.2rem;
+  white-space: normal;
+  text-overflow: clip;
+}
+
+/* A aventura agrupa ajuda repetida sem transformar o início em formulário burocrático. */
+.room-lobby {
+  width: min(100%, 82rem);
+}
+
+.room-lobby-hero,
+.room-lobby-grid,
+.room-layout {
+  gap: var(--breath-gap);
+}
+
+.room-lobby-hero {
+  min-height: 0;
+  padding: clamp(1.5rem, 4.5vw, 3.75rem);
+  overflow: visible;
+}
+
+.room-lobby-card {
+  gap: var(--breath-gap);
+  padding: var(--breath-panel);
+}
+
+.room-role-help {
+  border: 1px solid color-mix(in srgb, var(--rom-line) 48%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--rom-screen-raised) 72%, transparent);
+  padding: .15rem .8rem;
+}
+
+.room-role-help > summary {
+  display: flex;
+  cursor: pointer;
+  list-style: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .65rem 0;
+  color: var(--rom-text-accent);
+  font-family: var(--rom-ui-font);
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+
+.room-role-help > summary::-webkit-details-marker { display: none; }
+.room-role-help > summary::after { content: "+"; flex: 0 0 auto; font-size: 1rem; }
+.room-role-help[open] > summary::after { content: "−"; }
+.room-role-help > ul { padding-bottom: .75rem; }
+
+.room-layout {
+  grid-template-columns: minmax(14rem, .72fr) minmax(0, 2.2fr) minmax(17rem, .9fr);
+}
+
+.room-roster,
+.room-tools {
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+}
+
+.room-scene-strip {
+  flex-wrap: wrap;
+}
+
+.room-scene-strip label {
+  min-width: min(100%, 16rem);
+}
+
+.room-section,
+.room-tool,
+.battlefield-card,
+.token-inspector,
+.room-note {
+  min-width: 0;
+}
+
+.room-tool > summary,
+.room-section-heading,
+.battlefield-toolbar,
+.token-inspector {
+  flex-wrap: wrap;
+}
+
+.room-player strong,
+.initiative-list li > button,
+.initiative-list li > small,
+.audio-now strong,
+.audio-library strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+/* A Pokédex conserva as duas telas do DS, mas respeita a área segura e textos inteiros. */
+.pokemon-modal-backdrop {
+  padding:
+    max(.5rem, env(safe-area-inset-top))
+    max(.5rem, env(safe-area-inset-right))
+    max(.5rem, env(safe-area-inset-bottom))
+    max(.5rem, env(safe-area-inset-left));
+  overscroll-behavior: contain;
+}
+
+.pokemon-modal-shell {
+  width: min(100%, 72rem);
+  height: min(92dvh, 60rem) !important;
+  max-height: calc(100dvh - max(1rem, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+}
+
+.pokemon-modal-overview,
+.pokemon-modal-body {
+  padding-right: clamp(1rem, 2.4vw, 2.5rem) !important;
+  padding-left: clamp(1rem, 2.4vw, 2.5rem) !important;
+  scrollbar-gutter: stable;
+}
+
+.pokemon-modal-body {
+  padding-top: clamp(1.25rem, 2.5vw, 2.5rem) !important;
+  padding-bottom: max(clamp(1.25rem, 2.5vw, 2.5rem), env(safe-area-inset-bottom)) !important;
+}
+
+.pokemon-modal-tabs button {
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.pokemon-modal-shell .truncate {
+  width: auto;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.pokemon-modal-body .overflow-x-auto {
+  flex-wrap: wrap;
+  justify-content: center;
+  overflow-x: visible;
+}
+
+/* Noite: azul-petróleo, ciano, violeta e verde; clara sem branco puro nem lama avermelhada. */
+html[data-theme="night"] {
+  --rom-canvas: #081827;
+  --rom-screen: #123149;
+  --rom-screen-raised: #1a4059;
+  --rom-deep: #0d2538;
+  --rom-line: #4b829d;
+  --rom-ink: #c2eaed;
+  --rom-muted: #91bdc9;
+  --rom-cyan: #4bd7e5;
+  --rom-cyan-bright: #78edf2;
+  --rom-blue: #5c91ef;
+  --rom-coral: #a58af1;
+  --rom-coral-deep: #6654a8;
+  --rom-green: #68dda8;
+  --rom-shadow: rgba(2, 11, 20, .58);
+  --rom-text-accent: #78e7ed;
+  --rom-text-special: #c1abfa;
+  --rom-text-success: #72e4ae;
+  --rom-text-warning: #b7a2f0;
+  --rom-pixel-line: #5a91aa;
+  --rom-pixel-shadow: #03101c;
+  --rom-screen-glow: rgba(75, 215, 229, .14);
+  --rom-grid-dot: rgba(120, 237, 242, .055);
+  --night-canvas: #081827;
+  --night-surface: #123149;
+  --night-surface-raised: #1a4059;
+  --night-line: #4b829d;
+  --night-ink: #c2eaed;
+  --night-muted: #91bdc9;
+  --night-cyan: #4bd7e5;
+  --night-cyan-soft: #a7e4e9;
+  --night-gold: #bba2f5;
+  --night-lime: #68dda8;
+  --night-violet: #a58af1;
+  color-scheme: dark;
+}
+
+html[data-theme="night"] body {
+  background:
+    linear-gradient(rgba(120, 237, 242, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 237, 242, .035) 1px, transparent 1px),
+    radial-gradient(circle at 10% 0%, rgba(75, 215, 229, .2), transparent 30%),
+    radial-gradient(circle at 92% 5%, rgba(165, 138, 241, .18), transparent 34%),
+    linear-gradient(145deg, #071522, #0b2234 52%, #132e45);
+  background-size: 12px 12px, 12px 12px, auto, auto, auto;
+  color: var(--rom-ink);
+}
+
+html[data-theme="night"] .app-root,
+html[data-theme="night"] .app-root.view-room,
+html[data-theme="night"] .app-root.view-pokedex,
+html[data-theme="night"] .app-root.view-teambuilder,
+html[data-theme="night"] .app-root.view-guide {
+  background-color: var(--rom-canvas);
+  background-image:
+    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
+    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, rgba(75, 215, 229, .16), transparent 28%),
+    radial-gradient(circle at 88% 90%, rgba(165, 138, 241, .13), transparent 28%);
+  background-size: 8px 8px, 8px 8px, auto, auto;
+}
+
+html[data-theme="night"] .app-header-shell {
+  border-color: var(--rom-line);
+  background: #102c42;
+  box-shadow: 4px 4px 0 var(--rom-pixel-shadow), inset 0 0 0 1px var(--rom-screen-glow);
+}
+
+html[data-theme="night"] .game-shell,
+html[data-theme="night"] .app-main-shell {
+  border-color: var(--rom-line);
+  background-color: var(--rom-deep);
+  background-image:
+    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
+    radial-gradient(circle at 96% 4%, rgba(75, 215, 229, .12), transparent 30%),
+    radial-gradient(circle at 4% 96%, rgba(165, 138, 241, .1), transparent 28%);
+  background-size: 8px 8px, 8px 8px, auto, auto;
+}
+
+html[data-theme="night"] .game-panel,
+html[data-theme="night"] .game-card,
+html[data-theme="night"] .room-lobby-card,
+html[data-theme="night"] .room-local-entry,
+html[data-theme="night"] .room-resume,
+html[data-theme="night"] .room-section,
+html[data-theme="night"] .room-tool,
+html[data-theme="night"] .battlefield-card,
+html[data-theme="night"] .token-inspector,
+html[data-theme="night"] .room-note,
+html[data-theme="night"] .install-dialog,
+html[data-theme="night"] .link-cable-dialog,
+html[data-theme="night"] .pc-sidebar,
+html[data-theme="night"] .pc-main-panel,
+html[data-theme="night"] .pokemon-editor,
+html[data-theme="night"] .pokemon-modal-overview,
+html[data-theme="night"] .pokemon-modal-details {
+  border-color: var(--rom-line);
+  background-color: var(--rom-screen);
+  color: var(--rom-ink);
+  box-shadow: 4px 4px 0 var(--rom-shadow), inset 0 0 0 1px var(--rom-screen-glow);
+}
+
+html[data-theme="night"] .app-nav,
+html[data-theme="night"] .mode-select,
+html[data-theme="night"] .appearance-control,
+html[data-theme="night"] .install-entry {
+  border-color: #477c98;
+  background: #0d273c;
+  color: var(--rom-muted);
+}
+
+html[data-theme="night"] .nav-capsule {
+  color: var(--rom-muted);
+}
+
+html[data-theme="night"] .nav-capsule:hover {
+  background: #1b4660;
+  color: var(--rom-cyan-bright);
+}
+
+html[data-theme="night"] .nav-capsule.is-active,
+html[data-theme="night"] .room-mobile-nav button[aria-pressed="true"] {
+  border-color: #69dce7;
+  background: #286a8a;
+  color: #c8edef;
+  box-shadow: 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 2px var(--rom-cyan);
+}
+
+html[data-theme="night"] .room-role-mark,
+html[data-theme="night"] .room-primary-button,
+html[data-theme="night"] .room-resume b,
+html[data-theme="night"] .room-local-entry b,
+html[data-theme="night"] .room-invite-panel > summary b,
+html[data-theme="night"] .room-invite-actions button.is-primary,
+html[data-theme="night"] .token-xp-control button,
+html[data-theme="night"] .token-special-state button,
+html[data-theme="night"] .token-special-action button,
+html[data-theme="night"] .call-enter,
+html[data-theme="night"] .call-avatar,
+html[data-theme="night"] .combat-called-move button,
+html[data-theme="night"] .audio-now,
+html[data-theme="night"] .event-log article > button,
+html[data-theme="night"] .room-message button {
+  color: #c8edef !important;
+}
+
+html[data-theme="night"] :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  border-color: #4c819b !important;
+  background-color: #102b42 !important;
+  color: #c0e8eb !important;
+}
+
+html[data-theme="night"] :is(input, textarea)::placeholder {
+  color: #82adbd !important;
+  opacity: 1;
+}
+
+html[data-theme="night"] [class~="text-white"],
+html[data-theme="night"] [class*="text-white/"] {
+  color: #c8edef !important;
+}
+
+html[data-theme="night"] [class*="text-slate-900"],
+html[data-theme="night"] [class*="text-slate-800"],
+html[data-theme="night"] [class*="text-slate-700"] {
+  color: #c2eaed !important;
+}
+
+html[data-theme="night"] [class*="text-slate-600"],
+html[data-theme="night"] [class*="text-slate-500"],
+html[data-theme="night"] [class*="text-slate-400"] {
+  color: #91bdc9 !important;
+}
+
+html[data-theme="night"] [class*="text-red-"],
+html[data-theme="night"] [class*="text-rose-"],
+html[data-theme="night"] [class*="text-pink-"],
+html[data-theme="night"] [class*="text-orange-"],
+html[data-theme="night"] [class*="text-amber-"],
+html[data-theme="night"] [class*="text-yellow-"] {
+  color: var(--rom-text-special) !important;
+}
+
+html[data-theme="night"] [class~="bg-white"],
+html[data-theme="night"] [class*="bg-white/"],
+html[data-theme="night"] [class*="hover:bg-white"],
+html[data-theme="night"] [class*="bg-slate-50"],
+html[data-theme="night"] [class*="bg-slate-100"] {
+  background-color: #173951 !important;
+}
+
+html[data-theme="night"] [class*="bg-slate-200"],
+html[data-theme="night"] [class*="bg-slate-300"] {
+  background-color: #244c64 !important;
+}
+
+html[data-theme="night"] [class*="bg-slate-800"],
+html[data-theme="night"] [class*="bg-slate-900"] {
+  background-color: #0c263b !important;
+}
+
+html[data-theme="night"] [class*="bg-blue-50"],
+html[data-theme="night"] [class*="bg-blue-100"] {
+  background-color: #1b4563 !important;
+}
+
+html[data-theme="night"] [class*="bg-blue-500"],
+html[data-theme="night"] [class*="bg-blue-600"],
+html[data-theme="night"] [class*="bg-blue-700"] {
+  background-color: #326f9d !important;
+}
+
+html[data-theme="night"] [class*="bg-emerald-"],
+html[data-theme="night"] [class*="bg-green-"],
+html[data-theme="night"] [class*="bg-teal-"] {
+  background-color: #184d45 !important;
+}
+
+html[data-theme="night"] [class*="bg-red-"],
+html[data-theme="night"] [class*="bg-rose-"],
+html[data-theme="night"] [class*="bg-pink-"],
+html[data-theme="night"] [class*="bg-orange-"],
+html[data-theme="night"] [class*="bg-amber-"],
+html[data-theme="night"] [class*="bg-yellow-"] {
+  background-color: #393b68 !important;
+}
+
+html[data-theme="night"] [class*="border-white"],
+html[data-theme="night"] [class*="border-slate-"],
+html[data-theme="night"] [class*="border-blue-"] {
+  border-color: #4b829d !important;
+}
+
+html[data-theme="night"] [class*="border-red-"],
+html[data-theme="night"] [class*="border-rose-"],
+html[data-theme="night"] [class*="border-pink-"],
+html[data-theme="night"] [class*="border-orange-"],
+html[data-theme="night"] [class*="border-amber-"],
+html[data-theme="night"] [class*="border-yellow-"] {
+  border-color: #8270c4 !important;
+}
+
+html[data-theme="night"] .room-lobby-hero {
+  background:
+    linear-gradient(rgba(120, 237, 242, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 237, 242, .05) 1px, transparent 1px),
+    linear-gradient(125deg, #102e46 0%, #173d57 56%, #403c70 100%);
+  background-size: 8px 8px, 8px 8px, auto;
+}
+
+html[data-theme="night"] .room-live-orb {
+  border-color: #86dbe3;
+  background: radial-gradient(circle at 38% 30%, #a8e5e9 0 10%, #4bd7e5 12% 38%, #397fb5 42% 68%, #142f50 72%);
+}
+
+html[data-theme="night"] .room-live-orb span {
+  background: rgba(189, 235, 238, .72);
+}
+
+html[data-theme="night"] .room-role-help,
+html[data-theme="night"] .room-mobile-nav,
+html[data-theme="night"] .room-invite-panel {
+  border-color: #4b829d;
+  background: #183b53;
+}
+
+html[data-theme="night"] .pc-action-button.is-delete,
+html[data-theme="night"] .room-error,
+html[data-theme="night"] .link-cable-error,
+html[data-theme="night"] .trait-integrity-note,
+html[data-theme="night"] .combat-special-block,
+html[data-theme="night"] .combat-permission-note {
+  border-color: #8573c8;
+  background-color: #343861;
+  color: #c8b7f7 !important;
+}
+
+html[data-theme="night"] input:-webkit-autofill,
+html[data-theme="night"] textarea:-webkit-autofill,
+html[data-theme="night"] select:-webkit-autofill {
+  -webkit-text-fill-color: #c2eaed;
+  -webkit-box-shadow: 0 0 0 1000px #102b42 inset;
+}
+
+@media (max-width: 1279px) {
+  .app-header-row {
+    grid-template-columns: 1fr;
+  }
+
+  .app-actions {
+    width: 100% !important;
+  }
+
+  .app-actions .mode-select {
+    margin-left: auto;
+  }
+
+  .room-layout {
+    grid-template-columns: minmax(14rem, .72fr) minmax(0, 2fr);
+  }
+
+  .room-tools {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1100px) {
+  .pc-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  body { overflow-y: auto; }
+
+  .app-header-primary {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .app-brand-cluster { grid-column: 1; }
+  .app-header-primary > .appearance-control { grid-column: 2; }
+  .app-header-primary > .install-entry { grid-column: 3; }
+  .app-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: none;
+  }
+
+  .room-layout {
+    display: block;
+  }
+}
+
+@media (max-width: 700px) {
+  .room-lobby-hero {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .room-lobby-hero > div:first-child {
+    max-width: 38rem;
+  }
+
+  .room-lobby-hero h2,
+  .room-lobby-hero p {
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .room-live-orb {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: clamp(6.5rem, 34vw, 9rem);
+    opacity: 1;
+    transform: none;
+  }
+
+  .pc-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .pc-toolbar-actions {
+    width: 100% !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pc-toolbar-actions > button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pc-toolbar-actions > .is-share {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-root > .app-header,
+  .app-root > .app-scroll-area {
+    padding-right: max(.55rem, env(safe-area-inset-right));
+    padding-left: max(.55rem, env(safe-area-inset-left));
+  }
+
+  .app-header-shell {
+    padding: .55rem !important;
+  }
+
+  .app-header-primary {
+    gap: .4rem !important;
+  }
+
+  .app-actions {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: .5rem !important;
+  }
+
+  .app-actions > *,
+  .app-actions .mode-select,
+  .app-actions select {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .app-main-shell {
+    min-height: 0;
+    padding: clamp(.75rem, 3vw, 1rem) !important;
+  }
+
+  .room-lobby-hero {
+    padding: clamp(1.35rem, 6vw, 2rem);
+  }
+
+  .room-lobby-hero h2 {
+    font-size: clamp(2rem, 13vw, 3rem);
+    line-height: 1.02;
+  }
+
+  .room-resume,
+  .room-local-entry {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .room-resume b,
+  .room-local-entry b {
+    text-align: center;
+  }
+
+  .room-scene-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .room-scene-strip label {
+    grid-column: 1 / -1;
+  }
+
+  .room-scene-strip label > span {
+    display: inline;
+  }
+
+  .pokemon-modal-backdrop {
+    padding: 0;
+  }
+
+  .pokemon-modal-shell {
+    width: 100%;
+    height: 100dvh !important;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .pokemon-modal-overview {
+    padding-top: max(1.25rem, env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  .pokemon-modal-details {
+    max-height: calc(100dvh - env(safe-area-inset-top));
+  }
+
+  .guide-choice-grid,
+  .guide-input-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .app-header-primary {
+    grid-template-columns: minmax(0, 1fr) 2.7rem 2.7rem;
+  }
+
+  .nav-capsule {
+    min-width: 0;
+    padding-right: .12rem;
+    padding-left: .12rem;
+  }
+
+  .pc-toolbar-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .pc-toolbar-actions > .is-share {
+    grid-column: auto;
+  }
+}
+
+/* Interface ultraclean em abas 9.8.1: pixels discretos, cor e espaço para respirar. */
+:root {
+  --era-gb-moss: #5f7f55;
+  --era-gb-screen: #cfe6a6;
+  --era-gbc-berry: #b33c76;
+  --era-gbc-lime: #69b93d;
+  --era-gba-blue: #316bd1;
+  --era-gba-coral: #df6579;
+  --era-ds-cyan: #25a9c5;
+  --era-ds-violet: #7562c7;
+  --era-3ds-aqua: #168e82;
+  --era-3ds-magenta: #9d4daf;
+  --era-soft-ink: #e7f7f1;
+  --era-panel: var(--rom-screen-raised);
+}
+
+.app-header-shell::before,
+.app-main-shell::before {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--era-gb-moss) 0 12.5%,
+    var(--era-gbc-lime) 12.5% 25%,
+    var(--era-gbc-berry) 25% 37.5%,
+    var(--era-gba-blue) 37.5% 50%,
+    var(--era-gba-coral) 50% 62.5%,
+    var(--era-ds-cyan) 62.5% 75%,
+    var(--era-ds-violet) 75% 87.5%,
+    var(--era-3ds-aqua) 87.5%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.app-nav .nav-capsule:nth-child(1) span { color: var(--era-gbc-berry); }
+.app-nav .nav-capsule:nth-child(2) span { color: var(--era-gba-blue); }
+.app-nav .nav-capsule:nth-child(3) span { color: var(--era-gbc-lime); }
+.app-nav .nav-capsule:nth-child(4) span { color: var(--era-ds-violet); }
+
+.app-nav .nav-capsule:nth-child(1):hover { background: color-mix(in srgb, var(--era-gbc-berry) 14%, var(--rom-screen)); }
+.app-nav .nav-capsule:nth-child(2):hover { background: color-mix(in srgb, var(--era-gba-blue) 14%, var(--rom-screen)); }
+.app-nav .nav-capsule:nth-child(3):hover { background: color-mix(in srgb, var(--era-gbc-lime) 15%, var(--rom-screen)); }
+.app-nav .nav-capsule:nth-child(4):hover { background: color-mix(in srgb, var(--era-ds-violet) 14%, var(--rom-screen)); }
+
+.app-nav .nav-capsule:nth-child(1).is-active { background: #8d3267; }
+.app-nav .nav-capsule:nth-child(2).is-active { background: #245bb6; }
+.app-nav .nav-capsule:nth-child(3).is-active { background: #247d5f; }
+.app-nav .nav-capsule:nth-child(4).is-active { background: #6554ae; }
+
+.game-style-control {
+  position: relative;
+  display: flex;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: .22rem;
+  border: 1px solid var(--rom-line);
+  border-radius: 4px;
+  background: var(--era-panel);
+  padding: .22rem;
+  color: var(--rom-ink);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--rom-pixel-shadow) 78%, transparent);
+}
+
+.game-style-label,
+.room-phase-label {
+  flex: none;
+  padding: 0 .38rem;
+  color: var(--rom-muted);
+  font-family: var(--rom-ui-font);
+  font-size: .52rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.game-style-options {
+  display: grid;
+  min-width: 14rem;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .16rem;
+}
+
+.game-style-options button {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 2.35rem;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  padding: .35rem .62rem;
+  color: var(--rom-muted);
+  font-family: var(--rom-ui-font);
+  font-size: .57rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.game-style-options button::after,
+.room-phase-options button::after {
+  position: absolute;
+  right: .36rem;
+  bottom: .22rem;
+  left: .36rem;
+  height: 2px;
+  background: transparent;
+  content: "";
+}
+
+.game-style-options button:hover,
+.room-phase-options button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--rom-line) 72%, transparent);
+  background: color-mix(in srgb, var(--rom-screen) 82%, var(--rom-text-accent) 18%);
+  color: var(--rom-text-accent);
+}
+
+.game-style-options button[data-mode="rpg"].is-selected { border-color: #8874dc; background: #6554ae; }
+.game-style-options button[data-mode="game"].is-selected { border-color: #4d8ce9; background: #245bb6; }
+.game-style-options button[data-mode="free"].is-selected { border-color: #3bc7a9; background: #247d5f; }
+
+.game-style-options button.is-selected {
+  color: var(--era-soft-ink);
+  box-shadow: 2px 2px 0 var(--rom-pixel-shadow);
+}
+
+.game-style-options button.is-selected::after {
+  background: #6ee6bd;
+}
+
+.choice-help {
+  position: relative;
+  flex: none;
+}
+
+.choice-help > summary {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--rom-line) 72%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--rom-screen) 86%, var(--era-ds-cyan) 14%);
+  color: var(--rom-text-special);
+  font-family: var(--rom-ui-font);
+  font-size: .65rem;
+  font-weight: 950;
+  line-height: 1;
+  list-style: none;
+  cursor: pointer;
+}
+
+.choice-help > summary::-webkit-details-marker { display: none; }
+
+.choice-help > summary:hover,
+.choice-help[open] > summary {
+  border-color: var(--era-ds-cyan);
+  background: color-mix(in srgb, var(--rom-screen) 72%, var(--era-ds-cyan) 28%);
+}
+
+.choice-help-popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + .55rem);
+  right: 0;
+  width: min(20rem, calc(100vw - 2rem));
+  border: 2px solid var(--rom-line);
+  border-top-color: var(--era-ds-cyan);
+  border-radius: 4px;
+  background: var(--rom-screen-raised);
+  padding: .78rem .85rem;
+  color: var(--rom-ink);
+  box-shadow: 4px 4px 0 var(--rom-pixel-shadow);
+}
+
+.choice-help-popover::before {
+  position: absolute;
+  top: -.38rem;
+  right: .72rem;
+  width: .62rem;
+  height: .62rem;
+  border-top: 2px solid var(--rom-line);
+  border-left: 2px solid var(--rom-line);
+  background: var(--rom-screen-raised);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.choice-help-popover strong,
+.room-scene-strip .choice-help-popover strong {
+  color: var(--rom-text-accent);
+  font-family: var(--rom-ui-font);
+  font-size: .68rem;
+}
+
+.choice-help-popover p,
+.room-scene-strip .choice-help-popover p {
+  margin: .42rem 0 0;
+  color: var(--rom-muted);
+  font-size: .66rem;
+  font-weight: 720;
+  line-height: 1.55;
+}
+
+.choice-help-popover small,
+.room-scene-strip .choice-help-popover small {
+  display: block;
+  margin-top: .48rem;
+  color: var(--rom-text-special);
+  font-size: .56rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.room-scene-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .42rem;
+}
+
+.room-phase-control {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: .22rem;
+  border: 1px solid var(--rom-line);
+  border-radius: 4px;
+  background: var(--rom-screen-raised);
+  padding: .22rem;
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--rom-pixel-shadow) 78%, transparent);
+}
+
+.room-phase-options {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .16rem;
+}
+
+.room-phase-options button {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 2.35rem;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  padding: .34rem .48rem;
+  color: var(--rom-muted);
+  font-family: var(--rom-ui-font);
+  text-align: center;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.room-phase-options button > strong {
+  min-width: 0;
+  font-size: .55rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.room-phase-options button[data-phase="exploracao"].is-selected { border-color: #75c84c; background: #397d45; }
+.room-phase-options button[data-phase="interpretacao"].is-selected { border-color: #8c7ce2; background: #6554ae; }
+.room-phase-options button[data-phase="batalha"].is-selected { border-color: #ee8798; background: #9a4169; }
+.room-phase-options button[data-phase="intervalo"].is-selected { border-color: #55cadc; background: #176f89; }
+
+.room-phase-options button.is-selected {
+  color: var(--era-soft-ink);
+  box-shadow: 2px 2px 0 var(--rom-pixel-shadow);
+}
+
+.room-phase-options button.is-selected::after { background: #6ee6bd; }
+
+.room-phase-options button:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.room-scene-strip > .room-scene-stats {
+  display: grid;
+  width: auto;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(3.35rem, auto));
+  grid-template-rows: none;
+  gap: .28rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.room-scene-strip .room-scene-stats > div {
+  display: grid;
+  min-width: 0;
+  min-height: 2.85rem;
+  place-content: center;
+  border: 1px solid var(--rom-line);
+  border-radius: 3px;
+  background: var(--rom-screen-raised);
+  padding: .3rem .52rem;
+  text-align: center;
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--rom-pixel-shadow) 75%, transparent);
+}
+
+.room-scene-strip .room-scene-stats > div:first-child { border-top-color: var(--era-gba-blue); }
+.room-scene-strip .room-scene-stats > div:last-child { border-top-color: var(--era-3ds-aqua); }
+
+.room-scene-stats small {
+  color: var(--rom-muted);
+  font-family: var(--rom-ui-font);
+  font-size: .45rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.room-scene-stats strong {
+  margin-top: .05rem;
+  color: var(--rom-text-accent);
+  font-family: var(--rom-ui-font);
+  font-size: .78rem;
+}
+
+.view-room .room-section,
+.view-room .room-tool,
+.view-teambuilder .pc-sidebar,
+.view-teambuilder .pc-main-panel,
+.view-teambuilder .pokemon-editor,
+.view-guide .game-panel,
+.view-pokedex .game-card {
+  border-top-width: 3px;
+}
+
+.view-room .room-section:nth-child(4n + 1),
+.view-room .room-tool:nth-child(4n + 1),
+.view-pokedex .game-card:nth-child(4n + 1) { border-top-color: var(--era-gbc-lime); }
+.view-room .room-section:nth-child(4n + 2),
+.view-room .room-tool:nth-child(4n + 2),
+.view-pokedex .game-card:nth-child(4n + 2) { border-top-color: var(--era-gba-blue); }
+.view-room .room-section:nth-child(4n + 3),
+.view-room .room-tool:nth-child(4n + 3),
+.view-pokedex .game-card:nth-child(4n + 3) { border-top-color: var(--era-ds-violet); }
+.view-room .room-section:nth-child(4n),
+.view-room .room-tool:nth-child(4n),
+.view-pokedex .game-card:nth-child(4n) { border-top-color: var(--era-3ds-aqua); }
+
+.view-teambuilder .pc-sidebar { border-top-color: var(--era-gbc-lime); }
+.view-teambuilder .pc-main-panel { border-top-color: var(--era-gba-blue); }
+.view-teambuilder .pokemon-editor { border-top-color: var(--era-ds-violet); }
+.view-guide .game-panel:nth-child(odd) { border-top-color: var(--era-ds-cyan); }
+.view-guide .game-panel:nth-child(even) { border-top-color: var(--era-ds-violet); }
+
+html[data-theme="night"] {
+  --era-gb-moss: #78a870;
+  --era-gb-screen: #a8ce89;
+  --era-gbc-berry: #cf6aa2;
+  --era-gbc-lime: #83d45d;
+  --era-gba-blue: #6b9cf2;
+  --era-gba-coral: #d886a7;
+  --era-ds-cyan: #5ed8e3;
+  --era-ds-violet: #a998eb;
+  --era-3ds-aqua: #62d4b7;
+  --era-3ds-magenta: #c47ad1;
+  --era-soft-ink: #d9f1e9;
+  --era-panel: #173b53;
+}
+
+html[data-theme="night"] .game-style-control,
+html[data-theme="night"] .room-phase-control,
+html[data-theme="night"] .room-scene-strip .room-scene-stats > div {
+  border-color: #568ca5;
+  background: #173b53;
+  color: #c2eaed;
+}
+
+html[data-theme="night"] .room-scene-strip > .room-scene-stats {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme="night"] .game-style-options button,
+html[data-theme="night"] .room-phase-options button {
+  background: transparent;
+  color: #a7d4dc;
+}
+
+html[data-theme="night"] .game-style-options button:hover,
+html[data-theme="night"] .room-phase-options button:hover:not(:disabled) {
+  background: #214b63;
+  color: #79e2df;
+}
+
+html[data-theme="night"] .game-style-options button[data-mode="rpg"].is-selected,
+html[data-theme="night"] .room-phase-options button[data-phase="interpretacao"].is-selected { background: #6655a9; }
+html[data-theme="night"] .game-style-options button[data-mode="game"].is-selected { background: #2c62ae; }
+html[data-theme="night"] .game-style-options button[data-mode="free"].is-selected,
+html[data-theme="night"] .room-phase-options button[data-phase="exploracao"].is-selected { background: #276f5d; }
+html[data-theme="night"] .room-phase-options button[data-phase="batalha"].is-selected { background: #704260; }
+html[data-theme="night"] .room-phase-options button[data-phase="intervalo"].is-selected { background: #1e667e; }
+
+html[data-theme="night"] .game-style-options button.is-selected,
+html[data-theme="night"] .room-phase-options button.is-selected {
+  color: #d9f1e9;
+}
+
+html[data-theme="night"] .choice-help-popover strong,
+html[data-theme="night"] .room-scene-stats strong {
+  color: #7ee7e9;
+}
+
+html[data-theme="night"] .game-style-label,
+html[data-theme="night"] .room-phase-label,
+html[data-theme="night"] .choice-help-popover p,
+html[data-theme="night"] .room-scene-stats small {
+  color: #9bc8d1;
+}
+
+html[data-theme="night"] .choice-help > summary {
+  border-color: #568ca5;
+  background: #102b42;
+  color: #73ddd9;
+}
+
+html[data-theme="night"] .choice-help > summary:hover,
+html[data-theme="night"] .choice-help[open] > summary {
+  border-color: #5ed8e3;
+  background: #214b63;
+}
+
+html[data-theme="night"] .choice-help-popover {
+  border-color: #568ca5;
+  border-top-color: #5ed8e3;
+  background: #102b42;
+  color: #c2eaed;
+}
+
+html[data-theme="night"] .choice-help-popover::before {
+  border-color: #568ca5;
+  background: #102b42;
+}
+
+html[data-theme="night"] .choice-help-popover small {
+  color: #83d7c7;
+}
+
+@media (max-width: 900px) {
+  .game-style-control {
+    width: min(100%, 25rem);
+  }
+}
+
+@media (max-width: 700px) {
+  .room-scene-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .room-phase-control {
+    flex-wrap: wrap;
+  }
+
+  .room-phase-label {
+    flex: 1 1 100%;
+    padding-top: .22rem;
+  }
+
+  .room-phase-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .room-scene-strip > .room-scene-stats {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .game-style-control {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .game-style-label {
+    flex: 1 1 100%;
+    padding-top: .22rem;
+  }
+
+  .game-style-options {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .game-style-options button,
+  .room-phase-options button {
+    padding-right: .28rem;
+    padding-left: .28rem;
+  }
+
+  .choice-help-popover {
+    width: min(18rem, calc(100vw - 1.5rem));
+  }
+}

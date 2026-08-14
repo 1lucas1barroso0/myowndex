@@ -125,16 +125,16 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const speciesDescription = describeSpecies(baseInfo, formData);
 
     return (
-        <div role="dialog" aria-modal="true" aria-labelledby="pokemon-modal-title" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 md:p-8 animate-fade-in" onClick={onClose}>
+        <div role="dialog" aria-modal="true" aria-labelledby="pokemon-modal-title" className="pokemon-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 md:p-8 animate-fade-in" onClick={onClose}>
             
-            <div className="game-shell w-full max-w-6xl h-[100vh] md:h-[90vh] flex flex-col md:flex-row overflow-hidden relative shadow-2xl bg-slate-50 md:rounded-3xl" onClick={e => e.stopPropagation()}>
+            <div className="pokemon-modal-shell game-shell w-full max-w-6xl h-[100dvh] md:h-[90dvh] flex flex-col md:flex-row overflow-hidden relative shadow-2xl bg-slate-50 md:rounded-3xl" onClick={e => e.stopPropagation()}>
                 
                 <button type="button" aria-label="Fechar registro da Pokédex" onClick={onClose} className="absolute top-5 right-5 sm:top-6 sm:right-6 w-11 h-11 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[60] transition-all border-4 border-slate-200 shadow-sm">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 
                 {/* === TELA 1: APRESENTAÇÃO === */}
-                <div className="w-full h-full md:w-5/12 pt-7 px-6 pb-[85px] sm:pt-8 sm:px-8 md:pb-8 flex flex-col overflow-y-auto no-scrollbar app-scroll-area border-r-0 md:border-r-4 border-slate-200 z-10 relative bg-slate-50/90">
+                <div className="pokemon-modal-overview w-full h-full md:w-5/12 pt-7 px-6 pb-[85px] sm:pt-8 sm:px-8 md:pb-8 flex flex-col overflow-y-auto no-scrollbar app-scroll-area border-r-0 md:border-r-4 border-slate-200 z-10 relative bg-slate-50/90">
                     
                     <div className="z-10 mb-6 flex flex-col items-start">
                         <span className="whitespace-nowrap text-[9px] sm:text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">
@@ -214,11 +214,11 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 ></div>
 
                 {/* === TELA 2: A CORTINA === */}
-                <div className={"absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-15px_40px_rgba(0,0,0,0.2)] md:shadow-none border-t-[8px] md:border-t-0 border-slate-900 " + (isExpanded ? "h-[96%] md:h-full" : "h-[76px] md:h-full")}>
+                <div className={"pokemon-modal-details absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-15px_40px_rgba(0,0,0,0.2)] md:shadow-none border-t-[8px] md:border-t-0 border-slate-900 " + (isExpanded ? "h-[96%] md:h-full" : "h-[76px] md:h-full")}>
                     
                     {/* Cabeçalho com Sensor de Swipe Integrado */}
                     <div 
-                        className="flex bg-slate-200 border-b-4 border-slate-300 w-full shrink-0 pt-3 md:pt-0 rounded-t-[1.5rem] md:rounded-none relative z-20 cursor-pointer md:cursor-auto select-none" 
+                        className="pokemon-modal-tabs flex bg-slate-200 border-b-4 border-slate-300 w-full shrink-0 pt-3 md:pt-0 rounded-t-[1.5rem] md:rounded-none relative z-20 cursor-pointer md:cursor-auto select-none"
                         onClick={() => !isExpanded && setIsExpanded(true)}
                         onTouchStart={handleTouchStart}
                         onTouchEnd={handleTouchEnd}
@@ -236,7 +236,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         ))}
                     </div>
                     
-                    <div className="flex-1 p-5 sm:p-6 md:p-10 overflow-y-auto no-scrollbar app-scroll-area">
+                    <div className="pokemon-modal-body flex-1 p-5 sm:p-6 md:p-10 overflow-y-auto no-scrollbar app-scroll-area">
                         {tab === "stats" && (
                             <div className="animate-fade-in space-y-8">
                                 <section className="species-description" aria-labelledby="species-description-title">

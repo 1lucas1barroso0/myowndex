@@ -327,7 +327,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const awardXp = amount => applyXpProgression((Number(rpg.xp) || 0) + Number(amount || 0));
     return (
-        <div className="game-panel p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
+        <div className="game-panel pokemon-editor p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
             <datalist id="eItems">{validItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
             <datalist id="eAbs">{validAbs.map(a => { const v = typeof a === "string" ? a : (a?.name || ""); return v ? <option key={"ab-" + v} value={v}></option> : null; })}</datalist>
             <datalist id="eMvs">{validMoves.map(m => { const v = typeof m === "string" ? m : (m?.name || ""); return v ? <option key={"mv-" + v} value={v}></option> : null; })}</datalist>

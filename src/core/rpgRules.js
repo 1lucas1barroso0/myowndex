@@ -245,7 +245,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.2",
                 title: "Dano contínuo e indireto",
-                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente do movimento ofensivo. Eles não ativam a proteção contra hit kill. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia, resolve Bocejo no momento correto e registra cada mudança no Diário."
+                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente do movimento ofensivo. Eles não ativam a proteção contra hit kill. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia; também avança Bocejo, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song, registrando cada mudança no Diário."
             },
             {
                 id: "6.3",
@@ -268,7 +268,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.1",
                 title: "Habilidades",
-                body: "Leia a habilidade como nos jogos e aplique seu efeito antes ou depois do cálculo conforme a descrição. Quando a automação ainda não cobrir uma habilidade, o Narrador aplica a decisão e a registra no Diário."
+                body: "Leia a habilidade como nos jogos e aplique seu efeito antes ou depois do cálculo conforme a descrição. O Assistente reconhece imunidades e absorções comuns, Wonder Guard, Disguise, Ice Face, No Guard, Unaware, Scrappy, Mind's Eye e habilidades que rompem imunidades. Imposter transforma automaticamente ao entrar quando existe um alvo válido; Illusion preserva a identidade real e mostra somente o disfarce até a revelação. Quando uma habilidade depender de escolha ou contexto ainda aberto, o painel a marca como resolução guiada ou decisão narrativa em vez de fingir uma automação completa."
             },
             {
                 id: "7.2",
@@ -278,10 +278,15 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.3",
                 title: "Formas e transformações",
-                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastalização e outras mecânicas alteram apenas o que suas regras determinam. A forma escolhida deve manter espécie-base, identidade e progresso vinculados."
+                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastalização e outras mecânicas alteram apenas o que suas regras determinam. Transform copia aparência, tipos atuais, habilidade, atributos não relacionados a HP, modificadores e movimentos do alvo com 5 PP, mas preserva HP, nível, item e progresso do usuário; tudo pode ser revertido sem alterar sua ficha original. Mudanças como Stance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast exibem seu gatilho e o grau de automação no painel."
             },
             {
                 id: "7.4",
+                title: "Movimentos que copiam ou chamam outros",
+                body: "Sketch troca permanentemente o próprio espaço pelo último movimento observado que seja válido e sincroniza a ficha vinculada. Mimic cria uma cópia temporária com 5 PP e restaura o movimento e o PP anteriores quando a cena termina ou o Narrador desfaz a cópia. Metronome, Copycat, Assist, Sleep Talk, Nature Power, Mirror Move, Me First e Instruct pedem o movimento resultante e consomem PP apenas da escolha original."
+            },
+            {
+                id: "7.5",
                 title: "Tipos, STAB e Terastalização",
                 body: "A defesa usa os tipos atuais do alvo. O STAB é 1,5× quando o movimento corresponde a um tipo original ou ao Tera Type; se corresponder aos dois, torna-se 2×. Imunidade reduz o dano a zero."
             }

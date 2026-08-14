@@ -1,6 +1,14 @@
 import { convertToTTRPG, formatName } from "./mechanics.js";
 import { RPG_STATUS_LABELS } from "./copy.js";
 import { rollPercentTest } from "./rpgRules.js";
+import {
+    copyObservedMove,
+    getMoveSpecialProfile,
+    normalizeSpecialState,
+    recordBattleMove,
+    revealBattleIllusion,
+    transformBattleToken,
+} from "./specialMechanics.js";
 
 export const COMBAT_STAT_STAGE_KEYS = ["attack", "defense", "special-attack", "special-defense", "speed"];
 export const ACCURACY_STAGE_KEYS = ["accuracy", "evasion"];
@@ -49,7 +57,10 @@ export const normalizeVolatileEffects = value => {
         unique.set(id, {
             id,
             sourceMove: normalizeSlug(entry?.sourceMove),
+            sourceTokenId: String(entry?.sourceTokenId || "").slice(0, 120),
+            sourceName: String(entry?.sourceName || "").slice(0, 80),
             turns: entry?.turns == null ? null : clamp(Math.round(asNumber(entry.turns)), 0, 99),
+            amount: entry?.amount == null ? null : clamp(asNumber(entry.amount), 0, 99999),
         });
     });
     return [...unique.values()].slice(0, 16);
@@ -112,7 +123,16 @@ export const getMovePpState = (token, move, moveName = move?.name) => {
     const moves = asArray(token?.moves).map(normalizeSlug);
     const index = moves.indexOf(normalizedName);
     const pp = normalizePpSlots(token?.pp);
-    const maximum = move?.pp == null ? null : clamp(asNumber(move.pp), 0, 99);
+    const specialState = normalizeSpecialState(token?.specialState);
+    const copiedWithFivePp = Boolean(
+        specialState.transform
+        || specialState.moveOverrides.some(override => override.slot === index && override.kind === "mimic")
+    );
+    const maximum = copiedWithFivePp
+        ? 5
+        : move?.pp == null
+            ? null
+            : clamp(asNumber(move.pp), 0, 99);
     const remaining = index < 0 ? null : (pp[index] ?? maximum);
     return { index, pp, maximum, remaining };
 };
@@ -213,7 +233,8 @@ export const adjustMoveAccuracy = ({ move, attacker, defender } = {}) => {
     const baseAccuracy = move?.accuracy === true || move?.accuracy == null
         ? null
         : clamp(asNumber(move.accuracy, 100), 0, 100);
-    if (!profile.requiresAccuracyCheck || baseAccuracy == null) {
+    const noGuard = [attacker?.ability, defender?.ability].map(normalizeSlug).includes("no-guard");
+    if (!profile.requiresAccuracyCheck || baseAccuracy == null || noGuard) {
         return {
             automatic: true,
             baseAccuracy,
@@ -222,6 +243,7 @@ export const adjustMoveAccuracy = ({ move, attacker, defender } = {}) => {
             evasionStage: 0,
             combinedStage: 0,
             multiplier: 1,
+            noGuard,
         };
     }
     const attackerStages = normalizeStageMap(attacker?.stages);
@@ -238,6 +260,7 @@ export const adjustMoveAccuracy = ({ move, attacker, defender } = {}) => {
         evasionStage,
         combinedStage,
         multiplier,
+        noGuard: false,
     };
 };
 
@@ -287,6 +310,11 @@ const SELF_STAGE_CHANGE_MOVES = new Set([
 const PROTECTING_MOVES = new Set([
     "baneful-bunker", "burning-bulwark", "detect", "endure", "kings-shield",
     "max-guard", "obstruct", "protect", "silk-trap", "spiky-shield",
+]);
+
+const SELF_SACRIFICE_MOVES = new Set([
+    "explosion", "final-gambit", "healing-wish", "lunar-dance", "memento",
+    "misty-explosion", "self-destruct",
 ]);
 
 const stageChangesTargetUser = move => {
@@ -391,6 +419,8 @@ export const getMoveAutomationTags = move => {
     if (asArray(move?.stat_changes).some(entry => STAGE_STAT_KEYS.includes(entry?.stat?.name))) {
         tags.push("Modificadores");
     }
+    const special = getMoveSpecialProfile(move);
+    if (special) tags.push(special.automation === "automatic" ? "Mecânica especial automatizada" : "Mecânica especial guiada");
     return [...new Set(tags)];
 };
 
@@ -400,11 +430,13 @@ export const applyMoveConsequences = ({
     defenderId,
     targetId = defenderId,
     move,
+    ppMove = move,
     resolution,
     random,
     consumePp = true,
     applySelfChanges = true,
     clearDeclaration = true,
+    round = 0,
 }) => {
     const source = asArray(tokens);
     const originalAttacker = source.find(token => token.id === attackerId);
@@ -439,7 +471,7 @@ export const applyMoveConsequences = ({
         }
     };
 
-    const ppState = getMovePpState(attacker, move);
+    const ppState = getMovePpState(attacker, ppMove, ppMove?.name);
     let ppBefore = ppState.remaining;
     let ppAfter = ppState.remaining;
     if (consumePp && ppState.index >= 0 && ppState.remaining != null) {
@@ -447,14 +479,35 @@ export const applyMoveConsequences = ({
         attacker.pp[ppState.index] = ppAfter;
     }
 
+    const moveName = normalizeSlug(move?.name);
     const moveConnected = Boolean(resolution.moveConnected ?? resolution.hit);
-    const damageHit = Boolean(resolution.damageHit ?? resolution.hit);
+    const delayedDamage = ["future-sight", "doom-desire"].includes(moveName) && moveConnected;
+    const damageHit = Boolean(resolution.damageHit ?? resolution.hit) && !delayedDamage;
     const effectAdvantage = Boolean(
         resolution.attackTest
         && resolution.defenseTest
         && resolution.attackTest.total - resolution.defenseTest.total > 1
     );
-    const calculatedDamage = damageHit ? Math.max(0, asNumber(resolution.damage)) : 0;
+    const resolvedDamage = damageHit ? Math.max(0, asNumber(resolution.damage)) : 0;
+    const substitute = target
+        ? normalizeVolatileEffects(target.volatileEffects).find(effect => effect.id === "substitute")
+        : null;
+    const substituteAbsorbed = Boolean(substitute && resolvedDamage > 0);
+    let substituteDamage = 0;
+    let substituteBroken = false;
+    if (target && substituteAbsorbed) {
+        substituteDamage = Math.min(Math.max(1, asNumber(substitute.amount, 1)), resolvedDamage);
+        const remaining = Math.max(0, asNumber(substitute.amount, 1) - resolvedDamage);
+        substituteBroken = remaining <= 0;
+        const effects = normalizeVolatileEffects(target.volatileEffects)
+            .flatMap(effect => effect.id !== "substitute"
+                ? [effect]
+                : remaining > 0
+                    ? [{ ...effect, amount: remaining }]
+                    : []);
+        replaceEntity(target.id, { ...target, volatileEffects: effects });
+    }
+    const calculatedDamage = substituteAbsorbed ? 0 : resolvedDamage;
     const hitKill = target
         ? applyHitKillProtection({
             damage: calculatedDamage,
@@ -487,7 +540,7 @@ export const applyMoveConsequences = ({
     }
 
     const healing = asNumber(move?.meta?.healing);
-    if (moveConnected && healing > 0) {
+    if (moveConnected && healing > 0 && moveName !== "wish") {
         const healingTarget = target || attacker;
         const before = asNumber(healingTarget.currentHp);
         const directHealing = hpAmount(asNumber(healingTarget.maxHp, 1) * healing / 100);
@@ -505,7 +558,7 @@ export const applyMoveConsequences = ({
     let statusRoll = null;
     const status = statusForMove(move);
     const statusTarget = target || attacker;
-    if (moveConnected && status && statusTarget) {
+    if (moveConnected && status && statusTarget && (!substituteAbsorbed || statusTarget.id === attacker.id)) {
         blockedStatus = statusTarget.status
             ? `${statusTarget.name} já possui uma condição principal`
             : getStatusBlockReason(status, statusTarget, attacker);
@@ -526,7 +579,7 @@ export const applyMoveConsequences = ({
     }
 
     let trackedEffect = "";
-    if (moveConnected && normalizeSlug(move.name) === "yawn" && statusTarget) {
+    if (moveConnected && moveName === "yawn" && statusTarget) {
         blockedStatus = statusTarget.status
             ? `${statusTarget.name} já possui uma condição principal`
             : getStatusBlockReason("sleep", statusTarget, attacker);
@@ -539,12 +592,12 @@ export const applyMoveConsequences = ({
         }
     }
 
-    if (moveConnected && PROTECTING_MOVES.has(normalizeSlug(move.name))) {
+    if (moveConnected && PROTECTING_MOVES.has(moveName)) {
         const effects = normalizeVolatileEffects(attacker.volatileEffects)
             .filter(effect => effect.id !== "protection");
-        effects.push({ id: "protection", sourceMove: normalizeSlug(move.name), turns: 1 });
+        effects.push({ id: "protection", sourceMove: moveName, turns: 1 });
         replaceEntity(attacker.id, { ...attacker, volatileEffects: effects });
-        trackedEffect = normalizeSlug(move.name);
+        trackedEffect = moveName;
     }
 
     const supportedChanges = asArray(move?.stat_changes).filter(entry =>
@@ -553,7 +606,7 @@ export const applyMoveConsequences = ({
     let stageRoll = null;
     const stageChanges = [];
     const changesAffectUser = stageChangesTargetUser(move);
-    if (moveConnected && supportedChanges.length && (applySelfChanges || !changesAffectUser)) {
+    if (moveConnected && supportedChanges.length && (applySelfChanges || !changesAffectUser) && (!substituteAbsorbed || changesAffectUser)) {
         const statusMove = move?.damage_class?.name === "status";
         const chance = moveEffectChance(move, "stat_chance", statusMove);
         stageRoll = chanceResult(chance || 100, random, effectAdvantage);
@@ -578,13 +631,317 @@ export const applyMoveConsequences = ({
         }
     }
 
+    const specialNarratives = [];
+    let specialChange = null;
+    let resetAllStages = false;
+    let perishSong = false;
+    let abilityDamage = 0;
+
+    if (substituteAbsorbed) {
+        specialNarratives.push(`Substitute absorveu ${substituteDamage} de dano${substituteBroken ? " e se desfez" : ""}.`);
+    }
+
+    if (moveConnected && moveName === "transform" && target) {
+        const transformed = transformBattleToken(attacker, target, { via: "transform", round });
+        if (transformed.applied) {
+            replaceEntity(attacker.id, transformed.token);
+            specialNarratives.push(transformed.narrative);
+            specialChange = { kind: "transform", sourceTokenId: target.id, sourceName: target.name };
+        } else if (transformed.reason) {
+            specialNarratives.push(`Transform não foi aplicado: ${transformed.reason}.`);
+        }
+    }
+
+    if (moveConnected && ["sketch", "mimic"].includes(moveName) && target) {
+        const copied = copyObservedMove(attacker, target, moveName);
+        if (copied.applied) {
+            replaceEntity(attacker.id, copied.token);
+            specialNarratives.push(copied.narrative);
+            specialChange = { kind: moveName, ...copied.override };
+        } else if (copied.reason) {
+            specialNarratives.push(`${formatName(moveName)} não foi aplicado: ${copied.reason}.`);
+        }
+    }
+
+    if (moveConnected && moveName === "pain-split" && target) {
+        const average = Math.floor((asNumber(attacker.currentHp) + asNumber(target.currentHp)) / 2);
+        const attackerBefore = asNumber(attacker.currentHp);
+        const targetBefore = asNumber(target.currentHp);
+        const nextAttacker = { ...attacker, currentHp: clamp(average, 0, Math.max(1, asNumber(attacker.maxHp, 1))) };
+        const nextTarget = { ...target, currentHp: clamp(average, 0, Math.max(1, asNumber(target.maxHp, 1))) };
+        replaceEntity(attacker.id, nextAttacker);
+        replaceEntity(target.id, nextTarget);
+        healed += Math.max(0, nextAttacker.currentHp - attackerBefore) + Math.max(0, nextTarget.currentHp - targetBefore);
+        specialNarratives.push(`Pain Split aproximou os dois HP da média ${average}, respeitando o máximo de cada Pokémon.`);
+        specialChange = { kind: "pain-split", average };
+    }
+
+    if (moveConnected && moveName === "haze") {
+        resetAllStages = true;
+        specialNarratives.push("Haze neutralizou os sete modificadores de todos os Pokémon em cena.");
+        specialChange = { kind: "reset-all-stages" };
+    }
+
+    if (moveConnected && moveName === "clear-smog" && target) {
+        const stages = normalizeStageMap({});
+        const changed = { ...target, stages };
+        replaceEntity(target.id, { ...changed, stats: calculateStagedStats(changed) });
+        specialNarratives.push(`Clear Smog neutralizou todos os modificadores de ${target.name}.`);
+        specialChange = { kind: "reset-stages", targetId: target.id };
+    }
+
+    if (moveConnected && moveName === "psych-up" && target) {
+        const stages = normalizeStageMap(target.stages);
+        const changed = { ...attacker, stages };
+        replaceEntity(attacker.id, { ...changed, stats: calculateStagedStats(changed) });
+        specialNarratives.push(`${attacker.name} copiou os sete modificadores de ${target.name}.`);
+        specialChange = { kind: "copy-stages", targetId: target.id };
+    }
+
+    if (moveConnected && ["heart-swap", "power-swap", "guard-swap", "speed-swap"].includes(moveName) && target) {
+        const attackerStages = normalizeStageMap(attacker.stages);
+        const targetStages = normalizeStageMap(target.stages);
+        const keys = moveName === "heart-swap"
+            ? STAGE_STAT_KEYS
+            : moveName === "power-swap"
+                ? ["attack", "special-attack"]
+                : moveName === "guard-swap"
+                    ? ["defense", "special-defense"]
+                    : ["speed"];
+        const nextAttackerStages = { ...attackerStages };
+        const nextTargetStages = { ...targetStages };
+        keys.forEach(key => {
+            nextAttackerStages[key] = targetStages[key];
+            nextTargetStages[key] = attackerStages[key];
+        });
+        const changedAttacker = { ...attacker, stages: nextAttackerStages };
+        const changedTarget = { ...target, stages: nextTargetStages };
+        replaceEntity(attacker.id, { ...changedAttacker, stats: calculateStagedStats(changedAttacker) });
+        replaceEntity(target.id, { ...changedTarget, stats: calculateStagedStats(changedTarget) });
+        specialNarratives.push(`${formatName(moveName)} trocou ${keys.map(key => STAGE_LABELS[key]).join(" e ")} entre ${attacker.name} e ${target.name}.`);
+        specialChange = { kind: "swap-stages", stats: keys, targetId: target.id };
+    }
+
+    if (moveConnected && moveName === "topsy-turvy" && target) {
+        const stages = Object.fromEntries(Object.entries(normalizeStageMap(target.stages)).map(([key, value]) => [key, -value]));
+        const changed = { ...target, stages };
+        replaceEntity(target.id, { ...changed, stats: calculateStagedStats(changed) });
+        specialNarratives.push(`Topsy-Turvy inverteu todos os modificadores de ${target.name}.`);
+        specialChange = { kind: "invert-stages", targetId: target.id };
+    }
+
+    if (moveConnected && moveName === "power-trick") {
+        const stats = { ...attacker.stats, attack: attacker.stats?.defense, defense: attacker.stats?.attack };
+        const originalStats = {
+            ...attacker.originalStats,
+            attack: attacker.originalStats?.defense,
+            defense: attacker.originalStats?.attack,
+        };
+        const state = normalizeSpecialState(attacker.specialState);
+        const active = !state.markers.includes("power-trick");
+        const markers = active
+            ? [...state.markers, "power-trick"]
+            : state.markers.filter(marker => marker !== "power-trick");
+        replaceEntity(attacker.id, { ...attacker, stats, originalStats, specialState: { ...state, markers } });
+        specialNarratives.push(`Power Trick ${active ? "trocou" : "restaurou"} Ataque e Defesa de ${attacker.name}.`);
+        specialChange = { kind: "power-trick", active };
+    }
+
+    if (moveConnected && ["trick", "switcheroo"].includes(moveName) && target) {
+        const attackerItem = attacker.item || "";
+        replaceEntity(attacker.id, { ...attacker, item: target.item || "" });
+        replaceEntity(target.id, { ...target, item: attackerItem });
+        specialNarratives.push(`${attacker.name} e ${target.name} trocaram seus itens.`);
+        specialChange = { kind: "swap-items", targetId: target.id };
+    }
+
+    if (moveConnected && moveName === "skill-swap" && target) {
+        const attackerAbility = attacker.ability || "";
+        replaceEntity(attacker.id, { ...attacker, ability: target.ability || "" });
+        replaceEntity(target.id, { ...target, ability: attackerAbility });
+        specialNarratives.push(`${attacker.name} e ${target.name} trocaram suas habilidades.`);
+        specialChange = { kind: "swap-abilities", targetId: target.id };
+    }
+
+    if (moveConnected && target && ["soak", "magic-powder", "trick-or-treat", "forests-curse"].includes(moveName)) {
+        const nextTypes = moveName === "soak"
+            ? ["water"]
+            : moveName === "magic-powder"
+                ? ["psychic"]
+                : [...new Set([...asArray(target.types), moveName === "trick-or-treat" ? "ghost" : "grass"])];
+        replaceEntity(target.id, { ...target, types: nextTypes });
+        specialNarratives.push(`${formatName(moveName)} alterou os tipos atuais de ${target.name} para ${nextTypes.map(formatName).join(" / ")}.`);
+        specialChange = { kind: "type-change", targetId: target.id, types: nextTypes };
+    }
+
+    if (moveConnected && delayedDamage && target) {
+        const effects = normalizeVolatileEffects(target.volatileEffects).filter(effect => effect.id !== moveName);
+        effects.push({
+            id: moveName,
+            sourceMove: moveName,
+            sourceTokenId: attacker.id,
+            sourceName: attacker.name,
+            turns: 2,
+            amount: Math.max(0, asNumber(resolution.damage)),
+        });
+        replaceEntity(target.id, { ...target, volatileEffects: effects });
+        trackedEffect = moveName;
+        specialNarratives.push(`${formatName(moveName)} foi preparado para atingir ${target.name} em 2 rodadas.`);
+        specialChange = { kind: "delayed-damage", targetId: target.id, turns: 2, amount: Math.max(0, asNumber(resolution.damage)) };
+    }
+
+    if (moveConnected && moveName === "wish") {
+        const effects = normalizeVolatileEffects(attacker.volatileEffects).filter(effect => effect.id !== "wish");
+        const amount = Math.max(1, Math.floor(asNumber(attacker.maxHp, 1) / 2));
+        effects.push({ id: "wish", sourceMove: "wish", sourceTokenId: attacker.id, sourceName: attacker.name, turns: 2, amount });
+        replaceEntity(attacker.id, { ...attacker, volatileEffects: effects });
+        trackedEffect = "wish";
+        specialNarratives.push(`Wish foi preparado e recuperará até ${amount} HP em 2 rodadas.`);
+        specialChange = { kind: "delayed-heal", targetId: attacker.id, turns: 2, amount };
+    }
+
+    if (moveConnected && moveName === "substitute") {
+        const amount = Math.max(1, Math.floor(asNumber(attacker.maxHp, 1) / 4));
+        if (asNumber(attacker.currentHp) > amount) {
+            const effects = normalizeVolatileEffects(attacker.volatileEffects).filter(effect => effect.id !== "substitute");
+            effects.push({ id: "substitute", sourceMove: "substitute", sourceTokenId: attacker.id, sourceName: attacker.name, turns: null, amount });
+            replaceEntity(attacker.id, { ...attacker, currentHp: asNumber(attacker.currentHp) - amount, volatileEffects: effects });
+            recoil += amount;
+            trackedEffect = "substitute";
+            specialNarratives.push(`${attacker.name} investiu ${amount} HP para criar um Substitute.`);
+            specialChange = { kind: "substitute", amount };
+        } else {
+            specialNarratives.push("Substitute não foi criado porque o usuário não possui HP suficiente.");
+        }
+    }
+
+    if (moveConnected && moveName === "leech-seed" && target) {
+        if (getDefensiveTypes(target).includes("grass")) {
+            specialNarratives.push("Leech Seed não afetou um Pokémon do tipo Grama.");
+        } else {
+            const effects = normalizeVolatileEffects(target.volatileEffects).filter(effect => effect.id !== "leech-seed");
+            effects.push({ id: "leech-seed", sourceMove: "leech-seed", sourceTokenId: attacker.id, sourceName: attacker.name, turns: null });
+            replaceEntity(target.id, { ...target, volatileEffects: effects });
+            trackedEffect = "leech-seed";
+            specialNarratives.push(`${target.name} foi semeado; o dreno será resolvido no fim das rodadas.`);
+            specialChange = { kind: "leech-seed", targetId: target.id, sourceTokenId: attacker.id };
+        }
+    }
+
+    if (moveConnected && ["aqua-ring", "ingrain"].includes(moveName)) {
+        const effects = normalizeVolatileEffects(attacker.volatileEffects).filter(effect => effect.id !== moveName);
+        effects.push({ id: moveName, sourceMove: moveName, sourceTokenId: attacker.id, sourceName: attacker.name, turns: null });
+        replaceEntity(attacker.id, { ...attacker, volatileEffects: effects });
+        trackedEffect = moveName;
+        specialNarratives.push(`${formatName(moveName)} foi registrado como recuperação persistente.`);
+        specialChange = { kind: "persistent-heal", targetId: attacker.id };
+    }
+
+    if (moveConnected && moveName === "perish-song") {
+        perishSong = true;
+        trackedEffect = "perish-song";
+        specialNarratives.push("Perish Song marcou todos em cena com uma contagem de 3 rodadas.");
+        specialChange = { kind: "perish-song", turns: 3 };
+    }
+
+    if (moveConnected && SELF_SACRIFICE_MOVES.has(moveName)) {
+        const hpLost = Math.max(0, asNumber(attacker.currentHp));
+        replaceEntity(attacker.id, { ...attacker, currentHp: 0 });
+        recoil += hpLost;
+        specialNarratives.push(`${attacker.name} concluiu ${formatName(moveName)} e não pode mais batalhar.`);
+        specialChange = { kind: "self-sacrifice", hpLost };
+    }
+
+    if (resolution.abilityBlock && target) {
+        const { ability, marker, absorbed } = resolution.abilityBlock;
+        if (marker) {
+            const state = normalizeSpecialState(target.specialState);
+            const markers = [...new Set([...state.markers, marker])];
+            let changedTarget = { ...target, specialState: { ...state, markers } };
+            if (marker === "disguise-broken") {
+                abilityDamage = Math.min(changedTarget.currentHp, hpAmount(asNumber(changedTarget.maxHp, 1) / 8));
+                changedTarget = { ...changedTarget, currentHp: Math.max(0, changedTarget.currentHp - abilityDamage) };
+                specialNarratives.push(`Disguise absorveu o golpe, rompeu o disfarce e custou ${abilityDamage} HP.`);
+            } else {
+                specialNarratives.push(`${formatName(ability)} mudou de estado após bloquear o golpe.`);
+            }
+            replaceEntity(target.id, changedTarget);
+        } else if (absorbed && ["water-absorb", "volt-absorb", "dry-skin"].includes(ability)) {
+            const before = asNumber(target.currentHp);
+            const amount = hpAmount(asNumber(target.maxHp, 1) / 4);
+            const currentHp = clamp(before + amount, 0, Math.max(1, asNumber(target.maxHp, 1)));
+            healed += Math.max(0, currentHp - before);
+            replaceEntity(target.id, { ...target, currentHp });
+            specialNarratives.push(`${formatName(ability)} absorveu o golpe e recuperou ${Math.max(0, currentHp - before)} HP.`);
+        } else if (absorbed && ["motor-drive", "lightning-rod", "storm-drain", "sap-sipper", "well-baked-body"].includes(ability)) {
+            const stat = ability === "motor-drive"
+                ? "speed"
+                : ["lightning-rod", "storm-drain"].includes(ability)
+                    ? "special-attack"
+                    : ability === "sap-sipper"
+                        ? "attack"
+                        : "defense";
+            const change = ability === "well-baked-body" ? 2 : 1;
+            const changed = applyStageChange(target, stat, change);
+            replaceEntity(target.id, changed);
+            specialNarratives.push(`${formatName(ability)} absorveu o golpe e alterou ${STAGE_LABELS[stat]} em +${change}.`);
+        } else if (absorbed && ability === "flash-fire") {
+            const state = normalizeSpecialState(target.specialState);
+            const markers = [...new Set([...state.markers, "flash-fire-boost"])];
+            replaceEntity(target.id, { ...target, specialState: { ...state, markers } });
+            specialNarratives.push("Flash Fire absorveu o golpe e fortaleceu os próximos movimentos de Fogo.");
+        } else {
+            specialNarratives.push(`${resolution.abilityBlock.reason}.`);
+        }
+    }
+
+    if (target && damage > 0 && normalizeSpecialState(target.specialState).illusion) {
+        const revealed = revealBattleIllusion(target);
+        if (revealed.applied) {
+            replaceEntity(target.id, revealed.token);
+            specialNarratives.push(`A Ilusão de ${target.name} foi revelada pelo dano.`);
+        }
+    }
+
     const fieldChange = moveConnected ? getMoveFieldChange(move) : null;
-    if (clearDeclaration) attacker = { ...attacker, declaredMove: "", priority: 0 };
-    const nextTokens = source.map(token => {
+    if (clearDeclaration) {
+        attacker = recordBattleMove(attacker, {
+            moveName,
+            targetId: target?.id || "",
+            targetName: target?.name || "",
+            round,
+            connected: moveConnected,
+            damage,
+            damageClass: move?.damage_class?.name,
+        });
+        attacker = { ...attacker, declaredMove: "", priority: 0 };
+    }
+    let nextTokens = source.map(token => {
         if (token.id === attacker.id) return attacker;
         if (target && token.id === target.id) return target;
         return token;
     });
+    if (resetAllStages) {
+        nextTokens = nextTokens.map(token => {
+            const stages = normalizeStageMap({});
+            const changed = { ...token, stages };
+            return { ...changed, stats: calculateStagedStats(changed) };
+        });
+    }
+    if (perishSong) {
+        const protectedNames = nextTokens
+            .filter(token => normalizeSlug(token.ability) === "soundproof")
+            .map(token => token.name);
+        if (protectedNames.length) {
+            specialNarratives.push(`Soundproof protegeu ${protectedNames.join(", ")} de Perish Song.`);
+        }
+        nextTokens = nextTokens.map(token => {
+            if (normalizeSlug(token.ability) === "soundproof") return token;
+            const effects = normalizeVolatileEffects(token.volatileEffects).filter(effect => effect.id !== "perish-song");
+            effects.push({ id: "perish-song", sourceMove: "perish-song", sourceTokenId: attacker.id, sourceName: attacker.name, turns: 3 });
+            return { ...token, volatileEffects: effects };
+        });
+    }
 
     return {
         tokens: nextTokens,
@@ -611,6 +968,13 @@ export const applyMoveConsequences = ({
             stageChanges,
             stageRoll,
             fieldChange,
+            scheduledDamage: delayedDamage ? Math.max(0, asNumber(resolution.damage)) : 0,
+            specialChange,
+            specialNarratives,
+            abilityBlock: resolution.abilityBlock || null,
+            abilityDamage,
+            substituteDamage,
+            substituteBroken,
             fainted: Boolean(target && target.currentHp <= 0),
             attackerFainted: attacker.currentHp <= 0,
         },

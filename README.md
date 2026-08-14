@@ -12,7 +12,9 @@ os termos fixos, a concordância e o tom usado em toda a jornada.
 - Boxes locais com salvamento automático, exportação de uma equipe inteira ou de Pokémon escolhidos, importação com prévia e destino selecionável e restauração após exclusões.
 - Fichas que mantêm forma, habilidade, tipo Tera, atributos, HP, PP, XP e sugestões do jogo sempre em dia.
 - Central da Aventura persistente com papéis separados, convite único que já abre a aventura correta, campo 2D, iniciativa, conversa, áudio e progresso integrado às Boxes.
-- Assistente Rotom que resolve disputa, precisão, golpe crítico, STAB, tipos, limite de dano, PP, cura, recuo, condições e estágios.
+- Assistente Rotom que resolve disputa, precisão, golpe crítico, STAB, tipos, limite de dano, PP, cura, recuo, condições, estágios e famílias de movimentos excepcionais.
+- Mecânicas próprias de Ditto, Smeargle, Zorua e Zoroark: Transform/Imposter preservam a ficha real, Sketch e Mimic distinguem aprendizado permanente de cópia temporária e Illusion separa identidade pública de identidade verdadeira.
+- Painel de exceções que identifica automação integral, resolução guiada e decisão narrativa para formas, habilidades e movimentos cuja regra depende do contexto da cena.
 - Uso offline para a interface e os dados da Pokédex já consultados; APIs privadas da aventura nunca entram no cache.
 
 O MyOwnDex sugere e calcula o que puder, sem tirar a liberdade de registrar escolhas próprias da aventura.

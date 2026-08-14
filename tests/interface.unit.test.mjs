@@ -93,7 +93,7 @@ test("visible copy avoids robotic system language", async () => {
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.2/);
+  assert.match(worker, /myowndex-shell-v9\.3/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -172,6 +172,27 @@ test("the adventure exposes every modifier and explains movement resolution", as
   assert.match(combat, /não exige selecionar um adversário/);
   assert.match(rules, /Os sete modificadores/);
   assert.match(rules, /Uma precisão numérica — inclusive 100%/);
+});
+
+test("unique Pokémon and exceptional Moves expose state, narrative and automation level", async () => {
+  const [panel, combat, battlefield, rules, mechanics] = await Promise.all([
+    read("src/components/Room/SpecialMechanicsPanel.jsx"),
+    read("src/components/Room/CombatAssistant.jsx"),
+    read("src/components/Room/Battlefield.jsx"),
+    read("src/core/rpgRules.js"),
+    read("src/core/specialMechanics.js"),
+  ]);
+  assert.match(panel, /Mecânicas únicas/);
+  assert.match(panel, /Voltar à forma original/);
+  assert.match(panel, /Sketch gravado/);
+  assert.match(combat, /Mecânica excepcional/);
+  assert.match(combat, /Movimento resultante/);
+  assert.match(battlefield, /getBattleDisplayIdentity/);
+  assert.match(rules, /Transform copia aparência/);
+  assert.match(rules, /Sketch troca permanentemente/);
+  assert.match(mechanics, /Automation integral|Automação integral/);
+  assert.match(mechanics, /imposter/);
+  assert.match(mechanics, /illusion/);
 });
 
 test("the internal Guide is the canonical source and explains hit kill protection", async () => {

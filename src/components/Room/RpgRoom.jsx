@@ -43,9 +43,11 @@ import {
 import { getFumbleSuggestion, getNextLevelXp, rollAttributeTest, rollPercentTest } from "../../core/rpgRules.js";
 import { mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
 import { readStorage, removeStorage, writeStorage } from "../../core/storage.js";
+import { getBattleDisplayIdentity, normalizeSpecialState } from "../../core/specialMechanics.js";
 import AudioDeck from "./AudioDeck.jsx";
 import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
+import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
 import VoiceCall from "./VoiceCall.jsx";
 
 const connectionLabels = {
@@ -58,6 +60,25 @@ const connectionLabels = {
 };
 
 const roleLabel = role => role === "narrator" ? "Narrador" : "Jogador";
+const volatileEffectLabel = effect => {
+    const turns = effect.turns != null ? ` • ${effect.turns} rodada(s)` : "";
+    const amount = effect.amount != null ? ` • ${formatNumberPtBr(effect.amount)} HP` : "";
+    if (effect.id === "yawn") return `Sonolento por Bocejo${turns}`;
+    if (effect.id === "wish") return `Wish preparado${turns}${amount}`;
+    if (["future-sight", "doom-desire"].includes(effect.id)) return `${formatName(effect.id)} preparado${turns}${amount}`;
+    if (effect.id === "perish-song") return `Contagem de Perish Song${turns}`;
+    if (effect.id === "substitute") return `Substitute ativo${amount}`;
+    if (effect.id === "leech-seed") return "Leech Seed ativo";
+    if (["aqua-ring", "ingrain"].includes(effect.id)) return `${formatName(effect.id)} ativo`;
+    return `${formatName(effect.sourceMove || effect.id)}${turns}${amount}`;
+};
+const roundEffectSummary = effect => {
+    if (effect.kind === "status") return `${effect.tokenName} adormeceu por causa de Bocejo`;
+    if (effect.kind === "heal") return `${effect.tokenName} recuperou ${formatNumberPtBr(effect.healed)} HP por ${effect.sources.join(" e ")}`;
+    if (effect.kind === "perish") return `${effect.tokenName} chegou ao fim da contagem de Perish Song e não pode mais batalhar`;
+    if (effect.kind === "state") return `${effect.tokenName}: ${effect.sources.join(" e ")}`;
+    return `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`;
+};
 const roomDate = value => {
     const normalized = typeof value === "string" && /^\d{4}-\d{2}-\d{2} /.test(value)
         ? `${value.replace(" ", "T")}Z`
@@ -338,6 +359,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const role = session?.role || "";
     const selectedTeam = teams.find(team => team.id === selectedTeamId) || teams[0] || null;
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId) || null;
+    const selectedDisplayIdentity = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
 
     useEffect(() => {
         snapshotRef.current = snapshot;
@@ -711,6 +733,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const updateToken = patch => {
         if (!selectedToken || role !== "narrator") return;
         const nextToken = { ...selectedToken, ...patch };
+        const specialState = normalizeSpecialState(nextToken.specialState);
         commitSnapshot({
             ...snapshot,
             tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
@@ -727,7 +750,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 currentHp: nextToken.currentHp,
                                 status: nextToken.status,
                                 xp: nextToken.xp,
-                                pp: nextToken.pp,
+                                pp: specialState.transform?.base?.pp
+                                    || (specialState.moveOverrides.some(override => !override.permanent) ? pokemon.rpg?.pp : nextToken.pp),
                             },
                         }
                         : pokemon),
@@ -735,6 +759,14 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 : team
             ));
         }
+    };
+
+    const replaceSelectedToken = nextToken => {
+        if (!selectedToken || role !== "narrator" || nextToken?.id !== selectedToken.id) return;
+        commitSnapshot({
+            ...snapshot,
+            tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
+        });
     };
 
     const adjustSelectedStage = (stat, change) => {
@@ -878,10 +910,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         await sendEvent("system", {
             text: closingRound
                 ? `${roundEnd.effects.length
-                    ? `${roundEnd.effects.map(effect => effect.kind === "status"
-                        ? `${effect.tokenName} adormeceu por causa de Bocejo`
-                        : `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`
-                    ).join("; ")}. `
+                    ? `${roundEnd.effects.map(roundEffectSummary).join("; ")}. `
                     : ""}Rodada ${next.round} pronta! Escolha os movimentos para formar a nova ordem.`
                 : active
                     ? `Turno de ${active.name}. Rodada ${next.round}.`
@@ -1185,11 +1214,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <section className="token-inspector">
                             <button type="button" className="token-inspector-close" onClick={() => setSelectedTokenId("")} aria-label="Fechar ficha rápida">×</button>
                             <div className="token-inspector-identity">
-                                {selectedToken.sprite ? <img src={selectedToken.sprite} alt="" className="pixelated" /> : <i />}
+                                {selectedDisplayIdentity?.sprite ? <img src={selectedDisplayIdentity.sprite} alt="" className="pixelated" /> : <i />}
                                 <span>
                                     <small>Nível {selectedToken.level}</small>
-                                    <strong>{selectedToken.name}</strong>
-                                    <em>{selectedToken.types.map(formatType).join(" / ") || "Tipo personalizado"}</em>
+                                    <strong>{selectedDisplayIdentity?.name || selectedToken.name}</strong>
+                                    <em>{(selectedDisplayIdentity?.types || selectedToken.types).map(formatType).join(" / ") || "Tipo personalizado"}</em>
+                                    {role === "narrator" && selectedDisplayIdentity?.disguised && <small>Identidade real: {selectedToken.name}</small>}
                                     {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
                                 </span>
                             </div>
@@ -1228,12 +1258,18 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 <div className="token-volatile-list" aria-label="Efeitos temporários ativos">
                                     {selectedToken.volatileEffects.map(effect => (
                                         <span key={effect.id}>
-                                            {effect.id === "yawn" ? "Sonolento por Bocejo" : formatName(effect.sourceMove || effect.id)}
-                                            {effect.turns != null ? ` • ${effect.turns} rodada(s)` : ""}
+                                            {volatileEffectLabel(effect)}
                                         </span>
                                     ))}
                                 </div>
                             )}
+                            <SpecialMechanicsPanel
+                                token={selectedToken}
+                                snapshot={snapshot}
+                                role={role}
+                                onTokenChange={replaceSelectedToken}
+                                onNotice={text => setNotice?.({ tone: "blue", text })}
+                            />
                             <details className="token-modifiers">
                                 <summary>
                                     <span>Modificadores</span>

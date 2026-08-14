@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatType } from "../../core/mechanics.js";
 import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS } from "../../core/room.js";
+import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
@@ -18,10 +19,12 @@ const Token = ({
     onPointerMove,
     onPointerUp,
     onKeyMove,
-}) => (
+}) => {
+    const display = getBattleDisplayIdentity(token);
+    return (
     <button
         type="button"
-        className={`room-token side-${token.side} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""}`}
+        className={`room-token side-${token.side} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
         style={{ left: `${position.x}%`, top: `${position.y}%` }}
         onClick={() => onSelect(token.id)}
         onPointerDown={event => canMove && onPointerDown(event, token)}
@@ -36,26 +39,30 @@ const Token = ({
                 y: event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0,
             });
         }}
-        aria-label={`${token.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${canMove ? ", pode ser movido" : ""}`}
+        aria-label={`${display.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
-            {token.sprite ? (
+            {display.sprite ? (
                 <img
-                    src={token.sprite}
+                    src={display.sprite}
                     alt=""
                     className={`room-token-sprite pixelated ${mirrored && token.side === "ally" ? "is-mirrored" : ""}`}
                     draggable="false"
                 />
             ) : <span className="room-token-fallback" aria-hidden="true">●</span>}
         </span>
-        <span className="room-token-name">{token.name}</span>
+        <span className="room-token-name">{display.name}</span>
+        {(display.transformed || display.disguised) && (
+            <span className="room-token-special" aria-hidden="true">{display.disguised ? "Ilusão" : "Transform"}</span>
+        )}
         {showHp && (
             <span className="room-token-hp" aria-hidden="true">
                 <span style={{ width: `${token.maxHp ? token.currentHp / token.maxHp * 100 : 0}%` }} />
             </span>
         )}
     </button>
-);
+    );
+};
 
 export default function Battlefield({
     snapshot,

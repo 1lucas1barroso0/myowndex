@@ -1,17 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RPG_STATUS_LABELS } from '../../core/copy.js';
+import { describeMove, describeTrait } from '../../core/descriptions.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
 import { RPG_STATUSES } from '../../core/team.js';
-import { getAbilityProfile, getItemProfile, TRAIT_AUTOMATION_LABELS } from '../../core/traitMechanics.js';
-
-const traitCatalogText = detail => {
-    const entries = Array.isArray(detail?.effect_entries) ? detail.effect_entries : [];
-    const entry = entries.find(value => ["pt-br", "pt"].includes(value?.language?.name))
-        || entries.find(value => value?.language?.name === "en")
-        || entries[0];
-    return String(entry?.short_effect || entry?.effect || "").replace(/[\n\f]+/g, " ").replace(/\s+/g, " ").trim();
-};
 
 const POKEMONDB_ITEMS = [
     "potion", "super-potion", "hyper-potion", "max-potion", "full-restore", "revive", "max-revive", 
@@ -469,15 +461,19 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             </div>
                             <div>
                                 {[
-                                    pk.ability ? { kind: "ability", id: pk.ability, profile: getAbilityProfile(pk.ability), detail: traitDetails.ability } : null,
-                                    pk.item ? { kind: "item", id: pk.item, profile: getItemProfile(pk.item), detail: traitDetails.item } : null,
-                                ].filter(Boolean).map(trait => (
+                                    pk.ability ? { kind: "ability", id: pk.ability, detail: traitDetails.ability } : null,
+                                    pk.item ? { kind: "item", id: pk.item, detail: traitDetails.item } : null,
+                                ].filter(Boolean).map(trait => ({ ...trait, explanation: describeTrait(trait.kind, trait.id, trait.detail) })).map(trait => (
                                     <article key={`${trait.kind}-${trait.id}`} className={`is-${trait.kind}`}>
-                                        <header><small>{trait.kind === "ability" ? "Habilidade" : "Item"}</small><b>{TRAIT_AUTOMATION_LABELS[trait.profile.automation]}</b></header>
+                                        <header><small>{trait.kind === "ability" ? "Habilidade" : "Item"}</small><b>{trait.explanation.handling}</b></header>
                                         <strong>{formatName(trait.id)}</strong>
-                                        <p>{trait.profile.summary}</p>
-                                        <small>Gatilho: {trait.profile.trigger}.</small>
-                                        {traitCatalogText(trait.detail) && <details><summary>Descrição do catálogo</summary><p>{traitCatalogText(trait.detail)}</p></details>}
+                                        <p>{trait.explanation.summary}</p>
+                                        <small>{trait.explanation.trigger}</small>
+                                        {trait.explanation.catalog.text ? (
+                                            <details><summary>{trait.explanation.catalog.label}</summary><p lang={trait.explanation.catalog.code}>{trait.explanation.catalog.text}</p></details>
+                                        ) : (
+                                            <p className="catalog-description-missing">O catálogo não trouxe outro texto. A regra acima continua à vista e nenhuma exceção será inventada.</p>
+                                        )}
                                     </article>
                                 ))}
                             </div>
@@ -512,6 +508,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 const moveName = pk.moves?.[index] || "";
                                 const normalizedName = moveName.trim().toLowerCase().replace(/\s+/g, "-");
                                 const detail = moveDetails[normalizedName];
+                                const moveExplanation = detail ? describeMove(detail, { isTTRPG }) : null;
                                 const isException = Boolean(moveName) && !isHackmon && !validMoveNames.has(normalizedName);
                                 const currentPp = rpg.pp?.[index];
                                 return (
@@ -533,8 +530,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                         {(moveName || detail) && (
                                             <div className="mt-1 flex flex-wrap items-center gap-1 border-t border-slate-200/80 px-2 pt-2">
                                                 {detail?.power != null && <span className="move-chip">Poder {isTTRPG ? convertToTTRPG(detail.power) : detail.power}</span>}
-                                                <span className="move-chip">Precisão {detail?.accuracy ?? "—"}</span>
-                                                <span className="move-chip">PP {currentPp ?? detail?.pp ?? "—"}/{detail?.pp ?? "—"}</span>
+                                                <span className="move-chip">Precisão {detail?.accuracy == null ? "sem teste próprio" : `${detail.accuracy}%`}</span>
+                                                <span className="move-chip">PP {currentPp ?? detail?.pp ?? "a confirmar"}/{detail?.pp ?? "regra própria"}</span>
                                                 {detail?.priority !== 0 && detail?.priority != null && <span className="move-chip">Prioridade {detail.priority > 0 ? "+" : ""}{detail.priority}</span>}
                                                 {isException && <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[8px] font-black uppercase text-amber-800">{experienceMode === "game" ? "Não disponível neste jogo" : "Escolha livre"}</span>}
                                                 {isTTRPG && moveName && (
@@ -556,6 +553,14 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                                     </label>
                                                 )}
                                             </div>
+                                        )}
+                                        {moveExplanation && (
+                                            <details className="editor-move-description">
+                                                <summary>Entender este movimento</summary>
+                                                <p>{moveExplanation.summary}</p>
+                                                <ul>{moveExplanation.facts.map((fact, factIndex) => <li key={`${normalizedName}-${factIndex}`}>{fact}</li>)}</ul>
+                                                {moveExplanation.catalog.text && <p lang={moveExplanation.catalog.code}><strong>{moveExplanation.catalog.label}:</strong> {moveExplanation.catalog.text}</p>}
+                                            </details>
                                         )}
                                     </div>
                                 );

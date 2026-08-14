@@ -273,6 +273,13 @@ export const DAMAGE_CLASS_LABELS = { physical: "Físico", special: "Especial", s
 export const formatType = type => TYPE_LABELS[type] || formatName(type);
 export const formatDamageClass = damageClass => DAMAGE_CLASS_LABELS[damageClass] || formatName(damageClass);
 export const TYPE_COLORS = { normal: "#9ca3af", fire: "#f97316", water: "#3b82f6", electric: "#eab308", grass: "#22c55e", ice: "#67e8f9", fighting: "#ef4444", poison: "#a855f7", ground: "#d97706", flying: "#818cf8", psychic: "#ec4899", bug: "#84cc16", rock: "#b45309", ghost: "#6366f1", dragon: "#6366f1", dark: "#334155", steel: "#94a3b8", fairy: "#f472b6", stellar: "#14b8a6" };
+export const TYPE_TEXT_COLORS = {
+    normal: "#172554", fire: "#172554", water: "#fef08a", electric: "#172554",
+    grass: "#172554", ice: "#172554", fighting: "#fef08a", poison: "#fef08a",
+    ground: "#172554", flying: "#172554", psychic: "#172554", bug: "#172554",
+    rock: "#fef08a", ghost: "#fef08a", dragon: "#fef08a", dark: "#a5f3fc",
+    steel: "#172554", fairy: "#172554", stellar: "#172554",
+};
 export const MATCHUPS = {
     normal: { fighting: 2, ghost: 0 }, fire: { water: 2, ground: 2, rock: 2, fire: .5, grass: .5, ice: .5, bug: .5, steel: .5, fairy: .5 },
     water: { electric: 2, grass: 2, fire: .5, water: .5, ice: .5, steel: .5 }, electric: { ground: 2, electric: .5, flying: .5, steel: .5 },

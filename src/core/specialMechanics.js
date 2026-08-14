@@ -6,14 +6,15 @@ const asNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Numbe
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 const slug = value => asText(value).trim().toLowerCase().replace(/\s+/g, "-");
 const unique = values => [...new Set(values.filter(Boolean))];
+const positiveStageLabel = value => `${value} ${value === 1 ? "estágio positivo" : "estágios positivos"}`;
 const STAT_KEYS = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"];
 const STAGE_KEYS = ["attack", "defense", "special-attack", "special-defense", "speed", "accuracy", "evasion"];
 
 export const SPECIAL_STATE_VERSION = 1;
 export const SPECIAL_AUTOMATION_LABELS = Object.freeze({
-    automatic: "Automação integral",
-    guided: "Resolução guiada",
-    narrated: "Decisão narrativa",
+    automatic: "O MyOwnDex resolve quando a condição acontece",
+    guided: "O MyOwnDex orienta e pede a escolha necessária",
+    narrated: "O Narrador decide com a regra à vista",
 });
 
 const copyNumbers = (value, keys, minimum = 0, maximum = 99999) => Object.fromEntries(
@@ -421,7 +422,7 @@ const MOVE_FAMILIES = [
     },
     {
         names: ["sketch"],
-        profile: moveProfile("sketch", "Aprendizado permanente", "Substitui Sketch pelo último movimento que o alvo usou e sincroniza a mudança com a ficha do dono.", "automatic", ["Não funciona sem um movimento observado válido.", "Movimentos marcados como não copiáveis continuam protegidos."]),
+        profile: moveProfile("sketch", "Aprendizado permanente", "Substitui Sketch pelo último movimento válido que o alvo usou; a ficha vinculada também recebe a mudança.", "automatic", ["Não funciona sem um movimento observado válido.", "Movimentos marcados como não copiáveis continuam protegidos."]),
     },
     {
         names: ["mimic"],
@@ -465,7 +466,7 @@ const MOVE_FAMILIES = [
     },
     {
         names: ["substitute", "leech-seed", "perish-song", "aqua-ring", "ingrain"],
-        profile: moveProfile("persistent", "Efeito persistente", "Cria um estado visível que continua entre ações e é processado no fim das rodadas.", "automatic"),
+        profile: moveProfile("persistent", "Efeito persistente", "Cria um estado visível que continua entre ações e é resolvido no fim de cada rodada.", "automatic"),
     },
     {
         names: ["destiny-bond", "grudge", "curse"],
@@ -528,11 +529,11 @@ export const calculateDynamicMovePower = ({ move, attacker, defender, random } =
     } else if (["stored-power", "power-trip"].includes(name)) {
         const stages = positiveStages(attacker?.stages);
         power = 20 + stages * 20;
-        explanation = `${stages} estágio(s) positivo(s)`;
+        explanation = positiveStageLabel(stages);
     } else if (name === "punishment") {
         const stages = positiveStages(defender?.stages);
         power = Math.min(200, 60 + stages * 20);
-        explanation = `${stages} estágio(s) positivo(s) no alvo`;
+        explanation = `${positiveStageLabel(stages)} no alvo`;
     } else if (name === "facade" && attacker?.status) {
         power = (basePower || 70) * 2;
         explanation = "Condição principal do usuário dobrou o poder";

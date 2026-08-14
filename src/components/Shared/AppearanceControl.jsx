@@ -3,9 +3,9 @@ import { readStorage, writeStorage } from "../../core/storage.js";
 
 const APPEARANCE_KEY = "myowndex_appearance_v1";
 const THEMES = [
-    { id: "normal", label: "Normal", icon: "☀" },
-    { id: "night", label: "Noturno", icon: "☾" },
-    { id: "system", label: "Sistema", icon: "◐" },
+    { id: "normal", label: "Claro", icon: "☀" },
+    { id: "night", label: "Escuro", icon: "☾" },
+    { id: "system", label: "Como o aparelho", icon: "◐" },
 ];
 
 const validTheme = value => THEMES.some(theme => theme.id === value) ? value : "system";
@@ -41,8 +41,8 @@ export default function AppearanceControl() {
         <button
             type="button"
             className="appearance-control"
-            title={`Aparência: ${current.label}. Clique para usar ${next.label}.`}
-            aria-label={`Aparência atual: ${current.label}. Alterar para ${next.label}.`}
+            title={`Aparência atual: ${current.label}. Usar ${next.label}.`}
+            aria-label={`A aparência está em ${current.label}. Alterar para ${next.label}.`}
             onClick={() => setPreference(next.id)}
         >
             <span aria-hidden="true">{current.icon}</span>

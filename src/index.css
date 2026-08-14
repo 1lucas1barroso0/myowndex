@@ -1704,7 +1704,7 @@ html[data-theme="night"] textarea { color-scheme: dark; }
 html[data-theme="night"] input::placeholder,
 html[data-theme="night"] textarea::placeholder { color: #64748b; }
 
-/* Contrato de contraste 9.4: texto útil nunca depende de cinza pálido e estados ativos usam cor viva. */
+/* Contrato de contraste 9.5: texto útil nunca depende de cinza pálido e estados ativos usam cor viva. */
 html:not([data-theme="night"]) .nav-capsule.is-active { background: #0e7490; color: #ecfeff; }
 html:not([data-theme="night"]) .nav-capsule.is-active span { color: #facc15; }
 html[data-theme="night"] .nav-capsule.is-active { background: #155e75; color: #a5f3fc; }
@@ -1757,4 +1757,271 @@ html[data-theme="night"] .rpg-journey-panel > summary small { color: #e2e8f0; }
 html[data-theme="night"] .rpg-journey-panel > div {
   border-color: #9a3412;
   background: #102238;
+}
+
+/* Descrições completas: primeiro explica em linguagem humana, depois preserva a fonte do catálogo. */
+.move-fact-chip {
+  border-left: 2px solid #cbd5e1;
+  padding-left: .65rem;
+  color: #526175;
+  font-size: .625rem;
+  font-weight: 850;
+}
+.move-fact-chip strong { color: #0f172a; font-weight: 950; }
+.move-human-summary,
+.ability-description > p {
+  margin: 0;
+  color: #334155;
+  font-size: .78rem;
+  font-weight: 750;
+  line-height: 1.6;
+}
+.move-human-facts,
+.species-description ul,
+.editor-move-description ul {
+  display: grid;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.move-human-facts li,
+.species-description li,
+.editor-move-description li {
+  position: relative;
+  padding-left: 1.05rem;
+  color: #526175;
+  font-size: .7rem;
+  font-weight: 680;
+  line-height: 1.55;
+}
+.move-human-facts li::before,
+.species-description li::before,
+.editor-move-description li::before {
+  position: absolute;
+  top: .55em;
+  left: .15rem;
+  width: .38rem;
+  height: .38rem;
+  border-radius: 50%;
+  background: #0891b2;
+  content: "";
+}
+.catalog-description {
+  border: 1px solid #bae6fd;
+  border-radius: .75rem;
+  background: #f0f9ff;
+  padding: .65rem .75rem;
+}
+.catalog-description summary {
+  cursor: pointer;
+  color: #0369a1;
+  font-size: .65rem;
+  font-weight: 900;
+}
+.catalog-description p {
+  margin: .55rem 0 0;
+  color: #475569;
+  font-size: .7rem;
+  font-weight: 650;
+  line-height: 1.55;
+}
+.catalog-description-missing {
+  margin: 0;
+  border-left: 3px solid #d97706;
+  background: #fffbeb;
+  padding: .55rem .65rem;
+  color: #854d0e;
+  font-size: .68rem;
+  font-weight: 720;
+  line-height: 1.5;
+}
+.ability-description { display: grid; gap: .55rem; }
+.ability-description strong { color: #0e7490; }
+.species-description {
+  border: 2px solid #22d3ee;
+  border-radius: 1rem;
+  background: linear-gradient(135deg,#ecfeff,#f0fdf4);
+  padding: 1rem;
+  box-shadow: inset 4px 0 0 #84cc16;
+}
+.species-description > span {
+  color: #0e7490;
+  font-size: .6rem;
+  font-weight: 950;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.species-description h3 { margin: .22rem 0 .55rem; color: #164e63; font-size: 1.15rem; font-weight: 950; }
+.species-description > p { margin: 0; color: #334155; font-size: .8rem; font-weight: 750; line-height: 1.65; }
+.species-description > small { display: block; margin-top: .5rem; color: #9a3412; font-size: .65rem; font-weight: 750; line-height: 1.5; }
+.species-description ul { margin-top: .8rem; }
+.editor-move-description {
+  margin-top: .55rem;
+  border-top: 1px solid #cbd5e1;
+  padding: .55rem .5rem .2rem;
+}
+.editor-move-description summary { cursor: pointer; color: #0e7490; font-size: .65rem; font-weight: 900; }
+.editor-move-description > p { margin: .5rem 0; color: #475569; font-size: .68rem; font-weight: 700; line-height: 1.55; }
+.editor-move-description li { font-size: .65rem; }
+
+/* Contrato noturno 9.5: nenhuma superfície ou palavra depende de branco. */
+html[data-theme="night"] {
+  --night-canvas: #071522;
+  --night-surface: #102a42;
+  --night-surface-soft: #163550;
+  --night-line: #356786;
+  --night-ink: #b9d9f2;
+  --night-muted: #96b9d4;
+  --night-cyan: #67e8f9;
+  --night-cyan-soft: #a5f3fc;
+  --night-gold: #fde047;
+  --night-lime: #bef264;
+  --surface: var(--night-surface);
+  --surface-soft: var(--night-surface-soft);
+  --line: var(--night-line);
+  --ink: var(--night-cyan-soft);
+  --muted: var(--night-muted);
+}
+html[data-theme="night"] body { color: var(--night-ink); }
+html[data-theme="night"] .app-brand-icon {
+  border-color: #0891b2;
+  background: #0d2439;
+  box-shadow: 0 6px 16px rgba(2,132,199,.24),0 0 0 2px rgba(34,211,238,.28);
+}
+html[data-theme="night"] .nav-capsule.is-active,
+html[data-theme="night"] .room-mobile-nav button[aria-pressed=true] {
+  background: #164e63;
+  color: var(--night-gold);
+}
+html[data-theme="night"] [class~="text-white"],
+html[data-theme="night"] [class*="text-white/"] { color: var(--night-cyan-soft) !important; }
+html[data-theme="night"] [class~="bg-white"],
+html[data-theme="night"] [class*="bg-white/"],
+html[data-theme="night"] [class*="hover:bg-white"] { background-color: var(--night-surface) !important; }
+html[data-theme="night"] [class*="from-white"] { --tw-gradient-from: var(--night-surface) !important; }
+html[data-theme="night"] [class*="via-white"] { --tw-gradient-via: var(--night-surface-soft) !important; }
+html[data-theme="night"] [class*="to-white"] { --tw-gradient-to: var(--night-surface-soft) !important; }
+html[data-theme="night"] [class*="border-white"],
+html[data-theme="night"] [class*="ring-white"] { border-color: #22d3ee !important; --tw-ring-color: #22d3ee !important; }
+html[data-theme="night"] [class*="border-t-white"] { border-top-color: var(--night-cyan) !important; }
+
+html[data-theme="night"] .bg-red-500,
+html[data-theme="night"] .bg-red-600 { background-color: #9f1239 !important; }
+html[data-theme="night"] .bg-blue-500,
+html[data-theme="night"] .bg-blue-600 { background-color: #1e3a8a !important; }
+html[data-theme="night"] .bg-pink-500 { background-color: #9d174d !important; }
+html[data-theme="night"] .bg-green-500,
+html[data-theme="night"] .bg-emerald-400,
+html[data-theme="night"] .bg-emerald-500 { background-color: #166534 !important; }
+html[data-theme="night"] .bg-purple-500,
+html[data-theme="night"] .bg-violet-500 { background-color: #6b21a8 !important; }
+html[data-theme="night"] .bg-sky-400,
+html[data-theme="night"] .bg-cyan-400 { background-color: #075985 !important; }
+
+html[data-theme="night"] .text-slate-800,
+html[data-theme="night"] .text-slate-700 { color: var(--night-cyan-soft); }
+html[data-theme="night"] .text-slate-600,
+html[data-theme="night"] .text-slate-300 { color: var(--night-ink); }
+html[data-theme="night"] .text-slate-500,
+html[data-theme="night"] .text-slate-400 { color: var(--night-muted); }
+html[data-theme="night"] .guide-pill,
+html[data-theme="night"] .install-done,
+html[data-theme="night"] .link-cable-primary,
+html[data-theme="night"] .link-cable-success,
+html[data-theme="night"] .room-resume b,
+html[data-theme="night"] .room-primary-button,
+html[data-theme="night"] .room-message button,
+html[data-theme="night"] .room-invite-panel > summary b,
+html[data-theme="night"] .room-invite-actions button.is-primary,
+html[data-theme="night"] .token-xp-control button,
+html[data-theme="night"] .token-special-state button,
+html[data-theme="night"] .token-special-action button,
+html[data-theme="night"] .call-enter,
+html[data-theme="night"] .call-avatar,
+html[data-theme="night"] .combat-called-move button,
+html[data-theme="night"] .audio-now,
+html[data-theme="night"] .event-log article > button { color: var(--night-cyan-soft); }
+html[data-theme="night"] .room-lobby-hero h2,
+html[data-theme="night"] .install-dialog h2,
+html[data-theme="night"] .link-cable-dialog h2,
+html[data-theme="night"] .room-title h2,
+html[data-theme="night"] .room-section-heading h3,
+html[data-theme="night"] .battlefield-toolbar h3,
+html[data-theme="night"] .trait-card > header strong,
+html[data-theme="night"] .token-special-body > article header strong { color: var(--night-cyan); }
+
+html[data-theme="night"] .guide-pill { border-color: rgba(34,211,238,.48); background: rgba(8,145,178,.18); }
+html[data-theme="night"] .pc-import-button > span:first-child,
+html[data-theme="night"] .link-cable-check,
+html[data-theme="night"] .link-cable-secondary,
+html[data-theme="night"] .room-secondary-button,
+html[data-theme="night"] .room-invite-actions button,
+html[data-theme="night"] .room-scene-strip label,
+html[data-theme="night"] .room-scene-strip > div,
+html[data-theme="night"] .token-modifier,
+html[data-theme="night"] .token-modifier-reset,
+html[data-theme="night"] .token-special-body > article,
+html[data-theme="night"] .token-special-state,
+html[data-theme="night"] .token-special-action,
+html[data-theme="night"] .trait-card,
+html[data-theme="night"] .editor-trait-reference article,
+html[data-theme="night"] .token-remove,
+html[data-theme="night"] .call-member,
+html[data-theme="night"] .quick-roll-kind button[aria-pressed=true],
+html[data-theme="night"] .combat-called-move input,
+html[data-theme="night"] .combat-target-results article,
+html[data-theme="night"] .combat-consequences li,
+html[data-theme="night"] .audio-library > div {
+  border-color: var(--night-line);
+  background: var(--night-surface);
+  color: var(--night-ink);
+}
+html[data-theme="night"] .room-live-orb { border-color: #22d3ee; box-shadow: 0 0 0 .2rem #164e63,0 0 5rem rgba(34,211,238,.38); }
+html[data-theme="night"] .room-live-orb span { background: rgba(253,224,71,.78); }
+html[data-theme="night"] .room-live-orb i { border-color: rgba(103,232,249,.38); }
+html[data-theme="night"] .battlefield-board.scene-praia::before { background: repeating-linear-gradient(0deg,transparent 0 2.4rem,rgba(103,232,249,.22) 2.4rem 2.55rem); }
+html[data-theme="night"] .battlefield-board.weather-nevoa::after { background: linear-gradient(90deg,rgba(103,232,249,.08),rgba(125,211,252,.48),rgba(103,232,249,.1)); }
+html[data-theme="night"] .battlefield-center-line { background: linear-gradient(90deg,transparent,rgba(103,232,249,.55),transparent); }
+html[data-theme="night"] .battlefield-side-label,
+html[data-theme="night"] .battlefield-empty,
+html[data-theme="night"] .room-token-name { border-color: rgba(103,232,249,.58); color: var(--night-cyan-soft); }
+html[data-theme="night"] .room-token.is-selected .room-token-sprite-shell { background: rgba(34,211,238,.22); box-shadow: 0 0 0 .16rem #fde047,0 0 0 .34rem #0891b2; }
+html[data-theme="night"] .room-token.is-tera .room-token-sprite-shell { background: radial-gradient(circle,rgba(253,224,71,.42),rgba(34,211,238,.16) 52%,transparent 72%); }
+
+html[data-theme="night"] .move-fact-chip { border-color: var(--night-line); color: var(--night-muted); }
+html[data-theme="night"] .move-fact-chip strong,
+html[data-theme="night"] .move-human-summary,
+html[data-theme="night"] .ability-description > p,
+html[data-theme="night"] .species-description > p { color: var(--night-ink); }
+html[data-theme="night"] .move-human-facts li,
+html[data-theme="night"] .species-description li,
+html[data-theme="night"] .editor-move-description li,
+html[data-theme="night"] .editor-move-description > p { color: var(--night-muted); }
+html[data-theme="night"] .move-human-facts li::before,
+html[data-theme="night"] .species-description li::before,
+html[data-theme="night"] .editor-move-description li::before { background: var(--night-lime); }
+html[data-theme="night"] .catalog-description {
+  border-color: #0891b2;
+  background: #0d2d40;
+}
+html[data-theme="night"] .catalog-description summary,
+html[data-theme="night"] .ability-description strong,
+html[data-theme="night"] .editor-move-description summary { color: var(--night-cyan); }
+html[data-theme="night"] .catalog-description p { color: var(--night-ink); }
+html[data-theme="night"] .catalog-description-missing { border-color: #f59e0b; background: #3b2a0d; color: #fde68a; }
+html[data-theme="night"] .species-description {
+  border-color: #22d3ee;
+  background: linear-gradient(135deg,#0d2d40,#183813);
+  box-shadow: inset 4px 0 0 var(--night-lime);
+}
+html[data-theme="night"] .species-description > span,
+html[data-theme="night"] .species-description h3 { color: var(--night-cyan); }
+html[data-theme="night"] .species-description > small { color: #fdba74; }
+html[data-theme="night"] .editor-move-description { border-color: var(--night-line); }
+html[data-theme="night"] input:-webkit-autofill,
+html[data-theme="night"] textarea:-webkit-autofill,
+html[data-theme="night"] select:-webkit-autofill {
+  -webkit-text-fill-color: var(--night-cyan-soft);
+  -webkit-box-shadow: 0 0 0 1000px var(--night-surface) inset;
 }

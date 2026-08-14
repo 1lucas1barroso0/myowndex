@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
+import { describeSpecies } from '../../core/descriptions.js';
+import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
@@ -121,6 +122,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const bst = formData.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
     const primaryColor = formData.types?.[0]?.type?.name ? TYPE_COLORS[formData.types[0].type.name] : "#3b82f6";
     const sprite = formData.sprites?.other?.["official-artwork"]?.front_default || formData.sprites?.front_default;
+    const speciesDescription = describeSpecies(baseInfo, formData);
 
     return (
         <div role="dialog" aria-modal="true" aria-labelledby="pokemon-modal-title" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 md:p-8 animate-fade-in" onClick={onClose}>
@@ -173,7 +175,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     <div className="grid gap-4 shrink-0">
                         <div className="flex flex-wrap gap-2 mb-2">
                             {formData.types?.map(t => (
-                                <span key={t.type?.name} className="text-[10px] px-3 py-1.5 rounded-lg text-white font-black uppercase tracking-widest shadow-sm border border-black/10" style={{ backgroundColor: TYPE_COLORS[t.type?.name] || TYPE_COLORS.normal }}>
+                                <span key={t.type?.name} className="text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm border border-black/10" style={{ backgroundColor: TYPE_COLORS[t.type?.name] || TYPE_COLORS.normal, color: TYPE_TEXT_COLORS[t.type?.name] || TYPE_TEXT_COLORS.normal }}>
                                     {formatType(t.type?.name)}
                                 </span>
                             ))}
@@ -237,6 +239,15 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     <div className="flex-1 p-5 sm:p-6 md:p-10 overflow-y-auto no-scrollbar app-scroll-area">
                         {tab === "stats" && (
                             <div className="animate-fade-in space-y-8">
+                                <section className="species-description" aria-labelledby="species-description-title">
+                                    <span>Visão geral</span>
+                                    <h3 id="species-description-title">Quem é este Pokémon</h3>
+                                    <p lang={speciesDescription.flavor.code}>{speciesDescription.summary}</p>
+                                    {speciesDescription.flavor.text && speciesDescription.flavor.code === "en" && <small>A Pokédex identificou este relato como texto original em inglês. Os dados explicativos abaixo continuam em português.</small>}
+                                    <ul>
+                                        {speciesDescription.facts.map((fact, index) => <li key={`species-fact-${index}`}>{fact}</li>)}
+                                    </ul>
+                                </section>
                                 <div className="flex gap-4">
                                     <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Altura</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.height || 0) / 10)} m</span></div>
                                     <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Peso</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.weight || 0) / 10)} kg</span></div>

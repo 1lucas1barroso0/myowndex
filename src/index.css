@@ -3954,7 +3954,7 @@ html[data-theme="night"] select:-webkit-autofill {
   }
 }
 
-/* Sistema Pokémon por eras 9.8.0: escolhas claras e cor de GB a 3DS. */
+/* Interface ultraclean em abas 9.8.1: pixels discretos, cor e espaço para respirar. */
 :root {
   --era-gb-moss: #5f7f55;
   --era-gb-screen: #cfe6a6;
@@ -4009,114 +4009,80 @@ html[data-theme="night"] select:-webkit-autofill {
 .app-nav .nav-capsule:nth-child(4).is-active { background: #6554ae; }
 
 .game-style-control {
-  display: grid;
-  width: clamp(22rem, 27vw, 31rem);
+  position: relative;
+  display: flex;
+  width: auto;
   min-width: 0;
-  gap: .4rem;
-  border: 2px solid var(--rom-line);
+  max-width: 100%;
+  align-items: center;
+  gap: .22rem;
+  border: 1px solid var(--rom-line);
   border-radius: 4px;
-  background:
-    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
-    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px),
-    var(--era-panel);
-  background-size: 8px 8px;
-  padding: .48rem;
+  background: var(--era-panel);
+  padding: .22rem;
   color: var(--rom-ink);
-  box-shadow: 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 1px var(--rom-screen-glow);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--rom-pixel-shadow) 78%, transparent);
 }
 
-.game-style-heading {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: .45rem;
-  padding: 0 .12rem;
-  font-family: var(--rom-ui-font);
-}
-
-.game-style-heading span,
-.game-style-heading small {
+.game-style-label,
+.room-phase-label {
+  flex: none;
+  padding: 0 .38rem;
   color: var(--rom-muted);
-  font-size: .55rem;
+  font-family: var(--rom-ui-font);
+  font-size: .52rem;
   font-weight: 900;
   letter-spacing: .08em;
+  line-height: 1.2;
   text-transform: uppercase;
-}
-
-.game-style-heading strong {
-  min-width: 0;
-  color: var(--rom-text-accent);
-  font-size: .68rem;
-  overflow-wrap: anywhere;
-}
-
-.game-style-heading small {
-  color: var(--rom-text-special);
-  letter-spacing: .04em;
+  white-space: nowrap;
 }
 
 .game-style-options {
   display: grid;
+  min-width: 14rem;
+  flex: 1 1 auto;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .35rem;
+  gap: .16rem;
 }
 
 .game-style-options button {
   position: relative;
   display: grid;
   min-width: 0;
-  min-height: 3rem;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: .38rem;
-  border: 2px solid var(--rom-line);
-  border-radius: 3px;
-  background: var(--rom-screen);
-  padding: .36rem .42rem;
+  min-height: 2.35rem;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  padding: .35rem .62rem;
   color: var(--rom-muted);
   font-family: var(--rom-ui-font);
-  font-size: .62rem;
+  font-size: .57rem;
   font-weight: 900;
   line-height: 1.2;
-  text-align: left;
-  box-shadow: 2px 2px 0 color-mix(in srgb, var(--rom-pixel-shadow) 72%, transparent);
+  text-align: center;
+  box-shadow: none;
   cursor: pointer;
 }
 
 .game-style-options button::after,
 .room-phase-options button::after {
   position: absolute;
-  top: .24rem;
-  right: .24rem;
-  width: .3rem;
-  height: .3rem;
-  background: var(--rom-line);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--rom-deep) 45%, transparent);
+  right: .36rem;
+  bottom: .22rem;
+  left: .36rem;
+  height: 2px;
+  background: transparent;
   content: "";
 }
 
-.game-style-pixel,
-.room-phase-pixel {
-  display: grid;
-  min-width: 2.35rem;
-  height: 1.65rem;
-  place-items: center;
-  border: 2px solid currentColor;
-  border-radius: 2px;
-  background-image:
-    linear-gradient(90deg, currentColor 1px, transparent 1px),
-    linear-gradient(currentColor 1px, transparent 1px);
-  background-size: 4px 4px;
-  font-family: var(--rom-ui-font);
-  font-size: .48rem;
-  font-weight: 950;
-  letter-spacing: .02em;
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rom-screen) 82%, transparent);
+.game-style-options button:hover,
+.room-phase-options button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--rom-line) 72%, transparent);
+  background: color-mix(in srgb, var(--rom-screen) 82%, var(--rom-text-accent) 18%);
+  color: var(--rom-text-accent);
 }
-
-.game-style-options button[data-mode="rpg"] { border-color: color-mix(in srgb, var(--era-ds-violet) 60%, var(--rom-line)); }
-.game-style-options button[data-mode="game"] { border-color: color-mix(in srgb, var(--era-gba-blue) 60%, var(--rom-line)); }
-.game-style-options button[data-mode="free"] { border-color: color-mix(in srgb, var(--era-3ds-aqua) 65%, var(--rom-line)); }
 
 .game-style-options button[data-mode="rpg"].is-selected { border-color: #8874dc; background: #6554ae; }
 .game-style-options button[data-mode="game"].is-selected { border-color: #4d8ce9; background: #245bb6; }
@@ -4124,104 +4090,148 @@ html[data-theme="night"] select:-webkit-autofill {
 
 .game-style-options button.is-selected {
   color: var(--era-soft-ink);
-  box-shadow: 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 2px color-mix(in srgb, var(--era-soft-ink) 25%, transparent);
-  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--rom-pixel-shadow);
 }
 
 .game-style-options button.is-selected::after {
   background: #6ee6bd;
 }
 
-.game-style-control > p {
-  min-height: 1.8em;
-  margin: 0;
-  padding: 0 .12rem;
+.choice-help {
+  position: relative;
+  flex: none;
+}
+
+.choice-help > summary {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--rom-line) 72%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--rom-screen) 86%, var(--era-ds-cyan) 14%);
+  color: var(--rom-text-special);
+  font-family: var(--rom-ui-font);
+  font-size: .65rem;
+  font-weight: 950;
+  line-height: 1;
+  list-style: none;
+  cursor: pointer;
+}
+
+.choice-help > summary::-webkit-details-marker { display: none; }
+
+.choice-help > summary:hover,
+.choice-help[open] > summary {
+  border-color: var(--era-ds-cyan);
+  background: color-mix(in srgb, var(--rom-screen) 72%, var(--era-ds-cyan) 28%);
+}
+
+.choice-help-popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + .55rem);
+  right: 0;
+  width: min(20rem, calc(100vw - 2rem));
+  border: 2px solid var(--rom-line);
+  border-top-color: var(--era-ds-cyan);
+  border-radius: 4px;
+  background: var(--rom-screen-raised);
+  padding: .78rem .85rem;
+  color: var(--rom-ink);
+  box-shadow: 4px 4px 0 var(--rom-pixel-shadow);
+}
+
+.choice-help-popover::before {
+  position: absolute;
+  top: -.38rem;
+  right: .72rem;
+  width: .62rem;
+  height: .62rem;
+  border-top: 2px solid var(--rom-line);
+  border-left: 2px solid var(--rom-line);
+  background: var(--rom-screen-raised);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.choice-help-popover strong,
+.room-scene-strip .choice-help-popover strong {
+  color: var(--rom-text-accent);
+  font-family: var(--rom-ui-font);
+  font-size: .68rem;
+}
+
+.choice-help-popover p,
+.room-scene-strip .choice-help-popover p {
+  margin: .42rem 0 0;
   color: var(--rom-muted);
-  font-size: .58rem;
-  font-weight: 750;
+  font-size: .66rem;
+  font-weight: 720;
+  line-height: 1.55;
+}
+
+.choice-help-popover small,
+.room-scene-strip .choice-help-popover small {
+  display: block;
+  margin-top: .48rem;
+  color: var(--rom-text-special);
+  font-size: .56rem;
+  font-weight: 800;
   line-height: 1.45;
 }
 
 .room-scene-strip {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
-  gap: .65rem;
+  align-items: center;
+  gap: .42rem;
 }
 
 .room-phase-control {
-  display: grid;
+  position: relative;
+  display: flex;
   min-width: 0;
-  gap: .5rem;
-  border: 2px solid var(--rom-line);
+  align-items: center;
+  gap: .22rem;
+  border: 1px solid var(--rom-line);
   border-radius: 4px;
-  background:
-    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
-    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px),
-    var(--rom-screen-raised);
-  background-size: 8px 8px;
-  padding: .65rem;
-  box-shadow: 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 1px var(--rom-screen-glow);
-}
-
-.room-phase-heading {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: .55rem;
-  font-family: var(--rom-ui-font);
-}
-
-.room-phase-heading span,
-.room-phase-heading small {
-  color: var(--rom-muted);
-  font-size: .54rem;
-  font-weight: 900;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-}
-
-.room-phase-heading strong {
-  color: var(--rom-text-accent);
-  font-size: .74rem;
+  background: var(--rom-screen-raised);
+  padding: .22rem;
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--rom-pixel-shadow) 78%, transparent);
 }
 
 .room-phase-options {
   display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: .4rem;
+  gap: .16rem;
 }
 
 .room-phase-options button {
   position: relative;
   display: grid;
   min-width: 0;
-  min-height: 3.2rem;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: .4rem;
-  border: 2px solid var(--rom-line);
-  border-radius: 3px;
-  background: var(--rom-screen);
-  padding: .4rem;
+  min-height: 2.35rem;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  padding: .34rem .48rem;
   color: var(--rom-muted);
   font-family: var(--rom-ui-font);
-  text-align: left;
-  box-shadow: 2px 2px 0 color-mix(in srgb, var(--rom-pixel-shadow) 72%, transparent);
+  text-align: center;
+  box-shadow: none;
   cursor: pointer;
 }
 
 .room-phase-options button > strong {
   min-width: 0;
-  font-size: .58rem;
+  font-size: .55rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
-
-.room-phase-options button[data-phase="exploracao"] { border-color: color-mix(in srgb, var(--era-gbc-lime) 62%, var(--rom-line)); }
-.room-phase-options button[data-phase="interpretacao"] { border-color: color-mix(in srgb, var(--era-ds-violet) 62%, var(--rom-line)); }
-.room-phase-options button[data-phase="batalha"] { border-color: color-mix(in srgb, var(--era-gba-coral) 62%, var(--rom-line)); }
-.room-phase-options button[data-phase="intervalo"] { border-color: color-mix(in srgb, var(--era-ds-cyan) 65%, var(--rom-line)); }
 
 .room-phase-options button[data-phase="exploracao"].is-selected { border-color: #75c84c; background: #397d45; }
 .room-phase-options button[data-phase="interpretacao"].is-selected { border-color: #8c7ce2; background: #6554ae; }
@@ -4230,8 +4240,7 @@ html[data-theme="night"] select:-webkit-autofill {
 
 .room-phase-options button.is-selected {
   color: var(--era-soft-ink);
-  box-shadow: 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 2px color-mix(in srgb, var(--era-soft-ink) 24%, transparent);
-  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--rom-pixel-shadow);
 }
 
 .room-phase-options button.is-selected::after { background: #6ee6bd; }
@@ -4241,20 +4250,13 @@ html[data-theme="night"] select:-webkit-autofill {
   cursor: default;
 }
 
-.room-phase-control > p {
-  margin: 0;
-  color: var(--rom-muted);
-  font-size: .62rem;
-  font-weight: 750;
-  line-height: 1.45;
-}
-
 .room-scene-strip > .room-scene-stats {
   display: grid;
-  width: 6rem;
+  width: auto;
   min-width: 0;
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: .45rem;
+  grid-template-columns: repeat(2, minmax(3.35rem, auto));
+  grid-template-rows: none;
+  gap: .28rem;
   border: 0;
   background: transparent;
   padding: 0;
@@ -4262,15 +4264,16 @@ html[data-theme="night"] select:-webkit-autofill {
 }
 
 .room-scene-strip .room-scene-stats > div {
-  display: flex;
+  display: grid;
   min-width: 0;
-  flex-direction: column;
-  justify-content: center;
-  border: 2px solid var(--rom-line);
-  border-radius: 4px;
+  min-height: 2.85rem;
+  place-content: center;
+  border: 1px solid var(--rom-line);
+  border-radius: 3px;
   background: var(--rom-screen-raised);
-  padding: .48rem .62rem;
-  box-shadow: 2px 2px 0 var(--rom-pixel-shadow);
+  padding: .3rem .52rem;
+  text-align: center;
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--rom-pixel-shadow) 75%, transparent);
 }
 
 .room-scene-strip .room-scene-stats > div:first-child { border-top-color: var(--era-gba-blue); }
@@ -4279,17 +4282,17 @@ html[data-theme="night"] select:-webkit-autofill {
 .room-scene-stats small {
   color: var(--rom-muted);
   font-family: var(--rom-ui-font);
-  font-size: .5rem;
+  font-size: .45rem;
   font-weight: 900;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
 
 .room-scene-stats strong {
-  margin-top: .12rem;
+  margin-top: .05rem;
   color: var(--rom-text-accent);
   font-family: var(--rom-ui-font);
-  font-size: 1rem;
+  font-size: .78rem;
 }
 
 .view-room .room-section,
@@ -4340,7 +4343,7 @@ html[data-theme="night"] .game-style-control,
 html[data-theme="night"] .room-phase-control,
 html[data-theme="night"] .room-scene-strip .room-scene-stats > div {
   border-color: #568ca5;
-  background-color: #173b53;
+  background: #173b53;
   color: #c2eaed;
 }
 
@@ -4352,8 +4355,14 @@ html[data-theme="night"] .room-scene-strip > .room-scene-stats {
 
 html[data-theme="night"] .game-style-options button,
 html[data-theme="night"] .room-phase-options button {
-  background-color: #102b42;
+  background: transparent;
   color: #a7d4dc;
+}
+
+html[data-theme="night"] .game-style-options button:hover,
+html[data-theme="night"] .room-phase-options button:hover:not(:disabled) {
+  background: #214b63;
+  color: #79e2df;
 }
 
 html[data-theme="night"] .game-style-options button[data-mode="rpg"].is-selected,
@@ -4369,73 +4378,64 @@ html[data-theme="night"] .room-phase-options button.is-selected {
   color: #d9f1e9;
 }
 
-html[data-theme="night"] .game-style-heading strong,
-html[data-theme="night"] .room-phase-heading strong,
+html[data-theme="night"] .choice-help-popover strong,
 html[data-theme="night"] .room-scene-stats strong {
   color: #7ee7e9;
 }
 
-html[data-theme="night"] .game-style-heading span,
-html[data-theme="night"] .game-style-heading small,
-html[data-theme="night"] .game-style-control > p,
-html[data-theme="night"] .room-phase-heading span,
-html[data-theme="night"] .room-phase-heading small,
-html[data-theme="night"] .room-phase-control > p,
+html[data-theme="night"] .game-style-label,
+html[data-theme="night"] .room-phase-label,
+html[data-theme="night"] .choice-help-popover p,
 html[data-theme="night"] .room-scene-stats small {
   color: #9bc8d1;
 }
 
-@media (max-width: 1500px) {
-  .app-header-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
+html[data-theme="night"] .choice-help > summary {
+  border-color: #568ca5;
+  background: #102b42;
+  color: #73ddd9;
+}
 
-  .app-actions {
-    width: 100% !important;
-  }
+html[data-theme="night"] .choice-help > summary:hover,
+html[data-theme="night"] .choice-help[open] > summary {
+  border-color: #5ed8e3;
+  background: #214b63;
+}
 
-  .game-style-control {
-    margin-left: auto;
-  }
+html[data-theme="night"] .choice-help-popover {
+  border-color: #568ca5;
+  border-top-color: #5ed8e3;
+  background: #102b42;
+  color: #c2eaed;
+}
+
+html[data-theme="night"] .choice-help-popover::before {
+  border-color: #568ca5;
+  background: #102b42;
+}
+
+html[data-theme="night"] .choice-help-popover small {
+  color: #83d7c7;
 }
 
 @media (max-width: 900px) {
   .game-style-control {
-    width: min(100%, 34rem);
-  }
-
-  .room-phase-options {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(100%, 25rem);
   }
 }
 
-@media (max-width: 640px) {
-  .game-style-control {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .game-style-heading,
-  .room-phase-heading {
-    grid-template-columns: 1fr auto;
-  }
-
-  .game-style-heading small,
-  .room-phase-heading small {
-    grid-column: 1 / -1;
-  }
-
-  .game-style-options {
-    grid-template-columns: 1fr;
-  }
-
-  .game-style-options button {
-    min-height: 2.8rem;
-  }
-
+@media (max-width: 700px) {
   .room-scene-strip {
-    display: grid;
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .room-phase-control {
+    flex-wrap: wrap;
+  }
+
+  .room-phase-label {
+    flex: 1 1 100%;
+    padding-top: .22rem;
   }
 
   .room-phase-options {
@@ -4445,16 +4445,34 @@ html[data-theme="night"] .room-scene-stats small {
   .room-scene-strip > .room-scene-stats {
     width: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .game-style-control {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .game-style-label {
+    flex: 1 1 100%;
+    padding-top: .22rem;
+  }
+
+  .game-style-options {
+    min-width: 0;
   }
 }
 
 @media (max-width: 390px) {
-  .room-phase-options {
-    grid-template-columns: 1fr;
+  .game-style-options button,
+  .room-phase-options button {
+    padding-right: .28rem;
+    padding-left: .28rem;
   }
 
-  .room-phase-options button {
-    min-height: 2.8rem;
+  .choice-help-popover {
+    width: min(18rem, calc(100vw - 1.5rem));
   }
 }

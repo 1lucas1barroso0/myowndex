@@ -1,10 +1,9 @@
-import React, { useId, useRef } from "react";
+import React, { useRef } from "react";
 import { ROOM_PHASES } from "../../core/room.js";
 
 const movementKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
 export default function AdventurePhaseControl({ value, readOnly, onChange }) {
-    const descriptionId = useId();
     const optionRefs = useRef([]);
     const selectedIndex = Math.max(0, ROOM_PHASES.findIndex(phase => phase.id === value));
     const selectedPhase = ROOM_PHASES[selectedIndex] || ROOM_PHASES[0];
@@ -22,17 +21,12 @@ export default function AdventurePhaseControl({ value, readOnly, onChange }) {
     };
 
     return (
-        <section className="room-phase-control" aria-labelledby={`${descriptionId}-title`}>
-            <header className="room-phase-heading">
-                <span id={`${descriptionId}-title`}>Fase da aventura</span>
-                <strong>{selectedPhase.label}</strong>
-                <small>{readOnly ? "O Narrador conduz esta fase" : "Escolha o que acontece agora"}</small>
-            </header>
+        <section className="room-phase-control" aria-label="Fase da aventura">
+            <span className="room-phase-label">Fase da aventura</span>
             <div
                 className="room-phase-options"
                 role="radiogroup"
                 aria-label="Fase atual da aventura"
-                aria-describedby={descriptionId}
                 aria-readonly={readOnly}
             >
                 {ROOM_PHASES.map((phase, index) => {
@@ -51,13 +45,19 @@ export default function AdventurePhaseControl({ value, readOnly, onChange }) {
                             onClick={() => onChange(phase.id)}
                             onKeyDown={event => moveSelection(event, index)}
                         >
-                            <span className="room-phase-pixel" aria-hidden="true">{phase.consoleLabel}</span>
                             <strong>{phase.label}</strong>
                         </button>
                     );
                 })}
             </div>
-            <p id={descriptionId} aria-live="polite">{selectedPhase.description}</p>
+            <details className="choice-help room-phase-help">
+                <summary aria-label="Entender as fases da aventura">?</summary>
+                <div className="choice-help-popover" role="note">
+                    <strong>{selectedPhase.label}</strong>
+                    <p>{selectedPhase.description}</p>
+                    <small>{readOnly ? "O Narrador escolhe a fase atual." : "Você pode mudar a fase quando a aventura pedir."}</small>
+                </div>
+            </details>
         </section>
     );
 }

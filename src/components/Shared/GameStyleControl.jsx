@@ -1,10 +1,9 @@
-import React, { useId, useRef } from "react";
+import React, { useRef } from "react";
 import { EXPERIENCE_MODES } from "../../core/rpgRules.js";
 
 const movementKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
 export default function GameStyleControl({ value, onChange }) {
-    const descriptionId = useId();
     const optionRefs = useRef([]);
     const modes = Object.values(EXPERIENCE_MODES);
     const selectedIndex = Math.max(0, modes.findIndex(mode => mode.id === value));
@@ -24,12 +23,8 @@ export default function GameStyleControl({ value, onChange }) {
 
     return (
         <section className="game-style-control" aria-label="Estilo de jogo">
-            <header className="game-style-heading">
-                <span>Estilo de jogo</span>
-                <strong>{selectedMode.label}</strong>
-                <small aria-hidden="true">GB · GBA · DS · 3DS</small>
-            </header>
-            <div className="game-style-options" role="radiogroup" aria-label="Escolha como o MyOwnDex aplica as regras" aria-describedby={descriptionId}>
+            <span className="game-style-label">Estilo de jogo</span>
+            <div className="game-style-options" role="radiogroup" aria-label="Escolha como o MyOwnDex aplica as regras">
                 {modes.map((mode, index) => {
                     const selected = mode.id === selectedMode.id;
                     return (
@@ -45,13 +40,18 @@ export default function GameStyleControl({ value, onChange }) {
                             onClick={() => onChange(mode.id)}
                             onKeyDown={event => moveSelection(event, index)}
                         >
-                            <span className="game-style-pixel" aria-hidden="true">{mode.consoleLabel}</span>
                             <span>{mode.shortLabel}</span>
                         </button>
                     );
                 })}
             </div>
-            <p id={descriptionId}>{selectedMode.description}</p>
+            <details className="choice-help game-style-help">
+                <summary aria-label="Entender os estilos de jogo">?</summary>
+                <div className="choice-help-popover" role="note">
+                    <strong>{selectedMode.label}</strong>
+                    <p>{selectedMode.description}</p>
+                </div>
+            </details>
         </section>
     );
 }

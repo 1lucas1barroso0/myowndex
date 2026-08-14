@@ -58,25 +58,21 @@ export const ROOM_PHASES = [
     {
         id: "exploracao",
         label: "Exploração",
-        consoleLabel: "MAPA",
         description: "Percorra rotas, investigue lugares, procure pistas e encontre Pokémon.",
     },
     {
         id: "interpretacao",
         label: "Interpretação",
-        consoleLabel: "FALA",
         description: "Converse, tome decisões e dê espaço para cada personagem agir na história.",
     },
     {
         id: "batalha",
         label: "Batalha",
-        consoleLabel: "VS",
         description: "Organize o campo, declare movimentos e acompanhe cada turno do confronto.",
     },
     {
         id: "intervalo",
         label: "Intervalo",
-        consoleLabel: "SALVA",
         description: "Recupere o fôlego, cuide da equipe e prepare o próximo trecho da aventura.",
     },
 ];

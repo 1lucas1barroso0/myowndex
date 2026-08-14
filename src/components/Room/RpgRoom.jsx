@@ -27,6 +27,7 @@ import {
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import {
     buildPlayerInvite,
+    buildRoomInviteToken,
     clearRoomSession,
     createRemoteRoom,
     deleteRemoteRoom,
@@ -34,6 +35,7 @@ import {
     joinRemoteRoom,
     loadRoomSession,
     parseRoomInvite,
+    parseRoomInviteValue,
     postRoomEvent,
     saveRemoteRoom,
     saveRoomSession,
@@ -41,9 +43,12 @@ import {
 import { getFumbleSuggestion, getNextLevelXp, rollAttributeTest, rollPercentTest } from "../../core/rpgRules.js";
 import { mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
 import { readStorage, removeStorage, writeStorage } from "../../core/storage.js";
+import { getBattleDisplayIdentity, normalizeSpecialState } from "../../core/specialMechanics.js";
 import AudioDeck from "./AudioDeck.jsx";
 import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
+import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
+import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
 import VoiceCall from "./VoiceCall.jsx";
 
 const connectionLabels = {
@@ -56,6 +61,28 @@ const connectionLabels = {
 };
 
 const roleLabel = role => role === "narrator" ? "Narrador" : "Jogador";
+const volatileEffectLabel = effect => {
+    const turns = effect.turns != null ? ` • ${effect.turns} rodada(s)` : "";
+    const amount = effect.amount != null ? ` • ${formatNumberPtBr(effect.amount)} HP` : "";
+    if (effect.id === "yawn") return `Sonolento por Bocejo${turns}`;
+    if (effect.id === "wish") return `Wish preparado${turns}${amount}`;
+    if (["future-sight", "doom-desire"].includes(effect.id)) return `${formatName(effect.id)} preparado${turns}${amount}`;
+    if (effect.id === "perish-song") return `Contagem de Perish Song${turns}`;
+    if (effect.id === "substitute") return `Substitute ativo${amount}`;
+    if (effect.id === "leech-seed") return "Leech Seed ativo";
+    if (["aqua-ring", "ingrain"].includes(effect.id)) return `${formatName(effect.id)} ativo`;
+    return `${formatName(effect.sourceMove || effect.id)}${turns}${amount}`;
+};
+const roundEffectSummary = effect => {
+    if (effect.kind === "status") return effect.status
+        ? `${effect.tokenName} recebeu ${STATUS_LABELS[effect.status] || formatName(effect.status)} por ${effect.sources.join(" e ")}`
+        : `${effect.tokenName} teve a condição removida por ${effect.sources.join(" e ")}`;
+    if (effect.kind === "heal") return `${effect.tokenName} recuperou ${formatNumberPtBr(effect.healed)} HP por ${effect.sources.join(" e ")}`;
+    if (effect.kind === "perish") return `${effect.tokenName} chegou ao fim da contagem de Perish Song e não pode mais batalhar`;
+    if (effect.kind === "state") return `${effect.tokenName}: ${effect.sources.join(" e ")}`;
+    if (effect.kind === "stage") return `${effect.tokenName}: ${effect.sources.join(" e ")}`;
+    return `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`;
+};
 const roomDate = value => {
     const normalized = typeof value === "string" && /^\d{4}-\d{2}-\d{2} /.test(value)
         ? `${value.replace(" ", "T")}Z`
@@ -77,9 +104,10 @@ const errorMessage = error => error instanceof Error ? error.message : "Algo imp
 function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onLocal, onResume }) {
     const [title, setTitle] = useState("Minha aventura Pokémon");
     const [narratorName, setNarratorName] = useState("Narrador");
-    const [code, setCode] = useState(defaultInvite?.code || "");
-    const [inviteCode, setInviteCode] = useState(defaultInvite?.inviteCode || "");
+    const [invite, setInvite] = useState(defaultInvite ? buildRoomInviteToken(defaultInvite) : "");
     const [displayName, setDisplayName] = useState("");
+    const parsedInvite = useMemo(() => parseRoomInviteValue(invite), [invite]);
+    const canResumeInvite = savedSession && defaultInvite && savedSession.code === defaultInvite.code;
 
     return (
         <div className="room-lobby animate-fade-in">
@@ -96,13 +124,13 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
             </section>
 
             {error && <div className="room-error" role="alert">{error}</div>}
-            {savedSession && !defaultInvite && (
+            {savedSession && (!defaultInvite || canResumeInvite) && (
                 <button type="button" className="room-resume" disabled={busy} onClick={() => onResume(savedSession)}>
                     <span>
                         <small>Última aventura</small>
                         <strong>{savedSession.code} • {roleLabel(savedSession.role)}</strong>
                     </span>
-                    <b>Continuar</b>
+                    <b>{canResumeInvite ? "Voltar para esta aventura" : "Continuar"}</b>
                 </button>
             )}
 
@@ -143,7 +171,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     className="room-lobby-card is-player"
                     onSubmit={event => {
                         event.preventDefault();
-                        onJoin({ code, inviteCode, displayName });
+                        onJoin({ invite, displayName });
                     }}
                 >
                     <header>
@@ -153,19 +181,24 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                             <h3>Entrar como Jogador</h3>
                         </div>
                     </header>
-                    <div className="room-code-row">
-                        <label>
-                            <span>Código da aventura</span>
-                            <input value={code} maxLength={8} required autoCapitalize="characters" onChange={event => setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))} />
-                        </label>
-                        <label>
-                            <span>Convite</span>
-                            <input value={inviteCode} maxLength={64} required onChange={event => setInviteCode(event.target.value)} />
-                        </label>
-                    </div>
+                    <label>
+                        <span>Link ou convite da aventura</span>
+                        <textarea
+                            value={invite}
+                            rows={3}
+                            required
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            placeholder="Cole aqui o link enviado pelo Narrador"
+                            onChange={event => setInvite(event.target.value)}
+                        />
+                        <small className={`room-invite-detection ${parsedInvite ? "is-valid" : ""}`}>
+                            {parsedInvite ? `Aventura ${parsedInvite.code} encontrada` : "O código e a chave serão reconhecidos juntos."}
+                        </small>
+                    </label>
                     <label>
                         <span>Seu nome na aventura</span>
-                        <input value={displayName} maxLength={32} required onChange={event => setDisplayName(event.target.value)} />
+                        <input value={displayName} maxLength={32} required autoFocus={Boolean(defaultInvite)} onChange={event => setDisplayName(event.target.value)} />
                     </label>
                     <ul>
                         <li>Acompanha o campo e o progresso conforme a aventura acontece.</li>
@@ -330,6 +363,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const role = session?.role || "";
     const selectedTeam = teams.find(team => team.id === selectedTeamId) || teams[0] || null;
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId) || null;
+    const selectedDisplayIdentity = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
 
     useEffect(() => {
         snapshotRef.current = snapshot;
@@ -513,7 +547,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         setBusy(true);
         setError("");
         try {
-            const result = await joinRemoteRoom(input);
+            const invite = parseRoomInviteValue(input.invite);
+            if (!invite) throw new Error("Cole o link ou convite completo enviado pelo Narrador.");
+            const result = await joinRemoteRoom({ ...invite, displayName: input.displayName });
             const nextSession = {
                 code: result.code,
                 key: result.playerKey,
@@ -640,6 +676,22 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         }
     };
 
+    const shareInvite = async value => {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: `Convite para ${snapshot.title}`,
+                    text: `Entre na aventura “${snapshot.title}” no MyOwnDex.`,
+                    url: value,
+                });
+                return;
+            }
+            await copy(value, "Convite dos jogadores");
+        } catch (value) {
+            if (value?.name !== "AbortError") showError(value);
+        }
+    };
+
     const leave = async () => {
         const leavingSession = session;
         clearRoomSession();
@@ -685,6 +737,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const updateToken = patch => {
         if (!selectedToken || role !== "narrator") return;
         const nextToken = { ...selectedToken, ...patch };
+        const specialState = normalizeSpecialState(nextToken.specialState);
         commitSnapshot({
             ...snapshot,
             tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
@@ -701,7 +754,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 currentHp: nextToken.currentHp,
                                 status: nextToken.status,
                                 xp: nextToken.xp,
-                                pp: nextToken.pp,
+                                pp: specialState.transform?.base?.pp
+                                    || (specialState.moveOverrides.some(override => !override.permanent) ? pokemon.rpg?.pp : nextToken.pp),
                             },
                         }
                         : pokemon),
@@ -709,6 +763,14 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 : team
             ));
         }
+    };
+
+    const replaceSelectedToken = nextToken => {
+        if (!selectedToken || role !== "narrator" || nextToken?.id !== selectedToken.id) return;
+        commitSnapshot({
+            ...snapshot,
+            tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
+        });
     };
 
     const adjustSelectedStage = (stat, change) => {
@@ -829,7 +891,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         const generated = buildInitiative(snapshot);
         commitSnapshot(generated.room);
         await sendEvent("system", {
-            text: `Ordem da rodada: ${generated.results.map(result => `${snapshot.tokens.find(token => token.id === result.tokenId)?.name} (${result.total})`).join(", ")}.`,
+            text: `Ordem da rodada: ${generated.results.map(result => {
+                const name = snapshot.tokens.find(token => token.id === result.tokenId)?.name;
+                const traits = result.traitState.entries.map(entry => formatName(entry.sourceId)).join(" + ");
+                return `${name} (${result.total}${traits ? `; ${traits}` : ""})`;
+            }).join(", ")}.`,
         });
     };
 
@@ -852,10 +918,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         await sendEvent("system", {
             text: closingRound
                 ? `${roundEnd.effects.length
-                    ? `${roundEnd.effects.map(effect => effect.kind === "status"
-                        ? `${effect.tokenName} adormeceu por causa de Bocejo`
-                        : `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`
-                    ).join("; ")}. `
+                    ? `${roundEnd.effects.map(roundEffectSummary).join("; ")}. `
                     : ""}Rodada ${next.round} pronta! Escolha os movimentos para formar a nova ordem.`
                 : active
                     ? `Turno de ${active.name}. Rodada ${next.round}.`
@@ -925,6 +988,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     };
 
     const inviteUrl = role === "narrator" && !session.local ? buildPlayerInvite(session) : "";
+    const inviteToken = role === "narrator" && !session.local ? buildRoomInviteToken(session) : "";
     const players = room?.players || [];
     const events = room?.events || [];
     const acceptedOfferIds = new Set(
@@ -981,10 +1045,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 <div className="room-header-actions">
                     <span className={`room-role-badge is-${role}`}>{roleLabel(role)}</span>
                     {role === "narrator" && !session.local && (
-                        <>
-                            <button type="button" onClick={() => copy(session.code, "Código da aventura")}>Código</button>
-                            <button type="button" onClick={() => copy(inviteUrl, "Convite dos jogadores")}>Copiar convite</button>
-                        </>
+                        <button type="button" onClick={() => copy(inviteUrl, "Convite dos jogadores")}>Convidar</button>
                     )}
                     <button type="button" onClick={onOpenGuide}>Guia</button>
                     <button type="button" className="room-leave" onClick={() => role === "narrator" ? setEnding(true) : void leave()}>
@@ -992,6 +1053,30 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     </button>
                 </div>
             </header>
+
+            {role === "narrator" && !session.local && (
+                <details className="room-invite-panel" open>
+                    <summary>
+                        <span>
+                            <strong>Convidar jogadores</strong>
+                            <small>Link pronto • {players.length ? `${players.length} ${players.length === 1 ? "jogador conectado" : "jogadores conectados"}` : "aguardando jogadores"}</small>
+                        </span>
+                        <b>Código {session.code}</b>
+                    </summary>
+                    <div>
+                        <p>Envie um único link. Quem abrir só precisa escrever o próprio nome; o MyOwnDex reconhece a aventura e o convite automaticamente.</p>
+                        <label>
+                            <span className="sr-only">Link de convite dos jogadores</span>
+                            <input readOnly value={inviteUrl} onFocus={event => event.currentTarget.select()} />
+                        </label>
+                        <div className="room-invite-actions">
+                            <button type="button" className="is-primary" onClick={() => void shareInvite(inviteUrl)}>Enviar convite</button>
+                            <button type="button" onClick={() => copy(inviteUrl, "Link da aventura")}>Copiar link</button>
+                            <button type="button" onClick={() => copy(inviteToken, "Convite curto")}>Copiar convite curto</button>
+                        </div>
+                    </div>
+                </details>
+            )}
 
             {error && <button type="button" className="room-error is-action" onClick={() => refresh(session).catch(showError)}>{error} • tentar reconectar</button>}
 
@@ -1137,11 +1222,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <section className="token-inspector">
                             <button type="button" className="token-inspector-close" onClick={() => setSelectedTokenId("")} aria-label="Fechar ficha rápida">×</button>
                             <div className="token-inspector-identity">
-                                {selectedToken.sprite ? <img src={selectedToken.sprite} alt="" className="pixelated" /> : <i />}
+                                {selectedDisplayIdentity?.sprite ? <img src={selectedDisplayIdentity.sprite} alt="" className="pixelated" /> : <i />}
                                 <span>
                                     <small>Nível {selectedToken.level}</small>
-                                    <strong>{selectedToken.name}</strong>
-                                    <em>{selectedToken.types.map(formatType).join(" / ") || "Tipo personalizado"}</em>
+                                    <strong>{selectedDisplayIdentity?.name || selectedToken.name}</strong>
+                                    <em>{(selectedDisplayIdentity?.types || selectedToken.types).map(formatType).join(" / ") || "Tipo personalizado"}</em>
+                                    {role === "narrator" && selectedDisplayIdentity?.disguised && <small>Identidade real: {selectedToken.name}</small>}
                                     {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
                                 </span>
                             </div>
@@ -1180,12 +1266,25 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 <div className="token-volatile-list" aria-label="Efeitos temporários ativos">
                                     {selectedToken.volatileEffects.map(effect => (
                                         <span key={effect.id}>
-                                            {effect.id === "yawn" ? "Sonolento por Bocejo" : formatName(effect.sourceMove || effect.id)}
-                                            {effect.turns != null ? ` • ${effect.turns} rodada(s)` : ""}
+                                            {volatileEffectLabel(effect)}
                                         </span>
                                     ))}
                                 </div>
                             )}
+                            <SpecialMechanicsPanel
+                                token={selectedToken}
+                                snapshot={snapshot}
+                                role={role}
+                                onTokenChange={replaceSelectedToken}
+                                onNotice={text => setNotice?.({ tone: "blue", text })}
+                            />
+                            <TraitMechanicsPanel
+                                token={selectedToken}
+                                snapshot={snapshot}
+                                role={role}
+                                onTokenChange={replaceSelectedToken}
+                                onNotice={text => setNotice?.({ tone: "blue", text })}
+                            />
                             <details className="token-modifiers">
                                 <summary>
                                     <span>Modificadores</span>

@@ -245,7 +245,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.2",
                 title: "Dano contínuo e indireto",
-                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente do movimento ofensivo. Eles não ativam a proteção contra hit kill. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia, resolve Bocejo no momento correto e registra cada mudança no Diário."
+                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente do movimento ofensivo. Eles não ativam a proteção contra hit kill. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia; também avança Bocejo, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song, registrando cada mudança no Diário."
             },
             {
                 id: "6.3",
@@ -268,22 +268,32 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.1",
                 title: "Habilidades",
-                body: "Leia a habilidade como nos jogos e aplique seu efeito antes ou depois do cálculo conforme a descrição. Quando a automação ainda não cobrir uma habilidade, o Narrador aplica a decisão e a registra no Diário."
+                body: "Cada habilidade tem gatilho, estado e histórico. Entrada em campo, clima, terreno, precisão, dano, contato, nocaute, imunidade e fim de rodada são aplicados na ordem correta quando o contexto é objetivo; isso inclui famílias como Intimidate, Download, habilidades de clima e terreno, Sturdy, Adaptability, Technician, absorções, reações de contato, recuperação e alterações de Velocidade. Imposter e Illusion preservam suas regras próprias. Quando alvo, troca, ordem, escolha ou interpretação ainda estiverem abertos, o painel mantém a descrição oficial visível e marca a resolução como guiada em vez de inventar uma resposta."
             },
             {
                 id: "7.2",
                 title: "Itens",
-                body: "Itens segurados e itens do Treinador conservam seus nomes canônicos e sua função reconhecível. Consumo, troca, ativação e recuperação devem atualizar a ficha ou o inventário no momento em que acontecem."
+                body: "Itens segurados possuem estado próprio na cena: ativo, consumido, removido, trocado ou restaurado. Frutas, itens de escolha, Life Orb, Leftovers, Focus Sash, Weakness Policy, Air Balloon, sementes de terreno, orbes, itens de precisão e modificadores de dano integram o mesmo cálculo e deixam uma trilha narrativa. Trick, Switcheroo, Knock Off, Thief, Covet, Fling, Recycle, Bug Bite, Pluck e Incinerate atualizam esse estado. A ficha da Box conserva o equipamento de origem; mudanças da batalha permanecem na cena até o Narrador editar a ficha ou restaurar o item, evitando que um efeito temporário reescreva a coleção por acidente."
             },
             {
                 id: "7.3",
                 title: "Formas e transformações",
-                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastalização e outras mecânicas alteram apenas o que suas regras determinam. A forma escolhida deve manter espécie-base, identidade e progresso vinculados."
+                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastalização e outras mecânicas alteram apenas o que suas regras determinam. Transform copia aparência, tipos atuais, habilidade, atributos não relacionados a HP, modificadores e movimentos do alvo com 5 PP, mas preserva HP, nível, item e progresso do usuário; tudo pode ser revertido sem alterar sua ficha original. Mudanças como Stance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast exibem seu gatilho e o grau de automação no painel."
             },
             {
                 id: "7.4",
+                title: "Movimentos que copiam ou chamam outros",
+                body: "Sketch troca permanentemente o próprio espaço pelo último movimento observado que seja válido e sincroniza a ficha vinculada. Mimic cria uma cópia temporária com 5 PP e restaura o movimento e o PP anteriores quando a cena termina ou o Narrador desfaz a cópia. Metronome, Copycat, Assist, Sleep Talk, Nature Power, Mirror Move, Me First e Instruct pedem o movimento resultante e consomem PP apenas da escolha original."
+            },
+            {
+                id: "7.5",
                 title: "Tipos, STAB e Terastalização",
-                body: "A defesa usa os tipos atuais do alvo. O STAB é 1,5× quando o movimento corresponde a um tipo original ou ao Tera Type; se corresponder aos dois, torna-se 2×. Imunidade reduz o dano a zero."
+                body: "A defesa usa os tipos atuais do alvo. O STAB é 1,5× quando o movimento corresponde a um tipo original ou ao Tera Type; se corresponder aos dois, torna-se 2×. Adaptability ajusta esses valores quando está ativa. Imunidade reduz o dano a zero. Sol, chuva e terrenos modificam os tipos pertinentes e aparecem como parcelas separadas no resultado."
+            },
+            {
+                id: "7.6",
+                title: "Ordem de resolução conectada",
+                body: "Verifique restrições do usuário, alvo, precisão e imunidades; resolva a disputa; aplique poder situacional, STAB, tipo, clima, terreno, habilidade e item; depois trate sobrevivência, dano, efeitos secundários, contato, consumo, cura, nocaute e histórico. Shield Dust, Covert Cloak e Sheer Force só alteram efeitos secundários, sem apagar efeitos principais ou custos próprios."
             }
         ]
     },

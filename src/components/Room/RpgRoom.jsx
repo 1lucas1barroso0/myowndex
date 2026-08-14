@@ -158,11 +158,14 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         <span>Seu nome na aventura</span>
                         <input value={narratorName} maxLength={32} required onChange={event => setNarratorName(event.target.value)} />
                     </label>
-                    <ul>
-                        <li>Organiza o campo, as rodadas, o HP e a iniciativa.</li>
-                        <li>Leva equipes para a cena e acompanha cada resultado.</li>
-                        <li>Convida jogadores sem compartilhar os controles do Narrador.</li>
-                    </ul>
+                    <details className="room-role-help">
+                        <summary>O que você pode fazer como Narrador</summary>
+                        <ul>
+                            <li>Organiza o campo, as rodadas, o HP e a iniciativa.</li>
+                            <li>Leva equipes para a cena e acompanha cada resultado.</li>
+                            <li>Convida jogadores sem compartilhar os controles do Narrador.</li>
+                        </ul>
+                    </details>
                     <button type="submit" className="room-primary-button" disabled={busy}>
                         {busy ? "Preparando a aventura…" : "Abrir nova aventura"}
                     </button>
@@ -201,11 +204,14 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                         <span>Seu nome na aventura</span>
                         <input value={displayName} maxLength={32} required autoFocus={Boolean(defaultInvite)} onChange={event => setDisplayName(event.target.value)} />
                     </label>
-                    <ul>
-                        <li>Acompanha o campo e o progresso conforme a aventura acontece.</li>
-                        <li>Rola dados, conversa e apresenta sua equipe ao Narrador.</li>
-                        <li>Declara movimentos e controla os próprios Pokémon.</li>
-                    </ul>
+                    <details className="room-role-help">
+                        <summary>O que você pode fazer como Jogador</summary>
+                        <ul>
+                            <li>Acompanha o campo e o progresso conforme a aventura acontece.</li>
+                            <li>Rola dados, conversa e apresenta sua equipe ao Narrador.</li>
+                            <li>Declara movimentos e controla os próprios Pokémon.</li>
+                        </ul>
+                    </details>
                     <button type="submit" className="room-primary-button" disabled={busy}>
                         {busy ? "Entrando…" : "Entrar na aventura"}
                     </button>

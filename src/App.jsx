@@ -34,7 +34,7 @@ const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
                     }}
                 />
             </span>
-            <span className="text-[11px] font-black text-slate-700 mt-3 capitalize truncate w-full text-center group-hover:text-red-600 transition-colors">
+            <span className="pokemon-card-name text-[11px] font-black text-slate-700 mt-3 capitalize w-full text-center group-hover:text-red-600 transition-colors">
                 {formatName(species.name)}
             </span>
         </button>
@@ -48,7 +48,7 @@ const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction 
         red: "bg-red-50 border-red-200 text-red-800"
     };
     return (
-        <div role="status" className={`mb-5 flex items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-xs font-bold ${tones[tone]}`}>
+        <div role="status" className={`status-notice mb-5 flex items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-xs font-bold ${tones[tone]}`}>
             <span>{children}</span>
             <span className="flex shrink-0 items-center gap-2">
                 {actionLabel && onAction && <button type="button" onClick={onAction} className="rounded-lg border-2 border-current/20 bg-white/70 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest">{actionLabel}</button>}
@@ -345,12 +345,12 @@ export default function App() {
     }), [teams, env, activeTeamId, isTTRPG, isHackmon, experienceMode, envLoading, envError, handleOpenPokedex]);
 
     return (
-        <div className={`app-root view-${view} h-[100dvh] flex flex-col overflow-hidden`}>
+        <div className={`app-root view-${view} min-h-[100dvh] flex flex-col`}>
             <header className="app-header shrink-0 px-2.5 sm:px-4 md:px-5 pt-2.5 sm:pt-4 pb-2 z-40">
                 <div className="max-w-[1900px] mx-auto game-shell app-header-shell p-2.5 sm:p-3.5">
-                    <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
-                        <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
-                            <div className="flex items-center gap-4">
+                    <div className="app-header-row flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
+                        <div className="app-header-primary flex items-center justify-between gap-4 w-full lg:w-auto">
+                            <div className="app-brand-cluster flex items-center gap-4">
                                 <button type="button" aria-label="Abrir a Central da Aventura" onClick={handleOpenRoom} className="app-brand-icon relative shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
                                     <img src="/icons/myowndex-icon-v91.svg" alt="" />
                                 </button>
@@ -373,8 +373,8 @@ export default function App() {
                             {view === "pokedex" && (
                                 <div className="relative flex-grow w-full sm:w-80">
                                     <label htmlFor="pokemon-search" className="sr-only">Buscar Pokémon por nome ou número</label>
-                                    <input id="pokemon-search" type="search" value={searchInput} placeholder="Nome ou número…" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-red-800 rounded-full text-xs text-white font-bold outline-none focus:border-white transition-colors shadow-inner" onChange={handleSearchInputChange} />
-                                    <svg aria-hidden="true" className="w-4 h-4 absolute left-4 top-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                    <input id="pokemon-search" type="search" value={searchInput} placeholder="Nome ou número…" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-blue-700 rounded-full text-xs text-white font-bold outline-none focus:border-cyan-300 transition-colors shadow-inner" onChange={handleSearchInputChange} />
+                                    <svg aria-hidden="true" className="w-4 h-4 absolute left-4 top-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                 </div>
                             )}
                             <label className="mode-select">
@@ -388,7 +388,7 @@ export default function App() {
                 </div>
             </header>
 
-            <main className="flex-1 min-h-0 overflow-y-auto app-scroll-area px-2.5 sm:px-4 md:px-5 pt-1.5 pb-3 sm:pb-5 relative z-10">
+            <main className="flex-1 app-scroll-area px-2.5 sm:px-4 md:px-5 pt-1.5 pb-3 sm:pb-5 relative z-10">
                 <div className="max-w-[1900px] mx-auto game-shell app-main-shell p-3 sm:p-5 md:p-6 min-h-[70vh]">
                     {!online && <StatusNotice tone="amber">Você está sem internet, mas tudo o que já consultou na Pokédex continua disponível.</StatusNotice>}
                     {storageError && <StatusNotice tone="red">Não conseguimos salvar esta Box neste aparelho. Libere espaço ou permita o armazenamento do site e tente novamente.</StatusNotice>}

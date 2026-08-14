@@ -75,7 +75,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
     }));
 
     return (
-        <div className="animate-fade-in text-slate-800">
+        <div className="trainer-guide animate-fade-in text-slate-800">
             <section className="rotom-hero relative overflow-hidden rounded-[1.75rem] border-4 border-slate-800 p-5 shadow-[0_8px_0_#334155] sm:p-7">
                 <div className="relative z-10 max-w-3xl">
                     <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -96,7 +96,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                 <div aria-hidden="true" className="absolute -bottom-16 -right-10 h-56 w-56 rounded-full border-[28px] border-cyan-300/20 bg-white/10 shadow-[0_0_70px_rgba(103,232,249,0.35)]" />
             </section>
 
-            <section className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+            <section className="guide-layout mt-7 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
                 <div className="space-y-5">
                     <article className="game-panel p-4 sm:p-6">
                         <div className="mb-5 flex flex-col justify-between gap-3 border-b-2 border-slate-200 pb-4 sm:flex-row sm:items-end">
@@ -107,10 +107,10 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                             <span className="text-[10px] font-bold text-slate-500">Estas rolagens ficam somente neste aparelho.</span>
                         </div>
 
-                        <div className="grid gap-5 lg:grid-cols-2">
+                        <div className="guide-tool-grid grid gap-5 lg:grid-cols-2">
                             <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm">
                                 <ToolLabel>Teste de atributo</ToolLabel>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="guide-choice-grid grid grid-cols-3 gap-2">
                                     {[
                                         ["normal", "Normal"],
                                         ["advantage", "Vantagem"],
@@ -127,7 +127,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                         </button>
                                     ))}
                                 </div>
-                                <div className="mt-3 grid grid-cols-2 gap-3">
+                                <div className="guide-input-grid mt-3 grid grid-cols-2 gap-3">
                                     <label>
                                         <ToolLabel>Atributo</ToolLabel>
                                         <input type="number" value={attribute} onChange={event => setAttribute(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
@@ -182,7 +182,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                             <span className="text-[9px] font-black uppercase tracking-[0.22em] text-blue-500">Calculadora Rotom</span>
                             <h3 className="mt-1 text-xl font-black text-slate-800">Conversão para o RPG</h3>
                         </div>
-                        <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="guide-conversion-grid grid gap-3 sm:grid-cols-3">
                             <label className="rounded-2xl border-2 border-slate-200 bg-white p-4">
                                 <ToolLabel>Valor original</ToolLabel>
                                 <input type="number" min="0" value={scaleValue} onChange={event => setScaleValue(event.target.value)} className="w-full bg-transparent text-2xl font-black text-slate-800 outline-none" />
@@ -234,7 +234,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                             <span className="sr-only">Pesquisar regras</span>
                             <input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar regra, tema ou número…" className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-xs font-bold outline-none focus:border-orange-400" />
                         </label>
-                        <div className="mt-4 max-h-[720px] space-y-3 overflow-y-auto pr-1 app-scroll-area">
+                        <div className="guide-rule-list mt-4 space-y-3">
                             {visibleSections.map(section => (
                                 <details key={section.id} className="rule-section overflow-hidden rounded-2xl border-2 border-slate-200 bg-white" open={Boolean(query)}>
                                     <summary className="cursor-pointer list-none p-4">
@@ -242,7 +242,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-500 text-xs font-black text-white">{section.number}</span>
                                             <span className="min-w-0">
                                                 <strong className="block text-xs font-black text-slate-800">{section.title}</strong>
-                                                <small className="block truncate text-[9px] font-bold text-slate-400">{section.summary}</small>
+                                                <small className="guide-rule-summary block text-[9px] font-bold text-slate-400">{section.summary}</small>
                                             </span>
                                         </span>
                                     </summary>

@@ -149,7 +149,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.6/);
+  assert.match(worker, /myowndex-shell-v9\.7/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -229,9 +229,22 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(pixelContract, /image-rendering:\s*pixelated/);
   assert.match(pixelContract, /background-size:\s*8px 8px/);
   assert.doesNotMatch(pixelContract, /\bcolor\s*:\s*(?:#(?:b91c1c|991b1b|dc2626|ef4444|e11d48|be123c|ff6075|ff8292|ff9aaa|f04f64|a72143)|var\(--rom-coral(?:-deep)?\))/i);
+  const breathableContract = css.slice(css.indexOf("Contrato ultraclean responsivo 9.7.0"));
+  assert.ok(breathableContract.length > 500);
+  assert.match(breathableContract, /--breath-page/);
+  assert.match(breathableContract, /overflow-y:\s*auto/);
+  assert.match(breathableContract, /\.app-header-primary/);
+  assert.match(breathableContract, /\.pc-partner-grid/);
+  assert.match(breathableContract, /\.room-role-help/);
+  assert.match(breathableContract, /\.pokemon-modal-shell/);
+  assert.match(breathableContract, /\.guide-rule-list/);
+  assert.match(breathableContract, /--night-violet/);
+  assert.doesNotMatch(breathableContract, /#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255|#fde047|#facc15|#fbbf24/i);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
   assert.match(app, /myowndex-icon-v91\.svg/);
+  assert.match(app, /app-header-primary/);
+  assert.match(app, /min-h-\[100dvh\]/);
 });
 
 test("the adventure exposes every modifier and explains movement resolution", async () => {

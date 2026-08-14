@@ -15,15 +15,17 @@ export const EXPERIENCE_MODES = {
         id: "rpg",
         label: "RPG",
         shortLabel: "RPG",
+        consoleLabel: "2D6",
         description: "Regras dos jogos adaptadas à mesa, com espaço para soluções criativas.",
         isTTRPG: true,
         isFreeform: false,
-        color: "amber"
+        color: "violet"
     },
     game: {
         id: "game",
         label: "Como nos jogos",
         shortLabel: "Jogos",
+        consoleLabel: "GAME",
         description: "Atributos originais e sugestões compatíveis com o jogo escolhido.",
         isTTRPG: false,
         isFreeform: false,
@@ -33,6 +35,7 @@ export const EXPERIENCE_MODES = {
         id: "free",
         label: "Criação livre",
         shortLabel: "Livre",
+        consoleLabel: "EDIT",
         description: "Crie sem limites: movimentos, habilidades, tipos e atributos ficam à sua escolha.",
         isTTRPG: true,
         isFreeform: true,

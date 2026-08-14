@@ -10,6 +10,7 @@ import Teambuilder from "./components/Teambuilder/Teambuilder.jsx";
 import RpgRoom from "./components/Room/RpgRoom.jsx";
 import AppearanceControl from "./components/Shared/AppearanceControl.jsx";
 import InstallMyOwnDex from "./components/Shared/InstallMyOwnDex.jsx";
+import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 
 const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
     return (
@@ -377,12 +378,7 @@ export default function App() {
                                     <svg aria-hidden="true" className="w-4 h-4 absolute left-4 top-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                 </div>
                             )}
-                            <label className="mode-select">
-                                <span className="hidden text-[8px] font-black uppercase tracking-[0.18em] text-slate-400 sm:block">Estilo de jogo</span>
-                                <select aria-label="Estilo de jogo" value={experienceMode} onChange={event => setExperienceMode(event.target.value)}>
-                                    {Object.values(EXPERIENCE_MODES).map(mode => <option key={mode.id} value={mode.id}>{mode.label}</option>)}
-                                </select>
-                            </label>
+                            <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
                         </div>
                     </div>
                 </div>

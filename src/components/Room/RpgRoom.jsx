@@ -20,7 +20,6 @@ import {
     LOCAL_ROOM_STORAGE_KEY,
     mergeRoomConflictSnapshot,
     normalizeRoomSnapshot,
-    ROOM_PHASES,
     STATUS_LABELS,
     syncTeamsWithRoomProgress,
 } from "../../core/room.js";
@@ -51,6 +50,7 @@ import CombatAssistant from "./CombatAssistant.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
 import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
 import VoiceCall from "./VoiceCall.jsx";
+import AdventurePhaseControl from "./AdventurePhaseControl.jsx";
 
 const connectionLabels = {
     connected: "Aventura conectada",
@@ -1200,19 +1200,20 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
                 <main className="room-field">
                     <div className="room-scene-strip">
-                        <label>
-                            <span>Fase da aventura</span>
-                            <select value={snapshot.phase} disabled={role !== "narrator"} onChange={event => commitSnapshot({ ...snapshot, phase: event.target.value })}>
-                                {ROOM_PHASES.map(phase => <option key={phase.id} value={phase.id}>{phase.label}</option>)}
-                            </select>
-                        </label>
-                        <div>
-                            <small>Rodada</small>
-                            <strong>{snapshot.round}</strong>
-                        </div>
-                        <div>
-                            <small>Em cena</small>
-                            <strong>{snapshot.tokens.length}</strong>
+                        <AdventurePhaseControl
+                            value={snapshot.phase}
+                            readOnly={role !== "narrator"}
+                            onChange={phase => commitSnapshot({ ...snapshot, phase })}
+                        />
+                        <div className="room-scene-stats" aria-label="Resumo da cena">
+                            <div>
+                                <small>Rodada</small>
+                                <strong>{snapshot.round}</strong>
+                            </div>
+                            <div>
+                                <small>Em cena</small>
+                                <strong>{snapshot.tokens.length}</strong>
+                            </div>
                         </div>
                     </div>
 

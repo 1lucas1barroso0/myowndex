@@ -24,6 +24,7 @@ import {
     getSpecialMoveBlockReason,
     SPECIAL_AUTOMATION_LABELS,
 } from "../../core/specialMechanics.js";
+import { getTraitMoveBlock, isWeatherSuppressed } from "../../core/traitMechanics.js";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
@@ -57,6 +58,12 @@ const emptyConsequences = () => ({
     specialNarratives: [],
     abilityBlocks: [],
     abilityDamage: 0,
+    itemDamage: 0,
+    traitHealing: 0,
+    traitProtected: false,
+    traitActivations: [],
+    consumedItems: [],
+    traitStatuses: [],
 });
 
 const addConsequences = (summary, current) => ({
@@ -86,6 +93,12 @@ const addConsequences = (summary, current) => ({
         ? [...summary.abilityBlocks, current.abilityBlock]
         : summary.abilityBlocks,
     abilityDamage: summary.abilityDamage + (Number(current.abilityDamage) || 0),
+    itemDamage: summary.itemDamage + (Number(current.itemDamage) || 0),
+    traitHealing: summary.traitHealing + (Number(current.traitHealing) || 0),
+    traitProtected: summary.traitProtected || Boolean(current.traitProtected),
+    traitActivations: [...summary.traitActivations, ...(current.traitActivations || [])],
+    consumedItems: [...summary.consumedItems, ...(current.consumedItems || [])],
+    traitStatuses: [...summary.traitStatuses, ...(current.traitStatuses || [])],
 });
 
 const resolutionRollLabel = resolution => {
@@ -193,6 +206,7 @@ export default function CombatAssistant({
     const originalSpecialBlock = moveData
         ? getSpecialMoveBlockReason({ move: moveData, attacker, defender, round: snapshot.round })
         : "";
+    const originalTraitBlock = moveData ? getTraitMoveBlock({ move: moveData, attacker, defender }) : null;
     const canResolve = Boolean(
         attacker
         && moveName
@@ -202,6 +216,7 @@ export default function CombatAssistant({
         && hasRequiredTarget
         && !outOfPp
         && !originalSpecialBlock
+        && !originalTraitBlock?.attackerBlocked
     );
     const automationTags = getMoveAutomationTags(resolvedMoveData);
 
@@ -265,6 +280,9 @@ export default function CombatAssistant({
                     move,
                     mode,
                     round: snapshot.round,
+                    weather: snapshot.weather,
+                    terrain: snapshot.terrain,
+                    weatherSuppressed: isWeatherSuppressed(workingTokens),
                 });
 
                 if (role === "narrator") {
@@ -483,6 +501,7 @@ export default function CombatAssistant({
                 )}
                 <p className="combat-target-note">{targetDescription}</p>
                 {originalSpecialBlock && <p className="combat-special-block">Não pode ser resolvido agora: {originalSpecialBlock}.</p>}
+                {originalTraitBlock?.attackerBlocked && <p className="combat-special-block">Item ativo: {originalTraitBlock.reason}.</p>}
                 {!canControlAttacker && role === "player" && (
                     <p className="combat-permission-note">Você pode testar este Pokémon aqui. Para declarar o movimento na rodada, escolha um Pokémon sob seu controle.</p>
                 )}
@@ -530,8 +549,21 @@ export default function CombatAssistant({
                                         {resolution.dynamicPower && <span>Poder situacional {formatNumberPtBr(resolution.power)}: {resolution.dynamicPower.explanation}.</span>}
                                         {resolution.statProfile?.explanation && <span>{resolution.statProfile.explanation}.</span>}
                                         {resolution.flashFireMultiplier > 1 && <span>Flash Fire fortaleceu o dano em {formatNumberPtBr(resolution.flashFireMultiplier)}×.</span>}
+                                        {resolution.traitModifiers?.entries.map((modifier, modifierIndex) => (
+                                            <span key={`${modifier.kind}-${modifier.sourceId}-${modifierIndex}`} className="combat-trait-line">
+                                                {formatName(modifier.sourceId)}: {modifier.detail} ({formatNumberPtBr(modifier.multiplier)}×).
+                                            </span>
+                                        ))}
+                                        {resolution.accuracyState.traitModifiers?.entries.map((modifier, modifierIndex) => (
+                                            <span key={`accuracy-${modifier.sourceId}-${modifierIndex}`} className="combat-trait-line">
+                                                {formatName(modifier.sourceId)}: {modifier.detail} na precisão ({formatNumberPtBr(modifier.multiplier)}×).
+                                            </span>
+                                        ))}
+                                        {resolution.multiHitTraits?.source && <span className="combat-trait-line">{formatName(resolution.multiHitTraits.source)} definiu {resolution.hitCount} acertos.</span>}
+                                        {resolution.weatherSuppressed && <span className="combat-trait-line">Cloud Nine ou Air Lock manteve o clima visível, mas neutralizou seus efeitos.</span>}
                                         {resolution.typeBlocked && <span>Imunidade de tipo impediu o movimento.</span>}
                                         {resolution.abilityBlock && <span>{resolution.abilityBlock.reason}.</span>}
+                                        {resolution.traitBlock && <span>{resolution.traitBlock.reason}.</span>}
                                         {resolution.specialBlockReason && <span>Condição especial não atendida: {resolution.specialBlockReason}.</span>}
                                         {resolution.accuracyState.noGuard && <span>No Guard tornou a precisão automática.</span>}
                                         {resolution.moveConnected && !resolution.damageHit && resolution.profile.requiresDamageContest && (
@@ -551,7 +583,10 @@ export default function CombatAssistant({
                                 {result.consequences.healed > 0 && <li>Recuperou {formatNumberPtBr(result.consequences.healed)} HP.</li>}
                                 {result.consequences.recoil > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.recoil)} HP com o recuo.</li>}
                                 {result.consequences.abilityDamage > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.abilityDamage)} HP ao ativar a própria habilidade.</li>}
+                                {result.consequences.itemDamage > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.itemDamage)} HP por um item reativo.</li>}
+                                {result.consequences.traitHealing > 0 && <li>Itens ou habilidades recuperaram {formatNumberPtBr(result.consequences.traitHealing)} HP.</li>}
                                 {result.consequences.appliedStatuses.map((status, index) => <li key={`${status}-${index}`}>Condição: {STATUS_LABELS[status] || formatName(status)}.</li>)}
+                                {result.consequences.traitStatuses.map((entry, index) => <li key={`trait-status-${entry.tokenId}-${index}`}>{formatName(entry.sourceId)} aplicou {STATUS_LABELS[entry.status] || formatName(entry.status)}.</li>)}
                                 {result.consequences.blockedStatuses.map((reason, index) => <li key={`${reason}-${index}`}>Condição impedida: {reason}.</li>)}
                                 {result.consequences.trackedEffects.includes("yawn") && <li>Bocejo marcado: o sono será verificado no encerramento da próxima rodada.</li>}
                                 {result.consequences.trackedEffects.filter(effect => effect !== "yawn").map(effect => (
@@ -562,6 +597,8 @@ export default function CombatAssistant({
                                 {result.consequences.fieldChange?.terrain && <li>Terreno alterado para {formatName(result.consequences.fieldChange.terrain)}.</li>}
                                 {result.consequences.scheduledDamage > 0 && <li>Impacto adiado: {formatNumberPtBr(result.consequences.scheduledDamage)} de dano preparado.</li>}
                                 {result.consequences.specialNarratives.map((narrative, index) => <li key={`special-${index}`}>{narrative}</li>)}
+                                {result.consequences.consumedItems.length > 0 && <li>Item(ns) consumido(s) ou removido(s): {[...new Set(result.consequences.consumedItems)].map(formatName).join(", ")}.</li>}
+                                {result.consequences.traitProtected && <li>Uma habilidade ou item próprio impediu o nocaute e preservou 1 HP.</li>}
                                 {result.consequences.hitKillProtected && <li>Proteção contra hit kill: o cálculo chegou a {formatNumberPtBr(result.consequences.calculatedDamage)} de dano; o alvo permaneceu com 1 HP.</li>}
                                 {result.targetResults.some(entry => entry.resolution.attackTest?.fumble) && <li>Erro crítico: escolha uma consequência coerente com a cena; o MyOwnDex não toma essa decisão pelo grupo.</li>}
                                 {result.consequences.fainted && <li>Um alvo não pode mais batalhar.</li>}

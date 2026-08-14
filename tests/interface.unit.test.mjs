@@ -93,7 +93,7 @@ test("visible copy avoids robotic system language", async () => {
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.3/);
+  assert.match(worker, /myowndex-shell-v9\.4/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -193,6 +193,33 @@ test("unique Pokémon and exceptional Moves expose state, narrative and automati
   assert.match(mechanics, /Automation integral|Automação integral/);
   assert.match(mechanics, /imposter/);
   assert.match(mechanics, /illusion/);
+});
+
+test("Abilities and held items expose official context, lifecycle, narrative and vivid contrast", async () => {
+  const [panel, room, combat, battlefield, mechanics, css, rules] = await Promise.all([
+    read("src/components/Room/TraitMechanicsPanel.jsx"),
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/components/Room/CombatAssistant.jsx"),
+    read("src/components/Room/Battlefield.jsx"),
+    read("src/core/traitMechanics.js"),
+    read("src/index.css"),
+    read("src/core/rpgRules.js"),
+  ]);
+  assert.match(panel, /Descrição do catálogo/);
+  assert.match(panel, /Registrar ativação/);
+  assert.match(panel, /Consumir ou remover/);
+  assert.match(panel, /Restaurar item/);
+  assert.match(room, /<TraitMechanicsPanel/);
+  assert.match(combat, /traitModifiers/);
+  assert.match(combat, /Cloud Nine ou Air Lock/);
+  assert.match(battlefield, /room-token-traits/);
+  assert.match(mechanics, /weakness-policy/);
+  assert.match(mechanics, /neutralizing-gas/);
+  assert.match(css, /Contrato de contraste 9\.4/);
+  assert.match(css, /\.token-traits/);
+  assert.match(css, /\.combat-trait-line/);
+  assert.match(rules, /Cada habilidade tem gatilho, estado e histórico/);
+  assert.match(rules, /Itens segurados possuem estado próprio na cena/);
 });
 
 test("the internal Guide is the canonical source and explains hit kill protection", async () => {

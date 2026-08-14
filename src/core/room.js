@@ -9,10 +9,12 @@ import {
 import { RPG_STATUS_LABELS } from "./copy.js";
 import {
     adjustMoveAccuracy,
+    applyStageChange,
     calculateStagedStats,
     getDefensiveTypes,
     getMoveResolutionProfile,
     getMoveStab,
+    getStatusBlockReason,
     isDirectKnockoutMove,
     normalizePpSlots,
     normalizeSlug,
@@ -32,8 +34,23 @@ import {
     normalizeSpecialState,
     transformBattleToken,
 } from "./specialMechanics.js";
+import {
+    consumeHeldItem,
+    getDamageTraitModifiers,
+    getInitiativeTraitState,
+    getMultiHitTraitState,
+    getTraitMoveBlock,
+    isAbilityActive,
+    isHeldItemActive,
+    isWeatherSuppressed,
+    normalizeTraitState,
+    recordTraitEvent,
+    restoreHeldItem,
+    setAbilitySuppressed,
+    traitSlug,
+} from "./traitMechanics.js";
 
-export const ROOM_SCHEMA_VERSION = 3;
+export const ROOM_SCHEMA_VERSION = 4;
 export const ROOM_SESSION_STORAGE_KEY = "myowndex_live_room_v1";
 export const LOCAL_ROOM_STORAGE_KEY = "myowndex_local_room_v1";
 
@@ -169,6 +186,7 @@ export const normalizeRoomToken = value => {
         pp: normalizePpSlots(source.pp),
         volatileEffects: normalizeVolatileEffects(source.volatileEffects),
         specialState: normalizeSpecialState(source.specialState),
+        traitState: normalizeTraitState(source.traitState, source.item, source.ability),
         hidden: Boolean(source.hidden),
     };
     return { ...token, stats: calculateStagedStats(token) };
@@ -178,7 +196,21 @@ export const normalizeRoomSnapshot = value => {
     const source = value && typeof value === "object" ? value : {};
     const fallback = createRoomSnapshot(source.title);
     const tokens = asArray(source.tokens).slice(0, 40).map(normalizeRoomToken);
-    const tokenIds = new Set(tokens.map(token => token.id));
+    const neutralizingGasActive = tokens.some(token => token.currentHp > 0
+        && traitSlug(token.ability) === "neutralizing-gas"
+        && !normalizeTraitState(token.traitState, token.item, token.ability).ability.suppressed);
+    const resolvedTokens = tokens.map(token => {
+        const state = normalizeTraitState(token.traitState, token.item, token.ability);
+        const gasSuppressed = state.ability.suppressed && state.ability.suppressionReason === "Neutralizing Gas ativo na cena";
+        const protectedByShield = isHeldItemActive(token) && traitSlug(token.item) === "ability-shield";
+        const shouldSuppress = neutralizingGasActive
+            && traitSlug(token.ability) !== "neutralizing-gas"
+            && !protectedByShield;
+        if (shouldSuppress && !state.ability.suppressed) return setAbilitySuppressed(token, true, "Neutralizing Gas ativo na cena");
+        if (!shouldSuppress && gasSuppressed) return setAbilitySuppressed(token, false);
+        return token;
+    });
+    const tokenIds = new Set(resolvedTokens.map(token => token.id));
     const initiative = asArray(source.initiative).filter(id => tokenIds.has(id)).slice(0, 40);
     return {
         ...fallback,
@@ -195,7 +227,7 @@ export const normalizeRoomSnapshot = value => {
         terrain: ROOM_TERRAINS.some(terrain => terrain.id === source.terrain) ? source.terrain : fallback.terrain,
         sceneNotes: asText(source.sceneNotes).slice(0, 4000),
         gmNotes: asText(source.gmNotes).slice(0, 6000),
-        tokens,
+        tokens: resolvedTokens,
         initiative,
         audio: {
             ...fallback.audio,
@@ -378,7 +410,95 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
         }
         return token;
     });
-    const normalizedRoom = normalizeRoomSnapshot({ ...room, tokens: combined });
+    let weather = room.weather;
+    let terrain = room.terrain;
+    const weatherAbilities = {
+        drizzle: "chuva",
+        "primordial-sea": "chuva",
+        drought: "sol",
+        "desolate-land": "sol",
+        "orichalcum-pulse": "sol",
+        "sand-stream": "areia",
+        "snow-warning": "neve",
+    };
+    const terrainAbilities = {
+        "electric-surge": "eletrico",
+        "grassy-surge": "gramado",
+        "misty-surge": "nevoa",
+        "psychic-surge": "psiquico",
+    };
+    const intimidateImmunities = new Set(["clear-body", "full-metal-body", "hyper-cutter", "inner-focus", "oblivious", "own-tempo", "scrappy", "white-smoke"]);
+
+    for (const enteredId of enteredIds) {
+        let entered = combined.find(token => token.id === enteredId);
+        if (!entered || entered.currentHp <= 0 || !isAbilityActive(entered)) continue;
+        const ability = traitSlug(entered.ability);
+        const gasInCombinedScene = combined.some(candidate => candidate.currentHp > 0 && traitSlug(candidate.ability) === "neutralizing-gas");
+        if (gasInCombinedScene && ability !== "neutralizing-gas" && traitSlug(entered.item) !== "ability-shield") continue;
+        if (weatherAbilities[ability]) {
+            weather = weatherAbilities[ability];
+            entered = recordTraitEvent(entered, { kind: "ability", sourceId: ability, label: "Clima criado", detail: `Clima alterado para ${weather}`, round: room.round });
+        }
+        if (terrainAbilities[ability]) {
+            terrain = terrainAbilities[ability];
+            entered = recordTraitEvent(entered, { kind: "ability", sourceId: ability, label: "Terreno criado", detail: `Terreno alterado para ${terrain}`, round: room.round });
+        }
+        if (ability === "intrepid-sword") {
+            entered = applyStageChange(entered, "attack", 1);
+            entered = recordTraitEvent(entered, { kind: "ability", sourceId: ability, label: "Ataque aumentou", detail: "Entrada em campo", round: room.round });
+        }
+        if (ability === "dauntless-shield") {
+            entered = applyStageChange(entered, "defense", 1);
+            entered = recordTraitEvent(entered, { kind: "ability", sourceId: ability, label: "Defesa aumentou", detail: "Entrada em campo", round: room.round });
+        }
+        if (ability === "download") {
+            const opponents = combined.filter(candidate => candidate.currentHp > 0 && candidate.side !== entered.side && candidate.side !== "neutral");
+            const defense = opponents.reduce((sum, candidate) => sum + Number(candidate.stats?.defense || 0), 0);
+            const specialDefense = opponents.reduce((sum, candidate) => sum + Number(candidate.stats?.["special-defense"] || 0), 0);
+            const stat = defense < specialDefense ? "attack" : "special-attack";
+            entered = applyStageChange(entered, stat, 1);
+            entered = recordTraitEvent(entered, { kind: "ability", sourceId: ability, label: `${stat} aumentou`, detail: "Download comparou as defesas em cena", round: room.round });
+        }
+        combined = combined.map(candidate => candidate.id === enteredId ? entered : candidate);
+
+        if (ability === "intimidate") {
+            combined = combined.map(candidate => {
+                if (candidate.id === enteredId || candidate.currentHp <= 0 || candidate.side === entered.side || candidate.side === "neutral") return candidate;
+                const targetAbility = isAbilityActive(candidate) ? traitSlug(candidate.ability) : "";
+                if (intimidateImmunities.has(targetAbility)) {
+                    return recordTraitEvent(candidate, { kind: "ability", sourceId: targetAbility, label: "Intimidate impedido", detail: `${candidate.name} preservou o Ataque`, round: room.round });
+                }
+                const direction = targetAbility === "contrary" ? 1 : -1;
+                let changed = applyStageChange(candidate, "attack", direction);
+                if (targetAbility === "defiant") changed = applyStageChange(changed, "attack", 2);
+                if (targetAbility === "competitive") changed = applyStageChange(changed, "special-attack", 2);
+                return recordTraitEvent(changed, {
+                    kind: "ability",
+                    sourceId: ability,
+                    label: "Intimidate ativado",
+                    detail: targetAbility === "contrary" ? "Contrary inverteu a redução" : "Ataque reduzido na entrada",
+                    round: room.round,
+                });
+            });
+        }
+    }
+
+    const terrainSeed = {
+        "electric-seed": ["eletrico", "defense"],
+        "grassy-seed": ["gramado", "defense"],
+        "misty-seed": ["nevoa", "special-defense"],
+        "psychic-seed": ["psiquico", "special-defense"],
+    };
+    combined = combined.map(token => {
+        const seed = terrainSeed[traitSlug(token.item)];
+        if (!seed || seed[0] !== terrain || token.currentHp <= 0) return token;
+        const itemId = traitSlug(token.item);
+        const consumed = consumeHeldItem(token, { reason: `${itemId} reagiu ao terreno`, round: room.round });
+        const changed = applyStageChange(consumed.token, seed[1], 1);
+        return recordTraitEvent(changed, { kind: "item", sourceId: itemId, label: "Semente ativada", detail: `Terreno ${terrain}`, round: room.round });
+    });
+
+    const normalizedRoom = normalizeRoomSnapshot({ ...room, weather, terrain, tokens: combined });
     return { room: normalizedRoom, tokens: normalizedRoom.tokens.filter(token => enteredIds.has(token.id)) };
 };
 
@@ -448,9 +568,18 @@ export const advanceInitiative = snapshot => {
 const residualAmount = (maximumHp, fraction) => Math.max(1, Math.floor(Math.max(1, Number(maximumHp) || 1) * fraction));
 const uniqueSources = values => [...new Set(values.filter(Boolean))];
 const SAND_IMMUNE_ABILITIES = new Set(["magic-guard", "overcoat", "sand-force", "sand-rush", "sand-veil"]);
+const END_ROUND_STATUS_BERRIES = Object.freeze({
+    "aspear-berry": "freeze",
+    "cheri-berry": "paralysis",
+    "chesto-berry": "sleep",
+    "pecha-berry": "poison",
+    "rawst-berry": "burn",
+});
 
-export const applyEndOfRoundEffects = snapshot => {
+export const applyEndOfRoundEffects = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
+    const effectiveWeather = isWeatherSuppressed(room.tokens) ? "limpo" : room.weather;
+    const randomValue = () => typeof random === "function" ? random() : Math.random();
     const effects = [];
     const leechHealing = [];
     let tokens = room.tokens.map(token => {
@@ -460,7 +589,11 @@ export const applyEndOfRoundEffects = snapshot => {
         let forcedFaint = false;
         let delayedDamage = 0;
         let persistentHealing = 0;
+        let workingToken = { ...token, traitState: normalizeTraitState(token.traitState, token.item, token.ability) };
+        const activeAbility = isAbilityActive(workingToken) ? traitSlug(workingToken.ability) : "";
+        const activeItem = isHeldItemActive(workingToken) ? traitSlug(workingToken.item) : "";
         const residualSources = [];
+        const healingSources = [];
         const volatileEffects = [];
 
         normalizeVolatileEffects(token.volatileEffects).forEach(effect => {
@@ -469,6 +602,19 @@ export const applyEndOfRoundEffects = snapshot => {
                 if (turns > 0) {
                     volatileEffects.push({ ...effect, turns });
                 } else if (!status) {
+                    const blocked = getStatusBlockReason("sleep", { ...workingToken, status }, null, { terrain: room.terrain });
+                    if (blocked) {
+                        effects.push({
+                            kind: "state",
+                            tokenId: token.id,
+                            tokenName: token.name,
+                            damage: 0,
+                            remainingHp: currentHp,
+                            fainted: false,
+                            sources: [`Bocejo não causou sono: ${blocked}`],
+                        });
+                        return;
+                    }
                     status = "sleep";
                     effects.push({
                         kind: "status",
@@ -511,7 +657,7 @@ export const applyEndOfRoundEffects = snapshot => {
 
             if (effect.id === "leech-seed") {
                 const amount = Math.min(currentHp, residualAmount(token.maxHp, 1 / 8));
-                if (amount > 0 && token.ability !== "magic-guard") {
+                if (amount > 0 && activeAbility !== "magic-guard") {
                     delayedDamage += amount;
                     residualSources.push("Leech Seed");
                     leechHealing.push({ sourceTokenId: effect.sourceTokenId, sourceName: effect.sourceName, amount });
@@ -535,7 +681,7 @@ export const applyEndOfRoundEffects = snapshot => {
         });
 
         let specialState = normalizeSpecialState(token.specialState);
-        if (room.weather === "neve" && token.ability === "ice-face" && specialState.markers.includes("ice-face-broken")) {
+        if (effectiveWeather === "neve" && token.ability === "ice-face" && specialState.markers.includes("ice-face-broken")) {
             specialState = {
                 ...specialState,
                 markers: specialState.markers.filter(marker => marker !== "ice-face-broken"),
@@ -551,11 +697,180 @@ export const applyEndOfRoundEffects = snapshot => {
             });
         }
 
+        workingToken = { ...workingToken, currentHp, status, specialState };
+        if (activeAbility === "speed-boost") {
+            workingToken = applyStageChange(workingToken, "speed", 1);
+            workingToken = recordTraitEvent(workingToken, {
+                kind: "ability",
+                sourceId: activeAbility,
+                label: "Velocidade aumentou",
+                detail: "Fim da rodada",
+                round: room.round,
+            });
+            effects.push({
+                kind: "stage",
+                tokenId: token.id,
+                tokenName: token.name,
+                stat: "speed",
+                change: 1,
+                damage: 0,
+                remainingHp: currentHp,
+                fainted: false,
+                sources: ["Speed Boost"],
+            });
+        }
+        if (activeAbility === "moody") {
+            const stats = ["attack", "defense", "special-attack", "special-defense", "speed", "accuracy", "evasion"];
+            const raisedStat = stats[Math.floor(randomValue() * stats.length)] || "attack";
+            const loweredOptions = stats.filter(stat => stat !== raisedStat);
+            const loweredStat = loweredOptions[Math.floor(randomValue() * loweredOptions.length)] || "defense";
+            workingToken = applyStageChange(workingToken, raisedStat, 2);
+            workingToken = applyStageChange(workingToken, loweredStat, -1);
+            workingToken = recordTraitEvent(workingToken, {
+                kind: "ability",
+                sourceId: activeAbility,
+                label: "Moody oscilou",
+                detail: `${raisedStat} +2; ${loweredStat} -1`,
+                round: room.round,
+            });
+            effects.push({
+                kind: "stage",
+                tokenId: token.id,
+                tokenName: token.name,
+                damage: 0,
+                remainingHp: currentHp,
+                fainted: false,
+                sources: [`Moody: ${formatName(raisedStat)} +2, ${formatName(loweredStat)} -1`],
+            });
+        }
+
+        if (activeItem === "leftovers") {
+            persistentHealing += residualAmount(token.maxHp, 1 / 16);
+            healingSources.push("Leftovers");
+        }
+        if (activeItem === "black-sludge") {
+            if (token.types.includes("poison")) {
+                persistentHealing += residualAmount(token.maxHp, 1 / 16);
+                healingSources.push("Black Sludge");
+            } else if (activeAbility !== "magic-guard") {
+                delayedDamage += residualAmount(token.maxHp, 1 / 8);
+                residualSources.push("Black Sludge");
+            }
+        }
+        if (activeAbility === "rain-dish" && effectiveWeather === "chuva") {
+            persistentHealing += residualAmount(token.maxHp, 1 / 16);
+            healingSources.push("Rain Dish");
+        }
+        if (activeAbility === "ice-body" && effectiveWeather === "neve") {
+            persistentHealing += residualAmount(token.maxHp, 1 / 16);
+            healingSources.push("Ice Body");
+        }
+        if (activeAbility === "dry-skin" && effectiveWeather === "chuva") {
+            persistentHealing += residualAmount(token.maxHp, 1 / 8);
+            healingSources.push("Dry Skin");
+        }
+        if (activeAbility === "poison-heal" && ["poison", "bad-poison"].includes(status)) {
+            persistentHealing += residualAmount(token.maxHp, 1 / 8);
+            healingSources.push("Poison Heal");
+        }
+        const grounded = !token.types.includes("flying") && activeAbility !== "levitate" && activeItem !== "air-balloon";
+        if (room.terrain === "gramado" && grounded) {
+            persistentHealing += residualAmount(token.maxHp, 1 / 16);
+            healingSources.push("Terreno de Grama");
+        }
+        if (activeAbility !== "magic-guard" && activeAbility === "dry-skin" && effectiveWeather === "sol") {
+            delayedDamage += residualAmount(token.maxHp, 1 / 8);
+            residualSources.push("Dry Skin sob sol");
+        }
+        if (activeAbility !== "magic-guard" && activeAbility === "solar-power" && effectiveWeather === "sol") {
+            delayedDamage += residualAmount(token.maxHp, 1 / 8);
+            residualSources.push("Solar Power");
+        }
+
+        if (status && activeAbility === "hydration" && effectiveWeather === "chuva") {
+            const previousStatus = status;
+            status = "";
+            workingToken = recordTraitEvent({ ...workingToken, status, toxicCounter: 0 }, {
+                kind: "ability",
+                sourceId: activeAbility,
+                label: "Condição curada",
+                detail: `${previousStatus} removido pela chuva`,
+                round: room.round,
+            });
+            effects.push({ kind: "status", tokenId: token.id, tokenName: token.name, status: "", damage: 0, remainingHp: currentHp, fainted: false, sources: ["Hydration curou a condição"] });
+        } else if (status && activeAbility === "shed-skin" && randomValue() < 1 / 3) {
+            const previousStatus = status;
+            status = "";
+            workingToken = recordTraitEvent({ ...workingToken, status, toxicCounter: 0 }, {
+                kind: "ability",
+                sourceId: activeAbility,
+                label: "Condição curada",
+                detail: `${previousStatus} removido no fim da rodada`,
+                round: room.round,
+            });
+            effects.push({ kind: "status", tokenId: token.id, tokenName: token.name, status: "", damage: 0, remainingHp: currentHp, fainted: false, sources: ["Shed Skin curou a condição"] });
+        }
+
+        if (!status && ["flame-orb", "toxic-orb"].includes(activeItem)) {
+            const nextStatus = activeItem === "flame-orb" ? "burn" : "bad-poison";
+            const blocked = getStatusBlockReason(nextStatus, { ...workingToken, status }, null, { terrain: room.terrain });
+            if (!blocked) {
+                status = nextStatus;
+                workingToken = recordTraitEvent({ ...workingToken, status, toxicCounter: nextStatus === "bad-poison" ? 1 : 0 }, {
+                    kind: "item",
+                    sourceId: activeItem,
+                    label: "Condição aplicada",
+                    detail: `${activeItem} ativou no fim da rodada`,
+                    round: room.round,
+                });
+                effects.push({ kind: "status", tokenId: token.id, tokenName: token.name, status, damage: 0, remainingHp: currentHp, fainted: false, sources: [formatName(activeItem)] });
+            }
+        }
+
+        const currentItem = traitSlug(workingToken.item);
+        const cureStatus = END_ROUND_STATUS_BERRIES[currentItem];
+        const berryMatches = cureStatus && (cureStatus === status || (cureStatus === "poison" && status === "bad-poison"));
+        if (status && (currentItem === "lum-berry" || berryMatches)) {
+            const previousStatus = status;
+            const consumed = consumeHeldItem(workingToken, { reason: `${currentItem} curou ${previousStatus}`, round: room.round });
+            workingToken = recordTraitEvent({ ...consumed.token, status: "", toxicCounter: 0 }, {
+                kind: "item",
+                sourceId: currentItem,
+                label: "Condição curada",
+                detail: `${previousStatus} removido no fim da rodada`,
+                round: room.round,
+            });
+            status = "";
+            effects.push({ kind: "status", tokenId: token.id, tokenName: token.name, status: "", damage: 0, remainingHp: currentHp, fainted: false, sources: [`${formatName(currentItem)} foi consumida`] });
+        }
+
+        const traitState = normalizeTraitState(workingToken.traitState, workingToken.item, workingToken.ability);
+        if (activeAbility === "harvest" && traitState.item.consumed && traitState.item.originalId.endsWith("-berry")) {
+            const harvests = effectiveWeather === "sol" || randomValue() < 0.5;
+            if (harvests) {
+                const restored = restoreHeldItem(workingToken, { reason: "Harvest recuperou a Fruta", round: room.round });
+                if (restored.applied) {
+                    workingToken = restored.token;
+                    effects.push({ kind: "state", tokenId: token.id, tokenName: token.name, damage: 0, remainingHp: currentHp, fainted: false, sources: [`Harvest restaurou ${formatName(restored.itemId)}`] });
+                }
+            }
+        }
+
         if (persistentHealing > 0 && !forcedFaint) {
             const before = currentHp;
             currentHp = Math.min(token.maxHp, currentHp + persistentHealing);
             const healed = currentHp - before;
             if (healed > 0) {
+                workingToken = { ...workingToken, currentHp };
+                uniqueSources(healingSources.length ? healingSources : ["recuperação-persistente"]).forEach(source => {
+                    workingToken = recordTraitEvent(workingToken, {
+                        kind: "state",
+                        sourceId: traitSlug(source),
+                        label: "HP recuperado",
+                        detail: `${healed} HP no fim da rodada`,
+                        round: room.round,
+                    });
+                });
                 effects.push({
                     kind: "heal",
                     tokenId: token.id,
@@ -564,29 +879,29 @@ export const applyEndOfRoundEffects = snapshot => {
                     damage: 0,
                     remainingHp: currentHp,
                     fainted: false,
-                    sources: ["recuperação persistente"],
+                    sources: uniqueSources(healingSources.length ? healingSources : ["recuperação persistente"]),
                 });
             }
         }
 
         let residualDamage = delayedDamage;
         let toxicCounter = status === "bad-poison" ? Math.max(1, token.toxicCounter || 1) : 0;
-        const indirectBlocked = token.ability === "magic-guard";
+        const indirectBlocked = activeAbility === "magic-guard";
         if (!indirectBlocked && status === "burn") {
             residualDamage += residualAmount(token.maxHp, 1 / 16);
             residualSources.push("queimadura");
         }
-        if (!indirectBlocked && status === "poison") {
+        if (!indirectBlocked && activeAbility !== "poison-heal" && status === "poison") {
             residualDamage += residualAmount(token.maxHp, 1 / 8);
             residualSources.push("envenenamento");
         }
-        if (!indirectBlocked && status === "bad-poison") {
+        if (!indirectBlocked && activeAbility !== "poison-heal" && status === "bad-poison") {
             residualDamage += residualAmount(token.maxHp, toxicCounter / 16);
             residualSources.push("envenenamento grave");
             toxicCounter = Math.min(15, toxicCounter + 1);
         }
         const sandImmuneType = token.types.some(type => ["ground", "rock", "steel"].includes(type));
-        if (room.weather === "areia" && !sandImmuneType && !SAND_IMMUNE_ABILITIES.has(token.ability)) {
+        if (effectiveWeather === "areia" && !sandImmuneType && !SAND_IMMUNE_ABILITIES.has(activeAbility) && activeItem !== "safety-goggles") {
             residualDamage += residualAmount(token.maxHp, 1 / 16);
             residualSources.push("tempestade de areia");
         }
@@ -605,6 +920,16 @@ export const applyEndOfRoundEffects = snapshot => {
         } else if (residualDamage > 0) {
             const applied = Math.min(currentHp, residualDamage);
             currentHp = Math.max(0, currentHp - applied);
+            workingToken = { ...workingToken, currentHp };
+            uniqueSources(residualSources).forEach(source => {
+                workingToken = recordTraitEvent(workingToken, {
+                    kind: "state",
+                    sourceId: traitSlug(source),
+                    label: "Dano residual",
+                    detail: `${applied} de dano no fim da rodada`,
+                    round: room.round,
+                });
+            });
             effects.push({
                 kind: "damage",
                 tokenId: token.id,
@@ -615,7 +940,15 @@ export const applyEndOfRoundEffects = snapshot => {
                 sources: uniqueSources(residualSources),
             });
         }
-        return { ...token, status, currentHp, toxicCounter, volatileEffects, specialState };
+        const changed = {
+            ...workingToken,
+            status,
+            currentHp,
+            toxicCounter,
+            volatileEffects,
+            specialState,
+        };
+        return { ...changed, stats: calculateStagedStats(changed) };
     });
 
     leechHealing.forEach(drain => {
@@ -638,15 +971,51 @@ export const applyEndOfRoundEffects = snapshot => {
         });
     });
 
+    const badDreamSources = tokens.filter(token => token.currentHp > 0 && isAbilityActive(token) && traitSlug(token.ability) === "bad-dreams");
+    badDreamSources.forEach(source => {
+        tokens = tokens.map(target => {
+            if (target.id === source.id || target.side === source.side || target.side === "neutral" || target.status !== "sleep" || target.currentHp <= 0) return target;
+            if (isAbilityActive(target) && traitSlug(target.ability) === "magic-guard") return target;
+            const damage = Math.min(target.currentHp, residualAmount(target.maxHp, 1 / 8));
+            const changed = recordTraitEvent({ ...target, currentHp: target.currentHp - damage }, {
+                kind: "ability",
+                sourceId: "bad-dreams",
+                label: "Pesadelo causou dano",
+                detail: `${source.name} manteve Bad Dreams em cena`,
+                round: room.round,
+            });
+            effects.push({ kind: "damage", tokenId: target.id, tokenName: target.name, damage, remainingHp: changed.currentHp, fainted: changed.currentHp <= 0, sources: [`Bad Dreams de ${source.name}`] });
+            return changed;
+        });
+    });
+
+    const healers = tokens.filter(token => token.currentHp > 0 && isAbilityActive(token) && traitSlug(token.ability) === "healer");
+    healers.forEach(healer => {
+        tokens = tokens.map(target => {
+            if (target.id === healer.id || target.side !== healer.side || !target.status || target.currentHp <= 0 || randomValue() >= 0.3) return target;
+            const previousStatus = target.status;
+            const changed = recordTraitEvent({ ...target, status: "", toxicCounter: 0 }, {
+                kind: "ability",
+                sourceId: "healer",
+                label: "Condição curada",
+                detail: `${healer.name} curou ${previousStatus}`,
+                round: room.round,
+            });
+            effects.push({ kind: "status", tokenId: target.id, tokenName: target.name, status: "", damage: 0, remainingHp: target.currentHp, fainted: false, sources: [`Healer de ${healer.name}`] });
+            return changed;
+        });
+    });
+
     return { room: { ...room, tokens }, effects };
 };
 
 export const buildInitiative = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
     const results = room.tokens.filter(token => !token.hidden && token.currentHp > 0).map(token => {
+        const traitState = getInitiativeTraitState(token, { weather: isWeatherSuppressed(room.tokens) ? "limpo" : room.weather, round: room.round });
         const test = rollAttributeTest({
             mode: "normal",
-            attribute: token.stats?.speed || 0,
+            attribute: (token.stats?.speed || 0) * traitState.multiplier,
             random,
         });
         const tieBreak = Math.floor((typeof random === "function" ? random() : Math.random()) * 6) + 1;
@@ -656,6 +1025,7 @@ export const buildInitiative = (snapshot, random) => {
             total: test.total,
             dice: test.kept,
             tieBreak,
+            traitState,
         };
     }).sort((first, second) =>
         second.priority - first.priority
@@ -681,13 +1051,17 @@ export const calculateMoveResolution = ({
     mode = "normal",
     random,
     round = 0,
+    weather = "limpo",
+    terrain = "nenhum",
+    weatherSuppressed = false,
 }) => {
+    const effectiveWeather = weatherSuppressed ? "limpo" : weather;
     const profile = getMoveResolutionProfile(move);
     const statProfile = getMoveStatProfile({ move, attacker, defender });
     const attackKey = statProfile.attackKey;
     const defenseKey = statProfile.defenseKey;
-    const attackerStagesIgnored = profile.requiresDamageContest && normalizeSlug(defender?.ability) === "unaware";
-    const defenderStagesIgnored = profile.requiresDamageContest && normalizeSlug(attacker?.ability) === "unaware";
+    const attackerStagesIgnored = profile.requiresDamageContest && isAbilityActive(defender) && normalizeSlug(defender?.ability) === "unaware";
+    const defenderStagesIgnored = profile.requiresDamageContest && isAbilityActive(attacker) && normalizeSlug(attacker?.ability) === "unaware";
     const contestAttribute = (token, key, ignoreStages) => {
         const current = Number(token?.stats?.[key]) || 0;
         if (!ignoreStages) return current;
@@ -713,7 +1087,7 @@ export const calculateMoveResolution = ({
     const contestSuccess = profile.requiresDamageContest
         ? attackTest.total > defenseTest.total
         : true;
-    const accuracyState = adjustMoveAccuracy({ move, attacker, defender });
+    const accuracyState = adjustMoveAccuracy({ move, attacker, defender, weather: effectiveWeather });
     const accuracyTest = accuracyState.automatic
         ? { automatic: true, rolls: [], result: null, chance: accuracyState.adjustedAccuracy, success: true }
         : {
@@ -729,7 +1103,7 @@ export const calculateMoveResolution = ({
     const power = dynamicPower?.power ?? (Number.isFinite(listedPower) ? listedPower : 0);
     const baseDamage = convertToTTRPG(power);
     const moveType = move?.type?.name || "";
-    const stab = getMoveStab(attacker, moveType);
+    const baseStab = getMoveStab(attacker, moveType);
     const defensiveTypes = getDefensiveTypes(defender);
     const effectiveDefensiveTypes = ignoresGhostTypeImmunity(attacker, moveType, defensiveTypes)
         ? defensiveTypes.filter(type => type !== "ghost")
@@ -744,14 +1118,29 @@ export const calculateMoveResolution = ({
         && (profile.requiresDamageContest || typeSensitiveStatusMoves.has(normalizeSlug(move?.name)));
     const specialBlockReason = getSpecialMoveBlockReason({ move, attacker, defender, round });
     const abilityBlock = getAbilityMoveBlock({ move, attacker, defender, effectiveness });
-    const moveConnected = accuracyTest.success && !typeBlocked && !specialBlockReason && !abilityBlock;
+    const traitBlock = getTraitMoveBlock({ move, attacker, defender });
+    const moveConnected = accuracyTest.success && !typeBlocked && !specialBlockReason && !abilityBlock && !traitBlock;
     const damageHit = profile.requiresDamageContest && contestSuccess && moveConnected;
     const hit = moveConnected;
     const criticalMultiplier = attackTest?.critical ? 1.5 : 1;
+    const traitModifiers = getDamageTraitModifiers({
+        attacker,
+        defender,
+        move,
+        effectiveness,
+        stab: baseStab,
+        weather: effectiveWeather,
+        terrain,
+        critical: Boolean(attackTest?.critical),
+    });
+    const stab = traitModifiers.stab;
     const flashFireMultiplier = moveType === "fire" && normalizeSpecialState(attacker?.specialState).markers.includes("flash-fire-boost") ? 1.5 : 1;
     const directKnockout = isDirectKnockoutMove(move);
-    const minimumHits = Math.max(1, Number(move?.meta?.min_hits) || 1);
-    const maximumHits = Math.max(minimumHits, Number(move?.meta?.max_hits) || minimumHits);
+    const listedMinimumHits = Math.max(1, Number(move?.meta?.min_hits) || 1);
+    const listedMaximumHits = Math.max(listedMinimumHits, Number(move?.meta?.max_hits) || listedMinimumHits);
+    const multiHitTraits = getMultiHitTraitState({ attacker, move, minimumHits: listedMinimumHits, maximumHits: listedMaximumHits });
+    const minimumHits = multiHitTraits.minimumHits;
+    const maximumHits = multiHitTraits.maximumHits;
     const hitCount = damageHit && maximumHits > 1
         ? minimumHits + Math.floor((typeof random === "function" ? random() : Math.random()) * (maximumHits - minimumHits + 1))
         : 1;
@@ -785,7 +1174,7 @@ export const calculateMoveResolution = ({
                 ? fixedDamage
                 : manualDamage
                     ? 0
-                    : Math.max(1, Math.round(baseDamage * stab * effectiveness * criticalMultiplier * flashFireMultiplier))
+                    : Math.max(1, Math.round(baseDamage * stab * effectiveness * criticalMultiplier * flashFireMultiplier * traitModifiers.multiplier))
         : 0;
     const offensiveStage = attackerStagesIgnored ? 0 : normalizeStageMap(offensiveToken?.stages)[attackKey];
     const ceilingMultiplier = Math.max(1, stageMultiplier(offensiveStage));
@@ -796,6 +1185,9 @@ export const calculateMoveResolution = ({
     const damage = damagePerHit * hitCount;
     return {
         profile,
+        weather: effectiveWeather,
+        weatherSuppressed,
+        terrain,
         resolutionKind: profile.resolutionKind,
         resolutionLabel: profile.resolutionLabel,
         attackKey,
@@ -813,13 +1205,17 @@ export const calculateMoveResolution = ({
         power,
         dynamicPower,
         baseDamage,
+        baseStab,
         stab,
         criticalMultiplier,
         flashFireMultiplier,
+        traitModifiers,
+        multiHitTraits,
         effectiveness,
         typeBlocked,
         specialBlockReason,
         abilityBlock,
+        traitBlock,
         moveConnected,
         damageHit,
         hit,

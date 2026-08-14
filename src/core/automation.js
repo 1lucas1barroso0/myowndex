@@ -9,6 +9,20 @@ import {
     revealBattleIllusion,
     transformBattleToken,
 } from "./specialMechanics.js";
+import {
+    assignHeldItem,
+    consumeHeldItem,
+    getAccuracyTraitModifiers,
+    getSurvivalTrait,
+    isAbilityActive,
+    isHeldItemActive,
+    moveHasTrait,
+    normalizeTraitState,
+    recordTraitEvent,
+    restoreHeldItem,
+    setChoiceLock,
+    traitSlug,
+} from "./traitMechanics.js";
 
 export const COMBAT_STAT_STAGE_KEYS = ["attack", "defense", "special-attack", "special-defense", "speed"];
 export const ACCURACY_STAGE_KEYS = ["accuracy", "evasion"];
@@ -228,7 +242,7 @@ export const getMoveResolutionProfile = move => {
     };
 };
 
-export const adjustMoveAccuracy = ({ move, attacker, defender } = {}) => {
+export const adjustMoveAccuracy = ({ move, attacker, defender, weather = "limpo" } = {}) => {
     const profile = getMoveResolutionProfile(move);
     const baseAccuracy = move?.accuracy === true || move?.accuracy == null
         ? null
@@ -243,6 +257,7 @@ export const adjustMoveAccuracy = ({ move, attacker, defender } = {}) => {
             evasionStage: 0,
             combinedStage: 0,
             multiplier: 1,
+            traitModifiers: { multiplier: 1, entries: [] },
             noGuard,
         };
     }
@@ -251,7 +266,8 @@ export const adjustMoveAccuracy = ({ move, attacker, defender } = {}) => {
     const accuracyStage = attackerStages.accuracy;
     const evasionStage = defenderStages.evasion;
     const combinedStage = clamp(accuracyStage - evasionStage, -6, 6);
-    const multiplier = accuracyStageMultiplier(combinedStage);
+    const traitModifiers = getAccuracyTraitModifiers({ attacker, defender, move, weather });
+    const multiplier = accuracyStageMultiplier(combinedStage) * traitModifiers.multiplier;
     return {
         automatic: false,
         baseAccuracy,
@@ -260,6 +276,7 @@ export const adjustMoveAccuracy = ({ move, attacker, defender } = {}) => {
         evasionStage,
         combinedStage,
         multiplier,
+        traitModifiers,
         noGuard: false,
     };
 };
@@ -358,11 +375,33 @@ const STATUS_IMMUNE_ABILITIES = Object.freeze({
     sleep: new Set(["insomnia", "vital-spirit", "sweet-veil"]),
 });
 
-export const getStatusBlockReason = (status, target, attacker) => {
+const STATUS_CURE_BERRIES = Object.freeze({
+    "aspear-berry": "freeze",
+    "cheri-berry": "paralysis",
+    "chesto-berry": "sleep",
+    "pecha-berry": "poison",
+    "rawst-berry": "burn",
+});
+
+const PINCH_HEAL_BERRIES = new Set(["aguav-berry", "figy-berry", "iapapa-berry", "mago-berry", "wiki-berry"]);
+const PINCH_STAGE_BERRIES = Object.freeze({
+    "apicot-berry": "special-defense",
+    "ganlon-berry": "defense",
+    "liechi-berry": "attack",
+    "petaya-berry": "special-attack",
+    "salac-berry": "speed",
+});
+
+export const getStatusBlockReason = (status, target, attacker, { terrain = "nenhum" } = {}) => {
     if (!status || !target) return "";
     const types = getDefensiveTypes(target);
-    const ability = normalizeSlug(target.ability);
-    const sourceAbility = normalizeSlug(attacker?.ability);
+    const ability = isAbilityActive(target) ? normalizeSlug(target.ability) : "";
+    const sourceAbility = isAbilityActive(attacker) ? normalizeSlug(attacker?.ability) : "";
+    const grounded = !types.includes("flying")
+        && !(isAbilityActive(target) && ability === "levitate")
+        && !(isHeldItemActive(target) && normalizeSlug(target.item) === "air-balloon");
+    if (grounded && terrain === "eletrico" && status === "sleep") return "o Terreno Elétrico impede o sono";
+    if (grounded && terrain === "nevoa" && status) return "o Terreno de Névoa impede condições principais";
     if (ability === "comatose" || ability === "purifying-salt") return `a habilidade ${formatName(ability)} impede a condição`;
     if (STATUS_IMMUNE_ABILITIES[status]?.has(ability)) return `a habilidade ${formatName(ability)} impede a condição`;
     if (status === "burn" && types.includes("fire")) return "Pokémon de Fogo não podem ser queimados";
@@ -450,6 +489,7 @@ export const applyMoveConsequences = ({
         pp: normalizePpSlots(originalAttacker.pp),
         stages: normalizeStageMap(originalAttacker.stages),
         volatileEffects: normalizeVolatileEffects(originalAttacker.volatileEffects),
+        traitState: normalizeTraitState(originalAttacker.traitState, originalAttacker.item, originalAttacker.ability),
     };
     let target = originalTarget?.id === attacker.id
         ? attacker
@@ -458,6 +498,7 @@ export const applyMoveConsequences = ({
                 ...originalTarget,
                 stages: normalizeStageMap(originalTarget.stages),
                 volatileEffects: normalizeVolatileEffects(originalTarget.volatileEffects),
+                traitState: normalizeTraitState(originalTarget.traitState, originalTarget.item, originalTarget.ability),
             }
             : null;
 
@@ -474,7 +515,7 @@ export const applyMoveConsequences = ({
     const ppState = getMovePpState(attacker, ppMove, ppMove?.name);
     let ppBefore = ppState.remaining;
     let ppAfter = ppState.remaining;
-    if (consumePp && ppState.index >= 0 && ppState.remaining != null) {
+    if (consumePp && !resolution.traitBlock?.attackerBlocked && ppState.index >= 0 && ppState.remaining != null) {
         ppAfter = Math.max(0, ppState.remaining - 1);
         attacker.pp[ppState.index] = ppAfter;
     }
@@ -483,6 +524,10 @@ export const applyMoveConsequences = ({
     const moveConnected = Boolean(resolution.moveConnected ?? resolution.hit);
     const delayedDamage = ["future-sight", "doom-desire"].includes(moveName) && moveConnected;
     const damageHit = Boolean(resolution.damageHit ?? resolution.hit) && !delayedDamage;
+    const targetSecondariesBlocked = Boolean(
+        resolution.profile?.damaging
+        && (resolution.traitModifiers?.suppressTargetSecondaries || resolution.traitModifiers?.blockTargetSecondaries)
+    );
     const effectAdvantage = Boolean(
         resolution.attackTest
         && resolution.defenseTest
@@ -508,7 +553,24 @@ export const applyMoveConsequences = ({
         replaceEntity(target.id, { ...target, volatileEffects: effects });
     }
     const calculatedDamage = substituteAbsorbed ? 0 : resolvedDamage;
-    const hitKill = target
+    const traitNarratives = [];
+    const traitActivations = [];
+    const consumedItems = [];
+    const traitStatuses = [];
+    const survival = target && calculatedDamage > 0
+        ? getSurvivalTrait(target, {
+            damage: calculatedDamage,
+            hitCount: Number(resolution.hitCount) || 1,
+            round,
+        })
+        : { applied: false, token: target };
+    if (survival.applied && target) {
+        target = survival.token;
+        traitNarratives.push(survival.narrative);
+        traitActivations.push({ kind: survival.sourceKind, sourceId: survival.sourceId, effect: "survival" });
+        if (survival.itemConsumed) consumedItems.push(survival.itemConsumed);
+    }
+    const baseHitKill = target
         ? applyHitKillProtection({
             damage: calculatedDamage,
             currentHp: target.currentHp,
@@ -516,6 +578,16 @@ export const applyMoveConsequences = ({
             directKnockout: Boolean(resolution.directKnockout || isDirectKnockoutMove(move)),
         })
         : applyHitKillProtection({ damage: 0, currentHp: 0 });
+    const hitKill = survival.applied
+        ? {
+            ...baseHitKill,
+            appliedDamage: survival.appliedDamage,
+            remainingHp: 1,
+            protectedFromKnockout: false,
+            traitProtected: true,
+            traitSourceId: survival.sourceId,
+        }
+        : baseHitKill;
     const damage = damageHit ? hitKill.appliedDamage : 0;
     if (target && damage > 0) {
         replaceEntity(target.id, {
@@ -558,10 +630,10 @@ export const applyMoveConsequences = ({
     let statusRoll = null;
     const status = statusForMove(move);
     const statusTarget = target || attacker;
-    if (moveConnected && status && statusTarget && (!substituteAbsorbed || statusTarget.id === attacker.id)) {
+    if (moveConnected && status && statusTarget && (!substituteAbsorbed || statusTarget.id === attacker.id) && (!targetSecondariesBlocked || statusTarget.id === attacker.id)) {
         blockedStatus = statusTarget.status
             ? `${statusTarget.name} já possui uma condição principal`
-            : getStatusBlockReason(status, statusTarget, attacker);
+            : getStatusBlockReason(status, statusTarget, attacker, { terrain: resolution.terrain });
         if (!blockedStatus) {
             const statusMove = move?.damage_class?.name === "status";
             const chance = moveEffectChance(move, "ailment_chance", statusMove);
@@ -582,7 +654,7 @@ export const applyMoveConsequences = ({
     if (moveConnected && moveName === "yawn" && statusTarget) {
         blockedStatus = statusTarget.status
             ? `${statusTarget.name} já possui uma condição principal`
-            : getStatusBlockReason("sleep", statusTarget, attacker);
+            : getStatusBlockReason("sleep", statusTarget, attacker, { terrain: resolution.terrain });
         if (!blockedStatus) {
             const effects = normalizeVolatileEffects(statusTarget.volatileEffects)
                 .filter(effect => effect.id !== "yawn");
@@ -606,7 +678,7 @@ export const applyMoveConsequences = ({
     let stageRoll = null;
     const stageChanges = [];
     const changesAffectUser = stageChangesTargetUser(move);
-    if (moveConnected && supportedChanges.length && (applySelfChanges || !changesAffectUser) && (!substituteAbsorbed || changesAffectUser)) {
+    if (moveConnected && supportedChanges.length && (applySelfChanges || !changesAffectUser) && (!substituteAbsorbed || changesAffectUser) && (!targetSecondariesBlocked || changesAffectUser)) {
         const statusMove = move?.damage_class?.name === "status";
         const chance = moveEffectChance(move, "stat_chance", statusMove);
         stageRoll = chanceResult(chance || 100, random, effectAdvantage);
@@ -631,14 +703,89 @@ export const applyMoveConsequences = ({
         }
     }
 
-    const specialNarratives = [];
+    const specialNarratives = [...traitNarratives];
     let specialChange = null;
     let resetAllStages = false;
     let perishSong = false;
     let abilityDamage = 0;
+    let itemDamage = 0;
+    let traitHealing = 0;
+
+    const applyTraitStage = (entity, stat, change, sourceKind, sourceId, detail) => {
+        if (!entity || !STAGE_STAT_KEYS.includes(stat) || !change) return entity;
+        const before = normalizeStageMap(entity.stages)[stat];
+        let changed = applyStageChange(entity, stat, change);
+        const after = normalizeStageMap(changed.stages)[stat];
+        if (after === before) return entity;
+        changed = recordTraitEvent(changed, {
+            kind: sourceKind,
+            sourceId,
+            label: `${STAGE_LABELS[stat]} ${after > before ? "aumentou" : "diminuiu"}`,
+            detail,
+            round,
+        });
+        replaceEntity(changed.id, changed);
+        stageChanges.push({
+            tokenId: changed.id,
+            stat,
+            change: after - before,
+            requestedChange: change,
+            before,
+            after,
+            sourceKind,
+            sourceId,
+        });
+        traitActivations.push({ kind: sourceKind, sourceId, effect: "stage" });
+        return changed;
+    };
+
+    const applyTraitHealing = (entity, amount, sourceKind, sourceId, detail) => {
+        if (!entity || amount <= 0 || entity.currentHp <= 0) return entity;
+        const before = asNumber(entity.currentHp);
+        const currentHp = clamp(before + hpAmount(amount), 0, Math.max(1, asNumber(entity.maxHp, 1)));
+        const applied = Math.max(0, currentHp - before);
+        if (!applied) return entity;
+        let changed = { ...entity, currentHp };
+        changed = recordTraitEvent(changed, { kind: sourceKind, sourceId, label: "HP recuperado", detail, round });
+        replaceEntity(changed.id, changed);
+        healed += applied;
+        traitHealing += applied;
+        traitActivations.push({ kind: sourceKind, sourceId, effect: "heal", amount: applied });
+        specialNarratives.push(`${formatName(sourceId)} recuperou ${applied} HP de ${changed.name}.`);
+        return changed;
+    };
+
+    const applyTraitDamage = (entity, amount, sourceKind, sourceId, detail) => {
+        if (!entity || amount <= 0 || entity.currentHp <= 0 || (isAbilityActive(entity) && normalizeSlug(entity.ability) === "magic-guard")) return entity;
+        const before = asNumber(entity.currentHp);
+        const applied = Math.min(before, hpAmount(amount));
+        let changed = { ...entity, currentHp: Math.max(0, before - applied) };
+        changed = recordTraitEvent(changed, { kind: sourceKind, sourceId, label: "Dano reativo", detail, round });
+        replaceEntity(changed.id, changed);
+        if (sourceKind === "ability") abilityDamage += applied;
+        else itemDamage += applied;
+        traitActivations.push({ kind: sourceKind, sourceId, effect: "damage", amount: applied });
+        specialNarratives.push(`${formatName(sourceId)} causou ${applied} de dano a ${changed.name}.`);
+        return changed;
+    };
+
+    const consumeTraitItem = (entity, reason) => {
+        if (!entity?.item) return entity;
+        const consumed = consumeHeldItem(entity, { reason, round });
+        if (!consumed.applied) return entity;
+        replaceEntity(entity.id, consumed.token);
+        consumedItems.push(consumed.itemId);
+        traitActivations.push({ kind: "item", sourceId: consumed.itemId, effect: "consumed" });
+        return consumed.token;
+    };
 
     if (substituteAbsorbed) {
         specialNarratives.push(`Substitute absorveu ${substituteDamage} de dano${substituteBroken ? " e se desfez" : ""}.`);
+    }
+    if (targetSecondariesBlocked) {
+        specialNarratives.push(resolution.traitModifiers?.suppressTargetSecondaries
+            ? "Sheer Force converteu os efeitos secundários contra o alvo em força direta."
+            : "Shield Dust ou Covert Cloak impediu os efeitos secundários contra o alvo.");
     }
 
     if (moveConnected && moveName === "transform" && target) {
@@ -747,18 +894,70 @@ export const applyMoveConsequences = ({
         specialChange = { kind: "power-trick", active };
     }
 
+    if (moveConnected && target && moveName === "knock-off" && target.item && normalizeSlug(target.ability) !== "sticky-hold") {
+        const removed = consumeHeldItem(target, { reason: `${formatName(moveName)} removeu o item`, round });
+        if (removed.applied) {
+            replaceEntity(target.id, removed.token);
+            consumedItems.push(removed.itemId);
+            traitActivations.push({ kind: "item", sourceId: removed.itemId, effect: "removed" });
+            specialNarratives.push(`${formatName(removed.itemId)} foi removido de ${target.name} por Knock Off.`);
+            specialChange = { kind: "remove-item", targetId: target.id, item: removed.itemId };
+        }
+    }
+
+    if (moveConnected && moveName === "fling" && attacker.item) {
+        const thrown = consumeHeldItem(attacker, { reason: "Fling arremessou o item", round });
+        if (thrown.applied) {
+            replaceEntity(attacker.id, thrown.token);
+            consumedItems.push(thrown.itemId);
+            traitActivations.push({ kind: "item", sourceId: thrown.itemId, effect: "flung" });
+            specialNarratives.push(`${attacker.name} arremessou ${formatName(thrown.itemId)} com Fling.`);
+            specialChange = { kind: "fling-item", item: thrown.itemId };
+        }
+    }
+
+    if (moveConnected && target && ["thief", "covet"].includes(moveName) && !attacker.item && target.item && normalizeSlug(target.ability) !== "sticky-hold") {
+        const stolenItem = target.item;
+        replaceEntity(attacker.id, assignHeldItem(attacker, stolenItem, { reason: `${formatName(moveName)} tomou o item`, round }));
+        replaceEntity(target.id, assignHeldItem(target, "", { reason: `${formatName(moveName)} levou o item`, round }));
+        specialNarratives.push(`${attacker.name} tomou ${formatName(stolenItem)} de ${target.name}.`);
+        specialChange = { kind: "steal-item", targetId: target.id, item: stolenItem };
+    }
+
+    if (moveConnected && target && ["bug-bite", "pluck", "incinerate"].includes(moveName) && /-berry$/.test(target.item || "")) {
+        const eaten = consumeHeldItem(target, { reason: `${formatName(moveName)} consumiu a Fruta`, round });
+        if (eaten.applied) {
+            replaceEntity(target.id, eaten.token);
+            consumedItems.push(eaten.itemId);
+            specialNarratives.push(`${formatName(eaten.itemId)} de ${target.name} foi consumida por ${formatName(moveName)}.`);
+            specialChange = { kind: "consume-target-item", targetId: target.id, item: eaten.itemId };
+        }
+    }
+
+    if (moveConnected && moveName === "recycle") {
+        const restored = restoreHeldItem(attacker, { reason: "Recycle recuperou o item consumido", round });
+        if (restored.applied) {
+            replaceEntity(attacker.id, restored.token);
+            traitActivations.push({ kind: "item", sourceId: restored.itemId, effect: "restored" });
+            specialNarratives.push(`Recycle restaurou ${formatName(restored.itemId)} para ${attacker.name}.`);
+            specialChange = { kind: "restore-item", item: restored.itemId };
+        }
+    }
+
     if (moveConnected && ["trick", "switcheroo"].includes(moveName) && target) {
         const attackerItem = attacker.item || "";
-        replaceEntity(attacker.id, { ...attacker, item: target.item || "" });
-        replaceEntity(target.id, { ...target, item: attackerItem });
+        const targetItem = target.item || "";
+        replaceEntity(attacker.id, assignHeldItem(attacker, targetItem, { reason: `${formatName(moveName)} trocou os itens`, round }));
+        replaceEntity(target.id, assignHeldItem(target, attackerItem, { reason: `${formatName(moveName)} trocou os itens`, round }));
         specialNarratives.push(`${attacker.name} e ${target.name} trocaram seus itens.`);
         specialChange = { kind: "swap-items", targetId: target.id };
     }
 
     if (moveConnected && moveName === "skill-swap" && target) {
         const attackerAbility = attacker.ability || "";
-        replaceEntity(attacker.id, { ...attacker, ability: target.ability || "" });
-        replaceEntity(target.id, { ...target, ability: attackerAbility });
+        const targetAbility = target.ability || "";
+        replaceEntity(attacker.id, { ...attacker, ability: targetAbility, traitState: normalizeTraitState({}, attacker.item, targetAbility) });
+        replaceEntity(target.id, { ...target, ability: attackerAbility, traitState: normalizeTraitState({}, target.item, attackerAbility) });
         specialNarratives.push(`${attacker.name} e ${target.name} trocaram suas habilidades.`);
         specialChange = { kind: "swap-abilities", targetId: target.id };
     }
@@ -895,6 +1094,195 @@ export const applyMoveConsequences = ({
         }
     }
 
+    if (resolution.traitBlock) {
+        const block = resolution.traitBlock;
+        specialNarratives.push(`${block.reason}.`);
+        traitActivations.push({ kind: block.kind, sourceId: block.sourceId, effect: block.attackerBlocked ? "restricted" : "blocked" });
+        if (block.attackerBlocked) {
+            attacker = recordTraitEvent(attacker, { kind: block.kind, sourceId: block.sourceId, label: "Ação restringida", detail: block.reason, round });
+        } else if (target) {
+            replaceEntity(target.id, recordTraitEvent(target, { kind: block.kind, sourceId: block.sourceId, label: "Movimento bloqueado", detail: block.reason, round }));
+        }
+    }
+
+    if (target && damage > 0) {
+        const targetItemAtImpact = isHeldItemActive(target) ? traitSlug(target.item) : "";
+        const targetAbilityAtImpact = isAbilityActive(target) ? traitSlug(target.ability) : "";
+        if (targetItemAtImpact === "air-balloon") {
+            target = consumeTraitItem(target, "O dano estourou Air Balloon");
+            specialNarratives.push(`Air Balloon de ${target.name} estourou após o impacto.`);
+        }
+        if (target.currentHp > 0 && targetItemAtImpact === "weakness-policy" && Number(resolution.effectiveness) > 1) {
+            target = consumeTraitItem(target, "Weakness Policy foi ativado por dano super efetivo");
+            target = applyTraitStage(target, "attack", 2, "item", "weakness-policy", "Dano super efetivo ativou o Seguro Fraqueza");
+            target = applyTraitStage(target, "special-attack", 2, "item", "weakness-policy", "Dano super efetivo ativou o Seguro Fraqueza");
+        }
+        if (target.currentHp > 0 && targetItemAtImpact === "kee-berry" && move?.damage_class?.name === "physical") {
+            target = consumeTraitItem(target, "Kee Berry reagiu ao golpe físico");
+            target = applyTraitStage(target, "defense", 1, "item", "kee-berry", "Golpe físico ativou a Fruta");
+        }
+        if (target.currentHp > 0 && targetItemAtImpact === "maranga-berry" && move?.damage_class?.name === "special") {
+            target = consumeTraitItem(target, "Maranga Berry reagiu ao golpe especial");
+            target = applyTraitStage(target, "special-defense", 1, "item", "maranga-berry", "Golpe especial ativou a Fruta");
+        }
+        if (target.currentHp > 0 && targetItemAtImpact === "enigma-berry" && Number(resolution.effectiveness) > 1) {
+            target = consumeTraitItem(target, "Enigma Berry reagiu ao golpe super efetivo");
+            target = applyTraitHealing(target, asNumber(target.maxHp, 1) / 4, "item", "enigma-berry", "Golpe super efetivo ativou a Fruta");
+        }
+
+        const contactPrevented = isHeldItemActive(attacker) && traitSlug(attacker.item) === "punching-glove" && moveHasTrait(move, "punch");
+        const contact = moveHasTrait(move, "contact") && !contactPrevented;
+        if (contact && ["rough-skin", "iron-barbs"].includes(targetAbilityAtImpact)) {
+            attacker = applyTraitDamage(attacker, asNumber(attacker.maxHp, 1) / 8, "ability", targetAbilityAtImpact, "Contato com a defesa do alvo");
+        }
+        if (contact && targetItemAtImpact === "rocky-helmet") {
+            attacker = applyTraitDamage(attacker, asNumber(attacker.maxHp, 1) / 6, "item", targetItemAtImpact, "Contato com Rocky Helmet");
+        }
+        if (contact && target.currentHp <= 0 && targetAbilityAtImpact === "aftermath") {
+            attacker = applyTraitDamage(attacker, asNumber(attacker.maxHp, 1) / 4, "ability", targetAbilityAtImpact, "Aftermath reagiu ao nocaute por contato");
+        }
+        if (contact && !attacker.status && ["static", "flame-body", "poison-point"].includes(targetAbilityAtImpact)) {
+            const reactiveStatus = targetAbilityAtImpact === "static"
+                ? "paralysis"
+                : targetAbilityAtImpact === "flame-body"
+                    ? "burn"
+                    : "poison";
+            const blocked = getStatusBlockReason(reactiveStatus, attacker, target, { terrain: resolution.terrain });
+            const roll = chanceResult(30, random);
+            if (!blocked && roll.success) {
+                attacker = recordTraitEvent({ ...attacker, status: reactiveStatus }, {
+                    kind: "ability",
+                    sourceId: targetAbilityAtImpact,
+                    label: "Condição aplicada",
+                    detail: `${targetAbilityAtImpact} reagiu ao contato`,
+                    round,
+                });
+                replaceEntity(attacker.id, attacker);
+                traitStatuses.push({ tokenId: attacker.id, status: reactiveStatus, sourceId: targetAbilityAtImpact });
+                traitActivations.push({ kind: "ability", sourceId: targetAbilityAtImpact, effect: "status" });
+                specialNarratives.push(`${formatName(targetAbilityAtImpact)} aplicou ${RPG_STATUS_LABELS[reactiveStatus] || formatName(reactiveStatus)} a ${attacker.name}.`);
+            }
+        }
+    }
+
+    if (damage > 0 && attacker.currentHp > 0) {
+        const attackerItemAfterHit = isHeldItemActive(attacker) ? traitSlug(attacker.item) : "";
+        if (attackerItemAfterHit === "life-orb") {
+            if (!(isAbilityActive(attacker) && traitSlug(attacker.ability) === "magic-guard")) {
+                const before = asNumber(attacker.currentHp);
+                const applied = Math.min(before, hpAmount(asNumber(attacker.maxHp, 1) / 10));
+                attacker = recordTraitEvent({ ...attacker, currentHp: Math.max(0, before - applied) }, {
+                    kind: "item",
+                    sourceId: attackerItemAfterHit,
+                    label: "Custo de HP",
+                    detail: "Life Orb cobrou o custo do golpe",
+                    round,
+                });
+                replaceEntity(attacker.id, attacker);
+                recoil += applied;
+                traitActivations.push({ kind: "item", sourceId: attackerItemAfterHit, effect: "recoil", amount: applied });
+                specialNarratives.push(`Life Orb cobrou ${applied} HP de ${attacker.name}.`);
+            }
+        }
+        if (attackerItemAfterHit === "shell-bell") {
+            attacker = applyTraitHealing(attacker, damage / 8, "item", attackerItemAfterHit, "Shell Bell converteu dano em cura");
+        }
+    }
+
+    if (target && target.currentHp <= 0 && damage > 0 && attacker.currentHp > 0 && isAbilityActive(attacker)) {
+        const attackerAbility = traitSlug(attacker.ability);
+        if (["moxie", "chilling-neigh"].includes(attackerAbility)) {
+            attacker = applyTraitStage(attacker, "attack", 1, "ability", attackerAbility, "O nocaute ativou a habilidade");
+        } else if (attackerAbility === "grim-neigh") {
+            attacker = applyTraitStage(attacker, "special-attack", 1, "ability", attackerAbility, "O nocaute ativou a habilidade");
+        } else if (attackerAbility === "beast-boost") {
+            const candidates = COMBAT_STAT_STAGE_KEYS.map(stat => [stat, asNumber(attacker.stats?.[stat])]);
+            candidates.sort((first, second) => second[1] - first[1]);
+            attacker = applyTraitStage(attacker, candidates[0]?.[0] || "attack", 1, "ability", attackerAbility, "Beast Boost elevou o maior atributo atual");
+        }
+    }
+
+    if (moveConnected && moveHasTrait(move, "sound") && isHeldItemActive(attacker) && traitSlug(attacker.item) === "throat-spray") {
+        attacker = consumeTraitItem(attacker, "Throat Spray reagiu ao movimento sonoro");
+        attacker = applyTraitStage(attacker, "special-attack", 1, "item", "throat-spray", "Movimento sonoro ativou o item");
+    }
+
+    const resolveAutomaticItem = entity => {
+        if (!entity || entity.currentHp <= 0 || !isHeldItemActive(entity)) return entity;
+        const itemId = traitSlug(entity.item);
+        const ratio = asNumber(entity.currentHp) / Math.max(1, asNumber(entity.maxHp, 1));
+        const matchingStatus = STATUS_CURE_BERRIES[itemId];
+        const berryMatchesStatus = Boolean(matchingStatus && [entity.status, entity.status === "bad-poison" ? "poison" : ""].includes(matchingStatus));
+        if ((itemId === "lum-berry" && entity.status) || berryMatchesStatus) {
+            const previousStatus = entity.status;
+            let changed = consumeTraitItem(entity, `${formatName(itemId)} curou ${RPG_STATUS_LABELS[previousStatus] || formatName(previousStatus)}`);
+            changed = recordTraitEvent({ ...changed, status: "", toxicCounter: 0 }, {
+                kind: "item",
+                sourceId: itemId,
+                label: "Condição curada",
+                detail: `Removeu ${previousStatus}`,
+                round,
+            });
+            replaceEntity(changed.id, changed);
+            specialNarratives.push(`${formatName(itemId)} foi consumida e curou ${RPG_STATUS_LABELS[previousStatus] || formatName(previousStatus)} de ${changed.name}.`);
+            return changed;
+        }
+        if (itemId === "oran-berry" && ratio <= 1 / 2) {
+            let changed = consumeTraitItem(entity, "Oran Berry foi ativada por HP baixo");
+            return applyTraitHealing(changed, Math.max(1, asNumber(changed.maxHp, 1) / 4), "item", itemId, "HP baixo ativou a Fruta");
+        }
+        if (itemId === "sitrus-berry" && ratio <= 1 / 2) {
+            let changed = consumeTraitItem(entity, "Sitrus Berry foi ativada por HP baixo");
+            return applyTraitHealing(changed, asNumber(changed.maxHp, 1) / 4, "item", itemId, "HP baixo ativou a Fruta");
+        }
+        if (PINCH_HEAL_BERRIES.has(itemId) && ratio <= 1 / 4) {
+            let changed = consumeTraitItem(entity, `${formatName(itemId)} foi ativada por HP crítico`);
+            return applyTraitHealing(changed, asNumber(changed.maxHp, 1) / 3, "item", itemId, "HP crítico ativou a Fruta");
+        }
+        if (PINCH_STAGE_BERRIES[itemId] && ratio <= 1 / 4) {
+            let changed = consumeTraitItem(entity, `${formatName(itemId)} foi ativada por HP crítico`);
+            return applyTraitStage(changed, PINCH_STAGE_BERRIES[itemId], 1, "item", itemId, "HP crítico ativou a Fruta");
+        }
+        if (itemId === "white-herb") {
+            const stages = normalizeStageMap(entity.stages);
+            const negatives = Object.entries(stages).filter(([, value]) => value < 0);
+            if (negatives.length) {
+                let changed = consumeTraitItem(entity, "White Herb neutralizou modificadores negativos");
+                const nextStages = { ...stages };
+                negatives.forEach(([stat]) => { nextStages[stat] = 0; });
+                changed = { ...changed, stages: nextStages };
+                changed = { ...changed, stats: calculateStagedStats(changed) };
+                replaceEntity(changed.id, changed);
+                specialNarratives.push(`White Herb neutralizou ${negatives.map(([stat]) => STAGE_LABELS[stat]).join(", ")} de ${changed.name}.`);
+                return changed;
+            }
+        }
+        return entity;
+    };
+
+    attacker = resolveAutomaticItem(attacker);
+    if (target && target.id !== attacker.id) target = resolveAutomaticItem(target);
+
+    if (damageHit) {
+        asArray(resolution.traitModifiers?.entries).forEach(entry => {
+            const belongsToTarget = target && [traitSlug(target.ability), traitSlug(target.item)].includes(entry.sourceId);
+            const owner = belongsToTarget ? target : attacker;
+            const changed = recordTraitEvent(owner, {
+                kind: entry.kind,
+                sourceId: entry.sourceId,
+                label: "Modificador de dano",
+                detail: `${entry.detail} (${entry.multiplier}×)`,
+                round,
+            });
+            replaceEntity(owner.id, changed);
+            if (belongsToTarget) target = changed;
+            else attacker = changed;
+            traitActivations.push({ kind: entry.kind, sourceId: entry.sourceId, effect: "damage-modifier", multiplier: entry.multiplier });
+        });
+    }
+
+    if (!resolution.traitBlock?.attackerBlocked) attacker = setChoiceLock(attacker, moveName, round);
+
     if (target && damage > 0 && normalizeSpecialState(target.specialState).illusion) {
         const revealed = revealBattleIllusion(target);
         if (revealed.applied) {
@@ -973,6 +1361,15 @@ export const applyMoveConsequences = ({
             specialNarratives,
             abilityBlock: resolution.abilityBlock || null,
             abilityDamage,
+            itemDamage,
+            traitHealing,
+            traitProtected: Boolean(hitKill.traitProtected),
+            traitSourceId: hitKill.traitSourceId || "",
+            traitActivations,
+            consumedItems,
+            traitStatuses,
+            traitModifiers: resolution.traitModifiers || null,
+            traitBlock: resolution.traitBlock || null,
             substituteDamage,
             substituteBroken,
             fainted: Boolean(target && target.currentHp <= 0),

@@ -48,6 +48,7 @@ import AudioDeck from "./AudioDeck.jsx";
 import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
+import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
 import VoiceCall from "./VoiceCall.jsx";
 
 const connectionLabels = {
@@ -73,10 +74,13 @@ const volatileEffectLabel = effect => {
     return `${formatName(effect.sourceMove || effect.id)}${turns}${amount}`;
 };
 const roundEffectSummary = effect => {
-    if (effect.kind === "status") return `${effect.tokenName} adormeceu por causa de Bocejo`;
+    if (effect.kind === "status") return effect.status
+        ? `${effect.tokenName} recebeu ${STATUS_LABELS[effect.status] || formatName(effect.status)} por ${effect.sources.join(" e ")}`
+        : `${effect.tokenName} teve a condição removida por ${effect.sources.join(" e ")}`;
     if (effect.kind === "heal") return `${effect.tokenName} recuperou ${formatNumberPtBr(effect.healed)} HP por ${effect.sources.join(" e ")}`;
     if (effect.kind === "perish") return `${effect.tokenName} chegou ao fim da contagem de Perish Song e não pode mais batalhar`;
     if (effect.kind === "state") return `${effect.tokenName}: ${effect.sources.join(" e ")}`;
+    if (effect.kind === "stage") return `${effect.tokenName}: ${effect.sources.join(" e ")}`;
     return `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`;
 };
 const roomDate = value => {
@@ -887,7 +891,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         const generated = buildInitiative(snapshot);
         commitSnapshot(generated.room);
         await sendEvent("system", {
-            text: `Ordem da rodada: ${generated.results.map(result => `${snapshot.tokens.find(token => token.id === result.tokenId)?.name} (${result.total})`).join(", ")}.`,
+            text: `Ordem da rodada: ${generated.results.map(result => {
+                const name = snapshot.tokens.find(token => token.id === result.tokenId)?.name;
+                const traits = result.traitState.entries.map(entry => formatName(entry.sourceId)).join(" + ");
+                return `${name} (${result.total}${traits ? `; ${traits}` : ""})`;
+            }).join(", ")}.`,
         });
     };
 
@@ -1264,6 +1272,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 </div>
                             )}
                             <SpecialMechanicsPanel
+                                token={selectedToken}
+                                snapshot={snapshot}
+                                role={role}
+                                onTokenChange={replaceSelectedToken}
+                                onNotice={text => setNotice?.({ tone: "blue", text })}
+                            />
+                            <TraitMechanicsPanel
                                 token={selectedToken}
                                 snapshot={snapshot}
                                 role={role}

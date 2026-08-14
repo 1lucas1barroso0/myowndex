@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { formatPokemonInScene } from "../../core/copy.js";
-import { formatType } from "../../core/mechanics.js";
+import { formatName, formatType } from "../../core/mechanics.js";
 import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS } from "../../core/room.js";
 import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
+import { getTraitStatus } from "../../core/traitMechanics.js";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
@@ -21,6 +22,7 @@ const Token = ({
     onKeyMove,
 }) => {
     const display = getBattleDisplayIdentity(token);
+    const traits = getTraitStatus(token);
     return (
     <button
         type="button"
@@ -39,7 +41,7 @@ const Token = ({
                 y: event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0,
             });
         }}
-        aria-label={`${display.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
+        aria-label={`${display.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
             {display.sprite ? (
@@ -54,6 +56,12 @@ const Token = ({
         <span className="room-token-name">{display.name}</span>
         {(display.transformed || display.disguised) && (
             <span className="room-token-special" aria-hidden="true">{display.disguised ? "Ilusão" : "Transform"}</span>
+        )}
+        {(traits.ability || traits.item) && (
+            <span className="room-token-traits" aria-hidden="true">
+                {traits.ability && <i className={traits.abilityActive ? "is-ability" : "is-paused"} title={formatName(traits.ability.id)}>◆</i>}
+                {traits.item && <i className={traits.itemConsumed ? "is-consumed" : "is-item"} title={formatName(traits.item.id)}>●</i>}
+            </span>
         )}
         {showHp && (
             <span className="room-token-hp" aria-hidden="true">

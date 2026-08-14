@@ -1,3 +1,5 @@
+import { isAbilityActive, isHeldItemActive, traitSlug } from "./traitMechanics.js";
+
 const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
 const asNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -610,8 +612,9 @@ const SUBSTITUTE_BYPASS_MOVES = new Set([
 ]);
 
 export const getAbilityMoveBlock = ({ move, attacker, defender, effectiveness = 1 } = {}) => {
-    if (!defender || ABILITY_BREAKERS.has(slug(attacker?.ability))) return null;
-    const ability = slug(defender.ability);
+    const abilityShield = isHeldItemActive(defender) && traitSlug(defender?.item) === "ability-shield";
+    if (!defender || (isAbilityActive(attacker) && ABILITY_BREAKERS.has(slug(attacker?.ability)) && !abilityShield)) return null;
+    const ability = isAbilityActive(defender) ? slug(defender.ability) : "";
     const moveType = slug(move?.type?.name);
     const moveName = slug(move?.name);
     const damageClass = slug(move?.damage_class?.name);
@@ -644,10 +647,10 @@ export const getSpecialMoveBlockReason = ({ move, attacker, defender, round } = 
         substituteActive
         && opponentDirected
         && damageClass === "status"
-        && slug(attacker?.ability) !== "infiltrator"
+        && !(isAbilityActive(attacker) && slug(attacker?.ability) === "infiltrator")
         && !SUBSTITUTE_BYPASS_MOVES.has(name)
     ) return "Substitute protegeu o alvo desse efeito";
-    if (["dream-eater", "nightmare"].includes(name) && !["sleep"].includes(defender?.status) && slug(defender?.ability) !== "comatose") {
+    if (["dream-eater", "nightmare"].includes(name) && !["sleep"].includes(defender?.status) && !(isAbilityActive(defender) && slug(defender?.ability) === "comatose")) {
         return "o alvo precisa estar dormindo";
     }
     if (["snore", "sleep-talk"].includes(name) && attacker?.status !== "sleep") return "o usuário precisa estar dormindo";
@@ -670,7 +673,7 @@ export const getSpecialMoveBlockReason = ({ move, attacker, defender, round } = 
 };
 
 export const ignoresGhostTypeImmunity = (attacker, moveType, defenderTypes) => {
-    const ability = slug(attacker?.ability);
+    const ability = isAbilityActive(attacker) ? slug(attacker?.ability) : "";
     const type = slug(moveType);
     const types = asArray(defenderTypes).map(slug);
     return ["scrappy", "mind-s-eye"].includes(ability)

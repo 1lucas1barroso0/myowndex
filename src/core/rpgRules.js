@@ -268,12 +268,12 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.1",
                 title: "Habilidades",
-                body: "Leia a habilidade como nos jogos e aplique seu efeito antes ou depois do cálculo conforme a descrição. O Assistente reconhece imunidades e absorções comuns, Wonder Guard, Disguise, Ice Face, No Guard, Unaware, Scrappy, Mind's Eye e habilidades que rompem imunidades. Imposter transforma automaticamente ao entrar quando existe um alvo válido; Illusion preserva a identidade real e mostra somente o disfarce até a revelação. Quando uma habilidade depender de escolha ou contexto ainda aberto, o painel a marca como resolução guiada ou decisão narrativa em vez de fingir uma automação completa."
+                body: "Cada habilidade tem gatilho, estado e histórico. Entrada em campo, clima, terreno, precisão, dano, contato, nocaute, imunidade e fim de rodada são aplicados na ordem correta quando o contexto é objetivo; isso inclui famílias como Intimidate, Download, habilidades de clima e terreno, Sturdy, Adaptability, Technician, absorções, reações de contato, recuperação e alterações de Velocidade. Imposter e Illusion preservam suas regras próprias. Quando alvo, troca, ordem, escolha ou interpretação ainda estiverem abertos, o painel mantém a descrição oficial visível e marca a resolução como guiada em vez de inventar uma resposta."
             },
             {
                 id: "7.2",
                 title: "Itens",
-                body: "Itens segurados e itens do Treinador conservam seus nomes canônicos e sua função reconhecível. Consumo, troca, ativação e recuperação devem atualizar a ficha ou o inventário no momento em que acontecem."
+                body: "Itens segurados possuem estado próprio na cena: ativo, consumido, removido, trocado ou restaurado. Frutas, itens de escolha, Life Orb, Leftovers, Focus Sash, Weakness Policy, Air Balloon, sementes de terreno, orbes, itens de precisão e modificadores de dano integram o mesmo cálculo e deixam uma trilha narrativa. Trick, Switcheroo, Knock Off, Thief, Covet, Fling, Recycle, Bug Bite, Pluck e Incinerate atualizam esse estado. A ficha da Box conserva o equipamento de origem; mudanças da batalha permanecem na cena até o Narrador editar a ficha ou restaurar o item, evitando que um efeito temporário reescreva a coleção por acidente."
             },
             {
                 id: "7.3",
@@ -288,7 +288,12 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.5",
                 title: "Tipos, STAB e Terastalização",
-                body: "A defesa usa os tipos atuais do alvo. O STAB é 1,5× quando o movimento corresponde a um tipo original ou ao Tera Type; se corresponder aos dois, torna-se 2×. Imunidade reduz o dano a zero."
+                body: "A defesa usa os tipos atuais do alvo. O STAB é 1,5× quando o movimento corresponde a um tipo original ou ao Tera Type; se corresponder aos dois, torna-se 2×. Adaptability ajusta esses valores quando está ativa. Imunidade reduz o dano a zero. Sol, chuva e terrenos modificam os tipos pertinentes e aparecem como parcelas separadas no resultado."
+            },
+            {
+                id: "7.6",
+                title: "Ordem de resolução conectada",
+                body: "Verifique restrições do usuário, alvo, precisão e imunidades; resolva a disputa; aplique poder situacional, STAB, tipo, clima, terreno, habilidade e item; depois trate sobrevivência, dano, efeitos secundários, contato, consumo, cura, nocaute e histórico. Shield Dust, Covert Cloak e Sheer Force só alteram efeitos secundários, sem apagar efeitos principais ou custos próprios."
             }
         ]
     },

@@ -6,9 +6,9 @@ export const traitSlug = value => asText(value).trim().toLowerCase().replace(/[\
 
 export const TRAIT_STATE_VERSION = 1;
 export const TRAIT_AUTOMATION_LABELS = Object.freeze({
-    automatic: "Automação integral",
-    contextual: "Automação contextual",
-    guided: "Resolução guiada",
+    automatic: "O MyOwnDex resolve quando o gatilho acontece",
+    contextual: "O MyOwnDex acompanha e pede a escolha necessária",
+    guided: "O Narrador confirma com a regra à vista",
 });
 
 const normalizeHistoryEntry = value => {
@@ -185,7 +185,7 @@ const ABILITY_PROFILES = Object.freeze({
     moxie: profile("moxie", "Arrojo", "Aumenta o Ataque depois de nocautear um alvo.", "Nocaute causado", "automatic"),
     multiscale: profile("multiscale", "Multiescamas", "Reduz pela metade o dano recebido com HP cheio.", "Golpe recebido com HP cheio", "automatic"),
     "neutralizing-gas": profile("neutralizing-gas", "Gás neutralizante", "Suprime as demais habilidades em cena; Ability Shield preserva a habilidade de seu portador.", "Enquanto o usuário está consciente em cena", "automatic"),
-    "no-guard": profile("no-guard", "Sem guarda", "Torna automáticos os testes de precisão dos envolvidos.", "Movimento declarado", "automatic"),
+    "no-guard": profile("no-guard", "Sem guarda", "Dispensa o teste de precisão dos movimentos que envolvem o usuário.", "Movimento declarado", "automatic"),
     overcoat: profile("overcoat", "Sobretudo", "Protege contra dano de clima e efeitos de pó.", "Clima ou movimento de pó", "automatic"),
     overgrow: profile("overgrow", "Supercrescimento", "Fortalece golpes de Grama quando resta até um terço do HP.", "HP crítico + golpe de Grama", "automatic"),
     "poison-heal": profile("poison-heal", "Cura venenosa", "Converte o dano de veneno em recuperação.", "Fim da rodada envenenado", "automatic"),
@@ -249,8 +249,8 @@ export const getAbilityProfile = ability => {
     if (!id) return null;
     return ABILITY_PROFILES[id] || profile(
         id,
-        "Habilidade conectada à cena",
-        "O efeito completo permanece visível; quando depende de alvo, ordem, troca, escolha ou interpretação, o MyOwnDex orienta sem inventar uma decisão.",
+        "Habilidade presente na cena",
+        "A descrição oficial permanece visível. Quando o efeito depende de alvo, ordem, troca ou escolha, o MyOwnDex mostra o momento certo e deixa a decisão com o grupo.",
         "Conforme a descrição oficial",
         "guided",
     );
@@ -262,10 +262,10 @@ export const getItemProfile = item => {
     const berry = id.endsWith("-berry");
     return ITEM_PROFILES[id] || profile(
         id,
-        berry ? "Fruta conectada à cena" : "Item conectado à cena",
+        berry ? "Fruta presente na cena" : "Item presente na cena",
         berry
             ? "O consumo, o estado e a restauração ficam registrados; efeitos muito específicos são resolvidos com a descrição oficial à vista."
-            : "O efeito completo permanece visível e o Narrador pode registrar ativação, consumo ou troca quando a automação não tiver contexto suficiente.",
+            : "A descrição oficial permanece visível, e o Narrador pode registrar ativação, consumo ou troca quando a cena exigir uma escolha.",
         berry ? "Quando sua condição de consumo é satisfeita" : "Conforme a descrição oficial",
         "guided",
     );

@@ -74,7 +74,7 @@ export default function SpecialMechanicsPanel({
                     <small>Identidade e exceções</small>
                     <strong>Mecânicas únicas</strong>
                 </span>
-                <b>{mechanics.length || 1} perfil(is)</b>
+                <b>{mechanics.length === 1 ? "1 regra própria" : `${mechanics.length || 1} regras próprias`}</b>
             </summary>
             <div className="token-special-body">
                 {mechanics.map(mechanic => (
@@ -84,7 +84,7 @@ export default function SpecialMechanicsPanel({
                             <span>{SPECIAL_AUTOMATION_LABELS[mechanic.automation]}</span>
                         </header>
                         <p>{mechanic.summary}</p>
-                        <small>Gatilho: {mechanic.trigger}.</small>
+                        <small>Entra em ação quando: {mechanic.trigger.toLowerCase()}.</small>
                     </article>
                 ))}
 
@@ -145,7 +145,7 @@ export default function SpecialMechanicsPanel({
                         <span>
                             <small>Sketch gravado</small>
                             <strong>{formatName(override.copiedMove)}</strong>
-                            <em>Substituiu Sketch e será sincronizado com a ficha vinculada.</em>
+                            <em>Substituiu Sketch, e a ficha vinculada também recebeu a mudança.</em>
                         </span>
                     </div>
                 ))}

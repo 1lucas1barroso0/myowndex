@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { fetchCached, formatName, preferredLocalizedEntry } from "../../core/mechanics.js";
+import { describeTrait } from "../../core/descriptions.js";
+import { fetchCached, formatName } from "../../core/mechanics.js";
 
 export default function AbilityCard({ url, isHidden }) {
     const [data, setData] = useState(null);
@@ -28,9 +29,7 @@ export default function AbilityCard({ url, isHidden }) {
     );
     if (!data) return <div className="h-16 w-full skeleton rounded-xl border-2 border-slate-300" />;
 
-    const effectEntry = preferredLocalizedEntry(data.effect_entries);
-    const effect = effectEntry?.short_effect || "A Pokédex ainda não tem um efeito adicional registrado para esta habilidade.";
-    const effectLanguage = effectEntry?.language?.name?.startsWith("pt") ? "pt-BR" : "en";
+    const explanation = describeTrait("ability", data.name, data);
 
     return (
         <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-[0_4px_0_#cbd5e1] relative overflow-hidden group hover:border-blue-400 transition-colors">
@@ -39,7 +38,19 @@ export default function AbilityCard({ url, isHidden }) {
                 <span className={`text-xs font-black uppercase tracking-widest ${isHidden ? "text-purple-600" : "text-slate-800"}`}>{formatName(data.name)}</span>
                 {isHidden && <span className="text-[9px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-black uppercase tracking-widest border border-purple-200">Habilidade oculta</span>}
             </div>
-            <p lang={effectLanguage} className="text-[11px] text-slate-600 leading-relaxed font-semibold pl-2">{effect}</p>
+            <div className="ability-description pl-2">
+                <p>{explanation.summary}</p>
+                <p><strong>Quando entra em jogo:</strong> {explanation.profile.trigger}.</p>
+                <p><strong>Como a mesa resolve:</strong> {explanation.handling}</p>
+                {explanation.catalog.text ? (
+                    <details className="catalog-description">
+                        <summary>{explanation.catalog.label}</summary>
+                        <p lang={explanation.catalog.code}>{explanation.catalog.text}</p>
+                    </details>
+                ) : (
+                    <p className="catalog-description-missing">O catálogo não trouxe outro texto para esta habilidade. O MyOwnDex mantém o gatilho à vista e deixa qualquer exceção para a decisão do grupo.</p>
+                )}
+            </div>
         </div>
     );
 }

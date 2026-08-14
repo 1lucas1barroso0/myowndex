@@ -25,6 +25,7 @@ import {
     syncTeamsWithRoomProgress,
 } from "../../core/room.js";
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
+import { formatCount } from "../../core/copy.js";
 import {
     buildPlayerInvite,
     buildRoomInviteToken,
@@ -62,7 +63,7 @@ const connectionLabels = {
 
 const roleLabel = role => role === "narrator" ? "Narrador" : "Jogador";
 const volatileEffectLabel = effect => {
-    const turns = effect.turns != null ? ` • ${effect.turns} rodada(s)` : "";
+    const turns = effect.turns != null ? ` • ${formatCount(effect.turns, "rodada")}` : "";
     const amount = effect.amount != null ? ` • ${formatNumberPtBr(effect.amount)} HP` : "";
     if (effect.id === "yawn") return `Sonolento por Bocejo${turns}`;
     if (effect.id === "wish") return `Wish preparado${turns}${amount}`;
@@ -672,7 +673,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             }
             setNotice?.({ tone: "blue", text: `${label} está na área de transferência.` });
         } catch {
-            showError(new Error("A cópia automática não funcionou. Selecione o conteúdo e copie manualmente."));
+            showError(new Error("Não foi possível copiar o convite com um toque. Selecione o conteúdo e use a opção Copiar do aparelho."));
         }
     };
 
@@ -1290,7 +1291,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <span>Modificadores</span>
                                     <strong>
                                         {Object.values(selectedToken.stages || {}).filter(value => value !== 0).length
-                                            ? `${Object.values(selectedToken.stages || {}).filter(value => value !== 0).length} ativo(s)`
+                                            ? `${formatCount(Object.values(selectedToken.stages || {}).filter(value => value !== 0).length, "modificador")} ${Object.values(selectedToken.stages || {}).filter(value => value !== 0).length === 1 ? "ativo" : "ativos"}`
                                             : "Todos neutros"}
                                     </strong>
                                 </summary>

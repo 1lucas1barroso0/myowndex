@@ -135,7 +135,7 @@ export default function Teambuilder({ envProps }) {
             setCopied(true);
             window.setTimeout(() => setCopied(false), 3000);
         } catch {
-            setNotice?.({ tone: "red", text: "A cópia automática não funcionou. Selecione o código e copie manualmente." });
+            setNotice?.({ tone: "red", text: "Não foi possível copiar o código com um toque. Selecione o conteúdo e use a opção Copiar do aparelho." });
         }
     };
 

@@ -1,26 +1,61 @@
 import { normalizeTeam, STAT_KEYS } from "./team.js";
+import { decompressSync, zlibSync } from "fflate";
 
 export const SHARE_PREFIX = "MYOWNDEX4.";
 export const RAW_SHARE_PREFIX = "MYOWNDEX4R.";
+export const POKEMON_SHARE_PREFIX = "MYOWNDEXP1.";
+export const RAW_POKEMON_SHARE_PREFIX = "MYOWNDEXP1R.";
 export const LEGACY_SHARE_PREFIX = "MYOWNDEX-V3-";
 const MAX_CODE_LENGTH = 50000;
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
+const BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 const bytesToBase64Url = bytes => {
-    let binary = "";
-    const chunkSize = 0x8000;
-    for (let index = 0; index < bytes.length; index += chunkSize) {
-        binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+    let base64 = "";
+    if (typeof btoa === "function") {
+        let binary = "";
+        const chunkSize = 0x8000;
+        for (let index = 0; index < bytes.length; index += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+        }
+        base64 = btoa(binary);
+    } else {
+        for (let index = 0; index < bytes.length; index += 3) {
+            const first = bytes[index];
+            const second = bytes[index + 1];
+            const third = bytes[index + 2];
+            const value = (first << 16) | ((second || 0) << 8) | (third || 0);
+            base64 += BASE64_ALPHABET[(value >> 18) & 63];
+            base64 += BASE64_ALPHABET[(value >> 12) & 63];
+            base64 += index + 1 < bytes.length ? BASE64_ALPHABET[(value >> 6) & 63] : "=";
+            base64 += index + 2 < bytes.length ? BASE64_ALPHABET[value & 63] : "=";
+        }
     }
-    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 };
 
 const base64UrlToBytes = value => {
     const base64 = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
-    const binary = atob(base64);
-    return Uint8Array.from(binary, character => character.charCodeAt(0));
+    if (typeof atob === "function") {
+        const binary = atob(base64);
+        return Uint8Array.from(binary, character => character.charCodeAt(0));
+    }
+    const clean = base64.replace(/=+$/g, "");
+    const bytes = [];
+    for (let index = 0; index < clean.length; index += 4) {
+        const first = BASE64_ALPHABET.indexOf(clean[index]);
+        const second = BASE64_ALPHABET.indexOf(clean[index + 1]);
+        const third = clean[index + 2] ? BASE64_ALPHABET.indexOf(clean[index + 2]) : 0;
+        const fourth = clean[index + 3] ? BASE64_ALPHABET.indexOf(clean[index + 3]) : 0;
+        if (first < 0 || second < 0 || third < 0 || fourth < 0) throw new Error("Código Base64 inválido.");
+        const packed = (first << 18) | (second << 12) | (third << 6) | fourth;
+        bytes.push((packed >> 16) & 255);
+        if (index + 2 < clean.length) bytes.push((packed >> 8) & 255);
+        if (index + 3 < clean.length) bytes.push(packed & 255);
+    }
+    return Uint8Array.from(bytes);
 };
 
 const streamTransform = async (bytes, StreamConstructor, format) => {
@@ -127,6 +162,33 @@ const unpackTeam = payload => {
     });
 };
 
+const packPokemonBundle = (pokemon, source = {}) => {
+    const partners = Array.isArray(pokemon) ? pokemon.slice(0, 6) : [];
+    if (!partners.length) throw new Error("Escolha pelo menos um Pokémon para compartilhar.");
+    return {
+        z: 1,
+        k: "pokemon",
+        n: String(source.name || "Pokémon recebidos").trim().slice(0, 80),
+        r: String(source.versionGroup || "auto"),
+        p: partners.map(packPokemon),
+    };
+};
+
+const unpackPokemonBundle = payload => {
+    if (!payload || payload.z !== 1 || payload.k !== "pokemon" || !Array.isArray(payload.p)) {
+        throw new Error("Este código não parece pertencer ao MyOwnDex. Confira se ele foi copiado por inteiro.");
+    }
+    if (!payload.p.length || payload.p.length > 6) {
+        throw new Error("Um envio deve ter de um a seis Pokémon.");
+    }
+    return {
+        kind: "pokemon",
+        sourceName: String(payload.n || "Pokémon recebidos").trim().slice(0, 80),
+        versionGroup: String(payload.r || "auto"),
+        pokemon: payload.p.map(unpackPokemon),
+    };
+};
+
 const deterministicId = value => {
     let hash = 2166136261;
     for (let index = 0; index < value.length; index += 1) {
@@ -179,7 +241,13 @@ export const extractShareCode = input => {
     const text = String(input || "").trim();
     if (!text) throw new Error("Cole o código ou o link compartilhado da Box.");
     if (text.length > MAX_CODE_LENGTH) throw new Error("Este código é longo demais para uma Box do MyOwnDex.");
-    const directIndex = [text.indexOf(SHARE_PREFIX), text.indexOf(RAW_SHARE_PREFIX), text.indexOf(LEGACY_SHARE_PREFIX)]
+    const directIndex = [
+        text.indexOf(SHARE_PREFIX),
+        text.indexOf(RAW_SHARE_PREFIX),
+        text.indexOf(POKEMON_SHARE_PREFIX),
+        text.indexOf(RAW_POKEMON_SHARE_PREFIX),
+        text.indexOf(LEGACY_SHARE_PREFIX),
+    ]
         .filter(index => index >= 0)
         .sort((a, b) => a - b)[0];
     if (directIndex != null) return decodeURIComponent(text.slice(directIndex).split(/[&#?\s]/)[0]);
@@ -200,36 +268,90 @@ export const encodeTeam = async team => {
             const compressed = await streamTransform(bytes, CompressionStream, "deflate");
             return SHARE_PREFIX + bytesToBase64Url(compressed);
         } catch {
-            // Older browsers use the raw, Unicode-safe representation.
+            // The portable fallback below supports browsers without Streams.
         }
     }
-    return RAW_SHARE_PREFIX + bytesToBase64Url(bytes);
+    try {
+        return SHARE_PREFIX + bytesToBase64Url(zlibSync(bytes, { level: 6 }));
+    } catch {
+        return RAW_SHARE_PREFIX + bytesToBase64Url(bytes);
+    }
 };
 
-export const decodeTeam = async input => {
+export const encodePokemonBundle = async (pokemon, source = {}) => {
+    const bytes = textEncoder.encode(JSON.stringify(packPokemonBundle(pokemon, source)));
+    if (typeof CompressionStream === "function") {
+        try {
+            const compressed = await streamTransform(bytes, CompressionStream, "deflate");
+            return POKEMON_SHARE_PREFIX + bytesToBase64Url(compressed);
+        } catch {
+            // The portable fallback below supports browsers without Streams.
+        }
+    }
+    try {
+        return POKEMON_SHARE_PREFIX + bytesToBase64Url(zlibSync(bytes, { level: 6 }));
+    } catch {
+        return RAW_POKEMON_SHARE_PREFIX + bytesToBase64Url(bytes);
+    }
+};
+
+const decodeCurrentPayload = async code => {
+    const prefix = [
+        SHARE_PREFIX,
+        RAW_SHARE_PREFIX,
+        POKEMON_SHARE_PREFIX,
+        RAW_POKEMON_SHARE_PREFIX,
+    ].find(candidate => code.startsWith(candidate));
+    if (!prefix) return null;
+    const compressed = prefix === SHARE_PREFIX || prefix === POKEMON_SHARE_PREFIX;
+    let bytes = base64UrlToBytes(code.slice(prefix.length));
+    if (compressed) {
+        if (typeof DecompressionStream === "function") {
+            try {
+                bytes = await streamTransform(bytes, DecompressionStream, "deflate");
+            } catch {
+                bytes = decompressSync(bytes);
+            }
+        } else {
+            bytes = decompressSync(bytes);
+        }
+    }
+    return {
+        prefix,
+        payload: JSON.parse(textDecoder.decode(bytes)),
+    };
+};
+
+export const decodeShare = async input => {
     try {
         const code = extractShareCode(input);
+        if (code.startsWith(POKEMON_SHARE_PREFIX) || code.startsWith(RAW_POKEMON_SHARE_PREFIX)) {
+            const current = await decodeCurrentPayload(code);
+            return unpackPokemonBundle(current.payload);
+        }
         if (code.startsWith(LEGACY_SHARE_PREFIX) || (!code.startsWith(SHARE_PREFIX) && !code.startsWith(RAW_SHARE_PREFIX))) {
-            return decodeLegacy(code);
+            return { kind: "team", team: decodeLegacy(code) };
         }
-        const isCompressed = code.startsWith(SHARE_PREFIX);
-        const payload = code.slice(isCompressed ? SHARE_PREFIX.length : RAW_SHARE_PREFIX.length);
-        let bytes = base64UrlToBytes(payload);
-        if (isCompressed) {
-            if (typeof DecompressionStream !== "function") {
-                throw new Error("Atualize o navegador para abrir este formato de Box.");
-            }
-            bytes = await streamTransform(bytes, DecompressionStream, "deflate");
-        }
-        return unpackTeam(JSON.parse(textDecoder.decode(bytes)));
+        const current = await decodeCurrentPayload(code);
+        return { kind: "team", team: unpackTeam(current.payload) };
     } catch (error) {
         if (error instanceof Error && (
             error.message.includes("Box")
+            || error.message.includes("Pokémon")
             || error.message.includes("MyOwnDex")
             || error.message.includes("navegador")
+            || error.message.includes("compartilhamento")
         )) {
             throw error;
         }
-        throw new Error("Esta Box não pôde ser lida. Confira se o código foi copiado por inteiro.");
+        throw new Error("Este compartilhamento não pôde ser lido. Confira se o código foi copiado por inteiro.");
     }
+};
+
+export const decodeTeam = async input => {
+    const decoded = await decodeShare(input);
+    if (decoded.kind !== "team") {
+        throw new Error("Este código contém Pokémon avulsos, não uma Box inteira.");
+    }
+    return decoded.team;
 };

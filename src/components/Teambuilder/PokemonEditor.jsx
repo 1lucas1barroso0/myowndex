@@ -3,6 +3,15 @@ import { RPG_STATUS_LABELS } from '../../core/copy.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
 import { RPG_STATUSES } from '../../core/team.js';
+import { getAbilityProfile, getItemProfile, TRAIT_AUTOMATION_LABELS } from '../../core/traitMechanics.js';
+
+const traitCatalogText = detail => {
+    const entries = Array.isArray(detail?.effect_entries) ? detail.effect_entries : [];
+    const entry = entries.find(value => ["pt-br", "pt"].includes(value?.language?.name))
+        || entries.find(value => value?.language?.name === "en")
+        || entries[0];
+    return String(entry?.short_effect || entry?.effect || "").replace(/[\n\f]+/g, " ").replace(/\s+/g, " ").trim();
+};
 
 const POKEMONDB_ITEMS = [
     "potion", "super-potion", "hyper-potion", "max-potion", "full-restore", "revive", "max-revive", 
@@ -30,7 +39,7 @@ const POKEMONDB_ITEMS = [
     "hard-stone", "magnet", "metal-coat", "miracle-seed", "mystic-water", "never-melt-ice", "poison-barb", 
     "sharp-beak", "silk-scarf", "silver-powder", "soft-sand", "spell-tag", "twisted-spoon", "fairy-feather",
     "fist-plate", "sky-plate", "toxic-plate", "earth-plate", "stone-plate", "insect-plate", "spooky-plate", 
-    "iron-plate", "flame-plate", "splash-plate", "meadow-plate", "zapp-plate", "mind-plate", "icicle-plate", 
+    "iron-plate", "flame-plate", "splash-plate", "meadow-plate", "zap-plate", "mind-plate", "icicle-plate",
     "draco-plate", "dread-plate", "pixie-plate", "blank-plate", "douse-drive", "shock-drive", "burn-drive", 
     "chill-drive", "fire-memory", "water-memory", "electric-memory", "grass-memory", "ice-memory", 
     "fighting-memory", "poison-memory", "ground-memory", "flying-memory", "psychic-memory", "bug-memory", 
@@ -62,6 +71,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const [moveDetails, setMoveDetails] = useState({});
     const [switchingForm, setSwitchingForm] = useState(false);
     const [formError, setFormError] = useState("");
+    const [traitDetails, setTraitDetails] = useState({ ability: null, item: null });
 
     const dismissKeyboard = () => {
         if (document.activeElement && document.activeElement.blur) {
@@ -123,6 +133,21 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             });
         return () => { mounted = false; };
     }, [pk.moves]);
+
+    useEffect(() => {
+        let mounted = true;
+        const ability = String(pk.ability || "").trim().toLowerCase();
+        const item = String(pk.item || "").trim().toLowerCase();
+        Promise.all([
+            ability ? fetchCached(`https://pokeapi.co/api/v2/ability/${encodeURIComponent(ability)}`, { maxAgeMs: 24 * 60 * 60 * 1000 }) : null,
+            item ? fetchCached(`https://pokeapi.co/api/v2/item/${encodeURIComponent(item)}`, { maxAgeMs: 24 * 60 * 60 * 1000 }) : null,
+        ]).then(([abilityDetail, itemDetail]) => {
+            if (mounted) setTraitDetails({ ability: abilityDetail || null, item: itemDetail || null });
+        }).catch(() => {
+            if (mounted) setTraitDetails({ ability: null, item: null });
+        });
+        return () => { mounted = false; };
+    }, [pk.ability, pk.item]);
 
     const validItems = useMemo(() => {
         const names = [
@@ -436,6 +461,28 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             <button type="button" aria-label="Sortear natureza" title="Sortear natureza" onClick={()=>randomize("nature")} className="absolute right-4 top-[36px] text-slate-400 hover:text-blue-500 text-lg outline-none">🎲</button>
                         </div>
                     </div>
+                    {(pk.ability || pk.item) && (
+                        <div className="editor-trait-reference" aria-label="Como habilidade e item entram na aventura">
+                            <div className="editor-trait-reference-heading">
+                                <span>Conexões de batalha</span>
+                                <strong>O que esta escolha fará na cena</strong>
+                            </div>
+                            <div>
+                                {[
+                                    pk.ability ? { kind: "ability", id: pk.ability, profile: getAbilityProfile(pk.ability), detail: traitDetails.ability } : null,
+                                    pk.item ? { kind: "item", id: pk.item, profile: getItemProfile(pk.item), detail: traitDetails.item } : null,
+                                ].filter(Boolean).map(trait => (
+                                    <article key={`${trait.kind}-${trait.id}`} className={`is-${trait.kind}`}>
+                                        <header><small>{trait.kind === "ability" ? "Habilidade" : "Item"}</small><b>{TRAIT_AUTOMATION_LABELS[trait.profile.automation]}</b></header>
+                                        <strong>{formatName(trait.id)}</strong>
+                                        <p>{trait.profile.summary}</p>
+                                        <small>Gatilho: {trait.profile.trigger}.</small>
+                                        {traitCatalogText(trait.detail) && <details><summary>Descrição do catálogo</summary><p>{traitCatalogText(trait.detail)}</p></details>}
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     
                     <div>
                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Gênero</label>

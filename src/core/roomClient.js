@@ -167,17 +167,53 @@ export const saveRoomSession = session => {
 
 export const clearRoomSession = () => removeStorage(ROOM_SESSION_STORAGE_KEY);
 
-export const parseRoomInvite = () => {
-    if (typeof window === "undefined") return null;
-    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const code = (params.get("aventura") || params.get("sala") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
-    const inviteCode = (params.get("convite") || "").slice(0, 64);
-    return code && inviteCode ? { code, inviteCode } : null;
+const normalizeInviteParts = (code, inviteCode) => {
+    const normalizedCode = String(code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+    const normalizedInvite = String(inviteCode || "").trim().replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 64);
+    return normalizedCode.length >= 5 && normalizedInvite
+        ? { code: normalizedCode, inviteCode: normalizedInvite }
+        : null;
 };
 
-export const buildPlayerInvite = (session) => {
-    if (typeof window === "undefined" || !session?.inviteCode) return "";
-    const url = new URL(window.location.href);
+export const buildRoomInviteToken = session => session?.code && session?.inviteCode
+    ? `MYOWNDEX-AVENTURA:${session.code}:${session.inviteCode}`
+    : "";
+
+export const parseRoomInviteValue = (input, baseUrl = "https://myowndex.vercel.app/") => {
+    const text = String(input || "").trim();
+    if (!text) return null;
+
+    const compact = text.match(/MYOWNDEX-AVENTURA:([A-Z0-9]{5,8}):([^\s&#?]+)/i);
+    if (compact) return normalizeInviteParts(compact[1], compact[2]);
+
+    const pair = text.match(/^([A-Z0-9]{5,8})[\s|:;,]+(join_[A-Za-z0-9]+)$/i);
+    if (pair) return normalizeInviteParts(pair[1], pair[2]);
+
+    try {
+        const url = new URL(text, baseUrl);
+        const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+        const code = hashParams.get("aventura")
+            || hashParams.get("sala")
+            || url.searchParams.get("aventura")
+            || url.searchParams.get("sala");
+        const inviteCode = hashParams.get("convite") || url.searchParams.get("convite");
+        return normalizeInviteParts(code, inviteCode);
+    } catch {
+        return null;
+    }
+};
+
+export const parseRoomInvite = () => {
+    if (typeof window === "undefined") return null;
+    return parseRoomInviteValue(window.location.href, window.location.origin);
+};
+
+export const buildPlayerInvite = (session, currentUrl) => {
+    if (!session?.inviteCode) return "";
+    const href = currentUrl || (typeof window !== "undefined" ? window.location.href : "");
+    if (!href) return "";
+    const url = new URL(href);
+    url.searchParams.set("abrir", "aventura");
     url.hash = new URLSearchParams({
         aventura: session.code,
         convite: session.inviteCode,

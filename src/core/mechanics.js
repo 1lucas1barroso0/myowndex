@@ -272,13 +272,21 @@ export const TYPE_LABELS = {
 export const DAMAGE_CLASS_LABELS = { physical: "Físico", special: "Especial", status: "Status" };
 export const formatType = type => TYPE_LABELS[type] || formatName(type);
 export const formatDamageClass = damageClass => DAMAGE_CLASS_LABELS[damageClass] || formatName(damageClass);
-export const TYPE_COLORS = { normal: "#9ca3af", fire: "#f97316", water: "#3b82f6", electric: "#eab308", grass: "#22c55e", ice: "#67e8f9", fighting: "#ef4444", poison: "#a855f7", ground: "#d97706", flying: "#818cf8", psychic: "#ec4899", bug: "#84cc16", rock: "#b45309", ghost: "#6366f1", dragon: "#6366f1", dark: "#334155", steel: "#94a3b8", fairy: "#f472b6", stellar: "#14b8a6" };
+// As cores dos tipos usam somente os pigmentos presentes no ícone do MyOwnDex.
+// A diferença entre tipos continua clara por cor, nome e posição — nunca só pela cor.
+export const TYPE_COLORS = {
+    normal: "#CBD5E1", fire: "#B91C1C", water: "#0EA5E9", electric: "#FDE047",
+    grass: "#4ADE80", ice: "#67E8F9", fighting: "#7F1D1D", poison: "#FB7185",
+    ground: "#FDE047", flying: "#38BDF8", psychic: "#FB7185", bug: "#4ADE80",
+    rock: "#991B1B", ghost: "#075985", dragon: "#0E7490", dark: "#0F172A",
+    steel: "#CBD5E1", fairy: "#FB7185", stellar: "#67E8F9",
+};
 export const TYPE_TEXT_COLORS = {
-    normal: "#172554", fire: "#172554", water: "#fef08a", electric: "#172554",
-    grass: "#172554", ice: "#172554", fighting: "#fef08a", poison: "#fef08a",
-    ground: "#172554", flying: "#172554", psychic: "#172554", bug: "#172554",
-    rock: "#fef08a", ghost: "#fef08a", dragon: "#fef08a", dark: "#a5f3fc",
-    steel: "#172554", fairy: "#172554", stellar: "#172554",
+    normal: "#0F172A", fire: "#F0FDFF", water: "#0F172A", electric: "#0F172A",
+    grass: "#0F172A", ice: "#0F172A", fighting: "#F0FDFF", poison: "#0F172A",
+    ground: "#0F172A", flying: "#0F172A", psychic: "#0F172A", bug: "#0F172A",
+    rock: "#F0FDFF", ghost: "#F0FDFF", dragon: "#F0FDFF", dark: "#67E8F9",
+    steel: "#0F172A", fairy: "#0F172A", stellar: "#0F172A",
 };
 export const MATCHUPS = {
     normal: { fighting: 2, ghost: 0 }, fire: { water: 2, ground: 2, rock: 2, fire: .5, grass: .5, ice: .5, bug: .5, steel: .5, fairy: .5 },

@@ -149,7 +149,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.8\.1/);
+  assert.match(worker, /myowndex-shell-v9\.9\.0/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -184,16 +184,63 @@ test("game style and adventure phase use compact tabs with complete help on dema
   assert.doesNotMatch(roomCore, /consoleLabel/);
   assert.match(roomCore, /Percorra rotas, investigue lugares/);
   assert.match(roomCore, /Organize o campo, declare movimentos/);
-  const eraContract = css.slice(css.indexOf("Interface ultraclean em abas 9.8.1"));
-  assert.ok(eraContract.length > 500);
-  for (const token of ["--era-gb-moss", "--era-gba-blue", "--era-ds-cyan", "--era-3ds-aqua"]) {
-    assert.match(eraContract, new RegExp(token));
+  const iconContract = css.slice(css.indexOf("Sistema visual raiz do ícone 9.9.0"));
+  assert.ok(iconContract.length > 500);
+  for (const token of ["--dex-case", "--dex-bezel", "--dex-screen", "--dex-lens-cyan", "--dex-led-green"]) {
+    assert.match(css, new RegExp(token));
   }
-  assert.match(eraContract, /\.game-style-options/);
-  assert.match(eraContract, /\.room-phase-options/);
-  assert.match(eraContract, /\.choice-help-popover/);
-  assert.match(eraContract, /min-height:\s*2\.35rem/);
-  assert.match(eraContract, /max-width:\s*390px/);
+  assert.match(iconContract, /\.game-style-options/);
+  assert.match(iconContract, /\.room-phase-options/);
+  assert.match(iconContract, /\.choice-help-popover/);
+  assert.match(iconContract, /min-height:\s*2\.35rem/);
+  assert.match(css, /max-width:\s*390px/);
+});
+
+test("the icon is the single palette root in every visual and generated color", async () => {
+  const [css, icon, mechanics, room, joinRoute] = await Promise.all([
+    read("src/index.css"),
+    read("public/icons/myowndex-icon-v91.svg"),
+    read("src/core/mechanics.js"),
+    read("src/core/room.js"),
+    read("app/api/rooms/[code]/join/route.ts"),
+  ]);
+  const allowed = new Set([
+    "#450A0A", "#7F1D1D", "#991B1B", "#B91C1C", "#EF4444", "#FB7185",
+    "#FDE047", "#4ADE80", "#0F172A", "#075985", "#0E7490", "#0EA5E9",
+    "#38BDF8", "#67E8F9", "#BAE6FD", "#CBD5E1", "#ECFEFF", "#F0FDFF", "#F8FAFC", "#FFFFFF",
+  ]);
+  const iconColors = [...new Set(icon.match(/#[0-9a-f]{6}/gi)?.map(color => color.toUpperCase()) || [])];
+  assert.ok(iconColors.length >= 12);
+  for (const color of iconColors) assert.ok(allowed.has(color), `cor inesperada no ícone: ${color}`);
+  for (const color of iconColors) assert.match(css.toUpperCase(), new RegExp(color));
+
+  const generatedColors = [
+    mechanics.slice(mechanics.indexOf("export const TYPE_COLORS"), mechanics.indexOf("export const MATCHUPS")),
+    room.slice(room.indexOf("export const ROOM_SCENARIOS"), room.indexOf("export const STATUS_LABELS")),
+    joinRoute.slice(joinRoute.indexOf("const ACCENTS"), joinRoute.indexOf("export async function POST")),
+  ].join("\n").match(/#[0-9a-f]{6}/gi)?.map(color => color.toUpperCase()) || [];
+  assert.ok(generatedColors.length >= 20);
+  for (const color of generatedColors) assert.ok(allowed.has(color), `cor dinâmica fora do ícone: ${color}`);
+
+  assert.match(css, /html\[data-theme="night"\] \.app-root \[class~="bg-white"\]/);
+  assert.match(css, /\.app-root \[class\*="text-red-"\]/);
+  assert.match(css, /\.pokemon-modal-shell/);
+  assert.match(css, /\.pc-main-panel/);
+  assert.match(css, /\.room-section/);
+  assert.match(css, /\.trainer-guide \.rule-section/);
+
+  const luminance = hex => {
+    const channels = hex.slice(1).match(/../g).map(value => Number.parseInt(value, 16) / 255)
+      .map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
+    return .2126 * channels[0] + .7152 * channels[1] + .0722 * channels[2];
+  };
+  const contrast = (foreground, background) => {
+    const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+    return (values[0] + .05) / (values[1] + .05);
+  };
+  for (const pair of [["#0F172A", "#ECFEFF"], ["#ECFEFF", "#B91C1C"], ["#67E8F9", "#0F172A"], ["#0F172A", "#FDE047"]]) {
+    assert.ok(contrast(...pair) >= 4.5, `contraste insuficiente: ${pair.join(" / ")}`);
+  }
 });
 
 test("Link Cable previews selective imports and Adventure invitations open in one step", async () => {

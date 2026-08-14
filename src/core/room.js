@@ -95,15 +95,15 @@ export const ROOM_TERRAINS = [
 ];
 
 export const ROOM_SCENARIOS = [
-    { id: "rota", label: "Rota campestre", icon: "🌿", tone: "#65a30d" },
-    { id: "floresta", label: "Floresta", icon: "🌲", tone: "#166534" },
-    { id: "cidade", label: "Cidade", icon: "🏙️", tone: "#64748b" },
-    { id: "praia", label: "Praia", icon: "🌊", tone: "#0ea5e9" },
-    { id: "caverna", label: "Caverna", icon: "🪨", tone: "#57534e" },
-    { id: "neve", label: "Campo nevado", icon: "❄️", tone: "#bae6fd" },
-    { id: "arena", label: "Estádio", icon: "🏟️", tone: "#dc2626" },
-    { id: "laboratorio", label: "Laboratório", icon: "🧪", tone: "#06b6d4" },
-    { id: "distorcao", label: "Mundo Distorcido", icon: "🌀", tone: "#7c3aed" },
+    { id: "rota", label: "Rota campestre", icon: "🌿", tone: "#4ADE80" },
+    { id: "floresta", label: "Floresta", icon: "🌲", tone: "#0E7490" },
+    { id: "cidade", label: "Cidade", icon: "🏙️", tone: "#CBD5E1" },
+    { id: "praia", label: "Praia", icon: "🌊", tone: "#0EA5E9" },
+    { id: "caverna", label: "Caverna", icon: "🪨", tone: "#7F1D1D" },
+    { id: "neve", label: "Campo nevado", icon: "❄️", tone: "#BAE6FD" },
+    { id: "arena", label: "Estádio", icon: "🏟️", tone: "#B91C1C" },
+    { id: "laboratorio", label: "Laboratório", icon: "🧪", tone: "#67E8F9" },
+    { id: "distorcao", label: "Mundo Distorcido", icon: "🌀", tone: "#075985" },
 ];
 
 export const STATUS_LABELS = RPG_STATUS_LABELS;

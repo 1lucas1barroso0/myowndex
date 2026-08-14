@@ -1,22 +1,52 @@
 @import "tailwindcss";
 
 :root {
-  --pokedex-red: #dc2626;
-  --pokedex-dark-red: #991b1b;
-  --rotom-orange: #ff5722;
-  --screen-bg: #f8fafc;
-  --screen-text: #111827;
-  --panel-dark: #111827;
-  --led-blue: #00d2ff;
-  --led-green: #39ff14;
-  --trainer-gold: #f04f64;
-  --trainer-sky: #38bdf8;
-  --surface: #ffffff;
-  --surface-soft: #f8fafc;
-  --line: #e2e8f0;
-  --ink: #0f172a;
-  --muted: #64748b;
-  --live: #14b8a6;
+  /* Sistema visual raiz do ícone 9.9.0. Nenhuma tela cria uma paleta paralela. */
+  --dex-case-bright: #EF4444;
+  --dex-case: #B91C1C;
+  --dex-case-deep: #7F1D1D;
+  --dex-case-lower: #991B1B;
+  --dex-case-shadow: #450A0A;
+  --dex-bezel: #0F172A;
+  --dex-screen-highlight: #F0FDFF;
+  --dex-screen: #ECFEFF;
+  --dex-screen-soft: #BAE6FD;
+  --dex-line: #CBD5E1;
+  --dex-lens-cyan: #67E8F9;
+  --dex-lens-blue: #0EA5E9;
+  --dex-lens-deep: #075985;
+  --dex-screen-cross: #0E7490;
+  --dex-sky: #38BDF8;
+  --dex-led-pink: #FB7185;
+  --dex-led-yellow: #FDE047;
+  --dex-led-green: #4ADE80;
+  --dex-on-dark: #ECFEFF;
+  --dex-radius-shell: 1.35rem;
+  --dex-radius-panel: .85rem;
+  --dex-radius-control: .55rem;
+  --dex-bezel-line: 2px solid var(--dex-bezel);
+  --dex-pixel-shadow: 4px 4px 0 var(--dex-case-shadow);
+  --dex-dark-surface: color-mix(in srgb, var(--dex-bezel) 86%, var(--dex-lens-deep) 14%);
+  --dex-dark-raised: color-mix(in srgb, var(--dex-bezel) 76%, var(--dex-lens-deep) 24%);
+  --dex-light-raised: color-mix(in srgb, var(--dex-screen-highlight) 86%, var(--dex-screen-soft) 14%);
+
+  /* Compatibilidade: componentes antigos também recebem cores vindas do ícone. */
+  --pokedex-red: var(--dex-case);
+  --pokedex-dark-red: var(--dex-case-deep);
+  --rotom-orange: var(--dex-led-pink);
+  --screen-bg: var(--dex-screen);
+  --screen-text: var(--dex-bezel);
+  --panel-dark: var(--dex-bezel);
+  --led-blue: var(--dex-lens-blue);
+  --led-green: var(--dex-led-green);
+  --trainer-gold: var(--dex-led-yellow);
+  --trainer-sky: var(--dex-sky);
+  --surface: var(--dex-screen-highlight);
+  --surface-soft: var(--dex-screen);
+  --line: var(--dex-line);
+  --ink: var(--dex-bezel);
+  --muted: var(--dex-lens-deep);
+  --live: var(--dex-led-green);
 }
 
 html, body, #root { height: 100%; }
@@ -28,13 +58,13 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible,
-[tabindex]:focus-visible { outline: 3px solid #22d3ee; outline-offset: 2px; }
+[tabindex]:focus-visible { outline: 3px solid var(--dex-lens-cyan); outline-offset: 3px; }
 body { 
   background:
-    radial-gradient(circle at 12% -10%, rgba(240,79,100,0.42), transparent 25%),
-    radial-gradient(circle at 88% -14%, rgba(56,189,248,0.3), transparent 28%),
-    linear-gradient(145deg, #991b1b 0%, #7f1d1d 48%, #450a0a 100%);
-  color: #ffffff; 
+    radial-gradient(circle at 12% -10%, color-mix(in srgb, var(--dex-led-pink) 42%, transparent), transparent 25%),
+    radial-gradient(circle at 88% -14%, color-mix(in srgb, var(--dex-sky) 30%, transparent), transparent 28%),
+    linear-gradient(145deg, var(--dex-case-lower) 0%, var(--dex-case-deep) 48%, var(--dex-case-shadow) 100%);
+  color: var(--dex-screen);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased; 
   margin: 0; 
@@ -46,8 +76,8 @@ body {
 
 .app-root {
   background:
-    radial-gradient(circle at 50% -20%, rgba(255,255,255,0.15), transparent 45%),
-    linear-gradient(145deg, rgba(15,23,42,0.05), rgba(15,23,42,0.2));
+    radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--dex-screen-highlight) 15%, transparent), transparent 45%),
+    linear-gradient(145deg, color-mix(in srgb, var(--dex-bezel) 5%, transparent), color-mix(in srgb, var(--dex-bezel) 20%, transparent));
   transition: background 320ms ease;
   isolation: isolate;
 }
@@ -3770,6 +3800,759 @@ html[data-theme="night"] select:-webkit-autofill {
   }
 }
 
+/*
+ * Sistema visual raiz do ícone 9.9.0
+ * Carcaça = estrutura e ação; moldura = contorno; tela = conteúdo;
+ * lente = foco e seleção; LEDs = sinais curtos. Vale para TODAS as telas.
+ */
+:root {
+  --rom-canvas: var(--dex-screen-soft);
+  --rom-screen: var(--dex-screen);
+  --rom-screen-raised: var(--dex-screen-highlight);
+  --rom-deep: var(--dex-bezel);
+  --rom-line: var(--dex-lens-deep);
+  --rom-ink: var(--dex-bezel);
+  --rom-muted: var(--dex-lens-deep);
+  --rom-cyan: var(--dex-lens-blue);
+  --rom-cyan-bright: var(--dex-lens-cyan);
+  --rom-blue: var(--dex-lens-deep);
+  --rom-coral: var(--dex-case);
+  --rom-coral-deep: var(--dex-case-deep);
+  --rom-green: var(--dex-led-green);
+  --rom-text-accent: var(--dex-lens-deep);
+  --rom-text-special: var(--dex-screen-cross);
+  --rom-text-success: var(--dex-lens-deep);
+  --rom-text-warning: var(--dex-bezel);
+  --rom-pixel-line: var(--dex-lens-deep);
+  --rom-pixel-shadow: var(--dex-bezel);
+  --rom-screen-glow: color-mix(in srgb, var(--dex-lens-cyan) 18%, transparent);
+  --rom-grid-dot: color-mix(in srgb, var(--dex-lens-deep) 9%, transparent);
+  --rom-shadow: color-mix(in srgb, var(--dex-bezel) 34%, transparent);
+}
+
+body {
+  background:
+    radial-gradient(circle at 11% -12%, color-mix(in srgb, var(--dex-led-pink) 42%, transparent), transparent 27%),
+    radial-gradient(circle at 89% -14%, color-mix(in srgb, var(--dex-lens-cyan) 30%, transparent), transparent 30%),
+    linear-gradient(145deg, var(--dex-case-bright) 0%, var(--dex-case) 28%, var(--dex-case-deep) 66%, var(--dex-case-shadow) 100%);
+}
+
+.app-root {
+  color: var(--dex-bezel);
+  background:
+    linear-gradient(color-mix(in srgb, var(--dex-screen) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--dex-screen) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(145deg, color-mix(in srgb, var(--dex-case) 24%, transparent), color-mix(in srgb, var(--dex-case-shadow) 28%, transparent));
+  background-size: 12px 12px, 12px 12px, auto;
+}
+
+.app-root.view-room,
+.app-root.view-pokedex,
+.app-root.view-teambuilder,
+.app-root.view-guide {
+  background:
+    linear-gradient(color-mix(in srgb, var(--dex-screen) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--dex-screen) 4%, transparent) 1px, transparent 1px),
+    radial-gradient(circle at 84% 0%, color-mix(in srgb, var(--dex-lens-cyan) 20%, transparent), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--dex-case) 20%, transparent), color-mix(in srgb, var(--dex-case-shadow) 30%, transparent));
+  background-size: 12px 12px, 12px 12px, auto, auto;
+}
+
+.app-header-shell,
+.app-main-shell,
+.game-shell {
+  position: relative;
+  border: 3px solid var(--dex-bezel);
+  border-radius: var(--dex-radius-shell);
+  box-shadow: var(--dex-pixel-shadow), inset 0 0 0 2px color-mix(in srgb, var(--dex-lens-cyan) 42%, transparent);
+}
+
+.app-header-shell {
+  background: var(--dex-screen-highlight);
+}
+
+.app-main-shell,
+.game-shell {
+  background-color: var(--dex-screen);
+  background-image:
+    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
+    radial-gradient(circle at 94% 4%, color-mix(in srgb, var(--dex-lens-cyan) 18%, transparent), transparent 30%),
+    radial-gradient(circle at 4% 96%, color-mix(in srgb, var(--dex-led-pink) 10%, transparent), transparent 26%);
+  background-size: 8px 8px, 8px 8px, auto, auto;
+}
+
+.app-header-shell::before,
+.app-main-shell::before {
+  height: 4px;
+  border-radius: var(--dex-radius-shell) var(--dex-radius-shell) 0 0;
+  background: linear-gradient(
+    90deg,
+    var(--dex-case-bright) 0 20%,
+    var(--dex-case) 20% 48%,
+    var(--dex-lens-cyan) 48% 72%,
+    var(--dex-lens-blue) 72% 88%,
+    var(--dex-lens-deep) 88% 100%
+  );
+}
+
+.game-panel,
+.game-card,
+.room-lobby-card,
+.room-local-entry,
+.room-section,
+.room-tool,
+.battlefield-card,
+.token-inspector,
+.room-note,
+.install-dialog,
+.link-cable-dialog,
+.pc-sidebar,
+.pc-main-panel,
+.pokemon-editor,
+.pokemon-modal-shell,
+.pokemon-modal-details,
+.pokemon-modal-overview,
+.trainer-guide .rule-section {
+  border: 2px solid var(--dex-lens-deep);
+  border-radius: var(--dex-radius-panel);
+  background: var(--dex-light-raised);
+  color: var(--dex-bezel);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--dex-bezel) 28%, transparent);
+}
+
+.game-card:hover,
+.pokemon-grid-card:hover,
+.pc-partner-card:hover {
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--dex-lens-deep) 44%, transparent);
+  transform: translate(-1px, -1px);
+}
+
+.app-nav {
+  border: 2px solid var(--dex-lens-deep);
+  border-radius: var(--dex-radius-panel);
+  background: color-mix(in srgb, var(--dex-screen) 76%, var(--dex-screen-soft) 24%);
+  box-shadow: inset 0 0 0 1px var(--dex-lens-cyan);
+}
+
+.nav-capsule {
+  border-radius: var(--dex-radius-control);
+  color: var(--dex-lens-deep);
+}
+
+.nav-capsule:hover {
+  background: color-mix(in srgb, var(--dex-screen) 76%, var(--dex-lens-cyan) 24%);
+  color: var(--dex-bezel);
+}
+
+.app-nav .nav-capsule:nth-child(1) span { color: var(--dex-led-pink); }
+.app-nav .nav-capsule:nth-child(2) span { color: var(--dex-lens-blue); }
+.app-nav .nav-capsule:nth-child(3) span { color: var(--dex-led-green); }
+.app-nav .nav-capsule:nth-child(4) span { color: var(--dex-screen-cross); }
+
+.nav-capsule.is-active,
+.app-nav .nav-capsule:nth-child(n).is-active,
+html:not([data-theme="night"]) .nav-capsule.is-active {
+  border-color: var(--dex-bezel);
+  background: var(--dex-lens-deep);
+  color: var(--dex-screen) !important;
+  box-shadow: 3px 3px 0 var(--dex-bezel), inset 0 0 0 2px var(--dex-lens-cyan);
+}
+
+.nav-capsule.is-active span,
+html:not([data-theme="night"]) .nav-capsule.is-active span {
+  color: var(--dex-lens-cyan);
+}
+
+.app-brand-icon,
+.install-entry img,
+.install-entry > span:first-child {
+  border-color: var(--dex-lens-cyan);
+  background: var(--dex-case-deep);
+  box-shadow: 2px 2px 0 var(--dex-bezel);
+}
+
+.app-brand-copy span,
+.pc-eyebrow,
+.room-kicker,
+.room-section-kicker,
+.game-style-label,
+.room-phase-label {
+  color: var(--dex-lens-deep);
+}
+
+.game-button,
+.room-primary-button,
+.link-cable-primary,
+.call-enter,
+.audio-play {
+  border: 2px solid var(--dex-bezel);
+  border-radius: var(--dex-radius-control);
+  background: var(--dex-case);
+  color: var(--dex-screen) !important;
+  box-shadow: 3px 3px 0 var(--dex-case-shadow);
+}
+
+.game-button:hover,
+.room-primary-button:hover,
+.link-cable-primary:hover,
+.call-enter:hover,
+.audio-play:hover {
+  background: var(--dex-case-bright);
+}
+
+.room-secondary-button,
+.link-cable-secondary,
+.pc-action-button,
+.pc-import-button,
+.install-entry,
+.appearance-control,
+.mode-select {
+  border: 2px solid var(--dex-lens-deep);
+  border-radius: var(--dex-radius-control);
+  background: var(--dex-screen-highlight);
+  color: var(--dex-lens-deep) !important;
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--dex-bezel) 24%, transparent);
+}
+
+.pc-action-button.is-share,
+.pc-import-button,
+.link-cable-segment button[aria-checked="true"],
+.link-cable-partners > button[aria-pressed="true"] {
+  border-color: var(--dex-lens-deep);
+  background: color-mix(in srgb, var(--dex-screen) 72%, var(--dex-lens-cyan) 28%);
+  color: var(--dex-lens-deep) !important;
+}
+
+.pc-action-button.is-delete,
+.token-remove,
+.install-close,
+.link-cable-close {
+  border-color: var(--dex-case-deep);
+  background: var(--dex-case-deep);
+  color: var(--dex-screen) !important;
+}
+
+.app-root input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+.app-root select,
+.app-root textarea,
+.room-wide-select,
+.quick-roll-controls input,
+.quick-roll-controls select,
+.combat-grid select {
+  min-height: 2.7rem;
+  border: 2px solid var(--dex-lens-deep);
+  border-radius: var(--dex-radius-control);
+  background: var(--dex-screen-highlight);
+  color: var(--dex-bezel);
+  box-shadow: inset 2px 2px 0 color-mix(in srgb, var(--dex-line) 55%, transparent);
+}
+
+.app-root input::placeholder,
+.app-root textarea::placeholder {
+  color: var(--dex-screen-cross);
+  opacity: .82;
+}
+
+.app-root input[type="checkbox"],
+.app-root input[type="radio"],
+.app-root input[type="range"] {
+  accent-color: var(--dex-lens-blue);
+}
+
+.pokemon-grid-card,
+.pc-box-button,
+.pc-partner-card,
+.pc-add-partner,
+.move-chip,
+.guide-pill,
+.trait-card,
+.token-modifier,
+.call-member,
+.initiative-list li,
+.event-log article {
+  border-color: var(--dex-lens-deep);
+  border-radius: var(--dex-radius-control);
+  background: var(--dex-screen-highlight);
+  color: var(--dex-bezel);
+}
+
+.pc-box-button.is-selected,
+.pc-partner-card.is-selected,
+.pokemon-modal-tabs button[aria-selected="true"] {
+  border-color: var(--dex-bezel);
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen) !important;
+  box-shadow: 3px 3px 0 var(--dex-bezel);
+}
+
+.pc-partner-sprite,
+.pokemon-grid-card > span,
+.pokemon-modal-overview [class*="bg-slate-"] {
+  border-color: var(--dex-line);
+  background: var(--dex-screen);
+}
+
+.rotom-automation-bar,
+.token-traits,
+.editor-trait-reference,
+.species-description,
+.ability-description,
+.editor-move-description,
+.catalog-description {
+  border-color: var(--dex-lens-blue);
+  background: color-mix(in srgb, var(--dex-screen) 78%, var(--dex-lens-cyan) 22%);
+  color: var(--dex-bezel);
+  box-shadow: inset 4px 0 0 var(--dex-led-green);
+}
+
+.trait-card.is-item,
+.editor-trait-reference article.is-item {
+  border-color: var(--dex-led-yellow);
+}
+
+.trait-card.is-paused,
+.trait-integrity-note,
+.combat-special-block,
+.room-error,
+.link-cable-error {
+  border-color: var(--dex-led-pink);
+  background: color-mix(in srgb, var(--dex-screen) 84%, var(--dex-led-pink) 16%);
+  color: var(--dex-lens-deep) !important;
+}
+
+.status-notice,
+.link-cable-success,
+.event-accepted,
+.trait-history {
+  border-color: var(--dex-led-green);
+  background: color-mix(in srgb, var(--dex-screen) 82%, var(--dex-led-green) 18%);
+  color: var(--dex-lens-deep);
+}
+
+.catalog-description-missing,
+.combat-permission-note,
+.token-volatile-list span,
+.room-note.is-private {
+  border-color: var(--dex-led-yellow);
+  background: color-mix(in srgb, var(--dex-screen) 80%, var(--dex-led-yellow) 20%);
+  color: var(--dex-bezel) !important;
+}
+
+.room-lobby-hero {
+  border: 3px solid var(--dex-lens-cyan);
+  border-radius: var(--dex-radius-shell);
+  background:
+    linear-gradient(color-mix(in srgb, var(--dex-lens-cyan) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--dex-lens-cyan) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(122deg, var(--dex-bezel) 0%, var(--dex-lens-deep) 62%, var(--dex-case-deep) 100%);
+  background-size: 10px 10px, 10px 10px, auto;
+  box-shadow: 6px 6px 0 var(--dex-case-shadow), inset 0 0 0 3px var(--dex-screen-cross);
+}
+
+.room-lobby-hero .room-kicker,
+.room-lobby-hero h2 { color: var(--dex-lens-cyan); }
+.room-lobby-hero p { color: var(--dex-screen-soft); }
+
+.room-live-orb {
+  border-color: var(--dex-lens-cyan);
+  background:
+    radial-gradient(circle at 38% 30%, var(--dex-screen-highlight) 0 8%, var(--dex-lens-cyan) 10% 35%, var(--dex-lens-blue) 39% 66%, var(--dex-lens-deep) 70%);
+  box-shadow: 5px 5px 0 var(--dex-bezel), inset 0 0 0 4px var(--dex-screen-cross);
+}
+
+.room-live-orb span { background: color-mix(in srgb, var(--dex-led-yellow) 82%, transparent); }
+
+.game-style-control,
+.room-phase-control {
+  border: 2px solid var(--dex-lens-deep);
+  border-radius: var(--dex-radius-panel);
+  background: var(--dex-screen-highlight);
+  padding: .25rem;
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--dex-bezel) 28%, transparent);
+}
+
+.game-style-options button,
+.room-phase-options button {
+  min-height: 2.35rem;
+  border-radius: var(--dex-radius-control);
+  color: var(--dex-lens-deep);
+}
+
+.game-style-options button:hover,
+.room-phase-options button:hover:not(:disabled) {
+  border-color: var(--dex-lens-cyan);
+  background: color-mix(in srgb, var(--dex-screen) 72%, var(--dex-lens-cyan) 28%);
+  color: var(--dex-bezel);
+}
+
+.game-style-options button[data-mode].is-selected,
+.room-phase-options button[data-phase].is-selected {
+  border-color: var(--dex-bezel);
+  background: var(--dex-lens-deep);
+  color: var(--dex-screen);
+  box-shadow: 2px 2px 0 var(--dex-bezel), inset 0 0 0 1px var(--dex-lens-cyan);
+}
+
+.game-style-options button[data-mode="rpg"].is-selected::after,
+.room-phase-options button[data-phase="batalha"].is-selected::after { background: var(--dex-led-pink); }
+.game-style-options button[data-mode="game"].is-selected::after,
+.room-phase-options button[data-phase="interpretacao"].is-selected::after { background: var(--dex-lens-cyan); }
+.game-style-options button[data-mode="free"].is-selected::after,
+.room-phase-options button[data-phase="exploracao"].is-selected::after { background: var(--dex-led-green); }
+.room-phase-options button[data-phase="intervalo"].is-selected::after { background: var(--dex-led-yellow); }
+
+.choice-help > summary,
+.choice-help-popover,
+.room-scene-strip .room-scene-stats > div {
+  border-color: var(--dex-lens-deep);
+  background: var(--dex-screen-highlight);
+  color: var(--dex-lens-deep);
+}
+
+.choice-help-popover {
+  border-top-color: var(--dex-lens-cyan);
+  border-radius: var(--dex-radius-panel);
+  box-shadow: 4px 4px 0 var(--dex-bezel);
+}
+
+.choice-help-popover::before { border-color: var(--dex-lens-deep); background: var(--dex-screen-highlight); }
+
+.app-root [class*="text-red-"],
+.app-root [class*="text-rose-"],
+.app-root [class*="text-orange-"],
+.app-root [class*="text-purple-"],
+.app-root [class*="text-violet-"],
+.app-root [class*="text-pink-"] {
+  color: var(--dex-lens-deep) !important;
+}
+
+.app-root [class*="text-blue-"],
+.app-root [class*="text-cyan-"],
+.app-root [class*="text-teal-"],
+.app-root [class*="text-emerald-"],
+.app-root [class*="text-green-"] {
+  color: var(--dex-screen-cross) !important;
+}
+
+.app-root [class*="text-yellow-"],
+.app-root [class*="text-amber-"] { color: var(--dex-bezel) !important; }
+.app-root [class*="text-slate-900"],
+.app-root [class*="text-slate-800"],
+.app-root [class*="text-slate-700"] { color: var(--dex-bezel) !important; }
+.app-root [class*="text-slate-600"],
+.app-root [class*="text-slate-500"],
+.app-root [class*="text-slate-400"] { color: var(--dex-lens-deep) !important; }
+.app-root [class~="text-white"],
+.app-root [class*="text-white/"] { color: var(--dex-screen) !important; }
+
+.app-root [class~="bg-white"],
+.app-root [class*="bg-white/"],
+.app-root [class*="bg-slate-50"],
+.app-root [class*="bg-slate-100"] { background-color: var(--dex-screen-highlight) !important; }
+.app-root [class*="bg-slate-200"],
+.app-root [class*="bg-slate-300"] { background-color: var(--dex-screen-soft) !important; }
+.app-root [class*="bg-slate-800"],
+.app-root [class*="bg-slate-900"],
+.app-root [class*="bg-slate-950"] { background-color: var(--dex-bezel) !important; }
+.app-root [class*="bg-red-"],
+.app-root [class*="bg-rose-"],
+.app-root [class*="bg-orange-"] { background-color: var(--dex-case) !important; }
+.app-root [class*="bg-blue-"],
+.app-root [class*="bg-cyan-"],
+.app-root [class*="bg-purple-"],
+.app-root [class*="bg-violet-"] { background-color: var(--dex-lens-blue) !important; }
+.app-root [class*="bg-emerald-"],
+.app-root [class*="bg-green-"],
+.app-root [class*="bg-teal-"] { background-color: var(--dex-led-green) !important; }
+.app-root [class*="bg-yellow-"],
+.app-root [class*="bg-amber-"] { background-color: var(--dex-led-yellow) !important; }
+.app-root [class*="bg-pink-"] { background-color: var(--dex-led-pink) !important; }
+
+.app-root [class*="border-slate-"],
+.app-root [class*="border-blue-"],
+.app-root [class*="border-cyan-"],
+.app-root [class*="border-purple-"],
+.app-root [class*="border-violet-"] { border-color: var(--dex-lens-deep) !important; }
+.app-root [class*="border-red-"],
+.app-root [class*="border-rose-"],
+.app-root [class*="border-orange-"] { border-color: var(--dex-case-deep) !important; }
+.app-root [class*="border-emerald-"],
+.app-root [class*="border-green-"],
+.app-root [class*="border-teal-"] { border-color: var(--dex-led-green) !important; }
+.app-root [class*="border-yellow-"],
+.app-root [class*="border-amber-"] { border-color: var(--dex-led-yellow) !important; }
+
+html[data-theme="night"] {
+  --rom-canvas: var(--dex-bezel);
+  --rom-screen: var(--dex-dark-surface);
+  --rom-screen-raised: var(--dex-dark-raised);
+  --rom-deep: var(--dex-bezel);
+  --rom-line: var(--dex-screen-cross);
+  --rom-ink: var(--dex-screen-soft);
+  --rom-muted: var(--dex-lens-cyan);
+  --rom-text-accent: var(--dex-lens-cyan);
+  --rom-text-special: var(--dex-sky);
+  --rom-text-success: var(--dex-lens-cyan);
+  --rom-text-warning: var(--dex-led-yellow);
+  --rom-pixel-line: var(--dex-screen-cross);
+  --rom-pixel-shadow: var(--dex-case-shadow);
+  --night-canvas: var(--dex-bezel);
+  --night-surface: var(--dex-dark-surface);
+  --night-surface-soft: var(--dex-dark-raised);
+  --night-line: var(--dex-screen-cross);
+  --night-ink: var(--dex-screen-soft);
+  --night-muted: var(--dex-lens-cyan);
+  --night-cyan: var(--dex-lens-cyan);
+  --night-cyan-soft: var(--dex-screen-soft);
+  --night-gold: var(--dex-led-yellow);
+  --night-lime: var(--dex-led-green);
+  color-scheme: dark;
+}
+
+html[data-theme="night"] body {
+  background:
+    linear-gradient(color-mix(in srgb, var(--dex-lens-cyan) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--dex-lens-cyan) 4%, transparent) 1px, transparent 1px),
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--dex-case) 23%, transparent), transparent 30%),
+    radial-gradient(circle at 90% 0%, color-mix(in srgb, var(--dex-lens-blue) 20%, transparent), transparent 35%),
+    var(--dex-bezel);
+  background-size: 12px 12px, 12px 12px, auto, auto, auto;
+  color: var(--dex-screen-soft);
+}
+
+html[data-theme="night"] .app-root,
+html[data-theme="night"] .app-root.view-room,
+html[data-theme="night"] .app-root.view-pokedex,
+html[data-theme="night"] .app-root.view-teambuilder,
+html[data-theme="night"] .app-root.view-guide {
+  color: var(--dex-screen-soft);
+  background:
+    linear-gradient(color-mix(in srgb, var(--dex-lens-cyan) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--dex-lens-cyan) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(145deg, color-mix(in srgb, var(--dex-case-shadow) 26%, transparent), color-mix(in srgb, var(--dex-lens-deep) 18%, transparent));
+  background-size: 12px 12px, 12px 12px, auto;
+}
+
+html[data-theme="night"] .app-header-shell,
+html[data-theme="night"] .app-main-shell,
+html[data-theme="night"] .game-shell {
+  border-color: var(--dex-screen-cross);
+  background-color: var(--dex-bezel);
+  color: var(--dex-screen-soft);
+  box-shadow: 4px 4px 0 var(--dex-case-shadow), inset 0 0 0 1px color-mix(in srgb, var(--dex-lens-cyan) 18%, transparent);
+}
+
+html[data-theme="night"] .app-header-shell { background: var(--dex-dark-surface); }
+
+html[data-theme="night"] .game-panel,
+html[data-theme="night"] .game-card,
+html[data-theme="night"] .room-lobby-card,
+html[data-theme="night"] .room-local-entry,
+html[data-theme="night"] .room-section,
+html[data-theme="night"] .room-tool,
+html[data-theme="night"] .battlefield-card,
+html[data-theme="night"] .token-inspector,
+html[data-theme="night"] .room-note,
+html[data-theme="night"] .install-dialog,
+html[data-theme="night"] .link-cable-dialog,
+html[data-theme="night"] .pc-sidebar,
+html[data-theme="night"] .pc-main-panel,
+html[data-theme="night"] .pokemon-editor,
+html[data-theme="night"] .pokemon-modal-shell,
+html[data-theme="night"] .pokemon-modal-details,
+html[data-theme="night"] .pokemon-modal-overview,
+html[data-theme="night"] .trainer-guide .rule-section {
+  border-color: var(--dex-screen-cross);
+  background: var(--dex-dark-surface);
+  color: var(--dex-screen-soft);
+  box-shadow: 4px 4px 0 var(--dex-case-shadow);
+}
+
+html[data-theme="night"] .app-nav,
+html[data-theme="night"] .game-style-control,
+html[data-theme="night"] .room-phase-control,
+html[data-theme="night"] .choice-help > summary,
+html[data-theme="night"] .choice-help-popover,
+html[data-theme="night"] .room-scene-strip .room-scene-stats > div {
+  border-color: var(--dex-screen-cross);
+  background: var(--dex-dark-raised);
+  color: var(--dex-screen-soft);
+}
+
+html[data-theme="night"] .nav-capsule { color: var(--dex-lens-cyan); }
+html[data-theme="night"] .nav-capsule:hover { background: var(--dex-lens-deep); color: var(--dex-screen); }
+html[data-theme="night"] .nav-capsule.is-active,
+html[data-theme="night"] .app-nav .nav-capsule:nth-child(n).is-active {
+  border-color: var(--dex-lens-cyan);
+  background: var(--dex-lens-deep);
+  color: var(--dex-screen) !important;
+}
+
+html[data-theme="night"] .room-secondary-button,
+html[data-theme="night"] .link-cable-secondary,
+html[data-theme="night"] .pc-action-button,
+html[data-theme="night"] .pc-import-button,
+html[data-theme="night"] .install-entry,
+html[data-theme="night"] .appearance-control,
+html[data-theme="night"] .mode-select,
+html[data-theme="night"] .pokemon-grid-card,
+html[data-theme="night"] .pc-box-button,
+html[data-theme="night"] .pc-partner-card,
+html[data-theme="night"] .pc-add-partner,
+html[data-theme="night"] .move-chip,
+html[data-theme="night"] .guide-pill,
+html[data-theme="night"] .trait-card,
+html[data-theme="night"] .token-modifier,
+html[data-theme="night"] .call-member,
+html[data-theme="night"] .initiative-list li,
+html[data-theme="night"] .event-log article {
+  border-color: var(--dex-screen-cross);
+  background: var(--dex-dark-raised);
+  color: var(--dex-screen-soft) !important;
+}
+
+html[data-theme="night"] .app-root input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-theme="night"] .app-root select,
+html[data-theme="night"] .app-root textarea,
+html[data-theme="night"] .room-wide-select,
+html[data-theme="night"] .quick-roll-controls input,
+html[data-theme="night"] .quick-roll-controls select,
+html[data-theme="night"] .combat-grid select {
+  border-color: var(--dex-screen-cross);
+  background: var(--dex-dark-raised);
+  color: var(--dex-screen-soft);
+  box-shadow: inset 2px 2px 0 var(--dex-bezel);
+}
+
+html[data-theme="night"] .app-root input::placeholder,
+html[data-theme="night"] .app-root textarea::placeholder { color: var(--dex-lens-cyan); }
+
+html[data-theme="night"] .rotom-automation-bar,
+html[data-theme="night"] .token-traits,
+html[data-theme="night"] .editor-trait-reference,
+html[data-theme="night"] .species-description,
+html[data-theme="night"] .ability-description,
+html[data-theme="night"] .editor-move-description,
+html[data-theme="night"] .catalog-description {
+  border-color: var(--dex-lens-cyan);
+  background: color-mix(in srgb, var(--dex-dark-raised) 82%, var(--dex-lens-deep) 18%);
+  color: var(--dex-screen-soft);
+}
+
+html[data-theme="night"] .trait-card.is-paused,
+html[data-theme="night"] .trait-integrity-note,
+html[data-theme="night"] .combat-special-block,
+html[data-theme="night"] .room-error,
+html[data-theme="night"] .link-cable-error {
+  border-color: var(--dex-led-pink);
+  background: color-mix(in srgb, var(--dex-dark-raised) 82%, var(--dex-case-deep) 18%);
+  color: var(--dex-lens-cyan) !important;
+}
+
+html[data-theme="night"] .catalog-description-missing,
+html[data-theme="night"] .combat-permission-note,
+html[data-theme="night"] .token-volatile-list span,
+html[data-theme="night"] .room-note.is-private {
+  border-color: var(--dex-led-yellow);
+  background: color-mix(in srgb, var(--dex-dark-raised) 84%, var(--dex-led-yellow) 16%);
+  color: var(--dex-screen-soft) !important;
+}
+
+html[data-theme="night"] .status-notice,
+html[data-theme="night"] .link-cable-success,
+html[data-theme="night"] .event-accepted,
+html[data-theme="night"] .trait-history {
+  border-color: var(--dex-led-green);
+  background: color-mix(in srgb, var(--dex-dark-raised) 84%, var(--dex-led-green) 16%);
+  color: var(--dex-screen-soft);
+}
+
+html[data-theme="night"] .app-root [class~="bg-white"],
+html[data-theme="night"] .app-root [class*="bg-white/"],
+html[data-theme="night"] .app-root [class*="hover:bg-white"],
+html[data-theme="night"] .app-root [class*="bg-slate-50"],
+html[data-theme="night"] .app-root [class*="bg-slate-100"],
+html[data-theme="night"] .app-root [class*="bg-slate-200"],
+html[data-theme="night"] .app-root [class*="bg-slate-300"] {
+  background-color: var(--dex-dark-raised) !important;
+}
+
+html[data-theme="night"] .app-root [class*="bg-blue-"],
+html[data-theme="night"] .app-root [class*="bg-cyan-"],
+html[data-theme="night"] .app-root [class*="bg-purple-"],
+html[data-theme="night"] .app-root [class*="bg-violet-"] { background-color: var(--dex-lens-deep) !important; }
+html[data-theme="night"] .app-root [class*="bg-red-"],
+html[data-theme="night"] .app-root [class*="bg-rose-"],
+html[data-theme="night"] .app-root [class*="bg-orange-"] { background-color: var(--dex-case-deep) !important; }
+html[data-theme="night"] .app-root [class*="bg-emerald-"],
+html[data-theme="night"] .app-root [class*="bg-green-"],
+html[data-theme="night"] .app-root [class*="bg-teal-"] {
+  background-color: color-mix(in srgb, var(--dex-dark-raised) 78%, var(--dex-led-green) 22%) !important;
+}
+html[data-theme="night"] .app-root [class*="bg-yellow-"],
+html[data-theme="night"] .app-root [class*="bg-amber-"] {
+  background-color: color-mix(in srgb, var(--dex-dark-raised) 78%, var(--dex-led-yellow) 22%) !important;
+}
+html[data-theme="night"] .app-root [class*="bg-pink-"] {
+  background-color: color-mix(in srgb, var(--dex-dark-raised) 78%, var(--dex-led-pink) 22%) !important;
+}
+
+html[data-theme="night"] .app-root [class~="text-white"],
+html[data-theme="night"] .app-root [class*="text-white/"],
+html[data-theme="night"] .app-root [class*="text-slate-900"],
+html[data-theme="night"] .app-root [class*="text-slate-800"],
+html[data-theme="night"] .app-root [class*="text-slate-700"] { color: var(--dex-screen-soft) !important; }
+
+html[data-theme="night"] .app-root [class*="text-slate-600"],
+html[data-theme="night"] .app-root [class*="text-slate-500"],
+html[data-theme="night"] .app-root [class*="text-slate-400"],
+html[data-theme="night"] .app-root [class*="text-red-"],
+html[data-theme="night"] .app-root [class*="text-rose-"],
+html[data-theme="night"] .app-root [class*="text-orange-"],
+html[data-theme="night"] .app-root [class*="text-purple-"],
+html[data-theme="night"] .app-root [class*="text-violet-"],
+html[data-theme="night"] .app-root [class*="text-pink-"] { color: var(--dex-lens-cyan) !important; }
+
+html[data-theme="night"] .app-root [class*="text-blue-"],
+html[data-theme="night"] .app-root [class*="text-cyan-"],
+html[data-theme="night"] .app-root [class*="text-teal-"],
+html[data-theme="night"] .app-root [class*="text-emerald-"],
+html[data-theme="night"] .app-root [class*="text-green-"] { color: var(--dex-lens-cyan) !important; }
+
+html[data-theme="night"] .app-root [class*="text-yellow-"],
+html[data-theme="night"] .app-root [class*="text-amber-"] { color: var(--dex-led-yellow) !important; }
+
+html[data-theme="night"] input:-webkit-autofill,
+html[data-theme="night"] textarea:-webkit-autofill,
+html[data-theme="night"] select:-webkit-autofill {
+  -webkit-text-fill-color: var(--dex-screen-soft);
+  -webkit-box-shadow: 0 0 0 1000px var(--dex-dark-raised) inset;
+}
+
+@media (max-width: 700px) {
+  .app-header-shell,
+  .app-main-shell,
+  .game-shell { border-radius: var(--dex-radius-panel); }
+
+  .game-style-options,
+  .room-phase-options { gap: .28rem; }
+
+  .game-style-options button,
+  .room-phase-options button { min-height: 2.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-root *,
+  .app-root *::before,
+  .app-root *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 @media (max-width: 1100px) {
   .pc-workspace {
     grid-template-columns: 1fr;
@@ -3954,19 +4737,19 @@ html[data-theme="night"] select:-webkit-autofill {
   }
 }
 
-/* Interface ultraclean em abas 9.8.1: pixels discretos, cor e espaço para respirar. */
+/* Interface ultraclean em abas: os nomes legados agora apontam para o ícone. */
 :root {
-  --era-gb-moss: #5f7f55;
-  --era-gb-screen: #cfe6a6;
-  --era-gbc-berry: #b33c76;
-  --era-gbc-lime: #69b93d;
-  --era-gba-blue: #316bd1;
-  --era-gba-coral: #df6579;
-  --era-ds-cyan: #25a9c5;
-  --era-ds-violet: #7562c7;
-  --era-3ds-aqua: #168e82;
-  --era-3ds-magenta: #9d4daf;
-  --era-soft-ink: #e7f7f1;
+  --era-gb-moss: var(--dex-lens-deep);
+  --era-gb-screen: var(--dex-screen-soft);
+  --era-gbc-berry: var(--dex-led-pink);
+  --era-gbc-lime: var(--dex-led-green);
+  --era-gba-blue: var(--dex-lens-blue);
+  --era-gba-coral: var(--dex-case-bright);
+  --era-ds-cyan: var(--dex-lens-cyan);
+  --era-ds-violet: var(--dex-screen-cross);
+  --era-3ds-aqua: var(--dex-sky);
+  --era-3ds-magenta: var(--dex-case);
+  --era-soft-ink: var(--dex-screen);
   --era-panel: var(--rom-screen-raised);
 }
 
@@ -4325,18 +5108,18 @@ html[data-theme="night"] select:-webkit-autofill {
 .view-guide .game-panel:nth-child(even) { border-top-color: var(--era-ds-violet); }
 
 html[data-theme="night"] {
-  --era-gb-moss: #78a870;
-  --era-gb-screen: #a8ce89;
-  --era-gbc-berry: #cf6aa2;
-  --era-gbc-lime: #83d45d;
-  --era-gba-blue: #6b9cf2;
-  --era-gba-coral: #d886a7;
-  --era-ds-cyan: #5ed8e3;
-  --era-ds-violet: #a998eb;
-  --era-3ds-aqua: #62d4b7;
-  --era-3ds-magenta: #c47ad1;
-  --era-soft-ink: #d9f1e9;
-  --era-panel: #173b53;
+  --era-gb-moss: var(--dex-lens-cyan);
+  --era-gb-screen: var(--dex-screen-soft);
+  --era-gbc-berry: var(--dex-led-pink);
+  --era-gbc-lime: var(--dex-led-green);
+  --era-gba-blue: var(--dex-sky);
+  --era-gba-coral: var(--dex-case-bright);
+  --era-ds-cyan: var(--dex-lens-cyan);
+  --era-ds-violet: var(--dex-screen-cross);
+  --era-3ds-aqua: var(--dex-sky);
+  --era-3ds-magenta: var(--dex-case);
+  --era-soft-ink: var(--dex-screen);
+  --era-panel: var(--dex-dark-raised);
 }
 
 html[data-theme="night"] .game-style-control,

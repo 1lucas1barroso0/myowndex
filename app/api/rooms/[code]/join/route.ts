@@ -15,7 +15,8 @@ import {
 export const dynamic = "force-dynamic";
 
 type RouteContext = { params: Promise<{ code: string }> | { code: string } };
-const ACCENTS = ["#38bdf8", "#f97316", "#a855f7", "#22c55e", "#ec4899", "#eab308"];
+// Participantes também usam os LEDs e a lente do ícone, sem uma paleta paralela.
+const ACCENTS = ["#38BDF8", "#67E8F9", "#0EA5E9", "#4ADE80", "#FB7185", "#FDE047"];
 
 export async function POST(request: Request, context: RouteContext) {
   try {

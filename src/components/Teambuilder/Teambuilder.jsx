@@ -276,7 +276,7 @@ export default function Teambuilder({ envProps }) {
     if (!teams.length) {
         return (
             <div className="flex min-h-[60vh] w-full items-center justify-center p-4">
-                <div className="w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#cbd5e1] sm:p-8">
+                <div className="pc-empty-state w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#cbd5e1] sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl" aria-hidden="true">📦</div>
                     <h2 className="text-2xl font-black text-slate-800">Seu PC está pronto para a primeira equipe</h2>
                     <p className="mt-3 text-sm text-slate-500">Abra uma Box, reúna seus parceiros e prepare a próxima aventura no seu ritmo.</p>
@@ -306,7 +306,7 @@ export default function Teambuilder({ envProps }) {
                             setEditingSlot(null);
                             setShareCode("");
                         }}
-                        className={`pc-box-button w-full p-3.5 rounded-xl text-left font-black text-sm border transition-all outline-none shadow-sm break-words ${activeTeamId === team.id ? "bg-blue-600 border-blue-700 text-white shadow-[0_3px_0_#1d4ed8] translate-y-[-1px]" : "bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-white"}`}
+                        className={`pc-box-button w-full p-3.5 rounded-xl text-left font-black text-sm border transition-all outline-none shadow-sm break-words ${activeTeamId === team.id ? "is-selected bg-blue-600 border-blue-700 text-white shadow-[0_3px_0_#1d4ed8] translate-y-[-1px]" : "bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-white"}`}
                     >
                         <span className="flex justify-between gap-3">
                             <span>{team.name}</span>
@@ -327,11 +327,11 @@ export default function Teambuilder({ envProps }) {
 
             <section className="w-full xl:w-3/4 min-w-0 flex-1">
                 {active && (
-                    <div className="game-panel p-4 sm:p-6 md:p-8 overflow-hidden">
+                    <div className="game-panel pc-main-panel p-4 sm:p-6 md:p-8 overflow-hidden">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b-4 border-slate-100 pb-5">
                             <div className="w-full min-w-0">
                                 <label htmlFor="active-box-name" className="sr-only">Nome da Box</label>
-                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1 truncate" placeholder="Nome da Box" />
+                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1 truncate" placeholder="Nome da Box" />
                                 <label className="mt-3 flex max-w-md items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
                                     Jogo de referência
                                     <select value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="min-w-0 flex-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-[10px] text-slate-700 outline-none focus:border-blue-400">
@@ -342,11 +342,11 @@ export default function Teambuilder({ envProps }) {
                             </div>
 
                             <div className="flex gap-2 sm:gap-3 self-stretch sm:self-auto shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
-                                <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 shadow-sm rounded-xl outline-none disabled:opacity-50">
+                                <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="pc-action-button is-share flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 shadow-sm rounded-xl outline-none disabled:opacity-50">
                                     <span aria-hidden="true">↗</span><span className="text-xs font-black">Compartilhar</span>
                                 </button>
-                                <button type="button" onClick={cloneTeam} title="Duplicar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm rounded-xl outline-none"><span aria-hidden="true">⧉</span><span className="text-xs font-black">Duplicar</span></button>
-                                <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-red-600 hover:bg-red-50 border border-red-200 shadow-sm rounded-xl outline-none"><span aria-hidden="true">⌫</span><span className="text-xs font-black">Apagar</span></button>
+                                <button type="button" onClick={cloneTeam} title="Duplicar Box" className="pc-action-button is-duplicate flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm rounded-xl outline-none"><span aria-hidden="true">⧉</span><span className="text-xs font-black">Duplicar</span></button>
+                                <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="pc-action-button is-delete flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-red-600 hover:bg-red-50 border border-red-200 shadow-sm rounded-xl outline-none"><span aria-hidden="true">⌫</span><span className="text-xs font-black">Apagar</span></button>
                             </div>
                         </div>
 
@@ -362,9 +362,9 @@ export default function Teambuilder({ envProps }) {
                                     ? partner.species?.sprites?.front_shiny
                                     : partner.species?.sprites?.front_default;
                                 return (
-                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => { dismissKeyboard(); setEditingSlot(index); }} className={`p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative overflow-hidden group shadow-sm text-left ${editingSlot === index ? "bg-blue-50 border-blue-400 shadow-[0_4px_0_#60a5fa] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white"}`}>
+                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => { dismissKeyboard(); setEditingSlot(index); }} className={`pc-partner-card p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative overflow-hidden group shadow-sm text-left ${editingSlot === index ? "is-selected bg-blue-50 border-blue-400 shadow-[0_4px_0_#60a5fa] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white"}`}>
                                         {partner.canGMax && <span className="absolute -bottom-4 -right-4 text-red-500/10 text-[80px] font-black rotate-12 pointer-events-none">X</span>}
-                                        <span className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl border-2 border-slate-100 flex items-center justify-center shadow-inner relative z-10 flex-shrink-0">
+                                        <span className="pc-partner-sprite w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl border-2 border-slate-100 flex items-center justify-center shadow-inner relative z-10 flex-shrink-0">
                                             {sprite ? <img src={sprite} className="w-10 h-10 sm:w-14 sm:h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" alt="" /> : <span className="text-[9px] font-black text-slate-400 uppercase">---</span>}
                                         </span>
                                         <span className="relative z-10 min-w-0 flex-1">
@@ -378,7 +378,7 @@ export default function Teambuilder({ envProps }) {
                                 );
                             })}
                             {(active.pokemon?.length || 0) < 6 && (
-                                <button type="button" onClick={onSearchClick} className="p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">+ Buscar um Pokémon</button>
+                                <button type="button" onClick={onSearchClick} className="pc-add-partner p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">+ Buscar um Pokémon</button>
                             )}
                         </div>
 

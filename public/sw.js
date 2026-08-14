@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v9.4";
+const CACHE_NAME = "myowndex-shell-v9.5";
 const CACHE_PREFIX = "myowndex-shell-";
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [

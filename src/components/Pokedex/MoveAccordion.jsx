@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { convertToTTRPG, fetchCached, formatDamageClass, formatName, formatType, preferredLocalizedEntry, TYPE_COLORS } from "../../core/mechanics.js";
+import { describeMove } from "../../core/descriptions.js";
+import { convertToTTRPG, fetchCached, formatDamageClass, formatName, formatType, TYPE_COLORS, TYPE_TEXT_COLORS } from "../../core/mechanics.js";
 
 const methodLabel = detail => {
     const method = detail?.move_learn_method?.name;
@@ -29,7 +30,7 @@ export default function MoveAccordion({ moveData, isTTRPG }) {
 
     const details = moveData.latest_detail || moveData.latest_details?.[0];
     const panelId = `move-${moveData.move.name}`;
-    const effectEntry = preferredLocalizedEntry(data?.effect_entries);
+    const explanation = data ? describeMove(data, { isTTRPG }) : null;
 
     return (
         <div className="border-2 border-slate-300 rounded-xl bg-white shadow-sm overflow-hidden mb-2 transition-all hover:border-red-400">
@@ -46,16 +47,26 @@ export default function MoveAccordion({ moveData, isTTRPG }) {
                     {!data && !loadError ? <div className="h-10 skeleton rounded-lg" /> : loadError ? (
                         <p className="text-[11px] font-bold text-slate-500">A Pokédex não conseguiu mostrar os detalhes deste movimento agora.</p>
                     ) : (
-                        <div className="flex flex-col gap-3 animate-fade-in">
+                        <div className="move-description flex flex-col gap-3 animate-fade-in">
                             <div className="flex flex-wrap gap-2 items-center">
-                                <span className="text-[9px] px-2.5 py-1 rounded text-white font-black uppercase tracking-wider shadow-sm" style={{ backgroundColor: TYPE_COLORS[data.type?.name] || TYPE_COLORS.normal }}>{formatType(data.type?.name)}</span>
+                                <span className="text-[9px] px-2.5 py-1 rounded font-black uppercase tracking-wider shadow-sm" style={{ backgroundColor: TYPE_COLORS[data.type?.name] || TYPE_COLORS.normal, color: TYPE_TEXT_COLORS[data.type?.name] || TYPE_TEXT_COLORS.normal }}>{formatType(data.type?.name)}</span>
                                 <span className="text-[9px] px-2.5 py-1 rounded bg-slate-200 text-slate-600 font-black uppercase tracking-wider border border-slate-300">{formatDamageClass(data.damage_class?.name)}</span>
-                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Poder: <span className={isTTRPG ? "text-red-600" : "text-slate-800"}>{data.power ? (isTTRPG ? convertToTTRPG(data.power) : data.power) : "--"}</span></span>
-                                <span className="text-[10px] font-black text-slate-500 border-l-2 border-slate-200 pl-3">Precisão: <span className="text-slate-800">{data.accuracy ? `${data.accuracy}%` : "--"}</span></span>
+                                <span className="move-fact-chip">Poder: <strong>{data.power ? (isTTRPG ? convertToTTRPG(data.power) : data.power) : data.damage_class?.name === "status" ? "não causa dano" : "depende do efeito"}</strong></span>
+                                <span className="move-fact-chip">Precisão: <strong>{data.accuracy == null ? "sem teste próprio" : `${data.accuracy}%`}</strong></span>
+                                <span className="move-fact-chip">PP: <strong>{data.pp || "regra própria"}</strong></span>
                             </div>
-                            <p lang={effectEntry?.language?.name?.startsWith("pt") ? "pt-BR" : "en"} className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                                {effectEntry?.effect?.replace(/\$effect_chance/g, data.effect_chance || "") || "A Pokédex ainda não tem um efeito adicional registrado para este movimento."}
-                            </p>
+                            <p className="move-human-summary">{explanation.summary}</p>
+                            <ul className="move-human-facts" aria-label={`Como ${formatName(data.name)} funciona`}>
+                                {explanation.facts.map((fact, index) => <li key={`${data.name}-fact-${index}`}>{fact}</li>)}
+                            </ul>
+                            {explanation.catalog.text ? (
+                                <details className="catalog-description">
+                                    <summary>{explanation.catalog.label}</summary>
+                                    <p lang={explanation.catalog.code}>{explanation.catalog.text}</p>
+                                </details>
+                            ) : (
+                                <p className="catalog-description-missing">O catálogo não trouxe outro texto para este movimento. A explicação funcional acima continua válida e não preenche nenhuma lacuna por suposição.</p>
+                            )}
                         </div>
                     )}
                 </div>

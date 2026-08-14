@@ -459,7 +459,7 @@ export const getMoveAutomationTags = move => {
         tags.push("Modificadores");
     }
     const special = getMoveSpecialProfile(move);
-    if (special) tags.push(special.automation === "automatic" ? "Mecânica especial automatizada" : "Mecânica especial guiada");
+    if (special) tags.push(special.automation === "automatic" ? "O MyOwnDex resolve a regra especial" : "A regra especial pede uma escolha");
     return [...new Set(tags)];
 };
 

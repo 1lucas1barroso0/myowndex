@@ -278,12 +278,12 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.3",
                 title: "Formas e transformações",
-                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastalização e outras mecânicas alteram apenas o que suas regras determinam. Transform copia aparência, tipos atuais, habilidade, atributos não relacionados a HP, modificadores e movimentos do alvo com 5 PP, mas preserva HP, nível, item e progresso do usuário; tudo pode ser revertido sem alterar sua ficha original. Mudanças como Stance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast exibem seu gatilho e o grau de automação no painel."
+                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastalização e outras mecânicas alteram apenas o que suas regras determinam. Transform copia aparência, tipos atuais, habilidade, atributos não relacionados a HP, modificadores e movimentos do alvo com 5 PP, mas preserva HP, nível, item e progresso do usuário; tudo pode ser revertido sem alterar sua ficha original. Mudanças como Stance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast mostram o gatilho, o que muda, o que permanece e se o MyOwnDex já possui contexto para aplicar o efeito."
             },
             {
                 id: "7.4",
                 title: "Movimentos que copiam ou chamam outros",
-                body: "Sketch troca permanentemente o próprio espaço pelo último movimento observado que seja válido e sincroniza a ficha vinculada. Mimic cria uma cópia temporária com 5 PP e restaura o movimento e o PP anteriores quando a cena termina ou o Narrador desfaz a cópia. Metronome, Copycat, Assist, Sleep Talk, Nature Power, Mirror Move, Me First e Instruct pedem o movimento resultante e consomem PP apenas da escolha original."
+                body: "Sketch troca permanentemente o próprio espaço pelo último movimento observado que seja válido, e a ficha vinculada também recebe a mudança. Mimic cria uma cópia temporária com 5 PP e restaura o movimento e o PP anteriores quando a cena termina ou o Narrador desfaz a cópia. Metronome, Copycat, Assist, Sleep Talk, Nature Power, Mirror Move, Me First e Instruct pedem o movimento resultante e consomem PP apenas da escolha original."
             },
             {
                 id: "7.5",
@@ -310,8 +310,8 @@ export const RPG_RULE_SECTIONS = [
             },
             {
                 id: "8.2",
-                title: "Automação com liberdade",
-                body: "O MyOwnDex automatiza o que possui resposta objetiva e mostra cada parcela do cálculo. Escolhas criativas, consequências de erro crítico e exceções narrativas continuam com o grupo; registre a decisão para que ela permaneça consistente."
+                title: "Ajuda sem tirar a liberdade",
+                body: "O MyOwnDex aplica sozinho apenas o que possui resposta objetiva e mostra cada parcela do cálculo. Escolhas criativas, consequências de erro crítico e exceções narrativas continuam com o grupo; registre a decisão para que ela permaneça consistente."
             },
             {
                 id: "8.3",

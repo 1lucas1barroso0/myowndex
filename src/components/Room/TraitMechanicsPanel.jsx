@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { describeTrait } from "../../core/descriptions.js";
 import { fetchCached, formatName } from "../../core/mechanics.js";
 import {
     consumeHeldItem,
@@ -8,16 +9,6 @@ import {
     setAbilitySuppressed,
     TRAIT_AUTOMATION_LABELS,
 } from "../../core/traitMechanics.js";
-
-const localizedText = detail => {
-    const effectEntries = Array.isArray(detail?.effect_entries) ? detail.effect_entries : [];
-    const flavorEntries = Array.isArray(detail?.flavor_text_entries) ? detail.flavor_text_entries : [];
-    const preferred = entries => entries.find(entry => ["pt-br", "pt"].includes(entry?.language?.name))
-        || entries.find(entry => entry?.language?.name === "en")
-        || entries[0];
-    const source = preferred(effectEntries)?.short_effect || preferred(effectEntries)?.effect || preferred(flavorEntries)?.flavor_text || "";
-    return String(source).replace(/[\n\f]+/g, " ").replace(/\s+/g, " ").trim();
-};
 
 const useTraitDetail = (kind, id) => {
     const [detail, setDetail] = useState(null);
@@ -36,14 +27,14 @@ const useTraitDetail = (kind, id) => {
 };
 
 const TraitCard = ({ kind, id, profile, active, consumed, suppressed, detail, canEdit, onActivate, onConsume, onRestore, onToggleSuppression }) => {
-    const sourceText = localizedText(detail);
+    const explanation = describeTrait(kind, id, detail);
     const stateLabel = consumed
-        ? "Consumido"
+        ? "Já foi usado"
         : suppressed
-            ? "Suprimida"
+            ? "Sem efeito nesta cena"
             : active
-                ? "Ativo agora"
-                : "Sem efeito ativo";
+                ? "Funcionando agora"
+                : "Aguardando a condição";
     return (
         <article className={`trait-card is-${kind} ${active ? "is-active" : ""} ${consumed || suppressed ? "is-paused" : ""}`}>
             <header>
@@ -56,9 +47,14 @@ const TraitCard = ({ kind, id, profile, active, consumed, suppressed, detail, ca
             <div className="trait-card-copy">
                 <span>{TRAIT_AUTOMATION_LABELS[profile.automation]}</span>
                 <strong>{profile.title}</strong>
-                <p>{profile.summary}</p>
-                <small>Gatilho: {profile.trigger}.</small>
-                {sourceText && <details><summary>Descrição do catálogo</summary><p>{sourceText}</p></details>}
+                <p>{explanation.summary}</p>
+                <small>{explanation.trigger}</small>
+                <small>{explanation.handling}</small>
+                {explanation.catalog.text ? (
+                    <details><summary>{explanation.catalog.label}</summary><p lang={explanation.catalog.code}>{explanation.catalog.text}</p></details>
+                ) : (
+                    <p className="catalog-description-missing">O catálogo não trouxe outro texto. O gatilho e o modo de resolver continuam visíveis acima, sem completar a regra por suposição.</p>
+                )}
             </div>
             {canEdit && (
                 <div className="trait-card-actions">
@@ -91,10 +87,10 @@ export default function TraitMechanicsPanel({ token, snapshot, role, onTokenChan
             kind,
             sourceId,
             label: "Ativação registrada",
-            detail: `Gatilho confirmado manualmente na rodada ${snapshot.round}`,
+            detail: `O Narrador confirmou a condição na rodada ${snapshot.round}`,
             round: snapshot.round,
         });
-        commit(next, `${formatName(sourceId)} foi registrado no histórico de ${token.name}.`);
+        commit(next, `${formatName(sourceId)} entrou no histórico de ${token.name}.`);
     };
 
     const consume = () => {
@@ -113,10 +109,10 @@ export default function TraitMechanicsPanel({ token, snapshot, role, onTokenChan
         <details className="token-traits" open={Boolean(status.itemConsumed || status.state.ability.suppressed)}>
             <summary>
                 <span>
-                    <small>Gatilhos, consumo e efeitos</small>
+                    <small>Condições, uso e efeitos</small>
                     <strong>Habilidade e item</strong>
                 </span>
-                <b>{[abilityId, itemId].filter(Boolean).length} conectado(s)</b>
+                <b>{[abilityId, itemId].filter(Boolean).length === 1 ? "1 presente" : `${[abilityId, itemId].filter(Boolean).length} presentes`}</b>
             </summary>
             <div className="token-traits-body">
                 <div className="trait-context" aria-label="Contexto que pode ativar efeitos">
@@ -171,7 +167,7 @@ export default function TraitMechanicsPanel({ token, snapshot, role, onTokenChan
                 </div>
                 {history.length > 0 && (
                     <div className="trait-history">
-                        <strong>Últimos gatilhos</strong>
+                        <strong>Últimos acontecimentos</strong>
                         <ol>
                             {history.map((entry, index) => (
                                 <li key={`${entry.round}-${entry.sourceId}-${index}`}>
@@ -182,7 +178,7 @@ export default function TraitMechanicsPanel({ token, snapshot, role, onTokenChan
                         </ol>
                     </div>
                 )}
-                <p className="trait-integrity-note">Automático resolve apenas o que possui contexto suficiente. Guiado mantém o efeito oficial, o gatilho e a decisão do Narrador unidos no mesmo lugar.</p>
+                <p className="trait-integrity-note">O MyOwnDex só aplica sozinho o que a cena comprova. Sempre que faltar alvo, escolha ou interpretação, a regra permanece à vista para o Narrador decidir com o grupo.</p>
             </div>
         </details>
     );

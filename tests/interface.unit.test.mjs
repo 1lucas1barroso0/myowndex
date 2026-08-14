@@ -11,6 +11,7 @@ import {
   MYOWNDEX_TERMS,
   RPG_STATUS_LABELS,
 } from "../src/core/copy.js";
+import { describeMove, describeSpecies, describeTrait } from "../src/core/descriptions.js";
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -81,6 +82,10 @@ test("visible copy avoids robotic system language", async () => {
     read("src/components/Room/RpgRoom.jsx"),
     read("src/components/Teambuilder/PokemonEditor.jsx"),
     read("src/components/Teambuilder/Teambuilder.jsx"),
+    read("src/components/Room/SpecialMechanicsPanel.jsx"),
+    read("src/components/Room/TraitMechanicsPanel.jsx"),
+    read("src/core/specialMechanics.js"),
+    read("src/core/traitMechanics.js"),
   ]);
   const text = sources.join("\n");
   assert.doesNotMatch(text, /Sistema Online|Cache Offline|Rotom automático|Resolução reativa/);
@@ -88,12 +93,63 @@ test("visible copy avoids robotic system language", async () => {
   assert.doesNotMatch(text, /Sincronizando forma|Sincronizando prioridade|Modo de recuperação/);
   assert.doesNotMatch(text, /Tipagem|G-Max|D-Max|Sem Movimento|p\/ Nv\./);
   assert.doesNotMatch(text, /Sala RPG|Sala ao vivo|Conecte a sala/);
+  assert.doesNotMatch(text, /Automação integral|Automação contextual|Resolução guiada|Mecânica especial automatizada/);
   assert.match(text, /Gigantamax|Nível Dynamax|Aventura neste aparelho|Central da Aventura/);
+});
+
+test("descriptions explain what happens without hiding missing or foreign catalog text", () => {
+  const tackle = describeMove({
+    name: "tackle",
+    power: 40,
+    pp: 35,
+    accuracy: 100,
+    priority: 0,
+    type: { name: "normal" },
+    damage_class: { name: "physical" },
+    target: { name: "selected-pokemon" },
+    meta: { ailment: { name: "none" }, min_hits: null, max_hits: null, drain: 0, healing: 0 },
+    stat_changes: [],
+    effect_entries: [{ language: { name: "en" }, effect: "Inflicts regular damage." }],
+  }, { isTTRPG: true });
+  assert.match(tackle.facts.join(" "), /Ataque de quem age contra a Defesa do alvo/);
+  assert.match(tackle.facts.join(" "), /escolher um Pokémon como alvo/);
+  assert.match(tackle.facts.join(" "), /precisão base é 100%/);
+  assert.match(tackle.facts.join(" "), /Exige contato direto/);
+  assert.match(tackle.facts.join(" "), /35 PP/);
+  assert.equal(tackle.catalog.code, "en");
+  assert.match(tackle.catalog.label, /inglês/);
+
+  const recover = describeMove({
+    name: "recover",
+    pp: 5,
+    accuracy: null,
+    type: { name: "normal" },
+    damage_class: { name: "status" },
+    target: { name: "user" },
+    meta: { ailment: { name: "none" }, drain: 0, healing: 50 },
+    stat_changes: [],
+    effect_entries: [],
+  });
+  assert.match(recover.facts.join(" "), /não causa dano direto/i);
+  assert.match(recover.facts.join(" "), /não é preciso escolher outro Pokémon/i);
+  assert.match(recover.facts.join(" "), /Não há teste de precisão próprio/);
+  assert.match(recover.facts.join(" "), /Recupera 50% do HP máximo/);
+
+  const trait = describeTrait("ability", "example-power", {
+    effect_entries: [{ language: { name: "en" }, short_effect: "Works only in a specific situation." }],
+  });
+  assert.match(trait.summary, /descrição oficial permanece visível/i);
+  assert.match(trait.handling, /regra à vista/i);
+  assert.equal(trait.catalog.code, "en");
+
+  const species = describeSpecies({ flavor_text_entries: [], capture_rate: 45 }, { height: 10, weight: 100 });
+  assert.match(species.summary, /sem preencher lacunas por suposição/i);
+  assert.match(species.facts.join(" "), /45 em 255/);
 });
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.4/);
+  assert.match(worker, /myowndex-shell-v9\.5/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -155,6 +211,11 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(layout, /apple-touch-icon-v91\.png/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);
+  const nightContract = css.slice(css.indexOf("Contrato noturno 9.5"));
+  assert.ok(nightContract.length > 500);
+  assert.doesNotMatch(nightContract, /#fff(?:fff)?\b|rgba\(255,\s*255,\s*255|\bwhite\b\s*[;),]/i);
+  assert.match(nightContract, /--night-cyan/);
+  assert.match(nightContract, /\[class~="text-white"\]/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
   assert.match(app, /myowndex-icon-v91\.svg/);
@@ -190,13 +251,13 @@ test("unique Pokémon and exceptional Moves expose state, narrative and automati
   assert.match(battlefield, /getBattleDisplayIdentity/);
   assert.match(rules, /Transform copia aparência/);
   assert.match(rules, /Sketch troca permanentemente/);
-  assert.match(mechanics, /Automation integral|Automação integral/);
+  assert.match(mechanics, /O MyOwnDex resolve quando a condição acontece/);
   assert.match(mechanics, /imposter/);
   assert.match(mechanics, /illusion/);
 });
 
 test("Abilities and held items expose official context, lifecycle, narrative and vivid contrast", async () => {
-  const [panel, room, combat, battlefield, mechanics, css, rules] = await Promise.all([
+  const [panel, room, combat, battlefield, mechanics, css, rules, descriptions] = await Promise.all([
     read("src/components/Room/TraitMechanicsPanel.jsx"),
     read("src/components/Room/RpgRoom.jsx"),
     read("src/components/Room/CombatAssistant.jsx"),
@@ -204,8 +265,10 @@ test("Abilities and held items expose official context, lifecycle, narrative and
     read("src/core/traitMechanics.js"),
     read("src/index.css"),
     read("src/core/rpgRules.js"),
+    read("src/core/descriptions.js"),
   ]);
-  assert.match(panel, /Descrição do catálogo/);
+  assert.match(panel, /explanation\.catalog/);
+  assert.match(descriptions, /Descrição do catálogo/);
   assert.match(panel, /Registrar ativação/);
   assert.match(panel, /Consumir ou remover/);
   assert.match(panel, /Restaurar item/);
@@ -215,7 +278,7 @@ test("Abilities and held items expose official context, lifecycle, narrative and
   assert.match(battlefield, /room-token-traits/);
   assert.match(mechanics, /weakness-policy/);
   assert.match(mechanics, /neutralizing-gas/);
-  assert.match(css, /Contrato de contraste 9\.4/);
+  assert.match(css, /Contrato de contraste 9\.5/);
   assert.match(css, /\.token-traits/);
   assert.match(css, /\.combat-trait-line/);
   assert.match(rules, /Cada habilidade tem gatilho, estado e histórico/);

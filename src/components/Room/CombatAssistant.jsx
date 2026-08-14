@@ -17,7 +17,7 @@ import {
     isDirectKnockoutMove,
     STAGE_LABELS,
 } from "../../core/automation.js";
-import { formatRemainingPp } from "../../core/copy.js";
+import { formatCount, formatRemainingPp } from "../../core/copy.js";
 import { calculateMoveResolution, STATUS_LABELS } from "../../core/room.js";
 import {
     getMoveSpecialProfile,
@@ -396,7 +396,7 @@ export default function CombatAssistant({
         ? resolutionProfile.target.requiresSelection
             ? "Escolha quem recebe o movimento."
             : resolutionProfile.target.recipient === "group"
-                ? `${resolutionProfile.target.label}: ${affectedTargets.length} alvo(s) em cena.`
+                ? `${resolutionProfile.target.label}: ${formatCount(affectedTargets.length, "alvo")} em cena.`
                 : `${resolutionProfile.target.label}; não exige selecionar um adversário.`
         : "Abra um movimento para conferir seus alvos.";
 
@@ -565,7 +565,7 @@ export default function CombatAssistant({
                                         {resolution.abilityBlock && <span>{resolution.abilityBlock.reason}.</span>}
                                         {resolution.traitBlock && <span>{resolution.traitBlock.reason}.</span>}
                                         {resolution.specialBlockReason && <span>Condição especial não atendida: {resolution.specialBlockReason}.</span>}
-                                        {resolution.accuracyState.noGuard && <span>No Guard tornou a precisão automática.</span>}
+                                        {resolution.accuracyState.noGuard && <span>No Guard dispensou o teste de precisão.</span>}
                                         {resolution.moveConnected && !resolution.damageHit && resolution.profile.requiresDamageContest && (
                                             <span>O movimento alcançou o alvo, mas a defesa impediu o dano; efeitos secundários ainda são resolvidos.</span>
                                         )}
@@ -597,7 +597,10 @@ export default function CombatAssistant({
                                 {result.consequences.fieldChange?.terrain && <li>Terreno alterado para {formatName(result.consequences.fieldChange.terrain)}.</li>}
                                 {result.consequences.scheduledDamage > 0 && <li>Impacto adiado: {formatNumberPtBr(result.consequences.scheduledDamage)} de dano preparado.</li>}
                                 {result.consequences.specialNarratives.map((narrative, index) => <li key={`special-${index}`}>{narrative}</li>)}
-                                {result.consequences.consumedItems.length > 0 && <li>Item(ns) consumido(s) ou removido(s): {[...new Set(result.consequences.consumedItems)].map(formatName).join(", ")}.</li>}
+                                {result.consequences.consumedItems.length > 0 && (() => {
+                                    const items = [...new Set(result.consequences.consumedItems)];
+                                    return <li>{formatCount(items.length, "item")} {items.length === 1 ? "consumido ou removido" : "consumidos ou removidos"}: {items.map(formatName).join(", ")}.</li>;
+                                })()}
                                 {result.consequences.traitProtected && <li>Uma habilidade ou item próprio impediu o nocaute e preservou 1 HP.</li>}
                                 {result.consequences.hitKillProtected && <li>Proteção contra hit kill: o cálculo chegou a {formatNumberPtBr(result.consequences.calculatedDamage)} de dano; o alvo permaneceu com 1 HP.</li>}
                                 {result.targetResults.some(entry => entry.resolution.attackTest?.fumble) && <li>Erro crítico: escolha uma consequência coerente com a cena; o MyOwnDex não toma essa decisão pelo grupo.</li>}

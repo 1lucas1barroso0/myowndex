@@ -30,8 +30,12 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Erros dizem o que ocorreu e oferecem uma saída simples.
 - Mensagens evitam gênero quando se referem a pessoas: “confirmou presença” em
   vez de “está pronto”.
-- A automação é apresentada como ajuda do Rotom, nunca como linguagem de
-  sistema, sincronização ou processamento.
+- A ajuda do MyOwnDex é descrita pelo que a pessoa verá acontecer. A interface
+  evita palavras como automação, sistema, sincronização, processamento e IA.
+- Toda descrição responde, quando pertinente: o que é, quem afeta, quando
+  acontece, o que muda, quanto dura, o que pode impedir e quem precisa decidir.
+- Quando o catálogo só oferece texto em outro idioma, a interface informa o
+  idioma com clareza e mantém uma explicação funcional em português à vista.
 - Contagens respeitam singular e plural; “Pokémon” não recebe “s”.
 - Botões começam com verbos diretos: “Criar”, “Entrar”, “Rolar”, “Adicionar”,
   “Compartilhar” e “Continuar”.

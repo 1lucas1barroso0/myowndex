@@ -2671,3 +2671,390 @@ html[data-theme="night"] select:-webkit-autofill {
   .room-lobby-hero { border-radius: .5rem; }
   .room-live-orb { opacity: .72; transform: rotate(1deg) scale(.88); }
 }
+
+/* Contrato de interface Game Boy + DS 9.6.1: texto sem vermelho e pixels legíveis. */
+:root {
+  --rom-text-accent: #0d648c;
+  --rom-text-special: #5b3bb0;
+  --rom-text-success: #08724b;
+  --rom-text-warning: #7355b8;
+  --rom-pixel-line: #174662;
+  --rom-pixel-shadow: #16384f;
+  --rom-screen-glow: rgba(28, 190, 216, .16);
+  --rom-grid-dot: rgba(23, 70, 98, .075);
+}
+
+html[data-theme="night"] {
+  --rom-text-accent: #72e0eb;
+  --rom-text-special: #c5adff;
+  --rom-text-success: #65e2a5;
+  --rom-text-warning: #bda5f4;
+  --rom-pixel-line: #4783a0;
+  --rom-pixel-shadow: #020a14;
+  --rom-screen-glow: rgba(57, 214, 233, .12);
+  --rom-grid-dot: rgba(114, 224, 235, .065);
+}
+
+/* Vermelho fica reservado para LEDs, contornos e sinais; palavras usam cores de interface. */
+[class*="text-red-"],
+[class*="text-rose-"],
+[class*="text-pink-"],
+[class*="text-orange-"],
+[class*="text-amber-"],
+[class*="text-yellow-"],
+[class*="hover:text-red-"],
+[class*="group-hover:text-red-"] {
+  color: var(--rom-text-special) !important;
+}
+
+.nav-capsule span,
+.nav-capsule.is-active span,
+html:not([data-theme="night"]) .nav-capsule.is-active span,
+html[data-theme="night"] .nav-capsule.is-active span,
+.link-cable-error,
+.room-error,
+.room-role-badge.is-narrator,
+.room-header-actions .room-leave,
+.token-remove,
+.call-actions .call-leave,
+.combat-special-block,
+.audio-remove,
+.trait-card.is-item > header small,
+.trait-card.is-item > header strong,
+.trait-card.is-item > header b,
+.trait-card.is-paused > header b,
+.token-special-markers span,
+.trait-integrity-note,
+.room-token-traits .is-item,
+.room-token-traits .is-consumed,
+.call-badge.is-reconnecting,
+.catalog-description-missing,
+.combat-permission-note,
+.token-volatile-list span,
+.rotom-automation-bar em.has-exceptions,
+.pc-action-button.is-delete,
+html[data-theme="night"] .pc-action-button.is-delete,
+html[data-theme="night"] .trait-card.is-item > header small,
+html[data-theme="night"] .trait-card.is-item > header strong,
+html[data-theme="night"] .trait-card.is-item > header b,
+html[data-theme="night"] .room-token-traits .is-item,
+html[data-theme="night"] .token-volatile-list span,
+html[data-theme="night"] .catalog-description-missing,
+html[data-theme="night"] .combat-permission-note,
+html[data-theme="night"] .room-note.is-private,
+html[data-theme="night"] .call-badge.is-connecting,
+html[data-theme="night"] .call-badge.is-reconnecting,
+html[data-theme="night"] .call-local-mute[aria-pressed="true"],
+html[data-theme="night"] .call-actions button.is-muted,
+html[data-theme="night"] .rotom-automation-bar em.has-exceptions {
+  color: var(--rom-text-special) !important;
+}
+
+html[data-theme="night"] .room-mobile-nav button[aria-pressed="true"] {
+  color: var(--rom-text-accent);
+}
+
+.room-connection.is-connected,
+.call-badge.is-connected,
+.trait-card.is-active > header strong,
+.rotom-automation-bar em:not(.has-exceptions) {
+  color: var(--rom-text-success);
+}
+
+/* Casco inspirado no Game Boy; as áreas internas seguem a leitura de duas telas do DS. */
+.app-root {
+  background-color: var(--rom-canvas);
+  background-image:
+    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
+    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, var(--rom-screen-glow), transparent 28%),
+    radial-gradient(circle at 88% 92%, rgba(91, 59, 176, .1), transparent 26%);
+  background-size: 8px 8px, 8px 8px, auto, auto;
+}
+
+.app-header-shell,
+.app-main-shell {
+  position: relative;
+  border: 3px solid var(--rom-pixel-line);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 2px var(--rom-cyan),
+    5px 5px 0 var(--rom-pixel-shadow),
+    inset 0 0 0 2px var(--rom-screen-glow);
+}
+
+.app-header-shell::after,
+.app-main-shell::after {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  width: 26px;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--rom-cyan) 0 4px, transparent 4px 7px);
+  content: "";
+  opacity: .72;
+  pointer-events: none;
+}
+
+.app-header-shell::after { bottom: auto; top: 6px; }
+
+.game-shell,
+.game-panel,
+.game-card,
+.room-lobby-card,
+.room-tool,
+.room-section,
+.battlefield-card,
+.token-inspector,
+.room-note,
+.install-dialog,
+.link-cable-dialog,
+.pc-sidebar,
+.pc-main-panel,
+.pokemon-editor {
+  border-radius: 4px;
+}
+
+.game-panel,
+.room-lobby-card,
+.room-tool,
+.room-section,
+.battlefield-card,
+.token-inspector,
+.pokemon-editor {
+  border-width: 2px;
+  box-shadow:
+    3px 3px 0 var(--rom-pixel-shadow),
+    inset 0 0 0 1px var(--rom-screen-glow);
+}
+
+.game-card {
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 var(--rom-pixel-shadow);
+  transition: transform 120ms steps(2, end), box-shadow 120ms steps(2, end), border-color 120ms steps(2, end);
+}
+
+.game-card:hover {
+  transform: translate(-1px, -2px);
+  box-shadow: 5px 6px 0 var(--rom-pixel-shadow);
+}
+
+.app-nav {
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 2px var(--rom-screen-glow), 3px 3px 0 var(--rom-pixel-shadow);
+}
+
+.nav-capsule,
+.game-button,
+.room-primary-button,
+.room-secondary-button,
+.pc-action-button,
+.pc-import-button,
+.link-cable-primary,
+.link-cable-secondary,
+.install-entry,
+.appearance-control,
+.mode-select,
+button[class*="rounded-"] {
+  border-radius: 3px !important;
+}
+
+.nav-capsule,
+.game-button,
+.room-primary-button,
+.room-secondary-button,
+.pc-action-button,
+.pc-import-button,
+.link-cable-primary,
+.link-cable-secondary {
+  transition: transform 90ms steps(2, end), box-shadow 90ms steps(2, end), background-color 90ms steps(2, end), color 90ms steps(2, end);
+}
+
+.nav-capsule.is-active,
+.pc-box-button.is-selected,
+.pc-partner-card.is-selected {
+  outline: 2px solid var(--rom-cyan-bright);
+  outline-offset: -4px;
+}
+
+.app-brand-icon,
+.app-brand-icon img,
+.pc-partner-sprite,
+.room-token-sprite-shell,
+.room-token-sprite,
+.pokemon-editor img,
+.game-card img,
+.pixelated {
+  border-radius: 3px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.app-brand-icon {
+  box-shadow: 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 2px var(--rom-screen-glow);
+}
+
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  min-height: 2.65rem;
+  border-radius: 3px !important;
+  box-shadow: inset 2px 2px 0 rgba(11, 28, 49, .13);
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid var(--rom-cyan-bright) !important;
+  outline-offset: 2px;
+}
+
+.app-brand-copy span,
+.app-brand h1,
+.pc-eyebrow,
+.room-kicker,
+.room-section-kicker,
+.nav-capsule,
+.mode-select,
+.appearance-control,
+.install-entry,
+.rotom-automation-bar,
+.pokemon-editor label,
+.pc-main-panel label,
+.room-role-badge,
+.guide-pill,
+.room-live-orb::after {
+  font-family: var(--rom-ui-font);
+  text-rendering: geometricPrecision;
+}
+
+.app-brand h1,
+.room-lobby-hero h2,
+.pc-box-name {
+  text-shadow: 2px 2px 0 rgba(23, 70, 98, .15);
+}
+
+.room-lobby-hero {
+  border-radius: 4px;
+  background-size: 8px 8px, 8px 8px, auto;
+  box-shadow: 6px 6px 0 var(--rom-pixel-shadow), inset 0 0 0 3px var(--rom-pixel-line);
+}
+
+.room-live-orb {
+  border-radius: 3px;
+  transform: none;
+  box-shadow: 5px 5px 0 var(--rom-pixel-shadow), inset 0 0 0 4px var(--rom-cyan), inset 0 0 0 8px var(--rom-deep);
+}
+
+.room-live-orb::after {
+  position: absolute;
+  right: 11%;
+  top: 10%;
+  color: var(--rom-text-accent);
+  content: "LINK";
+  font-size: .48rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.pc-workspace {
+  gap: 1.25rem;
+}
+
+.pc-sidebar,
+.pc-main-panel,
+.pokemon-editor {
+  background-image:
+    linear-gradient(90deg, var(--rom-grid-dot) 1px, transparent 1px),
+    linear-gradient(var(--rom-grid-dot) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.pc-box-button,
+.pc-partner-card,
+.pc-add-partner,
+.pc-import-button,
+.pc-action-button,
+.pokemon-editor input,
+.pokemon-editor select,
+.pc-main-panel select {
+  border-radius: 3px !important;
+}
+
+.pc-action-button.is-delete {
+  background-color: rgba(91, 59, 176, .08);
+  border-color: var(--rom-text-special);
+}
+
+.rotom-automation-bar {
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 var(--rom-pixel-shadow);
+}
+
+.rotom-automation-bar em.has-exceptions,
+.catalog-description-missing,
+.combat-permission-note,
+.token-volatile-list span,
+.combat-special-block,
+.link-cable-error,
+.room-error,
+.trait-integrity-note {
+  border-color: var(--rom-text-special);
+  background-color: rgba(91, 59, 176, .1);
+}
+
+html[data-theme="night"] .rotom-automation-bar em.has-exceptions,
+html[data-theme="night"] .catalog-description-missing,
+html[data-theme="night"] .combat-permission-note,
+html[data-theme="night"] .token-volatile-list span,
+html[data-theme="night"] .combat-special-block,
+html[data-theme="night"] .link-cable-error,
+html[data-theme="night"] .room-error,
+html[data-theme="night"] .trait-integrity-note,
+html[data-theme="night"] .pc-action-button.is-delete {
+  background-color: rgba(115, 85, 184, .18);
+}
+
+html[data-theme="night"] .app-header-shell,
+html[data-theme="night"] .app-main-shell,
+html[data-theme="night"] .game-panel,
+html[data-theme="night"] .game-card,
+html[data-theme="night"] .room-lobby-card,
+html[data-theme="night"] .room-tool,
+html[data-theme="night"] .room-section,
+html[data-theme="night"] .battlefield-card,
+html[data-theme="night"] .token-inspector,
+html[data-theme="night"] .pokemon-editor {
+  color: var(--rom-ink);
+}
+
+html[data-theme="night"] .app-brand h1,
+html[data-theme="night"] .room-lobby-hero h2,
+html[data-theme="night"] .pc-box-name {
+  text-shadow: 2px 2px 0 var(--rom-pixel-shadow);
+}
+
+html[data-theme="night"] input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-theme="night"] textarea,
+html[data-theme="night"] select {
+  box-shadow: inset 2px 2px 0 var(--rom-pixel-shadow);
+}
+
+@media (max-width: 640px) {
+  .app-header-shell,
+  .app-main-shell,
+  .game-shell,
+  .game-panel,
+  .room-lobby-hero {
+    border-radius: 4px;
+  }
+
+  .app-header-shell,
+  .app-main-shell {
+    box-shadow: 0 0 0 1px var(--rom-cyan), 3px 3px 0 var(--rom-pixel-shadow), inset 0 0 0 1px var(--rom-screen-glow);
+  }
+
+  .room-live-orb { transform: scale(.88); }
+}

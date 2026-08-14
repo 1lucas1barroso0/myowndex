@@ -222,6 +222,13 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(nightContract, /\.rotom-automation-bar/);
   assert.match(nightContract, /\.room-live-orb/);
   assert.match(nightContract, /::-moz-range-thumb/);
+  const pixelContract = css.slice(css.indexOf("Contrato de interface Game Boy + DS 9.6.1"));
+  assert.ok(pixelContract.length > 500);
+  assert.match(pixelContract, /--rom-text-special/);
+  assert.match(pixelContract, /\[class\*="text-red-"\]/);
+  assert.match(pixelContract, /image-rendering:\s*pixelated/);
+  assert.match(pixelContract, /background-size:\s*8px 8px/);
+  assert.doesNotMatch(pixelContract, /\bcolor\s*:\s*(?:#(?:b91c1c|991b1b|dc2626|ef4444|e11d48|be123c|ff6075|ff8292|ff9aaa|f04f64|a72143)|var\(--rom-coral(?:-deep)?\))/i);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
   assert.match(app, /myowndex-icon-v91\.svg/);

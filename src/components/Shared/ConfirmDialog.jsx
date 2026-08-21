@@ -29,8 +29,8 @@ export default function ConfirmDialog({
 
     if (!open || typeof document === "undefined") return null;
     const confirmStyle = tone === "danger"
-        ? "bg-red-500 text-white shadow-[0_4px_0_#991b1b] hover:bg-red-600"
-        : "bg-blue-500 text-white shadow-[0_4px_0_#1d4ed8] hover:bg-blue-600";
+        ? "bg-red-500 text-white shadow-[0_4px_0_#991B1B] hover:bg-red-600"
+        : "bg-blue-500 text-white shadow-[0_4px_0_#0EA5E9] hover:bg-blue-600";
 
     return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" onMouseDown={event => event.target === event.currentTarget && onCancel()}>

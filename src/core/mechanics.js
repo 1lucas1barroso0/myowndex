@@ -1,9 +1,11 @@
 export const apiCache = new Map();
 
 const apiRequests = new Map();
-const API_CACHE_NAME = "myowndex-api-v4";
+const apiFailures = new Map();
+const API_CACHE_NAME = "myowndex-api-v5";
 const DEFAULT_CACHE_AGE = 6 * 60 * 60 * 1000;
 const DEFAULT_TIMEOUT = 12000;
+const FAILURE_COOLDOWN = 15 * 1000;
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const canUseCacheStorage = () => typeof window !== "undefined" && typeof window.caches !== "undefined";
 
@@ -36,13 +38,20 @@ const writePersistentApiCache = async (url, data) => {
     }
 };
 
-const fetchJson = async (url, timeoutMs) => {
+const retryDelay = (response, attempt) => {
+    const retryAfter = Number(response?.headers?.get?.("retry-after"));
+    if (Number.isFinite(retryAfter) && retryAfter >= 0) return Math.min(3000, retryAfter * 1000);
+    return Math.min(2000, 250 * (2 ** attempt));
+};
+
+export const fetchJsonWithRetry = async (url, timeoutMs = DEFAULT_TIMEOUT) => {
     let lastError = null;
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
+        let response = null;
         try {
-            const response = await fetch(url, {
+            response = await fetch(url, {
                 signal: controller.signal,
                 headers: { Accept: "application/json" }
             });
@@ -55,8 +64,8 @@ const fetchJson = async (url, timeoutMs) => {
         } catch (error) {
             lastError = error;
             const retryable = error?.name === "AbortError" || error?.retryable || error instanceof TypeError;
-            if (!retryable || attempt === 1) break;
-            await wait(250);
+            if (!retryable || attempt === 2) break;
+            await wait(retryDelay(response, attempt));
         } finally {
             clearTimeout(timeout);
         }
@@ -84,13 +93,17 @@ export const fetchCached = async (url, options = {}) => {
             apiCache.set(key, persisted);
             return persisted.data;
         }
+        const failedAt = apiFailures.get(key) || 0;
+        if (!forceRefresh && Date.now() - failedAt < FAILURE_COOLDOWN) return stale?.data ?? null;
         try {
-            const data = await fetchJson(key, timeoutMs);
+            const data = await fetchJsonWithRetry(key, timeoutMs);
             const entry = { data, cachedAt: Date.now() };
             apiCache.set(key, entry);
+            apiFailures.delete(key);
             void writePersistentApiCache(key, data);
             return data;
         } catch {
+            apiFailures.set(key, Date.now());
             if (stale?.data != null) {
                 apiCache.set(key, stale);
                 return stale.data;
@@ -110,6 +123,7 @@ export const fetchCached = async (url, options = {}) => {
 export const clearApiCache = async () => {
     apiCache.clear();
     apiRequests.clear();
+    apiFailures.clear();
     if (!canUseCacheStorage()) return;
     try {
         await window.caches.delete(API_CACHE_NAME);
@@ -272,13 +286,21 @@ export const TYPE_LABELS = {
 export const DAMAGE_CLASS_LABELS = { physical: "Físico", special: "Especial", status: "Status" };
 export const formatType = type => TYPE_LABELS[type] || formatName(type);
 export const formatDamageClass = damageClass => DAMAGE_CLASS_LABELS[damageClass] || formatName(damageClass);
-export const TYPE_COLORS = { normal: "#9ca3af", fire: "#f97316", water: "#3b82f6", electric: "#eab308", grass: "#22c55e", ice: "#67e8f9", fighting: "#ef4444", poison: "#a855f7", ground: "#d97706", flying: "#818cf8", psychic: "#ec4899", bug: "#84cc16", rock: "#b45309", ghost: "#6366f1", dragon: "#6366f1", dark: "#334155", steel: "#94a3b8", fairy: "#f472b6", stellar: "#14b8a6" };
+// As cores dos tipos usam somente os pigmentos presentes no ícone do MyOwnDex.
+// A diferença entre tipos continua clara por cor, nome e posição — nunca só pela cor.
+export const TYPE_COLORS = {
+    normal: "#CBD5E1", fire: "#B91C1C", water: "#0EA5E9", electric: "#FDE047",
+    grass: "#4ADE80", ice: "#67E8F9", fighting: "#7F1D1D", poison: "#FB7185",
+    ground: "#FDE047", flying: "#38BDF8", psychic: "#FB7185", bug: "#4ADE80",
+    rock: "#991B1B", ghost: "#075985", dragon: "#0E7490", dark: "#0F172A",
+    steel: "#CBD5E1", fairy: "#FB7185", stellar: "#67E8F9",
+};
 export const TYPE_TEXT_COLORS = {
-    normal: "#172554", fire: "#172554", water: "#fef08a", electric: "#172554",
-    grass: "#172554", ice: "#172554", fighting: "#fef08a", poison: "#fef08a",
-    ground: "#172554", flying: "#172554", psychic: "#172554", bug: "#172554",
-    rock: "#fef08a", ghost: "#fef08a", dragon: "#fef08a", dark: "#a5f3fc",
-    steel: "#172554", fairy: "#172554", stellar: "#172554",
+    normal: "#0F172A", fire: "#F0FDFF", water: "#0F172A", electric: "#0F172A",
+    grass: "#0F172A", ice: "#0F172A", fighting: "#F0FDFF", poison: "#0F172A",
+    ground: "#0F172A", flying: "#0F172A", psychic: "#0F172A", bug: "#0F172A",
+    rock: "#F0FDFF", ghost: "#F0FDFF", dragon: "#F0FDFF", dark: "#67E8F9",
+    steel: "#0F172A", fairy: "#0F172A", stellar: "#0F172A",
 };
 export const MATCHUPS = {
     normal: { fighting: 2, ghost: 0 }, fire: { water: 2, ground: 2, rock: 2, fire: .5, grass: .5, ice: .5, bug: .5, steel: .5, fairy: .5 },

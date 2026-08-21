@@ -1,4 +1,5 @@
 import { convertToTTRPG } from "./mechanics.js";
+import { randomChoice, rollDie } from "./random.js";
 
 export const FUMBLE_SUGGESTIONS = Object.freeze([
     "Perder uma posição favorável ou ficar exposto até a próxima ação.",
@@ -7,8 +8,8 @@ export const FUMBLE_SUGGESTIONS = Object.freeze([
     "Dar ao oponente uma oportunidade imediata, sem retirar a decisão do Narrador.",
 ]);
 
-export const getFumbleSuggestion = (random = Math.random) =>
-    FUMBLE_SUGGESTIONS[Math.floor(random() * FUMBLE_SUGGESTIONS.length)] || FUMBLE_SUGGESTIONS[0];
+export const getFumbleSuggestion = random =>
+    randomChoice(FUMBLE_SUGGESTIONS, random) || FUMBLE_SUGGESTIONS[0];
 
 export const EXPERIENCE_MODES = {
     rpg: {
@@ -331,24 +332,13 @@ export const RPG_RULE_SECTIONS = [
     }
 ];
 
-const defaultRandom = () => {
-    if (globalThis.crypto?.getRandomValues) {
-        const value = new Uint32Array(1);
-        globalThis.crypto.getRandomValues(value);
-        return value[0] / 4294967296;
-    }
-    return Math.random();
-};
-
-const die = (sides, random = defaultRandom) => Math.floor(random() * sides) + 1;
-
 export const rollAttributeTest = ({
     mode = "normal",
     attribute = 0,
     opposition = null,
-    random = defaultRandom
+    random
 } = {}) => {
-    const dice = Array.from({ length: mode === "normal" ? 2 : 3 }, () => die(6, random));
+    const dice = Array.from({ length: mode === "normal" ? 2 : 3 }, () => rollDie(6, random));
     const ordered = [...dice].sort((a, b) => a - b);
     const kept = mode === "advantage" ? ordered.slice(-2) : mode === "disadvantage" ? ordered.slice(0, 2) : dice;
     const diceTotal = kept.reduce((sum, value) => sum + value, 0);
@@ -369,9 +359,9 @@ export const rollAttributeTest = ({
 export const rollPercentTest = ({
     chance = 100,
     advantage = false,
-    random = defaultRandom
+    random
 } = {}) => {
-    const rolls = Array.from({ length: advantage ? 2 : 1 }, () => die(100, random));
+    const rolls = Array.from({ length: advantage ? 2 : 1 }, () => rollDie(100, random));
     const result = Math.min(...rolls);
     const normalizedChance = Math.min(100, Math.max(0, Number(chance) || 0));
     return { rolls, result, chance: normalizedChance, success: result <= normalizedChance };

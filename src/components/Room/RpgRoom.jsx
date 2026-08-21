@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
+import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import {
     accuracyStageMultiplier,
     applyStageChange,
@@ -1142,9 +1143,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 <div className="room-mini-team">
                                     {selectedTeam?.pokemon.map(pokemon => (
                                         <span key={pokemon.id} title={pokemon.nickname || pokemon.species?.name}>
-                                            {pokemon.species?.sprites?.front_default
-                                                ? <img src={pokemon.species.sprites.front_default} alt="" className="pixelated" />
-                                                : <i />}
+                                            <PokemonSprite src={pokemon.species?.sprites?.front_default} pokemonId={pokemon.species?.id} alt="" className="pixelated" fallbackClassName="room-token-fallback" />
                                         </span>
                                     ))}
                                     {!selectedTeam?.pokemon.length && <small>Esta Box ainda está vazia.</small>}
@@ -1230,7 +1229,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <section className="token-inspector">
                             <button type="button" className="token-inspector-close" onClick={() => setSelectedTokenId("")} aria-label="Fechar ficha rápida">×</button>
                             <div className="token-inspector-identity">
-                                {selectedDisplayIdentity?.sprite ? <img src={selectedDisplayIdentity.sprite} alt="" className="pixelated" /> : <i />}
+                                <PokemonSprite src={selectedDisplayIdentity?.sprite} pokemonId={selectedToken.speciesId} alt="" className="pixelated" fallbackClassName="room-token-fallback" />
                                 <span>
                                     <small>Nível {selectedToken.level}</small>
                                     <strong>{selectedDisplayIdentity?.name || selectedToken.name}</strong>

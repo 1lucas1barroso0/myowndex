@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  apiCache,
+  fetchCached,
+  fetchJsonWithRetry,
   VERSION_GROUPS,
   convertToTTRPG,
   filterMovesByLatestVersion,
@@ -50,4 +53,25 @@ test("formats calculated values and type labels for Brazilian Portuguese", () =>
     { language: { name: "en" }, effect: "English" },
     { language: { name: "pt-br" }, effect: "Português" },
   ]).effect, "Português");
+});
+
+test("catalog requests retry temporary failures and keep a stale local answer", async () => {
+  const originalFetch = globalThis.fetch;
+  let attempts = 0;
+  globalThis.fetch = async () => {
+    attempts += 1;
+    if (attempts < 3) return new Response("busy", { status: 503, headers: { "retry-after": "0" } });
+    return Response.json({ name: "mudkip" });
+  };
+  try {
+    assert.deepEqual(await fetchJsonWithRetry("https://pokeapi.co/api/v2/pokemon/258", 100), { name: "mudkip" });
+    assert.equal(attempts, 3);
+
+    const staleUrl = "https://pokeapi.co/api/v2/pokemon/749";
+    apiCache.set(staleUrl, { data: { name: "mudbray" }, cachedAt: 0 });
+    globalThis.fetch = async () => { throw new TypeError("offline"); };
+    assert.deepEqual(await fetchCached(staleUrl, { forceRefresh: true, timeoutMs: 20 }), { name: "mudbray" });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

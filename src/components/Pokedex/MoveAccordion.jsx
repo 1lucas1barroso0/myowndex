@@ -33,7 +33,7 @@ export default function MoveAccordion({ moveData, isTTRPG }) {
     const explanation = data ? describeMove(data, { isTTRPG }) : null;
 
     return (
-        <div className="border-2 border-slate-300 rounded-xl bg-white shadow-sm overflow-hidden mb-2 transition-all hover:border-red-400">
+        <div className="border-2 border-slate-300 rounded-xl bg-white shadow-sm mb-2 transition-all hover:border-red-400">
             <button type="button" onClick={handleOpen} aria-expanded={isOpen} aria-controls={panelId} className="w-full flex items-center justify-between p-3.5 focus:outline-none group bg-slate-50 hover:bg-white transition-colors">
                 <div className="flex items-center gap-3">
                     <span className="text-[10px] font-black text-slate-500 w-14 text-left group-hover:text-red-500 transition-colors">{methodLabel(details)}</span>

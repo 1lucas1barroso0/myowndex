@@ -3,7 +3,9 @@ import { RPG_STATUS_LABELS } from '../../core/copy.js';
 import { describeMove, describeTrait } from '../../core/descriptions.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
+import { randomChoice, randomInt, randomUnit } from '../../core/random.js';
 import { RPG_STATUSES } from '../../core/team.js';
+import PokemonSprite from '../Shared/PokemonSprite.jsx';
 
 const POKEMONDB_ITEMS = [
     "potion", "super-potion", "hyper-potion", "max-potion", "full-restore", "revive", "max-revive", 
@@ -241,14 +243,14 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const randomize = (t) => {
         dismissKeyboard();
         if (t === "ivs") {
-            updatePk({ ...pk, ivs: { hp: Math.floor(Math.random()*32), attack: Math.floor(Math.random()*32), defense: Math.floor(Math.random()*32), "special-attack": Math.floor(Math.random()*32), "special-defense": Math.floor(Math.random()*32), speed: Math.floor(Math.random()*32) } });
+            updatePk({ ...pk, ivs: { hp: randomInt(32), attack: randomInt(32), defense: randomInt(32), "special-attack": randomInt(32), "special-defense": randomInt(32), speed: randomInt(32) } });
         }
         else if (t === "nature") {
-            updatePk({ ...pk, nature: Object.keys(NATURES)[Math.floor(Math.random() * 25)] });
+            updatePk({ ...pk, nature: randomChoice(Object.keys(NATURES)) });
         }
         else if (t === "ability") {
             if (validAbs.length > 0) {
-                const randomAb = validAbs[Math.floor(Math.random() * validAbs.length)];
+                const randomAb = randomChoice(validAbs);
                 const abName = typeof randomAb === "string" ? randomAb : (randomAb?.name || "");
                 if (abName) updatePk({ ...pk, ability: abName });
             }
@@ -258,7 +260,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             if (currentGenderRate === -1) return;
             if (currentGenderRate === 0) { updatePk({ ...pk, gender: "M", genderRate: 0 }); return; }
             if (currentGenderRate === 8) { updatePk({ ...pk, gender: "F", genderRate: 8 }); return; }
-            const result = (Math.random() * 8) < currentGenderRate ? "F" : "M";
+            const result = (randomUnit() * 8) < currentGenderRate ? "F" : "M";
             updatePk({ ...pk, gender: result, genderRate: currentGenderRate });
         }
     };
@@ -327,7 +329,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const awardXp = amount => applyXpProgression((Number(rpg.xp) || 0) + Number(amount || 0));
     return (
-        <div className="game-panel pokemon-editor p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative overflow-hidden">
+        <div className="game-panel pokemon-editor p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative">
             <datalist id="eItems">{validItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
             <datalist id="eAbs">{validAbs.map(a => { const v = typeof a === "string" ? a : (a?.name || ""); return v ? <option key={"ab-" + v} value={v}></option> : null; })}</datalist>
             <datalist id="eMvs">{validMoves.map(m => { const v = typeof m === "string" ? m : (m?.name || ""); return v ? <option key={"mv-" + v} value={v}></option> : null; })}</datalist>
@@ -336,7 +338,14 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center w-full min-w-0">
                     <div className="w-20 h-20 sm:w-28 sm:h-28 bg-slate-50 rounded-2xl border-4 border-slate-200 flex justify-center items-center flex-shrink-0 relative shadow-inner">
                         {pk.canGMax && <div className="absolute inset-0 bg-red-500/10 rounded-xl animate-pulse"></div>}
-                        {sprite ? <img src={sprite} alt={`${formatName(pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="w-full h-full p-2 object-contain drop-shadow-md relative z-10" /> : <span className="text-[10px] text-slate-400 font-black uppercase">---</span>}
+                        <PokemonSprite
+                            src={sprite}
+                            pokemonId={pk.species?.id}
+                            shiny={pk.shiny}
+                            alt={`${formatName(pk.species?.name)}${pk.shiny ? " shiny" : ""}`}
+                            className="w-full h-full p-2 object-contain drop-shadow-md relative z-10"
+                            fallbackClassName="pokemon-sprite-fallback relative z-10"
+                        />
                     </div>
                     
                     <div className="flex flex-col gap-2 sm:gap-3 w-full min-w-0">
@@ -407,7 +416,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </div>
                 </div>
 
-                <button onClick={() => { dismissKeyboard(); onRemove(); }} className="w-full xl:w-auto flex items-center justify-center gap-2 self-stretch xl:self-start px-4 py-3 xl:py-2.5 mt-2 xl:mt-0 bg-white text-slate-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm outline-none shrink-0">
+                <button onClick={() => { dismissKeyboard(); onRemove(); }} className="pokemon-remove-button w-full xl:w-auto flex items-center justify-center gap-2 self-stretch xl:self-start px-4 py-3 xl:py-2.5 mt-2 xl:mt-0 border-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm outline-none shrink-0">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     Remover parceiro
                 </button>
@@ -425,7 +434,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 </em>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-10">
+            <div className="pokemon-editor-grid grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-10">
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div><label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Item segurado</label><input list="eItems" value={pk.item||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, item:(e.target.value||"").toLowerCase()})} className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-black focus-within:border-blue-400 outline-none capitalize shadow-inner" /></div>
@@ -484,13 +493,13 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Gênero</label>
                         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 p-2 shadow-inner">
                             <div className="flex flex-wrap gap-2">
-                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "M", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseMale} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "M" ? "bg-blue-500 text-white shadow-[0_3px_0_#1d4ed8]" : "text-slate-600 disabled:opacity-30 hover:bg-blue-100")}>
+                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "M", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseMale} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "M" ? "bg-blue-500 text-white shadow-[0_3px_0_#0EA5E9]" : "text-slate-600 disabled:opacity-30 hover:bg-blue-100")}>
                                     <span className="text-sm sm:text-base">♂</span><span>Macho</span>
                                 </button>
-                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "F", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseFemale} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "F" ? "bg-pink-500 text-white shadow-[0_3px_0_#be185d]" : "text-slate-600 disabled:opacity-30 hover:bg-pink-100")}>
+                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "F", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseFemale} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "F" ? "bg-pink-500 text-white shadow-[0_3px_0_#7F1D1D]" : "text-slate-600 disabled:opacity-30 hover:bg-pink-100")}>
                                     <span className="text-sm sm:text-base">♀</span><span>Fêmea</span>
                                 </button>
-                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "N", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseNeutral} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "N" ? "bg-slate-500 text-white shadow-[0_3px_0_#475569]" : "text-slate-600 disabled:opacity-30 hover:bg-slate-200")}>
+                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "N", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseNeutral} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "N" ? "bg-slate-500 text-white shadow-[0_3px_0_#075985]" : "text-slate-600 disabled:opacity-30 hover:bg-slate-200")}>
                                     <span className="text-sm sm:text-base">⚲</span><span>Sem gênero</span>
                                 </button>
                             </div>
@@ -535,10 +544,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                                 {detail?.priority !== 0 && detail?.priority != null && <span className="move-chip">Prioridade {detail.priority > 0 ? "+" : ""}{detail.priority}</span>}
                                                 {isException && <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[8px] font-black uppercase text-amber-800">{experienceMode === "game" ? "Não disponível neste jogo" : "Escolha livre"}</span>}
                                                 {isTTRPG && moveName && (
-                                                    <label className="ml-auto flex items-center gap-1 text-[8px] font-black uppercase text-slate-400">
+                                                    <label className="editor-pp-label ml-auto flex items-center gap-2 text-[8px] font-black uppercase text-slate-400">
                                                         PP atual
                                                         <input
                                                             type="number"
+                                                            aria-label={`PP atual de ${formatName(moveName)}`}
                                                             min="0"
                                                             max={detail?.pp || 99}
                                                             value={currentPp ?? ""}
@@ -548,7 +558,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                                                 pp[index] = event.target.value === "" ? null : Math.max(0, Math.min(detail?.pp || 99, Number(event.target.value) || 0));
                                                                 updateRpg({ pp });
                                                             }}
-                                                            className="w-9 rounded-md border border-slate-200 bg-white p-1 text-center text-[9px] text-slate-700 outline-none"
+                                                            className="editor-pp-control rounded-md border border-slate-200 bg-white p-1 text-center text-[9px] text-slate-700 outline-none"
                                                         />
                                                     </label>
                                                 )}
@@ -569,24 +579,24 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <p className="mt-2 text-[9px] font-bold text-slate-400">{isHackmon ? "Na Criação livre, todas as opções estão à sua disposição." : "A Pokédex sugere os movimentos disponíveis neste jogo. Você também pode escrever uma escolha própria."}</p>
                     </div>
 
-                    <details className="rpg-journey-panel overflow-hidden rounded-2xl border-2 border-orange-200 bg-orange-50/70">
+                    <details className="rpg-journey-panel rounded-2xl border-2">
                         <summary className="cursor-pointer list-none p-4">
                             <span className="flex items-center justify-between gap-3">
-                                <span>
-                                    <strong className="block text-[10px] font-black uppercase tracking-widest text-orange-700">Progresso da jornada</strong>
+                                <span className="rpg-journey-summary-copy">
+                                    <strong className="block text-[10px] font-black uppercase tracking-widest">Progresso da jornada</strong>
                                     <small className="mt-1 block text-[9px] font-bold text-slate-500">Acompanhe HP, XP, condição e tudo o que torna este Pokémon único.</small>
                                 </span>
-                                <span className="shrink-0 rounded-full bg-white px-3 py-1 text-[9px] font-black text-slate-600 shadow-sm">
+                                <span className="rpg-journey-hp shrink-0 rounded-full px-3 py-1 text-[9px] font-black shadow-sm">
                                     HP {rpg.currentHp ?? "—"}/{displayedMaxHp}
                                 </span>
                             </span>
                         </summary>
-                        <div className="grid gap-4 border-t-2 border-orange-100 bg-white/70 p-4 sm:grid-cols-2">
+                        <div className="rpg-journey-body grid gap-4 border-t-2 p-4 sm:grid-cols-2">
                             <label>
                                 <span className="editor-label">HP atual</span>
                                 <span className="flex gap-2">
                                     <input type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? ""} placeholder={String(displayedMaxHp)} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : Math.max(0, Math.min(displayedMaxHp, Number(event.target.value) || 0)) })} className="editor-input" />
-                                    <button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rounded-xl border-2 border-emerald-200 bg-emerald-50 px-3 text-[9px] font-black uppercase text-emerald-700">Recuperar tudo</button>
+                                    <button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button rounded-xl border-2 px-3 text-[9px] font-black uppercase">Recuperar tudo</button>
                                 </span>
                             </label>
                             <label>
@@ -629,7 +639,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </details>
                 </div>
 
-                <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 shadow-sm mt-2 sm:mt-0">
+                <div className="pokemon-training-panel bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 shadow-sm mt-2 sm:mt-0">
                     <div className="flex justify-between items-center mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-slate-200">
                         <div className="flex items-center gap-3">
                             <h3 className="text-[10px] sm:text-[11px] font-black text-slate-500 uppercase tracking-widest">Treinamento</h3>
@@ -637,13 +647,13 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 IVs 🎲
                             </button>
                         </div>
-                        <div className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm">
-                            EVs restantes: <span className={evTotal > 508 ? "text-red-500" : "text-blue-500"}>{510 - evTotal}</span>/510
+                        <div className={`pokemon-ev-budget text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm ${evTotal > 508 ? "is-over-limit" : ""}`} aria-live="polite">
+                            EVs restantes: <span>{510 - evTotal}</span>/510
                         </div>
                     </div>
                     
                     <div className="w-full">
-                        <div className="hidden sm:flex items-center gap-2 mb-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-2">
+                        <div className="pokemon-stat-heading hidden sm:flex items-center gap-2 mb-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-2">
                             <div className="w-12 text-left">Atributo</div>
                             <div className="w-10">Base</div>
                             <div className="flex-1 text-left">Esforço (EVs)</div>
@@ -666,7 +676,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 else if (multi < 1) cCol = "text-red-500";
                                 
                                 return (
-                                    <div key={sN} className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 bg-white p-3 sm:p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
+                                    <div key={sN} className="pokemon-stat-row flex flex-col sm:flex-row items-center gap-2 sm:gap-3 bg-white p-3 sm:p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
                                         <div className="flex justify-between items-center w-full sm:w-12 shrink-0">
                                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[sN] || sN}</span>
                                             <div className={"sm:hidden text-sm font-black flex items-center gap-1 " + cCol}>
@@ -675,7 +685,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                                 {finalVal}
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between gap-2 w-full sm:flex-1">
+                                        <div className="pokemon-stat-controls flex items-center justify-between gap-2 w-full sm:flex-1">
                                             <div className="w-10 flex justify-center shrink-0">
                                                 {isHackmon ? (
                                                     <input type="number" min="1" max="255" value={base === "" ? "" : base} onKeyDown={handleEnter} onChange={e => updatePk({...pk, customStats: {...(pk.customStats || {}), [sN]: e.target.value === "" ? "" : parseInt(e.target.value)}})} className="w-full bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" />
@@ -683,7 +693,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                                     <div className="text-[11px] font-black text-slate-700">{base}</div>
                                                 )}
                                             </div>
-                                            <div className="flex-1 flex items-center gap-2 min-w-0">
+                                            <div className="pokemon-stat-ev flex-1 flex items-center gap-2 min-w-0">
                                                 <input type="range" min="0" max="252" step="4" value={ev === "" ? 0 : ev} onChange={e => handleChange("evs", sN, e.target.value)} className="w-full min-w-0 accent-red-500" />
                                                 <input type="number" min="0" max="252" value={ev === "" ? "" : ev} onKeyDown={handleEnter} onChange={e => handleChange("evs", sN, e.target.value)} className="w-11 shrink-0 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
                                             </div>

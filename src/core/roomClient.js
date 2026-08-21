@@ -2,40 +2,60 @@ import { ROOM_SESSION_STORAGE_KEY } from "./room.js";
 import { readStorage, removeStorage, writeStorage } from "./storage.js";
 
 const REQUEST_TIMEOUT = 15000;
+const SAFE_REQUEST_METHODS = new Set(["GET", "HEAD"]);
+const pause = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
+
+const retryWait = (response, attempt) => {
+    const retryAfter = Number(response?.headers?.get?.("retry-after"));
+    if (Number.isFinite(retryAfter) && retryAfter >= 0) return Math.min(3000, retryAfter * 1000);
+    return Math.min(1600, 200 * (2 ** attempt));
+};
 
 const roomRequest = async (path, key, options = {}) => {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-    try {
+    const method = String(options.method || "GET").toUpperCase();
+    const maximumAttempts = SAFE_REQUEST_METHODS.has(method) ? 3 : 1;
+    let lastError = null;
+    for (let attempt = 0; attempt < maximumAttempts; attempt += 1) {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
         const headers = new Headers(options.headers || {});
         if (key) headers.set("x-myowndex-room-key", key);
         if (options.body && !(options.body instanceof FormData) && !headers.has("content-type")) {
             headers.set("content-type", "application/json");
         }
         headers.set("accept", "application/json");
-        const response = await fetch(path, {
-            ...options,
-            headers,
-            signal: controller.signal,
-            cache: "no-store",
-        });
-        const type = response.headers.get("content-type") || "";
-        const data = type.includes("application/json")
-            ? await response.json()
-            : await response.text();
-        if (!response.ok) {
-            const error = new Error(data?.error || "A Central da Aventura perdeu a conexão. Tente novamente.");
-            error.status = response.status;
-            error.data = data;
-            throw error;
+        let response = null;
+        try {
+            response = await fetch(path, {
+                ...options,
+                headers,
+                signal: controller.signal,
+                cache: "no-store",
+            });
+            const type = response.headers.get("content-type") || "";
+            const data = type.includes("application/json")
+                ? await response.json()
+                : await response.text();
+            if (!response.ok) {
+                const error = new Error(data?.error || "A Central da Aventura perdeu a conexão. Tente novamente.");
+                error.status = response.status;
+                error.data = data;
+                error.retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+                throw error;
+            }
+            return data;
+        } catch (error) {
+            lastError = error;
+            const retryable = SAFE_REQUEST_METHODS.has(method)
+                && (error?.name === "AbortError" || error?.retryable || error instanceof TypeError);
+            if (!retryable || attempt === maximumAttempts - 1) break;
+            await pause(retryWait(response, attempt));
+        } finally {
+            window.clearTimeout(timeout);
         }
-        return data;
-    } catch (error) {
-        if (error?.name === "AbortError") throw new Error("A aventura está levando mais tempo que o esperado. Tente novamente.");
-        throw error;
-    } finally {
-        window.clearTimeout(timeout);
     }
+    if (lastError?.name === "AbortError") throw new Error("A aventura está levando mais tempo que o esperado. Tente novamente.");
+    throw lastError || new Error("A Central da Aventura perdeu a conexão. Tente novamente.");
 };
 
 export const createRemoteRoom = ({ title, narratorName, snapshot }) =>
@@ -120,18 +140,35 @@ export const uploadRoomAudio = (session, file, title, onProgress) => {
 };
 
 export const fetchRoomAudioUrl = async (session, mediaId) => {
-    const response = await fetch(
-        `/api/rooms/${encodeURIComponent(session.code)}/audio/${encodeURIComponent(mediaId)}`,
-        {
-            headers: { "x-myowndex-room-key": session.key },
-            cache: "no-store",
-        },
-    );
-    if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Esta trilha não pôde ser aberta agora.");
+    const path = `/api/rooms/${encodeURIComponent(session.code)}/audio/${encodeURIComponent(mediaId)}`;
+    let lastError = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        let response = null;
+        try {
+            response = await fetch(path, {
+                headers: { "x-myowndex-room-key": session.key },
+                cache: "no-store",
+                signal: controller.signal,
+            });
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                const error = new Error(data.error || "Esta trilha não pôde ser aberta agora.");
+                error.retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+                throw error;
+            }
+            return URL.createObjectURL(await response.blob());
+        } catch (error) {
+            lastError = error;
+            const retryable = error?.name === "AbortError" || error?.retryable || error instanceof TypeError;
+            if (!retryable || attempt === 2) break;
+            await pause(retryWait(response, attempt));
+        } finally {
+            window.clearTimeout(timeout);
+        }
     }
-    return URL.createObjectURL(await response.blob());
+    throw lastError || new Error("Esta trilha não pôde ser aberta agora.");
 };
 
 export const deleteRoomAudio = (session, mediaId) =>

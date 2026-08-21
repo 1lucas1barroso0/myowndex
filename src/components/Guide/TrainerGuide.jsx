@@ -88,7 +88,7 @@ export default function TrainerGuide({ experienceMode }) {
                         Encontre uma regra, faça uma rolagem ou confira um cálculo sem interromper a aventura. Cada explicação mostra o que acontece e quando a regra se aplica.
                     </p>
                 </div>
-                <div aria-hidden="true" className="guide-hero-lens absolute -bottom-16 -right-10 h-56 w-56 rounded-full border-[28px] border-cyan-300/20 bg-white/10 shadow-[0_0_70px_rgba(103,232,249,0.35)]" />
+                <div aria-hidden="true" className="guide-hero-lens" />
             </section>
 
             <section className="guide-layout mt-7 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">

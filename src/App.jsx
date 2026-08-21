@@ -41,16 +41,16 @@ const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
 
 const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction }) => {
     const tones = {
-        blue: "bg-blue-50 border-blue-200 text-blue-800",
-        amber: "bg-amber-50 border-amber-200 text-amber-800",
-        red: "bg-red-50 border-red-200 text-red-800"
+        blue: "is-info",
+        amber: "is-reversible",
+        red: "is-caution"
     };
     return (
-        <div role="status" className={`status-notice mb-5 flex items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-xs font-bold ${tones[tone]}`}>
-            <span>{children}</span>
-            <span className="flex shrink-0 items-center gap-2">
-                {actionLabel && onAction && <button type="button" onClick={onAction} className="rounded-lg border-2 border-current/20 bg-white/70 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest">{actionLabel}</button>}
-                {onClose && <button type="button" onClick={onClose} className="text-base leading-none" aria-label="Dispensar aviso">×</button>}
+        <div className={`status-notice mb-5 ${tones[tone] || tones.blue}`}>
+            <span role="status" aria-live="polite" aria-atomic="true" className="status-notice-message">{children}</span>
+            <span className="status-notice-actions">
+                {actionLabel && onAction && <button type="button" onClick={onAction} className="status-notice-action">{actionLabel}</button>}
+                {onClose && <button type="button" onClick={onClose} className="status-notice-close" aria-label="Dispensar aviso">×</button>}
             </span>
         </div>
     );

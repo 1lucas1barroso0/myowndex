@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.10\.1/);
+  assert.match(worker, /myowndex-shell-v9\.10\.2/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -222,7 +222,7 @@ test("the icon-root emphasis contract restores critical rules without hiding con
   assert.match(app, /className="status-notice-action"/);
   assert.match(app, /className="status-notice-close"/);
   assert.doesNotMatch(app, /status-notice[^\n]*bg-white\/70/);
-  assert.match(room, /className="room-live-led"/);
+  assert.doesNotMatch(room, /room-live-led/);
   assert.match(guide, /className="guide-hero-lens"/);
   assert.doesNotMatch(guide, /guide-hero-lens absolute -bottom/);
 
@@ -239,11 +239,11 @@ test("the icon-root emphasis contract restores critical rules without hiding con
   assert.match(documentation, /ícone oficial do MyOwnDex é a origem/);
   assert.match(documentation, /nunca pode ser truncado/);
 
-  const pointFixes = css.slice(css.indexOf("Point fixes 9.10.1"));
+  const pointFixes = css.slice(css.indexOf("Point fixes 9.10.2"));
   assert.ok(pointFixes.length > 2500);
   assert.match(pointFixes, /\.status-notice\.is-reversible[\s\S]*?--dex-led-pink/);
   assert.match(pointFixes, /button\.status-notice-action[\s\S]*?background:\s*var\(--dex-lens-cyan\)/);
-  assert.match(pointFixes, /\.room-live-orb \.room-live-led[\s\S]*?background:\s*var\(--dex-led-pink\)/);
+  assert.doesNotMatch(pointFixes, /room-live-led/);
   assert.match(pointFixes, /\.guide-hero-lens[\s\S]*?top:\s*50%;[\s\S]*?border-radius:\s*50%/);
   assert.doesNotMatch(pointFixes, /--dex-led-yellow/);
 

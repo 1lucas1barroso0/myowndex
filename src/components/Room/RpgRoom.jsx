@@ -120,8 +120,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     <p>Reúna campo, fichas, regras, rolagens, progresso e trilha em um só lugar, com tudo preparado para Narrador e jogadores.</p>
                 </div>
                 <div className="room-live-orb" aria-hidden="true">
-                    <span />
-                    <i />
+                    <i className="room-live-screen" />
                 </div>
             </section>
 

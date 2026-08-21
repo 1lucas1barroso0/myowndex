@@ -6183,3 +6183,129 @@ html[data-theme="night"] .combat-automation span.is-syncing {
     transition-duration: .01ms !important;
   }
 }
+
+/* Point fixes 9.10.2: clear feedback and contained icon-root emblems. */
+.status-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4.25rem;
+  border: 3px solid var(--dex-lens-cyan) !important;
+  border-radius: var(--dex-radius-panel);
+  background: var(--dex-bezel) !important;
+  padding: .8rem .9rem .8rem 1rem;
+  color: var(--dex-screen-soft) !important;
+  box-shadow: 4px 4px 0 var(--dex-case-shadow) !important;
+}
+
+.status-notice.is-reversible {
+  border-color: var(--dex-led-pink) !important;
+  box-shadow: 4px 4px 0 var(--dex-case-shadow), inset 5px 0 0 var(--dex-led-pink) !important;
+}
+
+.status-notice.is-caution {
+  border-color: var(--dex-led-pink) !important;
+}
+
+.status-notice-message {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  color: var(--dex-screen-soft) !important;
+  font-size: .75rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.status-notice-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .55rem;
+}
+
+.status-notice button.status-notice-action {
+  min-height: 2.25rem;
+  border: 2px solid var(--dex-lens-cyan) !important;
+  border-radius: var(--dex-radius-control);
+  background: var(--dex-lens-cyan) !important;
+  padding: .55rem .8rem;
+  color: var(--dex-bezel) !important;
+  font-size: .62rem;
+  font-weight: 950;
+  letter-spacing: .08em;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: 2px 2px 0 var(--dex-lens-deep);
+}
+
+.status-notice button.status-notice-action:hover {
+  border-color: var(--dex-led-pink) !important;
+  background: var(--dex-led-pink) !important;
+}
+
+.status-notice button.status-notice-close {
+  display: inline-grid;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 2px solid var(--dex-screen-cross) !important;
+  border-radius: var(--dex-radius-control);
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-lens-cyan) !important;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+html[data-theme="night"] .status-notice button.status-notice-action {
+  border-color: var(--dex-lens-cyan) !important;
+  background: var(--dex-lens-cyan) !important;
+  color: var(--dex-bezel) !important;
+}
+
+html[data-theme="night"] .status-notice button.status-notice-close {
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-lens-cyan) !important;
+}
+
+.trainer-guide .rotom-hero {
+  padding-right: clamp(10.5rem, 17vw, 14rem) !important;
+}
+
+.app-root .trainer-guide .guide-hero-lens {
+  position: absolute;
+  top: 50%;
+  right: clamp(1.5rem, 3.5vw, 3rem);
+  width: clamp(6.5rem, 10vw, 9rem);
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  border: .55rem solid var(--dex-lens-cyan) !important;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 28%, var(--dex-screen-highlight) 0 7%, var(--dex-lens-cyan) 9% 34%, var(--dex-lens-blue) 38% 66%, var(--dex-lens-deep) 70%) !important;
+  box-shadow: 5px 5px 0 var(--dex-bezel), inset 0 0 0 4px var(--dex-screen-cross) !important;
+}
+
+@media (max-width: 700px) {
+  .status-notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .status-notice-actions {
+    width: 100%;
+  }
+
+  .status-notice-action {
+    flex: 1 1 auto;
+  }
+
+  .trainer-guide .rotom-hero {
+    padding-right: 1.25rem !important;
+  }
+
+  .app-root .trainer-guide .guide-hero-lens {
+    display: none;
+  }
+}

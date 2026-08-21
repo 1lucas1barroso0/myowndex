@@ -3,6 +3,7 @@ import { formatPokemonCount } from "./core/copy.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
+import { randomUnit } from "./core/random.js";
 import { readStorage, writeStorage } from "./core/storage.js";
 import TrainerGuide from "./components/Guide/TrainerGuide.jsx";
 import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
@@ -11,6 +12,7 @@ import RpgRoom from "./components/Room/RpgRoom.jsx";
 import AppearanceControl from "./components/Shared/AppearanceControl.jsx";
 import InstallMyOwnDex from "./components/Shared/InstallMyOwnDex.jsx";
 import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
+import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
 
 const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
     return (
@@ -23,16 +25,11 @@ const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
             <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">
                 No. {id.padStart(4, "0")}
             </span>
-            <span className="w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
-                <img
-                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`}
+                                        <span className="pokemon-card-sprite-frame w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
+                <PokemonSprite
+                    pokemonId={id}
                     alt=""
                     className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200"
-                    loading="lazy"
-                    onError={event => {
-                        event.currentTarget.onerror = null;
-                        event.currentTarget.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-                    }}
                 />
             </span>
             <span className="pokemon-card-name text-[11px] font-black text-slate-700 mt-3 capitalize w-full text-center group-hover:text-red-600 transition-colors">
@@ -288,7 +285,7 @@ export default function App() {
         let gender = "N";
         if (resolvedRate === 0) gender = "M";
         else if (resolvedRate === 8) gender = "F";
-        else if (resolvedRate > 0) gender = Math.random() * 8 < resolvedRate ? "F" : "M";
+        else if (resolvedRate > 0) gender = randomUnit() * 8 < resolvedRate ? "F" : "M";
 
         const partner = normalizePokemon({
             species: { ...formData, gender_rate: resolvedRate },
@@ -407,7 +404,7 @@ export default function App() {
                                 <div className="text-5xl mb-4" aria-hidden="true">📡</div>
                                 <h2 className="text-xl font-black text-slate-800">A Pokédex precisa de mais um instante</h2>
                                 <p className="mt-2 text-sm text-slate-500">{dexError}</p>
-                                <button type="button" onClick={() => setDexAttempt(value => value + 1)} className="mt-5 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b]">Buscar novamente</button>
+                                <button type="button" onClick={() => setDexAttempt(value => value + 1)} className="mt-5 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991B1B]">Buscar novamente</button>
                             </div>
                         ) : (
                             <>

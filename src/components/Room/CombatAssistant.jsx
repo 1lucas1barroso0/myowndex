@@ -394,11 +394,28 @@ export default function CombatAssistant({
         ? "Confirme qual movimento foi chamado para revelar alvo, precisão e forma de resolução."
         : resolutionProfile
         ? resolutionProfile.target.requiresSelection
-            ? "Escolha quem recebe o movimento."
+            ? defender
+                ? `${defender.name || "O Pokémon escolhido"} receberá o movimento.`
+                : "Escolha quem recebe o movimento."
             : resolutionProfile.target.recipient === "group"
                 ? `${resolutionProfile.target.label}: ${formatCount(affectedTargets.length, "alvo")} em cena.`
                 : `${resolutionProfile.target.label}; não exige selecionar um adversário.`
         : "Abra um movimento para conferir seus alvos.";
+    const resultCeilings = result
+        ? [...new Set(result.targetResults
+            .filter(entry => entry.resolution.profile.requiresDamageContest)
+            .map(entry => formatNumberPtBr(entry.resolution.ceiling)))]
+        : [];
+    const resultCalculatedDamage = result
+        ? result.consequences?.calculatedDamage
+            ?? result.targetResults.reduce(
+                (sum, entry) => sum + (Number(entry.previewHitKill?.calculatedDamage ?? entry.resolution.damage) || 0),
+                0,
+            )
+        : 0;
+    const resultAppliedDamage = result
+        ? result.consequences?.damage ?? result.previewDamage ?? 0
+        : 0;
 
     return (
         <details className="room-tool">
@@ -516,13 +533,21 @@ export default function CombatAssistant({
                 </button>
                 {result && (
                     <div className={`combat-result ${result.moveConnected ? "is-hit" : "is-miss"}`} aria-live="polite">
-                        <div>
+                        <div className="combat-result-metric is-resolution">
                             <small>Forma de resolução</small>
                             <strong>{result.resolutionLabel}</strong>
                         </div>
-                        <div>
+                        <div className="combat-result-metric is-ceiling">
+                            <small>Limite comum</small>
+                            <strong className="combat-damage-limit">{resultCeilings.length ? resultCeilings.join(" / ") : "Não se aplica"}</strong>
+                        </div>
+                        <div className="combat-result-metric is-calculated">
+                            <small>Dano calculado</small>
+                            <strong>{formatNumberPtBr(resultCalculatedDamage)}</strong>
+                        </div>
+                        <div className="combat-result-metric is-applied">
                             <small>Dano {role === "narrator" ? "aplicado" : "simulado"}</small>
-                            <strong>{formatNumberPtBr(result.consequences?.damage ?? result.previewDamage ?? 0)}</strong>
+                            <strong>{formatNumberPtBr(resultAppliedDamage)}</strong>
                         </div>
 
                         <div className="combat-target-results">
@@ -544,8 +569,17 @@ export default function CombatAssistant({
                                                 : ""}
                                         </span>
                                         {resolution.profile.requiresDamageContest && (
-                                            <span>{modifierLabel(resolution.effectiveness)}; STAB {formatNumberPtBr(resolution.stab)}×; limite comum {formatNumberPtBr(resolution.ceiling)}.</span>
+                                            <span className="combat-damage-math">
+                                                <span>{modifierLabel(resolution.effectiveness)}; STAB {formatNumberPtBr(resolution.stab)}×.</span>
+                                                <strong className="combat-damage-limit">Limite comum: {formatNumberPtBr(resolution.ceiling)} por acerto.</strong>
+                                                {resolution.rawDamagePerHit > resolution.damagePerHit && (
+                                                    <span>O cálculo chegou a {formatNumberPtBr(resolution.rawDamagePerHit)} por acerto antes do limite.</span>
+                                                )}
+                                            </span>
                                         )}
+                                        {resolution.attackTest?.critical && <span className="combat-damage-exception">Acerto crítico: o limite comum e a proteção contra Hit Kill não se aplicam.</span>}
+                                        {resolution.directKnockout && <span className="combat-damage-exception">Nocaute direto: segue a exceção própria e ignora as duas proteções.</span>}
+                                        {resolution.fixedDamage != null && <span className="combat-damage-exception">Dano fixo: usa o valor próprio do movimento em vez do limite comum.</span>}
                                         {resolution.dynamicPower && <span>Poder situacional {formatNumberPtBr(resolution.power)}: {resolution.dynamicPower.explanation}.</span>}
                                         {resolution.statProfile?.explanation && <span>{resolution.statProfile.explanation}.</span>}
                                         {resolution.flashFireMultiplier > 1 && <span>Flash Fire fortaleceu o dano em {formatNumberPtBr(resolution.flashFireMultiplier)}×.</span>}
@@ -601,15 +635,15 @@ export default function CombatAssistant({
                                     const items = [...new Set(result.consequences.consumedItems)];
                                     return <li>{formatCount(items.length, "item")} {items.length === 1 ? "consumido ou removido" : "consumidos ou removidos"}: {items.map(formatName).join(", ")}.</li>;
                                 })()}
-                                {result.consequences.traitProtected && <li>Uma habilidade ou item próprio impediu o nocaute e preservou 1 HP.</li>}
-                                {result.consequences.hitKillProtected && <li>Proteção contra hit kill: o cálculo chegou a {formatNumberPtBr(result.consequences.calculatedDamage)} de dano; o alvo permaneceu com 1 HP.</li>}
+                                {result.consequences.traitProtected && <li className="combat-consequence-trait">Habilidade ou item de sobrevivência: preservou 1 HP. Esta proteção é própria do efeito, não a regra de Hit Kill.</li>}
+                                {result.consequences.hitKillProtected && <li className="combat-consequence-hit-kill">Proteção contra Hit Kill: calculado {formatNumberPtBr(result.consequences.calculatedDamage)}, aplicado {formatNumberPtBr(result.consequences.damage)}; o alvo permaneceu com 1 HP.</li>}
                                 {result.targetResults.some(entry => entry.resolution.attackTest?.fumble) && <li>Erro crítico: escolha uma consequência coerente com a cena; o MyOwnDex não toma essa decisão pelo grupo.</li>}
                                 {result.consequences.fainted && <li>Um alvo não pode mais batalhar.</li>}
                             </ul>
                         )}
                         {!result.consequences && result.targetResults.some(entry => entry.previewHitKill?.protectedFromKnockout) && (
                             <ul className="combat-consequences">
-                                <li>A prévia aplicou a proteção contra hit kill e manteria o alvo com 1 HP.</li>
+                                <li className="combat-consequence-hit-kill">Prévia da proteção contra Hit Kill: calculado {formatNumberPtBr(resultCalculatedDamage)}, simulado {formatNumberPtBr(resultAppliedDamage)}; o alvo permaneceria com 1 HP.</li>
                             </ul>
                         )}
                     </div>

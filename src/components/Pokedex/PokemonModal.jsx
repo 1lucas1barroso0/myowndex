@@ -4,6 +4,7 @@ import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLOR
 import { formatCount } from '../../core/copy.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
+import PokemonSprite from '../Shared/PokemonSprite.jsx';
 
 export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam }) {
     const [baseInfo, setBaseInfo] = useState(null);
@@ -120,7 +121,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
 
     const defenses = calculateDefenses(formData.types);
     const bst = formData.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
-    const primaryColor = formData.types?.[0]?.type?.name ? TYPE_COLORS[formData.types[0].type.name] : "#3b82f6";
+    const primaryColor = formData.types?.[0]?.type?.name ? TYPE_COLORS[formData.types[0].type.name] : "#0EA5E9";
     const sprite = formData.sprites?.other?.["official-artwork"]?.front_default || formData.sprites?.front_default;
     const speciesDescription = describeSpecies(baseInfo, formData);
 
@@ -153,22 +154,19 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     <div className="flex-grow min-h-[220px] shrink-0 flex justify-center items-center py-6 relative group mb-8 bg-slate-50 rounded-3xl border-4 border-slate-200 shadow-inner">
                         <div className="absolute inset-0 opacity-10 transition-opacity duration-500 group-hover:opacity-20" style={{ background: "radial-gradient(circle at center, " + primaryColor + " 0%, transparent 70%)" }}></div>
                         {sprite ? (
-                            <img 
+                            <PokemonSprite
                                 src={sprite} 
+                                pokemonId={baseInfo.id}
                                 alt={formatName(activeForm?.name || baseInfo.name)}
-                                fetchPriority="high" 
-                                className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" 
-                                onError={(e) => {
-                                    e.target.onerror = null; 
-                                    e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + baseInfo.id + ".png";
-                                }}
+                                loading="eager"
+                                className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500"
                             />
                         ) : (
                             <span className="text-sm font-black text-slate-400">Este registro ainda não tem imagem.</span>
                         )}
                     </div>
                     
-                    <button onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1); onClose(); }} className="w-full py-4 mb-8 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991b1b] active:shadow-[0_0px_0_#991b1b] active:translate-y-1.5 transition-all flex justify-center items-center gap-2 outline-none shrink-0">
+                    <button onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1); onClose(); }} className="w-full py-4 mb-8 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991B1B] active:shadow-[0_0px_0_#991B1B] active:translate-y-1.5 transition-all flex justify-center items-center gap-2 outline-none shrink-0">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path></svg> Adicionar à equipe
                     </button>
 
@@ -214,7 +212,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 ></div>
 
                 {/* === TELA 2: A CORTINA === */}
-                <div className={"pokemon-modal-details absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-15px_40px_rgba(0,0,0,0.2)] md:shadow-none border-t-[8px] md:border-t-0 border-slate-900 " + (isExpanded ? "h-[96%] md:h-full" : "h-[76px] md:h-full")}>
+                <div className={"pokemon-modal-details absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-15px_40px_rgba(15,23,42,0.2)] md:shadow-none border-t-[8px] md:border-t-0 border-slate-900 " + (isExpanded ? "h-[96%] md:h-full" : "h-[76px] md:h-full")}>
                     
                     {/* Cabeçalho com Sensor de Swipe Integrado */}
                     <div 
@@ -249,8 +247,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                     </ul>
                                 </section>
                                 <div className="flex gap-4">
-                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Altura</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.height || 0) / 10)} m</span></div>
-                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#e2e8f0]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Peso</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.weight || 0) / 10)} kg</span></div>
+                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#CBD5E1]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Altura</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.height || 0) / 10)} m</span></div>
+                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#CBD5E1]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Peso</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.weight || 0) / 10)} kg</span></div>
                                 </div>
                                 
                                 <div>
@@ -271,7 +269,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                     <button 
                                                         key={v.pokemon?.name || `form-${index}`}
                                                         onClick={() => setActiveForm(v.pokemon)} 
-                                                        className={"px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-2 outline-none shadow-sm " + (activeForm?.name === v.pokemon?.name ? "bg-blue-500 text-white border-blue-700 shadow-[0_3px_0_#1d4ed8] scale-105" : "bg-slate-50 text-slate-600 border-slate-300 hover:border-blue-400 hover:bg-white")}
+                                                        className={"px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-2 outline-none shadow-sm " + (activeForm?.name === v.pokemon?.name ? "bg-blue-500 text-white border-blue-700 shadow-[0_3px_0_#0EA5E9] scale-105" : "bg-slate-50 text-slate-600 border-slate-300 hover:border-blue-400 hover:bg-white")}
                                                     >
                                                         {btnName}
                                                     </button>
@@ -290,18 +288,13 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                     <React.Fragment key={node.name + i}>
                                                         <div className="flex flex-col items-center min-w-[85px] group">
                                                             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-4 border-slate-200 shadow-inner group-hover:border-red-400 transition-colors">
-                                                                <img 
-                                                                    src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + node.id + ".png"} 
-                                                                    loading="lazy"
+                                                                <PokemonSprite
+                                                                    pokemonId={node.id}
                                                                     className="w-16 h-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
                                                                     alt={formatName(node.name)}
-                                                                    onError={(e) => { 
-                                                                        e.target.onerror = null;
-                                                                        e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + node.id + ".png";
-                                                                    }} 
                                                                 />
                                                             </div>
-                                                            <span className="text-[10px] font-black uppercase text-slate-600 mt-3 truncate w-full text-center group-hover:text-red-600 transition-colors">{formatName(node.name)}</span>
+                                                            <span className="pokemon-evolution-name mt-3 w-full text-center text-[10px] font-black uppercase text-slate-600 transition-colors group-hover:text-red-600">{formatName(node.name)}</span>
                                                         </div>
                                                         {i < path.length - 1 && <svg className="w-8 h-8 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>}
                                                     </React.Fragment>

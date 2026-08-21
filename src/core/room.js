@@ -23,6 +23,7 @@ import {
     stageMultiplier,
 } from "./automation.js";
 import { getDamageCeiling, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
+import { randomInt, randomUnit, rollDie } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 import {
     applyBattleIllusion,
@@ -95,15 +96,15 @@ export const ROOM_TERRAINS = [
 ];
 
 export const ROOM_SCENARIOS = [
-    { id: "rota", label: "Rota campestre", icon: "🌿", tone: "#65a30d" },
-    { id: "floresta", label: "Floresta", icon: "🌲", tone: "#166534" },
-    { id: "cidade", label: "Cidade", icon: "🏙️", tone: "#64748b" },
-    { id: "praia", label: "Praia", icon: "🌊", tone: "#0ea5e9" },
-    { id: "caverna", label: "Caverna", icon: "🪨", tone: "#57534e" },
-    { id: "neve", label: "Campo nevado", icon: "❄️", tone: "#bae6fd" },
-    { id: "arena", label: "Estádio", icon: "🏟️", tone: "#dc2626" },
-    { id: "laboratorio", label: "Laboratório", icon: "🧪", tone: "#06b6d4" },
-    { id: "distorcao", label: "Mundo Distorcido", icon: "🌀", tone: "#7c3aed" },
+    { id: "rota", label: "Rota campestre", icon: "🌿", tone: "#4ADE80" },
+    { id: "floresta", label: "Floresta", icon: "🌲", tone: "#0E7490" },
+    { id: "cidade", label: "Cidade", icon: "🏙️", tone: "#CBD5E1" },
+    { id: "praia", label: "Praia", icon: "🌊", tone: "#0EA5E9" },
+    { id: "caverna", label: "Caverna", icon: "🪨", tone: "#7F1D1D" },
+    { id: "neve", label: "Campo nevado", icon: "❄️", tone: "#BAE6FD" },
+    { id: "arena", label: "Estádio", icon: "🏟️", tone: "#B91C1C" },
+    { id: "laboratorio", label: "Laboratório", icon: "🧪", tone: "#67E8F9" },
+    { id: "distorcao", label: "Mundo Distorcido", icon: "🌀", tone: "#075985" },
 ];
 
 export const STATUS_LABELS = RPG_STATUS_LABELS;
@@ -595,7 +596,7 @@ const END_ROUND_STATUS_BERRIES = Object.freeze({
 export const applyEndOfRoundEffects = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
     const effectiveWeather = isWeatherSuppressed(room.tokens) ? "limpo" : room.weather;
-    const randomValue = () => typeof random === "function" ? random() : Math.random();
+    const randomValue = () => randomUnit(random);
     const effects = [];
     const leechHealing = [];
     let tokens = room.tokens.map(token => {
@@ -1034,7 +1035,7 @@ export const buildInitiative = (snapshot, random) => {
             attribute: (token.stats?.speed || 0) * traitState.multiplier,
             random,
         });
-        const tieBreak = Math.floor((typeof random === "function" ? random() : Math.random()) * 6) + 1;
+        const tieBreak = rollDie(6, random);
         return {
             tokenId: token.id,
             priority: token.priority || 0,
@@ -1158,7 +1159,7 @@ export const calculateMoveResolution = ({
     const minimumHits = multiHitTraits.minimumHits;
     const maximumHits = multiHitTraits.maximumHits;
     const hitCount = damageHit && maximumHits > 1
-        ? minimumHits + Math.floor((typeof random === "function" ? random() : Math.random()) * (maximumHits - minimumHits + 1))
+        ? minimumHits + randomInt(maximumHits - minimumHits + 1, random)
         : 1;
     const moveName = normalizeSlug(move?.name);
     const fixedDamage = (() => {
@@ -1168,7 +1169,7 @@ export const calculateMoveResolution = ({
         if (["night-shade", "seismic-toss"].includes(moveName)) return convertToTTRPG(attacker?.level || 1);
         if (moveName === "final-gambit") return Math.max(1, Number(attacker?.currentHp) || 1);
         if (moveName === "psywave") {
-            const multiplier = 0.5 + (typeof random === "function" ? random() : Math.random());
+            const multiplier = 0.5 + randomUnit(random);
             return convertToTTRPG(Math.max(1, Math.floor((attacker?.level || 1) * multiplier)));
         }
         if (["super-fang", "natures-madness", "ruination"].includes(moveName)) {

@@ -29,7 +29,7 @@ export default function AppearanceControl() {
             document.documentElement.dataset.theme = resolved;
             document.documentElement.dataset.themePreference = preference;
             document.documentElement.style.colorScheme = resolved === "night" ? "dark" : "light";
-            document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "night" ? "#0f172a" : "#7f1d1d");
+            document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "night" ? "#0F172A" : "#7F1D1D");
         };
         apply();
         writeStorage(APPEARANCE_KEY, preference);

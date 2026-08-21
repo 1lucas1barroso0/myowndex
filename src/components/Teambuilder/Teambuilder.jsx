@@ -4,6 +4,7 @@ import { formatName, VERSION_GROUPS } from "../../core/mechanics.js";
 import { createTeam as makeTeam, createId, hydrateTeam, insertImportedPokemon, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, touchTeam } from "../../core/team.js";
 import { decodeShare, encodePokemonBundle, encodeTeam } from "../../core/teamShare.js";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
+import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonEditor from "./PokemonEditor.jsx";
 
 const dismissKeyboard = () => {
@@ -276,11 +277,11 @@ export default function Teambuilder({ envProps }) {
     if (!teams.length) {
         return (
             <div className="flex min-h-[60vh] w-full items-center justify-center p-4">
-                <div className="pc-empty-state w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#cbd5e1] sm:p-8">
+                <div className="pc-empty-state w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#CBD5E1] sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl" aria-hidden="true">📦</div>
                     <h2 className="text-2xl font-black text-slate-800">Seu PC está pronto para a primeira equipe</h2>
                     <p className="mt-3 text-sm text-slate-500">Abra uma Box, reúna seus parceiros e prepare a próxima aventura no seu ritmo.</p>
-                    <button type="button" onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991b1b] transition-all hover:bg-red-600 outline-none">Abrir primeira Box</button>
+                    <button type="button" onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991B1B] transition-all hover:bg-red-600 outline-none">Abrir primeira Box</button>
                 </div>
             </div>
         );
@@ -294,7 +295,7 @@ export default function Teambuilder({ envProps }) {
                         <span className="pc-eyebrow">Suas equipes</span>
                         <h3 className="text-base font-black text-slate-800">PC do Bill</h3>
                     </div>
-                    <span className="rounded-full bg-blue-100 px-2.5 py-1.5 text-xs font-black text-blue-700">{formatCount(teams.length, "Box", "Boxes")}</span>
+                    <span className="pc-box-count rounded-full bg-blue-100 px-2.5 py-1.5 text-xs font-black text-blue-700">{formatCount(teams.length, "Box", "Boxes")}</span>
                 </div>
                 {teams.map(team => (
                     <button
@@ -306,7 +307,7 @@ export default function Teambuilder({ envProps }) {
                             setEditingSlot(null);
                             setShareCode("");
                         }}
-                        className={`pc-box-button w-full p-3.5 rounded-xl text-left font-black text-sm border transition-all outline-none shadow-sm break-words ${activeTeamId === team.id ? "is-selected bg-blue-600 border-blue-700 text-white shadow-[0_3px_0_#1d4ed8] translate-y-[-1px]" : "bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-white"}`}
+                        className={`pc-box-button w-full p-3.5 rounded-xl text-left font-black text-sm border transition-all outline-none shadow-sm break-words ${activeTeamId === team.id ? "is-selected bg-blue-600 border-blue-700 text-white shadow-[0_3px_0_#0EA5E9] translate-y-[-1px]" : "bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-white"}`}
                     >
                         <span className="flex justify-between gap-3">
                             <span>{team.name}</span>
@@ -314,10 +315,10 @@ export default function Teambuilder({ envProps }) {
                         </span>
                     </button>
                 ))}
-                <button type="button" onClick={createTeam} className="w-full p-3.5 mt-1 text-xs font-black text-slate-600 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl hover:text-red-600 hover:border-red-300 hover:bg-red-50 transition-all outline-none">+ Criar nova Box</button>
+                <button type="button" onClick={createTeam} className="pc-create-box-button w-full p-3.5 mt-1 text-xs font-black border-2 border-dashed rounded-xl transition-all outline-none">+ Criar nova Box</button>
 
                 <div className="mt-3 pt-4 border-t border-slate-200">
-                    <button type="button" onClick={() => setImporting(true)} className="pc-import-button w-full p-3.5 text-xs font-black text-blue-700 bg-blue-50 border border-blue-200 rounded-xl hover:text-white hover:bg-blue-600 transition-all outline-none shadow-sm">
+                    <button type="button" onClick={() => setImporting(true)} className="pc-import-button w-full p-3.5 text-xs font-black border rounded-xl transition-all outline-none shadow-sm">
                         <span aria-hidden="true">⇩</span>
                         <span>Importar Pokémon ou Box</span>
                     </button>
@@ -327,7 +328,7 @@ export default function Teambuilder({ envProps }) {
 
             <section className="w-full xl:w-3/4 min-w-0 flex-1">
                 {active && (
-                    <div className="game-panel pc-main-panel p-4 sm:p-6 md:p-8 overflow-hidden">
+                    <div className="game-panel pc-main-panel p-4 sm:p-6 md:p-8">
                         <div className="pc-toolbar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b-4 border-slate-100 pb-5">
                             <div className="w-full min-w-0">
                                 <label htmlFor="active-box-name" className="sr-only">Nome da Box</label>
@@ -342,11 +343,11 @@ export default function Teambuilder({ envProps }) {
                             </div>
 
                             <div className="pc-toolbar-actions flex gap-2 sm:gap-3 self-stretch sm:self-auto shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
-                                <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="pc-action-button is-share flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 shadow-sm rounded-xl outline-none disabled:opacity-50">
+                                <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="pc-action-button is-share flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 border shadow-sm rounded-xl outline-none disabled:opacity-50">
                                     <span aria-hidden="true">↗</span><span className="text-xs font-black">Compartilhar</span>
                                 </button>
-                                <button type="button" onClick={cloneTeam} title="Duplicar Box" className="pc-action-button is-duplicate flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm rounded-xl outline-none"><span aria-hidden="true">⧉</span><span className="text-xs font-black">Duplicar</span></button>
-                                <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="pc-action-button is-delete flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 bg-white text-red-600 hover:bg-red-50 border border-red-200 shadow-sm rounded-xl outline-none"><span aria-hidden="true">⌫</span><span className="text-xs font-black">Apagar</span></button>
+                                <button type="button" onClick={cloneTeam} title="Duplicar Box" className="pc-action-button is-duplicate flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 border shadow-sm rounded-xl outline-none"><span aria-hidden="true">⧉</span><span className="text-xs font-black">Duplicar</span></button>
+                                <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="pc-action-button is-delete flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 border shadow-sm rounded-xl outline-none"><span aria-hidden="true">⌫</span><span className="text-xs font-black">Apagar</span></button>
                             </div>
                         </div>
 
@@ -362,15 +363,15 @@ export default function Teambuilder({ envProps }) {
                                     ? partner.species?.sprites?.front_shiny
                                     : partner.species?.sprites?.front_default;
                                 return (
-                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => { dismissKeyboard(); setEditingSlot(index); }} className={`pc-partner-card p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative overflow-hidden group shadow-sm text-left ${editingSlot === index ? "is-selected bg-blue-50 border-blue-400 shadow-[0_4px_0_#60a5fa] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white"}`}>
+                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => { dismissKeyboard(); setEditingSlot(index); }} className={`pc-partner-card p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative group shadow-sm text-left ${editingSlot === index ? "is-selected bg-blue-50 border-blue-400 shadow-[0_4px_0_#38BDF8] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white"}`}>
                                         {partner.canGMax && <span className="absolute -bottom-4 -right-4 text-red-500/10 text-[80px] font-black rotate-12 pointer-events-none">X</span>}
                                         <span className="pc-partner-sprite w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl border-2 border-slate-100 flex items-center justify-center shadow-inner relative z-10 flex-shrink-0">
-                                            {sprite ? <img src={sprite} className="w-10 h-10 sm:w-14 sm:h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" alt="" /> : <span className="text-[9px] font-black text-slate-400 uppercase">---</span>}
+                                            <PokemonSprite src={sprite} pokemonId={partner.species?.id} shiny={partner.shiny} className="w-10 h-10 sm:w-14 sm:h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" alt="" />
                                         </span>
                                         <span className="relative z-10 min-w-0 flex-1">
                                             <span className="flex items-center justify-between gap-1 sm:gap-2 mb-0.5">
                                                 <span className="pc-partner-name font-black text-xs sm:text-sm text-slate-800 capitalize">{partner.nickname || formatName(partner.species?.name)}</span>
-                                                <span className={`text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 ${partner.gender === "M" ? "text-blue-500 bg-blue-50 border-blue-200" : partner.gender === "F" ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200"}`}>{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
+                                                <span className={`pc-partner-gender text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 ${partner.gender === "M" ? "text-blue-500 bg-blue-50 border-blue-200" : partner.gender === "F" ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200"}`}>{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
                                             </span>
                                             <span className="pc-partner-meta block text-[9px] sm:text-[10px] font-bold text-slate-400">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span>
                                         </span>
@@ -378,7 +379,7 @@ export default function Teambuilder({ envProps }) {
                                 );
                             })}
                             {(active.pokemon?.length || 0) < 6 && (
-                                <button type="button" onClick={onSearchClick} className="pc-add-partner p-3 sm:p-4 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center items-center text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all bg-slate-50 min-h-[80px] sm:min-h-[96px] outline-none">+ Buscar um Pokémon</button>
+                                <button type="button" onClick={onSearchClick} className="pc-add-partner p-3 sm:p-4 rounded-2xl border-2 border-dashed flex flex-col justify-center items-center text-[10px] font-black uppercase tracking-widest transition-all min-h-[80px] sm:min-h-[96px] outline-none">+ Buscar um Pokémon</button>
                             )}
                         </div>
 
@@ -448,7 +449,7 @@ export default function Teambuilder({ envProps }) {
                                                     )}
                                                 >
                                                     <span className="link-cable-check" aria-hidden="true">{selected ? "✓" : ""}</span>
-                                                    {sprite ? <img src={sprite} alt="" className="pixelated" /> : <span className="link-cable-sprite-fallback">?</span>}
+                                                    <PokemonSprite src={sprite} pokemonId={partner.species?.id} shiny={partner.shiny} alt="" className="pixelated" fallbackClassName="link-cable-sprite-fallback" />
                                                     <span><strong>{partner.nickname || formatName(partner.species?.name)}</strong><small>{formatName(partner.species?.name)} • Nv. {partner.level}</small></span>
                                                 </button>
                                             );
@@ -513,7 +514,7 @@ export default function Teambuilder({ envProps }) {
                                         const sprite = partner.shiny ? partner.species?.sprites?.front_shiny : partner.species?.sprites?.front_default;
                                         return (
                                             <span key={partner.id || index}>
-                                                {sprite ? <img src={sprite} alt="" className="pixelated" /> : <i />}
+                                                <PokemonSprite src={sprite} pokemonId={partner.species?.id} shiny={partner.shiny} alt="" className="pixelated" fallbackClassName="link-cable-sprite-fallback" />
                                                 <b>{partner.nickname || formatName(partner.species?.name)}</b>
                                                 <small>Nv. {partner.level}</small>
                                             </span>

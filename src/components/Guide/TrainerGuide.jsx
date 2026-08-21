@@ -22,7 +22,7 @@ const DiceFaces = ({ values, kept = values }) => {
                 return (
                     <span
                         key={`${value}-${index}`}
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl border-2 text-sm font-black shadow-[0_3px_0_#94a3b8] ${isKept ? "border-slate-700 bg-white text-slate-800" : "border-slate-200 bg-slate-100 text-slate-400 opacity-60"}`}
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl border-2 text-sm font-black shadow-[0_3px_0_#0E7490] ${isKept ? "border-slate-700 bg-white text-slate-800" : "border-slate-200 bg-slate-100 text-slate-400 opacity-60"}`}
                     >
                         {value}
                     </span>
@@ -36,7 +36,7 @@ const ToolLabel = ({ children }) => (
     <span className="mb-2 block text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{children}</span>
 );
 
-export default function TrainerGuide({ experienceMode, onModeChange }) {
+export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
     const [testMode, setTestMode] = useState("normal");
     const [attribute, setAttribute] = useState(0);
@@ -47,6 +47,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
     const [percentResult, setPercentResult] = useState(null);
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
+    const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
 
     const visibleSections = useMemo(() => {
         const normalized = query.trim().toLowerCase();
@@ -76,24 +77,18 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
 
     return (
         <div className="trainer-guide animate-fade-in text-slate-800">
-            <section className="rotom-hero relative overflow-hidden rounded-[1.75rem] border-4 border-slate-800 p-5 shadow-[0_8px_0_#334155] sm:p-7">
+            <section className="rotom-hero relative overflow-hidden rounded-[1.75rem] border-4 border-slate-800 p-5 shadow-[0_8px_0_#075985] sm:p-7">
                 <div className="relative z-10 max-w-3xl">
                     <div className="mb-3 flex flex-wrap items-center gap-2">
                         <span className="rounded-full border-2 border-white/40 bg-slate-900/80 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">Guia Rotom</span>
-                        <span className="rounded-full border-2 border-white/25 bg-white/15 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Regras para a aventura</span>
+                        <span className="guide-hero-context rounded-full border-2 border-white/25 bg-white/15 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Regras para a aventura</span>
                     </div>
                     <h2 className="text-3xl font-black tracking-tight text-white sm:text-5xl">Guia do Treinador</h2>
                     <p className="mt-3 max-w-2xl text-sm font-bold leading-6 text-orange-50 sm:text-base">
-                        A precisão dos jogos com a liberdade das grandes aventuras Pokémon: regras claras quando você precisa, criatividade sempre que a cena pedir.
+                        Encontre uma regra, faça uma rolagem ou confira um cálculo sem interromper a aventura. Cada explicação mostra o que acontece e quando a regra se aplica.
                     </p>
-                    <div className="mt-5 flex flex-wrap gap-2">
-                        <span className="guide-pill">2d6 + atributo</span>
-                        <span className="guide-pill">Defensor vence empates</span>
-                        <span className="guide-pill">Até 2d100</span>
-                        <span className="guide-pill">Distâncias narrativas</span>
-                    </div>
                 </div>
-                <div aria-hidden="true" className="absolute -bottom-16 -right-10 h-56 w-56 rounded-full border-[28px] border-cyan-300/20 bg-white/10 shadow-[0_0_70px_rgba(103,232,249,0.35)]" />
+                <div aria-hidden="true" className="guide-hero-lens absolute -bottom-16 -right-10 h-56 w-56 rounded-full border-[28px] border-cyan-300/20 bg-white/10 shadow-[0_0_70px_rgba(103,232,249,0.35)]" />
             </section>
 
             <section className="guide-layout mt-7 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
@@ -157,7 +152,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                 <ToolLabel>Teste percentual</ToolLabel>
                                 <label>
                                     <span className="sr-only">Chance percentual</span>
-                                    <div className="flex items-center gap-3">
+                                    <div className="guide-percent-control flex items-center gap-3">
                                         <input type="range" min="0" max="100" value={chance} onChange={event => setChance(event.target.value)} />
                                         <input type="number" min="0" max="100" value={chance} onChange={event => setChance(event.target.value)} className="w-16 rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-2 text-center text-sm font-black outline-none focus:border-blue-400" />
                                     </div>
@@ -193,33 +188,37 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                 <input type="number" min="1" max="200" value={level} onChange={event => setLevel(event.target.value)} className="w-full bg-transparent text-2xl font-black text-slate-800 outline-none" />
                                 <span className="mt-1 block text-[10px] font-bold text-slate-400">XP até o próximo: <strong className="text-blue-600">{formatNumberPtBr(getNextLevelXp(level))}</strong></span>
                             </label>
-                            <div className="rounded-2xl border-2 border-slate-200 bg-slate-900 p-4 text-white">
+                            <div className="guide-damage-ceiling rounded-2xl border-2 border-slate-200 bg-slate-900 p-4 text-white" data-rule-id="3.3">
                                 <ToolLabel>Limite de dano</ToolLabel>
                                 <strong className="block text-3xl font-black text-amber-300">{formatNumberPtBr(getDamageCeiling(level))}</strong>
-                                <span className="mt-1 block text-[10px] font-bold text-slate-400">Antes dos aumentos temporários.</span>
+                                <span className="mt-1 block text-[10px] font-bold text-slate-400">Máximo comum por golpe, antes de aumentos temporários.</span>
                             </div>
+                        </div>
+                        <div className="guide-critical-rules mt-4" aria-label="Regras críticas de dano">
+                            <article className="guide-critical-rule is-ceiling" data-rule-id="3.3">
+                                <span aria-hidden="true">!</span>
+                                <div>
+                                    <strong>Limite comum de dano</strong>
+                                    <p>No nível {formatNumberPtBr(level)}, um golpe causa normalmente até <b>{formatNumberPtBr(getDamageCeiling(level))}</b> de dano. Aumentos temporários podem elevar esse teto de forma proporcional.</p>
+                                </div>
+                            </article>
+                            <article className="guide-critical-rule is-hit-kill" data-rule-id="3.4">
+                                <span aria-hidden="true">◆</span>
+                                <div>
+                                    <strong>Proteção contra Hit Kill</strong>
+                                    <p>É uma verificação separada: se o movimento não alcançar três vezes o HP atual, o alvo que seria nocauteado permanece com 1 HP. Críticos e nocautes diretos seguem as exceções da regra.</p>
+                                </div>
+                            </article>
                         </div>
                     </article>
                 </div>
 
                 <aside className="space-y-5">
-                    <article className="game-panel p-4 sm:p-5">
-                        <span className="text-[9px] font-black uppercase tracking-[0.22em] text-purple-500">Sua aventura, suas escolhas</span>
-                        <h3 className="mt-1 text-lg font-black text-slate-800">Como você quer jogar?</h3>
-                        <div className="mt-4 grid gap-2">
-                            {Object.values(EXPERIENCE_MODES).map(mode => (
-                                <button
-                                    key={mode.id}
-                                    type="button"
-                                    aria-pressed={experienceMode === mode.id}
-                                    onClick={() => onModeChange(mode.id)}
-                                    className={`rounded-2xl border-2 p-3 text-left transition-all ${experienceMode === mode.id ? "border-slate-800 bg-slate-800 text-white shadow-[0_4px_0_#475569]" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"}`}
-                                >
-                                    <strong className="block text-xs font-black">{mode.label}</strong>
-                                    <span className={`mt-1 block text-[10px] font-bold leading-4 ${experienceMode === mode.id ? "text-slate-300" : "text-slate-400"}`}>{mode.description}</span>
-                                </button>
-                            ))}
-                        </div>
+                    <article className="game-panel guide-current-style p-4 sm:p-5">
+                        <span className="text-[9px] font-black uppercase tracking-[0.22em] text-purple-500">Estilo em uso</span>
+                        <h3 className="mt-1 text-lg font-black text-slate-800">{selectedMode.shortLabel}</h3>
+                        <p className="mt-2 text-[10px] font-bold leading-5 text-slate-500">{selectedMode.description}</p>
+                        <p className="mt-3 text-[9px] font-black text-blue-600">Você pode mudar o estilo nas abas compactas do cabeçalho.</p>
                     </article>
 
                     <article className="game-panel p-4 sm:p-5">
@@ -236,7 +235,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                         </label>
                         <div className="guide-rule-list mt-4 space-y-3">
                             {visibleSections.map(section => (
-                                <details key={section.id} className="rule-section overflow-hidden rounded-2xl border-2 border-slate-200 bg-white" open={Boolean(query)}>
+                                <details key={section.id} className="rule-section rounded-2xl border-2 border-slate-200 bg-white" open={Boolean(query)}>
                                     <summary className="cursor-pointer list-none p-4">
                                         <span className="flex items-center gap-3">
                                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-500 text-xs font-black text-white">{section.number}</span>
@@ -248,7 +247,7 @@ export default function TrainerGuide({ experienceMode, onModeChange }) {
                                     </summary>
                                     <div className="space-y-3 border-t-2 border-slate-100 p-3">
                                         {section.rules.map(rule => (
-                                            <div key={rule.id} className="rounded-xl bg-slate-50 p-3">
+                                            <div key={rule.id} className="guide-rule-card rounded-xl bg-slate-50 p-3" data-rule-id={rule.id}>
                                                 <span className="text-[9px] font-black text-red-500">{rule.id}</span>
                                                 <h4 className="mt-0.5 text-xs font-black text-slate-800">{rule.title}</h4>
                                                 {rule.body && <p className="mt-1 text-[10px] font-semibold leading-5 text-slate-600">{rule.body}</p>}

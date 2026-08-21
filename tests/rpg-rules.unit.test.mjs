@@ -8,6 +8,7 @@ import {
   rollPercentTest,
   RPG_RULE_SECTIONS,
 } from "../src/core/rpgRules.js";
+import { randomIntFromUint32 } from "../src/core/random.js";
 
 const sequence = values => {
   let index = 0;
@@ -60,4 +61,16 @@ test("RPG scale, XP and damage ceiling follow the guide", () => {
   assert.equal(getNextLevelXp(10), 5.5);
   assert.equal(getDamageCeiling(1), 1);
   assert.equal(getDamageCeiling(11), 5.5);
+});
+
+test("secure dice reject the uneven uint32 tail instead of introducing modulo bias", () => {
+  const values = [4294967295, 5];
+  let index = 0;
+  assert.equal(randomIntFromUint32(6, () => values[index++]), 5);
+  assert.equal(index, 2, "the out-of-range uint32 value must be rejected");
+
+  const hundredValues = [4294967295, 99];
+  index = 0;
+  assert.equal(randomIntFromUint32(100, () => hundredValues[index++]), 99);
+  assert.equal(index, 2, "d100 must use the same unbiased rejection sampling");
 });

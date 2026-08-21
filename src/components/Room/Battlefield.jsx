@@ -4,6 +4,7 @@ import { formatName, formatType } from "../../core/mechanics.js";
 import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS } from "../../core/room.js";
 import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
 import { getTraitStatus } from "../../core/traitMechanics.js";
+import PokemonSprite from "../Shared/PokemonSprite.jsx";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
@@ -45,11 +46,12 @@ const Token = ({
     >
         <span className="room-token-sprite-shell">
             {display.sprite ? (
-                <img
+                <PokemonSprite
                     src={display.sprite}
+                    pokemonId={token.speciesId}
                     alt=""
                     className={`room-token-sprite pixelated ${mirrored && token.side === "ally" ? "is-mirrored" : ""}`}
-                    draggable="false"
+                    fallbackClassName="room-token-fallback"
                 />
             ) : <span className="room-token-fallback" aria-hidden="true">●</span>}
         </span>

@@ -1,4 +1,5 @@
 import { isAbilityActive, isHeldItemActive, traitSlug } from "./traitMechanics.js";
+import { rollDie } from "./random.js";
 
 const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
@@ -553,7 +554,7 @@ export const calculateDynamicMovePower = ({ move, attacker, defender, random } =
         power = (basePower || 65) * 2;
         explanation = "Alvo com metade do HP ou menos";
     } else if (name === "magnitude") {
-        const roll = Math.floor((typeof random === "function" ? random() : Math.random()) * 100) + 1;
+        const roll = rollDie(100, random);
         const magnitude = roll <= 5 ? 4 : roll <= 15 ? 5 : roll <= 35 ? 6 : roll <= 65 ? 7 : roll <= 85 ? 8 : roll <= 95 ? 9 : 10;
         power = ({ 4: 10, 5: 30, 6: 50, 7: 70, 8: 90, 9: 110, 10: 150 })[magnitude];
         explanation = `Magnitude ${magnitude}`;

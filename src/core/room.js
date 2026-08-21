@@ -23,6 +23,7 @@ import {
     stageMultiplier,
 } from "./automation.js";
 import { getDamageCeiling, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
+import { randomInt, randomUnit, rollDie } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 import {
     applyBattleIllusion,
@@ -595,7 +596,7 @@ const END_ROUND_STATUS_BERRIES = Object.freeze({
 export const applyEndOfRoundEffects = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
     const effectiveWeather = isWeatherSuppressed(room.tokens) ? "limpo" : room.weather;
-    const randomValue = () => typeof random === "function" ? random() : Math.random();
+    const randomValue = () => randomUnit(random);
     const effects = [];
     const leechHealing = [];
     let tokens = room.tokens.map(token => {
@@ -1034,7 +1035,7 @@ export const buildInitiative = (snapshot, random) => {
             attribute: (token.stats?.speed || 0) * traitState.multiplier,
             random,
         });
-        const tieBreak = Math.floor((typeof random === "function" ? random() : Math.random()) * 6) + 1;
+        const tieBreak = rollDie(6, random);
         return {
             tokenId: token.id,
             priority: token.priority || 0,
@@ -1158,7 +1159,7 @@ export const calculateMoveResolution = ({
     const minimumHits = multiHitTraits.minimumHits;
     const maximumHits = multiHitTraits.maximumHits;
     const hitCount = damageHit && maximumHits > 1
-        ? minimumHits + Math.floor((typeof random === "function" ? random() : Math.random()) * (maximumHits - minimumHits + 1))
+        ? minimumHits + randomInt(maximumHits - minimumHits + 1, random)
         : 1;
     const moveName = normalizeSlug(move?.name);
     const fixedDamage = (() => {
@@ -1168,7 +1169,7 @@ export const calculateMoveResolution = ({
         if (["night-shade", "seismic-toss"].includes(moveName)) return convertToTTRPG(attacker?.level || 1);
         if (moveName === "final-gambit") return Math.max(1, Number(attacker?.currentHp) || 1);
         if (moveName === "psywave") {
-            const multiplier = 0.5 + (typeof random === "function" ? random() : Math.random());
+            const multiplier = 0.5 + randomUnit(random);
             return convertToTTRPG(Math.max(1, Math.floor((attacker?.level || 1) * multiplier)));
         }
         if (["super-fang", "natures-madness", "ruination"].includes(moveName)) {

@@ -1,9 +1,11 @@
 export const apiCache = new Map();
 
 const apiRequests = new Map();
-const API_CACHE_NAME = "myowndex-api-v4";
+const apiFailures = new Map();
+const API_CACHE_NAME = "myowndex-api-v5";
 const DEFAULT_CACHE_AGE = 6 * 60 * 60 * 1000;
 const DEFAULT_TIMEOUT = 12000;
+const FAILURE_COOLDOWN = 15 * 1000;
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const canUseCacheStorage = () => typeof window !== "undefined" && typeof window.caches !== "undefined";
 
@@ -36,13 +38,20 @@ const writePersistentApiCache = async (url, data) => {
     }
 };
 
-const fetchJson = async (url, timeoutMs) => {
+const retryDelay = (response, attempt) => {
+    const retryAfter = Number(response?.headers?.get?.("retry-after"));
+    if (Number.isFinite(retryAfter) && retryAfter >= 0) return Math.min(3000, retryAfter * 1000);
+    return Math.min(2000, 250 * (2 ** attempt));
+};
+
+export const fetchJsonWithRetry = async (url, timeoutMs = DEFAULT_TIMEOUT) => {
     let lastError = null;
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
+        let response = null;
         try {
-            const response = await fetch(url, {
+            response = await fetch(url, {
                 signal: controller.signal,
                 headers: { Accept: "application/json" }
             });
@@ -55,8 +64,8 @@ const fetchJson = async (url, timeoutMs) => {
         } catch (error) {
             lastError = error;
             const retryable = error?.name === "AbortError" || error?.retryable || error instanceof TypeError;
-            if (!retryable || attempt === 1) break;
-            await wait(250);
+            if (!retryable || attempt === 2) break;
+            await wait(retryDelay(response, attempt));
         } finally {
             clearTimeout(timeout);
         }
@@ -84,13 +93,17 @@ export const fetchCached = async (url, options = {}) => {
             apiCache.set(key, persisted);
             return persisted.data;
         }
+        const failedAt = apiFailures.get(key) || 0;
+        if (!forceRefresh && Date.now() - failedAt < FAILURE_COOLDOWN) return stale?.data ?? null;
         try {
-            const data = await fetchJson(key, timeoutMs);
+            const data = await fetchJsonWithRetry(key, timeoutMs);
             const entry = { data, cachedAt: Date.now() };
             apiCache.set(key, entry);
+            apiFailures.delete(key);
             void writePersistentApiCache(key, data);
             return data;
         } catch {
+            apiFailures.set(key, Date.now());
             if (stale?.data != null) {
                 apiCache.set(key, stale);
                 return stale.data;
@@ -110,6 +123,7 @@ export const fetchCached = async (url, options = {}) => {
 export const clearApiCache = async () => {
     apiCache.clear();
     apiRequests.clear();
+    apiFailures.clear();
     if (!canUseCacheStorage()) return;
     try {
         await window.caches.delete(API_CACHE_NAME);

@@ -29,6 +29,8 @@ test("the interface keeps dedicated responsive layouts through phone widths", as
   assert.match(room, /savedSession=\{loadRoomSession\(\)\}/);
   assert.match(layout, /device-width/);
   assert.match(layout, /maximumScale:\s*5/);
+  assert.match(css, /\.battlefield-board\s*\{[\s\S]*?width:\s*100%;[\s\S]*?min-width:\s*0;[\s\S]*?min-height:\s*0;/);
+  assert.doesNotMatch(css, /\.battlefield-board\s*\{[^}]*min-height:\s*(?:27|24|21|18\.5)rem/);
 });
 
 test("the public interface keeps the RPG name and the canonical area labels", async () => {
@@ -149,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.9\.0/);
+  assert.match(worker, /myowndex-shell-v9\.10\.0/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -184,7 +186,7 @@ test("game style and adventure phase use compact tabs with complete help on dema
   assert.doesNotMatch(roomCore, /consoleLabel/);
   assert.match(roomCore, /Percorra rotas, investigue lugares/);
   assert.match(roomCore, /Organize o campo, declare movimentos/);
-  const iconContract = css.slice(css.indexOf("Sistema visual raiz do ícone 9.9.0"));
+  const iconContract = css.slice(css.indexOf("Sistema visual raiz do ícone 9.10.0"));
   assert.ok(iconContract.length > 500);
   for (const token of ["--dex-case", "--dex-bezel", "--dex-screen", "--dex-lens-cyan", "--dex-led-green"]) {
     assert.match(css, new RegExp(token));
@@ -194,6 +196,50 @@ test("game style and adventure phase use compact tabs with complete help on dema
   assert.match(iconContract, /\.choice-help-popover/);
   assert.match(iconContract, /min-height:\s*2\.35rem/);
   assert.match(css, /max-width:\s*390px/);
+});
+
+test("the icon-root emphasis contract restores critical rules without hiding content", async () => {
+  const [guide, combat, css, documentation] = await Promise.all([
+    read("src/components/Guide/TrainerGuide.jsx"),
+    read("src/components/Room/CombatAssistant.jsx"),
+    read("src/index.css"),
+    read("docs/icon-visual-system.md"),
+  ]);
+  assert.doesNotMatch(guide, /<span className="guide-pill">/);
+  assert.match(guide, /guide-damage-ceiling/);
+  assert.match(guide, /data-rule-id="3\.3"/);
+  assert.match(guide, /data-rule-id="3\.4"/);
+  assert.match(guide, /guide-rule-card/);
+  assert.match(combat, /Limite comum/);
+  assert.match(combat, /Dano calculado/);
+  assert.match(combat, /Dano \{role === "narrator" \? "aplicado" : "simulado"\}/);
+  assert.match(combat, /combat-consequence-hit-kill/);
+  assert.match(combat, /combat-consequence-trait/);
+  assert.match(combat, /combat-result-metric is-ceiling/);
+  assert.match(combat, /\$\{defender\.name \|\| "O Pokémon escolhido"\} receberá o movimento/);
+
+  const integrityContract = css.slice(css.indexOf("ICON-ROOT EMPHASIS + CONTENT-INTEGRITY CONTRACT 9.10.0"));
+  assert.ok(integrityContract.length > 5000);
+  assert.doesNotMatch(integrityContract, /text-overflow:\s*ellipsis|line-clamp/);
+  assert.match(integrityContract, /prefers-contrast:\s*more/);
+  assert.match(integrityContract, /forced-colors:\s*active/);
+  assert.match(integrityContract, /prefers-reduced-motion:\s*reduce/);
+  assert.match(integrityContract, /safe-area-inset-top/);
+  assert.match(integrityContract, /\.choice-help\[open\] \.choice-help-popover/);
+  assert.match(integrityContract, /\.combat-result\s*\{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(integrityContract, /html\[data-theme="night"\] \.token-tera/);
+  assert.match(documentation, /ícone oficial do MyOwnDex é a origem/);
+  assert.match(documentation, /nunca pode ser truncado/);
+
+  const luminance = hex => {
+    const channels = hex.match(/[0-9a-f]{2}/gi).map(value => Number.parseInt(value, 16) / 255);
+    const linear = channels.map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+    return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+  };
+  const yellow = luminance("FDE047");
+  const ink = luminance("0F172A");
+  const contrast = (yellow + 0.05) / (ink + 0.05);
+  assert.ok(contrast >= 13, `yellow/ink contrast was ${contrast.toFixed(2)}:1`);
 });
 
 test("the icon is the single palette root in every visual and generated color", async () => {
@@ -332,7 +378,7 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(css, /data-theme="night"/);
   const nightContract = css.slice(css.indexOf("Contrato visual ROM 9.6"));
   assert.ok(nightContract.length > 500);
-  assert.doesNotMatch(nightContract, /#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255|#fde047|#facc15|#fbbf24/i);
+  assert.doesNotMatch(nightContract, /#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255/i);
   assert.match(nightContract, /--rom-coral/);
   assert.match(nightContract, /--night-gold:\s*var\(--rom-coral\)/);
   assert.match(nightContract, /\[class~="text-white"\]/);
@@ -358,7 +404,7 @@ test("installation, safe updates and both visual themes are first-class", async 
   assert.match(breathableContract, /\.pokemon-modal-shell/);
   assert.match(breathableContract, /\.guide-rule-list/);
   assert.match(breathableContract, /--night-violet/);
-  assert.doesNotMatch(breathableContract, /#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255|#fde047|#facc15|#fbbf24/i);
+  assert.doesNotMatch(breathableContract, /#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255/i);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
   assert.match(app, /myowndex-icon-v91\.svg/);

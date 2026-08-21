@@ -4,6 +4,7 @@ import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLOR
 import { formatCount } from '../../core/copy.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
+import PokemonSprite from '../Shared/PokemonSprite.jsx';
 
 export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam }) {
     const [baseInfo, setBaseInfo] = useState(null);
@@ -153,15 +154,12 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     <div className="flex-grow min-h-[220px] shrink-0 flex justify-center items-center py-6 relative group mb-8 bg-slate-50 rounded-3xl border-4 border-slate-200 shadow-inner">
                         <div className="absolute inset-0 opacity-10 transition-opacity duration-500 group-hover:opacity-20" style={{ background: "radial-gradient(circle at center, " + primaryColor + " 0%, transparent 70%)" }}></div>
                         {sprite ? (
-                            <img 
+                            <PokemonSprite
                                 src={sprite} 
+                                pokemonId={baseInfo.id}
                                 alt={formatName(activeForm?.name || baseInfo.name)}
-                                fetchPriority="high" 
-                                className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500" 
-                                onError={(e) => {
-                                    e.target.onerror = null; 
-                                    e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + baseInfo.id + ".png";
-                                }}
+                                loading="eager"
+                                className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500"
                             />
                         ) : (
                             <span className="text-sm font-black text-slate-400">Este registro ainda não tem imagem.</span>
@@ -290,18 +288,13 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                     <React.Fragment key={node.name + i}>
                                                         <div className="flex flex-col items-center min-w-[85px] group">
                                                             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-4 border-slate-200 shadow-inner group-hover:border-red-400 transition-colors">
-                                                                <img 
-                                                                    src={"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + node.id + ".png"} 
-                                                                    loading="lazy"
+                                                                <PokemonSprite
+                                                                    pokemonId={node.id}
                                                                     className="w-16 h-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
                                                                     alt={formatName(node.name)}
-                                                                    onError={(e) => { 
-                                                                        e.target.onerror = null;
-                                                                        e.target.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + node.id + ".png";
-                                                                    }} 
                                                                 />
                                                             </div>
-                                                            <span className="text-[10px] font-black uppercase text-slate-600 mt-3 truncate w-full text-center group-hover:text-red-600 transition-colors">{formatName(node.name)}</span>
+                                                            <span className="pokemon-evolution-name mt-3 w-full text-center text-[10px] font-black uppercase text-slate-600 transition-colors group-hover:text-red-600">{formatName(node.name)}</span>
                                                         </div>
                                                         {i < path.length - 1 && <svg className="w-8 h-8 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>}
                                                     </React.Fragment>

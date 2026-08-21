@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Sistema visual raiz do ícone 9.9.0. Nenhuma tela cria uma paleta paralela. */
+  /* Sistema visual raiz do ícone 9.10.0. Nenhuma tela cria uma paleta paralela. */
   --dex-case-bright: #EF4444;
   --dex-case: #B91C1C;
   --dex-case-deep: #7F1D1D;
@@ -975,7 +975,9 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
 }
 .battlefield-board {
   position: relative;
-  min-height: 27rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
   aspect-ratio: 16/9;
   overflow: hidden;
   background: #4ADE80;
@@ -1429,7 +1431,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   .mobile-pane-tools .room-tools { display: grid; grid-template-columns: 1fr; }
   .mobile-pane-field .room-field { display: block; }
   .mobile-pane-roster .room-field,.mobile-pane-tools .room-field { display: none; }
-  .battlefield-board { min-height: 24rem; aspect-ratio: 4/3; }
+  .battlefield-board { aspect-ratio: 4/3; }
   .room-notes-grid { grid-template-columns: 1fr; }
   .room-roster { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .room-roster > .room-section:last-child { grid-column: 1/-1; }
@@ -1480,7 +1482,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   .battlefield-toolbar { align-items: flex-start; }
   .battlefield-selectors { flex-direction: column; }
   .battlefield-selectors select { max-width: 8rem; padding: .35rem; }
-  .battlefield-board { min-height: 21rem; aspect-ratio: 1/1; }
+  .battlefield-board { aspect-ratio: 1/1; }
   .room-token { width: 4rem; }
   .room-token-sprite-shell { width: 3.3rem; height: 3.3rem; }
   .room-token-sprite { width: 3.2rem; height: 3.2rem; }
@@ -1506,7 +1508,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
 }
 
 @media (max-width: 390px) {
-  .battlefield-board { min-height: 18.5rem; }
+  .battlefield-board { min-height: 0; }
   .room-mini-team { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .sfx-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
@@ -3801,7 +3803,7 @@ html[data-theme="night"] select:-webkit-autofill {
 }
 
 /*
- * Sistema visual raiz do ícone 9.9.0
+ * Sistema visual raiz do ícone 9.10.0
  * Carcaça = estrutura e ação; moldura = contorno; tela = conteúdo;
  * lente = foco e seleção; LEDs = sinais curtos. Vale para TODAS as telas.
  */
@@ -5257,5 +5259,927 @@ html[data-theme="night"] .choice-help-popover small {
 
   .choice-help-popover {
     width: min(18rem, calc(100vw - 1.5rem));
+  }
+}
+
+/*
+ * ICON-ROOT EMPHASIS + CONTENT-INTEGRITY CONTRACT 9.10.0
+ *
+ * The official MyOwnDex icon is the only visual source. Carcass red structures
+ * primary action; lens cyan communicates focus/information; pink marks special
+ * mechanics; yellow marks rules that must not be missed. Every readable value
+ * wraps instead of being clipped. Color is always paired with copy, geometry,
+ * icons or state. The existing type family remains untouched.
+ */
+:root {
+  --dex-action: var(--dex-case);
+  --dex-focus: var(--dex-lens-cyan);
+  --dex-info: var(--dex-lens-deep);
+  --dex-special: var(--dex-led-pink);
+  --dex-attention: var(--dex-led-yellow);
+  --dex-success: var(--dex-led-green);
+  --dex-content-gap: clamp(.85rem, 1.45vw, 1.35rem);
+  --dex-section-gap: clamp(1rem, 2vw, 1.75rem);
+  --dex-page-edge: clamp(.75rem, 2vw, 1.5rem);
+}
+
+html {
+  scroll-padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+}
+
+.app-header-shell,
+.app-main-shell {
+  overflow: visible;
+}
+
+.app-header-row,
+.app-header-primary,
+.app-actions,
+.app-nav,
+.room-layout,
+.room-tools,
+.room-scene-strip,
+.pc-workspace,
+.pc-main-panel,
+.pokemon-editor,
+.trainer-guide,
+.guide-layout,
+.pokemon-modal-body,
+.combat-target-results,
+.token-inspector,
+.token-modifiers,
+.token-modifier-grid,
+.token-modifier,
+.pokemon-training-panel,
+.pokemon-stat-row,
+.pokemon-stat-controls,
+.pokemon-stat-ev {
+  min-width: 0;
+}
+
+.room-layout,
+.room-tools,
+.pc-workspace,
+.guide-layout,
+.guide-tool-grid,
+.guide-conversion-grid,
+.pokemon-editor > div,
+.pokemon-modal-body {
+  gap: var(--dex-section-gap);
+}
+
+.room-section,
+.room-tool,
+.pc-sidebar,
+.pc-main-panel,
+.pokemon-editor,
+.trainer-guide .game-panel,
+.pokemon-modal-overview,
+.pokemon-modal-details {
+  scroll-margin: max(1rem, env(safe-area-inset-top));
+}
+
+/* Trainer Guide: compact orientation, unmistakable damage rules. */
+.trainer-guide .rotom-hero {
+  border-color: var(--dex-bezel);
+  background:
+    linear-gradient(color-mix(in srgb, var(--dex-lens-cyan) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--dex-lens-cyan) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(122deg, var(--dex-case-deep), var(--dex-bezel) 58%, var(--dex-lens-deep));
+  background-size: 10px 10px, 10px 10px, auto;
+  box-shadow: 5px 5px 0 var(--dex-case-shadow), inset 0 0 0 2px var(--dex-lens-cyan);
+}
+
+.trainer-guide .rotom-hero h2 { color: var(--dex-lens-cyan) !important; }
+.trainer-guide .rotom-hero p { color: var(--dex-screen-soft) !important; }
+
+.app-root .trainer-guide .guide-hero-context {
+  border-color: var(--dex-lens-cyan) !important;
+  background: var(--dex-bezel) !important;
+  color: var(--dex-lens-cyan) !important;
+}
+
+.app-root .trainer-guide .guide-hero-lens {
+  border-color: color-mix(in srgb, var(--dex-lens-cyan) 38%, transparent) !important;
+  background: radial-gradient(circle at 38% 30%, var(--dex-lens-cyan), var(--dex-lens-blue) 48%, var(--dex-lens-deep) 72%) !important;
+  box-shadow: 5px 5px 0 var(--dex-bezel), inset 0 0 0 4px var(--dex-screen-cross) !important;
+}
+
+.app-root .guide-damage-ceiling {
+  border: 3px solid var(--dex-bezel) !important;
+  background: var(--dex-attention) !important;
+  color: var(--dex-bezel) !important;
+  box-shadow: 4px 4px 0 var(--dex-bezel);
+}
+
+.app-root .guide-damage-ceiling :is(span, strong) {
+  color: var(--dex-bezel) !important;
+}
+
+.guide-critical-rules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--dex-content-gap);
+}
+
+.guide-critical-rule {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  align-items: start;
+  gap: .8rem;
+  border: 2px solid var(--dex-lens-deep);
+  border-radius: var(--dex-radius-panel);
+  background: var(--dex-screen-highlight);
+  padding: clamp(.85rem, 2vw, 1.15rem);
+  color: var(--dex-bezel);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--dex-bezel) 28%, transparent);
+}
+
+.guide-critical-rule > span {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: var(--dex-radius-control);
+  font-weight: 950;
+}
+
+.guide-critical-rule strong {
+  display: block;
+  font-size: .82rem;
+  line-height: 1.35;
+}
+
+.guide-critical-rule p {
+  margin: .35rem 0 0;
+  color: var(--dex-lens-deep);
+  font-size: .69rem;
+  font-weight: 720;
+  line-height: 1.65;
+}
+
+.guide-critical-rule.is-ceiling {
+  border-color: var(--dex-bezel);
+  background: var(--dex-attention);
+  box-shadow: 4px 4px 0 var(--dex-bezel);
+}
+
+.guide-critical-rule.is-ceiling p { color: var(--dex-bezel); }
+.guide-critical-rule.is-hit-kill { border-color: var(--dex-special); box-shadow: 4px 4px 0 var(--dex-case-deep); }
+.guide-critical-rule.is-hit-kill > span { color: var(--dex-case-deep); }
+
+.guide-current-style {
+  border-left: 5px solid var(--dex-lens-cyan) !important;
+  background: color-mix(in srgb, var(--dex-screen-highlight) 82%, var(--dex-lens-cyan) 18%) !important;
+}
+
+.guide-rule-card {
+  border: 2px solid var(--dex-line);
+  background: var(--dex-screen-highlight) !important;
+}
+
+.guide-rule-card[data-rule-id="3.3"] {
+  border-color: var(--dex-attention);
+  box-shadow: inset 5px 0 0 var(--dex-attention);
+}
+
+.guide-rule-card[data-rule-id="3.4"] {
+  border-color: var(--dex-special);
+  box-shadow: inset 5px 0 0 var(--dex-special);
+}
+
+.guide-percent-control input[type="range"] { min-width: 7rem; }
+.guide-percent-control input[type="number"] { width: 4.5rem !important; flex: 0 0 4.5rem; }
+
+/* Battle results always expose ceiling, calculated value and applied value. */
+.combat-result {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  padding: .85rem;
+}
+
+.combat-result > .combat-result-metric {
+  min-width: 0;
+  min-height: 4.4rem;
+  justify-content: center;
+  gap: .28rem;
+  border: 2px solid var(--dex-line);
+  border-radius: var(--dex-radius-control);
+  background: var(--dex-screen-highlight);
+  padding: .65rem;
+}
+
+.combat-result > .combat-result-metric :is(small, strong) {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.combat-result > .combat-result-metric.is-ceiling {
+  border-color: var(--dex-attention);
+  background: var(--dex-attention);
+  color: var(--dex-bezel);
+  box-shadow: 2px 2px 0 var(--dex-bezel);
+}
+
+.combat-result > .combat-result-metric.is-ceiling :is(small, strong) { color: var(--dex-bezel); }
+
+.combat-target-results { gap: .7rem; margin-top: .15rem; }
+.combat-target-results article { gap: .45rem; padding: .75rem; }
+
+.combat-damage-math {
+  display: grid;
+  gap: .3rem;
+  border-left: 4px solid var(--dex-attention);
+  background: color-mix(in srgb, var(--dex-screen-highlight) 78%, var(--dex-attention) 22%);
+  padding: .55rem .65rem;
+}
+
+.combat-damage-limit {
+  color: var(--dex-bezel) !important;
+  font-weight: 950 !important;
+  overflow-wrap: anywhere;
+}
+
+.combat-damage-exception {
+  border-left: 4px solid var(--dex-special);
+  background: color-mix(in srgb, var(--dex-screen-highlight) 82%, var(--dex-special) 18%);
+  padding: .45rem .6rem;
+  color: var(--dex-bezel) !important;
+  font-weight: 850 !important;
+}
+
+.combat-consequences { gap: .5rem; }
+.combat-consequences li { padding: .5rem .65rem; line-height: 1.55; }
+
+.combat-consequences .combat-consequence-hit-kill {
+  border: 2px solid var(--dex-special);
+  background: color-mix(in srgb, var(--dex-screen-highlight) 78%, var(--dex-special) 22%);
+  color: var(--dex-bezel);
+  box-shadow: 2px 2px 0 var(--dex-case-deep);
+}
+
+.combat-consequences .combat-consequence-trait {
+  border: 2px solid var(--dex-lens-cyan);
+  background: color-mix(in srgb, var(--dex-screen-highlight) 76%, var(--dex-lens-cyan) 24%);
+  color: var(--dex-bezel);
+}
+
+/* Stats, modifiers, bars and numbers get independent space. */
+.pokemon-training-panel { padding: clamp(1rem, 2vw, 1.5rem) !important; }
+.pokemon-stat-heading { gap: .75rem !important; padding-inline: .55rem !important; }
+.pokemon-stat-row { gap: .75rem !important; padding: .7rem !important; }
+.pokemon-stat-controls { gap: .65rem !important; }
+.pokemon-stat-ev { gap: .65rem !important; }
+.pokemon-stat-ev input[type="range"] { min-width: 7rem; }
+
+.editor-pp-label {
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  line-height: 1.35;
+}
+
+.editor-pp-control {
+  width: 4rem !important;
+  min-width: 4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rpg-journey-panel {
+  overflow: visible;
+  border-color: var(--dex-special) !important;
+  background: color-mix(in srgb, var(--dex-screen-highlight) 88%, var(--dex-special) 12%) !important;
+  color: var(--dex-bezel) !important;
+}
+
+.rpg-journey-panel > summary {
+  border-radius: var(--dex-radius-panel);
+  background: transparent !important;
+}
+
+.rpg-journey-summary-copy > strong { color: var(--dex-case-deep) !important; }
+.rpg-journey-summary-copy > small { color: var(--dex-lens-deep) !important; }
+.rpg-journey-hp {
+  border: 2px solid var(--dex-lens-deep);
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen) !important;
+}
+
+.rpg-journey-body {
+  border-color: color-mix(in srgb, var(--dex-special) 45%, var(--dex-line)) !important;
+  background: var(--dex-screen-highlight) !important;
+}
+
+.rpg-recover-button,
+.editor-xp-actions button {
+  border-color: var(--dex-lens-deep) !important;
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen) !important;
+}
+
+.status-notice {
+  border-color: var(--dex-bezel) !important;
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen) !important;
+  box-shadow: 3px 3px 0 var(--dex-bezel);
+}
+
+.status-notice > span,
+.status-notice button { color: var(--dex-screen) !important; }
+
+.app-nav .nav-capsule:nth-child(n).is-active {
+  border-color: var(--dex-lens-cyan) !important;
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen) !important;
+  box-shadow: 3px 3px 0 var(--dex-bezel) !important;
+}
+
+.app-nav .nav-capsule:nth-child(n).is-active > span { color: var(--dex-screen) !important; }
+
+.pc-box-count,
+.pc-box-button.is-selected,
+.pc-partner-card.is-selected {
+  border-color: var(--dex-lens-cyan) !important;
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen) !important;
+}
+
+.pc-box-button.is-selected :is(span, strong),
+.pc-partner-card.is-selected :is(.pc-partner-name, .pc-partner-meta) { color: var(--dex-screen) !important; }
+
+.pc-partner-gender {
+  border-color: var(--dex-screen-cross) !important;
+  background: var(--dex-bezel) !important;
+  color: var(--dex-screen-cross) !important;
+}
+
+.pc-import-button,
+.pc-action-button.is-share {
+  border-color: var(--dex-lens-cyan) !important;
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen) !important;
+}
+
+.pc-import-button :is(span, strong),
+.pc-action-button.is-share :is(span, strong) { color: var(--dex-screen) !important; }
+
+.pc-create-box-button,
+.pc-add-partner,
+.pc-action-button.is-delete,
+.pokemon-remove-button {
+  border-color: var(--dex-case) !important;
+  background: var(--dex-case-deep) !important;
+  color: var(--dex-screen) !important;
+}
+
+.pc-create-box-button :is(span, strong),
+.pc-add-partner :is(span, strong),
+.pc-action-button.is-delete :is(span, strong),
+.pokemon-remove-button :is(span, strong) { color: var(--dex-screen) !important; }
+
+.pc-action-button.is-duplicate {
+  border-color: var(--dex-lens-deep) !important;
+  background: var(--dex-screen-highlight) !important;
+  color: var(--dex-lens-deep) !important;
+}
+
+.pokemon-editor :is(input, select, textarea):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+.pc-main-panel :is(input, select, textarea):not([type="range"]):not([type="checkbox"]):not([type="radio"]) {
+  border-color: var(--dex-line) !important;
+  background: var(--dex-screen-highlight) !important;
+  color: var(--dex-bezel) !important;
+}
+
+.pc-empty-state {
+  border-color: var(--dex-lens-cyan) !important;
+  background: var(--dex-screen-highlight) !important;
+  color: var(--dex-bezel) !important;
+  box-shadow: 5px 5px 0 var(--dex-lens-deep) !important;
+}
+
+.pokemon-ev-budget {
+  border-color: var(--dex-lens-cyan) !important;
+  color: var(--dex-lens-deep) !important;
+  white-space: normal;
+}
+
+.pokemon-ev-budget span { color: var(--dex-lens-deep) !important; }
+.pokemon-ev-budget.is-over-limit { border-color: var(--dex-attention) !important; background: var(--dex-attention) !important; color: var(--dex-bezel) !important; }
+.pokemon-ev-budget.is-over-limit span { color: var(--dex-bezel) !important; }
+
+.token-hp-control {
+  grid-template-columns: minmax(4.5rem, auto) 2.5rem minmax(4.5rem, auto) 2.5rem;
+  gap: .45rem;
+}
+
+.token-hp-control button { width: 2.5rem; height: 2.5rem; }
+.token-hp-control strong { padding-inline: .25rem; overflow-wrap: anywhere; }
+.token-modifiers { overflow: visible; }
+.token-modifier-grid { gap: .65rem; padding: .7rem; }
+.token-modifier { grid-template-columns: minmax(6.5rem, 1fr) 2.5rem minmax(2.8rem, auto) 2.5rem; gap: .45rem; padding: .55rem; }
+.token-modifier button { width: 2.5rem; height: 2.5rem; }
+
+.status-notice,
+.room-button-row,
+.pc-action-row,
+.combat-automation,
+.token-volatile-list,
+.token-traits {
+  gap: .65rem;
+  flex-wrap: wrap;
+}
+
+.room-token-hp {
+  min-width: 4.8rem;
+  height: .42rem;
+  border-radius: var(--dex-radius-control);
+}
+
+.pokemon-sprite-fallback,
+.link-cable-sprite-fallback,
+.room-token-fallback {
+  display: inline-grid;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  place-items: center;
+  border: 2px dashed var(--dex-lens-deep);
+  border-radius: var(--dex-radius-control);
+  background: var(--dex-screen-soft);
+  color: var(--dex-lens-deep);
+  font-weight: 950;
+}
+
+/* Readable content is never sacrificed to decorative geometry. */
+:is(
+  .link-cable-partners strong,
+  .link-cable-partners small,
+  .link-cable-preview-heading strong,
+  .link-cable-preview-list b,
+  .link-cable-preview-list small,
+  .room-title h2,
+  .room-player strong,
+  .initiative-list li > button,
+  .initiative-list li > small,
+  .room-token-name,
+  .token-inspector-identity strong,
+  .token-modifier > span strong,
+  .token-modifier > span small,
+  .trait-card > header strong,
+  .call-member strong,
+  .audio-now strong,
+  .audio-library strong,
+  .pc-box-button strong,
+  .pc-partner-name,
+  .pc-partner-meta,
+  .pokemon-card-name,
+  .guide-rule-summary,
+  .pokemon-modal-shell .truncate,
+  .combat-target-results span,
+  .combat-consequences li,
+  .event-log article,
+  button,
+  label,
+  p,
+  li,
+  dd,
+  dt
+) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+:is(
+  .link-cable-partners strong,
+  .link-cable-partners small,
+  .link-cable-preview-heading strong,
+  .link-cable-preview-list b,
+  .link-cable-preview-list small,
+  .room-title h2,
+  .room-player strong,
+  .initiative-list li > button,
+  .initiative-list li > small,
+  .room-token-name,
+  .token-inspector-identity strong,
+  .token-modifier > span strong,
+  .trait-card > header strong,
+  .call-member strong,
+  .audio-now strong,
+  .audio-library strong,
+  .pc-partner-name,
+  .pc-partner-meta,
+  .pokemon-modal-shell .truncate
+) {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.room-token-name {
+  width: max-content;
+  max-width: min(9rem, 32vw);
+  line-height: 1.35;
+  text-align: center;
+}
+
+.pokemon-evolution-name {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.45;
+}
+
+.rule-section,
+.guide-rule-card,
+.trait-card,
+.event-log article,
+.room-invite-panel,
+.room-tool,
+.token-special-mechanics,
+.token-traits,
+.editor-trait-reference { overflow: visible; }
+
+.game-style-label,
+.room-phase-label { white-space: normal; }
+
+.link-cable-code-field textarea,
+.link-cable-result textarea,
+.room-note textarea,
+.editor-input,
+.catalog-description,
+.species-description,
+.ability-description,
+.editor-move-description {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.install-dialog,
+.link-cable-dialog,
+.pokemon-modal-shell {
+  max-width: calc(100vw - max(1.5rem, env(safe-area-inset-left) + env(safe-area-inset-right)));
+  max-height: calc(100dvh - max(1.5rem, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.choice-help-popover {
+  z-index: 80;
+  max-width: calc(100vw - max(1.5rem, env(safe-area-inset-left) + env(safe-area-inset-right)));
+}
+
+/* Old era aliases cannot reintroduce an independent palette. */
+.view-room .room-section:nth-child(4n + 1),
+.view-room .room-tool:nth-child(4n + 1),
+.view-pokedex .game-card:nth-child(4n + 1) { border-top-color: var(--dex-success); }
+.view-room .room-section:nth-child(4n + 2),
+.view-room .room-tool:nth-child(4n + 2),
+.view-pokedex .game-card:nth-child(4n + 2) { border-top-color: var(--dex-lens-blue); }
+.view-room .room-section:nth-child(4n + 3),
+.view-room .room-tool:nth-child(4n + 3),
+.view-pokedex .game-card:nth-child(4n + 3) { border-top-color: var(--dex-special); }
+.view-room .room-section:nth-child(4n),
+.view-room .room-tool:nth-child(4n),
+.view-pokedex .game-card:nth-child(4n) { border-top-color: var(--dex-lens-cyan); }
+.view-teambuilder .pc-sidebar { border-top-color: var(--dex-success); }
+.view-teambuilder .pc-main-panel { border-top-color: var(--dex-lens-blue); }
+.view-teambuilder .pokemon-editor { border-top-color: var(--dex-special); }
+.view-guide .game-panel:nth-child(odd) { border-top-color: var(--dex-lens-cyan); }
+.view-guide .game-panel:nth-child(even) { border-top-color: var(--dex-special); }
+
+.game-style-options button[data-mode="rpg"].is-selected,
+.room-phase-options button[data-phase="batalha"].is-selected { background: var(--dex-case) !important; }
+.game-style-options button[data-mode="game"].is-selected,
+.room-phase-options button[data-phase="interpretacao"].is-selected { background: var(--dex-lens-deep) !important; }
+.game-style-options button[data-mode="free"].is-selected,
+.room-phase-options button[data-phase="exploracao"].is-selected { background: var(--dex-screen-cross) !important; }
+.room-phase-options button[data-phase="intervalo"].is-selected { background: color-mix(in srgb, var(--dex-bezel) 76%, var(--dex-attention) 24%) !important; }
+
+html[data-theme="night"] .app-root .guide-damage-ceiling {
+  border-color: var(--dex-attention) !important;
+  background: var(--dex-bezel) !important;
+  color: var(--dex-attention) !important;
+  box-shadow: 4px 4px 0 var(--dex-case-shadow), inset 0 0 0 1px var(--dex-attention);
+}
+
+html[data-theme="night"] .app-root .guide-damage-ceiling :is(span, strong) { color: var(--dex-attention) !important; }
+
+html[data-theme="night"] .guide-critical-rule {
+  border-color: var(--dex-screen-cross);
+  background: var(--dex-dark-raised);
+  color: var(--dex-screen-soft);
+}
+
+html[data-theme="night"] .guide-critical-rule p { color: var(--dex-screen-soft); }
+html[data-theme="night"] .guide-critical-rule.is-ceiling { border-color: var(--dex-attention); background: var(--dex-bezel); color: var(--dex-attention); box-shadow: 4px 4px 0 var(--dex-case-shadow); }
+html[data-theme="night"] .guide-critical-rule.is-ceiling p { color: var(--dex-screen-soft); }
+html[data-theme="night"] .guide-critical-rule.is-hit-kill { border-color: var(--dex-special); }
+
+html[data-theme="night"] .guide-current-style {
+  border-color: var(--dex-screen-cross) !important;
+  border-left-color: var(--dex-lens-cyan) !important;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--dex-lens-cyan) 8%, transparent), transparent 58%),
+    var(--dex-dark-raised) !important;
+  color: var(--dex-screen-soft) !important;
+  box-shadow: 4px 4px 0 var(--dex-case-shadow) !important;
+}
+
+html[data-theme="night"] .guide-current-style > span,
+html[data-theme="night"] .guide-current-style > p:last-child { color: var(--dex-lens-cyan) !important; }
+html[data-theme="night"] .guide-current-style > h3 { color: var(--dex-screen-soft) !important; }
+html[data-theme="night"] .guide-current-style > p:not(:last-child) { color: var(--dex-screen-cross) !important; }
+
+html[data-theme="night"] .combat-result > .combat-result-metric,
+html[data-theme="night"] .combat-damage-math,
+html[data-theme="night"] .combat-damage-exception,
+html[data-theme="night"] .combat-consequences .combat-consequence-hit-kill,
+html[data-theme="night"] .combat-consequences .combat-consequence-trait {
+  background: var(--dex-dark-raised);
+  color: var(--dex-screen-soft);
+}
+
+html[data-theme="night"] .combat-result > .combat-result-metric.is-ceiling {
+  border-color: var(--dex-attention);
+  background: var(--dex-bezel);
+  color: var(--dex-attention);
+}
+
+html[data-theme="night"] .combat-result > .combat-result-metric.is-ceiling :is(small, strong),
+html[data-theme="night"] .combat-damage-limit { color: var(--dex-attention) !important; }
+
+html[data-theme="night"] .pokemon-sprite-fallback,
+html[data-theme="night"] .link-cable-sprite-fallback,
+html[data-theme="night"] .room-token-fallback {
+  border-color: var(--dex-lens-cyan);
+  background: var(--dex-dark-raised);
+  color: var(--dex-lens-cyan);
+}
+
+html[data-theme="night"] .pokemon-card-sprite-frame {
+  border-color: var(--dex-screen-cross) !important;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--dex-lens-cyan) 16%, transparent), transparent 56%),
+    var(--dex-dark-raised) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dex-lens-cyan) 12%, transparent);
+}
+
+html[data-theme="night"] .room-header-actions button,
+html[data-theme="night"] .room-role-badge,
+html[data-theme="night"] .room-section-heading > span,
+html[data-theme="night"] .room-button-row button,
+html[data-theme="night"] .room-tool-badge,
+html[data-theme="night"] .sfx-grid button {
+  border-color: var(--dex-screen-cross) !important;
+  background: var(--dex-dark-raised) !important;
+  color: var(--dex-screen-soft) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dex-lens-cyan) 10%, transparent);
+}
+
+html[data-theme="night"] .room-role-badge.is-narrator {
+  border-color: var(--dex-special) !important;
+  color: var(--dex-special) !important;
+}
+
+html[data-theme="night"] .room-header-actions .room-leave {
+  border-color: var(--dex-case) !important;
+  color: var(--dex-screen-soft) !important;
+}
+
+html[data-theme="night"] .quick-roll-kind {
+  border: 1px solid var(--dex-screen-cross);
+  background: var(--dex-bezel) !important;
+}
+
+html[data-theme="night"] .quick-roll-kind button {
+  color: var(--dex-screen-cross) !important;
+}
+
+html[data-theme="night"] .quick-roll-kind button[aria-pressed="true"] {
+  border: 1px solid var(--dex-lens-cyan) !important;
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen) !important;
+  box-shadow: 2px 2px 0 var(--dex-case-shadow) !important;
+}
+
+html[data-theme="night"] .room-button-row button:disabled,
+html[data-theme="night"] .sfx-grid button:disabled {
+  opacity: .56;
+}
+
+html[data-theme="night"] .rpg-journey-panel {
+  border-color: var(--dex-special) !important;
+  background: var(--dex-dark-raised) !important;
+  color: var(--dex-screen-soft) !important;
+}
+
+html[data-theme="night"] .rpg-journey-summary-copy > strong { color: var(--dex-special) !important; }
+html[data-theme="night"] .rpg-journey-summary-copy > small { color: var(--dex-screen-cross) !important; }
+html[data-theme="night"] .rpg-journey-hp {
+  border-color: var(--dex-special);
+  background: var(--dex-bezel) !important;
+  color: var(--dex-special) !important;
+}
+
+html[data-theme="night"] .rpg-journey-body {
+  border-color: var(--dex-special) !important;
+  background: var(--dex-dark-raised) !important;
+}
+
+html[data-theme="night"] .rpg-recover-button,
+html[data-theme="night"] .editor-xp-actions button {
+  border-color: var(--dex-lens-cyan) !important;
+  background: var(--dex-bezel) !important;
+  color: var(--dex-lens-cyan) !important;
+}
+
+html[data-theme="night"] .status-notice {
+  border-color: var(--dex-lens-cyan) !important;
+  background: var(--dex-dark-raised) !important;
+  color: var(--dex-screen-soft) !important;
+  box-shadow: 3px 3px 0 var(--dex-case-shadow);
+}
+
+html[data-theme="night"] .status-notice > span,
+html[data-theme="night"] .status-notice button { color: var(--dex-screen-soft) !important; }
+
+html[data-theme="night"] .token-tera,
+html[data-theme="night"] .combat-automation span,
+html[data-theme="night"] .audio-local-note,
+html[data-theme="night"] .room-settings label {
+  border: 1px solid var(--dex-lens-deep);
+  background: var(--dex-dark-raised) !important;
+  color: var(--dex-screen-cross) !important;
+}
+
+html[data-theme="night"] .token-tera.is-active,
+html[data-theme="night"] .combat-automation span.is-syncing {
+  border-color: var(--dex-lens-cyan);
+  background: var(--dex-lens-deep) !important;
+  color: var(--dex-screen-soft) !important;
+  box-shadow: inset 3px 0 0 var(--dex-lens-cyan);
+}
+
+@media (max-width: 900px) {
+  .combat-result { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .guide-critical-rules { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 1500px) {
+  .view-pokedex .app-header-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .view-pokedex .app-actions {
+    display: grid !important;
+    width: 100% !important;
+    grid-template-columns: minmax(14rem, 1fr) minmax(22rem, auto);
+    align-items: stretch;
+  }
+
+  .view-pokedex .app-actions > div:first-child {
+    width: 100% !important;
+    max-width: none;
+  }
+
+  .pokemon-editor-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: var(--dex-section-gap) !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .pokemon-stat-heading {
+    display: grid !important;
+    grid-template-columns: minmax(7rem, .85fr) 3.5rem minmax(9rem, 1.7fr) 4rem 4.5rem;
+    align-items: center;
+  }
+
+  .pokemon-stat-heading > div { width: auto !important; }
+
+  .pokemon-stat-row {
+    display: grid !important;
+    grid-template-columns: minmax(7rem, .85fr) minmax(0, 1.7fr) 4.5rem;
+    align-items: center !important;
+  }
+
+  .pokemon-stat-row > div:first-child,
+  .pokemon-stat-row > div:last-child { width: auto !important; }
+
+  .pokemon-stat-controls {
+    display: grid !important;
+    grid-template-columns: 3.5rem minmax(9rem, 1fr) 4rem;
+    width: 100%;
+  }
+
+  .pokemon-stat-controls > div { width: auto !important; }
+
+  .pokemon-stat-ev {
+    display: grid !important;
+    grid-template-columns: minmax(7rem, 1fr) 3.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  :root { --dex-section-gap: 1rem; }
+
+  .app-root > .app-header,
+  .app-root > .app-scroll-area {
+    padding-right: max(.65rem, env(safe-area-inset-right));
+    padding-left: max(.65rem, env(safe-area-inset-left));
+  }
+
+  .app-header-primary { flex-wrap: wrap; gap: .75rem; }
+  .app-brand-cluster { flex: 1 1 auto; }
+  .app-nav { order: 4; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav-capsule { min-height: 2.75rem; padding: .55rem .45rem; }
+  .app-actions { align-items: stretch; }
+  .view-pokedex .app-actions { grid-template-columns: minmax(0, 1fr); }
+
+  .pokemon-stat-heading { display: none !important; }
+  .pokemon-stat-controls { flex-wrap: wrap; }
+  .pokemon-stat-ev { flex: 1 1 100%; }
+  .pokemon-stat-ev input[type="range"] { flex: 1 1 8rem; }
+  .token-modifier { grid-template-columns: 2.5rem minmax(3rem, 1fr) 2.5rem; }
+  .token-modifier > span { grid-column: 1 / -1; }
+
+  .choice-help[open] .choice-help-popover {
+    position: fixed;
+    top: max(.75rem, env(safe-area-inset-top));
+    right: max(.75rem, env(safe-area-inset-right));
+    bottom: auto;
+    left: max(.75rem, env(safe-area-inset-left));
+    width: auto;
+    max-height: calc(100dvh - max(1.5rem, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    overflow-y: auto;
+  }
+
+  .choice-help-popover::before { display: none; }
+}
+
+@media (max-width: 390px) {
+  .combat-result { grid-template-columns: minmax(0, 1fr); }
+  .guide-percent-control { align-items: stretch; flex-direction: column; }
+  .guide-percent-control input[type="number"] { width: 100% !important; flex-basis: auto; }
+  .token-hp-control { grid-template-columns: 2.5rem minmax(4.5rem, 1fr) 2.5rem; }
+  .token-hp-control > span { grid-column: 1 / -1; }
+  .room-phase-options { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-contrast: more) {
+  .app-header-shell,
+  .app-main-shell,
+  .game-panel,
+  .room-section,
+  .room-tool,
+  .pc-sidebar,
+  .pc-main-panel,
+  .pokemon-editor,
+  .pokemon-modal-shell,
+  .guide-critical-rule,
+  .guide-rule-card,
+  .combat-result > .combat-result-metric {
+    border-width: 3px;
+    box-shadow: none;
+  }
+
+  :focus-visible { outline-width: 4px; outline-offset: 4px; }
+}
+
+@media (forced-colors: active) {
+  * { forced-color-adjust: auto; }
+
+  .game-button,
+  .room-primary-button,
+  .nav-capsule.is-active,
+  .game-style-options button.is-selected,
+  .room-phase-options button.is-selected,
+  .guide-damage-ceiling,
+  .guide-critical-rule,
+  .combat-damage-limit,
+  .combat-consequence-hit-kill {
+    border: 2px solid CanvasText !important;
+    background: Canvas !important;
+    color: CanvasText !important;
+  }
+
+  :focus-visible { outline: 3px solid Highlight !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
   }
 }

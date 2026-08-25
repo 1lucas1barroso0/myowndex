@@ -11,6 +11,7 @@ import {
   safeRoomCode,
   safeText,
 } from "../../../../../server/rooms";
+import { randomChoice } from "../../../../../src/core/random.js";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export async function POST(request: Request, context: RouteContext) {
     const playerId = `player_${crypto.randomUUID()}`;
     const playerKey = createSecret("player");
     const playerHash = await hashSecret(playerKey);
-    const accent = ACCENTS[Math.floor(Math.random() * ACCENTS.length)];
+    const accent = randomChoice(ACCENTS);
     const { db } = getBindings();
     await db.prepare(
       `INSERT INTO room_players

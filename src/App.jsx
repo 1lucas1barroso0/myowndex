@@ -3,7 +3,7 @@ import { formatPokemonCount } from "./core/copy.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
-import { randomUnit } from "./core/random.js";
+import { randomChance } from "./core/random.js";
 import { readStorage, writeStorage } from "./core/storage.js";
 import TrainerGuide from "./components/Guide/TrainerGuide.jsx";
 import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
@@ -285,7 +285,7 @@ export default function App() {
         let gender = "N";
         if (resolvedRate === 0) gender = "M";
         else if (resolvedRate === 8) gender = "F";
-        else if (resolvedRate > 0) gender = randomUnit() * 8 < resolvedRate ? "F" : "M";
+        else if (resolvedRate > 0) gender = randomChance(resolvedRate, 8) ? "F" : "M";
 
         const partner = normalizePokemon({
             species: { ...formData, gender_rate: resolvedRate },

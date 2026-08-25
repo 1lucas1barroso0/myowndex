@@ -637,10 +637,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         if (session.local) {
             setRoom(current => {
                 if (!current) return current;
+                const previousEventId = Number(current.events?.at(-1)?.id) || 0;
                 const next = {
                     ...current,
                     events: [...(current.events || []), {
-                        id: Date.now() + Math.random(),
+                        id: Math.max(previousEventId + 1, Date.now()),
                         playerId: null,
                         author: session.displayName || "Narrador",
                         type,
@@ -895,42 +896,50 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     };
 
     const generateInitiative = async () => {
-        const generated = buildInitiative(snapshot);
-        commitSnapshot(generated.room);
-        await sendEvent("system", {
-            text: `Ordem da rodada: ${generated.results.map(result => {
-                const name = snapshot.tokens.find(token => token.id === result.tokenId)?.name;
-                const traits = result.traitState.entries.map(entry => formatName(entry.sourceId)).join(" + ");
-                return `${name} (${result.total}${traits ? `; ${traits}` : ""})`;
-            }).join(", ")}.`,
-        });
+        try {
+            const generated = buildInitiative(snapshot);
+            commitSnapshot(generated.room);
+            await sendEvent("system", {
+                text: `Ordem da rodada: ${generated.results.map(result => {
+                    const name = snapshot.tokens.find(token => token.id === result.tokenId)?.name;
+                    const traits = result.traitState.entries.map(entry => formatName(entry.sourceId)).join(" + ");
+                    return `${name} (${result.total}${traits ? `; ${traits}` : ""})`;
+                }).join(", ")}.`,
+            });
+        } catch (error) {
+            showError(error);
+        }
     };
 
     const nextTurn = async () => {
-        const closingRound = snapshot.initiative.length > 0
-            && snapshot.turnIndex >= snapshot.initiative.length - 1;
-        const roundEnd = closingRound ? applyEndOfRoundEffects(snapshot) : null;
-        const next = closingRound
-            ? {
-                ...roundEnd.room,
-                round: snapshot.round + 1,
-                turnIndex: 0,
-                initiative: [],
-                tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", priority: 0 })),
-            }
-            : advanceInitiative(snapshot);
-        commitSnapshot(next);
-        const activeId = next.initiative[next.turnIndex];
-        const active = next.tokens.find(token => token.id === activeId);
-        await sendEvent("system", {
-            text: closingRound
-                ? `${roundEnd.effects.length
-                    ? `${roundEnd.effects.map(roundEffectSummary).join("; ")}. `
-                    : ""}Rodada ${next.round} pronta! Escolha os movimentos para formar a nova ordem.`
-                : active
-                    ? `Turno de ${active.name}. Rodada ${next.round}.`
-                    : `Rodada ${next.round}.`,
-        });
+        try {
+            const closingRound = snapshot.initiative.length > 0
+                && snapshot.turnIndex >= snapshot.initiative.length - 1;
+            const roundEnd = closingRound ? applyEndOfRoundEffects(snapshot) : null;
+            const next = closingRound
+                ? {
+                    ...roundEnd.room,
+                    round: snapshot.round + 1,
+                    turnIndex: 0,
+                    initiative: [],
+                    tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", priority: 0 })),
+                }
+                : advanceInitiative(snapshot);
+            commitSnapshot(next);
+            const activeId = next.initiative[next.turnIndex];
+            const active = next.tokens.find(token => token.id === activeId);
+            await sendEvent("system", {
+                text: closingRound
+                    ? `${roundEnd.effects.length
+                        ? `${roundEnd.effects.map(roundEffectSummary).join("; ")}. `
+                        : ""}Rodada ${next.round} pronta! Escolha os movimentos para formar a nova ordem.`
+                    : active
+                        ? `Turno de ${active.name}. Rodada ${next.round}.`
+                        : `Rodada ${next.round}.`,
+            });
+        } catch (error) {
+            showError(error);
+        }
     };
 
     const declareMove = async (tokenId, move) => {

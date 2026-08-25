@@ -1,3 +1,5 @@
+import { secureRandomString } from "../src/core/random.js";
+
 export type RoomRole = "narrator" | "player";
 
 export type RoomAuth = {
@@ -133,8 +135,7 @@ export function safeRoomCode(value: unknown) {
 }
 
 export function randomString(length: number, alphabet = TOKEN_ALPHABET) {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(bytes, byte => alphabet[byte % alphabet.length]).join("");
+  return secureRandomString(length, alphabet);
 }
 
 export function createRoomCode() {

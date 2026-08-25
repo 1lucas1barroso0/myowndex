@@ -3,7 +3,7 @@ import { RPG_STATUS_LABELS } from '../../core/copy.js';
 import { describeMove, describeTrait } from '../../core/descriptions.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
-import { randomChoice, randomInt, randomUnit } from '../../core/random.js';
+import { randomChance, randomChoice, randomInt } from '../../core/random.js';
 import { RPG_STATUSES } from '../../core/team.js';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
 
@@ -260,7 +260,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             if (currentGenderRate === -1) return;
             if (currentGenderRate === 0) { updatePk({ ...pk, gender: "M", genderRate: 0 }); return; }
             if (currentGenderRate === 8) { updatePk({ ...pk, gender: "F", genderRate: 8 }); return; }
-            const result = (randomUnit() * 8) < currentGenderRate ? "F" : "M";
+            const result = randomChance(currentGenderRate, 8) ? "F" : "M";
             updatePk({ ...pk, gender: result, genderRate: currentGenderRate });
         }
     };

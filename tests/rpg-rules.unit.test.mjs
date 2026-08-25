@@ -41,6 +41,15 @@ test("attribute tests implement normal, advantage and defender-wins-ties", () =>
   assert.deepEqual(advantage.dice, [1, 4, 6]);
   assert.deepEqual(advantage.kept, [4, 6]);
   assert.equal(advantage.total, 10);
+  assert.equal(advantage.mode, "advantage");
+
+  const unexpectedMode = rollAttributeTest({
+    mode: "unexpected",
+    random: sequence([0.999, 0.999, 0.999]),
+  });
+  assert.equal(unexpectedMode.mode, "normal");
+  assert.deepEqual(unexpectedMode.dice, [6, 6]);
+  assert.equal(unexpectedMode.total, 12, "an unknown mode must never become an accidental 3d6 total");
 });
 
 test("percent advantage keeps the most favorable d100 and respects equal-or-lower", () => {
@@ -51,7 +60,16 @@ test("percent advantage keeps the most favorable d100 and respects equal-or-lowe
   });
   assert.deepEqual(result.rolls, [80, 30]);
   assert.equal(result.result, 30);
+  assert.equal(result.advantage, true);
   assert.equal(result.success, true);
+
+  const stringFlag = rollPercentTest({
+    chance: 100,
+    advantage: "false",
+    random: sequence([0.99, 0]),
+  });
+  assert.equal(stringFlag.advantage, false);
+  assert.deepEqual(stringFlag.rolls, [100]);
 });
 
 test("RPG scale, XP and damage ceiling follow the guide", () => {

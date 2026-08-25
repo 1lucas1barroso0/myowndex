@@ -1,4 +1,5 @@
 import { fetchCached } from "./mechanics.js";
+import { secureRandomId } from "./random.js";
 import { readStorage, removeStorage, writeStorage } from "./storage.js";
 
 export const TEAM_STORAGE_KEY = "myowndex_rotom_v4";
@@ -12,8 +13,7 @@ const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
 
 export const createId = (prefix = "box") => {
-    if (globalThis.crypto?.randomUUID) return `${prefix}-${globalThis.crypto.randomUUID()}`;
-    return `${prefix}-${now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    return secureRandomId(prefix);
 };
 
 export const clampInteger = (value, minimum, maximum, fallback = minimum) => {

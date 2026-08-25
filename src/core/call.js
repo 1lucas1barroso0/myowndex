@@ -1,11 +1,11 @@
+import { secureRandomId } from "./random.js";
+
 export const CALL_ICE_SERVERS = [
     { urls: ["stun:stun.cloudflare.com:3478"] },
 ];
 
 export const createCallConnectionId = () => {
-    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
-    const random = Math.random().toString(36).slice(2);
-    return `call-${Date.now().toString(36)}-${random}`;
+    return secureRandomId("call");
 };
 
 export const callParticipantId = session => {

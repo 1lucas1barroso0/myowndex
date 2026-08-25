@@ -23,7 +23,7 @@ import {
     stageMultiplier,
 } from "./automation.js";
 import { getDamageCeiling, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
-import { randomInt, randomUnit, rollDie } from "./random.js";
+import { randomChance, randomChoice, randomInt, randomUnit, rollDie } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 import {
     applyBattleIllusion,
@@ -596,7 +596,6 @@ const END_ROUND_STATUS_BERRIES = Object.freeze({
 export const applyEndOfRoundEffects = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
     const effectiveWeather = isWeatherSuppressed(room.tokens) ? "limpo" : room.weather;
-    const randomValue = () => randomUnit(random);
     const effects = [];
     const leechHealing = [];
     let tokens = room.tokens.map(token => {
@@ -738,9 +737,9 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         }
         if (activeAbility === "moody") {
             const stats = ["attack", "defense", "special-attack", "special-defense", "speed", "accuracy", "evasion"];
-            const raisedStat = stats[Math.floor(randomValue() * stats.length)] || "attack";
+            const raisedStat = randomChoice(stats, random) || "attack";
             const loweredOptions = stats.filter(stat => stat !== raisedStat);
-            const loweredStat = loweredOptions[Math.floor(randomValue() * loweredOptions.length)] || "defense";
+            const loweredStat = randomChoice(loweredOptions, random) || "defense";
             workingToken = applyStageChange(workingToken, raisedStat, 2);
             workingToken = applyStageChange(workingToken, loweredStat, -1);
             workingToken = recordTraitEvent(workingToken, {
@@ -815,7 +814,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                 round: room.round,
             });
             effects.push({ kind: "status", tokenId: token.id, tokenName: token.name, status: "", damage: 0, remainingHp: currentHp, fainted: false, sources: ["Hydration curou a condição"] });
-        } else if (status && activeAbility === "shed-skin" && randomValue() < 1 / 3) {
+        } else if (status && activeAbility === "shed-skin" && randomChance(1, 3, random)) {
             const previousStatus = status;
             status = "";
             workingToken = recordTraitEvent({ ...workingToken, status, toxicCounter: 0 }, {
@@ -863,7 +862,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
 
         const traitState = normalizeTraitState(workingToken.traitState, workingToken.item, workingToken.ability);
         if (activeAbility === "harvest" && traitState.item.consumed && traitState.item.originalId.endsWith("-berry")) {
-            const harvests = effectiveWeather === "sol" || randomValue() < 0.5;
+            const harvests = effectiveWeather === "sol" || randomChance(1, 2, random);
             if (harvests) {
                 const restored = restoreHeldItem(workingToken, { reason: "Harvest recuperou a Fruta", round: room.round });
                 if (restored.applied) {
@@ -1009,7 +1008,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
     const healers = tokens.filter(token => token.currentHp > 0 && isAbilityActive(token) && traitSlug(token.ability) === "healer");
     healers.forEach(healer => {
         tokens = tokens.map(target => {
-            if (target.id === healer.id || target.side !== healer.side || !target.status || target.currentHp <= 0 || randomValue() >= 0.3) return target;
+            if (target.id === healer.id || target.side !== healer.side || !target.status || target.currentHp <= 0 || !randomChance(3, 10, random)) return target;
             const previousStatus = target.status;
             const changed = recordTraitEvent({ ...target, status: "", toxicCounter: 0 }, {
                 kind: "ability",
@@ -1035,19 +1034,29 @@ export const buildInitiative = (snapshot, random) => {
             attribute: (token.stats?.speed || 0) * traitState.multiplier,
             random,
         });
-        const tieBreak = rollDie(6, random);
         return {
             tokenId: token.id,
             priority: token.priority || 0,
             total: test.total,
             dice: test.kept,
-            tieBreak,
+            tieBreak: null,
             traitState,
         };
-    }).sort((first, second) =>
+    });
+    const tiedResults = new Map();
+    results.forEach(result => {
+        const key = `${result.priority}:${result.total}`;
+        const group = tiedResults.get(key) || [];
+        group.push(result);
+        tiedResults.set(key, group);
+    });
+    tiedResults.forEach(group => {
+        if (group.length > 1) group.forEach(result => { result.tieBreak = rollDie(6, random); });
+    });
+    results.sort((first, second) =>
         second.priority - first.priority
         || second.total - first.total
-        || second.tieBreak - first.tieBreak
+        || (second.tieBreak || 0) - (first.tieBreak || 0)
         || first.tokenId.localeCompare(second.tokenId)
     );
     return {

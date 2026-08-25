@@ -167,12 +167,32 @@ test("initiative is derived from the same 2d6 plus Speed rule", () => {
   assert.equal(result.results[0].total, 12 + first.tokens[0].stats.speed);
 });
 
-test("Move priority is resolved before Speed and ties use a quick roll", () => {
+test("Move priority is resolved before Speed", () => {
   const base = addTeamToSnapshot(createRoomSnapshot("Teste"), team, "ally").room;
   const fast = { ...base.tokens[0], id: "fast", name: "Rápido", priority: 0, stats: { ...base.tokens[0].stats, speed: 20 } };
   const priority = { ...base.tokens[0], id: "priority", name: "Prioritário", priority: 1, stats: { ...base.tokens[0].stats, speed: 0 } };
   const result = buildInitiative({ ...base, tokens: [fast, priority] }, sequence([0.999, 0.999, 0, 0, 0, 0.999]));
   assert.equal(result.room.initiative[0], "priority");
+});
+
+test("initiative spends quick rolls only on participants that are actually tied", () => {
+  const base = addTeamToSnapshot(createRoomSnapshot("Teste"), team, "ally").room;
+  const alpha = { ...base.tokens[0], id: "alpha", name: "Alpha", priority: 0, stats: { ...base.tokens[0].stats, speed: 0 }, originalStats: { ...base.tokens[0].originalStats, speed: 0 } };
+  const beta = { ...alpha, id: "beta", name: "Beta" };
+  const faster = { ...base.tokens[0], id: "faster", name: "Faster", priority: 1 };
+  const values = [0, 0, 0, 0, 0, 0, 0, 0.999];
+  let draws = 0;
+  const result = buildInitiative(
+    { ...base, tokens: [alpha, beta, faster] },
+    () => values[draws++] ?? 0,
+  );
+
+  const byId = Object.fromEntries(result.results.map(entry => [entry.tokenId, entry]));
+  assert.equal(draws, 8, "three 2d6 tests plus two tie-break dice should be enough");
+  assert.equal(byId.faster.tieBreak, null);
+  assert.equal(byId.alpha.tieBreak, 1);
+  assert.equal(byId.beta.tieBreak, 6);
+  assert.deepEqual(result.room.initiative, ["faster", "beta", "alpha"]);
 });
 
 test("Pokémon without HP leave the next initiative automatically", () => {

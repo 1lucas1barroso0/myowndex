@@ -45,6 +45,7 @@ export default function TrainerGuide({ experienceMode }) {
     const [chance, setChance] = useState(30);
     const [percentAdvantage, setPercentAdvantage] = useState(false);
     const [percentResult, setPercentResult] = useState(null);
+    const [rollError, setRollError] = useState("");
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
@@ -66,14 +67,28 @@ export default function TrainerGuide({ experienceMode }) {
     }, [query]);
 
     const runAttributeTest = () => {
-        const result = rollAttributeTest({ mode: testMode, attribute, opposition });
-        setAttributeResult(result.fumble ? { ...result, fumbleSuggestion: getFumbleSuggestion() } : result);
+        try {
+            const result = rollAttributeTest({ mode: testMode, attribute, opposition });
+            setAttributeResult(result.fumble ? { ...result, fumbleSuggestion: getFumbleSuggestion() } : result);
+            setRollError("");
+        } catch (error) {
+            setAttributeResult(null);
+            setRollError(error instanceof Error ? error.message : "A rolagem segura não pôde ser concluída.");
+        }
     };
 
-    const runPercentTest = () => setPercentResult(rollPercentTest({
-        chance,
-        advantage: percentAdvantage
-    }));
+    const runPercentTest = () => {
+        try {
+            setPercentResult(rollPercentTest({
+                chance,
+                advantage: percentAdvantage
+            }));
+            setRollError("");
+        } catch (error) {
+            setPercentResult(null);
+            setRollError(error instanceof Error ? error.message : "A rolagem segura não pôde ser concluída.");
+        }
+    };
 
     return (
         <div className="trainer-guide animate-fade-in text-slate-800">
@@ -101,6 +116,11 @@ export default function TrainerGuide({ experienceMode }) {
                             </div>
                             <span className="text-[10px] font-bold text-slate-500">Estas rolagens ficam somente neste aparelho.</span>
                         </div>
+                        {rollError && (
+                            <p role="alert" className="mb-5 rounded-xl border-2 border-blue-200 bg-blue-50 px-4 py-3 text-[10px] font-bold leading-5 text-blue-800">
+                                {rollError} Tente novamente em um navegador atualizado.
+                            </p>
+                        )}
 
                         <div className="guide-tool-grid grid gap-5 lg:grid-cols-2">
                             <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm">

@@ -150,12 +150,28 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 });
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
-  const worker = await read("public/sw.js");
-  assert.match(worker, /myowndex-shell-v9\.11\.0/);
+  const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
+  assert.match(worker, /myowndex-shell-v9\.11\.1/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
+  assert.match(worker, /then\(\(\) => self\.skipWaiting\(\)\)/);
   assert.match(worker, /myowndex-maskable-512-v91\.png/);
+  assert.match(app, /document\.readyState === "complete"/);
+  assert.match(app, /updateViaCache: "none"/);
+  assert.match(app, /visibilitychange/);
+  assert.match(app, /current\.update\(\)/);
+});
+
+test("Guide rolls expose their secure source, selected mode and local sequence", async () => {
+  const guide = await read("src/components/Guide/TrainerGuide.jsx");
+  assert.match(guide, /Sorteio seguro ativo/);
+  assert.match(guide, /ATTRIBUTE_MODE_LABELS\[attributeResult\.mode\]/);
+  assert.match(guide, /percentResult\.advantage \? "Vantagem · menor de dois" : "Rolagem normal"/);
+  assert.match(guide, /Conferir sequência deste aparelho/);
+  assert.match(guide, /myowndex_guide_roll_history_v1/);
+  assert.match(guide, /últimas 30 rolagens ficam salvas neste aparelho/);
+  assert.match(guide, /nunca troca resultados para interromper uma sequência/);
 });
 
 test("game style and adventure phase use compact tabs with complete help on demand", async () => {

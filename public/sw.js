@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v9.11.0";
+const CACHE_NAME = "myowndex-shell-v9.11.1";
 const CACHE_PREFIX = "myowndex-shell-";
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
@@ -19,7 +19,7 @@ self.addEventListener("install", event => {
       CORE_ASSETS.map(asset => fetch(asset)
         .then(response => response.ok ? cache.put(asset, response) : undefined)
         .catch(() => undefined))
-    ))
+    )).then(() => self.skipWaiting())
   );
 });
 

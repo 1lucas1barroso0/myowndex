@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { formatNumberPtBr } from "../../core/mechanics.js";
+import { readStorage, writeStorage } from "../../core/storage.js";
 import {
     EXPERIENCE_MODES,
     getFumbleSuggestion,
@@ -36,6 +37,27 @@ const ToolLabel = ({ children }) => (
     <span className="mb-2 block text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{children}</span>
 );
 
+const ATTRIBUTE_MODE_LABELS = {
+    normal: "Normal",
+    advantage: "Vantagem",
+    disadvantage: "Desvantagem",
+};
+
+const MAX_ROLL_HISTORY = 30;
+const ROLL_HISTORY_KEY = "myowndex_guide_roll_history_v1";
+
+const normalizeRollHistory = value => Array.isArray(value) ? value
+    .filter(entry => entry && Number.isInteger(entry.sequence) && Array.isArray(entry.values))
+    .map(entry => ({
+        sequence: entry.sequence,
+        kind: entry.kind === "percent" ? "percent" : "attribute",
+        label: String(entry.label || "Rolagem").slice(0, 80),
+        values: entry.values.map(Number).filter(Number.isFinite).slice(0, 3),
+        detail: String(entry.detail || "").slice(0, 120),
+    }))
+    .filter(entry => entry.values.length)
+    .slice(0, MAX_ROLL_HISTORY) : [];
+
 export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
     const [testMode, setTestMode] = useState("normal");
@@ -46,9 +68,23 @@ export default function TrainerGuide({ experienceMode }) {
     const [percentAdvantage, setPercentAdvantage] = useState(false);
     const [percentResult, setPercentResult] = useState(null);
     const [rollError, setRollError] = useState("");
+    const [rollHistory, setRollHistory] = useState([]);
+    const [rollHistoryBooted, setRollHistoryBooted] = useState(false);
+    const rollSequence = useRef(0);
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
+
+    useEffect(() => {
+        const saved = normalizeRollHistory(readStorage(ROLL_HISTORY_KEY, []));
+        setRollHistory(saved);
+        rollSequence.current = saved.reduce((highest, entry) => Math.max(highest, entry.sequence), 0);
+        setRollHistoryBooted(true);
+    }, []);
+
+    useEffect(() => {
+        if (rollHistoryBooted) writeStorage(ROLL_HISTORY_KEY, rollHistory);
+    }, [rollHistory, rollHistoryBooted]);
 
     const visibleSections = useMemo(() => {
         const normalized = query.trim().toLowerCase();
@@ -66,10 +102,24 @@ export default function TrainerGuide({ experienceMode }) {
         );
     }, [query]);
 
+    const rememberRoll = entry => {
+        rollSequence.current += 1;
+        setRollHistory(current => [
+            { ...entry, sequence: rollSequence.current },
+            ...current,
+        ].slice(0, MAX_ROLL_HISTORY));
+    };
+
     const runAttributeTest = () => {
         try {
             const result = rollAttributeTest({ mode: testMode, attribute, opposition });
             setAttributeResult(result.fumble ? { ...result, fumbleSuggestion: getFumbleSuggestion() } : result);
+            rememberRoll({
+                kind: "attribute",
+                label: `Teste de atributo · ${ATTRIBUTE_MODE_LABELS[result.mode]}`,
+                values: result.dice,
+                detail: `Mantidos ${result.kept.join(" + ")} · total ${result.total}`,
+            });
             setRollError("");
         } catch (error) {
             setAttributeResult(null);
@@ -79,10 +129,17 @@ export default function TrainerGuide({ experienceMode }) {
 
     const runPercentTest = () => {
         try {
-            setPercentResult(rollPercentTest({
+            const result = rollPercentTest({
                 chance,
                 advantage: percentAdvantage
-            }));
+            });
+            setPercentResult(result);
+            rememberRoll({
+                kind: "percent",
+                label: result.advantage ? "Teste percentual · Vantagem" : "Teste percentual · Normal",
+                values: result.rolls,
+                detail: `${result.result} contra ${result.chance}% · ${result.success ? "sucesso" : "falha"}`,
+            });
             setRollError("");
         } catch (error) {
             setPercentResult(null);
@@ -114,7 +171,10 @@ export default function TrainerGuide({ experienceMode }) {
                                 <span className="text-[9px] font-black uppercase tracking-[0.22em] text-red-500">Laboratório Rotom</span>
                                 <h3 className="mt-1 text-xl font-black text-slate-800">Rolagens rápidas</h3>
                             </div>
-                            <span className="text-[10px] font-bold text-slate-500">Estas rolagens ficam somente neste aparelho.</span>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="rounded-full border-2 border-cyan-200 bg-cyan-50 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-cyan-800">Sorteio seguro ativo</span>
+                                <span className="text-[10px] font-bold text-slate-500">Estas rolagens ficam somente neste aparelho.</span>
+                            </div>
                         </div>
                         {rollError && (
                             <p role="alert" className="mb-5 rounded-xl border-2 border-blue-200 bg-blue-50 px-4 py-3 text-[10px] font-bold leading-5 text-blue-800">
@@ -156,6 +216,9 @@ export default function TrainerGuide({ experienceMode }) {
                                 {attributeResult && (
                                     <div className="mt-5 rounded-2xl border-2 border-slate-200 bg-slate-50 p-4" aria-live="polite">
                                         <DiceFaces values={attributeResult.dice} kept={attributeResult.kept} />
+                                        <p className="mt-3 text-[9px] font-black uppercase tracking-wider text-cyan-800">
+                                            {ATTRIBUTE_MODE_LABELS[attributeResult.mode]} · dados mantidos {attributeResult.kept.join(" + ")}
+                                        </p>
                                         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                                             <span className="text-xs font-bold text-slate-500">Total <strong className="text-xl text-slate-800">{attributeResult.total}</strong></span>
                                             {attributeResult.critical && <span className="rounded-full bg-emerald-100 px-3 py-1 text-[9px] font-black uppercase text-emerald-700">Crítico</span>}
@@ -185,11 +248,37 @@ export default function TrainerGuide({ experienceMode }) {
                                 {percentResult && (
                                     <div className={`mt-5 rounded-2xl border-2 p-4 ${percentResult.success ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`} aria-live="polite">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{percentResult.rolls.join(" • ")}</p>
+                                        <p className="mt-1 text-[9px] font-black uppercase tracking-wider text-cyan-800">{percentResult.advantage ? "Vantagem · menor de dois" : "Rolagem normal"}</p>
                                         <p className={`mt-1 text-2xl font-black ${percentResult.success ? "text-emerald-700" : "text-red-700"}`}>{percentResult.success ? "Sucesso" : "Falha"} — {percentResult.result}</p>
                                     </div>
                                 )}
                             </div>
                         </div>
+
+                        <details className="mt-5 rounded-2xl border-2 border-cyan-200 bg-cyan-50">
+                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-[10px] font-black text-slate-700">
+                                <span>Conferir sequência deste aparelho</span>
+                                <span className="rounded-full bg-slate-800 px-2.5 py-1 text-[9px] text-cyan-200">{rollHistory.length}</span>
+                            </summary>
+                            <div className="border-t-2 border-cyan-100 px-4 py-3">
+                                <p className="text-[10px] font-bold leading-5 text-slate-600">As últimas 30 rolagens ficam salvas neste aparelho, com os valores brutos e o modo usado. O MyOwnDex nunca troca resultados para interromper uma sequência.</p>
+                                {rollHistory.length ? (
+                                    <ol className="mt-3 space-y-2">
+                                        {rollHistory.map(entry => (
+                                            <li key={entry.sequence} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2">
+                                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                                    <span className="text-[9px] font-black text-slate-600">#{entry.sequence} · {entry.label}</span>
+                                                    <strong className="text-xs text-slate-800">{entry.values.join(" • ")}</strong>
+                                                </div>
+                                                <small className="mt-1 block text-[9px] font-bold text-slate-500">{entry.detail}</small>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                ) : (
+                                    <p className="mt-3 text-[10px] font-bold text-slate-500">A primeira rolagem aparecerá aqui.</p>
+                                )}
+                            </div>
+                        </details>
                     </article>
 
                     <article className="game-panel p-4 sm:p-6">

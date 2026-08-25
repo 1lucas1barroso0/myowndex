@@ -144,6 +144,7 @@ export default function App() {
         if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return undefined;
         let refreshing = false;
         let offeredWorker = null;
+        let registration = null;
         let updateTimer = 0;
         const offerUpdate = worker => {
             if (!worker || offeredWorker === worker) return;
@@ -156,6 +157,7 @@ export default function App() {
             });
         };
         const watchRegistration = current => {
+            registration = current;
             if (current.waiting && navigator.serviceWorker.controller) offerUpdate(current.waiting);
             current.addEventListener("updatefound", () => {
                 const installing = current.installing;
@@ -163,18 +165,31 @@ export default function App() {
                     if (installing.state === "installed" && navigator.serviceWorker.controller) offerUpdate(installing);
                 });
             });
+            current.update().catch(() => {});
             updateTimer = window.setInterval(() => current.update().catch(() => {}), 60 * 60 * 1000);
         };
-        const register = () => navigator.serviceWorker.register("/sw.js").then(watchRegistration).catch(() => {});
+        const register = () => navigator.serviceWorker
+            .register("/sw.js", { updateViaCache: "none" })
+            .then(watchRegistration)
+            .catch(() => {});
+        const checkForUpdate = () => registration?.update().catch(() => {});
+        const onVisible = () => {
+            if (document.visibilityState === "visible") checkForUpdate();
+        };
         const onControllerChange = () => {
             if (refreshing) return;
             refreshing = true;
             window.location.reload();
         };
         navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
-        window.addEventListener("load", register, { once: true });
+        document.addEventListener("visibilitychange", onVisible);
+        window.addEventListener("online", checkForUpdate);
+        if (document.readyState === "complete") register();
+        else window.addEventListener("load", register, { once: true });
         return () => {
             window.removeEventListener("load", register);
+            window.removeEventListener("online", checkForUpdate);
+            document.removeEventListener("visibilitychange", onVisible);
             navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
             window.clearInterval(updateTimer);
         };

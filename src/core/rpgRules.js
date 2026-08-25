@@ -338,13 +338,15 @@ export const rollAttributeTest = ({
     opposition = null,
     random
 } = {}) => {
-    const dice = Array.from({ length: mode === "normal" ? 2 : 3 }, () => rollDie(6, random));
+    const normalizedMode = ["normal", "advantage", "disadvantage"].includes(mode) ? mode : "normal";
+    const dice = Array.from({ length: normalizedMode === "normal" ? 2 : 3 }, () => rollDie(6, random));
     const ordered = [...dice].sort((a, b) => a - b);
-    const kept = mode === "advantage" ? ordered.slice(-2) : mode === "disadvantage" ? ordered.slice(0, 2) : dice;
+    const kept = normalizedMode === "advantage" ? ordered.slice(-2) : normalizedMode === "disadvantage" ? ordered.slice(0, 2) : dice;
     const diceTotal = kept.reduce((sum, value) => sum + value, 0);
     const total = diceTotal + (Number(attribute) || 0);
     const target = opposition === "" || opposition == null ? null : Number(opposition);
     return {
+        mode: normalizedMode,
         dice,
         kept,
         diceTotal,
@@ -361,10 +363,11 @@ export const rollPercentTest = ({
     advantage = false,
     random
 } = {}) => {
-    const rolls = Array.from({ length: advantage ? 2 : 1 }, () => rollDie(100, random));
+    const usesAdvantage = advantage === true;
+    const rolls = Array.from({ length: usesAdvantage ? 2 : 1 }, () => rollDie(100, random));
     const result = Math.min(...rolls);
     const normalizedChance = Math.min(100, Math.max(0, Number(chance) || 0));
-    return { rolls, result, chance: normalizedChance, success: result <= normalizedChance };
+    return { rolls, result, chance: normalizedChance, advantage: usesAdvantage, success: result <= normalizedChance };
 };
 
 export const getRpgScale = (value, isHp = false) => convertToTTRPG(value, isHp);

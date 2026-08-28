@@ -1375,24 +1375,58 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
                                 </span>
                             </div>
-                            <div className="token-hp-control">
-                                <span>HP</span>
-                                <button type="button" disabled={role !== "narrator" || selectedToken.currentHp <= 0} onClick={() => applySelectedDamage()} aria-label="Registrar 1 de dano">−</button>
-                                <strong>{selectedToken.currentHp}/{selectedToken.maxHp}</strong>
-                                <button type="button" disabled={role !== "narrator"} onClick={() => updateToken({ currentHp: Math.min(selectedToken.maxHp, selectedToken.currentHp + 1) })}>+</button>
-                            </div>
-                            <div className={`token-hit-kill-state is-${selectedProtectionState}`}>
-                                <span>Hit Kill</span>
-                                <strong>
-                                    {selectedProtectionState === "lost"
-                                        ? "Perdida por custo próprio"
+                            <div className="token-battle-vitals">
+                                <div className="token-hp-control">
+                                    <span>HP</span>
+                                    <button
+                                        type="button"
+                                        disabled={role !== "narrator" || selectedToken.currentHp <= 0}
+                                        onClick={() => applySelectedDamage()}
+                                        aria-label="Registrar 1 ponto de dano recebido"
+                                        title="Dano recebido"
+                                    >−</button>
+                                    <strong>{selectedToken.currentHp}/{selectedToken.maxHp}</strong>
+                                    <button
+                                        type="button"
+                                        disabled={role !== "narrator"}
+                                        onClick={() => updateToken({ currentHp: Math.min(selectedToken.maxHp, selectedToken.currentHp + 1) })}
+                                        aria-label="Recuperar 1 ponto de HP"
+                                        title="Recuperar HP"
+                                    >+</button>
+                                </div>
+                                <div
+                                    className={`token-hit-kill-state is-${selectedProtectionState}`}
+                                    role="status"
+                                    aria-live="polite"
+                                    aria-label={`Proteção contra hit kill: ${selectedProtectionState === "lost"
+                                        ? "encerrada por autocusto nesta batalha"
                                         : selectedProtectionState === "used"
-                                            ? "Já usada nesta batalha"
-                                            : "Disponível no HP máximo"}
-                                </strong>
+                                            ? "consumida nesta batalha"
+                                            : "pronta para agir no HP máximo"}`}
+                                >
+                                    <i className="token-hit-kill-led" aria-hidden="true" />
+                                    <span className="token-hit-kill-copy">
+                                        <small>Proteção contra hit kill</small>
+                                        <strong>
+                                            {selectedProtectionState === "lost"
+                                                ? "Encerrada por autocusto"
+                                                : selectedProtectionState === "used"
+                                                    ? "Consumida nesta batalha"
+                                                    : "Pronta no HP máximo"}
+                                        </strong>
+                                    </span>
+                                    <span className="token-hit-kill-meter" aria-hidden="true"><i /></span>
+                                </div>
                                 {role === "narrator" && selectedToken.currentHp > 0 && (
-                                    <button type="button" onClick={() => applySelectedDamage({ selfInflicted: true })}>
-                                        Custo próprio −1 HP
+                                    <button
+                                        type="button"
+                                        className="token-self-damage-action"
+                                        onClick={() => applySelectedDamage({ selfInflicted: true })}
+                                        aria-label="Registrar 1 ponto de autocusto; isso encerra a proteção contra hit kill nesta batalha"
+                                        title="Use apenas quando o próprio Pokémon reduzir o próprio HP"
+                                    >
+                                        <span>Registrar autocusto</span>
+                                        <strong>−1 HP</strong>
                                     </button>
                                 )}
                             </div>

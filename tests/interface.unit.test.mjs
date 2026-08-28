@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.13\.0/);
+  assert.match(worker, /myowndex-shell-v9\.13\.1/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -239,10 +239,11 @@ test("the icon-root emphasis contract restores critical rules without hiding con
   assert.match(app, /className="status-notice-close"/);
   assert.doesNotMatch(app, /status-notice[^\n]*bg-white\/70/);
   assert.doesNotMatch(room, /room-live-led/);
-  assert.match(room, /Custo próprio −1 HP/);
+  assert.match(room, /Registrar autocusto/);
+  assert.match(room, /−1 HP/);
   assert.match(room, /Trocar com o banco/);
   assert.match(room, /Fazer a troca/);
-  assert.match(room, /Perdida por custo próprio/);
+  assert.match(room, /Encerrada por autocusto/);
   assert.match(guide, /className="guide-hero-lens"/);
   assert.doesNotMatch(guide, /guide-hero-lens absolute -bottom/);
 
@@ -485,6 +486,25 @@ test("unique Pokémon and exceptional Moves expose state, narrative and automati
   assert.match(mechanics, /O MyOwnDex resolve quando a condição acontece/);
   assert.match(mechanics, /imposter/);
   assert.match(mechanics, /illusion/);
+});
+
+test("the adventure battle screen uses opposing HUDs and keeps hit kill state separate from self-cost", async () => {
+  const [battlefield, room, css] = await Promise.all([
+    read("src/components/Room/Battlefield.jsx"),
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/index.css"),
+  ]);
+  assert.match(battlefield, /battlefield-depth-front/);
+  assert.match(battlefield, /room-token-status-card/);
+  assert.match(battlefield, /room-token-hp-row/);
+  assert.match(battlefield, /aria-pressed=\{isSelected\}/);
+  assert.match(room, /token-battle-vitals/);
+  assert.match(room, /Proteção contra hit kill/);
+  assert.match(room, /Registrar autocusto/);
+  assert.match(room, /token-self-damage-action/);
+  assert.match(css, /\.room-token\.hud-right \.room-token-status-card/);
+  assert.match(css, /\.room-token\.hud-left \.room-token-status-card/);
+  assert.match(css, /\.token-hit-kill-meter/);
 });
 
 test("Abilities and held items expose official context, lifecycle, narrative and vivid contrast", async () => {

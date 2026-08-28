@@ -6,7 +6,12 @@ import {
     applyStageChange,
     calculateStagedStats,
     clearHitKillSurvivalGrace,
+    disableHitKillProtection,
+    getHitKillProtectionKey,
+    getHitKillSurvivalGraceKeys,
+    hasHitKillProtectionDisabled,
     normalizeStageMap,
+    resolveDamageSequence,
     STAGE_LABELS,
     STAGE_STAT_KEYS,
 } from "../../core/automation.js";
@@ -24,6 +29,7 @@ import {
     mergeRoomConflictSnapshot,
     normalizeRoomSnapshot,
     STATUS_LABELS,
+    swapTeamPokemonInSnapshot,
     syncTeamsWithRoomProgress,
 } from "../../core/room.js";
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
@@ -85,6 +91,7 @@ const roundEffectSummary = effect => {
     if (effect.kind === "perish") return `${effect.tokenName} chegou ao fim da contagem de Perish Song e não pode mais batalhar`;
     if (effect.kind === "state") return `${effect.tokenName}: ${effect.sources.join(" e ")}`;
     if (effect.kind === "stage") return `${effect.tokenName}: ${effect.sources.join(" e ")}`;
+    if (effect.protectedFromKnockout) return `${effect.tokenName} sofreu ${formatNumberPtBr(effect.damage)} de dano por ${effect.sources.join(" e ")}, mas consumiu a proteção contra Hit Kill`;
     return `${effect.tokenName} perdeu ${formatNumberPtBr(effect.damage)} HP por ${effect.sources.join(" e ")}${effect.fainted ? " e não pode mais batalhar" : ""}`;
 };
 const roomDate = value => {
@@ -358,7 +365,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const [connection, setConnection] = useState("connecting");
     const [error, setError] = useState("");
     const [selectedTeamId, setSelectedTeamId] = useState(teams[0]?.id || "");
+    const [selectedTeamPokemonId, setSelectedTeamPokemonId] = useState(teams[0]?.pokemon[0]?.id || "");
     const [selectedTokenId, setSelectedTokenId] = useState("");
+    const [selectedBenchTokenId, setSelectedBenchTokenId] = useState("");
     const [mobilePane, setMobilePane] = useState("field");
     const [ending, setEnding] = useState(false);
     const revisionRef = useRef(0);
@@ -371,8 +380,28 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const snapshot = useMemo(() => normalizeRoomSnapshot(room?.snapshot), [room?.snapshot]);
     const role = session?.role || "";
     const selectedTeam = teams.find(team => team.id === selectedTeamId) || teams[0] || null;
+    const selectedTeamPokemon = selectedTeam?.pokemon.find(pokemon => pokemon.id === selectedTeamPokemonId)
+        || selectedTeam?.pokemon[0]
+        || null;
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId) || null;
     const selectedDisplayIdentity = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
+    const selectedBenchTokens = selectedToken
+        ? snapshot.benchTokens.filter(token => token.currentHp > 0 && (
+            token.teamId === selectedToken.teamId
+            || (token.teamShareId && token.teamShareId === selectedToken.teamShareId)
+        ))
+        : [];
+    const selectedBenchToken = selectedBenchTokens.find(token => token.id === selectedBenchTokenId)
+        || selectedBenchTokens[0]
+        || null;
+    const selectedProtectionKey = getHitKillProtectionKey(selectedToken);
+    const selectedProtectionState = selectedToken
+        ? selectedProtectionKey && snapshot.hitKillProtectionUsed.includes(selectedProtectionKey)
+            ? "used"
+            : hasHitKillProtectionDisabled(snapshot.hitKillProtectionDisabled, selectedToken)
+                ? "lost"
+                : "available"
+        : "available";
 
     useEffect(() => {
         snapshotRef.current = snapshot;
@@ -735,16 +764,28 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     };
 
     const addSelectedTeam = async side => {
-        if (!selectedTeam) return;
-        const result = addTeamToSnapshot(snapshot, selectedTeam, side);
+        if (!selectedTeam || !selectedTeamPokemon) return;
+        const result = addTeamToSnapshot(snapshot, selectedTeam, side, "", {
+            activePokemonIds: [selectedTeamPokemon.id],
+            benchRemaining: true,
+        });
+        if (!result.tokens.length && !result.benchTokens.length) {
+            setNotice?.({ tone: "amber", text: `${selectedTeam.name} já está vinculada a esta cena.` });
+            return;
+        }
         commitSnapshot(result.room);
+        if (!result.tokens.length) {
+            await sendEvent("system", { text: `O banco de ${selectedTeam.name} foi preparado para as trocas.` });
+            setNotice?.({ tone: "blue", text: `Reservas de ${selectedTeam.name} prontas no banco.` });
+            return;
+        }
         await sendEvent("system", {
-            text: `${selectedTeam.name} entrou em campo${side === "opponent" ? " no lado dos oponentes" : ""}.`,
+            text: `${selectedTeamPokemon.nickname || formatName(selectedTeamPokemon.species?.species?.name || selectedTeamPokemon.species?.name)} entrou em campo por ${selectedTeam.name}${side === "opponent" ? " no lado dos oponentes" : ""}.`,
         });
         if (result.tokens[0]) setSelectedTokenId(result.tokens[0].id);
     };
 
-    const updateToken = patch => {
+    const updateToken = (patch, { selfInflictedHpLoss = false } = {}) => {
         if (!selectedToken || role !== "narrator") return;
         const nextToken = { ...selectedToken, ...patch };
         const specialState = normalizeSpecialState(nextToken.specialState);
@@ -753,6 +794,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         commitSnapshot({
             ...snapshot,
             tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
+            hitKillProtectionDisabled: lostHp && selfInflictedHpLoss
+                ? disableHitKillProtection(snapshot.hitKillProtectionDisabled, selectedToken)
+                : snapshot.hitKillProtectionDisabled,
             hitKillSurvivalGrace: lostHp
                 ? clearHitKillSurvivalGrace(snapshot.hitKillSurvivalGrace, selectedToken)
                 : snapshot.hitKillSurvivalGrace,
@@ -778,6 +822,58 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 : team
             ));
         }
+    };
+
+    const applySelectedDamage = ({ selfInflicted = false } = {}) => {
+        if (!selectedToken || role !== "narrator" || selectedToken.currentHp <= 0) return;
+        if (selfInflicted) {
+            updateToken(
+                { currentHp: Math.max(0, selectedToken.currentHp - 1) },
+                { selfInflictedHpLoss: true },
+            );
+            return;
+        }
+        const key = getHitKillProtectionKey(selectedToken);
+        const resolved = resolveDamageSequence({
+            token: selectedToken,
+            hitDamages: [{ damage: 1, hitNumber: 1 }],
+            round: snapshot.round,
+            protectionUsed: Boolean(key && snapshot.hitKillProtectionUsed.includes(key)),
+            protectionDisabled: hasHitKillProtectionDisabled(snapshot.hitKillProtectionDisabled, selectedToken),
+            survivalGrace: getHitKillSurvivalGraceKeys(selectedToken).some(graceKey => snapshot.hitKillSurvivalGrace.includes(graceKey)),
+            allowSurvivalTrait: false,
+        });
+        const hitKillProtectionUsed = resolved.protectionConsumed && key
+            ? [...new Set([...snapshot.hitKillProtectionUsed, key])]
+            : snapshot.hitKillProtectionUsed;
+        const hitKillSurvivalGrace = resolved.survivalGraceRemaining
+            ? [...new Set([
+                ...clearHitKillSurvivalGrace(snapshot.hitKillSurvivalGrace, selectedToken),
+                ...getHitKillSurvivalGraceKeys(resolved.token || selectedToken),
+            ])]
+            : clearHitKillSurvivalGrace(snapshot.hitKillSurvivalGrace, selectedToken);
+        commitSnapshot({
+            ...snapshot,
+            tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? resolved.token : token),
+            hitKillProtectionUsed,
+            hitKillSurvivalGrace,
+        });
+    };
+
+    const swapSelectedPokemon = () => {
+        if (!selectedToken || !selectedBenchToken || role !== "narrator") return;
+        const synchronizedTeams = syncTeamsWithRoomProgress(teams, snapshot);
+        const result = swapTeamPokemonInSnapshot(snapshot, selectedToken.id, selectedBenchToken.id);
+        if (!result.swapped) {
+            setNotice?.({ tone: "amber", text: result.reason });
+            return;
+        }
+        setTeams(synchronizedTeams);
+        commitSnapshot(result.room);
+        setSelectedTokenId(result.incoming.id);
+        setSelectedBenchTokenId(result.outgoing.id);
+        setNotice?.({ tone: "blue", text: `${result.outgoing.name} voltou para a equipe e ${result.incoming.name} entrou em campo.` });
+        void sendEvent("system", { text: `${result.outgoing.name} voltou e ${result.incoming.name} entrou em campo.` });
     };
 
     const replaceSelectedToken = nextToken => {
@@ -997,7 +1093,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         const incoming = normalizeTeam(event.payload.team);
         const merged = mergeImportedTeam(teams, incoming);
         setTeams(merged.teams);
-        const result = addTeamToSnapshot(snapshot, merged.team, "ally", event.playerId || "");
+        const lead = merged.team.pokemon.find(pokemon => (pokemon.rpg?.currentHp ?? 1) > 0) || merged.team.pokemon[0];
+        const result = addTeamToSnapshot(snapshot, merged.team, "ally", event.playerId || "", {
+            activePokemonIds: lead ? [lead.id] : [],
+            benchRemaining: true,
+        });
         commitSnapshot(result.room);
         await sendEvent("team-accepted", {
             offerId: event.id,
@@ -1152,9 +1252,31 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         </div>
                         {teams.length ? (
                             <>
-                                <select className="room-wide-select" value={selectedTeam?.id || ""} onChange={event => setSelectedTeamId(event.target.value)}>
+                                <select
+                                    className="room-wide-select"
+                                    value={selectedTeam?.id || ""}
+                                    onChange={event => {
+                                        const nextTeam = teams.find(team => team.id === event.target.value);
+                                        setSelectedTeamId(event.target.value);
+                                        setSelectedTeamPokemonId(nextTeam?.pokemon[0]?.id || "");
+                                    }}
+                                >
                                     {teams.map(team => <option key={team.id} value={team.id}>{team.name} • {team.pokemon.length}/6</option>)}
                                 </select>
+                                <label className="room-team-lead">
+                                    <span>Quem entra em campo</span>
+                                    <select
+                                        className="room-wide-select"
+                                        value={selectedTeamPokemon?.id || ""}
+                                        onChange={event => setSelectedTeamPokemonId(event.target.value)}
+                                    >
+                                        {selectedTeam?.pokemon.map(pokemon => (
+                                            <option key={pokemon.id} value={pokemon.id}>
+                                                {pokemon.nickname || formatName(pokemon.species?.species?.name || pokemon.species?.name)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
                                 <div className="room-mini-team">
                                     {selectedTeam?.pokemon.map(pokemon => (
                                         <span key={pokemon.id} title={pokemon.nickname || pokemon.species?.name}>
@@ -1165,8 +1287,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 </div>
                                 {role === "narrator" ? (
                                     <div className="room-button-row">
-                                        <button type="button" onClick={() => addSelectedTeam("ally")}>Levar como aliados</button>
-                                        <button type="button" onClick={() => addSelectedTeam("opponent")}>Levar como oponentes</button>
+                                        <button type="button" disabled={!selectedTeamPokemon} onClick={() => addSelectedTeam("ally")}>Entrar como aliado</button>
+                                        <button type="button" disabled={!selectedTeamPokemon} onClick={() => addSelectedTeam("opponent")}>Entrar como oponente</button>
                                     </div>
                                 ) : (
                                     <button type="button" className="room-secondary-button" disabled={!selectedTeam?.pokemon.length} onClick={offerTeam}>Enviar ao Narrador</button>
@@ -1255,9 +1377,24 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                             </div>
                             <div className="token-hp-control">
                                 <span>HP</span>
-                                <button type="button" disabled={role !== "narrator"} onClick={() => updateToken({ currentHp: Math.max(0, selectedToken.currentHp - 1) })}>−</button>
+                                <button type="button" disabled={role !== "narrator" || selectedToken.currentHp <= 0} onClick={() => applySelectedDamage()} aria-label="Registrar 1 de dano">−</button>
                                 <strong>{selectedToken.currentHp}/{selectedToken.maxHp}</strong>
                                 <button type="button" disabled={role !== "narrator"} onClick={() => updateToken({ currentHp: Math.min(selectedToken.maxHp, selectedToken.currentHp + 1) })}>+</button>
+                            </div>
+                            <div className={`token-hit-kill-state is-${selectedProtectionState}`}>
+                                <span>Hit Kill</span>
+                                <strong>
+                                    {selectedProtectionState === "lost"
+                                        ? "Perdida por custo próprio"
+                                        : selectedProtectionState === "used"
+                                            ? "Já usada nesta batalha"
+                                            : "Disponível no HP máximo"}
+                                </strong>
+                                {role === "narrator" && selectedToken.currentHp > 0 && (
+                                    <button type="button" onClick={() => applySelectedDamage({ selfInflicted: true })}>
+                                        Custo próprio −1 HP
+                                    </button>
+                                )}
                             </div>
                             <div className="token-xp-control">
                                 <span>XP</span>
@@ -1284,6 +1421,18 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     {Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                                 </select>
                             </label>
+                            {role === "narrator" && selectedBenchToken && (
+                                <div className="token-switch-control">
+                                    <label>
+                                        <span>Trocar com o banco</span>
+                                        <select value={selectedBenchToken.id} onChange={event => setSelectedBenchTokenId(event.target.value)}>
+                                            {selectedBenchTokens.map(token => <option key={token.id} value={token.id}>{token.name} • {token.currentHp}/{token.maxHp} HP</option>)}
+                                        </select>
+                                    </label>
+                                    <button type="button" onClick={swapSelectedPokemon}>Fazer a troca</button>
+                                    <small>HP, condição, PP, item consumido e proteção contra Hit Kill continuam vinculados ao próprio Pokémon.</small>
+                                </div>
+                            )}
                             {selectedToken.volatileEffects?.length > 0 && (
                                 <div className="token-volatile-list" aria-label="Efeitos temporários ativos">
                                     {selectedToken.volatileEffects.map(effect => (

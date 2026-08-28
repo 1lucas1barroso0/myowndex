@@ -315,7 +315,7 @@ export default function TrainerGuide({ experienceMode }) {
                                 <span aria-hidden="true">◆</span>
                                 <div>
                                     <strong>Proteção contra Hit Kill</strong>
-                                    <p>É uma verificação separada e única por batalha: partindo do HP máximo, dano fatal abaixo de três vezes esse máximo deixa 1 HP. Crítico do atacante, erro crítico do defensor e nocaute direto atravessam a regra; Sturdy e Focus Sash continuam como proteções adicionais.</p>
+                                    <p>É uma verificação separada e única por batalha: no HP máximo, dano fatal abaixo de três vezes esse máximo deixa 1 HP. Multi-hit e dano indireto são resolvidos impacto por impacto; custo de HP próprio encerra a proteção. Crítico do atacante, erro crítico do defensor e nocaute direto atravessam a regra.</p>
                                 </div>
                             </article>
                         </div>

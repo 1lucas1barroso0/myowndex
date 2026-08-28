@@ -147,15 +147,18 @@ export const RPG_RULE_SECTIONS = [
                 id: "3.4",
                 title: "Proteção contra hit kill",
                 bullets: [
-                    "A proteção só pode agir quando um único movimento ofensivo derrubaria um alvo que estava com o HP máximo. Se o dano for menor que três vezes o HP máximo, o alvo permanece com 1 HP.",
+                    "A proteção só pode agir quando uma instância real de dano derrubaria um alvo que estava com o HP máximo. Se o dano for menor que três vezes o HP máximo, o alvo permanece com 1 HP.",
                     "Cada Pokémon recebe essa proteção uma única vez por batalha. Depois de ativada, trocar o Pokémon, curá-lo ou levá-lo novamente ao HP máximo não restaura o uso; qualquer dano fatal posterior pode derrotá-lo normalmente.",
-                    "Dano recebido abaixo do HP máximo não ativa a proteção. Dano não fatal também não consome o uso.",
+                    "Somente dano realmente causado conta. Erro, imunidade, bloqueio, tentativa falha ou impacto absorvido por Substitute não ativam, gastam nem removem a proteção.",
+                    "Dano recebido abaixo do HP máximo não ativa a proteção. Dano não fatal também não consome o uso; se o Pokémon voltar ao HP máximo sem ter usado ou perdido a proteção, ela continua disponível.",
+                    "Quando o próprio Pokémon paga HP, sofre recuo ou reduz o próprio HP por movimento, habilidade ou item, perde a proteção geral até o fim daquela batalha. Cura, troca e retorno ao campo não revertem essa perda.",
                     "Ao entrar em uma nova fase de Batalha, o MyOwnDex limpa automaticamente o registro da batalha anterior. Durante a batalha, o uso acompanha o próprio Pokémon mesmo que ele saia e volte à cena.",
                     "Acertos críticos do atacante, erros críticos do defensor e movimentos que declaram nocaute direto ignoram essa proteção geral.",
                     "Sturdy, Focus Sash e efeitos equivalentes são proteções próprias e adicionais. Quando a proteção geral age primeiro, ela não ativa nem consome esses efeitos; o MyOwnDex preserva a elegibilidade que eles possuíam antes do golpe.",
                     "Essa elegibilidade preservada vale até o próximo dano que realmente alcançar o Pokémon. Nesse dano, um efeito apto pode manter 1 HP; aplicado ou não, qualquer dano posterior encerra a preservação. Cura, troca e retorno à cena não recriam a proteção geral já consumida.",
                     "Se o primeiro dano deixar 1 HP ou mais naturalmente, a proteção geral não age e não preserva uma chance adicional para Sturdy, Focus Sash ou efeitos equivalentes.",
-                    "Movimentos de múltiplos acertos somam todos os golpes como um único movimento para essa comparação. Dano residual, clima, terreno e condições são resolvidos separadamente.",
+                    "Movimentos de múltiplos acertos são resolvidos hit por hit. Um hit pode consumir a proteção geral, o próximo pode acionar uma proteção própria ainda elegível e outro pode derrotar normalmente.",
+                    "Dano residual, clima, terreno, condições e outras fontes indiretas são resolvidos uma a uma. Uma fonte que cause dano pode ativar ou romper a proteção geral; efeitos próprios como Sturdy e Focus Sash só agem quando suas próprias regras permitirem.",
                     "Substitutos e efeitos especiais recebem primeiro o tratamento próprio; a proteção só é verificada no dano que realmente alcança o Pokémon.",
                 ]
             },
@@ -167,7 +170,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.6",
                 title: "Posicionamento e espaço",
-                body: "O jogo não exige um tabuleiro quadriculado. As distâncias são narrativas: Perto, Longe e Muito Longe. Área, alcance, cenário e Velocidade são interpretados conforme a cena."
+                body: "O jogo não exige um tabuleiro quadriculado. As distâncias são narrativas: Perto, Longe e Muito Longe. Área, alcance, cenário e Velocidade são interpretados conforme a cena. Na Central da Aventura, uma equipe entra com o Pokémon escolhido e mantém os demais no banco; a troca preserva HP, condição, PP, itens consumidos e o histórico da proteção contra hit kill."
             }
         ]
     },
@@ -252,7 +255,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.2",
                 title: "Dano contínuo e indireto",
-                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente do movimento ofensivo. Eles não ativam a proteção contra hit kill. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia; também avança Bocejo, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song, registrando cada mudança no Diário."
+                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente e fonte por fonte. Dano positivo pode ativar ou romper a proteção contra hit kill; custo próprio de HP a torna indisponível naquele combate. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia; também avança Bocejo, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song, registrando cada mudança no Diário."
             },
             {
                 id: "6.3",

@@ -13,6 +13,7 @@ import {
   normalizeRoomSnapshot,
   ROOM_PHASES,
   ROOM_SCENARIOS,
+  swapTeamPokemonInSnapshot,
   syncTeamsWithRoomProgress,
 } from "../src/core/room.js";
 import { EXPERIENCE_MODES } from "../src/core/rpgRules.js";
@@ -83,23 +84,28 @@ test("room snapshots normalize phases, scenes and unsafe token positions", () =>
 
 test("a new battle resets hit kill use while healing and other phases do not", () => {
   const used = ["pokemon:team-a:pokemon-a"];
+  const disabled = ["pokemon:team-b:pokemon-b"];
   const grace = ["pokemon:team-a:pokemon-a::survival-trait:ability:sturdy"];
   const battle = normalizeRoomSnapshot({
     ...createRoomSnapshot("Uso único"),
     phase: "batalha",
     hitKillProtectionUsed: used,
+    hitKillProtectionDisabled: disabled,
     hitKillSurvivalGrace: grace,
   });
   const healed = normalizeRoomSnapshot({ ...battle, tokens: [{ id: "one", maxHp: 10, currentHp: 10 }] });
   assert.deepEqual(healed.hitKillProtectionUsed, used);
+  assert.deepEqual(healed.hitKillProtectionDisabled, disabled);
   assert.deepEqual(healed.hitKillSurvivalGrace, grace);
 
   const interpretation = changeRoomPhase(healed, "interpretacao");
   assert.deepEqual(interpretation.hitKillProtectionUsed, used);
+  assert.deepEqual(interpretation.hitKillProtectionDisabled, disabled);
   assert.deepEqual(interpretation.hitKillSurvivalGrace, grace);
 
   const nextBattle = changeRoomPhase(interpretation, "batalha");
   assert.deepEqual(nextBattle.hitKillProtectionUsed, []);
+  assert.deepEqual(nextBattle.hitKillProtectionDisabled, []);
   assert.deepEqual(nextBattle.hitKillSurvivalGrace, []);
 });
 
@@ -148,6 +154,63 @@ test("adding a Box creates linked battlefield tokens with calculated RPG stats",
   assert.equal(result.tokens[0].xp, 2.5);
   assert.ok(result.tokens[0].maxHp >= 1);
   assert.ok(result.tokens[0].stats.speed >= 0);
+});
+
+test("a team keeps reserves off field and swaps them without resetting battle history", () => {
+  const swapTeam = normalizeTeam({
+    ...team,
+    id: "box-swap",
+    shareId: "box-swap",
+    pokemon: [
+      { ...team.pokemon[0], id: "partner-one", item: "focus-sash" },
+      { ...team.pokemon[0], id: "partner-two", nickname: "Reserva", item: "leftovers" },
+    ],
+  });
+  const created = addTeamToSnapshot(createRoomSnapshot("Troca"), swapTeam, "ally", "player-one", {
+    activePokemonIds: ["partner-one"],
+    benchRemaining: true,
+  });
+  assert.equal(created.room.tokens.length, 1);
+  assert.equal(created.room.benchTokens.length, 1);
+  const active = {
+    ...created.room.tokens[0],
+    currentHp: 1,
+    status: "burn",
+    item: "",
+    traitState: {
+      item: { originalId: "focus-sash", consumed: true, consumedRound: 1, consumedReason: "teste" },
+      ability: { id: created.room.tokens[0].ability, suppressed: false },
+      markers: ["choice-lock:ember"],
+      history: [],
+    },
+    x: 31,
+    y: 68,
+  };
+  const before = normalizeRoomSnapshot({
+    ...created.room,
+    tokens: [active],
+    initiative: [active.id],
+    hitKillProtectionUsed: ["pokemon:box-swap:partner-one"],
+    hitKillProtectionDisabled: ["pokemon:box-swap:partner-two"],
+  });
+  const firstSwap = swapTeamPokemonInSnapshot(before, active.id, created.room.benchTokens[0].id);
+  assert.equal(firstSwap.swapped, true);
+  assert.equal(firstSwap.incoming.pokemonId, "partner-two");
+  assert.equal(firstSwap.incoming.x, 31);
+  assert.equal(firstSwap.incoming.y, 68);
+  assert.deepEqual(firstSwap.room.initiative, [firstSwap.incoming.id]);
+  assert.deepEqual(firstSwap.room.hitKillProtectionUsed, before.hitKillProtectionUsed);
+  assert.deepEqual(firstSwap.room.hitKillProtectionDisabled, before.hitKillProtectionDisabled);
+
+  const secondSwap = swapTeamPokemonInSnapshot(firstSwap.room, firstSwap.incoming.id, firstSwap.outgoing.id);
+  const returned = secondSwap.incoming;
+  assert.equal(secondSwap.swapped, true);
+  assert.equal(returned.pokemonId, "partner-one");
+  assert.equal(returned.currentHp, 1);
+  assert.equal(returned.status, "burn");
+  assert.equal(returned.item, "");
+  assert.equal(returned.traitState.item.consumed, true);
+  assert.equal(returned.traitState.markers.some(marker => marker.startsWith("choice-lock:")), false);
 });
 
 test("battle progress returns to the linked Box without erasing journey details", () => {
@@ -255,9 +318,60 @@ test("end-of-round residual damage is separate from hit kill protection and stay
   const result = applyEndOfRoundEffects(snapshot);
   assert.equal(result.room.tokens.find(token => token.id === "burned").currentHp, 0);
   assert.equal(result.room.tokens.find(token => token.id === "poisoned").currentHp, 0);
+  assert.equal(result.effects.length, 3);
+  assert.deepEqual(result.effects.slice(0, 2).map(effect => effect.sources[0]), ["queimadura", "tempestade de areia"]);
+  assert.equal(result.effects[1].fainted, true);
+});
+
+test("indirect sources resolve one by one and only positive damage can break protection", () => {
+  const snapshot = createRoomSnapshot("Dano indireto sequencial");
+  snapshot.weather = "areia";
+  snapshot.tokens = [{
+    id: "fragile",
+    name: "Frágil",
+    teamId: "team-indirect",
+    pokemonId: "pokemon-indirect",
+    maxHp: 1,
+    currentHp: 1,
+    status: "burn",
+    ability: "sturdy",
+    item: "focus-sash",
+    types: ["normal"],
+    stats: {},
+    originalStats: {},
+  }];
+  const result = applyEndOfRoundEffects(snapshot);
+  const token = result.room.tokens[0];
+  assert.equal(token.currentHp, 0);
+  assert.equal(token.item, "focus-sash", "indirect damage does not invent a Focus Sash activation");
   assert.equal(result.effects.length, 2);
-  assert.deepEqual(result.effects[0].sources, ["queimadura", "tempestade de areia"]);
-  assert.equal(result.effects[0].fainted, true);
+  assert.equal(result.effects[0].protectedFromKnockout, true);
+  assert.equal(result.effects[1].fainted, true);
+  assert.equal(result.room.hitKillProtectionUsed.length, 1);
+  assert.deepEqual(result.room.hitKillSurvivalGrace, []);
+});
+
+test("self-inflicted end-round HP loss permanently disables general protection", () => {
+  const snapshot = createRoomSnapshot("Custo próprio");
+  snapshot.weather = "sol";
+  snapshot.tokens = [{
+    id: "solar",
+    name: "Solar",
+    teamId: "team-self",
+    pokemonId: "pokemon-self",
+    maxHp: 16,
+    currentHp: 16,
+    status: "",
+    ability: "solar-power",
+    item: "",
+    types: ["fire"],
+    stats: {},
+    originalStats: {},
+  }];
+  const result = applyEndOfRoundEffects(snapshot);
+  assert.equal(result.room.tokens[0].currentHp, 14);
+  assert.deepEqual(result.room.hitKillProtectionDisabled, ["pokemon:team-self:pokemon-self"]);
+  assert.deepEqual(result.room.hitKillProtectionUsed, []);
 });
 
 test("residual damage clears preserved Sturdy or Focus Sash eligibility", () => {

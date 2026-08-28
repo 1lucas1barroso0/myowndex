@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.12\.1/);
+  assert.match(worker, /myowndex-shell-v9\.13\.0/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -239,6 +239,10 @@ test("the icon-root emphasis contract restores critical rules without hiding con
   assert.match(app, /className="status-notice-close"/);
   assert.doesNotMatch(app, /status-notice[^\n]*bg-white\/70/);
   assert.doesNotMatch(room, /room-live-led/);
+  assert.match(room, /Custo próprio −1 HP/);
+  assert.match(room, /Trocar com o banco/);
+  assert.match(room, /Fazer a troca/);
+  assert.match(room, /Perdida por custo próprio/);
   assert.match(guide, /className="guide-hero-lens"/);
   assert.doesNotMatch(guide, /guide-hero-lens absolute -bottom/);
 
@@ -523,5 +527,8 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(rules, /três vezes o HP máximo/);
   assert.match(rules, /uma única vez por batalha/);
   assert.match(rules, /trocar o Pokémon, curá-lo ou levá-lo novamente ao HP máximo não restaura/);
+  assert.match(rules, /Movimentos de múltiplos acertos são resolvidos hit por hit/);
+  assert.match(rules, /Somente dano realmente causado conta/);
+  assert.match(rules, /reduz o próprio HP/);
   assert.match(rules, /Acertos críticos superam o limite de dano/);
 });

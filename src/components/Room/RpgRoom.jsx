@@ -5,6 +5,7 @@ import {
     accuracyStageMultiplier,
     applyStageChange,
     calculateStagedStats,
+    clearHitKillSurvivalGrace,
     normalizeStageMap,
     STAGE_LABELS,
     STAGE_STAT_KEYS,
@@ -14,6 +15,7 @@ import {
     advanceInitiative,
     applyEndOfRoundEffects,
     buildInitiative,
+    changeRoomPhase,
     compactTeamOffer,
     createTokenFromPokemon,
     createRoomSnapshot,
@@ -746,9 +748,14 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         if (!selectedToken || role !== "narrator") return;
         const nextToken = { ...selectedToken, ...patch };
         const specialState = normalizeSpecialState(nextToken.specialState);
+        const lostHp = Object.hasOwn(patch, "currentHp")
+            && Number(nextToken.currentHp) < Number(selectedToken.currentHp);
         commitSnapshot({
             ...snapshot,
             tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
+            hitKillSurvivalGrace: lostHp
+                ? clearHitKillSurvivalGrace(snapshot.hitKillSurvivalGrace, selectedToken)
+                : snapshot.hitKillSurvivalGrace,
         });
         if (nextToken.pokemonId) {
             setTeams(current => current.map(team => team.id === nextToken.teamId
@@ -1210,7 +1217,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <AdventurePhaseControl
                             value={snapshot.phase}
                             readOnly={role !== "narrator"}
-                            onChange={phase => commitSnapshot({ ...snapshot, phase })}
+                            onChange={phase => commitSnapshot(changeRoomPhase(snapshot, phase))}
                         />
                         <div className="room-scene-stats" aria-label="Resumo da cena">
                             <div>

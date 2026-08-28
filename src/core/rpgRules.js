@@ -69,6 +69,7 @@ export const RPG_RULE_SECTIONS = [
                     "Acerto crítico: obtenha 6 e 6 nos dados mantidos; o resultado funciona como um golpe crítico dos jogos.",
                     "Acertos críticos superam o limite de dano por nível e a proteção contra hit kill.",
                     "Erro crítico: obtenha 1 e 1 nos dados mantidos; o MyOwnDex sugere uma consequência, e Narrador e jogadores escolhem a que respeita melhor a cena.",
+                    "Quando o defensor obtém um erro crítico em uma disputa vencida pelo atacante, o dano também pode atravessar a proteção contra hit kill.",
                     ...FUMBLE_SUGGESTIONS,
                 ]
             },
@@ -146,9 +147,14 @@ export const RPG_RULE_SECTIONS = [
                 id: "3.4",
                 title: "Proteção contra hit kill",
                 bullets: [
-                    "Se um único movimento ofensivo fosse derrubar um alvo que estava com HP positivo, o dano precisa alcançar pelo menos três vezes o HP atual desse alvo.",
-                    "Abaixo desse valor, o dano é registrado normalmente, mas o alvo permanece com 1 HP.",
-                    "Acertos críticos e movimentos que declaram nocaute direto ignoram essa proteção.",
+                    "A proteção só pode agir quando um único movimento ofensivo derrubaria um alvo que estava com o HP máximo. Se o dano for menor que três vezes o HP máximo, o alvo permanece com 1 HP.",
+                    "Cada Pokémon recebe essa proteção uma única vez por batalha. Depois de ativada, trocar o Pokémon, curá-lo ou levá-lo novamente ao HP máximo não restaura o uso; qualquer dano fatal posterior pode derrotá-lo normalmente.",
+                    "Dano recebido abaixo do HP máximo não ativa a proteção. Dano não fatal também não consome o uso.",
+                    "Ao entrar em uma nova fase de Batalha, o MyOwnDex limpa automaticamente o registro da batalha anterior. Durante a batalha, o uso acompanha o próprio Pokémon mesmo que ele saia e volte à cena.",
+                    "Acertos críticos do atacante, erros críticos do defensor e movimentos que declaram nocaute direto ignoram essa proteção geral.",
+                    "Sturdy, Focus Sash e efeitos equivalentes são proteções próprias e adicionais. Quando a proteção geral age primeiro, ela não ativa nem consome esses efeitos; o MyOwnDex preserva a elegibilidade que eles possuíam antes do golpe.",
+                    "Essa elegibilidade preservada vale até o próximo dano que realmente alcançar o Pokémon. Nesse dano, um efeito apto pode manter 1 HP; aplicado ou não, qualquer dano posterior encerra a preservação. Cura, troca e retorno à cena não recriam a proteção geral já consumida.",
+                    "Se o primeiro dano deixar 1 HP ou mais naturalmente, a proteção geral não age e não preserva uma chance adicional para Sturdy, Focus Sash ou efeitos equivalentes.",
                     "Movimentos de múltiplos acertos somam todos os golpes como um único movimento para essa comparação. Dano residual, clima, terreno e condições são resolvidos separadamente.",
                     "Substitutos e efeitos especiais recebem primeiro o tratamento próprio; a proteção só é verificada no dano que realmente alcança o Pokémon.",
                 ]

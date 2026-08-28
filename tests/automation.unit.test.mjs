@@ -319,6 +319,181 @@ test("critical bypasses only the general rule while an independent survival trai
   assert.deepEqual(result.hitKillSurvivalGrace, []);
 });
 
+test("multi-hit damage resolves each real hit and can break the general protection in the same move", () => {
+  const result = applyMoveConsequences({
+    tokens: [attacker, defender],
+    attackerId: attacker.id,
+    defenderId: defender.id,
+    move: { name: "double-slap", pp: 10, damage_class: { name: "physical" }, meta: {} },
+    resolution: {
+      hit: true,
+      damage: 20,
+      damagePerHit: 10,
+      hitCount: 2,
+      attackTest: {},
+      defenseTest: {},
+    },
+  });
+  const target = result.tokens.find(token => token.id === defender.id);
+  assert.equal(target.currentHp, 0);
+  assert.equal(result.consequences.hitKillProtected, true);
+  assert.deepEqual(result.consequences.hitKillProtectedHits, [1]);
+  assert.equal(result.consequences.faintedOnHit, 2);
+  assert.equal(result.consequences.damage, 10);
+});
+
+test("a three-hit move can use general protection, then Focus Sash, then knock out", () => {
+  const protectedDefender = {
+    ...defender,
+    teamId: "team-chain",
+    pokemonId: "pokemon-chain",
+    item: "focus-sash",
+  };
+  const result = applyMoveConsequences({
+    tokens: [attacker, protectedDefender],
+    attackerId: attacker.id,
+    defenderId: protectedDefender.id,
+    move: { name: "triple-kick", pp: 10, damage_class: { name: "physical" }, meta: {} },
+    resolution: {
+      hit: true,
+      damage: 30,
+      damagePerHit: 10,
+      hitCount: 3,
+      attackTest: {},
+      defenseTest: {},
+    },
+  });
+  const target = result.tokens.find(token => token.id === protectedDefender.id);
+  assert.equal(target.currentHp, 0);
+  assert.equal(target.item, "");
+  assert.deepEqual(result.consequences.hitKillProtectedHits, [1]);
+  assert.deepEqual(result.consequences.traitProtectedHits, [2]);
+  assert.equal(result.consequences.faintedOnHit, 3);
+  assert.deepEqual(result.consequences.consumedItems, ["focus-sash"]);
+});
+
+test("a naturally nonfatal first hit gives no free protection to a later hit", () => {
+  const protectedDefender = { ...defender, item: "focus-sash" };
+  const result = applyMoveConsequences({
+    tokens: [attacker, protectedDefender],
+    attackerId: attacker.id,
+    defenderId: protectedDefender.id,
+    move: { name: "double-hit", pp: 10, damage_class: { name: "physical" }, meta: {} },
+    resolution: {
+      hit: true,
+      damage: 12,
+      damagePerHit: 6,
+      hitCount: 2,
+      attackTest: {},
+      defenseTest: {},
+    },
+  });
+  const target = result.tokens.find(token => token.id === protectedDefender.id);
+  assert.equal(target.currentHp, 0);
+  assert.equal(target.item, "focus-sash");
+  assert.deepEqual(result.hitKillProtectionUsed, []);
+  assert.deepEqual(result.consequences.hitKillProtectedHits, []);
+  assert.deepEqual(result.consequences.traitProtectedHits, []);
+});
+
+test("a multi-hit move only checks protection on hits that really pass the Substitute", () => {
+  const substituted = {
+    ...defender,
+    volatileEffects: [{ id: "substitute", amount: 5 }],
+  };
+  const result = applyMoveConsequences({
+    tokens: [attacker, substituted],
+    attackerId: attacker.id,
+    defenderId: substituted.id,
+    move: { name: "double-hit", pp: 10, damage_class: { name: "physical" }, meta: {} },
+    resolution: {
+      hit: true,
+      damage: 12,
+      damagePerHit: 6,
+      hitCount: 2,
+      attackTest: {},
+      defenseTest: {},
+    },
+  });
+  const target = result.tokens.find(token => token.id === substituted.id);
+  assert.equal(target.currentHp, 4);
+  assert.equal(target.volatileEffects.some(effect => effect.id === "substitute"), false);
+  assert.equal(result.consequences.substituteDamage, 5);
+  assert.equal(result.consequences.calculatedDamage, 6);
+  assert.deepEqual(result.hitKillProtectionUsed, []);
+});
+
+test("only HP actually paid by the user disables its protection for the whole battle", () => {
+  const recoilUser = {
+    ...defender,
+    id: "recoil-user",
+    teamId: "team-self",
+    pokemonId: "pokemon-self",
+    moves: ["take-down", "", "", ""],
+  };
+  const target = { ...defender, id: "recoil-target", currentHp: 9 };
+  const recoil = applyMoveConsequences({
+    tokens: [recoilUser, target],
+    attackerId: recoilUser.id,
+    defenderId: target.id,
+    move: { name: "take-down", pp: 20, damage_class: { name: "physical" }, meta: { drain: -100 } },
+    resolution: { hit: true, damage: 1, damagePerHit: 1, hitCount: 1, attackTest: {}, defenseTest: {} },
+  });
+  const key = getHitKillProtectionKey(recoilUser);
+  assert.equal(recoil.tokens.find(token => token.id === recoilUser.id).currentHp, 9);
+  assert.deepEqual(recoil.hitKillProtectionDisabled, [key]);
+
+  const healed = recoil.tokens.map(token => token.id === recoilUser.id ? { ...token, currentHp: token.maxHp } : token);
+  const fatal = applyMoveConsequences({
+    tokens: healed,
+    attackerId: target.id,
+    defenderId: recoilUser.id,
+    move: { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} },
+    resolution: { hit: true, damage: 10, damagePerHit: 10, hitCount: 1, attackTest: {}, defenseTest: {} },
+    hitKillProtectionDisabled: recoil.hitKillProtectionDisabled,
+    consumePp: false,
+  });
+  assert.equal(fatal.tokens.find(token => token.id === recoilUser.id).currentHp, 0);
+  assert.equal(fatal.consequences.hitKillProtected, false);
+
+  const failedSubstitute = applyMoveConsequences({
+    tokens: [{ ...recoilUser, currentHp: 1, maxHp: 4 }],
+    attackerId: recoilUser.id,
+    move: { name: "substitute", pp: 10, damage_class: { name: "status" }, meta: {} },
+    resolution: { moveConnected: true, damageHit: false, damage: 0 },
+  });
+  assert.deepEqual(failedSubstitute.hitKillProtectionDisabled, []);
+});
+
+test("a failed attempt changes nothing unless the move actually causes crash damage", () => {
+  const user = {
+    ...defender,
+    id: "attempt-user",
+    teamId: "team-attempt",
+    pokemonId: "pokemon-attempt",
+  };
+  const missed = applyMoveConsequences({
+    tokens: [user, attacker],
+    attackerId: user.id,
+    defenderId: attacker.id,
+    move: { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} },
+    resolution: { moveConnected: false, damageHit: false, damage: 0 },
+  });
+  assert.deepEqual(missed.hitKillProtectionUsed, []);
+  assert.deepEqual(missed.hitKillProtectionDisabled, []);
+  assert.equal(missed.tokens.find(token => token.id === user.id).currentHp, user.currentHp);
+
+  const crashed = applyMoveConsequences({
+    tokens: [user, attacker],
+    attackerId: user.id,
+    defenderId: attacker.id,
+    move: { name: "high-jump-kick", pp: 10, damage_class: { name: "physical" }, meta: {} },
+    resolution: { moveConnected: false, damageHit: false, damage: 0 },
+  });
+  assert.equal(crashed.tokens.find(token => token.id === user.id).currentHp, 5);
+  assert.deepEqual(crashed.hitKillProtectionDisabled, [getHitKillProtectionKey(user)]);
+});
+
 test("battle consequences consume hit kill protection once and healing cannot restore it", () => {
   const move = { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} };
   const first = applyMoveConsequences({

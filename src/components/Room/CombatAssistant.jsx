@@ -10,13 +10,14 @@ import {
     applyMoveConsequences,
     getAffectedMoveTargets,
     getHitKillProtectionKey,
+    hasHitKillProtectionDisabled,
     hasHitKillSurvivalGrace,
     getMoveAutomationTags,
     getMovePpState,
     getMoveResolutionProfile,
     getSelectableMoveTargets,
     isDirectKnockoutMove,
-    resolveKnockoutProtection,
+    resolveDamageSequence,
     STAGE_LABELS,
 } from "../../core/automation.js";
 import { formatCount, formatRemainingPp } from "../../core/copy.js";
@@ -67,6 +68,11 @@ const emptyConsequences = () => ({
     traitProtected: false,
     survivalGraceGranted: false,
     survivalGraceUsed: false,
+    survivalGraceRemaining: false,
+    protectionDisabledThisAction: [],
+    hitKillProtectedHits: [],
+    traitProtectedHits: [],
+    faintedOnHit: null,
     traitActivations: [],
     consumedItems: [],
     traitStatuses: [],
@@ -106,6 +112,11 @@ const addConsequences = (summary, current) => ({
     traitProtected: summary.traitProtected || Boolean(current.traitProtected),
     survivalGraceGranted: summary.survivalGraceGranted || Boolean(current.survivalGraceGranted),
     survivalGraceUsed: summary.survivalGraceUsed || Boolean(current.survivalGraceUsed),
+    survivalGraceRemaining: summary.survivalGraceRemaining || Boolean(current.survivalGraceRemaining),
+    protectionDisabledThisAction: [...summary.protectionDisabledThisAction, ...(current.protectionDisabledThisAction || [])],
+    hitKillProtectedHits: [...summary.hitKillProtectedHits, ...(current.hitKillProtectedHits || [])],
+    traitProtectedHits: [...summary.traitProtectedHits, ...(current.traitProtectedHits || [])],
+    faintedOnHit: summary.faintedOnHit || current.faintedOnHit || null,
     traitActivations: [...summary.traitActivations, ...(current.traitActivations || [])],
     consumedItems: [...summary.consumedItems, ...(current.consumedItems || [])],
     traitStatuses: [...summary.traitStatuses, ...(current.traitStatuses || [])],
@@ -277,6 +288,7 @@ export default function CombatAssistant({
             const targetsToResolve = affectedTargets.length ? affectedTargets : [null];
             let workingTokens = snapshot.tokens;
             let workingHitKillProtectionUsed = snapshot.hitKillProtectionUsed;
+            let workingHitKillProtectionDisabled = snapshot.hitKillProtectionDisabled;
             let workingHitKillSurvivalGrace = snapshot.hitKillSurvivalGrace;
             let consequences = emptyConsequences();
             const targetResults = [];
@@ -310,22 +322,29 @@ export default function CombatAssistant({
                         clearDeclaration: index === targetsToResolve.length - 1,
                         round: snapshot.round,
                         hitKillProtectionUsed: workingHitKillProtectionUsed,
+                        hitKillProtectionDisabled: workingHitKillProtectionDisabled,
                         hitKillSurvivalGrace: workingHitKillSurvivalGrace,
                     });
                     workingTokens = automated.tokens;
                     workingHitKillProtectionUsed = automated.hitKillProtectionUsed;
+                    workingHitKillProtectionDisabled = automated.hitKillProtectionDisabled;
                     workingHitKillSurvivalGrace = automated.hitKillSurvivalGrace;
                     consequences = addConsequences(consequences, automated.consequences);
                     targetResults.push({ target: currentTarget, resolution, consequences: automated.consequences });
                 } else {
                     const previewHitKill = currentTarget
-                        ? resolveKnockoutProtection({
+                        ? resolveDamageSequence({
                             token: currentTarget,
                             damage: resolution.damageHit ? resolution.damage : 0,
+                            damagePerHit: resolution.damagePerHit,
                             hitCount: Number(resolution.hitCount) || 1,
                             round: snapshot.round,
                             protectionUsed: snapshot.hitKillProtectionUsed.includes(
                                 getHitKillProtectionKey(currentTarget),
+                            ),
+                            protectionDisabled: hasHitKillProtectionDisabled(
+                                snapshot.hitKillProtectionDisabled,
+                                currentTarget,
                             ),
                             survivalGrace: hasHitKillSurvivalGrace(
                                 snapshot.hitKillSurvivalGrace,
@@ -367,6 +386,7 @@ export default function CombatAssistant({
                     ...(fieldChange?.terrain ? { terrain: fieldChange.terrain } : {}),
                     tokens: workingTokens,
                     hitKillProtectionUsed: workingHitKillProtectionUsed,
+                    hitKillProtectionDisabled: workingHitKillProtectionDisabled,
                     hitKillSurvivalGrace: workingHitKillSurvivalGrace,
                 });
                 await onEvent("move", {
@@ -386,6 +406,9 @@ export default function CombatAssistant({
                     calculatedDamage: consequences.calculatedDamage,
                     hitKillThreshold: consequences.hitKillThreshold,
                     hitKillProtected: consequences.hitKillProtected,
+                    hitKillProtectedHits: consequences.hitKillProtectedHits,
+                    traitProtectedHits: consequences.traitProtectedHits,
+                    faintedOnHit: consequences.faintedOnHit,
                     fainted: consequences.fainted,
                     status: consequences.appliedStatuses[0] || "",
                     ppAfter: consequences.ppAfter,
@@ -408,6 +431,8 @@ export default function CombatAssistant({
                     damage: previewDamage,
                     calculatedDamage: targetResults.reduce((sum, entry) => sum + entry.resolution.damage, 0),
                     hitKillProtected: targetResults.some(entry => entry.previewHitKill?.protectedFromKnockout),
+                    hitKillProtectedHits: targetResults.flatMap(entry => entry.previewHitKill?.protectedHits || []),
+                    faintedOnHit: targetResults.find(entry => entry.previewHitKill?.faintedOnHit)?.previewHitKill?.faintedOnHit || null,
                     attackerId: attacker.id,
                     defenderId: defender?.id || "",
                 });
@@ -645,7 +670,7 @@ export default function CombatAssistant({
                             <ul className="combat-consequences">
                                 {result.consequences.ppAfter != null && <li>{formatRemainingPp(result.consequences.ppAfter)}</li>}
                                 {result.consequences.healed > 0 && <li>Recuperou {formatNumberPtBr(result.consequences.healed)} HP.</li>}
-                                {result.consequences.recoil > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.recoil)} HP com o recuo.</li>}
+                                {result.consequences.recoil > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.recoil)} HP com recuo ou custo próprio.</li>}
                                 {result.consequences.abilityDamage > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.abilityDamage)} HP ao ativar a própria habilidade.</li>}
                                 {result.consequences.itemDamage > 0 && <li>Perdeu {formatNumberPtBr(result.consequences.itemDamage)} HP por um item reativo.</li>}
                                 {result.consequences.traitHealing > 0 && <li>Itens ou habilidades recuperaram {formatNumberPtBr(result.consequences.traitHealing)} HP.</li>}
@@ -665,17 +690,22 @@ export default function CombatAssistant({
                                     const items = [...new Set(result.consequences.consumedItems)];
                                     return <li>{formatCount(items.length, "item")} {items.length === 1 ? "consumido ou removido" : "consumidos ou removidos"}: {items.map(formatName).join(", ")}.</li>;
                                 })()}
-                                {result.consequences.traitProtected && <li className="combat-consequence-trait">Habilidade ou item de sobrevivência: preservou 1 HP. Esta proteção é própria do efeito, não a regra de Hit Kill.</li>}
-                                {result.consequences.hitKillProtected && <li className="combat-consequence-hit-kill">Proteção contra Hit Kill consumida nesta batalha: calculado {formatNumberPtBr(result.consequences.calculatedDamage)}, aplicado {formatNumberPtBr(result.consequences.damage)}; o alvo permaneceu com 1 HP.</li>}
-                                {result.consequences.survivalGraceGranted && <li className="combat-consequence-trait">Sturdy, Focus Sash ou efeito equivalente permaneceu disponível como proteção adicional; o próximo dano que alcançar o Pokémon encerra essa elegibilidade preservada.</li>}
-                                {result.consequences.survivalGraceUsed && <li className="combat-consequence-trait">A proteção adicional preservada após o Hit Kill foi usada e não continuará para outro dano.</li>}
+                                {result.consequences.traitProtected && <li className="combat-consequence-trait">Habilidade ou item de sobrevivência protegeu no {result.consequences.traitProtectedHits.map(hit => `${hit}º hit`).join(", ") || "dano seguinte"}. É uma proteção própria do efeito.</li>}
+                                {result.consequences.hitKillProtected && (
+                                    <li className="combat-consequence-hit-kill">
+                                        Proteção contra Hit Kill consumida no {result.consequences.hitKillProtectedHits.map(hit => `${hit}º hit`).join(", ") || "impacto fatal"}: calculado {formatNumberPtBr(result.consequences.calculatedDamage)}, aplicado {formatNumberPtBr(result.consequences.damage)}. {result.consequences.fainted ? `Outro hit derrotou o alvo${result.consequences.faintedOnHit ? ` no ${result.consequences.faintedOnHit}º hit` : " depois"}.` : "O alvo terminou a sequência em combate."}
+                                    </li>
+                                )}
+                                {result.consequences.survivalGraceRemaining && <li className="combat-consequence-trait">Sturdy, Focus Sash ou efeito equivalente segue disponível como proteção adicional; somente o próximo dano positivo encerrará essa elegibilidade.</li>}
+                                {result.consequences.survivalGraceUsed && !result.consequences.survivalGraceRemaining && <li className="combat-consequence-trait">O dano seguinte encerrou a elegibilidade adicional preservada; quando o efeito era aplicável, ele protegeu antes de se encerrar.</li>}
+                                {result.consequences.protectionDisabledThisAction.map(entry => <li className="combat-consequence-hit-kill" key={`hit-kill-disabled-${entry.key}`}>{entry.tokenName} perdeu a proteção geral nesta batalha porque reduziu o próprio HP. Cura e troca não a restauram.</li>)}
                                 {result.targetResults.some(entry => entry.resolution.attackTest?.fumble) && <li>Erro crítico: escolha uma consequência coerente com a cena; o MyOwnDex não toma essa decisão pelo grupo.</li>}
                                 {result.consequences.fainted && <li>Um alvo não pode mais batalhar.</li>}
                             </ul>
                         )}
                         {!result.consequences && result.targetResults.some(entry => entry.previewHitKill?.protectedFromKnockout) && (
                             <ul className="combat-consequences">
-                                <li className="combat-consequence-hit-kill">Prévia da proteção contra Hit Kill: calculado {formatNumberPtBr(resultCalculatedDamage)}, simulado {formatNumberPtBr(resultAppliedDamage)}; o alvo permaneceria com 1 HP e consumiria a proteção desta batalha.</li>
+                                <li className="combat-consequence-hit-kill">Prévia da proteção contra Hit Kill: calculado {formatNumberPtBr(resultCalculatedDamage)}, simulado {formatNumberPtBr(resultAppliedDamage)}. A proteção agiria por hit; {result.targetResults.some(entry => entry.previewHitKill?.faintedOnHit) ? "um hit posterior ainda derrotaria o alvo." : "o alvo terminaria a sequência em combate."}</li>
                             </ul>
                         )}
                     </div>

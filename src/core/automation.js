@@ -90,6 +90,18 @@ export const clearHitKillSurvivalGrace = (value, token) => {
     return prefix ? usage.filter(entry => !entry.startsWith(prefix)) : usage;
 };
 
+export const hasHitKillProtectionDisabled = (value, token) => {
+    const key = getHitKillProtectionKey(token);
+    return Boolean(key && normalizeHitKillProtectionUsage(value).includes(key));
+};
+
+export const disableHitKillProtection = (value, token) => {
+    const key = getHitKillProtectionKey(token);
+    return key
+        ? normalizeHitKillProtectionUsage([...normalizeHitKillProtectionUsage(value), key])
+        : normalizeHitKillProtectionUsage(value);
+};
+
 export const normalizePpSlots = value => {
     const pp = asArray(value).slice(0, 4).map(entry => {
         if (entry === "" || entry == null) return null;
@@ -115,6 +127,9 @@ export const normalizeVolatileEffects = value => {
             sourceName: String(entry?.sourceName || "").slice(0, 80),
             turns: entry?.turns == null ? null : clamp(Math.round(asNumber(entry.turns)), 0, 99),
             amount: entry?.amount == null ? null : clamp(asNumber(entry.amount), 0, 99999),
+            critical: Boolean(entry?.critical),
+            defenderFumble: Boolean(entry?.defenderFumble),
+            directKnockout: Boolean(entry?.directKnockout),
         });
     });
     return [...unique.values()].slice(0, 16);
@@ -374,6 +389,15 @@ const SELF_SACRIFICE_MOVES = new Set([
     "misty-explosion", "self-destruct",
 ]);
 
+const SELF_HP_COST_MOVES = Object.freeze({
+    "belly-drum": 1 / 2,
+    "clangorous-soul": 1 / 3,
+    "fillet-away": 1 / 2,
+    "shed-tail": 1 / 2,
+});
+
+const MISS_CRASH_MOVES = new Set(["high-jump-kick", "jump-kick"]);
+
 const stageChangesTargetUser = move => {
     const profile = getMoveTargetProfile(move);
     const category = normalizeSlug(move?.meta?.category?.name);
@@ -505,6 +529,7 @@ export const resolveKnockoutProtection = ({
     round = 0,
     protectionUsed = false,
     survivalGrace = false,
+    allowSurvivalTrait = true,
     critical = false,
     defenderFumble = false,
     directKnockout = false,
@@ -529,7 +554,7 @@ export const resolveKnockoutProtection = ({
             survivalGraceUsed: false,
         };
     }
-    const survival = token && base.calculatedDamage > 0
+    const survival = token && base.calculatedDamage > 0 && allowSurvivalTrait
         ? getSurvivalTrait(token, {
             damage: base.calculatedDamage,
             hitCount,
@@ -561,6 +586,127 @@ export const resolveKnockoutProtection = ({
         itemConsumed: survival.itemConsumed || "",
         survivalGraceGranted: false,
         survivalGraceUsed: Boolean(survivalGrace),
+    };
+};
+
+export const buildHitDamageSequence = ({ damage, damagePerHit, hitCount = 1 } = {}) => {
+    const count = clamp(Math.round(asNumber(hitCount, 1)), 1, 20);
+    const total = Math.max(0, asNumber(damage));
+    const explicitPerHit = damagePerHit == null ? Number.NaN : Number(damagePerHit);
+    if (count === 1) return [total];
+    if (Number.isFinite(explicitPerHit)) {
+        return Array.from({ length: count }, () => Math.max(0, explicitPerHit));
+    }
+    const base = Math.floor(total / count);
+    let remainder = Math.max(0, Math.round(total - base * count));
+    return Array.from({ length: count }, () => base + (remainder-- > 0 ? 1 : 0));
+};
+
+export const resolveDamageSequence = ({
+    token,
+    damage,
+    damagePerHit,
+    hitCount = 1,
+    hitDamages,
+    round = 0,
+    protectionUsed = false,
+    protectionDisabled = false,
+    survivalGrace = false,
+    allowHitKillProtection = true,
+    allowSurvivalTrait = true,
+    critical = false,
+    defenderFumble = false,
+    directKnockout = false,
+} = {}) => {
+    const sequence = Array.isArray(hitDamages)
+        ? hitDamages.slice(0, 20).map((entry, index) => ({
+            damage: Math.max(0, asNumber(entry?.damage ?? entry)),
+            hitNumber: Math.max(1, Math.round(asNumber(entry?.hitNumber, index + 1))),
+        }))
+        : buildHitDamageSequence({ damage, damagePerHit, hitCount })
+            .map((hitDamage, index) => ({ damage: hitDamage, hitNumber: index + 1 }));
+    const rolledDamage = sequence.reduce((sum, entry) => sum + entry.damage, 0);
+    const hpBefore = Math.max(0, asNumber(token?.currentHp));
+    let workingToken = token;
+    let workingProtectionUsed = Boolean(protectionUsed);
+    let workingSurvivalGrace = Boolean(survivalGrace);
+    const hits = [];
+
+    for (const entry of sequence) {
+        if (!workingToken || asNumber(workingToken.currentHp) <= 0) break;
+        const graceBeforeHit = workingSurvivalGrace;
+        const result = resolveKnockoutProtection({
+            token: workingToken,
+            damage: entry.damage,
+            hitCount: 1,
+            round,
+            protectionUsed: workingProtectionUsed || protectionDisabled || !allowHitKillProtection,
+            survivalGrace: workingSurvivalGrace,
+            allowSurvivalTrait,
+            critical,
+            defenderFumble,
+            directKnockout,
+        });
+        workingToken = {
+            ...(result.token || workingToken),
+            currentHp: clamp(result.remainingHp, 0, Math.max(1, asNumber(workingToken.maxHp, 1))),
+        };
+        if (result.protectionConsumed) workingProtectionUsed = true;
+        if (entry.damage > 0) {
+            workingSurvivalGrace = result.protectedFromKnockout
+                ? Boolean(result.survivalGraceGranted)
+                : false;
+        }
+        hits.push({
+            ...result,
+            hitNumber: entry.hitNumber,
+            token: workingToken,
+            survivalGraceExpired: Boolean(
+                entry.damage > 0
+                && graceBeforeHit
+                && !result.protectedFromKnockout
+            ),
+        });
+    }
+
+    const last = hits[hits.length - 1] || resolveKnockoutProtection({ token, damage: 0 });
+    const calculatedDamage = hits.reduce((sum, entry) => sum + entry.calculatedDamage, 0);
+    const appliedDamage = hits.reduce((sum, entry) => sum + entry.appliedDamage, 0);
+    const protectedHits = hits.filter(entry => entry.protectedFromKnockout).map(entry => entry.hitNumber);
+    const traitProtectedHits = hits.filter(entry => entry.traitProtected).map(entry => entry.hitNumber);
+    const lastTraitHit = [...hits].reverse().find(entry => entry.traitProtected);
+    const faintedHit = hits.find(entry => entry.remainingHp <= 0)?.hitNumber || null;
+    return {
+        ...last,
+        token: workingToken,
+        hpBefore,
+        calculatedDamage,
+        rolledDamage,
+        appliedDamage,
+        remainingHp: Math.max(0, asNumber(workingToken?.currentHp)),
+        protectedFromKnockout: protectedHits.length > 0,
+        protectionConsumed: protectedHits.length > 0,
+        protectionUsed: workingProtectionUsed,
+        protectionDisabled: Boolean(protectionDisabled),
+        traitProtected: traitProtectedHits.length > 0,
+        traitSourceId: lastTraitHit?.traitSourceId || "",
+        traitSourceKind: lastTraitHit?.traitSourceKind || "",
+        traitNarrative: lastTraitHit?.traitNarrative || "",
+        itemConsumed: lastTraitHit?.itemConsumed || "",
+        survivalGraceGranted: hits.some(entry => entry.survivalGraceGranted),
+        survivalGraceUsed: hits.some(entry => entry.survivalGraceUsed || entry.survivalGraceExpired),
+        survivalGraceRemaining: workingSurvivalGrace,
+        bypassed: hits.some(entry => entry.bypassed && entry.wouldKnockOut),
+        wouldKnockOut: hits.some(entry => entry.wouldKnockOut),
+        attackerCritical: Boolean(critical),
+        defenderFumble: Boolean(defenderFumble),
+        directKnockout: Boolean(directKnockout),
+        hits,
+        protectedHits,
+        traitProtectedHits,
+        faintedOnHit: faintedHit,
+        resolvedHitCount: hits.length,
+        plannedHitCount: sequence.length,
     };
 };
 
@@ -599,17 +745,21 @@ export const applyMoveConsequences = ({
     clearDeclaration = true,
     round = 0,
     hitKillProtectionUsed = [],
+    hitKillProtectionDisabled = [],
     hitKillSurvivalGrace = [],
 }) => {
     const source = asArray(tokens);
     const protectionUsage = normalizeHitKillProtectionUsage(hitKillProtectionUsed);
+    let nextHitKillProtectionDisabled = normalizeHitKillProtectionUsage(hitKillProtectionDisabled);
     let nextHitKillSurvivalGrace = normalizeHitKillProtectionUsage(hitKillSurvivalGrace);
+    const protectionDisabledThisAction = [];
     const originalAttacker = source.find(token => token.id === attackerId);
     const originalTarget = targetId ? source.find(token => token.id === targetId) : null;
     if (!originalAttacker || !move || !resolution) {
         return {
             tokens: source,
             hitKillProtectionUsed: protectionUsage,
+            hitKillProtectionDisabled: nextHitKillProtectionDisabled,
             hitKillSurvivalGrace: nextHitKillSurvivalGrace,
             consequences: { applied: false },
         };
@@ -648,6 +798,16 @@ export const applyMoveConsequences = ({
         nextHitKillSurvivalGrace = clearHitKillSurvivalGrace(nextHitKillSurvivalGrace, entity);
     };
 
+    const disableProtectionAfterSelfDamage = (entity, amount) => {
+        if (!entity || asNumber(amount) <= 0) return;
+        const key = getHitKillProtectionKey(entity);
+        if (key && !nextHitKillProtectionDisabled.includes(key)) {
+            protectionDisabledThisAction.push({ tokenId: entity.id, tokenName: entity.name, key });
+        }
+        nextHitKillProtectionDisabled = disableHitKillProtection(nextHitKillProtectionDisabled, entity);
+        clearSurvivalGraceAfterDamage(entity, amount);
+    };
+
     const ppState = getMovePpState(attacker, ppMove, ppMove?.name);
     let ppBefore = ppState.remaining;
     let ppAfter = ppState.remaining;
@@ -670,25 +830,41 @@ export const applyMoveConsequences = ({
         && resolution.attackTest.total - resolution.defenseTest.total > 1
     );
     const resolvedDamage = damageHit ? Math.max(0, asNumber(resolution.damage)) : 0;
+    const plannedHitDamages = damageHit
+        ? buildHitDamageSequence({
+            damage: resolvedDamage,
+            damagePerHit: resolution.damagePerHit,
+            hitCount: resolution.hitCount,
+        })
+        : [];
     const substitute = target
         ? normalizeVolatileEffects(target.volatileEffects).find(effect => effect.id === "substitute")
         : null;
-    const substituteAbsorbed = Boolean(substitute && resolvedDamage > 0);
+    let substituteRemaining = Math.max(0, asNumber(substitute?.amount));
     let substituteDamage = 0;
     let substituteBroken = false;
+    const targetHitDamages = [];
+    plannedHitDamages.forEach((hitDamage, index) => {
+        if (substituteRemaining > 0 && hitDamage > 0) {
+            const applied = Math.min(substituteRemaining, hitDamage);
+            substituteDamage += applied;
+            substituteRemaining = Math.max(0, substituteRemaining - hitDamage);
+            if (substituteRemaining <= 0) substituteBroken = true;
+            return;
+        }
+        if (hitDamage > 0) targetHitDamages.push({ damage: hitDamage, hitNumber: index + 1 });
+    });
+    const substituteAbsorbed = substituteDamage > 0;
+    const substituteBlockedTarget = substituteAbsorbed && targetHitDamages.length === 0;
     if (target && substituteAbsorbed) {
-        substituteDamage = Math.min(Math.max(1, asNumber(substitute.amount, 1)), resolvedDamage);
-        const remaining = Math.max(0, asNumber(substitute.amount, 1) - resolvedDamage);
-        substituteBroken = remaining <= 0;
         const effects = normalizeVolatileEffects(target.volatileEffects)
             .flatMap(effect => effect.id !== "substitute"
                 ? [effect]
-                : remaining > 0
-                    ? [{ ...effect, amount: remaining }]
+                : substituteRemaining > 0
+                    ? [{ ...effect, amount: substituteRemaining }]
                     : []);
         replaceEntity(target.id, { ...target, volatileEffects: effects });
     }
-    const calculatedDamage = substituteAbsorbed ? 0 : resolvedDamage;
     const traitNarratives = [];
     const traitActivations = [];
     const consumedItems = [];
@@ -698,44 +874,42 @@ export const applyMoveConsequences = ({
         ? hasHitKillSurvivalGrace(nextHitKillSurvivalGrace, target)
         : false;
     const hitKill = target
-        ? resolveKnockoutProtection({
+        ? resolveDamageSequence({
             token: target,
-            damage: calculatedDamage,
-            hitCount: Number(resolution.hitCount) || 1,
+            hitDamages: targetHitDamages,
             round,
             protectionUsed: hitKillProtectionKey
                 ? protectionUsage.includes(hitKillProtectionKey)
+                : false,
+            protectionDisabled: hitKillProtectionKey
+                ? nextHitKillProtectionDisabled.includes(hitKillProtectionKey)
                 : false,
             survivalGrace: survivalGraceAvailable,
             critical: Boolean(resolution.attackTest?.critical),
             defenderFumble: Boolean(resolution.defenseTest?.fumble),
             directKnockout: Boolean(resolution.directKnockout || isDirectKnockoutMove(move)),
         })
-        : resolveKnockoutProtection({ damage: 0 });
-    if (hitKill.traitProtected && target) {
-        target = hitKill.token;
+        : resolveDamageSequence({ hitDamages: [] });
+    if (target) {
+        hitKill.hits.filter(entry => entry.traitProtected).forEach(entry => {
+            if (entry.traitNarrative) traitNarratives.push(entry.traitNarrative);
+            traitActivations.push({ kind: entry.traitSourceKind, sourceId: entry.traitSourceId, effect: "survival", hitNumber: entry.hitNumber });
+            if (entry.itemConsumed) consumedItems.push(entry.itemConsumed);
+        });
+        target = hitKill.token || target;
         replaceEntity(target.id, target);
-        traitNarratives.push(hitKill.traitNarrative);
-        traitActivations.push({ kind: hitKill.traitSourceKind, sourceId: hitKill.traitSourceId, effect: "survival" });
-        if (hitKill.itemConsumed) consumedItems.push(hitKill.itemConsumed);
     }
     const damage = damageHit ? hitKill.appliedDamage : 0;
     const nextHitKillProtectionUsed = hitKill.protectedFromKnockout && hitKillProtectionKey
         ? normalizeHitKillProtectionUsage([...protectionUsage, hitKillProtectionKey])
         : protectionUsage;
-    if (target && hitKill.protectedFromKnockout && hitKill.survivalGraceGranted) {
+    if (target && hitKill.survivalGraceRemaining) {
         nextHitKillSurvivalGrace = normalizeHitKillProtectionUsage([
             ...clearHitKillSurvivalGrace(nextHitKillSurvivalGrace, target),
             ...getHitKillSurvivalGraceKeys(target),
         ]);
-    } else if (target && calculatedDamage > 0) {
+    } else if (target && hitKill.calculatedDamage > 0) {
         nextHitKillSurvivalGrace = clearHitKillSurvivalGrace(nextHitKillSurvivalGrace, target);
-    }
-    if (target && damage > 0) {
-        replaceEntity(target.id, {
-            ...target,
-            currentHp: clamp(hitKill.remainingHp, 0, Math.max(1, asNumber(target.maxHp, 1))),
-        });
     }
 
     let healed = 0;
@@ -751,7 +925,7 @@ export const applyMoveConsequences = ({
         const requested = hpAmount(damage * Math.abs(drain) / 100);
         attacker.currentHp = clamp(before - requested, 0, Math.max(1, asNumber(attacker.maxHp, 1)));
         recoil = Math.max(0, before - attacker.currentHp);
-        clearSurvivalGraceAfterDamage(attacker, recoil);
+        disableProtectionAfterSelfDamage(attacker, recoil);
     }
 
     const healing = asNumber(move?.meta?.healing);
@@ -773,7 +947,7 @@ export const applyMoveConsequences = ({
     let statusRoll = null;
     const status = statusForMove(move);
     const statusTarget = target || attacker;
-    if (moveConnected && status && statusTarget && (!substituteAbsorbed || statusTarget.id === attacker.id) && (!targetSecondariesBlocked || statusTarget.id === attacker.id)) {
+    if (moveConnected && status && statusTarget && (!substituteBlockedTarget || statusTarget.id === attacker.id) && (!targetSecondariesBlocked || statusTarget.id === attacker.id)) {
         blockedStatus = statusTarget.status
             ? `${statusTarget.name} já possui uma condição principal`
             : getStatusBlockReason(status, statusTarget, attacker, { terrain: resolution.terrain });
@@ -821,7 +995,7 @@ export const applyMoveConsequences = ({
     let stageRoll = null;
     const stageChanges = [];
     const changesAffectUser = stageChangesTargetUser(move);
-    if (moveConnected && supportedChanges.length && (applySelfChanges || !changesAffectUser) && (!substituteAbsorbed || changesAffectUser) && (!targetSecondariesBlocked || changesAffectUser)) {
+    if (moveConnected && supportedChanges.length && (applySelfChanges || !changesAffectUser) && (!substituteBlockedTarget || changesAffectUser) && (!targetSecondariesBlocked || changesAffectUser)) {
         const statusMove = move?.damage_class?.name === "status";
         const chance = moveEffectChance(move, "stat_chance", statusMove);
         stageRoll = chanceResult(chance || 100, random, effectAdvantage);
@@ -960,6 +1134,10 @@ export const applyMoveConsequences = ({
         const targetBefore = asNumber(target.currentHp);
         const nextAttacker = { ...attacker, currentHp: clamp(average, 0, Math.max(1, asNumber(attacker.maxHp, 1))) };
         const nextTarget = { ...target, currentHp: clamp(average, 0, Math.max(1, asNumber(target.maxHp, 1))) };
+        const attackerLoss = Math.max(0, attackerBefore - nextAttacker.currentHp);
+        const targetLoss = Math.max(0, targetBefore - nextTarget.currentHp);
+        disableProtectionAfterSelfDamage(attacker, attackerLoss);
+        clearSurvivalGraceAfterDamage(target, targetLoss);
         replaceEntity(attacker.id, nextAttacker);
         replaceEntity(target.id, nextTarget);
         healed += Math.max(0, nextAttacker.currentHp - attackerBefore) + Math.max(0, nextTarget.currentHp - targetBefore);
@@ -1126,6 +1304,9 @@ export const applyMoveConsequences = ({
             sourceName: attacker.name,
             turns: 2,
             amount: Math.max(0, asNumber(resolution.damage)),
+            critical: Boolean(resolution.attackTest?.critical),
+            defenderFumble: Boolean(resolution.defenseTest?.fumble),
+            directKnockout: Boolean(resolution.directKnockout),
         });
         replaceEntity(target.id, { ...target, volatileEffects: effects });
         trackedEffect = moveName;
@@ -1143,13 +1324,37 @@ export const applyMoveConsequences = ({
         specialChange = { kind: "delayed-heal", targetId: attacker.id, turns: 2, amount };
     }
 
+    const selfHpCostFraction = SELF_HP_COST_MOVES[moveName]
+        || (moveName === "curse" && getDefensiveTypes(attacker).includes("ghost") ? 1 / 2 : 0);
+    if (moveConnected && selfHpCostFraction > 0) {
+        const amount = Math.max(1, Math.floor(asNumber(attacker.maxHp, 1) * selfHpCostFraction));
+        const canPay = moveName === "curse" || asNumber(attacker.currentHp) > amount;
+        if (canPay) {
+            const applied = Math.min(asNumber(attacker.currentHp), amount);
+            replaceEntity(attacker.id, { ...attacker, currentHp: Math.max(0, asNumber(attacker.currentHp) - applied) });
+            disableProtectionAfterSelfDamage(attacker, applied);
+            recoil += applied;
+            specialNarratives.push(`${attacker.name} pagou ${applied} HP para usar ${formatName(moveName)}.`);
+        } else {
+            specialNarratives.push(`${formatName(moveName)} não cobrou HP porque ${attacker.name} não podia pagar o custo.`);
+        }
+    }
+
+    if (!moveConnected && MISS_CRASH_MOVES.has(moveName) && !resolution.traitBlock?.attackerBlocked) {
+        const amount = Math.min(asNumber(attacker.currentHp), Math.max(1, Math.floor(asNumber(attacker.maxHp, 1) / 2)));
+        replaceEntity(attacker.id, { ...attacker, currentHp: Math.max(0, asNumber(attacker.currentHp) - amount) });
+        disableProtectionAfterSelfDamage(attacker, amount);
+        recoil += amount;
+        specialNarratives.push(`${attacker.name} perdeu ${amount} HP com a queda de ${formatName(moveName)}.`);
+    }
+
     if (moveConnected && moveName === "substitute") {
         const amount = Math.max(1, Math.floor(asNumber(attacker.maxHp, 1) / 4));
         if (asNumber(attacker.currentHp) > amount) {
             const effects = normalizeVolatileEffects(attacker.volatileEffects).filter(effect => effect.id !== "substitute");
             effects.push({ id: "substitute", sourceMove: "substitute", sourceTokenId: attacker.id, sourceName: attacker.name, turns: null, amount });
             replaceEntity(attacker.id, { ...attacker, currentHp: asNumber(attacker.currentHp) - amount, volatileEffects: effects });
-            clearSurvivalGraceAfterDamage(attacker, amount);
+            disableProtectionAfterSelfDamage(attacker, amount);
             recoil += amount;
             trackedEffect = "substitute";
             specialNarratives.push(`${attacker.name} investiu ${amount} HP para criar um Substitute.`);
@@ -1191,7 +1396,7 @@ export const applyMoveConsequences = ({
     if (moveConnected && SELF_SACRIFICE_MOVES.has(moveName)) {
         const hpLost = Math.max(0, asNumber(attacker.currentHp));
         replaceEntity(attacker.id, { ...attacker, currentHp: 0 });
-        clearSurvivalGraceAfterDamage(attacker, hpLost);
+        disableProtectionAfterSelfDamage(attacker, hpLost);
         recoil += hpLost;
         specialNarratives.push(`${attacker.name} concluiu ${formatName(moveName)} e não pode mais batalhar.`);
         specialChange = { kind: "self-sacrifice", hpLost };
@@ -1206,7 +1411,7 @@ export const applyMoveConsequences = ({
             if (marker === "disguise-broken") {
                 abilityDamage = Math.min(changedTarget.currentHp, hpAmount(asNumber(changedTarget.maxHp, 1) / 8));
                 changedTarget = { ...changedTarget, currentHp: Math.max(0, changedTarget.currentHp - abilityDamage) };
-                clearSurvivalGraceAfterDamage(target, abilityDamage);
+                disableProtectionAfterSelfDamage(target, abilityDamage);
                 specialNarratives.push(`Disguise absorveu o golpe, rompeu o disfarce e custou ${abilityDamage} HP.`);
             } else {
                 specialNarratives.push(`${formatName(ability)} mudou de estado após bloquear o golpe.`);
@@ -1325,7 +1530,7 @@ export const applyMoveConsequences = ({
                     detail: "Life Orb cobrou o custo do golpe",
                     round,
                 });
-                clearSurvivalGraceAfterDamage(attacker, applied);
+                disableProtectionAfterSelfDamage(attacker, applied);
                 replaceEntity(attacker.id, attacker);
                 recoil += applied;
                 traitActivations.push({ kind: "item", sourceId: attackerItemAfterHit, effect: "recoil", amount: applied });
@@ -1482,6 +1687,7 @@ export const applyMoveConsequences = ({
     return {
         tokens: nextTokens,
         hitKillProtectionUsed: nextHitKillProtectionUsed,
+        hitKillProtectionDisabled: nextHitKillProtectionDisabled,
         hitKillSurvivalGrace: nextHitKillSurvivalGrace,
         consequences: {
             applied: true,
@@ -1491,7 +1697,13 @@ export const applyMoveConsequences = ({
             ppBefore,
             ppAfter,
             damage,
-            calculatedDamage,
+            calculatedDamage: hitKill.calculatedDamage,
+            rolledDamage: hitKill.rolledDamage,
+            resolvedHitCount: hitKill.resolvedHitCount,
+            plannedHitCount: hitKill.plannedHitCount,
+            hitKillProtectedHits: hitKill.protectedHits,
+            traitProtectedHits: hitKill.traitProtectedHits,
+            faintedOnHit: hitKill.faintedOnHit,
             hitKillThreshold: hitKill.threshold,
             hitKillProtected: hitKill.protectedFromKnockout,
             hitKillBypassed: hitKill.bypassed,
@@ -1519,6 +1731,8 @@ export const applyMoveConsequences = ({
             traitSourceId: hitKill.traitSourceId || "",
             survivalGraceGranted: Boolean(hitKill.survivalGraceGranted),
             survivalGraceUsed: Boolean(hitKill.survivalGraceUsed),
+            survivalGraceRemaining: Boolean(hitKill.survivalGraceRemaining),
+            protectionDisabledThisAction,
             traitActivations,
             consumedItems,
             traitStatuses,

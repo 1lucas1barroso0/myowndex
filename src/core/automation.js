@@ -14,6 +14,7 @@ import {
     consumeHeldItem,
     getAccuracyTraitModifiers,
     getSurvivalTrait,
+    getSurvivalTraitSources,
     isAbilityActive,
     isHeldItemActive,
     moveHasTrait,
@@ -49,6 +50,45 @@ const asArray = value => Array.isArray(value) ? value : [];
 const asNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 export const normalizeSlug = value => String(value || "").trim().toLowerCase().replace(/\s+/g, "-");
+
+export const getHitKillProtectionKey = token => {
+    const pokemonId = String(token?.pokemonId || "").trim();
+    const teamId = String(token?.teamShareId || token?.teamId || "").trim();
+    if (pokemonId && teamId) return `pokemon:${teamId}:${pokemonId}`.slice(0, 240);
+    const tokenId = String(token?.id || "").trim();
+    return tokenId ? `token:${tokenId}`.slice(0, 240) : "";
+};
+
+export const normalizeHitKillProtectionUsage = value => [...new Set(
+    asArray(value)
+        .map(entry => String(entry || "").trim().slice(0, 240))
+        .filter(Boolean)
+)].slice(0, 80);
+
+const HIT_KILL_SURVIVAL_GRACE_SEPARATOR = "::survival-trait:";
+
+const getHitKillSurvivalGracePrefix = token => {
+    const protectionKey = getHitKillProtectionKey(token).slice(0, 180);
+    return protectionKey ? `${protectionKey}${HIT_KILL_SURVIVAL_GRACE_SEPARATOR}` : "";
+};
+
+export const getHitKillSurvivalGraceKeys = token => {
+    const prefix = getHitKillSurvivalGracePrefix(token);
+    if (!prefix) return [];
+    return getSurvivalTraitSources(token)
+        .map(source => `${prefix}${source.kind}:${source.id}`.slice(0, 240));
+};
+
+export const hasHitKillSurvivalGrace = (value, token) => {
+    const usage = new Set(normalizeHitKillProtectionUsage(value));
+    return getHitKillSurvivalGraceKeys(token).some(key => usage.has(key));
+};
+
+export const clearHitKillSurvivalGrace = (value, token) => {
+    const prefix = getHitKillSurvivalGracePrefix(token);
+    const usage = normalizeHitKillProtectionUsage(value);
+    return prefix ? usage.filter(entry => !entry.startsWith(prefix)) : usage;
+};
 
 export const normalizePpSlots = value => {
     const pp = asArray(value).slice(0, 4).map(entry => {
@@ -418,27 +458,109 @@ export const getStatusBlockReason = (status, target, attacker, { terrain = "nenh
 export const applyHitKillProtection = ({
     damage,
     currentHp,
+    maxHp = currentHp,
+    protectionUsed = false,
     critical = false,
+    defenderFumble = false,
     directKnockout = false,
 } = {}) => {
     const hpBefore = Math.max(0, asNumber(currentHp));
+    const maximumHp = Math.max(1, asNumber(maxHp, Math.max(1, hpBefore)));
     const calculatedDamage = Math.max(0, asNumber(damage));
-    const threshold = hpBefore * 3;
+    const threshold = maximumHp * 3;
     const wouldKnockOut = hpBefore > 0 && calculatedDamage >= hpBefore;
-    const bypassed = Boolean(critical || directKnockout);
-    const protectedFromKnockout = wouldKnockOut && !bypassed && calculatedDamage < threshold;
+    const atMaximumHp = hpBefore === maximumHp;
+    const bypassed = Boolean(critical || defenderFumble || directKnockout);
+    const protectedFromKnockout = wouldKnockOut
+        && atMaximumHp
+        && !protectionUsed
+        && !bypassed
+        && calculatedDamage < threshold;
     const appliedDamage = protectedFromKnockout
         ? Math.max(0, hpBefore - 1)
         : Math.min(calculatedDamage, hpBefore);
     return {
         hpBefore,
+        maximumHp,
         calculatedDamage,
         appliedDamage,
         threshold,
         wouldKnockOut,
+        atMaximumHp,
+        protectionUsed: Boolean(protectionUsed),
+        protectionConsumed: protectedFromKnockout,
         protectedFromKnockout,
         bypassed,
+        attackerCritical: Boolean(critical),
+        defenderFumble: Boolean(defenderFumble),
+        directKnockout: Boolean(directKnockout),
         remainingHp: Math.max(0, hpBefore - appliedDamage),
+    };
+};
+
+export const resolveKnockoutProtection = ({
+    token,
+    damage,
+    hitCount = 1,
+    round = 0,
+    protectionUsed = false,
+    survivalGrace = false,
+    critical = false,
+    defenderFumble = false,
+    directKnockout = false,
+} = {}) => {
+    const base = applyHitKillProtection({
+        damage,
+        currentHp: token?.currentHp,
+        maxHp: token?.maxHp,
+        protectionUsed,
+        critical,
+        defenderFumble,
+        directKnockout,
+    });
+    const survivalSources = getSurvivalTraitSources(token);
+    if (base.protectedFromKnockout) {
+        return {
+            ...base,
+            token,
+            traitProtected: false,
+            traitSourceId: "",
+            survivalGraceGranted: survivalSources.length > 0,
+            survivalGraceUsed: false,
+        };
+    }
+    const survival = token && base.calculatedDamage > 0
+        ? getSurvivalTrait(token, {
+            damage: base.calculatedDamage,
+            hitCount,
+            round,
+            fullHpEligibilityPreserved: survivalGrace,
+        })
+        : { applied: false, token };
+    if (!survival.applied) {
+        return {
+            ...base,
+            token,
+            traitProtected: false,
+            traitSourceId: "",
+            survivalGraceGranted: false,
+            survivalGraceUsed: false,
+        };
+    }
+    return {
+        ...base,
+        token: survival.token,
+        appliedDamage: survival.appliedDamage,
+        remainingHp: Math.max(0, base.hpBefore - survival.appliedDamage),
+        protectedFromKnockout: false,
+        protectionConsumed: false,
+        traitProtected: true,
+        traitSourceId: survival.sourceId,
+        traitSourceKind: survival.sourceKind,
+        traitNarrative: survival.narrative,
+        itemConsumed: survival.itemConsumed || "",
+        survivalGraceGranted: false,
+        survivalGraceUsed: Boolean(survivalGrace),
     };
 };
 
@@ -476,12 +598,21 @@ export const applyMoveConsequences = ({
     applySelfChanges = true,
     clearDeclaration = true,
     round = 0,
+    hitKillProtectionUsed = [],
+    hitKillSurvivalGrace = [],
 }) => {
     const source = asArray(tokens);
+    const protectionUsage = normalizeHitKillProtectionUsage(hitKillProtectionUsed);
+    let nextHitKillSurvivalGrace = normalizeHitKillProtectionUsage(hitKillSurvivalGrace);
     const originalAttacker = source.find(token => token.id === attackerId);
     const originalTarget = targetId ? source.find(token => token.id === targetId) : null;
     if (!originalAttacker || !move || !resolution) {
-        return { tokens: source, consequences: { applied: false } };
+        return {
+            tokens: source,
+            hitKillProtectionUsed: protectionUsage,
+            hitKillSurvivalGrace: nextHitKillSurvivalGrace,
+            consequences: { applied: false },
+        };
     }
 
     let attacker = {
@@ -510,6 +641,11 @@ export const applyMoveConsequences = ({
         } else if (target?.id === id) {
             target = value;
         }
+    };
+
+    const clearSurvivalGraceAfterDamage = (entity, amount) => {
+        if (!entity || asNumber(amount) <= 0) return;
+        nextHitKillSurvivalGrace = clearHitKillSurvivalGrace(nextHitKillSurvivalGrace, entity);
     };
 
     const ppState = getMovePpState(attacker, ppMove, ppMove?.name);
@@ -557,38 +693,44 @@ export const applyMoveConsequences = ({
     const traitActivations = [];
     const consumedItems = [];
     const traitStatuses = [];
-    const survival = target && calculatedDamage > 0
-        ? getSurvivalTrait(target, {
+    const hitKillProtectionKey = getHitKillProtectionKey(target);
+    const survivalGraceAvailable = target
+        ? hasHitKillSurvivalGrace(nextHitKillSurvivalGrace, target)
+        : false;
+    const hitKill = target
+        ? resolveKnockoutProtection({
+            token: target,
             damage: calculatedDamage,
             hitCount: Number(resolution.hitCount) || 1,
             round,
-        })
-        : { applied: false, token: target };
-    if (survival.applied && target) {
-        target = survival.token;
-        traitNarratives.push(survival.narrative);
-        traitActivations.push({ kind: survival.sourceKind, sourceId: survival.sourceId, effect: "survival" });
-        if (survival.itemConsumed) consumedItems.push(survival.itemConsumed);
-    }
-    const baseHitKill = target
-        ? applyHitKillProtection({
-            damage: calculatedDamage,
-            currentHp: target.currentHp,
+            protectionUsed: hitKillProtectionKey
+                ? protectionUsage.includes(hitKillProtectionKey)
+                : false,
+            survivalGrace: survivalGraceAvailable,
             critical: Boolean(resolution.attackTest?.critical),
+            defenderFumble: Boolean(resolution.defenseTest?.fumble),
             directKnockout: Boolean(resolution.directKnockout || isDirectKnockoutMove(move)),
         })
-        : applyHitKillProtection({ damage: 0, currentHp: 0 });
-    const hitKill = survival.applied
-        ? {
-            ...baseHitKill,
-            appliedDamage: survival.appliedDamage,
-            remainingHp: 1,
-            protectedFromKnockout: false,
-            traitProtected: true,
-            traitSourceId: survival.sourceId,
-        }
-        : baseHitKill;
+        : resolveKnockoutProtection({ damage: 0 });
+    if (hitKill.traitProtected && target) {
+        target = hitKill.token;
+        replaceEntity(target.id, target);
+        traitNarratives.push(hitKill.traitNarrative);
+        traitActivations.push({ kind: hitKill.traitSourceKind, sourceId: hitKill.traitSourceId, effect: "survival" });
+        if (hitKill.itemConsumed) consumedItems.push(hitKill.itemConsumed);
+    }
     const damage = damageHit ? hitKill.appliedDamage : 0;
+    const nextHitKillProtectionUsed = hitKill.protectedFromKnockout && hitKillProtectionKey
+        ? normalizeHitKillProtectionUsage([...protectionUsage, hitKillProtectionKey])
+        : protectionUsage;
+    if (target && hitKill.protectedFromKnockout && hitKill.survivalGraceGranted) {
+        nextHitKillSurvivalGrace = normalizeHitKillProtectionUsage([
+            ...clearHitKillSurvivalGrace(nextHitKillSurvivalGrace, target),
+            ...getHitKillSurvivalGraceKeys(target),
+        ]);
+    } else if (target && calculatedDamage > 0) {
+        nextHitKillSurvivalGrace = clearHitKillSurvivalGrace(nextHitKillSurvivalGrace, target);
+    }
     if (target && damage > 0) {
         replaceEntity(target.id, {
             ...target,
@@ -609,6 +751,7 @@ export const applyMoveConsequences = ({
         const requested = hpAmount(damage * Math.abs(drain) / 100);
         attacker.currentHp = clamp(before - requested, 0, Math.max(1, asNumber(attacker.maxHp, 1)));
         recoil = Math.max(0, before - attacker.currentHp);
+        clearSurvivalGraceAfterDamage(attacker, recoil);
     }
 
     const healing = asNumber(move?.meta?.healing);
@@ -760,6 +903,7 @@ export const applyMoveConsequences = ({
         const before = asNumber(entity.currentHp);
         const applied = Math.min(before, hpAmount(amount));
         let changed = { ...entity, currentHp: Math.max(0, before - applied) };
+        clearSurvivalGraceAfterDamage(entity, applied);
         changed = recordTraitEvent(changed, { kind: sourceKind, sourceId, label: "Dano reativo", detail, round });
         replaceEntity(changed.id, changed);
         if (sourceKind === "ability") abilityDamage += applied;
@@ -1005,6 +1149,7 @@ export const applyMoveConsequences = ({
             const effects = normalizeVolatileEffects(attacker.volatileEffects).filter(effect => effect.id !== "substitute");
             effects.push({ id: "substitute", sourceMove: "substitute", sourceTokenId: attacker.id, sourceName: attacker.name, turns: null, amount });
             replaceEntity(attacker.id, { ...attacker, currentHp: asNumber(attacker.currentHp) - amount, volatileEffects: effects });
+            clearSurvivalGraceAfterDamage(attacker, amount);
             recoil += amount;
             trackedEffect = "substitute";
             specialNarratives.push(`${attacker.name} investiu ${amount} HP para criar um Substitute.`);
@@ -1046,6 +1191,7 @@ export const applyMoveConsequences = ({
     if (moveConnected && SELF_SACRIFICE_MOVES.has(moveName)) {
         const hpLost = Math.max(0, asNumber(attacker.currentHp));
         replaceEntity(attacker.id, { ...attacker, currentHp: 0 });
+        clearSurvivalGraceAfterDamage(attacker, hpLost);
         recoil += hpLost;
         specialNarratives.push(`${attacker.name} concluiu ${formatName(moveName)} e não pode mais batalhar.`);
         specialChange = { kind: "self-sacrifice", hpLost };
@@ -1060,6 +1206,7 @@ export const applyMoveConsequences = ({
             if (marker === "disguise-broken") {
                 abilityDamage = Math.min(changedTarget.currentHp, hpAmount(asNumber(changedTarget.maxHp, 1) / 8));
                 changedTarget = { ...changedTarget, currentHp: Math.max(0, changedTarget.currentHp - abilityDamage) };
+                clearSurvivalGraceAfterDamage(target, abilityDamage);
                 specialNarratives.push(`Disguise absorveu o golpe, rompeu o disfarce e custou ${abilityDamage} HP.`);
             } else {
                 specialNarratives.push(`${formatName(ability)} mudou de estado após bloquear o golpe.`);
@@ -1178,6 +1325,7 @@ export const applyMoveConsequences = ({
                     detail: "Life Orb cobrou o custo do golpe",
                     round,
                 });
+                clearSurvivalGraceAfterDamage(attacker, applied);
                 replaceEntity(attacker.id, attacker);
                 recoil += applied;
                 traitActivations.push({ kind: "item", sourceId: attackerItemAfterHit, effect: "recoil", amount: applied });
@@ -1333,6 +1481,8 @@ export const applyMoveConsequences = ({
 
     return {
         tokens: nextTokens,
+        hitKillProtectionUsed: nextHitKillProtectionUsed,
+        hitKillSurvivalGrace: nextHitKillSurvivalGrace,
         consequences: {
             applied: true,
             targetId: target?.id || "",
@@ -1345,6 +1495,8 @@ export const applyMoveConsequences = ({
             hitKillThreshold: hitKill.threshold,
             hitKillProtected: hitKill.protectedFromKnockout,
             hitKillBypassed: hitKill.bypassed,
+            hitKillBypassedByAttackerCritical: Boolean(hitKill.attackerCritical && hitKill.wouldKnockOut),
+            hitKillBypassedByDefenderFumble: Boolean(hitKill.defenderFumble && hitKill.wouldKnockOut),
             hpBefore: hitKill.hpBefore,
             healed,
             recoil,
@@ -1365,6 +1517,8 @@ export const applyMoveConsequences = ({
             traitHealing,
             traitProtected: Boolean(hitKill.traitProtected),
             traitSourceId: hitKill.traitSourceId || "",
+            survivalGraceGranted: Boolean(hitKill.survivalGraceGranted),
+            survivalGraceUsed: Boolean(hitKill.survivalGraceUsed),
             traitActivations,
             consumedItems,
             traitStatuses,

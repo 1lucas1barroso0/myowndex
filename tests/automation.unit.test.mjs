@@ -7,6 +7,8 @@ import {
   accuracyStageMultiplier,
   getDefensiveTypes,
   getAffectedMoveTargets,
+  getHitKillProtectionKey,
+  hasHitKillSurvivalGrace,
   getMoveResolutionProfile,
   getMovePpState,
   getSelectableMoveTargets,
@@ -127,35 +129,231 @@ test("one resolved Move applies PP, HP, drain, status and stages together", () =
   assert.equal(nextDefender.status, "burn");
   assert.equal(result.consequences.healed, 2);
   assert.equal(result.consequences.appliedStatus, "burn");
+  assert.deepEqual(result.hitKillProtectionUsed, []);
 });
 
-test("hit kill protection covers damage below, equal to and above three times current HP", () => {
-  const below = applyHitKillProtection({ damage: 29, currentHp: 10 });
+test("hit kill protection only saves full HP below three times maximum HP", () => {
+  const below = applyHitKillProtection({ damage: 29, currentHp: 10, maxHp: 10 });
   assert.equal(below.protectedFromKnockout, true);
   assert.equal(below.appliedDamage, 9);
   assert.equal(below.remainingHp, 1);
   assert.equal(below.threshold, 30);
 
-  const equal = applyHitKillProtection({ damage: 30, currentHp: 10 });
+  const equal = applyHitKillProtection({ damage: 30, currentHp: 10, maxHp: 10 });
   assert.equal(equal.protectedFromKnockout, false);
   assert.equal(equal.appliedDamage, 10);
   assert.equal(equal.remainingHp, 0);
 
-  const above = applyHitKillProtection({ damage: 31, currentHp: 10 });
+  const above = applyHitKillProtection({ damage: 31, currentHp: 10, maxHp: 10 });
   assert.equal(above.protectedFromKnockout, false);
   assert.equal(above.remainingHp, 0);
+
+  const injured = applyHitKillProtection({ damage: 9, currentHp: 9, maxHp: 10 });
+  assert.equal(injured.atMaximumHp, false);
+  assert.equal(injured.protectedFromKnockout, false);
+  assert.equal(injured.remainingHp, 0);
+
+  const spent = applyHitKillProtection({ damage: 10, currentHp: 10, maxHp: 10, protectionUsed: true });
+  assert.equal(spent.protectedFromKnockout, false);
+  assert.equal(spent.remainingHp, 0);
 });
 
-test("critical hits and declared knockout moves bypass hit kill protection", () => {
+test("attacker criticals, defender critical failures and declared knockout moves bypass hit kill protection", () => {
   const critical = applyHitKillProtection({ damage: 10, currentHp: 10, critical: true });
+  const defenderFumble = applyHitKillProtection({ damage: 10, currentHp: 10, defenderFumble: true });
   const direct = applyHitKillProtection({ damage: 10, currentHp: 10, directKnockout: true });
   assert.equal(critical.protectedFromKnockout, false);
+  assert.equal(defenderFumble.protectedFromKnockout, false);
   assert.equal(direct.protectedFromKnockout, false);
   assert.equal(critical.remainingHp, 0);
+  assert.equal(defenderFumble.remainingHp, 0);
   assert.equal(direct.remainingHp, 0);
 });
 
-test("battle consequences record calculated damage when protection leaves one HP", () => {
+test("general hit kill protection resolves before Sturdy and preserves exactly one later chance", () => {
+  const move = { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} };
+  const sturdyDefender = {
+    ...defender,
+    teamId: "team-sturdy",
+    pokemonId: "pokemon-sturdy",
+    ability: "sturdy",
+  };
+  const first = applyMoveConsequences({
+    tokens: [attacker, sturdyDefender],
+    attackerId: attacker.id,
+    defenderId: sturdyDefender.id,
+    move,
+    resolution: { hit: true, damage: 10, hitCount: 1, attackTest: {}, defenseTest: {} },
+  });
+  const protectionKey = getHitKillProtectionKey(sturdyDefender);
+  assert.equal(first.consequences.hitKillProtected, true);
+  assert.equal(first.consequences.traitProtected, false);
+  assert.equal(first.consequences.survivalGraceGranted, true);
+  assert.equal(first.tokens.find(token => token.id === sturdyDefender.id).currentHp, 1);
+  assert.equal(first.tokens.find(token => token.id === sturdyDefender.id).traitState.history.length, 0);
+  assert.ok(hasHitKillSurvivalGrace(first.hitKillSurvivalGrace, sturdyDefender));
+
+  const returnedDefender = {
+    ...first.tokens.find(token => token.id === sturdyDefender.id),
+    id: "defender-returned",
+  };
+  const returnedTokens = first.tokens.map(token => token.id === sturdyDefender.id ? returnedDefender : token);
+  assert.ok(hasHitKillSurvivalGrace(first.hitKillSurvivalGrace, returnedDefender));
+
+  const second = applyMoveConsequences({
+    tokens: returnedTokens,
+    attackerId: attacker.id,
+    defenderId: returnedDefender.id,
+    move,
+    resolution: { hit: true, damage: 1, hitCount: 1, attackTest: {}, defenseTest: {} },
+    hitKillProtectionUsed: first.hitKillProtectionUsed,
+    hitKillSurvivalGrace: first.hitKillSurvivalGrace,
+    consumePp: false,
+  });
+  assert.deepEqual(second.hitKillProtectionUsed, [protectionKey]);
+  assert.equal(second.consequences.hitKillProtected, false);
+  assert.equal(second.consequences.traitProtected, true);
+  assert.equal(second.consequences.survivalGraceUsed, true);
+  assert.equal(second.tokens.find(token => token.id === returnedDefender.id).currentHp, 1);
+  assert.equal(second.tokens.find(token => token.id === returnedDefender.id).traitState.history.at(-1).sourceId, "sturdy");
+  assert.deepEqual(second.hitKillSurvivalGrace, []);
+
+  const third = applyMoveConsequences({
+    tokens: second.tokens,
+    attackerId: attacker.id,
+    defenderId: returnedDefender.id,
+    move,
+    resolution: { hit: true, damage: 1, hitCount: 1, attackTest: {}, defenseTest: {} },
+    hitKillProtectionUsed: second.hitKillProtectionUsed,
+    hitKillSurvivalGrace: second.hitKillSurvivalGrace,
+    consumePp: false,
+  });
+  assert.equal(third.tokens.find(token => token.id === returnedDefender.id).currentHp, 0);
+  assert.equal(third.consequences.traitProtected, false);
+});
+
+test("Focus Sash remains unconsumed on the general protection turn and is consumed on the next damaging chance", () => {
+  const move = { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} };
+  const sashDefender = {
+    ...defender,
+    teamId: "team-sash",
+    pokemonId: "pokemon-sash",
+    item: "focus-sash",
+  };
+  const first = applyMoveConsequences({
+    tokens: [attacker, sashDefender],
+    attackerId: attacker.id,
+    defenderId: sashDefender.id,
+    move,
+    resolution: { hit: true, damage: 10, hitCount: 1, attackTest: {}, defenseTest: {} },
+  });
+  assert.equal(first.tokens.find(token => token.id === sashDefender.id).item, "focus-sash");
+  assert.deepEqual(first.consequences.consumedItems, []);
+  assert.ok(hasHitKillSurvivalGrace(first.hitKillSurvivalGrace, sashDefender));
+
+  const second = applyMoveConsequences({
+    tokens: first.tokens,
+    attackerId: attacker.id,
+    defenderId: sashDefender.id,
+    move,
+    resolution: { hit: true, damage: 1, hitCount: 1, attackTest: {}, defenseTest: {} },
+    hitKillProtectionUsed: first.hitKillProtectionUsed,
+    hitKillSurvivalGrace: first.hitKillSurvivalGrace,
+    consumePp: false,
+  });
+  const protectedTarget = second.tokens.find(token => token.id === sashDefender.id);
+  assert.equal(protectedTarget.currentHp, 1);
+  assert.equal(protectedTarget.item, "");
+  assert.equal(protectedTarget.traitState.item.consumed, true);
+  assert.deepEqual(second.consequences.consumedItems, ["focus-sash"]);
+  assert.deepEqual(second.hitKillSurvivalGrace, []);
+});
+
+test("nonfatal first damage neither spends general protection nor preserves a survival trait", () => {
+  const move = { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} };
+  const sashDefender = { ...defender, item: "focus-sash" };
+  const first = applyMoveConsequences({
+    tokens: [attacker, sashDefender],
+    attackerId: attacker.id,
+    defenderId: sashDefender.id,
+    move,
+    resolution: { hit: true, damage: 9, hitCount: 1, attackTest: {}, defenseTest: {} },
+  });
+  assert.equal(first.tokens.find(token => token.id === sashDefender.id).currentHp, 1);
+  assert.deepEqual(first.hitKillProtectionUsed, []);
+  assert.deepEqual(first.hitKillSurvivalGrace, []);
+
+  const second = applyMoveConsequences({
+    tokens: first.tokens,
+    attackerId: attacker.id,
+    defenderId: sashDefender.id,
+    move,
+    resolution: { hit: true, damage: 1, hitCount: 1, attackTest: {}, defenseTest: {} },
+    consumePp: false,
+  });
+  assert.equal(second.tokens.find(token => token.id === sashDefender.id).currentHp, 0);
+  assert.equal(second.tokens.find(token => token.id === sashDefender.id).item, "focus-sash");
+  assert.equal(second.consequences.traitProtected, false);
+});
+
+test("critical bypasses only the general rule while an independent survival trait can still act", () => {
+  const sturdyDefender = { ...defender, ability: "sturdy" };
+  const result = applyMoveConsequences({
+    tokens: [attacker, sturdyDefender],
+    attackerId: attacker.id,
+    defenderId: sturdyDefender.id,
+    move: { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} },
+    resolution: {
+      hit: true,
+      damage: 10,
+      hitCount: 1,
+      attackTest: { critical: false },
+      defenseTest: { fumble: true },
+    },
+  });
+  assert.equal(result.consequences.hitKillProtected, false);
+  assert.equal(result.consequences.hitKillBypassedByDefenderFumble, true);
+  assert.equal(result.consequences.traitProtected, true);
+  assert.equal(result.tokens.find(token => token.id === sturdyDefender.id).currentHp, 1);
+  assert.deepEqual(result.hitKillProtectionUsed, []);
+  assert.deepEqual(result.hitKillSurvivalGrace, []);
+});
+
+test("battle consequences consume hit kill protection once and healing cannot restore it", () => {
+  const move = { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} };
+  const first = applyMoveConsequences({
+    tokens: [attacker, defender],
+    attackerId: attacker.id,
+    defenderId: defender.id,
+    move,
+    resolution: { hit: true, damage: 10, attackTest: { critical: false } },
+  });
+  const protectionKey = getHitKillProtectionKey(defender);
+  assert.equal(first.tokens.find(token => token.id === defender.id).currentHp, 1);
+  assert.equal(first.consequences.calculatedDamage, 10);
+  assert.equal(first.consequences.damage, 9);
+  assert.equal(first.consequences.hitKillProtected, true);
+  assert.equal(first.consequences.hitKillThreshold, 30);
+  assert.deepEqual(first.hitKillProtectionUsed, [protectionKey]);
+
+  const healedTokens = first.tokens.map(token => token.id === defender.id
+    ? { ...token, currentHp: token.maxHp }
+    : token);
+  const second = applyMoveConsequences({
+    tokens: healedTokens,
+    attackerId: attacker.id,
+    defenderId: defender.id,
+    move,
+    resolution: { hit: true, damage: 10, attackTest: { critical: false } },
+    hitKillProtectionUsed: first.hitKillProtectionUsed,
+    consumePp: false,
+  });
+  assert.equal(second.tokens.find(token => token.id === defender.id).currentHp, 0);
+  assert.equal(second.consequences.hitKillProtected, false);
+  assert.deepEqual(second.hitKillProtectionUsed, [protectionKey]);
+});
+
+test("an injured Pokémon can be knocked out normally before protection is used", () => {
   const fragile = { ...defender, currentHp: 4, maxHp: 10 };
   const result = applyMoveConsequences({
     tokens: [attacker, fragile],
@@ -164,12 +362,15 @@ test("battle consequences record calculated damage when protection leaves one HP
     move: { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} },
     resolution: { hit: true, damage: 8, attackTest: { critical: false } },
   });
-  const target = result.tokens.find(token => token.id === fragile.id);
-  assert.equal(target.currentHp, 1);
-  assert.equal(result.consequences.calculatedDamage, 8);
-  assert.equal(result.consequences.damage, 3);
-  assert.equal(result.consequences.hitKillProtected, true);
-  assert.equal(result.consequences.hitKillThreshold, 12);
+  assert.equal(result.tokens.find(token => token.id === fragile.id).currentHp, 0);
+  assert.equal(result.consequences.hitKillProtected, false);
+  assert.deepEqual(result.hitKillProtectionUsed, []);
+});
+
+test("hit kill use follows the Pokémon rather than its temporary scene token", () => {
+  const original = { ...defender, teamId: "team-a", pokemonId: "pokemon-a", id: "token-one" };
+  const switchedBack = { ...original, id: "token-two" };
+  assert.equal(getHitKillProtectionKey(original), getHitKillProtectionKey(switchedBack));
 });
 
 test("a connected move keeps secondary effects when the damage contest is lost", () => {

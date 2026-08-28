@@ -11,11 +11,13 @@ import {
     adjustMoveAccuracy,
     applyStageChange,
     calculateStagedStats,
+    clearHitKillSurvivalGrace,
     getDefensiveTypes,
     getMoveResolutionProfile,
     getMoveStab,
     getStatusBlockReason,
     isDirectKnockoutMove,
+    normalizeHitKillProtectionUsage,
     normalizePpSlots,
     normalizeSlug,
     normalizeStageMap,
@@ -51,7 +53,7 @@ import {
     traitSlug,
 } from "./traitMechanics.js";
 
-export const ROOM_SCHEMA_VERSION = 4;
+export const ROOM_SCHEMA_VERSION = 6;
 export const ROOM_SESSION_STORAGE_KEY = "myowndex_live_room_v1";
 export const LOCAL_ROOM_STORAGE_KEY = "myowndex_local_room_v1";
 
@@ -129,6 +131,8 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     gmNotes: "",
     tokens: [],
     initiative: [],
+    hitKillProtectionUsed: [],
+    hitKillSurvivalGrace: [],
     audio: {
         trackId: null,
         title: "",
@@ -246,6 +250,8 @@ export const normalizeRoomSnapshot = value => {
         gmNotes: asText(source.gmNotes).slice(0, 6000),
         tokens: resolvedTokens,
         initiative,
+        hitKillProtectionUsed: normalizeHitKillProtectionUsage(source.hitKillProtectionUsed),
+        hitKillSurvivalGrace: normalizeHitKillProtectionUsage(source.hitKillSurvivalGrace),
         audio: {
             ...fallback.audio,
             ...(source.audio && typeof source.audio === "object" ? source.audio : {}),
@@ -264,6 +270,24 @@ export const normalizeRoomSnapshot = value => {
             mirrorSprites: source.settings?.mirrorSprites !== false,
         },
     };
+};
+
+export const changeRoomPhase = (snapshot, nextPhase) => {
+    const room = normalizeRoomSnapshot(snapshot);
+    const phase = ROOM_PHASES.some(candidate => candidate.id === nextPhase)
+        ? nextPhase
+        : room.phase;
+    if (phase === room.phase) return room;
+    return normalizeRoomSnapshot({
+        ...room,
+        phase,
+        hitKillProtectionUsed: phase === "batalha"
+            ? []
+            : room.hitKillProtectionUsed,
+        hitKillSurvivalGrace: phase === "batalha"
+            ? []
+            : room.hitKillSurvivalGrace,
+    });
 };
 
 const sameValue = (first, second) => JSON.stringify(first) === JSON.stringify(second);
@@ -1022,7 +1046,20 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         });
     });
 
-    return { room: { ...room, tokens }, effects };
+    const damagedTokenIds = new Set(
+        effects
+            .filter(effect => Number(effect.damage) > 0)
+            .map(effect => effect.tokenId)
+            .filter(Boolean)
+    );
+    let hitKillSurvivalGrace = room.hitKillSurvivalGrace;
+    damagedTokenIds.forEach(tokenId => {
+        const token = tokens.find(candidate => candidate.id === tokenId)
+            || room.tokens.find(candidate => candidate.id === tokenId);
+        hitKillSurvivalGrace = clearHitKillSurvivalGrace(hitKillSurvivalGrace, token);
+    });
+
+    return { room: { ...room, tokens, hitKillSurvivalGrace }, effects };
 };
 
 export const buildInitiative = (snapshot, random) => {
@@ -1282,12 +1319,15 @@ export const eventSummary = event => {
                     ? "alcançou o alvo, mas não causou dano"
                     : "não alcançou o alvo";
         const protection = payload.hitKillProtected
-            ? ` O golpe causaria ${Number(payload.calculatedDamage) || damage}, mas a proteção contra hit kill manteve o alvo com 1 HP.`
+            ? ` O golpe causaria ${Number(payload.calculatedDamage) || damage}, mas a proteção contra hit kill manteve o alvo com 1 HP e foi consumida nesta batalha.`
             : "";
         const fainted = payload.fainted ? " O alvo não pode mais batalhar." : "";
         const fumble = payload.fumble ? " O erro crítico pede uma consequência escolhida para esta cena." : "";
+        const defenderFumble = payload.defenderFumble
+            ? " O erro crítico do defensor permitiu que um dano fatal ignorasse a proteção contra Hit Kill."
+            : "";
         const special = payload.specialNarrative ? ` ${payload.specialNarrative}` : "";
-        return `${event.author}: ${payload.attackerName || "Pokémon"} ${moveDescription} e ${result}.${protection}${fainted}${fumble}${special}`;
+        return `${event.author}: ${payload.attackerName || "Pokémon"} ${moveDescription} e ${result}.${protection}${fainted}${fumble}${defenderFumble}${special}`;
     }
     if (event?.type === "message") return `${event.author}: ${asText(payload.text)}`;
     if (event?.type === "ready") return payload.ready

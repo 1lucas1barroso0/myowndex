@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.11\.1/);
+  assert.match(worker, /myowndex-shell-v9\.12\.1/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -454,8 +454,12 @@ test("the adventure exposes every modifier and explains movement resolution", as
   assert.match(room, /Neutralizar todos/);
   assert.match(combat, /Efeito por precisão|resolutionLabel/);
   assert.match(combat, /não exige selecionar um adversário/);
+  assert.match(combat, /resolution\.defenseTest\?\.fumble/);
+  assert.match(combat, /hitKillSurvivalGrace/);
   assert.match(rules, /Os sete modificadores/);
   assert.match(rules, /Uma precisão numérica — inclusive 100%/);
+  assert.match(rules, /erros críticos do defensor/);
+  assert.match(rules, /Sturdy, Focus Sash e efeitos equivalentes são proteções próprias e adicionais/);
 });
 
 test("unique Pokémon and exceptional Moves expose state, narrative and automation level", async () => {
@@ -516,6 +520,8 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.doesNotMatch(guide, /target="_blank"/);
   assert.match(guide, /Todas as regras necessárias para jogar estão reunidas aqui/);
   assert.match(rules, /Proteção contra hit kill/);
-  assert.match(rules, /três vezes o HP atual/);
+  assert.match(rules, /três vezes o HP máximo/);
+  assert.match(rules, /uma única vez por batalha/);
+  assert.match(rules, /trocar o Pokémon, curá-lo ou levá-lo novamente ao HP máximo não restaura/);
   assert.match(rules, /Acertos críticos superam o limite de dano/);
 });

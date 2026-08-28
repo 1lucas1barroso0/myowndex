@@ -336,7 +336,7 @@ test("old room snapshots gain safe special-state defaults and keep a temporary t
     }],
   });
   assert.equal(room.schema, ROOM_SCHEMA_VERSION);
-  assert.equal(room.schema, 4);
+  assert.equal(room.schema, 6);
   assert.deepEqual(room.tokens[0].types, ["grass", "ghost", "fire"]);
   assert.deepEqual(room.tokens[0].specialState, normalizeSpecialState());
   assert.equal(getSpecialMoveBlockReason({ move: { name: "sketch" }, attacker: room.tokens[0], defender: token() }), "o alvo ainda não possui um último movimento registrado");

@@ -7,15 +7,16 @@ import {
     formatType,
 } from "../../core/mechanics.js";
 import {
-    applyHitKillProtection,
     applyMoveConsequences,
     getAffectedMoveTargets,
     getHitKillProtectionKey,
+    hasHitKillSurvivalGrace,
     getMoveAutomationTags,
     getMovePpState,
     getMoveResolutionProfile,
     getSelectableMoveTargets,
     isDirectKnockoutMove,
+    resolveKnockoutProtection,
     STAGE_LABELS,
 } from "../../core/automation.js";
 import { formatCount, formatRemainingPp } from "../../core/copy.js";
@@ -52,6 +53,8 @@ const emptyConsequences = () => ({
     blockedStatuses: [],
     trackedEffects: [],
     hitKillProtected: false,
+    hitKillBypassedByAttackerCritical: false,
+    hitKillBypassedByDefenderFumble: false,
     hitKillThreshold: 0,
     fainted: false,
     fieldChange: null,
@@ -62,6 +65,8 @@ const emptyConsequences = () => ({
     itemDamage: 0,
     traitHealing: 0,
     traitProtected: false,
+    survivalGraceGranted: false,
+    survivalGraceUsed: false,
     traitActivations: [],
     consumedItems: [],
     traitStatuses: [],
@@ -85,6 +90,8 @@ const addConsequences = (summary, current) => ({
         ? [...summary.trackedEffects, current.trackedEffect]
         : summary.trackedEffects,
     hitKillProtected: summary.hitKillProtected || Boolean(current.hitKillProtected),
+    hitKillBypassedByAttackerCritical: summary.hitKillBypassedByAttackerCritical || Boolean(current.hitKillBypassedByAttackerCritical),
+    hitKillBypassedByDefenderFumble: summary.hitKillBypassedByDefenderFumble || Boolean(current.hitKillBypassedByDefenderFumble),
     hitKillThreshold: Math.max(summary.hitKillThreshold, Number(current.hitKillThreshold) || 0),
     fainted: summary.fainted || Boolean(current.fainted),
     fieldChange: current.fieldChange || summary.fieldChange,
@@ -97,6 +104,8 @@ const addConsequences = (summary, current) => ({
     itemDamage: summary.itemDamage + (Number(current.itemDamage) || 0),
     traitHealing: summary.traitHealing + (Number(current.traitHealing) || 0),
     traitProtected: summary.traitProtected || Boolean(current.traitProtected),
+    survivalGraceGranted: summary.survivalGraceGranted || Boolean(current.survivalGraceGranted),
+    survivalGraceUsed: summary.survivalGraceUsed || Boolean(current.survivalGraceUsed),
     traitActivations: [...summary.traitActivations, ...(current.traitActivations || [])],
     consumedItems: [...summary.consumedItems, ...(current.consumedItems || [])],
     traitStatuses: [...summary.traitStatuses, ...(current.traitStatuses || [])],
@@ -268,6 +277,7 @@ export default function CombatAssistant({
             const targetsToResolve = affectedTargets.length ? affectedTargets : [null];
             let workingTokens = snapshot.tokens;
             let workingHitKillProtectionUsed = snapshot.hitKillProtectionUsed;
+            let workingHitKillSurvivalGrace = snapshot.hitKillSurvivalGrace;
             let consequences = emptyConsequences();
             const targetResults = [];
 
@@ -300,21 +310,29 @@ export default function CombatAssistant({
                         clearDeclaration: index === targetsToResolve.length - 1,
                         round: snapshot.round,
                         hitKillProtectionUsed: workingHitKillProtectionUsed,
+                        hitKillSurvivalGrace: workingHitKillSurvivalGrace,
                     });
                     workingTokens = automated.tokens;
                     workingHitKillProtectionUsed = automated.hitKillProtectionUsed;
+                    workingHitKillSurvivalGrace = automated.hitKillSurvivalGrace;
                     consequences = addConsequences(consequences, automated.consequences);
                     targetResults.push({ target: currentTarget, resolution, consequences: automated.consequences });
                 } else {
                     const previewHitKill = currentTarget
-                        ? applyHitKillProtection({
+                        ? resolveKnockoutProtection({
+                            token: currentTarget,
                             damage: resolution.damageHit ? resolution.damage : 0,
-                            currentHp: currentTarget.currentHp,
-                            maxHp: currentTarget.maxHp,
+                            hitCount: Number(resolution.hitCount) || 1,
+                            round: snapshot.round,
                             protectionUsed: snapshot.hitKillProtectionUsed.includes(
                                 getHitKillProtectionKey(currentTarget),
                             ),
+                            survivalGrace: hasHitKillSurvivalGrace(
+                                snapshot.hitKillSurvivalGrace,
+                                currentTarget,
+                            ),
                             critical: Boolean(resolution.attackTest?.critical),
+                            defenderFumble: Boolean(resolution.defenseTest?.fumble),
                             directKnockout: resolution.directKnockout || isDirectKnockoutMove(move),
                         })
                         : null;
@@ -349,6 +367,7 @@ export default function CombatAssistant({
                     ...(fieldChange?.terrain ? { terrain: fieldChange.terrain } : {}),
                     tokens: workingTokens,
                     hitKillProtectionUsed: workingHitKillProtectionUsed,
+                    hitKillSurvivalGrace: workingHitKillSurvivalGrace,
                 });
                 await onEvent("move", {
                     attackerName: attacker.name,
@@ -371,6 +390,7 @@ export default function CombatAssistant({
                     status: consequences.appliedStatuses[0] || "",
                     ppAfter: consequences.ppAfter,
                     fumble: targetResults.some(entry => entry.resolution.attackTest?.fumble),
+                    defenderFumble: consequences.hitKillBypassedByDefenderFumble,
                     specialNarrative: consequences.specialNarratives.join(" "),
                 });
                 if (connected) {
@@ -587,7 +607,8 @@ export default function CombatAssistant({
                                             </span>
                                         )}
                                         {resolution.attackTest?.critical && <span className="combat-damage-exception">Acerto crítico: o limite comum e a proteção contra Hit Kill não se aplicam.</span>}
-                                        {resolution.directKnockout && <span className="combat-damage-exception">Nocaute direto: segue a exceção própria e ignora as duas proteções.</span>}
+                                        {resolution.defenseTest?.fumble && <span className="combat-damage-exception">Erro crítico do defensor: a proteção contra Hit Kill não se aplica.</span>}
+                                        {resolution.directKnockout && <span className="combat-damage-exception">Nocaute direto: ignora o limite comum e a proteção geral contra Hit Kill; efeitos próprios, como Sturdy ou Focus Sash, são resolvidos separadamente.</span>}
                                         {resolution.fixedDamage != null && <span className="combat-damage-exception">Dano fixo: usa o valor próprio do movimento em vez do limite comum.</span>}
                                         {resolution.dynamicPower && <span>Poder situacional {formatNumberPtBr(resolution.power)}: {resolution.dynamicPower.explanation}.</span>}
                                         {resolution.statProfile?.explanation && <span>{resolution.statProfile.explanation}.</span>}
@@ -646,6 +667,8 @@ export default function CombatAssistant({
                                 })()}
                                 {result.consequences.traitProtected && <li className="combat-consequence-trait">Habilidade ou item de sobrevivência: preservou 1 HP. Esta proteção é própria do efeito, não a regra de Hit Kill.</li>}
                                 {result.consequences.hitKillProtected && <li className="combat-consequence-hit-kill">Proteção contra Hit Kill consumida nesta batalha: calculado {formatNumberPtBr(result.consequences.calculatedDamage)}, aplicado {formatNumberPtBr(result.consequences.damage)}; o alvo permaneceu com 1 HP.</li>}
+                                {result.consequences.survivalGraceGranted && <li className="combat-consequence-trait">Sturdy, Focus Sash ou efeito equivalente permaneceu disponível como proteção adicional; o próximo dano que alcançar o Pokémon encerra essa elegibilidade preservada.</li>}
+                                {result.consequences.survivalGraceUsed && <li className="combat-consequence-trait">A proteção adicional preservada após o Hit Kill foi usada e não continuará para outro dano.</li>}
                                 {result.targetResults.some(entry => entry.resolution.attackTest?.fumble) && <li>Erro crítico: escolha uma consequência coerente com a cena; o MyOwnDex não toma essa decisão pelo grupo.</li>}
                                 {result.consequences.fainted && <li>Um alvo não pode mais batalhar.</li>}
                             </ul>

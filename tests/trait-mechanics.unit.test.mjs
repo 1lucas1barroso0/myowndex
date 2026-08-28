@@ -14,6 +14,7 @@ import {
   getDamageTraitModifiers,
   getMultiHitTraitState,
   getSurvivalTrait,
+  getSurvivalTraitSources,
   getTraitMoveBlock,
   normalizeTraitState,
   restoreHeldItem,
@@ -110,6 +111,21 @@ test("Sturdy and Focus Sash are explicit survival sources and Focus Sash is cons
   assert.equal(sash.appliedDamage, 15);
   assert.equal(sash.token.item, "");
   assert.equal(sash.token.traitState.item.consumed, true);
+});
+
+test("preserved full-HP eligibility is explicit and still obeys the single-hit trait rule", () => {
+  const injured = token({ currentHp: 1, ability: "sturdy", item: "focus-sash" });
+  assert.deepEqual(getSurvivalTraitSources(injured), [
+    { id: "sturdy", kind: "ability" },
+    { id: "focus-sash", kind: "item" },
+  ]);
+  assert.equal(getSurvivalTrait(injured, { damage: 1 }).applied, false);
+  assert.equal(getSurvivalTrait(injured, { damage: 1, fullHpEligibilityPreserved: true }).sourceId, "sturdy");
+  assert.equal(getSurvivalTrait(injured, {
+    damage: 2,
+    hitCount: 2,
+    fullHpEligibilityPreserved: true,
+  }).applied, false);
 });
 
 test("Loaded Dice and Skill Link make multi-hit behavior deterministic", () => {

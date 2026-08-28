@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { convertToTTRPG } from "../src/core/mechanics.js";
+import { getHitKillSurvivalGraceKeys } from "../src/core/automation.js";
 import {
   addTeamToSnapshot,
   applyEndOfRoundEffects,
@@ -82,19 +83,24 @@ test("room snapshots normalize phases, scenes and unsafe token positions", () =>
 
 test("a new battle resets hit kill use while healing and other phases do not", () => {
   const used = ["pokemon:team-a:pokemon-a"];
+  const grace = ["pokemon:team-a:pokemon-a::survival-trait:ability:sturdy"];
   const battle = normalizeRoomSnapshot({
     ...createRoomSnapshot("Uso único"),
     phase: "batalha",
     hitKillProtectionUsed: used,
+    hitKillSurvivalGrace: grace,
   });
   const healed = normalizeRoomSnapshot({ ...battle, tokens: [{ id: "one", maxHp: 10, currentHp: 10 }] });
   assert.deepEqual(healed.hitKillProtectionUsed, used);
+  assert.deepEqual(healed.hitKillSurvivalGrace, grace);
 
   const interpretation = changeRoomPhase(healed, "interpretacao");
   assert.deepEqual(interpretation.hitKillProtectionUsed, used);
+  assert.deepEqual(interpretation.hitKillSurvivalGrace, grace);
 
   const nextBattle = changeRoomPhase(interpretation, "batalha");
   assert.deepEqual(nextBattle.hitKillProtectionUsed, []);
+  assert.deepEqual(nextBattle.hitKillSurvivalGrace, []);
 });
 
 test("room conflicts preserve a Player move while applying the Narrator change", () => {
@@ -252,6 +258,29 @@ test("end-of-round residual damage is separate from hit kill protection and stay
   assert.equal(result.effects.length, 2);
   assert.deepEqual(result.effects[0].sources, ["queimadura", "tempestade de areia"]);
   assert.equal(result.effects[0].fainted, true);
+});
+
+test("residual damage clears preserved Sturdy or Focus Sash eligibility", () => {
+  const snapshot = createRoomSnapshot("Elegibilidade residual");
+  const sturdy = {
+    id: "sturdy",
+    name: "Resistente",
+    teamId: "team-a",
+    pokemonId: "pokemon-a",
+    maxHp: 16,
+    currentHp: 1,
+    status: "burn",
+    ability: "sturdy",
+    item: "",
+    types: ["normal"],
+    stats: {},
+    originalStats: {},
+  };
+  snapshot.tokens = [sturdy];
+  snapshot.hitKillSurvivalGrace = getHitKillSurvivalGraceKeys(sturdy);
+  const result = applyEndOfRoundEffects(snapshot);
+  assert.equal(result.room.tokens[0].currentHp, 0);
+  assert.deepEqual(result.room.hitKillSurvivalGrace, []);
 });
 
 test("move resolution honors defender ties, STAB, typing and level ceiling", () => {

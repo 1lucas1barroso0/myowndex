@@ -5,6 +5,7 @@ import {
     accuracyStageMultiplier,
     applyStageChange,
     calculateStagedStats,
+    clearHitKillSurvivalGrace,
     normalizeStageMap,
     STAGE_LABELS,
     STAGE_STAT_KEYS,
@@ -747,9 +748,14 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         if (!selectedToken || role !== "narrator") return;
         const nextToken = { ...selectedToken, ...patch };
         const specialState = normalizeSpecialState(nextToken.specialState);
+        const lostHp = Object.hasOwn(patch, "currentHp")
+            && Number(nextToken.currentHp) < Number(selectedToken.currentHp);
         commitSnapshot({
             ...snapshot,
             tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
+            hitKillSurvivalGrace: lostHp
+                ? clearHitKillSurvivalGrace(snapshot.hitKillSurvivalGrace, selectedToken)
+                : snapshot.hitKillSurvivalGrace,
         });
         if (nextToken.pokemonId) {
             setTeams(current => current.map(team => team.id === nextToken.teamId

@@ -315,7 +315,7 @@ export default function TrainerGuide({ experienceMode }) {
                                 <span aria-hidden="true">◆</span>
                                 <div>
                                     <strong>Proteção contra Hit Kill</strong>
-                                    <p>É uma verificação separada: se o movimento não alcançar três vezes o HP atual, o alvo que seria nocauteado permanece com 1 HP. Críticos e nocautes diretos seguem as exceções da regra.</p>
+                                    <p>É uma verificação separada e única por batalha: partindo do HP máximo, dano fatal abaixo de três vezes esse máximo deixa 1 HP. Crítico do atacante, erro crítico do defensor e nocaute direto atravessam a regra; Sturdy e Focus Sash continuam como proteções adicionais.</p>
                                 </div>
                             </article>
                         </div>

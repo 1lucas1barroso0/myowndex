@@ -464,32 +464,47 @@ export const getInitiativeTraitState = (token, { weather = "limpo", round = 0 } 
     return { multiplier: entries.reduce((total, entry) => total * entry.multiplier, 1), entries };
 };
 
-export const getSurvivalTrait = (token, { damage = 0, hitCount = 1, round = 0 } = {}) => {
+export const getSurvivalTraitSources = token => {
+    const sources = [];
+    const ability = isAbilityActive(token) ? traitSlug(token?.ability) : "";
+    const item = isHeldItemActive(token) ? traitSlug(token?.item) : "";
+    if (ability === "sturdy") sources.push({ id: ability, kind: "ability" });
+    if (item === "focus-sash") sources.push({ id: item, kind: "item" });
+    return sources;
+};
+
+export const getSurvivalTrait = (token, {
+    damage = 0,
+    hitCount = 1,
+    round = 0,
+    fullHpEligibilityPreserved = false,
+} = {}) => {
     const hp = Math.max(0, asNumber(token?.currentHp));
     const fullHp = hp > 0 && hp >= Math.max(1, asNumber(token?.maxHp, 1));
     const wouldFaint = asNumber(damage) >= hp;
-    if (!fullHp || !wouldFaint || hitCount !== 1) return { applied: false, token, appliedDamage: Math.min(hp, Math.max(0, asNumber(damage))) };
-    const ability = isAbilityActive(token) ? traitSlug(token?.ability) : "";
-    if (ability === "sturdy") {
+    if ((!fullHp && !fullHpEligibilityPreserved) || !wouldFaint || hitCount !== 1) {
+        return { applied: false, token, appliedDamage: Math.min(hp, Math.max(0, asNumber(damage))) };
+    }
+    const [source] = getSurvivalTraitSources(token);
+    if (source?.id === "sturdy") {
         return {
             applied: true,
-            token: recordTraitEvent(token, { kind: "ability", sourceId: ability, label: "Nocaute impedido", detail: "Sturdy manteve 1 HP", round }),
+            token: recordTraitEvent(token, { kind: "ability", sourceId: source.id, label: "Nocaute impedido", detail: "Sturdy manteve 1 HP", round }),
             appliedDamage: Math.max(0, hp - 1),
-            sourceId: ability,
+            sourceId: source.id,
             sourceKind: "ability",
             narrative: "Sturdy impediu o nocaute e manteve 1 HP.",
         };
     }
-    const item = isHeldItemActive(token) ? traitSlug(token?.item) : "";
-    if (item === "focus-sash") {
+    if (source?.id === "focus-sash") {
         const consumed = consumeHeldItem(token, { reason: "Focus Sash impediu o nocaute", round });
         return {
             applied: true,
             token: consumed.token,
             appliedDamage: Math.max(0, hp - 1),
-            sourceId: item,
+            sourceId: source.id,
             sourceKind: "item",
-            itemConsumed: item,
+            itemConsumed: source.id,
             narrative: "Focus Sash foi consumida e manteve 1 HP.",
         };
     }

@@ -16,6 +16,7 @@ import {
     getMoveStab,
     getStatusBlockReason,
     isDirectKnockoutMove,
+    normalizeHitKillProtectionUsage,
     normalizePpSlots,
     normalizeSlug,
     normalizeStageMap,
@@ -51,7 +52,7 @@ import {
     traitSlug,
 } from "./traitMechanics.js";
 
-export const ROOM_SCHEMA_VERSION = 4;
+export const ROOM_SCHEMA_VERSION = 5;
 export const ROOM_SESSION_STORAGE_KEY = "myowndex_live_room_v1";
 export const LOCAL_ROOM_STORAGE_KEY = "myowndex_local_room_v1";
 
@@ -129,6 +130,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     gmNotes: "",
     tokens: [],
     initiative: [],
+    hitKillProtectionUsed: [],
     audio: {
         trackId: null,
         title: "",
@@ -246,6 +248,7 @@ export const normalizeRoomSnapshot = value => {
         gmNotes: asText(source.gmNotes).slice(0, 6000),
         tokens: resolvedTokens,
         initiative,
+        hitKillProtectionUsed: normalizeHitKillProtectionUsage(source.hitKillProtectionUsed),
         audio: {
             ...fallback.audio,
             ...(source.audio && typeof source.audio === "object" ? source.audio : {}),
@@ -264,6 +267,21 @@ export const normalizeRoomSnapshot = value => {
             mirrorSprites: source.settings?.mirrorSprites !== false,
         },
     };
+};
+
+export const changeRoomPhase = (snapshot, nextPhase) => {
+    const room = normalizeRoomSnapshot(snapshot);
+    const phase = ROOM_PHASES.some(candidate => candidate.id === nextPhase)
+        ? nextPhase
+        : room.phase;
+    if (phase === room.phase) return room;
+    return normalizeRoomSnapshot({
+        ...room,
+        phase,
+        hitKillProtectionUsed: phase === "batalha"
+            ? []
+            : room.hitKillProtectionUsed,
+    });
 };
 
 const sameValue = (first, second) => JSON.stringify(first) === JSON.stringify(second);
@@ -1282,7 +1300,7 @@ export const eventSummary = event => {
                     ? "alcançou o alvo, mas não causou dano"
                     : "não alcançou o alvo";
         const protection = payload.hitKillProtected
-            ? ` O golpe causaria ${Number(payload.calculatedDamage) || damage}, mas a proteção contra hit kill manteve o alvo com 1 HP.`
+            ? ` O golpe causaria ${Number(payload.calculatedDamage) || damage}, mas a proteção contra hit kill manteve o alvo com 1 HP e foi consumida nesta batalha.`
             : "";
         const fainted = payload.fainted ? " O alvo não pode mais batalhar." : "";
         const fumble = payload.fumble ? " O erro crítico pede uma consequência escolhida para esta cena." : "";

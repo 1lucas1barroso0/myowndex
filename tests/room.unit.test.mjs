@@ -6,6 +6,7 @@ import {
   applyEndOfRoundEffects,
   buildInitiative,
   calculateMoveResolution,
+  changeRoomPhase,
   createRoomSnapshot,
   mergeRoomConflictSnapshot,
   normalizeRoomSnapshot,
@@ -77,6 +78,23 @@ test("room snapshots normalize phases, scenes and unsafe token positions", () =>
   assert.equal(room.tokens[0].currentHp, 5);
   assert.equal(room.audio.volume, 1);
   assert.equal(room.audio.offset, 0);
+});
+
+test("a new battle resets hit kill use while healing and other phases do not", () => {
+  const used = ["pokemon:team-a:pokemon-a"];
+  const battle = normalizeRoomSnapshot({
+    ...createRoomSnapshot("Uso único"),
+    phase: "batalha",
+    hitKillProtectionUsed: used,
+  });
+  const healed = normalizeRoomSnapshot({ ...battle, tokens: [{ id: "one", maxHp: 10, currentHp: 10 }] });
+  assert.deepEqual(healed.hitKillProtectionUsed, used);
+
+  const interpretation = changeRoomPhase(healed, "interpretacao");
+  assert.deepEqual(interpretation.hitKillProtectionUsed, used);
+
+  const nextBattle = changeRoomPhase(interpretation, "batalha");
+  assert.deepEqual(nextBattle.hitKillProtectionUsed, []);
 });
 
 test("room conflicts preserve a Player move while applying the Narrator change", () => {

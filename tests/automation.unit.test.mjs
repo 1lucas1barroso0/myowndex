@@ -7,6 +7,7 @@ import {
   accuracyStageMultiplier,
   getDefensiveTypes,
   getAffectedMoveTargets,
+  getHitKillProtectionKey,
   getMoveResolutionProfile,
   getMovePpState,
   getSelectableMoveTargets,
@@ -127,23 +128,33 @@ test("one resolved Move applies PP, HP, drain, status and stages together", () =
   assert.equal(nextDefender.status, "burn");
   assert.equal(result.consequences.healed, 2);
   assert.equal(result.consequences.appliedStatus, "burn");
+  assert.deepEqual(result.hitKillProtectionUsed, []);
 });
 
-test("hit kill protection covers damage below, equal to and above three times current HP", () => {
-  const below = applyHitKillProtection({ damage: 29, currentHp: 10 });
+test("hit kill protection only saves full HP below three times maximum HP", () => {
+  const below = applyHitKillProtection({ damage: 29, currentHp: 10, maxHp: 10 });
   assert.equal(below.protectedFromKnockout, true);
   assert.equal(below.appliedDamage, 9);
   assert.equal(below.remainingHp, 1);
   assert.equal(below.threshold, 30);
 
-  const equal = applyHitKillProtection({ damage: 30, currentHp: 10 });
+  const equal = applyHitKillProtection({ damage: 30, currentHp: 10, maxHp: 10 });
   assert.equal(equal.protectedFromKnockout, false);
   assert.equal(equal.appliedDamage, 10);
   assert.equal(equal.remainingHp, 0);
 
-  const above = applyHitKillProtection({ damage: 31, currentHp: 10 });
+  const above = applyHitKillProtection({ damage: 31, currentHp: 10, maxHp: 10 });
   assert.equal(above.protectedFromKnockout, false);
   assert.equal(above.remainingHp, 0);
+
+  const injured = applyHitKillProtection({ damage: 9, currentHp: 9, maxHp: 10 });
+  assert.equal(injured.atMaximumHp, false);
+  assert.equal(injured.protectedFromKnockout, false);
+  assert.equal(injured.remainingHp, 0);
+
+  const spent = applyHitKillProtection({ damage: 10, currentHp: 10, maxHp: 10, protectionUsed: true });
+  assert.equal(spent.protectedFromKnockout, false);
+  assert.equal(spent.remainingHp, 0);
 });
 
 test("critical hits and declared knockout moves bypass hit kill protection", () => {
@@ -155,7 +166,41 @@ test("critical hits and declared knockout moves bypass hit kill protection", () 
   assert.equal(direct.remainingHp, 0);
 });
 
-test("battle consequences record calculated damage when protection leaves one HP", () => {
+test("battle consequences consume hit kill protection once and healing cannot restore it", () => {
+  const move = { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} };
+  const first = applyMoveConsequences({
+    tokens: [attacker, defender],
+    attackerId: attacker.id,
+    defenderId: defender.id,
+    move,
+    resolution: { hit: true, damage: 10, attackTest: { critical: false } },
+  });
+  const protectionKey = getHitKillProtectionKey(defender);
+  assert.equal(first.tokens.find(token => token.id === defender.id).currentHp, 1);
+  assert.equal(first.consequences.calculatedDamage, 10);
+  assert.equal(first.consequences.damage, 9);
+  assert.equal(first.consequences.hitKillProtected, true);
+  assert.equal(first.consequences.hitKillThreshold, 30);
+  assert.deepEqual(first.hitKillProtectionUsed, [protectionKey]);
+
+  const healedTokens = first.tokens.map(token => token.id === defender.id
+    ? { ...token, currentHp: token.maxHp }
+    : token);
+  const second = applyMoveConsequences({
+    tokens: healedTokens,
+    attackerId: attacker.id,
+    defenderId: defender.id,
+    move,
+    resolution: { hit: true, damage: 10, attackTest: { critical: false } },
+    hitKillProtectionUsed: first.hitKillProtectionUsed,
+    consumePp: false,
+  });
+  assert.equal(second.tokens.find(token => token.id === defender.id).currentHp, 0);
+  assert.equal(second.consequences.hitKillProtected, false);
+  assert.deepEqual(second.hitKillProtectionUsed, [protectionKey]);
+});
+
+test("an injured Pokémon can be knocked out normally before protection is used", () => {
   const fragile = { ...defender, currentHp: 4, maxHp: 10 };
   const result = applyMoveConsequences({
     tokens: [attacker, fragile],
@@ -164,12 +209,15 @@ test("battle consequences record calculated damage when protection leaves one HP
     move: { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} },
     resolution: { hit: true, damage: 8, attackTest: { critical: false } },
   });
-  const target = result.tokens.find(token => token.id === fragile.id);
-  assert.equal(target.currentHp, 1);
-  assert.equal(result.consequences.calculatedDamage, 8);
-  assert.equal(result.consequences.damage, 3);
-  assert.equal(result.consequences.hitKillProtected, true);
-  assert.equal(result.consequences.hitKillThreshold, 12);
+  assert.equal(result.tokens.find(token => token.id === fragile.id).currentHp, 0);
+  assert.equal(result.consequences.hitKillProtected, false);
+  assert.deepEqual(result.hitKillProtectionUsed, []);
+});
+
+test("hit kill use follows the Pokémon rather than its temporary scene token", () => {
+  const original = { ...defender, teamId: "team-a", pokemonId: "pokemon-a", id: "token-one" };
+  const switchedBack = { ...original, id: "token-two" };
+  assert.equal(getHitKillProtectionKey(original), getHitKillProtectionKey(switchedBack));
 });
 
 test("a connected move keeps secondary effects when the damage contest is lost", () => {

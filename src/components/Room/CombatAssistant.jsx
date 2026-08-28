@@ -10,6 +10,7 @@ import {
     applyHitKillProtection,
     applyMoveConsequences,
     getAffectedMoveTargets,
+    getHitKillProtectionKey,
     getMoveAutomationTags,
     getMovePpState,
     getMoveResolutionProfile,
@@ -266,6 +267,7 @@ export default function CombatAssistant({
             if (!move) throw new Error("A Pokédex não conseguiu abrir este movimento agora.");
             const targetsToResolve = affectedTargets.length ? affectedTargets : [null];
             let workingTokens = snapshot.tokens;
+            let workingHitKillProtectionUsed = snapshot.hitKillProtectionUsed;
             let consequences = emptyConsequences();
             const targetResults = [];
 
@@ -297,8 +299,10 @@ export default function CombatAssistant({
                         applySelfChanges: index === 0,
                         clearDeclaration: index === targetsToResolve.length - 1,
                         round: snapshot.round,
+                        hitKillProtectionUsed: workingHitKillProtectionUsed,
                     });
                     workingTokens = automated.tokens;
+                    workingHitKillProtectionUsed = automated.hitKillProtectionUsed;
                     consequences = addConsequences(consequences, automated.consequences);
                     targetResults.push({ target: currentTarget, resolution, consequences: automated.consequences });
                 } else {
@@ -306,6 +310,10 @@ export default function CombatAssistant({
                         ? applyHitKillProtection({
                             damage: resolution.damageHit ? resolution.damage : 0,
                             currentHp: currentTarget.currentHp,
+                            maxHp: currentTarget.maxHp,
+                            protectionUsed: snapshot.hitKillProtectionUsed.includes(
+                                getHitKillProtectionKey(currentTarget),
+                            ),
                             critical: Boolean(resolution.attackTest?.critical),
                             directKnockout: resolution.directKnockout || isDirectKnockoutMove(move),
                         })
@@ -340,6 +348,7 @@ export default function CombatAssistant({
                     ...(fieldChange?.weather ? { weather: fieldChange.weather } : {}),
                     ...(fieldChange?.terrain ? { terrain: fieldChange.terrain } : {}),
                     tokens: workingTokens,
+                    hitKillProtectionUsed: workingHitKillProtectionUsed,
                 });
                 await onEvent("move", {
                     attackerName: attacker.name,
@@ -636,14 +645,14 @@ export default function CombatAssistant({
                                     return <li>{formatCount(items.length, "item")} {items.length === 1 ? "consumido ou removido" : "consumidos ou removidos"}: {items.map(formatName).join(", ")}.</li>;
                                 })()}
                                 {result.consequences.traitProtected && <li className="combat-consequence-trait">Habilidade ou item de sobrevivência: preservou 1 HP. Esta proteção é própria do efeito, não a regra de Hit Kill.</li>}
-                                {result.consequences.hitKillProtected && <li className="combat-consequence-hit-kill">Proteção contra Hit Kill: calculado {formatNumberPtBr(result.consequences.calculatedDamage)}, aplicado {formatNumberPtBr(result.consequences.damage)}; o alvo permaneceu com 1 HP.</li>}
+                                {result.consequences.hitKillProtected && <li className="combat-consequence-hit-kill">Proteção contra Hit Kill consumida nesta batalha: calculado {formatNumberPtBr(result.consequences.calculatedDamage)}, aplicado {formatNumberPtBr(result.consequences.damage)}; o alvo permaneceu com 1 HP.</li>}
                                 {result.targetResults.some(entry => entry.resolution.attackTest?.fumble) && <li>Erro crítico: escolha uma consequência coerente com a cena; o MyOwnDex não toma essa decisão pelo grupo.</li>}
                                 {result.consequences.fainted && <li>Um alvo não pode mais batalhar.</li>}
                             </ul>
                         )}
                         {!result.consequences && result.targetResults.some(entry => entry.previewHitKill?.protectedFromKnockout) && (
                             <ul className="combat-consequences">
-                                <li className="combat-consequence-hit-kill">Prévia da proteção contra Hit Kill: calculado {formatNumberPtBr(resultCalculatedDamage)}, simulado {formatNumberPtBr(resultAppliedDamage)}; o alvo permaneceria com 1 HP.</li>
+                                <li className="combat-consequence-hit-kill">Prévia da proteção contra Hit Kill: calculado {formatNumberPtBr(resultCalculatedDamage)}, simulado {formatNumberPtBr(resultAppliedDamage)}; o alvo permaneceria com 1 HP e consumiria a proteção desta batalha.</li>
                             </ul>
                         )}
                     </div>

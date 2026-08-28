@@ -14,6 +14,7 @@ import {
     advanceInitiative,
     applyEndOfRoundEffects,
     buildInitiative,
+    changeRoomPhase,
     compactTeamOffer,
     createTokenFromPokemon,
     createRoomSnapshot,
@@ -1210,7 +1211,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <AdventurePhaseControl
                             value={snapshot.phase}
                             readOnly={role !== "narrator"}
-                            onChange={phase => commitSnapshot({ ...snapshot, phase })}
+                            onChange={phase => commitSnapshot(changeRoomPhase(snapshot, phase))}
                         />
                         <div className="room-scene-stats" aria-label="Resumo da cena">
                             <div>

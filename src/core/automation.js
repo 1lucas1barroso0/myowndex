@@ -50,6 +50,20 @@ const asNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Numbe
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 export const normalizeSlug = value => String(value || "").trim().toLowerCase().replace(/\s+/g, "-");
 
+export const getHitKillProtectionKey = token => {
+    const pokemonId = String(token?.pokemonId || "").trim();
+    const teamId = String(token?.teamShareId || token?.teamId || "").trim();
+    if (pokemonId && teamId) return `pokemon:${teamId}:${pokemonId}`.slice(0, 240);
+    const tokenId = String(token?.id || "").trim();
+    return tokenId ? `token:${tokenId}`.slice(0, 240) : "";
+};
+
+export const normalizeHitKillProtectionUsage = value => [...new Set(
+    asArray(value)
+        .map(entry => String(entry || "").trim().slice(0, 240))
+        .filter(Boolean)
+)].slice(0, 80);
+
 export const normalizePpSlots = value => {
     const pp = asArray(value).slice(0, 4).map(entry => {
         if (entry === "" || entry == null) return null;
@@ -418,24 +432,36 @@ export const getStatusBlockReason = (status, target, attacker, { terrain = "nenh
 export const applyHitKillProtection = ({
     damage,
     currentHp,
+    maxHp = currentHp,
+    protectionUsed = false,
     critical = false,
     directKnockout = false,
 } = {}) => {
     const hpBefore = Math.max(0, asNumber(currentHp));
+    const maximumHp = Math.max(1, asNumber(maxHp, Math.max(1, hpBefore)));
     const calculatedDamage = Math.max(0, asNumber(damage));
-    const threshold = hpBefore * 3;
+    const threshold = maximumHp * 3;
     const wouldKnockOut = hpBefore > 0 && calculatedDamage >= hpBefore;
+    const atMaximumHp = hpBefore === maximumHp;
     const bypassed = Boolean(critical || directKnockout);
-    const protectedFromKnockout = wouldKnockOut && !bypassed && calculatedDamage < threshold;
+    const protectedFromKnockout = wouldKnockOut
+        && atMaximumHp
+        && !protectionUsed
+        && !bypassed
+        && calculatedDamage < threshold;
     const appliedDamage = protectedFromKnockout
         ? Math.max(0, hpBefore - 1)
         : Math.min(calculatedDamage, hpBefore);
     return {
         hpBefore,
+        maximumHp,
         calculatedDamage,
         appliedDamage,
         threshold,
         wouldKnockOut,
+        atMaximumHp,
+        protectionUsed: Boolean(protectionUsed),
+        protectionConsumed: protectedFromKnockout,
         protectedFromKnockout,
         bypassed,
         remainingHp: Math.max(0, hpBefore - appliedDamage),
@@ -476,12 +502,14 @@ export const applyMoveConsequences = ({
     applySelfChanges = true,
     clearDeclaration = true,
     round = 0,
+    hitKillProtectionUsed = [],
 }) => {
     const source = asArray(tokens);
+    const protectionUsage = normalizeHitKillProtectionUsage(hitKillProtectionUsed);
     const originalAttacker = source.find(token => token.id === attackerId);
     const originalTarget = targetId ? source.find(token => token.id === targetId) : null;
     if (!originalAttacker || !move || !resolution) {
-        return { tokens: source, consequences: { applied: false } };
+        return { tokens: source, hitKillProtectionUsed: protectionUsage, consequences: { applied: false } };
     }
 
     let attacker = {
@@ -570,14 +598,19 @@ export const applyMoveConsequences = ({
         traitActivations.push({ kind: survival.sourceKind, sourceId: survival.sourceId, effect: "survival" });
         if (survival.itemConsumed) consumedItems.push(survival.itemConsumed);
     }
+    const hitKillProtectionKey = getHitKillProtectionKey(target);
     const baseHitKill = target
         ? applyHitKillProtection({
             damage: calculatedDamage,
             currentHp: target.currentHp,
+            maxHp: target.maxHp,
+            protectionUsed: hitKillProtectionKey
+                ? protectionUsage.includes(hitKillProtectionKey)
+                : false,
             critical: Boolean(resolution.attackTest?.critical),
             directKnockout: Boolean(resolution.directKnockout || isDirectKnockoutMove(move)),
         })
-        : applyHitKillProtection({ damage: 0, currentHp: 0 });
+        : applyHitKillProtection({ damage: 0, currentHp: 0, maxHp: 1 });
     const hitKill = survival.applied
         ? {
             ...baseHitKill,
@@ -589,6 +622,9 @@ export const applyMoveConsequences = ({
         }
         : baseHitKill;
     const damage = damageHit ? hitKill.appliedDamage : 0;
+    const nextHitKillProtectionUsed = hitKill.protectedFromKnockout && hitKillProtectionKey
+        ? normalizeHitKillProtectionUsage([...protectionUsage, hitKillProtectionKey])
+        : protectionUsage;
     if (target && damage > 0) {
         replaceEntity(target.id, {
             ...target,
@@ -1333,6 +1369,7 @@ export const applyMoveConsequences = ({
 
     return {
         tokens: nextTokens,
+        hitKillProtectionUsed: nextHitKillProtectionUsed,
         consequences: {
             applied: true,
             targetId: target?.id || "",

@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.11\.1/);
+  assert.match(worker, /myowndex-shell-v9\.12\.0/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -516,6 +516,8 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.doesNotMatch(guide, /target="_blank"/);
   assert.match(guide, /Todas as regras necessárias para jogar estão reunidas aqui/);
   assert.match(rules, /Proteção contra hit kill/);
-  assert.match(rules, /três vezes o HP atual/);
+  assert.match(rules, /três vezes o HP máximo/);
+  assert.match(rules, /uma única vez por batalha/);
+  assert.match(rules, /trocar o Pokémon, curá-lo ou levá-lo novamente ao HP máximo não restaura/);
   assert.match(rules, /Acertos críticos superam o limite de dano/);
 });

@@ -918,7 +918,12 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
 .room-player-list + .room-secondary-button { margin-top: .55rem; }
 .room-wide-select { min-height: 2.4rem; font-size: .66rem; }
 .room-mini-team { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: .24rem; min-height: 2.5rem; margin-top: .5rem; }
-.room-mini-team > span { display: grid; aspect-ratio: 1; place-items: center; border: 1px solid #CBD5E1; border-radius: .55rem; background: #F8FAFC; }
+.room-mini-team > button { position: relative; display: grid; min-width: 0; aspect-ratio: 1; place-items: center; border: 1px solid #CBD5E1; border-radius: .55rem; background: #F8FAFC; padding: .1rem; }
+.room-mini-team > button::after { position: absolute; right: .18rem; bottom: .18rem; width: .42rem; height: .42rem; border: 1px solid #0F172A; border-radius: 50%; background: #CBD5E1; content: ""; }
+.room-mini-team > button.is-field::after { background: #4ADE80; }
+.room-mini-team > button.is-benched::after { background: #FDE047; }
+.room-mini-team > button.is-fainted::after { background: #FB7185; }
+.room-mini-team > button.is-selected { border-color: #075985; box-shadow: 0 0 0 2px #67E8F9; }
 .room-mini-team img { width: 100%; max-width: 2.5rem; }
 .room-mini-team i { width: .65rem; height: .65rem; border-radius: 50%; background: #CBD5E1; }
 .room-mini-team > small { grid-column: 1/-1; align-self: center; color: #0E7490; font-size: .6rem; text-align: center; }
@@ -1140,6 +1145,9 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
 .token-switch-control > small { grid-column: 1/-1; color: #075985; font-size: .56rem; font-weight: 750; line-height: 1.35; }
 .room-team-lead { display: grid; gap: .25rem; }
 .room-team-lead > span { color: #075985; font-size: .625rem; font-weight: 900; }
+.room-team-entry-state { color: #0E7490; font-size: .56rem; font-weight: 750; line-height: 1.35; }
+.room-team-entry-state.is-field { color: #075985; }
+.room-team-entry-state.is-fainted { color: #7F1D1D; }
 .token-xp-control { display: grid; min-width: 10rem; flex: 1 1 11rem; grid-template-columns: auto minmax(3.5rem,1fr) auto; align-items: center; gap: .3rem; }
 .token-xp-control > span { color: #0E7490; font-size: .625rem; font-weight: 950; }
 .token-xp-control input { min-width: 0; height: 2rem; border: 1px solid #CBD5E1; border-radius: .5rem; background: #F8FAFC; padding: .35rem .5rem; color: #0F172A; font-size: .65rem; font-weight: 900; outline: none; }
@@ -1723,6 +1731,11 @@ html[data-theme="night"] .token-hit-kill-state > span,
 html[data-theme="night"] .token-hit-kill-state > strong,
 html[data-theme="night"] .token-switch-control > small,
 html[data-theme="night"] .room-team-lead > span { color: #BAE6FD; }
+html[data-theme="night"] .room-team-entry-state { color: #CBD5E1; }
+html[data-theme="night"] .room-team-entry-state.is-field { color: #67E8F9; }
+html[data-theme="night"] .room-team-entry-state.is-fainted { color: #FB7185; }
+html[data-theme="night"] .room-mini-team > button { border-color: #075985; background: #0F172A; color: #BAE6FD; }
+html[data-theme="night"] .room-mini-team > button.is-selected { border-color: #67E8F9; box-shadow: 0 0 0 2px #075985; }
 html[data-theme="night"] .token-hit-kill-state > button { background: #0F172A; color: #F8FAFC; }
 html[data-theme="night"] .room-mobile-nav { border-color: #075985; background: rgba(15,23,42,.94); }
 html[data-theme="night"] .room-mobile-nav button[aria-pressed=true] { background: #CBD5E1; color: #0F172A; }
@@ -4575,7 +4588,7 @@ html[data-theme="night"] select:-webkit-autofill {
   }
 }
 
-/* Battle presentation 9.14.0: classic opposing planes, readable HUDs and a quiet one-use rule state. */
+/* Battle presentation 9.14.1: requested HUDs, unobstructed planes and a quiet one-use rule state. */
 .battlefield-card {
   overflow: hidden;
   background: var(--dex-screen-highlight);
@@ -4601,6 +4614,7 @@ html[data-theme="night"] select:-webkit-autofill {
 }
 
 .battlefield-board::before { opacity: .72; }
+.battlefield-board::after { z-index: 1; }
 
 .battlefield-center-line {
   top: 41.5%;
@@ -4612,12 +4626,13 @@ html[data-theme="night"] select:-webkit-autofill {
 }
 
 .battlefield-depth {
-  z-index: 1;
+  z-index: 2;
   right: auto;
-  border: 2px solid color-mix(in srgb, var(--dex-screen-highlight) 55%, transparent);
-  background: color-mix(in srgb, var(--dex-bezel) 17%, transparent);
-  box-shadow: inset 0 -.45rem 0 color-mix(in srgb, var(--dex-bezel) 8%, transparent);
+  border: 2px solid color-mix(in srgb, var(--dex-screen-highlight) 45%, transparent);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dex-bezel) 8%, transparent);
   filter: none;
+  pointer-events: none;
 }
 
 .battlefield-depth-back {
@@ -4657,6 +4672,7 @@ html[data-theme="night"] select:-webkit-autofill {
 }
 
 .battlefield-pixel-grid {
+  z-index: 1;
   opacity: .3;
   background: repeating-linear-gradient(0deg, transparent 0 4px, color-mix(in srgb, var(--dex-screen-highlight) 8%, transparent) 4px 5px);
   background-size: auto;
@@ -4683,11 +4699,12 @@ html[data-theme="night"] select:-webkit-autofill {
   left: 50%;
   width: 6.1rem;
   height: 1.15rem;
-  border: 2px solid color-mix(in srgb, var(--dex-screen-highlight) 50%, transparent);
+  border: 2px solid color-mix(in srgb, var(--dex-screen-highlight) 42%, transparent);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--dex-bezel) 22%, transparent);
+  background: color-mix(in srgb, var(--dex-bezel) 8%, transparent);
   content: "";
   transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .room-token-sprite {
@@ -5103,7 +5120,10 @@ html[data-theme="night"] .token-self-damage-action strong { color: var(--dex-led
   .room-token-status-card,
   .token-battle-vitals,
   .token-hit-kill-state,
-  .token-self-damage-action { border: 2px solid CanvasText; background: Canvas; color: CanvasText; }
+  .token-self-damage-action,
+  .room-mini-team > button { border: 2px solid CanvasText; background: Canvas; color: CanvasText; }
+  .battlefield-depth,
+  .room-token-sprite-shell::after { border-color: CanvasText; background: transparent; }
   .token-hit-kill-led,
   .token-hit-kill-meter,
   .room-token-status-card .room-token-hp { border-color: CanvasText; background: Canvas; }

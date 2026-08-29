@@ -449,6 +449,35 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
     });
 };
 
+const FIELD_ENTRY_POSITIONS = Object.freeze({
+    ally: Object.freeze([
+        { x: 18, y: 72 }, { x: 36, y: 72 }, { x: 54, y: 72 }, { x: 72, y: 72 },
+        { x: 27, y: 84 }, { x: 45, y: 84 }, { x: 63, y: 84 }, { x: 81, y: 84 },
+    ]),
+    opponent: Object.freeze([
+        { x: 82, y: 28 }, { x: 64, y: 28 }, { x: 46, y: 28 }, { x: 28, y: 28 },
+        { x: 73, y: 16 }, { x: 55, y: 16 }, { x: 37, y: 16 }, { x: 19, y: 16 },
+    ]),
+    neutral: Object.freeze([
+        { x: 18, y: 50 }, { x: 36, y: 50 }, { x: 54, y: 50 }, { x: 72, y: 50 },
+        { x: 27, y: 62 }, { x: 45, y: 62 }, { x: 63, y: 62 }, { x: 81, y: 62 },
+    ]),
+});
+
+const findOpenFieldPosition = (tokens, side) => {
+    const candidates = FIELD_ENTRY_POSITIONS[side] || FIELD_ENTRY_POSITIONS.ally;
+    if (!tokens.length) return candidates[0];
+    const scored = candidates.map(position => ({
+        position,
+        clearance: tokens.reduce((nearest, token) => Math.min(
+            nearest,
+            (token.x - position.x) ** 2 + (token.y - position.y) ** 2,
+        ), MAX_SAFE_GAME_INTEGER),
+    }));
+    return scored.find(candidate => candidate.clearance >= 144)?.position
+        || scored.reduce((best, candidate) => candidate.clearance > best.clearance ? candidate : best).position;
+};
+
 const activateEnteredTokens = (room, tokenInput, enteredIdInput) => {
     const enteredIds = new Set(enteredIdInput);
     let combined = tokenInput;
@@ -636,6 +665,42 @@ const prepareTokenForSwitch = tokenInput => {
         },
     };
     return { ...changed, stats: calculateStagedStats(changed) };
+};
+
+export const deployBenchPokemonInSnapshot = (snapshot, incomingTokenId, side = "ally") => {
+    const room = normalizeRoomSnapshot(snapshot);
+    const active = room.tokens.find(token => token.id === incomingTokenId || token.pokemonId === incomingTokenId);
+    if (active) return { room, deployed: false, reason: `${active.name} já está em campo.` };
+    const incomingIndex = room.benchTokens.findIndex(token => token.id === incomingTokenId || token.pokemonId === incomingTokenId);
+    if (incomingIndex < 0) return { room, deployed: false, reason: "Escolha um Pokémon disponível no banco." };
+    if (room.tokens.length >= 40) return { room, deployed: false, reason: "O campo já atingiu sua capacidade segura." };
+
+    const incoming = room.benchTokens[incomingIndex];
+    if (incoming.currentHp <= 0) return { room, deployed: false, reason: `${incoming.name} não pode mais batalhar.` };
+    const resolvedSide = ["ally", "opponent", "neutral"].includes(side) ? side : incoming.side;
+    const position = findOpenFieldPosition(room.tokens, resolvedSide);
+    const entered = {
+        ...prepareTokenForSwitch(incoming),
+        side: resolvedSide,
+        x: position.x,
+        y: position.y,
+        enteredRound: room.round,
+    };
+    const tokens = [...room.tokens, entered];
+    const benchTokens = room.benchTokens.filter((_, index) => index !== incomingIndex);
+    const activated = activateEnteredTokens({ ...room, tokens, benchTokens }, tokens, [entered.id]);
+    const normalizedRoom = normalizeRoomSnapshot({
+        ...room,
+        tokens: activated.tokens,
+        benchTokens,
+        weather: activated.weather,
+        terrain: activated.terrain,
+    });
+    return {
+        room: normalizedRoom,
+        deployed: true,
+        incoming: normalizedRoom.tokens.find(token => token.id === entered.id) || entered,
+    };
 };
 
 export const swapTeamPokemonInSnapshot = (snapshot, outgoingTokenId, incomingTokenId) => {

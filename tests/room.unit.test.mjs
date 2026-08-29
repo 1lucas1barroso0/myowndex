@@ -9,6 +9,7 @@ import {
   calculateMoveResolution,
   changeRoomPhase,
   createRoomSnapshot,
+  deployBenchPokemonInSnapshot,
   mergeRoomConflictSnapshot,
   normalizeRoomSnapshot,
   ROOM_PHASES,
@@ -211,6 +212,77 @@ test("a team keeps reserves off field and swaps them without resetting battle hi
   assert.equal(returned.item, "");
   assert.equal(returned.traitState.item.consumed, true);
   assert.equal(returned.traitState.markers.some(marker => marker.startsWith("choice-lock:")), false);
+});
+
+test("one team can deploy every healthy reserve without removing active Pokémon", () => {
+  const multiTeam = normalizeTeam({
+    ...team,
+    id: "box-multi",
+    shareId: "box-multi",
+    pokemon: [
+      { ...team.pokemon[0], id: "partner-one", nickname: "Primeiro" },
+      { ...team.pokemon[0], id: "partner-two", nickname: "Segundo", ability: "drizzle" },
+      { ...team.pokemon[0], id: "partner-three", nickname: "Terceiro" },
+    ],
+  });
+  const created = addTeamToSnapshot(createRoomSnapshot("Múltiplos"), multiTeam, "ally", "player-one", {
+    activePokemonIds: ["partner-one"],
+    benchRemaining: true,
+  });
+  const protectedRoom = normalizeRoomSnapshot({
+    ...created.room,
+    hitKillProtectionUsed: ["pokemon:box-multi:partner-one"],
+    hitKillProtectionDisabled: ["pokemon:box-multi:partner-two"],
+  });
+
+  const second = deployBenchPokemonInSnapshot(protectedRoom, "partner-two", "ally");
+  assert.equal(second.deployed, true);
+  assert.equal(second.room.tokens.length, 2);
+  assert.equal(second.room.benchTokens.length, 1);
+  assert.equal(second.incoming.ownerPlayerId, "player-one");
+  assert.equal(second.room.weather, "chuva");
+  assert.deepEqual(second.room.hitKillProtectionUsed, protectedRoom.hitKillProtectionUsed);
+  assert.deepEqual(second.room.hitKillProtectionDisabled, protectedRoom.hitKillProtectionDisabled);
+
+  const third = deployBenchPokemonInSnapshot(second.room, "partner-three", "ally");
+  assert.equal(third.deployed, true);
+  assert.equal(third.room.tokens.length, 3);
+  assert.equal(third.room.benchTokens.length, 0);
+  assert.deepEqual(new Set(third.room.tokens.map(token => token.pokemonId)), new Set([
+    "partner-one",
+    "partner-two",
+    "partner-three",
+  ]));
+  assert.equal(new Set(third.room.tokens.map(token => `${token.x}:${token.y}`)).size, 3);
+
+  const duplicate = deployBenchPokemonInSnapshot(third.room, "partner-two", "ally");
+  assert.equal(duplicate.deployed, false);
+  assert.match(duplicate.reason, /já está em campo/);
+});
+
+test("a defeated reserve cannot be deployed as an additional active Pokémon", () => {
+  const reserveTeam = normalizeTeam({
+    ...team,
+    id: "box-defeated-reserve",
+    shareId: "box-defeated-reserve",
+    pokemon: [
+      { ...team.pokemon[0], id: "partner-one" },
+      { ...team.pokemon[0], id: "partner-two", nickname: "Sem HP" },
+    ],
+  });
+  const created = addTeamToSnapshot(createRoomSnapshot("Reserva derrotada"), reserveTeam, "ally", "player-one", {
+    activePokemonIds: ["partner-one"],
+    benchRemaining: true,
+  });
+  const defeated = normalizeRoomSnapshot({
+    ...created.room,
+    benchTokens: created.room.benchTokens.map(token => ({ ...token, currentHp: 0 })),
+  });
+  const result = deployBenchPokemonInSnapshot(defeated, "partner-two", "ally");
+  assert.equal(result.deployed, false);
+  assert.match(result.reason, /não pode mais batalhar/);
+  assert.equal(result.room.tokens.length, 1);
+  assert.equal(result.room.benchTokens.length, 1);
 });
 
 test("battle progress returns to the linked Box without erasing journey details", () => {

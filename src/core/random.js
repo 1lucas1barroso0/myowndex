@@ -103,6 +103,19 @@ export const randomInt = (maximum, random) => {
     return randomIntFromUint32(normalizedMaximum, nextSecureUint32);
 };
 
+export const secureRandomInt = (minimum, maximum, random) => {
+    const normalizedMinimum = Math.floor(Number(minimum));
+    const normalizedMaximum = Math.floor(Number(maximum));
+    if (!Number.isSafeInteger(normalizedMinimum) || !Number.isSafeInteger(normalizedMaximum) || normalizedMaximum < normalizedMinimum) {
+        throw new RangeError("O intervalo aleatório inclusivo não é válido.");
+    }
+    const outcomes = normalizedMaximum - normalizedMinimum + 1;
+    if (!Number.isSafeInteger(outcomes) || outcomes < 1 || outcomes > UINT32_RANGE) {
+        throw new RangeError("O intervalo aleatório inclusivo precisa ter entre 1 e 2³² resultados.");
+    }
+    return normalizedMinimum + randomInt(outcomes, random);
+};
+
 export const randomChance = (successfulOutcomes, possibleOutcomes, random) => {
     const possible = normalizeMaximum(possibleOutcomes);
     const successful = Math.floor(Number(successfulOutcomes));
@@ -114,7 +127,17 @@ export const randomChance = (successfulOutcomes, possibleOutcomes, random) => {
     return randomInt(possible, random) < successful;
 };
 
-export const rollDie = (sides, random) => randomInt(sides, random) + 1;
+export const rollDie = (sides, random) => secureRandomInt(1, normalizeMaximum(sides), random);
+
+export const rollD6 = random => rollDie(6, random);
+
+export const rollD100 = random => rollDie(100, random);
+
+export const roll2D6 = random => {
+    const dieA = rollD6(random);
+    const dieB = rollD6(random);
+    return { dice: [dieA, dieB], dieA, dieB, total: dieA + dieB };
+};
 
 export const randomChoice = (values, random) => {
     if (!Array.isArray(values) || !values.length) return undefined;

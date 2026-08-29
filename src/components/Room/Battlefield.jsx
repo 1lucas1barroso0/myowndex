@@ -1,12 +1,27 @@
 import React, { useMemo, useState } from "react";
+import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
-import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS } from "../../core/room.js";
+import { clampFinite, finiteNumber, safeDivide } from "../../core/math.js";
+import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS, STATUS_LABELS } from "../../core/room.js";
 import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
 import { getTraitStatus } from "../../core/traitMechanics.js";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 
-const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+const clamp = (value, minimum, maximum) => clampFinite(value, minimum, maximum, minimum);
+
+const HIT_KILL_FIELD_LABELS = Object.freeze({
+    available: "proteção contra hit kill disponível",
+    used: "proteção contra hit kill consumida nesta batalha",
+    lost: "proteção contra hit kill encerrada por autocusto nesta batalha",
+});
+
+const getHpTone = token => {
+    const percentage = safeDivide(token.currentHp, token.maxHp, 0);
+    if (percentage <= 0.25) return "danger";
+    if (percentage <= 0.5) return "warning";
+    return "healthy";
+};
 
 const Token = ({
     token,
@@ -16,6 +31,7 @@ const Token = ({
     position,
     showHp,
     mirrored,
+    protectionState,
     onSelect,
     onPointerDown,
     onPointerMove,
@@ -24,10 +40,13 @@ const Token = ({
 }) => {
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
+    const hpPercentage = token.maxHp ? clamp(token.currentHp / token.maxHp * 100, 0, 100) : 0;
+    const hpTone = getHpTone(token);
+    const hudPlacement = finiteNumber(position.x, 50) > 50 ? "hud-left" : "hud-right";
     return (
     <button
         type="button"
-        className={`room-token side-${token.side} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
+        className={`room-token side-${token.side} ${hudPlacement} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
         style={{ left: `${position.x}%`, top: `${position.y}%` }}
         onClick={() => onSelect(token.id)}
         onPointerDown={event => canMove && onPointerDown(event, token)}
@@ -42,7 +61,8 @@ const Token = ({
                 y: event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0,
             });
         }}
-        aria-label={`${display.name}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
+        aria-pressed={isSelected}
+        aria-label={`${display.name}, nível ${token.level}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
             {display.sprite ? (
@@ -55,21 +75,36 @@ const Token = ({
                 />
             ) : <span className="room-token-fallback" aria-hidden="true">●</span>}
         </span>
-        <span className="room-token-name">{display.name}</span>
-        {(display.transformed || display.disguised) && (
-            <span className="room-token-special" aria-hidden="true">{display.disguised ? "Ilusão" : "Transform"}</span>
-        )}
-        {(traits.ability || traits.item) && (
-            <span className="room-token-traits" aria-hidden="true">
-                {traits.ability && <i className={traits.abilityActive ? "is-ability" : "is-paused"} title={formatName(traits.ability.id)}>◆</i>}
-                {traits.item && <i className={traits.itemConsumed ? "is-consumed" : "is-item"} title={formatName(traits.item.id)}>●</i>}
+        <span className="room-token-status-card" aria-hidden="true">
+            <span className="room-token-status-heading">
+                <strong className="room-token-name">{display.name}</strong>
+                <small>Nv. {token.level}</small>
             </span>
-        )}
-        {showHp && (
-            <span className="room-token-hp" aria-hidden="true">
-                <span style={{ width: `${token.maxHp ? token.currentHp / token.maxHp * 100 : 0}%` }} />
+            <span className="room-token-status-meta">
+                {token.status && <b>{STATUS_LABELS[token.status] || formatName(token.status)}</b>}
+                {(display.transformed || display.disguised) && (
+                    <span className="room-token-special">{display.disguised ? "Ilusão" : "Transform"}</span>
+                )}
+                {(traits.ability || traits.item) && (
+                    <span className="room-token-traits">
+                        {traits.ability && <i className={traits.abilityActive ? "is-ability" : "is-paused"}>◆</i>}
+                        {traits.item && <i className={traits.itemConsumed ? "is-consumed" : "is-item"}>●</i>}
+                    </span>
+                )}
+                <i className={`room-token-protection is-${protectionState}`}>
+                    {protectionState === "available" ? "◆" : protectionState === "used" ? "◇" : "×"}
+                </i>
             </span>
-        )}
+            {showHp && (
+                <span className="room-token-hp-row">
+                    <b>HP</b>
+                    <span className={`room-token-hp is-${hpTone}`}>
+                        <span style={{ width: `${hpPercentage}%` }} />
+                    </span>
+                    <small>{token.currentHp}/{token.maxHp}</small>
+                </span>
+            )}
+        </span>
     </button>
     );
 };
@@ -87,6 +122,14 @@ export default function Battlefield({
     const tokenById = useMemo(
         () => Object.fromEntries(snapshot.tokens.map(token => [token.id, token])),
         [snapshot.tokens],
+    );
+    const hitKillProtectionUsed = useMemo(
+        () => new Set(snapshot.hitKillProtectionUsed),
+        [snapshot.hitKillProtectionUsed],
+    );
+    const hitKillProtectionDisabled = useMemo(
+        () => new Set(snapshot.hitKillProtectionDisabled),
+        [snapshot.hitKillProtectionDisabled],
     );
 
     const canMoveToken = token => role === "narrator"
@@ -176,11 +219,18 @@ export default function Battlefield({
 
             <div className={`battlefield-board scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`}>
                 <div className="battlefield-depth battlefield-depth-back" />
+                <div className="battlefield-depth battlefield-depth-front" />
                 <div className="battlefield-center-line" />
                 <div className="battlefield-side-label label-opponent">Oponentes</div>
                 <div className="battlefield-side-label label-ally">Treinadores</div>
                 {snapshot.tokens.map(token => {
                     const position = drag?.tokenId === token.id ? drag : token;
+                    const protectionKey = getHitKillProtectionKey(token);
+                    const protectionState = protectionKey && hitKillProtectionUsed.has(protectionKey)
+                        ? "used"
+                        : protectionKey && hitKillProtectionDisabled.has(protectionKey)
+                            ? "lost"
+                            : "available";
                     return (
                         <Token
                             key={token.id}
@@ -191,6 +241,7 @@ export default function Battlefield({
                             canMove={canMoveToken(token)}
                             showHp={snapshot.settings.showHp}
                             mirrored={snapshot.settings.mirrorSprites}
+                            protectionState={protectionState}
                             onSelect={onSelectToken}
                             onPointerDown={handlePointerDown}
                             onPointerMove={event => updatePosition(event, false)}

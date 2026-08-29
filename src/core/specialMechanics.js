@@ -1,10 +1,9 @@
 import { isAbilityActive, isHeldItemActive, traitSlug } from "./traitMechanics.js";
-import { rollDie } from "./random.js";
+import { clampFinite as clamp, finiteNumber as asNumber, integerInRange, safeDivide } from "./math.js";
+import { rollD100 } from "./random.js";
 
 const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
-const asNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
-const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 const slug = value => asText(value).trim().toLowerCase().replace(/\s+/g, "-");
 const unique = values => [...new Set(values.filter(Boolean))];
 const positiveStageLabel = value => `${value} ${value === 1 ? "estágio positivo" : "estágios positivos"}`;
@@ -19,23 +18,23 @@ export const SPECIAL_AUTOMATION_LABELS = Object.freeze({
 });
 
 const copyNumbers = (value, keys, minimum = 0, maximum = 99999) => Object.fromEntries(
-    keys.map(key => [key, clamp(asNumber(value?.[key]), minimum, maximum)])
+    keys.map(key => [key, integerInRange(value?.[key], minimum, maximum, minimum)])
 );
 
 const normalizeIdentity = value => {
     if (!value || typeof value !== "object") return null;
     const moves = asArray(value.moves).slice(0, 4).map(slug);
-    const pp = asArray(value.pp).slice(0, 4).map(entry => entry == null ? null : clamp(asNumber(entry), 0, 99));
+    const pp = asArray(value.pp).slice(0, 4).map(entry => entry == null ? null : integerInRange(entry, 0, 99, 0));
     while (moves.length < 4) moves.push("");
     while (pp.length < 4) pp.push(null);
     return {
         speciesName: slug(value.speciesName),
-        speciesId: Math.max(0, Math.round(asNumber(value.speciesId))),
+        speciesId: integerInRange(value.speciesId, 0, 99999, 0),
         sprite: asText(value.sprite).slice(0, 500),
         types: unique(asArray(value.types).map(slug)).slice(0, 3),
         originalTypes: unique(asArray(value.originalTypes).map(slug)).slice(0, 3),
         ability: slug(value.ability),
-        weight: Math.max(0, asNumber(value.weight)),
+        weight: integerInRange(value.weight, 0, 999999, 0),
         stats: copyNumbers(value.stats, STAT_KEYS),
         originalStats: copyNumbers(value.originalStats, STAT_KEYS),
         stages: copyNumbers(value.stages, STAGE_KEYS, -6, 6),
@@ -54,7 +53,7 @@ const normalizeTransform = value => {
         via: ["transform", "imposter", "manual"].includes(value.via) ? value.via : "transform",
         sourceTokenId: asText(value.sourceTokenId).slice(0, 120),
         sourceName: asText(value.sourceName).slice(0, 80),
-        round: Math.max(0, Math.round(asNumber(value.round))),
+        round: integerInRange(value.round, 0, 9999, 0),
         base,
     };
 };
@@ -65,7 +64,7 @@ const normalizeIllusion = value => {
         sourceTokenId: asText(value.sourceTokenId).slice(0, 120),
         sourceName: asText(value.sourceName).slice(0, 80),
         speciesName: slug(value.speciesName),
-        speciesId: Math.max(0, Math.round(asNumber(value.speciesId))),
+        speciesId: integerInRange(value.speciesId, 0, 99999, 0),
         sprite: asText(value.sprite).slice(0, 500),
         types: unique(asArray(value.types).map(slug)).slice(0, 3),
     };
@@ -73,14 +72,14 @@ const normalizeIllusion = value => {
 
 const normalizeMoveOverride = value => {
     if (!value || typeof value !== "object") return null;
-    const slot = Math.round(asNumber(value.slot, -1));
+    const slot = integerInRange(value.slot, -1, 3, -1);
     const copiedMove = slug(value.copiedMove);
     if (slot < 0 || slot > 3 || !copiedMove) return null;
     return {
         slot,
         kind: value.kind === "sketch" ? "sketch" : "mimic",
         originalMove: slug(value.originalMove),
-        originalPp: value.originalPp == null ? null : clamp(asNumber(value.originalPp), 0, 99),
+        originalPp: value.originalPp == null ? null : integerInRange(value.originalPp, 0, 99, 0),
         copiedMove,
         permanent: Boolean(value.permanent),
         sourceTokenId: asText(value.sourceTokenId).slice(0, 120),
@@ -96,9 +95,9 @@ const normalizeHistoryEntry = value => {
         moveName,
         targetId: asText(value.targetId).slice(0, 120),
         targetName: asText(value.targetName).slice(0, 80),
-        round: Math.max(0, Math.round(asNumber(value.round))),
+        round: integerInRange(value.round, 0, 9999, 0),
         connected: Boolean(value.connected),
-        damage: Math.max(0, asNumber(value.damage)),
+        damage: integerInRange(value.damage, 0, 99999, 0),
         damageClass: slug(value.damageClass),
     };
 };
@@ -148,7 +147,7 @@ export const transformBattleToken = (attackerInput, target, { via = "transform",
     if (!attacker || !target) return { token: attackerInput, applied: false, reason: "escolha um alvo válido" };
     const state = normalizeSpecialState(attacker.specialState);
     if (state.transform) return { token: attacker, applied: false, reason: "o usuário já está transformado" };
-    if (Number(target.currentHp) <= 0) return { token: attacker, applied: false, reason: "o alvo não pode mais batalhar" };
+    if (asNumber(target.currentHp) <= 0) return { token: attacker, applied: false, reason: "o alvo não pode mais batalhar" };
     const blocked = transformedTargetBlocked(target);
     if (blocked) return { token: attacker, applied: false, reason: blocked };
 
@@ -190,7 +189,7 @@ export const transformBattleToken = (attackerInput, target, { via = "transform",
                 via: ["transform", "imposter", "manual"].includes(via) ? via : "transform",
                 sourceTokenId: asText(target.id),
                 sourceName: asText(target.name),
-                round: Math.max(0, Math.round(asNumber(round))),
+                round: integerInRange(round, 0, 9999, 0),
                 base,
             },
             illusion: null,
@@ -322,7 +321,7 @@ export const applyBattleIllusion = (tokenInput, disguise) => {
                     sourceTokenId: asText(disguise.id),
                     sourceName: asText(disguise.name),
                     speciesName: slug(disguise.speciesName),
-                    speciesId: Math.max(0, Math.round(asNumber(disguise.speciesId))),
+                    speciesId: integerInRange(disguise.speciesId, 0, 99999, 0),
                     sprite: asText(disguise.sprite).slice(0, 500),
                     types: unique(asArray(disguise.types).map(slug)).slice(0, 3),
                 },
@@ -489,7 +488,7 @@ MOVE_FAMILIES.forEach(family => family.names.forEach(name => MOVE_PROFILE_MAP.se
 export const getMoveSpecialProfile = move => MOVE_PROFILE_MAP.get(slug(move?.name)) || null;
 
 const positiveStages = stages => STAGE_KEYS.reduce((sum, key) => sum + Math.max(0, asNumber(stages?.[key])), 0);
-const hpRatio = token => clamp(asNumber(token?.currentHp) / Math.max(1, asNumber(token?.maxHp, 1)), 0, 1);
+const hpRatio = token => clamp(safeDivide(asNumber(token?.currentHp), Math.max(1, asNumber(token?.maxHp, 1)), 0), 0, 1);
 
 export const calculateDynamicMovePower = ({ move, attacker, defender, random } = {}) => {
     const name = slug(move?.name);
@@ -554,7 +553,7 @@ export const calculateDynamicMovePower = ({ move, attacker, defender, random } =
         power = (basePower || 65) * 2;
         explanation = "Alvo com metade do HP ou menos";
     } else if (name === "magnitude") {
-        const roll = rollDie(100, random);
+        const roll = rollD100(random);
         const magnitude = roll <= 5 ? 4 : roll <= 15 ? 5 : roll <= 35 ? 6 : roll <= 65 ? 7 : roll <= 85 ? 8 : roll <= 95 ? 9 : 10;
         power = ({ 4: 10, 5: 30, 6: 50, 7: 70, 8: 90, 9: 110, 10: 150 })[magnitude];
         explanation = `Magnitude ${magnitude}`;

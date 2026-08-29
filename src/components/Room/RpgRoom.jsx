@@ -34,6 +34,8 @@ import {
 } from "../../core/room.js";
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import { formatCount } from "../../core/copy.js";
+import { finiteNumber, integerInRange, quantizeStepDown } from "../../core/math.js";
+import { createRollRecord } from "../../core/rollHistory.js";
 import {
     buildPlayerInvite,
     buildRoomInviteToken,
@@ -250,35 +252,70 @@ function QuickRoller({ onEvent, onError }) {
     const [chance, setChance] = useState(50);
     const [result, setResult] = useState(null);
     const [busy, setBusy] = useState(false);
+    const rollInFlight = useRef(false);
 
     const roll = async () => {
+        if (rollInFlight.current) return;
+        rollInFlight.current = true;
         setBusy(true);
         try {
             if (kind === "attribute") {
                 const test = rollAttributeTest({ mode, attribute });
+                const record = createRollRecord({
+                    kind: "attribute",
+                    mode: test.mode,
+                    label: mode === "advantage" ? "teste com vantagem" : mode === "disadvantage" ? "teste com desvantagem" : "teste de atributo",
+                    values: test.dice,
+                    kept: test.kept,
+                    result: test.total,
+                    detail: `Mantidos ${test.kept.join(" + ")} · total ${test.total}`,
+                    context: "aventura",
+                });
                 setResult({
                     title: test.critical ? "Acerto crítico" : test.fumble ? "Erro crítico" : `Total ${test.total}`,
                     detail: test.fumble
                         ? getFumbleSuggestion()
-                        : `${test.dice.join(" • ")}${Number(attribute) ? ` + ${Number(attribute)}` : ""}`,
+                        : `${test.dice.join(" • ")}${test.attribute ? ` + ${test.attribute}` : ""}`,
                 });
                 await onEvent("roll", {
-                    label: mode === "advantage" ? "teste com vantagem" : mode === "disadvantage" ? "teste com desvantagem" : "teste de atributo",
+                    rollId: record?.id,
+                    rolledAt: record?.createdAt,
+                    label: record?.label,
+                    mode: test.mode,
                     result: test.total,
                     dice: test.dice,
                     kept: test.kept,
-                    attribute: Number(attribute) || 0,
+                    attribute: test.attribute,
                     critical: test.critical,
                     fumble: test.fumble,
                 });
             } else {
-                const test = rollPercentTest({ chance, advantage: mode === "advantage" });
+                const test = rollPercentTest({ chance, mode });
+                const record = createRollRecord({
+                    kind: "percent",
+                    mode: test.mode,
+                    label: test.advantage
+                        ? "teste percentual com vantagem"
+                        : test.disadvantage
+                            ? "teste percentual com desvantagem"
+                            : "teste percentual",
+                    values: test.rolls,
+                    kept: [test.result],
+                    result: test.result,
+                    chance: test.chance,
+                    success: test.success,
+                    detail: `${test.result} contra ${test.chance}%`,
+                    context: "aventura",
+                });
                 setResult({
                     title: test.success ? "Sucesso" : "Falha",
                     detail: `${test.rolls.join(" • ")} contra ${test.chance}%`,
                 });
                 await onEvent("roll", {
-                    label: "teste percentual",
+                    rollId: record?.id,
+                    rolledAt: record?.createdAt,
+                    label: record?.label,
+                    mode: test.mode,
                     result: test.result,
                     rolls: test.rolls,
                     chance: test.chance,
@@ -288,6 +325,7 @@ function QuickRoller({ onEvent, onError }) {
         } catch (error) {
             onError(error);
         } finally {
+            rollInFlight.current = false;
             setBusy(false);
         }
     };
@@ -322,7 +360,7 @@ function QuickRoller({ onEvent, onError }) {
                         <select value={mode} onChange={event => setMode(event.target.value)}>
                             <option value="normal">Normal</option>
                             <option value="advantage">Vantagem</option>
-                            {kind === "attribute" && <option value="disadvantage">Desvantagem</option>}
+                            <option value="disadvantage">Desvantagem</option>
                         </select>
                     </label>
                 </div>
@@ -430,7 +468,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const applyBundle = useCallback(bundle => {
         if (!bundle) return;
-        revisionRef.current = Number(bundle.revision) || 0;
+        revisionRef.current = integerInRange(bundle.revision, 0, Number.MAX_SAFE_INTEGER, 0);
         setRoom({
             ...bundle,
             snapshot: normalizeRoomSnapshot(bundle.snapshot),
@@ -615,7 +653,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 if (!current) return current;
                 const next = {
                     ...current,
-                    revision: (Number(current.revision) || 0) + 1,
+                    revision: Math.min(Number.MAX_SAFE_INTEGER, integerInRange(current.revision, 0, Number.MAX_SAFE_INTEGER, 0) + 1),
                     updatedAt: new Date().toISOString(),
                     snapshot: normalized,
                 };
@@ -638,7 +676,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     result = await saveRemoteRoom(session, snapshotToSave, expectedRevision);
                 } catch (value) {
                     if (value?.status !== 409 || !value?.data?.room) throw value;
-                    expectedRevision = Number(value.data.room.revision) || expectedRevision;
+                    expectedRevision = integerInRange(value.data.room.revision, 0, Number.MAX_SAFE_INTEGER, expectedRevision);
                     snapshotToSave = mergeRoomConflictSnapshot(
                         baseSnapshot,
                         normalized,
@@ -646,7 +684,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     );
                     result = await saveRemoteRoom(session, snapshotToSave, expectedRevision);
                 }
-                revisionRef.current = Number(result.revision) || expectedRevision + 1;
+                revisionRef.current = integerInRange(result.revision, 0, Number.MAX_SAFE_INTEGER, Math.min(Number.MAX_SAFE_INTEGER, expectedRevision + 1));
                 if (mountedRef.current && pendingSavesRef.current <= 1) applyBundle(result);
                 channelRef.current?.postMessage({ type: "invalidate" });
             } catch (value) {
@@ -668,7 +706,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         if (session.local) {
             setRoom(current => {
                 if (!current) return current;
-                const previousEventId = Number(current.events?.at(-1)?.id) || 0;
+                const previousEventId = integerInRange(current.events?.at(-1)?.id, 0, Number.MAX_SAFE_INTEGER, 0);
                 const next = {
                     ...current,
                     events: [...(current.events || []), {
@@ -787,10 +825,29 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const updateToken = (patch, { selfInflictedHpLoss = false } = {}) => {
         if (!selectedToken || role !== "narrator") return;
-        const nextToken = { ...selectedToken, ...patch };
+        const normalizedPatch = { ...patch };
+        if (Object.hasOwn(normalizedPatch, "currentHp")) {
+            normalizedPatch.currentHp = integerInRange(
+                normalizedPatch.currentHp,
+                0,
+                integerInRange(selectedToken.maxHp, 1, 99999, 1),
+                selectedToken.currentHp,
+            );
+        }
+        if (Object.hasOwn(normalizedPatch, "xp")) {
+            normalizedPatch.xp = quantizeStepDown(normalizedPatch.xp, 0.5, {
+                minimum: 0,
+                maximum: 999999,
+                fallback: selectedToken.xp,
+            });
+        }
+        if (Object.hasOwn(normalizedPatch, "priority")) {
+            normalizedPatch.priority = integerInRange(normalizedPatch.priority, -7, 7, selectedToken.priority);
+        }
+        const nextToken = { ...selectedToken, ...normalizedPatch };
         const specialState = normalizeSpecialState(nextToken.specialState);
-        const lostHp = Object.hasOwn(patch, "currentHp")
-            && Number(nextToken.currentHp) < Number(selectedToken.currentHp);
+        const lostHp = Object.hasOwn(normalizedPatch, "currentHp")
+            && nextToken.currentHp < selectedToken.currentHp;
         commitSnapshot({
             ...snapshot,
             tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
@@ -933,7 +990,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const applySelectedExperience = (nextXp, announce = true) => {
         if (!selectedToken || role !== "narrator") return;
-        const normalizedXp = Math.max(0, Number(nextXp) || 0);
+        const normalizedXp = quantizeStepDown(nextXp, 0.5, {
+            minimum: 0,
+            maximum: 999999,
+            fallback: selectedToken.xp,
+        });
         if (selectedToken.level >= 200) {
             updateToken({ xp: normalizedXp });
             return;
@@ -995,7 +1056,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     };
 
     const awardSelectedExperience = amount => {
-        applySelectedExperience((Number(selectedToken?.xp) || 0) + Number(amount || 0));
+        applySelectedExperience(finiteNumber(selectedToken?.xp, 0) + finiteNumber(amount, 0));
     };
 
     const generateInitiative = async () => {
@@ -1048,7 +1109,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const declareMove = async (tokenId, move) => {
         const token = snapshot.tokens.find(candidate => candidate.id === tokenId);
         const moveName = String(move?.name || "").toLowerCase();
-        const priority = Math.max(-7, Math.min(7, Math.round(Number(move?.priority) || 0)));
+        const priority = integerInRange(move?.priority, -7, 7, 0);
         if (!token || !moveName || !token.moves.includes(moveName)) return;
         if (role === "narrator") {
             if (token.declaredMove === moveName && token.priority === priority) return;
@@ -1117,7 +1178,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const acceptedOfferIds = new Set(
         events
             .filter(event => event.type === "team-accepted")
-            .map(event => Number(event.payload?.offerId))
+            .map(event => integerInRange(event.payload?.offerId, 0, Number.MAX_SAFE_INTEGER, 0))
             .filter(Number.isFinite),
     );
     const currentTokenId = snapshot.initiative[snapshot.turnIndex] || "";
@@ -1375,24 +1436,58 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
                                 </span>
                             </div>
-                            <div className="token-hp-control">
-                                <span>HP</span>
-                                <button type="button" disabled={role !== "narrator" || selectedToken.currentHp <= 0} onClick={() => applySelectedDamage()} aria-label="Registrar 1 de dano">−</button>
-                                <strong>{selectedToken.currentHp}/{selectedToken.maxHp}</strong>
-                                <button type="button" disabled={role !== "narrator"} onClick={() => updateToken({ currentHp: Math.min(selectedToken.maxHp, selectedToken.currentHp + 1) })}>+</button>
-                            </div>
-                            <div className={`token-hit-kill-state is-${selectedProtectionState}`}>
-                                <span>Hit Kill</span>
-                                <strong>
-                                    {selectedProtectionState === "lost"
-                                        ? "Perdida por custo próprio"
+                            <div className="token-battle-vitals">
+                                <div className="token-hp-control">
+                                    <span>HP</span>
+                                    <button
+                                        type="button"
+                                        disabled={role !== "narrator" || selectedToken.currentHp <= 0}
+                                        onClick={() => applySelectedDamage()}
+                                        aria-label="Registrar 1 ponto de dano recebido"
+                                        title="Dano recebido"
+                                    >−</button>
+                                    <strong>{selectedToken.currentHp}/{selectedToken.maxHp}</strong>
+                                    <button
+                                        type="button"
+                                        disabled={role !== "narrator"}
+                                        onClick={() => updateToken({ currentHp: Math.min(selectedToken.maxHp, selectedToken.currentHp + 1) })}
+                                        aria-label="Recuperar 1 ponto de HP"
+                                        title="Recuperar HP"
+                                    >+</button>
+                                </div>
+                                <div
+                                    className={`token-hit-kill-state is-${selectedProtectionState}`}
+                                    role="status"
+                                    aria-live="polite"
+                                    aria-label={`Proteção contra hit kill: ${selectedProtectionState === "lost"
+                                        ? "encerrada por autocusto nesta batalha"
                                         : selectedProtectionState === "used"
-                                            ? "Já usada nesta batalha"
-                                            : "Disponível no HP máximo"}
-                                </strong>
+                                            ? "consumida nesta batalha"
+                                            : "pronta para agir no HP máximo"}`}
+                                >
+                                    <i className="token-hit-kill-led" aria-hidden="true" />
+                                    <span className="token-hit-kill-copy">
+                                        <small>Proteção contra hit kill</small>
+                                        <strong>
+                                            {selectedProtectionState === "lost"
+                                                ? "Encerrada por autocusto"
+                                                : selectedProtectionState === "used"
+                                                    ? "Consumida nesta batalha"
+                                                    : "Pronta no HP máximo"}
+                                        </strong>
+                                    </span>
+                                    <span className="token-hit-kill-meter" aria-hidden="true"><i /></span>
+                                </div>
                                 {role === "narrator" && selectedToken.currentHp > 0 && (
-                                    <button type="button" onClick={() => applySelectedDamage({ selfInflicted: true })}>
-                                        Custo próprio −1 HP
+                                    <button
+                                        type="button"
+                                        className="token-self-damage-action"
+                                        onClick={() => applySelectedDamage({ selfInflicted: true })}
+                                        aria-label="Registrar 1 ponto de autocusto; isso encerra a proteção contra hit kill nesta batalha"
+                                        title="Use apenas quando o próprio Pokémon reduzir o próprio HP"
+                                    >
+                                        <span>Registrar autocusto</span>
+                                        <strong>−1 HP</strong>
                                     </button>
                                 )}
                             </div>
@@ -1404,7 +1499,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     step="0.5"
                                     value={selectedToken.xp}
                                     disabled={role !== "narrator"}
-                                    onChange={event => updateToken({ xp: Math.max(0, Number(event.target.value) || 0) })}
+                                    onChange={event => updateToken({ xp: event.target.value })}
                                     onBlur={() => applySelectedExperience(selectedToken.xp)}
                                 />
                                 <small>/ {formatNumberPtBr(getNextLevelXp(selectedToken.level))}</small>
@@ -1516,7 +1611,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     </label>
                                     <label>
                                         <span>Ajustar prioridade</span>
-                                        <select value={selectedToken.priority || 0} onChange={event => updateToken({ priority: Number(event.target.value) })}>
+                                        <select value={selectedToken.priority || 0} onChange={event => updateToken({ priority: event.target.value })}>
                                             {[7,6,5,4,3,2,1,0,-1,-2,-3,-4,-5,-6,-7].map(value => <option key={value} value={value}>{value > 0 ? `+${value}` : value}</option>)}
                                         </select>
                                     </label>
@@ -1583,10 +1678,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <article key={event.id} className={`event-${event.type}`}>
                                         <span>{timeLabel(event.createdAt)}</span>
                                         <p>{eventSummary(event)}</p>
-                                        {role === "narrator" && event.type === "team-offer" && !acceptedOfferIds.has(Number(event.id)) && (
+                                        {role === "narrator" && event.type === "team-offer" && !acceptedOfferIds.has(integerInRange(event.id, 0, Number.MAX_SAFE_INTEGER, 0)) && (
                                             <button type="button" onClick={() => acceptTeamOffer(event)}>Aceitar equipe</button>
                                         )}
-                                        {role === "narrator" && event.type === "team-offer" && acceptedOfferIds.has(Number(event.id)) && (
+                                        {role === "narrator" && event.type === "team-offer" && acceptedOfferIds.has(integerInRange(event.id, 0, Number.MAX_SAFE_INTEGER, 0)) && (
                                             <small className="event-accepted">Equipe aceita</small>
                                         )}
                                     </article>

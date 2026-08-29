@@ -1,4 +1,5 @@
 import { ROOM_SESSION_STORAGE_KEY } from "./room.js";
+import { finiteNumberOrNull, integerInRange, MAX_SAFE_GAME_INTEGER } from "./math.js";
 import { readStorage, removeStorage, writeStorage } from "./storage.js";
 
 const REQUEST_TIMEOUT = 15000;
@@ -6,8 +7,8 @@ const SAFE_REQUEST_METHODS = new Set(["GET", "HEAD"]);
 const pause = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
 
 const retryWait = (response, attempt) => {
-    const retryAfter = Number(response?.headers?.get?.("retry-after"));
-    if (Number.isFinite(retryAfter) && retryAfter >= 0) return Math.min(3000, retryAfter * 1000);
+    const retryAfter = finiteNumberOrNull(response?.headers?.get?.("retry-after"));
+    if (retryAfter != null && retryAfter >= 0) return Math.min(3000, retryAfter * 1000);
     return Math.min(1600, 200 * (2 ** attempt));
 };
 
@@ -102,7 +103,7 @@ export const joinRoomCall = (session, connectionId, { displayName, muted = false
 
 export const fetchRoomCall = (session, connectionId, after = 0) =>
     roomRequest(
-        `/api/rooms/${encodeURIComponent(session.code)}/call?connection=${encodeURIComponent(connectionId)}&after=${Math.max(0, Number(after) || 0)}`,
+        `/api/rooms/${encodeURIComponent(session.code)}/call?connection=${encodeURIComponent(connectionId)}&after=${integerInRange(after, 0, MAX_SAFE_GAME_INTEGER, 0)}`,
         session.key,
     );
 

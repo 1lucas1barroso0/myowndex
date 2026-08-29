@@ -5,6 +5,7 @@ import {
   fetchCached,
   fetchJsonWithRetry,
   VERSION_GROUPS,
+  calculateStat,
   convertToTTRPG,
   filterMovesByLatestVersion,
   formatNumberPtBr,
@@ -53,6 +54,18 @@ test("formats calculated values and type labels for Brazilian Portuguese", () =>
     { language: { name: "en" }, effect: "English" },
     { language: { name: "pt-br" }, effect: "Português" },
   ]).effect, "Português");
+  for (const invalid of [null, undefined, Number.NaN, Infinity, -Infinity, ""]) {
+    assert.equal(formatNumberPtBr(invalid), "—");
+  }
+});
+
+test("stat formulas clamp empty and extreme inputs before calculating", () => {
+  assert.equal(calculateStat(null, null, null, null, null, true, "shedinja"), 1);
+  assert.equal(calculateStat(null, null, null, null, null, true, "bulbasaur"), 11);
+  const maximumHp = calculateStat(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE, Infinity, true, "blissey");
+  const maximumStat = calculateStat(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE, Infinity, false, "mewtwo");
+  assert.ok(Number.isSafeInteger(maximumHp) && maximumHp > 0);
+  assert.ok(Number.isSafeInteger(maximumStat) && maximumStat > 0);
 });
 
 test("catalog requests retry temporary failures and keep a stale local answer", async () => {

@@ -21,6 +21,7 @@ import {
     STAGE_LABELS,
 } from "../../core/automation.js";
 import { formatCount, formatRemainingPp } from "../../core/copy.js";
+import { integerInRange, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
 import { calculateMoveResolution, STATUS_LABELS } from "../../core/room.js";
 import {
     getMoveSpecialProfile,
@@ -70,6 +71,7 @@ const emptyConsequences = () => ({
     survivalGraceUsed: false,
     survivalGraceRemaining: false,
     protectionDisabledThisAction: [],
+    indirectHitKillProtections: [],
     hitKillProtectedHits: [],
     traitProtectedHits: [],
     faintedOnHit: null,
@@ -81,10 +83,10 @@ const emptyConsequences = () => ({
 const addConsequences = (summary, current) => ({
     ...summary,
     ppAfter: summary.ppAfter ?? current.ppAfter,
-    damage: summary.damage + (Number(current.damage) || 0),
-    calculatedDamage: summary.calculatedDamage + (Number(current.calculatedDamage) || 0),
-    healed: summary.healed + (Number(current.healed) || 0),
-    recoil: summary.recoil + (Number(current.recoil) || 0),
+    damage: summary.damage + integerInRange(current.damage, 0, MAX_SAFE_GAME_INTEGER, 0),
+    calculatedDamage: summary.calculatedDamage + integerInRange(current.calculatedDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
+    healed: summary.healed + integerInRange(current.healed, 0, MAX_SAFE_GAME_INTEGER, 0),
+    recoil: summary.recoil + integerInRange(current.recoil, 0, MAX_SAFE_GAME_INTEGER, 0),
     stageChanges: [...summary.stageChanges, ...(current.stageChanges || [])],
     appliedStatuses: current.appliedStatus
         ? [...summary.appliedStatuses, current.appliedStatus]
@@ -98,22 +100,23 @@ const addConsequences = (summary, current) => ({
     hitKillProtected: summary.hitKillProtected || Boolean(current.hitKillProtected),
     hitKillBypassedByAttackerCritical: summary.hitKillBypassedByAttackerCritical || Boolean(current.hitKillBypassedByAttackerCritical),
     hitKillBypassedByDefenderFumble: summary.hitKillBypassedByDefenderFumble || Boolean(current.hitKillBypassedByDefenderFumble),
-    hitKillThreshold: Math.max(summary.hitKillThreshold, Number(current.hitKillThreshold) || 0),
+    hitKillThreshold: Math.max(summary.hitKillThreshold, integerInRange(current.hitKillThreshold, 0, MAX_SAFE_GAME_INTEGER, 0)),
     fainted: summary.fainted || Boolean(current.fainted),
     fieldChange: current.fieldChange || summary.fieldChange,
-    scheduledDamage: summary.scheduledDamage + (Number(current.scheduledDamage) || 0),
+    scheduledDamage: summary.scheduledDamage + integerInRange(current.scheduledDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
     specialNarratives: [...summary.specialNarratives, ...(current.specialNarratives || [])],
     abilityBlocks: current.abilityBlock
         ? [...summary.abilityBlocks, current.abilityBlock]
         : summary.abilityBlocks,
-    abilityDamage: summary.abilityDamage + (Number(current.abilityDamage) || 0),
-    itemDamage: summary.itemDamage + (Number(current.itemDamage) || 0),
-    traitHealing: summary.traitHealing + (Number(current.traitHealing) || 0),
+    abilityDamage: summary.abilityDamage + integerInRange(current.abilityDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
+    itemDamage: summary.itemDamage + integerInRange(current.itemDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
+    traitHealing: summary.traitHealing + integerInRange(current.traitHealing, 0, MAX_SAFE_GAME_INTEGER, 0),
     traitProtected: summary.traitProtected || Boolean(current.traitProtected),
     survivalGraceGranted: summary.survivalGraceGranted || Boolean(current.survivalGraceGranted),
     survivalGraceUsed: summary.survivalGraceUsed || Boolean(current.survivalGraceUsed),
     survivalGraceRemaining: summary.survivalGraceRemaining || Boolean(current.survivalGraceRemaining),
     protectionDisabledThisAction: [...summary.protectionDisabledThisAction, ...(current.protectionDisabledThisAction || [])],
+    indirectHitKillProtections: [...summary.indirectHitKillProtections, ...(current.indirectHitKillProtections || [])],
     hitKillProtectedHits: [...summary.hitKillProtectedHits, ...(current.hitKillProtectedHits || [])],
     traitProtectedHits: [...summary.traitProtectedHits, ...(current.traitProtectedHits || [])],
     faintedOnHit: summary.faintedOnHit || current.faintedOnHit || null,
@@ -337,7 +340,7 @@ export default function CombatAssistant({
                             token: currentTarget,
                             damage: resolution.damageHit ? resolution.damage : 0,
                             damagePerHit: resolution.damagePerHit,
-                            hitCount: Number(resolution.hitCount) || 1,
+                            hitCount: integerInRange(resolution.hitCount, 1, 10, 1),
                             round: snapshot.round,
                             protectionUsed: snapshot.hitKillProtectionUsed.includes(
                                 getHitKillProtectionKey(currentTarget),
@@ -363,7 +366,7 @@ export default function CombatAssistant({
             const damageHit = targetResults.some(entry => entry.resolution.damageHit);
             const representative = targetResults[0].resolution;
             const previewDamage = targetResults.reduce(
-                (sum, entry) => sum + (Number(entry.previewHitKill?.appliedDamage) || 0),
+                (sum, entry) => sum + integerInRange(entry.previewHitKill?.appliedDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
                 0,
             );
             const nextResult = {
@@ -463,7 +466,7 @@ export default function CombatAssistant({
     const resultCalculatedDamage = result
         ? result.consequences?.calculatedDamage
             ?? result.targetResults.reduce(
-                (sum, entry) => sum + (Number(entry.previewHitKill?.calculatedDamage ?? entry.resolution.damage) || 0),
+                (sum, entry) => sum + integerInRange(entry.previewHitKill?.calculatedDamage ?? entry.resolution.damage, 0, MAX_SAFE_GAME_INTEGER, 0),
                 0,
             )
         : 0;

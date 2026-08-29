@@ -15,6 +15,7 @@ import {
     setRoomCallMuted,
 } from "../../core/roomClient.js";
 import { readStorage, writeStorage } from "../../core/storage.js";
+import { clampFinite, integerInRange, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
 
 const POLL_INTERVAL = 1000;
 const CALL_PREFERENCES_KEY = "myowndex_call_preferences_v1";
@@ -46,7 +47,7 @@ function RemoteAudio({ name, stream, volume, muted }) {
         const audio = audioRef.current;
         if (!audio || !stream) return undefined;
         audio.srcObject = stream;
-        audio.volume = Math.min(1, Math.max(0, Number(volume) || 0));
+        audio.volume = clampFinite(volume, 0, 1, 0);
         audio.muted = Boolean(muted);
         play();
         return () => {
@@ -96,8 +97,7 @@ export default function VoiceCall({ session, role }) {
         setSupported(supportsRoomCall());
         const preferences = readStorage(CALL_PREFERENCES_KEY, {});
         setCallSounds(preferences?.sounds !== false);
-        const savedVolume = Number(preferences?.volume);
-        if (Number.isFinite(savedVolume)) setRemoteVolume(Math.min(1, Math.max(0, savedVolume)));
+        setRemoteVolume(clampFinite(preferences?.volume, 0, 1, 0.85));
         setPreferencesReady(true);
     }, []);
 
@@ -396,7 +396,7 @@ export default function VoiceCall({ session, role }) {
                 } else {
                     syncMembers(data.members);
                     for (const incoming of data.signals || []) await handleSignal(incoming);
-                    lastSignalIdRef.current = Math.max(lastSignalIdRef.current, Number(data.lastSignalId) || 0);
+                    lastSignalIdRef.current = Math.max(lastSignalIdRef.current, integerInRange(data.lastSignalId, 0, MAX_SAFE_GAME_INTEGER, 0));
                     if (phaseRef.current !== "connected") playFeedback("connect");
                     setCallPhase("connected");
                     setError("");
@@ -571,7 +571,7 @@ export default function VoiceCall({ session, role }) {
                         </div>
                         <label className="call-volume">
                             <span>Volume da chamada</span>
-                            <input type="range" min="0" max="1" step="0.05" value={remoteVolume} onChange={event => setRemoteVolume(Number(event.target.value))} />
+                            <input type="range" min="0" max="1" step="0.05" value={remoteVolume} onChange={event => setRemoteVolume(clampFinite(event.target.value, 0, 1, remoteVolume))} />
                         </label>
                         <label className="call-sounds">
                             <input type="checkbox" checked={callSounds} onChange={event => setCallSounds(event.target.checked)} />

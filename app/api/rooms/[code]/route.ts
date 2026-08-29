@@ -10,6 +10,7 @@ import {
   safeRoomCode,
   safeText,
 } from "../../../../server/rooms";
+import { finiteNumberOrNull } from "../../../../src/core/math.js";
 
 export const dynamic = "force-dynamic";
 
@@ -52,8 +53,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       return noStoreJson({ error: "Não conseguimos reconhecer as informações desta aventura." }, { status: 400 });
     }
     assertStateSize(payload.snapshot);
-    const expectedRevision = Number(payload.expectedRevision);
-    if (!Number.isInteger(expectedRevision) || expectedRevision < 0) {
+    const expectedRevision = finiteNumberOrNull(payload.expectedRevision);
+    if (expectedRevision == null || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
       return noStoreJson({ error: "Esta aventura recebeu outra mudança enquanto você editava. Tente a ação novamente." }, { status: 400 });
     }
     const title = safeText(payload.title ?? payload.snapshot.title, 80) || "Aventura Pokémon";

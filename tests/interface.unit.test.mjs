@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.13\.0/);
+  assert.match(worker, /myowndex-shell-v9\.14\.0/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -167,7 +167,7 @@ test("Guide rolls expose their secure source, selected mode and local sequence",
   const guide = await read("src/components/Guide/TrainerGuide.jsx");
   assert.match(guide, /Sorteio seguro ativo/);
   assert.match(guide, /ATTRIBUTE_MODE_LABELS\[attributeResult\.mode\]/);
-  assert.match(guide, /percentResult\.advantage \? "Vantagem · menor de dois" : "Rolagem normal"/);
+  assert.match(guide, /percentResult\.advantage \? "Vantagem · menor de dois" : percentResult\.disadvantage \? "Desvantagem · maior de dois" : "Rolagem normal"/);
   assert.match(guide, /Conferir sequência deste aparelho/);
   assert.match(guide, /myowndex_guide_roll_history_v1/);
   assert.match(guide, /últimas 30 rolagens ficam salvas neste aparelho/);
@@ -224,7 +224,9 @@ test("the icon-root emphasis contract restores critical rules without hiding con
     read("docs/icon-visual-system.md"),
   ]);
   assert.doesNotMatch(guide, /<span className="guide-pill">/);
-  assert.match(guide, /guide-damage-ceiling/);
+  assert.match(guide, /guide-damage-limit-card/);
+  assert.match(guide, /guide-hit-kill-flow/);
+  assert.doesNotMatch(guide, /guide-damage-ceiling|guide-critical-rules/);
   assert.match(guide, /data-rule-id="3\.3"/);
   assert.match(guide, /data-rule-id="3\.4"/);
   assert.match(guide, /guide-rule-card/);
@@ -239,10 +241,11 @@ test("the icon-root emphasis contract restores critical rules without hiding con
   assert.match(app, /className="status-notice-close"/);
   assert.doesNotMatch(app, /status-notice[^\n]*bg-white\/70/);
   assert.doesNotMatch(room, /room-live-led/);
-  assert.match(room, /Custo próprio −1 HP/);
+  assert.match(room, /Registrar autocusto/);
+  assert.match(room, /−1 HP/);
   assert.match(room, /Trocar com o banco/);
   assert.match(room, /Fazer a troca/);
-  assert.match(room, /Perdida por custo próprio/);
+  assert.match(room, /Encerrada por autocusto/);
   assert.match(guide, /className="guide-hero-lens"/);
   assert.doesNotMatch(guide, /guide-hero-lens absolute -bottom/);
 
@@ -487,6 +490,26 @@ test("unique Pokémon and exceptional Moves expose state, narrative and automati
   assert.match(mechanics, /illusion/);
 });
 
+test("the adventure battle screen uses opposing HUDs and keeps hit kill state separate from self-cost", async () => {
+  const [battlefield, room, css] = await Promise.all([
+    read("src/components/Room/Battlefield.jsx"),
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/index.css"),
+  ]);
+  assert.match(battlefield, /battlefield-depth-front/);
+  assert.match(battlefield, /room-token-status-card/);
+  assert.match(battlefield, /room-token-hp-row/);
+  assert.match(battlefield, /aria-pressed=\{isSelected\}/);
+  assert.match(room, /token-battle-vitals/);
+  assert.match(room, /Proteção contra hit kill/);
+  assert.match(room, /Registrar autocusto/);
+  assert.match(room, /token-self-damage-action/);
+  assert.match(css, /\.room-token\.hud-right \.room-token-status-card/);
+  assert.match(css, /\.room-token\.hud-left \.room-token-status-card/);
+  assert.match(css, /\.token-hit-kill-meter/);
+  assert.match(room, /rollInFlight\.current/);
+});
+
 test("Abilities and held items expose official context, lifecycle, narrative and vivid contrast", async () => {
   const [panel, room, combat, battlefield, mechanics, css, rules, descriptions] = await Promise.all([
     read("src/components/Room/TraitMechanicsPanel.jsx"),
@@ -531,4 +554,6 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(rules, /Somente dano realmente causado conta/);
   assert.match(rules, /reduz o próprio HP/);
   assert.match(rules, /Acertos críticos superam o limite de dano/);
+  assert.match(guide, /rollLock\.current/);
+  assert.match(guide, /entry\.id/);
 });

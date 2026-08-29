@@ -1,4 +1,15 @@
 import { convertToTTRPG, formatName } from "./mechanics.js";
+import {
+    applyDirectionalIntegerModifier,
+    clampFinite as clamp,
+    finiteNumber as asNumber,
+    finiteProduct,
+    integerInRange,
+    MAX_SAFE_GAME_INTEGER,
+    quantizePositiveHpChange,
+    roundRpgScaledValue,
+    safeDivide,
+} from "./math.js";
 import { RPG_STATUS_LABELS } from "./copy.js";
 import { rollPercentTest } from "./rpgRules.js";
 import {
@@ -47,8 +58,6 @@ export const MOVE_STATUS_MAP = {
 };
 
 const asArray = value => Array.isArray(value) ? value : [];
-const asNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
-const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 export const normalizeSlug = value => String(value || "").trim().toLowerCase().replace(/\s+/g, "-");
 
 export const getHitKillProtectionKey = token => {
@@ -105,14 +114,14 @@ export const disableHitKillProtection = (value, token) => {
 export const normalizePpSlots = value => {
     const pp = asArray(value).slice(0, 4).map(entry => {
         if (entry === "" || entry == null) return null;
-        return clamp(asNumber(entry), 0, 99);
+        return integerInRange(entry, 0, 99, 0);
     });
     while (pp.length < 4) pp.push(null);
     return pp;
 };
 
 export const normalizeStageMap = value => Object.fromEntries(
-    STAGE_STAT_KEYS.map(stat => [stat, clamp(Math.round(asNumber(value?.[stat])), -6, 6)])
+    STAGE_STAT_KEYS.map(stat => [stat, integerInRange(value?.[stat], -6, 6, 0)])
 );
 
 export const normalizeVolatileEffects = value => {
@@ -125,8 +134,8 @@ export const normalizeVolatileEffects = value => {
             sourceMove: normalizeSlug(entry?.sourceMove),
             sourceTokenId: String(entry?.sourceTokenId || "").slice(0, 120),
             sourceName: String(entry?.sourceName || "").slice(0, 80),
-            turns: entry?.turns == null ? null : clamp(Math.round(asNumber(entry.turns)), 0, 99),
-            amount: entry?.amount == null ? null : clamp(asNumber(entry.amount), 0, 99999),
+            turns: entry?.turns == null ? null : integerInRange(entry.turns, 0, 99, 0),
+            amount: entry?.amount == null ? null : integerInRange(entry.amount, 0, 99999, 0),
             critical: Boolean(entry?.critical),
             defenderFumble: Boolean(entry?.defenderFumble),
             directKnockout: Boolean(entry?.directKnockout),
@@ -136,12 +145,12 @@ export const normalizeVolatileEffects = value => {
 };
 
 export const stageMultiplier = stage => {
-    const normalized = clamp(Math.round(asNumber(stage)), -6, 6);
+    const normalized = integerInRange(stage, -6, 6, 0);
     return normalized >= 0 ? (2 + normalized) / 2 : 2 / (2 - normalized);
 };
 
 export const accuracyStageMultiplier = stage => {
-    const normalized = clamp(Math.round(asNumber(stage)), -6, 6);
+    const normalized = integerInRange(stage, -6, 6, 0);
     return normalized >= 0 ? (3 + normalized) / 3 : 3 / (3 - normalized);
 };
 
@@ -154,7 +163,16 @@ export const calculateStagedStats = token => {
     const result = { ...current };
     COMBAT_STAT_STAGE_KEYS.forEach(stat => {
         const originalValue = asNumber(original[stat], Math.max(0, asNumber(current[stat])) * 20);
-        result[stat] = convertToTTRPG(Math.floor(originalValue * stageMultiplier(stages[stat])));
+        const baseline = convertToTTRPG(originalValue);
+        const stage = stages[stat];
+        const rawScaled = safeDivide(finiteProduct(
+            [Math.max(0, originalValue), stageMultiplier(stage)],
+            { minimum: 0, maximum: 99999 * 20, fallback: 0 },
+        ), 20, 0);
+        let staged = roundRpgScaledValue(rawScaled, { maximum: 99999 });
+        if (stage > 0 && staged <= baseline && baseline < 99999) staged = baseline + 1;
+        if (stage < 0 && staged >= baseline && baseline > 0) staged = baseline - 1;
+        result[stat] = integerInRange(staged, 0, 99999, baseline);
     });
     return result;
 };
@@ -162,7 +180,7 @@ export const calculateStagedStats = token => {
 export const applyStageChange = (token, stat, change) => {
     if (!STAGE_STAT_KEYS.includes(stat) || !change) return token;
     const stages = normalizeStageMap(token?.stages);
-    stages[stat] = clamp(stages[stat] + Math.round(asNumber(change)), -6, 6);
+    stages[stat] = integerInRange(stages[stat] + integerInRange(change, -12, 12, 0), -6, 6, stages[stat]);
     const next = { ...token, stages };
     return { ...next, stats: calculateStagedStats(next) };
 };
@@ -326,7 +344,7 @@ export const adjustMoveAccuracy = ({ move, attacker, defender, weather = "limpo"
     return {
         automatic: false,
         baseAccuracy,
-        adjustedAccuracy: clamp(Math.floor(baseAccuracy * multiplier), 0, 100),
+        adjustedAccuracy: applyDirectionalIntegerModifier(baseAccuracy, multiplier, { minimum: 0, maximum: 100 }),
         accuracyStage,
         evasionStage,
         combinedStage,
@@ -363,7 +381,7 @@ const moveEffectChance = (move, field, statusMoveDefault = false) => {
     return statusMoveDefault ? 100 : 0;
 };
 
-const hpAmount = value => value > 0 ? Math.max(1, Math.round(value)) : 0;
+const hpAmount = value => quantizePositiveHpChange(value, 99999);
 
 const DIRECT_KNOCKOUT_MOVES = new Set(["fissure", "guillotine", "horn-drill", "sheer-cold"]);
 
@@ -488,9 +506,10 @@ export const applyHitKillProtection = ({
     defenderFumble = false,
     directKnockout = false,
 } = {}) => {
-    const hpBefore = Math.max(0, asNumber(currentHp));
-    const maximumHp = Math.max(1, asNumber(maxHp, Math.max(1, hpBefore)));
-    const calculatedDamage = Math.max(0, asNumber(damage));
+    const fallbackHp = integerInRange(currentHp, 0, 99999, 0);
+    const maximumHp = integerInRange(maxHp, 1, 99999, Math.max(1, fallbackHp));
+    const hpBefore = integerInRange(currentHp, 0, maximumHp, Math.min(fallbackHp, maximumHp));
+    const calculatedDamage = integerInRange(damage, 0, MAX_SAFE_GAME_INTEGER, 0);
     const threshold = maximumHp * 3;
     const wouldKnockOut = hpBefore > 0 && calculatedDamage >= hpBefore;
     const atMaximumHp = hpBefore === maximumHp;
@@ -590,15 +609,17 @@ export const resolveKnockoutProtection = ({
 };
 
 export const buildHitDamageSequence = ({ damage, damagePerHit, hitCount = 1 } = {}) => {
-    const count = clamp(Math.round(asNumber(hitCount, 1)), 1, 20);
-    const total = Math.max(0, asNumber(damage));
-    const explicitPerHit = damagePerHit == null ? Number.NaN : Number(damagePerHit);
+    const count = integerInRange(hitCount, 1, 20, 1);
+    const total = integerInRange(damage, 0, MAX_SAFE_GAME_INTEGER, 0);
+    const explicitPerHit = damagePerHit == null
+        ? null
+        : integerInRange(damagePerHit, 0, MAX_SAFE_GAME_INTEGER, 0);
     if (count === 1) return [total];
-    if (Number.isFinite(explicitPerHit)) {
-        return Array.from({ length: count }, () => Math.max(0, explicitPerHit));
+    if (explicitPerHit != null) {
+        return Array.from({ length: count }, () => explicitPerHit);
     }
     const base = Math.floor(total / count);
-    let remainder = Math.max(0, Math.round(total - base * count));
+    let remainder = Math.max(0, total - base * count);
     return Array.from({ length: count }, () => base + (remainder-- > 0 ? 1 : 0));
 };
 
@@ -620,8 +641,8 @@ export const resolveDamageSequence = ({
 } = {}) => {
     const sequence = Array.isArray(hitDamages)
         ? hitDamages.slice(0, 20).map((entry, index) => ({
-            damage: Math.max(0, asNumber(entry?.damage ?? entry)),
-            hitNumber: Math.max(1, Math.round(asNumber(entry?.hitNumber, index + 1))),
+            damage: integerInRange(entry?.damage ?? entry, 0, MAX_SAFE_GAME_INTEGER, 0),
+            hitNumber: integerInRange(entry?.hitNumber, 1, 20, index + 1),
         }))
         : buildHitDamageSequence({ damage, damagePerHit, hitCount })
             .map((hitDamage, index) => ({ damage: hitDamage, hitNumber: index + 1 }));
@@ -649,7 +670,7 @@ export const resolveDamageSequence = ({
         });
         workingToken = {
             ...(result.token || workingToken),
-            currentHp: clamp(result.remainingHp, 0, Math.max(1, asNumber(workingToken.maxHp, 1))),
+            currentHp: integerInRange(result.remainingHp, 0, integerInRange(workingToken.maxHp, 1, 99999, 1), 0),
         };
         if (result.protectionConsumed) workingProtectionUsed = true;
         if (entry.damage > 0) {
@@ -683,7 +704,7 @@ export const resolveDamageSequence = ({
         calculatedDamage,
         rolledDamage,
         appliedDamage,
-        remainingHp: Math.max(0, asNumber(workingToken?.currentHp)),
+        remainingHp: integerInRange(workingToken?.currentHp, 0, 99999, 0),
         protectedFromKnockout: protectedHits.length > 0,
         protectionConsumed: protectedHits.length > 0,
         protectionUsed: workingProtectionUsed,
@@ -829,7 +850,9 @@ export const applyMoveConsequences = ({
         && resolution.defenseTest
         && resolution.attackTest.total - resolution.defenseTest.total > 1
     );
-    const resolvedDamage = damageHit ? Math.max(0, asNumber(resolution.damage)) : 0;
+    const resolvedDamage = damageHit
+        ? integerInRange(resolution.damage, 0, MAX_SAFE_GAME_INTEGER, 0)
+        : 0;
     const plannedHitDamages = damageHit
         ? buildHitDamageSequence({
             damage: resolvedDamage,
@@ -840,7 +863,7 @@ export const applyMoveConsequences = ({
     const substitute = target
         ? normalizeVolatileEffects(target.volatileEffects).find(effect => effect.id === "substitute")
         : null;
-    let substituteRemaining = Math.max(0, asNumber(substitute?.amount));
+    let substituteRemaining = integerInRange(substitute?.amount, 0, 99999, 0);
     let substituteDamage = 0;
     let substituteBroken = false;
     const targetHitDamages = [];
@@ -900,7 +923,7 @@ export const applyMoveConsequences = ({
         replaceEntity(target.id, target);
     }
     const damage = damageHit ? hitKill.appliedDamage : 0;
-    const nextHitKillProtectionUsed = hitKill.protectedFromKnockout && hitKillProtectionKey
+    let nextHitKillProtectionUsed = hitKill.protectedFromKnockout && hitKillProtectionKey
         ? normalizeHitKillProtectionUsage([...protectionUsage, hitKillProtectionKey])
         : protectionUsage;
     if (target && hitKill.survivalGraceRemaining) {
@@ -1011,7 +1034,7 @@ export const applyMoveConsequences = ({
                     tokenId: changedTarget.id,
                     stat,
                     change: after - before,
-                    requestedChange: Math.round(asNumber(entry.change)),
+                    requestedChange: integerInRange(entry.change, -12, 12, 0),
                     before,
                     after,
                 });
@@ -1027,6 +1050,7 @@ export const applyMoveConsequences = ({
     let abilityDamage = 0;
     let itemDamage = 0;
     let traitHealing = 0;
+    const indirectHitKillProtections = [];
 
     const applyTraitStage = (entity, stat, change, sourceKind, sourceId, detail) => {
         if (!entity || !STAGE_STAT_KEYS.includes(stat) || !change) return entity;
@@ -1074,10 +1098,38 @@ export const applyMoveConsequences = ({
 
     const applyTraitDamage = (entity, amount, sourceKind, sourceId, detail) => {
         if (!entity || amount <= 0 || entity.currentHp <= 0 || (isAbilityActive(entity) && normalizeSlug(entity.ability) === "magic-guard")) return entity;
-        const before = asNumber(entity.currentHp);
-        const applied = Math.min(before, hpAmount(amount));
-        let changed = { ...entity, currentHp: Math.max(0, before - applied) };
-        clearSurvivalGraceAfterDamage(entity, applied);
+        const requested = hpAmount(amount);
+        const protectionKey = getHitKillProtectionKey(entity);
+        const resolved = resolveDamageSequence({
+            token: entity,
+            damage: requested,
+            round,
+            protectionUsed: Boolean(protectionKey && nextHitKillProtectionUsed.includes(protectionKey)),
+            protectionDisabled: hasHitKillProtectionDisabled(nextHitKillProtectionDisabled, entity),
+            survivalGrace: hasHitKillSurvivalGrace(nextHitKillSurvivalGrace, entity),
+            allowSurvivalTrait: false,
+        });
+        const applied = resolved.appliedDamage;
+        let changed = resolved.token || entity;
+        if (resolved.protectedFromKnockout && protectionKey) {
+            nextHitKillProtectionUsed = normalizeHitKillProtectionUsage([...nextHitKillProtectionUsed, protectionKey]);
+            indirectHitKillProtections.push({
+                tokenId: entity.id,
+                tokenName: entity.name,
+                sourceKind,
+                sourceId,
+                threshold: resolved.threshold,
+            });
+            specialNarratives.push(`A Proteção contra Hit Kill manteve ${entity.name} com 1 HP diante do dano de ${formatName(sourceId)}.`);
+        }
+        if (resolved.survivalGraceRemaining) {
+            nextHitKillSurvivalGrace = normalizeHitKillProtectionUsage([
+                ...clearHitKillSurvivalGrace(nextHitKillSurvivalGrace, entity),
+                ...getHitKillSurvivalGraceKeys(changed),
+            ]);
+        } else if (resolved.calculatedDamage > 0) {
+            clearSurvivalGraceAfterDamage(entity, resolved.calculatedDamage);
+        }
         changed = recordTraitEvent(changed, { kind: sourceKind, sourceId, label: "Dano reativo", detail, round });
         replaceEntity(changed.id, changed);
         if (sourceKind === "ability") abilityDamage += applied;
@@ -1464,7 +1516,7 @@ export const applyMoveConsequences = ({
             target = consumeTraitItem(target, "O dano estourou Air Balloon");
             specialNarratives.push(`Air Balloon de ${target.name} estourou após o impacto.`);
         }
-        if (target.currentHp > 0 && targetItemAtImpact === "weakness-policy" && Number(resolution.effectiveness) > 1) {
+        if (target.currentHp > 0 && targetItemAtImpact === "weakness-policy" && asNumber(resolution.effectiveness) > 1) {
             target = consumeTraitItem(target, "Weakness Policy foi ativado por dano super efetivo");
             target = applyTraitStage(target, "attack", 2, "item", "weakness-policy", "Dano super efetivo ativou o Seguro Fraqueza");
             target = applyTraitStage(target, "special-attack", 2, "item", "weakness-policy", "Dano super efetivo ativou o Seguro Fraqueza");
@@ -1477,7 +1529,7 @@ export const applyMoveConsequences = ({
             target = consumeTraitItem(target, "Maranga Berry reagiu ao golpe especial");
             target = applyTraitStage(target, "special-defense", 1, "item", "maranga-berry", "Golpe especial ativou a Fruta");
         }
-        if (target.currentHp > 0 && targetItemAtImpact === "enigma-berry" && Number(resolution.effectiveness) > 1) {
+        if (target.currentHp > 0 && targetItemAtImpact === "enigma-berry" && asNumber(resolution.effectiveness) > 1) {
             target = consumeTraitItem(target, "Enigma Berry reagiu ao golpe super efetivo");
             target = applyTraitHealing(target, asNumber(target.maxHp, 1) / 4, "item", "enigma-berry", "Golpe super efetivo ativou a Fruta");
         }
@@ -1705,7 +1757,7 @@ export const applyMoveConsequences = ({
             traitProtectedHits: hitKill.traitProtectedHits,
             faintedOnHit: hitKill.faintedOnHit,
             hitKillThreshold: hitKill.threshold,
-            hitKillProtected: hitKill.protectedFromKnockout,
+            hitKillProtected: hitKill.protectedFromKnockout || indirectHitKillProtections.length > 0,
             hitKillBypassed: hitKill.bypassed,
             hitKillBypassedByAttackerCritical: Boolean(hitKill.attackerCritical && hitKill.wouldKnockOut),
             hitKillBypassedByDefenderFumble: Boolean(hitKill.defenderFumble && hitKill.wouldKnockOut),
@@ -1720,7 +1772,7 @@ export const applyMoveConsequences = ({
             stageChanges,
             stageRoll,
             fieldChange,
-            scheduledDamage: delayedDamage ? Math.max(0, asNumber(resolution.damage)) : 0,
+            scheduledDamage: delayedDamage ? integerInRange(resolution.damage, 0, MAX_SAFE_GAME_INTEGER, 0) : 0,
             specialChange,
             specialNarratives,
             abilityBlock: resolution.abilityBlock || null,
@@ -1733,6 +1785,7 @@ export const applyMoveConsequences = ({
             survivalGraceUsed: Boolean(hitKill.survivalGraceUsed),
             survivalGraceRemaining: Boolean(hitKill.survivalGraceRemaining),
             protectionDisabledThisAction,
+            indirectHitKillProtections,
             traitActivations,
             consumedItems,
             traitStatuses,

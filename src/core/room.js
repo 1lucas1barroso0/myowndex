@@ -8,6 +8,18 @@ import {
 } from "./mechanics.js";
 import { RPG_STATUS_LABELS } from "./copy.js";
 import {
+    applyDirectionalIntegerModifier,
+    clampFinite,
+    finiteNumberOrNull,
+    finiteProduct,
+    integerInRange,
+    MAX_SAFE_GAME_INTEGER,
+    quantizePositiveHpChange,
+    quantizeStepDown,
+    roundRpgScaledValue,
+    safeDivide,
+} from "./math.js";
+import {
     adjustMoveAccuracy,
     applyStageChange,
     calculateStagedStats,
@@ -29,7 +41,7 @@ import {
     stageMultiplier,
 } from "./automation.js";
 import { getDamageCeiling, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
-import { randomChance, randomChoice, randomInt, randomUnit, rollDie } from "./random.js";
+import { randomChance, randomChoice, randomInt, randomUnit, rollD6 } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 import {
     applyBattleIllusion,
@@ -120,10 +132,7 @@ export const STATUS_LABELS = RPG_STATUS_LABELS;
 
 const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
-const numberInRange = (value, minimum, maximum, fallback) => {
-    const numeric = Number(value);
-    return Number.isFinite(numeric) ? Math.min(maximum, Math.max(minimum, numeric)) : fallback;
-};
+const numberInRange = (value, minimum, maximum, fallback) => clampFinite(value, minimum, maximum, fallback);
 
 export const createRoomSnapshot = (title = "Nova aventura") => ({
     schema: ROOM_SCHEMA_VERSION,
@@ -159,7 +168,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
 
 export const normalizeRoomToken = value => {
     const source = value && typeof value === "object" ? value : {};
-    const maxHp = Math.max(1, Math.round(numberInRange(source.maxHp, 1, 99999, 1)));
+    const maxHp = integerInRange(source.maxHp, 1, 99999, 1);
     const moves = asArray(source.moves).slice(0, 4).map(move => normalizeSlug(move));
     while (moves.length < 4) moves.push("");
     // Forest's Curse e Trick-or-Treat podem acrescentar um terceiro tipo durante a cena.
@@ -169,11 +178,11 @@ export const normalizeRoomToken = value => {
         : types;
     const stats = Object.fromEntries(Object.keys(STAT_MAP).map(stat => [
         stat,
-        numberInRange(source.stats?.[stat], 0, 99999, 0),
+        integerInRange(source.stats?.[stat], 0, 99999, 0),
     ]));
     const originalStats = Object.fromEntries(Object.keys(STAT_MAP).map(stat => [
         stat,
-        numberInRange(source.originalStats?.[stat], 0, 99999, stats[stat] * 20),
+        integerInRange(source.originalStats?.[stat], 0, 99999, stats[stat] * 20),
     ]));
     const stages = normalizeStageMap(source.stages);
     const token = {
@@ -184,19 +193,19 @@ export const normalizeRoomToken = value => {
         ownerPlayerId: asText(source.ownerPlayerId),
         name: asText(source.name).slice(0, 80) || "Pokémon",
         speciesName: asText(source.speciesName).toLowerCase(),
-        speciesId: Math.max(0, Math.round(numberInRange(source.speciesId, 0, 99999, 0))),
+        speciesId: integerInRange(source.speciesId, 0, 99999, 0),
         sprite: asText(source.sprite).slice(0, 500),
-        weight: numberInRange(source.weight, 0, 999999, 0),
+        weight: integerInRange(source.weight, 0, 999999, 0),
         side: ["ally", "opponent", "neutral"].includes(source.side) ? source.side : "ally",
         x: numberInRange(source.x, 4, 96, 50),
         y: numberInRange(source.y, 8, 92, 55),
         maxHp,
-        currentHp: numberInRange(source.currentHp, 0, maxHp, maxHp),
+        currentHp: integerInRange(source.currentHp, 0, maxHp, maxHp),
         status: Object.prototype.hasOwnProperty.call(STATUS_LABELS, source.status) ? source.status : "",
-        level: Math.round(numberInRange(source.level, 1, 200, 5)),
-        enteredRound: Math.max(1, Math.round(numberInRange(source.enteredRound, 1, 9999, 1))),
-        xp: numberInRange(source.xp, 0, 999999, 0),
-        priority: Math.round(numberInRange(source.priority, -7, 7, 0)),
+        level: integerInRange(source.level, 1, 200, 5),
+        enteredRound: integerInRange(source.enteredRound, 1, 9999, 1),
+        xp: quantizeStepDown(source.xp, 0.5, { minimum: 0, maximum: 999999, fallback: 0 }),
+        priority: integerInRange(source.priority, -7, 7, 0),
         declaredMove: normalizeSlug(source.declaredMove),
         types,
         originalTypes,
@@ -207,7 +216,7 @@ export const normalizeRoomToken = value => {
         nature: normalizeSlug(source.nature),
         gender: asText(source.gender).slice(0, 20),
         toxicCounter: source.status === "bad-poison"
-            ? Math.round(numberInRange(source.toxicCounter, 1, 15, 1))
+            ? integerInRange(source.toxicCounter, 1, 15, 1)
             : 0,
         stats,
         originalStats,
@@ -249,9 +258,9 @@ export const normalizeRoomSnapshot = value => {
         schema: ROOM_SCHEMA_VERSION,
         title: asText(source.title).trim().slice(0, 80) || fallback.title,
         phase: ROOM_PHASES.some(phase => phase.id === source.phase) ? source.phase : fallback.phase,
-        round: Math.max(1, Math.round(numberInRange(source.round, 1, 9999, 1))),
+        round: integerInRange(source.round, 1, 9999, 1),
         turnIndex: initiative.length
-            ? Math.round(numberInRange(source.turnIndex, 0, initiative.length - 1, 0))
+            ? integerInRange(source.turnIndex, 0, initiative.length - 1, 0)
             : 0,
         scenario: ROOM_SCENARIOS.some(scene => scene.id === source.scenario) ? source.scenario : fallback.scenario,
         weather: ROOM_WEATHERS.some(weather => weather.id === source.weather) ? source.weather : fallback.weather,
@@ -271,7 +280,7 @@ export const normalizeRoomSnapshot = value => {
             title: asText(source.audio?.title).slice(0, 120),
             playing: Boolean(source.audio?.playing),
             volume: numberInRange(source.audio?.volume, 0, 1, 0.55),
-            startedAt: Math.max(0, Number(source.audio?.startedAt) || 0),
+            startedAt: integerInRange(source.audio?.startedAt, 0, MAX_SAFE_GAME_INTEGER, 0),
             offset: numberInRange(source.audio?.offset, 0, 604800, 0),
         },
         settings: {
@@ -352,9 +361,14 @@ export const mergeRoomConflictSnapshot = (base, desired, latest) => normalizeRoo
 );
 
 const baseStatValue = (pokemon, statName) => {
-    const custom = pokemon?.customStats?.[statName];
-    if (Number.isFinite(Number(custom))) return Number(custom);
-    return Number(pokemon?.species?.stats?.find(entry => entry?.stat?.name === statName)?.base_stat) || 1;
+    const custom = finiteNumberOrNull(pokemon?.customStats?.[statName]);
+    if (custom != null) return integerInRange(custom, 1, 255, 1);
+    return integerInRange(
+        pokemon?.species?.stats?.find(entry => entry?.stat?.name === statName)?.base_stat,
+        1,
+        255,
+        1,
+    );
 };
 
 export const calculatePokemonStats = pokemon => {
@@ -383,7 +397,7 @@ export const getPokemonSprite = pokemon => {
     const sprites = pokemon?.species?.sprites;
     const animated = sprites?.versions?.["generation-v"]?.["black-white"]?.animated?.front_default;
     const pixel = sprites?.front_default;
-    const id = Number(pokemon?.species?.id) || 0;
+    const id = integerInRange(pokemon?.species?.id, 0, 99999, 0);
     return animated || pixel || (id
         ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`
         : "");
@@ -394,7 +408,7 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
     const maxHp = computed.hp.rpg;
     const currentHp = pokemon?.rpg?.currentHp == null
         ? maxHp
-        : numberInRange(pokemon.rpg.currentHp, 0, maxHp, maxHp);
+        : integerInRange(pokemon.rpg.currentHp, 0, maxHp, maxHp);
     const ally = side === "ally";
     const row = Math.floor(index / 3);
     const column = index % 3;
@@ -499,8 +513,8 @@ const activateEnteredTokens = (room, tokenInput, enteredIdInput) => {
         }
         if (ability === "download") {
             const opponents = combined.filter(candidate => candidate.currentHp > 0 && candidate.side !== entered.side && candidate.side !== "neutral");
-            const defense = opponents.reduce((sum, candidate) => sum + Number(candidate.stats?.defense || 0), 0);
-            const specialDefense = opponents.reduce((sum, candidate) => sum + Number(candidate.stats?.["special-defense"] || 0), 0);
+            const defense = opponents.reduce((sum, candidate) => sum + integerInRange(candidate.stats?.defense, 0, 99999, 0), 0);
+            const specialDefense = opponents.reduce((sum, candidate) => sum + integerInRange(candidate.stats?.["special-defense"], 0, 99999, 0), 0);
             const stat = defense < specialDefense ? "attack" : "special-attack";
             entered = applyStageChange(entered, stat, 1);
             entered = recordTraitEvent(entered, { kind: "ability", sourceId: ability, label: `${stat} aumentou`, detail: "Download comparou as defesas em cena", round: room.round });
@@ -707,10 +721,10 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
             const permanentMoveChange = specialState.moveOverrides.some(override => override.permanent);
             const moves = permanentMoveChange ? token.moves : partner.moves;
             if (
-                Number(partner.level) === token.level
+                integerInRange(partner.level, 1, 200, 1) === token.level
                 && partner.rpg?.currentHp === token.currentHp
                 && (partner.rpg?.status || "") === token.status
-                && Number(partner.rpg?.xp || 0) === token.xp
+                && clampFinite(partner.rpg?.xp, 0, 999999, 0) === token.xp
                 && JSON.stringify(partner.rpg?.pp || []) === JSON.stringify(synchronizedPp || [])
                 && JSON.stringify(partner.moves || []) === JSON.stringify(moves || [])
             ) return partner;
@@ -735,7 +749,11 @@ export const advanceInitiative = snapshot => {
     };
 };
 
-const residualAmount = (maximumHp, fraction) => Math.max(1, Math.floor(Math.max(1, Number(maximumHp) || 1) * fraction));
+const residualAmount = (maximumHp, fraction) => {
+    const hp = integerInRange(maximumHp, 1, 99999, 1);
+    const ratio = clampFinite(fraction, 0, 1, 0);
+    return quantizePositiveHpChange(finiteProduct([hp, ratio], { minimum: 0, maximum: hp, fallback: 0 }), hp);
+};
 const uniqueSources = values => [...new Set(values.filter(Boolean))];
 const SAND_IMMUNE_ABILITIES = new Set(["magic-guard", "overcoat", "sand-force", "sand-rush", "sand-veil"]);
 const END_ROUND_STATUS_BERRIES = Object.freeze({
@@ -755,7 +773,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
     let hitKillProtectionDisabled = room.hitKillProtectionDisabled;
     let hitKillSurvivalGrace = room.hitKillSurvivalGrace;
     const resolveRoundDamage = (token, damage, options = {}) => {
-        const requestedDamage = Math.max(0, Number(damage) || 0);
+        const requestedDamage = integerInRange(damage, 0, MAX_SAFE_GAME_INTEGER, 0);
         if (!token || token.currentHp <= 0 || requestedDamage <= 0) {
             return { token, appliedDamage: 0, protectedFromKnockout: false, traitProtected: false };
         }
@@ -765,7 +783,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         const key = getHitKillProtectionKey(token);
         const resolved = resolveDamageSequence({
             token,
-            hitDamages: [{ damage: requestedDamage, hitNumber: options.hitNumber || 1 }],
+            hitDamages: [{ damage: requestedDamage, hitNumber: integerInRange(options.hitNumber, 1, 20, 1) }],
             round: room.round,
             protectionUsed: Boolean(key && hitKillProtectionUsed.includes(key)),
             protectionDisabled: Boolean(key && hitKillProtectionDisabled.includes(key)),
@@ -803,7 +821,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
 
         normalizeVolatileEffects(token.volatileEffects).forEach(effect => {
             if (effect.id === "yawn") {
-                const turns = Math.max(0, Number(effect.turns) || 0) - 1;
+                const turns = integerInRange(effect.turns, 0, 99, 0) - 1;
                 if (turns > 0) {
                     volatileEffects.push({ ...effect, turns });
                 } else if (!status) {
@@ -836,10 +854,10 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             }
 
             if (["future-sight", "doom-desire"].includes(effect.id)) {
-                const turns = Math.max(0, Number(effect.turns) || 0) - 1;
+                const turns = integerInRange(effect.turns, 0, 99, 0) - 1;
                 if (turns > 0) volatileEffects.push({ ...effect, turns });
                 else {
-                    const amount = Math.max(0, Number(effect.amount) || 0);
+                    const amount = integerInRange(effect.amount, 0, 99999, 0);
                     damageEvents.push({
                         amount,
                         source: formatName(effect.sourceMove),
@@ -853,14 +871,19 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             }
 
             if (effect.id === "wish") {
-                const turns = Math.max(0, Number(effect.turns) || 0) - 1;
+                const turns = integerInRange(effect.turns, 0, 99, 0) - 1;
                 if (turns > 0) volatileEffects.push({ ...effect, turns });
-                else persistentHealing += Math.max(1, Number(effect.amount) || residualAmount(token.maxHp, 1 / 2));
+                else {
+                    const storedAmount = finiteNumberOrNull(effect.amount);
+                    persistentHealing += storedAmount != null && storedAmount > 0
+                        ? integerInRange(storedAmount, 1, 99999, 1)
+                        : residualAmount(token.maxHp, 1 / 2);
+                }
                 return;
             }
 
             if (effect.id === "perish-song") {
-                const turns = Math.max(0, Number(effect.turns) || 0) - 1;
+                const turns = integerInRange(effect.turns, 0, 99, 0) - 1;
                 if (turns > 0) volatileEffects.push({ ...effect, turns });
                 else forcedFaint = true;
                 return;
@@ -890,7 +913,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                 volatileEffects.push(effect);
                 return;
             }
-            const turns = Math.max(0, Number(effect.turns) || 0) - 1;
+            const turns = integerInRange(effect.turns, 0, 99, 0) - 1;
             if (turns > 0) volatileEffects.push({ ...effect, turns });
         });
 
@@ -1098,7 +1121,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             }
         }
 
-        let toxicCounter = status === "bad-poison" ? Math.max(1, token.toxicCounter || 1) : 0;
+        let toxicCounter = status === "bad-poison" ? integerInRange(token.toxicCounter, 1, 15, 1) : 0;
         const indirectBlocked = activeAbility === "magic-guard";
         if (!indirectBlocked && status === "burn") {
             damageEvents.push({
@@ -1120,7 +1143,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                 source: "envenenamento grave",
                 selfInflicted: activeItem === "toxic-orb",
             });
-            toxicCounter = Math.min(15, toxicCounter + 1);
+            toxicCounter = integerInRange(toxicCounter + 1, 1, 15, 1);
         }
         const sandImmuneType = token.types.some(type => ["ground", "rock", "steel"].includes(type));
         if (effectiveWeather === "areia" && !sandImmuneType && !SAND_IMMUNE_ABILITIES.has(activeAbility) && activeItem !== "safety-goggles") {
@@ -1192,7 +1215,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         const index = tokens.findIndex(token => token.id === drain.sourceTokenId && token.currentHp > 0);
         if (index < 0) return;
         const source = tokens[index];
-        const currentHp = Math.min(source.maxHp, source.currentHp + drain.amount);
+        const currentHp = integerInRange(source.currentHp + drain.amount, 0, source.maxHp, source.currentHp);
         const healed = currentHp - source.currentHp;
         if (healed <= 0) return;
         tokens[index] = { ...source, currentHp };
@@ -1272,7 +1295,7 @@ export const buildInitiative = (snapshot, random) => {
         const traitState = getInitiativeTraitState(token, { weather: isWeatherSuppressed(room.tokens) ? "limpo" : room.weather, round: room.round });
         const test = rollAttributeTest({
             mode: "normal",
-            attribute: (token.stats?.speed || 0) * traitState.multiplier,
+            attribute: applyDirectionalIntegerModifier(token.stats?.speed, traitState.multiplier, { minimum: 0, maximum: 99999 }),
             random,
         });
         return {
@@ -1292,7 +1315,7 @@ export const buildInitiative = (snapshot, random) => {
         tiedResults.set(key, group);
     });
     tiedResults.forEach(group => {
-        if (group.length > 1) group.forEach(result => { result.tieBreak = rollDie(6, random); });
+        if (group.length > 1) group.forEach(result => { result.tieBreak = rollD6(random); });
     });
     results.sort((first, second) =>
         second.priority - first.priority
@@ -1330,11 +1353,11 @@ export const calculateMoveResolution = ({
     const attackerStagesIgnored = profile.requiresDamageContest && isAbilityActive(defender) && normalizeSlug(defender?.ability) === "unaware";
     const defenderStagesIgnored = profile.requiresDamageContest && isAbilityActive(attacker) && normalizeSlug(attacker?.ability) === "unaware";
     const contestAttribute = (token, key, ignoreStages) => {
-        const current = Number(token?.stats?.[key]) || 0;
+        const current = integerInRange(token?.stats?.[key], 0, 99999, 0);
         if (!ignoreStages) return current;
-        const original = Number(token?.originalStats?.[key]);
-        if (Number.isFinite(original)) return convertToTTRPG(original);
-        return current / stageMultiplier(normalizeStageMap(token?.stages)[key]);
+        const original = finiteNumberOrNull(token?.originalStats?.[key]);
+        if (original != null) return convertToTTRPG(original);
+        return safeDivide(current, stageMultiplier(normalizeStageMap(token?.stages)[key]), current);
     };
     const offensiveToken = statProfile.attackSource === "defender" ? defender : attacker;
     const attackTest = profile.requiresDamageContest
@@ -1366,8 +1389,8 @@ export const calculateMoveResolution = ({
             }),
         };
     const dynamicPower = calculateDynamicMovePower({ move, attacker, defender, random });
-    const listedPower = Number(move?.power);
-    const power = dynamicPower?.power ?? (Number.isFinite(listedPower) ? listedPower : 0);
+    const listedPower = finiteNumberOrNull(move?.power);
+    const power = clampFinite(dynamicPower?.power ?? listedPower ?? 0, 0, MAX_SAFE_GAME_INTEGER, 0);
     const baseDamage = convertToTTRPG(power);
     const moveType = move?.type?.name || "";
     const baseStab = getMoveStab(attacker, moveType);
@@ -1403,8 +1426,8 @@ export const calculateMoveResolution = ({
     const stab = traitModifiers.stab;
     const flashFireMultiplier = moveType === "fire" && normalizeSpecialState(attacker?.specialState).markers.includes("flash-fire-boost") ? 1.5 : 1;
     const directKnockout = isDirectKnockoutMove(move);
-    const listedMinimumHits = Math.max(1, Number(move?.meta?.min_hits) || 1);
-    const listedMaximumHits = Math.max(listedMinimumHits, Number(move?.meta?.max_hits) || listedMinimumHits);
+    const listedMinimumHits = integerInRange(move?.meta?.min_hits, 1, 20, 1);
+    const listedMaximumHits = integerInRange(move?.meta?.max_hits, listedMinimumHits, 20, listedMinimumHits);
     const multiHitTraits = getMultiHitTraitState({ attacker, move, minimumHits: listedMinimumHits, maximumHits: listedMaximumHits });
     const minimumHits = multiHitTraits.minimumHits;
     const maximumHits = multiHitTraits.maximumHits;
@@ -1414,19 +1437,19 @@ export const calculateMoveResolution = ({
     const moveName = normalizeSlug(move?.name);
     const fixedDamage = (() => {
         if (!damageHit || !defender) return null;
-        if (moveName === "dragon-rage") return convertToTTRPG(40);
-        if (moveName === "sonic-boom") return convertToTTRPG(20);
-        if (["night-shade", "seismic-toss"].includes(moveName)) return convertToTTRPG(attacker?.level || 1);
-        if (moveName === "final-gambit") return Math.max(1, Number(attacker?.currentHp) || 1);
+        if (moveName === "dragon-rage") return Math.max(1, convertToTTRPG(40));
+        if (moveName === "sonic-boom") return Math.max(1, convertToTTRPG(20));
+        if (["night-shade", "seismic-toss"].includes(moveName)) return Math.max(1, convertToTTRPG(integerInRange(attacker?.level, 1, 200, 1)));
+        if (moveName === "final-gambit") return integerInRange(attacker?.currentHp, 1, 99999, 1);
         if (moveName === "psywave") {
             const multiplier = 0.5 + randomUnit(random);
-            return convertToTTRPG(Math.max(1, Math.floor((attacker?.level || 1) * multiplier)));
+            return Math.max(1, convertToTTRPG(Math.max(1, Math.floor(integerInRange(attacker?.level, 1, 200, 1) * multiplier))));
         }
         if (["super-fang", "natures-madness", "ruination"].includes(moveName)) {
-            return Math.max(1, Math.ceil((Number(defender.currentHp) || 1) / 2));
+            return Math.max(1, Math.ceil(integerInRange(defender.currentHp, 1, 99999, 1) / 2));
         }
         if (moveName === "endeavor") {
-            return Math.max(0, (Number(defender.currentHp) || 0) - (Number(attacker?.currentHp) || 0));
+            return Math.max(0, integerInRange(defender.currentHp, 0, 99999, 0) - integerInRange(attacker?.currentHp, 0, 99999, 0));
         }
         return null;
     })();
@@ -1434,22 +1457,38 @@ export const calculateMoveResolution = ({
         && fixedDamage == null
         && !directKnockout
         && (power <= 0 || ["bide", "comeuppance", "counter", "metal-burst", "mirror-coat"].includes(moveName));
+    const multipliedPower = finiteProduct([
+        power,
+        stab,
+        effectiveness,
+        criticalMultiplier,
+        flashFireMultiplier,
+        traitModifiers.multiplier,
+    ], { minimum: 0, maximum: MAX_SAFE_GAME_INTEGER, fallback: 0 });
+    const calculatedDamagePerHit = roundRpgScaledValue(safeDivide(multipliedPower, 20, 0), {
+        minimumWhenPositive: multipliedPower > 0 ? 1 : 0,
+        maximum: MAX_SAFE_GAME_INTEGER,
+    });
     const rawDamagePerHit = damageHit && effectiveness > 0
         ? directKnockout
-            ? Math.max(1, Number(defender?.currentHp) || 1)
+            ? integerInRange(defender?.currentHp, 1, 99999, 1)
             : fixedDamage != null
                 ? fixedDamage
                 : manualDamage
                     ? 0
-                    : Math.max(1, Math.round(baseDamage * stab * effectiveness * criticalMultiplier * flashFireMultiplier * traitModifiers.multiplier))
+                    : calculatedDamagePerHit
         : 0;
     const offensiveStage = attackerStagesIgnored ? 0 : normalizeStageMap(offensiveToken?.stages)[attackKey];
     const ceilingMultiplier = Math.max(1, stageMultiplier(offensiveStage));
-    const ceiling = getDamageCeiling(attacker?.level || 1) * ceilingMultiplier;
+    const baseCeiling = getDamageCeiling(attacker?.level);
+    const ceiling = applyDirectionalIntegerModifier(baseCeiling, ceilingMultiplier, { minimum: baseCeiling, maximum: 99999 });
     const damagePerHit = attackTest?.critical || directKnockout || fixedDamage != null || manualDamage
         ? rawDamagePerHit
         : Math.min(rawDamagePerHit, ceiling);
-    const damage = damagePerHit * hitCount;
+    const damage = integerInRange(finiteProduct(
+        [damagePerHit, hitCount],
+        { minimum: 0, maximum: MAX_SAFE_GAME_INTEGER, fallback: 0 },
+    ), 0, MAX_SAFE_GAME_INTEGER, 0);
     return {
         profile,
         weather: effectiveWeather,
@@ -1503,8 +1542,8 @@ export const eventSummary = event => {
     if (event?.type === "roll") {
         const protection = payload.hitKillProtected
             ? payload.faintedOnHit
-                ? ` A proteção contra hit kill agiria, mas outro hit derrotaria o alvo no ${Number(payload.faintedOnHit)}º impacto.`
-                : ` A prévia calculou ${Number(payload.calculatedDamage) || 0} de dano, e a proteção contra hit kill manteria o alvo em combate.`
+                ? ` A proteção contra hit kill agiria, mas outro hit derrotaria o alvo no ${integerInRange(payload.faintedOnHit, 1, 20, 1)}º impacto.`
+                : ` A prévia calculou ${integerInRange(payload.calculatedDamage, 0, MAX_SAFE_GAME_INTEGER, 0)} de dano, e a proteção contra hit kill manteria o alvo em combate.`
             : "";
         return `${event.author} rolou ${payload.label || "um teste"}: ${payload.result ?? "—"}.${protection}`;
     }
@@ -1512,7 +1551,7 @@ export const eventSummary = event => {
         return `${event.author} escolheu ${payload.moveName ? formatName(payload.moveName) : "um movimento"}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
     }
     if (event?.type === "move") {
-        const damage = Number(payload.damage) || 0;
+        const damage = integerInRange(payload.damage, 0, MAX_SAFE_GAME_INTEGER, 0);
         const connected = Boolean(payload.moveConnected ?? payload.hit);
         const moveDescription = payload.calledMoveName
             ? `usou ${payload.selectedMoveName || "um movimento"}, que chamou ${payload.calledMoveName}`
@@ -1526,8 +1565,8 @@ export const eventSummary = event => {
                     : "não alcançou o alvo";
         const protection = payload.hitKillProtected
             ? payload.faintedOnHit
-                ? ` A proteção contra hit kill agiu no ${Number(payload.hitKillProtectedHits?.[0]) || 1}º hit, mas o alvo foi derrotado no ${Number(payload.faintedOnHit)}º.`
-                : ` A proteção contra hit kill agiu no ${Number(payload.hitKillProtectedHits?.[0]) || 1}º hit e foi consumida nesta batalha.`
+                ? ` A proteção contra hit kill agiu no ${integerInRange(payload.hitKillProtectedHits?.[0], 1, 20, 1)}º hit, mas o alvo foi derrotado no ${integerInRange(payload.faintedOnHit, 1, 20, 1)}º.`
+                : ` A proteção contra hit kill agiu no ${integerInRange(payload.hitKillProtectedHits?.[0], 1, 20, 1)}º hit e foi consumida nesta batalha.`
             : "";
         const fainted = payload.fainted ? " O alvo não pode mais batalhar." : "";
         const fumble = payload.fumble ? " O erro crítico pede uma consequência escolhida para esta cena." : "";

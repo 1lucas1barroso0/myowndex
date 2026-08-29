@@ -70,6 +70,16 @@ test("percent advantage keeps the most favorable d100 and respects equal-or-lowe
   });
   assert.equal(stringFlag.advantage, false);
   assert.deepEqual(stringFlag.rolls, [100]);
+
+  const disadvantage = rollPercentTest({
+    chance: 80,
+    mode: "disadvantage",
+    random: sequence([0.09, 0.89]),
+  });
+  assert.deepEqual(disadvantage.rolls, [10, 90]);
+  assert.equal(disadvantage.result, 90);
+  assert.equal(disadvantage.disadvantage, true);
+  assert.equal(disadvantage.success, false);
 });
 
 test("RPG scale, XP and damage ceiling follow the guide", () => {
@@ -78,7 +88,8 @@ test("RPG scale, XP and damage ceiling follow the guide", () => {
   assert.equal(getRpgScale(52), 3);
   assert.equal(getNextLevelXp(10), 5.5);
   assert.equal(getDamageCeiling(1), 1);
-  assert.equal(getDamageCeiling(11), 5.5);
+  assert.equal(getDamageCeiling(11), 5);
+  assert.equal(getDamageCeiling(Infinity), 1);
 });
 
 test("secure dice reject the uneven uint32 tail instead of introducing modulo bias", () => {

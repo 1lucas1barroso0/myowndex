@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { finiteNumberOrNull } from "../../core/math.js";
 
 const EMPTY_CANDIDATES = Object.freeze([]);
 
 const spriteUrls = ({ src, pokemonId, shiny = false, candidates = [] }) => {
-    const id = Number(pokemonId);
+    const id = finiteNumberOrNull(pokemonId);
     const regularPath = shiny ? "shiny/" : "";
     return [...new Set([
         src,

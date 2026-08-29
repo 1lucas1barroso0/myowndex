@@ -1,3 +1,12 @@
+import {
+    clampFinite,
+    finiteNumberOrNull,
+    integerInRange,
+    MAX_SAFE_GAME_INTEGER,
+    roundRpgScaledValue,
+    safeDivide,
+} from "./math.js";
+
 export const apiCache = new Map();
 
 const apiRequests = new Map();
@@ -16,7 +25,7 @@ const readPersistentApiCache = async (url) => {
         if (!response) return null;
         return {
             data: await response.json(),
-            cachedAt: Number(response.headers.get("x-myowndex-cached-at")) || 0
+            cachedAt: integerInRange(response.headers.get("x-myowndex-cached-at"), 0, MAX_SAFE_GAME_INTEGER, 0)
         };
     } catch {
         return null;
@@ -39,8 +48,8 @@ const writePersistentApiCache = async (url, data) => {
 };
 
 const retryDelay = (response, attempt) => {
-    const retryAfter = Number(response?.headers?.get?.("retry-after"));
-    if (Number.isFinite(retryAfter) && retryAfter >= 0) return Math.min(3000, retryAfter * 1000);
+    const retryAfter = finiteNumberOrNull(response?.headers?.get?.("retry-after"));
+    if (retryAfter != null && retryAfter >= 0) return Math.min(3000, retryAfter * 1000);
     return Math.min(2000, 250 * (2 ** attempt));
 };
 
@@ -133,30 +142,29 @@ export const clearApiCache = async () => {
 };
 
 export const convertToTTRPG = (value, isHp = false) => {
-    const numericValue = Number(value);
-    if (!Number.isFinite(numericValue) || numericValue <= 0) return isHp ? 1 : 0;
-    const result = numericValue / 20;
-    const whole = Math.floor(result);
-    const fractionHundredths = Math.round((result - whole) * 100);
-    const finalValue = fractionHundredths >= 56 ? Math.ceil(result) : whole;
-    return isHp && finalValue === 0 ? 1 : finalValue;
+    const numericValue = finiteNumberOrNull(value);
+    if (numericValue == null || numericValue <= 0) return isHp ? 1 : 0;
+    return roundRpgScaledValue(safeDivide(numericValue, 20), {
+        minimumWhenPositive: isHp ? 1 : 0,
+    });
 };
 
 export const calculateStat = (base, ev, iv, level, natureMulti, isHp, speciesName) => {
     if (isHp && speciesName?.toLowerCase() === "shedinja") return 1;
-    const b = Math.max(1, Number.parseInt(base, 10) || 1);
-    const e = Math.max(0, Number.parseInt(ev, 10) || 0);
-    const i = Math.max(0, Number.parseInt(iv, 10) || 0);
-    const l = Math.max(1, Number.parseInt(level, 10) || 1);
+    const b = integerInRange(base, 1, 255, 1);
+    const e = integerInRange(ev, 0, 252, 0);
+    const i = integerInRange(iv, 0, 31, 0);
+    const l = integerInRange(level, 1, 200, 1);
+    const nature = clampFinite(natureMulti, 0.9, 1.1, 1);
     if (isHp) return Math.floor(((2 * b + i + Math.floor(e / 4)) * l) / 100) + l + 10;
-    return Math.floor((Math.floor(((2 * b + i + Math.floor(e / 4)) * l) / 100) + 5) * natureMulti);
+    return Math.floor((Math.floor(((2 * b + i + Math.floor(e / 4)) * l) / 100) + 5) * nature);
 };
 
 export const formatName = str => str ? String(str).replace(/-/g, " ").replace(/\b\w/g, letter => letter.toUpperCase()) : "Sem registro";
 const PT_BR_NUMBER_FORMAT = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
 export const formatNumberPtBr = value => {
-    const numericValue = Number(value);
-    return Number.isFinite(numericValue) ? PT_BR_NUMBER_FORMAT.format(numericValue) : "—";
+    const numericValue = finiteNumberOrNull(value);
+    return numericValue == null ? "—" : PT_BR_NUMBER_FORMAT.format(numericValue);
 };
 export const preferredLocalizedEntry = entries => {
     const source = Array.isArray(entries) ? entries : [];
@@ -209,7 +217,7 @@ export const VERSION_LABELS = Object.fromEntries(VERSION_GROUPS.map(group => [gr
 
 const detailOrder = detail => {
     const method = detail?.move_learn_method?.name;
-    const level = Number(detail?.level_learned_at) || 0;
+    const level = integerInRange(detail?.level_learned_at, 0, 200, 0);
     if (method === "level-up") return { method: 1, level };
     if (method === "machine") return { method: 2, level: 0 };
     if (method === "tutor") return { method: 3, level: 0 };
@@ -223,7 +231,7 @@ export const getLatestVersionGroup = (moves, preferredVersion = "auto") => {
     moves.forEach(entry => entry?.version_group_details?.forEach(detail => {
         const name = detail?.version_group?.name;
         if (!name) return;
-        const id = Number(extractId(detail.version_group?.url)) || 0;
+        const id = integerInRange(extractId(detail.version_group?.url), 0, MAX_SAFE_GAME_INTEGER, 0);
         observed.set(name, Math.max(id, observed.get(name) || 0));
     }));
     if (preferredVersion && preferredVersion !== "auto") return observed.has(preferredVersion) ? preferredVersion : null;

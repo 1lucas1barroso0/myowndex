@@ -1,7 +1,14 @@
+import {
+    clampFinite as clamp,
+    finiteNumber as asNumber,
+    finiteProduct,
+    integerInRange,
+    MAX_SAFE_GAME_INTEGER,
+    safeDivide,
+} from "./math.js";
+
 const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
-const asNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
-const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 export const traitSlug = value => asText(value).trim().toLowerCase().replace(/[\s_]+/g, "-");
 
 export const TRAIT_STATE_VERSION = 1;
@@ -20,7 +27,7 @@ const normalizeHistoryEntry = value => {
         sourceId,
         label: asText(value.label).slice(0, 80),
         detail: asText(value.detail).slice(0, 240),
-        round: Math.max(0, Math.round(asNumber(value.round))),
+        round: integerInRange(value.round, 0, 9999, 0),
     };
 };
 
@@ -34,7 +41,7 @@ export const normalizeTraitState = (value, currentItem = "", currentAbility = ""
         item: {
             originalId: itemId || previousItemId,
             consumed: itemId ? false : Boolean(value?.item?.consumed && previousItemId),
-            consumedRound: itemId ? 0 : Math.max(0, Math.round(asNumber(value?.item?.consumedRound))),
+            consumedRound: itemId ? 0 : integerInRange(value?.item?.consumedRound, 0, 9999, 0),
             consumedReason: itemId ? "" : asText(value?.item?.consumedReason).slice(0, 160),
             restored: sameRestoredItem && Boolean(value?.item?.restored),
         },
@@ -73,7 +80,7 @@ export const consumeHeldItem = (token, { reason = "O item foi consumido", round 
             item: {
                 originalId: itemId,
                 consumed: true,
-                consumedRound: Math.max(0, Math.round(asNumber(round))),
+                consumedRound: integerInRange(round, 0, 9999, 0),
                 consumedReason: asText(reason).slice(0, 160),
                 restored: false,
             },
@@ -353,7 +360,7 @@ export const getDamageTraitModifiers = ({ attacker, defender, move, effectivenes
     const moveType = traitSlug(move?.type?.name);
     const damageClass = traitSlug(move?.damage_class?.name);
     const power = Math.max(0, asNumber(move?.power));
-    const hpRatio = clamp(asNumber(attacker?.currentHp) / Math.max(1, asNumber(attacker?.maxHp, 1)), 0, 1);
+    const hpRatio = clamp(safeDivide(asNumber(attacker?.currentHp), Math.max(1, asNumber(attacker?.maxHp, 1)), 0), 0, 1);
     let adjustedStab = stab;
 
     if (ability === "adaptability" && stab > 1) {
@@ -414,7 +421,7 @@ export const getDamageTraitModifiers = ({ attacker, defender, move, effectivenes
 
     return {
         stab: adjustedStab,
-        multiplier: entries.reduce((total, entry) => total * entry.multiplier, 1),
+        multiplier: finiteProduct(entries.map(entry => entry.multiplier), { minimum: 0, maximum: MAX_SAFE_GAME_INTEGER, fallback: 0 }),
         entries,
         suppressTargetSecondaries: ability === "sheer-force" && moveHasTrait(move, "secondary"),
         blockTargetSecondaries: ["shield-dust"].includes(defenderAbility) || defenderItem === "covert-cloak",
@@ -434,7 +441,10 @@ export const getAccuracyTraitModifiers = ({ attacker, defender, move, weather = 
     if (["bright-powder", "lax-incense"].includes(defenderItem)) addModifier(entries, "item", defenderItem, 0.9, "Item do alvo dificultou o golpe");
     if (defenderAbility === "sand-veil" && weather === "areia") addModifier(entries, "ability", defenderAbility, 0.8, "Sand Veil dificultou o golpe");
     if (defenderAbility === "snow-cloak" && weather === "neve") addModifier(entries, "ability", defenderAbility, 0.8, "Snow Cloak dificultou o golpe");
-    return { multiplier: entries.reduce((total, entry) => total * entry.multiplier, 1), entries };
+    return {
+        multiplier: finiteProduct(entries.map(entry => entry.multiplier), { minimum: 0, maximum: 100, fallback: 0 }),
+        entries,
+    };
 };
 
 export const getMultiHitTraitState = ({ attacker, minimumHits = 1, maximumHits = 1 } = {}) => {
@@ -461,7 +471,10 @@ export const getInitiativeTraitState = (token, { weather = "limpo", round = 0 } 
     if (ability === "slow-start" && Math.max(0, asNumber(round) - asNumber(token?.enteredRound, round)) < 5) {
         addModifier(entries, "ability", ability, 0.5, "Slow Start ainda está ativo");
     }
-    return { multiplier: entries.reduce((total, entry) => total * entry.multiplier, 1), entries };
+    return {
+        multiplier: finiteProduct(entries.map(entry => entry.multiplier), { minimum: 0, maximum: 100, fallback: 0 }),
+        entries,
+    };
 };
 
 export const getSurvivalTraitSources = token => {
@@ -479,11 +492,13 @@ export const getSurvivalTrait = (token, {
     round = 0,
     fullHpEligibilityPreserved = false,
 } = {}) => {
-    const hp = Math.max(0, asNumber(token?.currentHp));
-    const fullHp = hp > 0 && hp >= Math.max(1, asNumber(token?.maxHp, 1));
-    const wouldFaint = asNumber(damage) >= hp;
-    if ((!fullHp && !fullHpEligibilityPreserved) || !wouldFaint || hitCount !== 1) {
-        return { applied: false, token, appliedDamage: Math.min(hp, Math.max(0, asNumber(damage))) };
+    const maximumHp = integerInRange(token?.maxHp, 1, 99999, 1);
+    const hp = integerInRange(token?.currentHp, 0, maximumHp, maximumHp);
+    const normalizedDamage = integerInRange(damage, 0, MAX_SAFE_GAME_INTEGER, 0);
+    const fullHp = hp > 0 && hp === maximumHp;
+    const wouldFaint = normalizedDamage >= hp;
+    if ((!fullHp && !fullHpEligibilityPreserved) || !wouldFaint || integerInRange(hitCount, 1, 20, 1) !== 1) {
+        return { applied: false, token, appliedDamage: Math.min(hp, normalizedDamage) };
     }
     const [source] = getSurvivalTraitSources(token);
     if (source?.id === "sturdy") {
@@ -508,7 +523,7 @@ export const getSurvivalTrait = (token, {
             narrative: "Focus Sash foi consumida e manteve 1 HP.",
         };
     }
-    return { applied: false, token, appliedDamage: Math.min(hp, Math.max(0, asNumber(damage))) };
+    return { applied: false, token, appliedDamage: Math.min(hp, normalizedDamage) };
 };
 
 export const getChoiceLock = token => {

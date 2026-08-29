@@ -12,6 +12,7 @@ import {
   safeRoomCode,
   safeText,
 } from "../../../../../server/rooms";
+import { clampFinite, integerInRange } from "../../../../../src/core/math.js";
 
 export const dynamic = "force-dynamic";
 
@@ -81,8 +82,8 @@ export async function POST(request: Request, context: RouteContext) {
     }
     if (type === "token-move" && auth.playerId) {
       const tokenId = safeText(eventPayload.tokenId, 100);
-      const x = Math.min(96, Math.max(4, Number(eventPayload.x) || 50));
-      const y = Math.min(92, Math.max(8, Number(eventPayload.y) || 50));
+      const x = clampFinite(eventPayload.x, 4, 96, 50);
+      const y = clampFinite(eventPayload.y, 8, 92, 50);
       const { db } = getBindings();
       for (let attempt = 0; attempt < 3; attempt += 1) {
         const room = await getRoom(code);
@@ -126,7 +127,7 @@ export async function POST(request: Request, context: RouteContext) {
       const moveName = safeText(eventPayload.moveName, 80)
         .toLowerCase()
         .replace(/\s+/g, "-");
-      const priority = Math.min(7, Math.max(-7, Math.round(Number(eventPayload.priority) || 0)));
+      const priority = integerInRange(eventPayload.priority, -7, 7, 0);
       const { db } = getBindings();
       for (let attempt = 0; attempt < 3; attempt += 1) {
         const room = await getRoom(code);

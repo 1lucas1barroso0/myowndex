@@ -1,5 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { formatNumberPtBr } from "../../core/mechanics.js";
+import {
+    createRollRecord,
+    normalizeRollHistory,
+    prependRollHistory,
+} from "../../core/rollHistory.js";
 import { readStorage, writeStorage } from "../../core/storage.js";
 import {
     EXPERIENCE_MODES,
@@ -42,21 +47,13 @@ const ATTRIBUTE_MODE_LABELS = {
     advantage: "Vantagem",
     disadvantage: "Desvantagem",
 };
+const PERCENT_MODE_LABELS = {
+    normal: "Normal",
+    advantage: "Vantagem",
+    disadvantage: "Desvantagem",
+};
 
-const MAX_ROLL_HISTORY = 30;
 const ROLL_HISTORY_KEY = "myowndex_guide_roll_history_v1";
-
-const normalizeRollHistory = value => Array.isArray(value) ? value
-    .filter(entry => entry && Number.isInteger(entry.sequence) && Array.isArray(entry.values))
-    .map(entry => ({
-        sequence: entry.sequence,
-        kind: entry.kind === "percent" ? "percent" : "attribute",
-        label: String(entry.label || "Rolagem").slice(0, 80),
-        values: entry.values.map(Number).filter(Number.isFinite).slice(0, 3),
-        detail: String(entry.detail || "").slice(0, 120),
-    }))
-    .filter(entry => entry.values.length)
-    .slice(0, MAX_ROLL_HISTORY) : [];
 
 export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
@@ -65,12 +62,15 @@ export default function TrainerGuide({ experienceMode }) {
     const [opposition, setOpposition] = useState("");
     const [attributeResult, setAttributeResult] = useState(null);
     const [chance, setChance] = useState(30);
-    const [percentAdvantage, setPercentAdvantage] = useState(false);
+    const [percentMode, setPercentMode] = useState("normal");
     const [percentResult, setPercentResult] = useState(null);
     const [rollError, setRollError] = useState("");
     const [rollHistory, setRollHistory] = useState([]);
     const [rollHistoryBooted, setRollHistoryBooted] = useState(false);
+    const [rollingKind, setRollingKind] = useState("");
     const rollSequence = useRef(0);
+    const rollLock = useRef(false);
+    const rollUnlockTimer = useRef(null);
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
@@ -85,6 +85,10 @@ export default function TrainerGuide({ experienceMode }) {
     useEffect(() => {
         if (rollHistoryBooted) writeStorage(ROLL_HISTORY_KEY, rollHistory);
     }, [rollHistory, rollHistoryBooted]);
+
+    useEffect(() => () => {
+        if (rollUnlockTimer.current) clearTimeout(rollUnlockTimer.current);
+    }, []);
 
     const visibleSections = useMemo(() => {
         const normalized = query.trim().toLowerCase();
@@ -104,21 +108,42 @@ export default function TrainerGuide({ experienceMode }) {
 
     const rememberRoll = entry => {
         rollSequence.current += 1;
-        setRollHistory(current => [
-            { ...entry, sequence: rollSequence.current },
-            ...current,
-        ].slice(0, MAX_ROLL_HISTORY));
+        const record = createRollRecord(entry, { sequence: rollSequence.current });
+        if (!record) return;
+        setRollHistory(current => prependRollHistory(current, record, {
+            id: record.id,
+            sequence: record.sequence,
+            createdAt: record.createdAt,
+        }));
+    };
+
+    const beginRoll = kind => {
+        if (rollLock.current) return false;
+        rollLock.current = true;
+        setRollingKind(kind);
+        rollUnlockTimer.current = setTimeout(() => {
+            rollLock.current = false;
+            setRollingKind("");
+            rollUnlockTimer.current = null;
+        }, 350);
+        return true;
     };
 
     const runAttributeTest = () => {
+        if (!beginRoll("attribute")) return;
         try {
             const result = rollAttributeTest({ mode: testMode, attribute, opposition });
             setAttributeResult(result.fumble ? { ...result, fumbleSuggestion: getFumbleSuggestion() } : result);
             rememberRoll({
                 kind: "attribute",
                 label: `Teste de atributo · ${ATTRIBUTE_MODE_LABELS[result.mode]}`,
+                mode: result.mode,
                 values: result.dice,
+                kept: result.kept,
+                result: result.total,
+                success: result.success,
                 detail: `Mantidos ${result.kept.join(" + ")} · total ${result.total}`,
+                context: "guia",
             });
             setRollError("");
         } catch (error) {
@@ -128,17 +153,24 @@ export default function TrainerGuide({ experienceMode }) {
     };
 
     const runPercentTest = () => {
+        if (!beginRoll("percent")) return;
         try {
             const result = rollPercentTest({
                 chance,
-                advantage: percentAdvantage
+                mode: percentMode,
             });
             setPercentResult(result);
             rememberRoll({
                 kind: "percent",
-                label: result.advantage ? "Teste percentual · Vantagem" : "Teste percentual · Normal",
+                label: `Teste percentual · ${PERCENT_MODE_LABELS[result.mode]}`,
+                mode: result.mode,
                 values: result.rolls,
+                kept: [result.result],
+                result: result.result,
+                chance: result.chance,
+                success: result.success,
                 detail: `${result.result} contra ${result.chance}% · ${result.success ? "sucesso" : "falha"}`,
+                context: "guia",
             });
             setRollError("");
         } catch (error) {
@@ -205,14 +237,14 @@ export default function TrainerGuide({ experienceMode }) {
                                 <div className="guide-input-grid mt-3 grid grid-cols-2 gap-3">
                                     <label>
                                         <ToolLabel>Atributo</ToolLabel>
-                                        <input type="number" value={attribute} onChange={event => setAttribute(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
+                                        <input type="number" min="-20" max="99" step="1" value={attribute} onChange={event => setAttribute(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
                                     </label>
                                     <label>
                                         <ToolLabel>Dificuldade</ToolLabel>
-                                        <input type="number" value={opposition} placeholder="Opcional" onChange={event => setOpposition(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
+                                        <input type="number" min="-20" max="99999" step="1" value={opposition} placeholder="Opcional" onChange={event => setOpposition(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
                                     </label>
                                 </div>
-                                <button type="button" onClick={runAttributeTest} className="game-button mt-4 w-full bg-red-500 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white">Rolar teste</button>
+                                <button type="button" disabled={Boolean(rollingKind)} aria-busy={rollingKind === "attribute"} onClick={runAttributeTest} className="game-button mt-4 w-full bg-red-500 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white">{rollingKind === "attribute" ? "Rolando…" : "Rolar teste"}</button>
                                 {attributeResult && (
                                     <div className="mt-5 rounded-2xl border-2 border-slate-200 bg-slate-50 p-4" aria-live="polite">
                                         <DiceFaces values={attributeResult.dice} kept={attributeResult.kept} />
@@ -240,15 +272,25 @@ export default function TrainerGuide({ experienceMode }) {
                                         <input type="number" min="0" max="100" value={chance} onChange={event => setChance(event.target.value)} className="w-16 rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-2 text-center text-sm font-black outline-none focus:border-blue-400" />
                                     </div>
                                 </label>
-                                <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl border-2 border-slate-200 bg-slate-50 p-3">
-                                    <input type="checkbox" checked={percentAdvantage} onChange={event => setPercentAdvantage(event.target.checked)} className="h-4 w-4 accent-blue-500" />
-                                    <span className="text-[10px] font-black text-slate-600">Vantagem no d100 <small className="block font-bold text-slate-400">Role duas vezes e use o menor.</small></span>
-                                </label>
-                                <button type="button" onClick={runPercentTest} className="game-button mt-4 w-full bg-blue-500 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white">Rolar d100</button>
+                                <div className="guide-choice-grid mt-4 grid grid-cols-3 gap-2" aria-label="Modo do teste percentual">
+                                    {Object.entries(PERCENT_MODE_LABELS).map(([value, label]) => (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            aria-pressed={percentMode === value}
+                                            onClick={() => setPercentMode(value)}
+                                            className={`rounded-xl border-2 px-2 py-2 text-[9px] font-black uppercase transition-colors ${percentMode === value ? "border-blue-600 bg-blue-500 text-white" : "border-slate-200 bg-slate-50 text-slate-500 hover:border-blue-300"}`}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="mt-2 text-[9px] font-bold text-slate-400">Vantagem mantém o menor de dois d100; desvantagem mantém o maior.</p>
+                                <button type="button" disabled={Boolean(rollingKind)} aria-busy={rollingKind === "percent"} onClick={runPercentTest} className="game-button mt-4 w-full bg-blue-500 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white">{rollingKind === "percent" ? "Rolando…" : "Rolar d100"}</button>
                                 {percentResult && (
                                     <div className={`mt-5 rounded-2xl border-2 p-4 ${percentResult.success ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`} aria-live="polite">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{percentResult.rolls.join(" • ")}</p>
-                                        <p className="mt-1 text-[9px] font-black uppercase tracking-wider text-cyan-800">{percentResult.advantage ? "Vantagem · menor de dois" : "Rolagem normal"}</p>
+                                        <p className="mt-1 text-[9px] font-black uppercase tracking-wider text-cyan-800">{percentResult.advantage ? "Vantagem · menor de dois" : percentResult.disadvantage ? "Desvantagem · maior de dois" : "Rolagem normal"}</p>
                                         <p className={`mt-1 text-2xl font-black ${percentResult.success ? "text-emerald-700" : "text-red-700"}`}>{percentResult.success ? "Sucesso" : "Falha"} — {percentResult.result}</p>
                                     </div>
                                 )}
@@ -265,7 +307,7 @@ export default function TrainerGuide({ experienceMode }) {
                                 {rollHistory.length ? (
                                     <ol className="mt-3 space-y-2">
                                         {rollHistory.map(entry => (
-                                            <li key={entry.sequence} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2">
+                                            <li key={entry.id} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2">
                                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                                     <span className="text-[9px] font-black text-slate-600">#{entry.sequence} · {entry.label}</span>
                                                     <strong className="text-xs text-slate-800">{entry.values.join(" • ")}</strong>
@@ -286,39 +328,49 @@ export default function TrainerGuide({ experienceMode }) {
                             <span className="text-[9px] font-black uppercase tracking-[0.22em] text-blue-500">Calculadora Rotom</span>
                             <h3 className="mt-1 text-xl font-black text-slate-800">Conversão para o RPG</h3>
                         </div>
-                        <div className="guide-conversion-grid grid gap-3 sm:grid-cols-3">
+                        <div className="guide-conversion-grid grid gap-3">
                             <label className="rounded-2xl border-2 border-slate-200 bg-white p-4">
                                 <ToolLabel>Valor original</ToolLabel>
-                                <input type="number" min="0" value={scaleValue} onChange={event => setScaleValue(event.target.value)} className="w-full bg-transparent text-2xl font-black text-slate-800 outline-none" />
+                                <input type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} className="w-full bg-transparent text-2xl font-black text-slate-800 outline-none" />
                                 <span className="mt-1 block text-[10px] font-bold text-slate-400">÷ 20 = <strong className="text-red-500">{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
                             </label>
                             <label className="rounded-2xl border-2 border-slate-200 bg-white p-4">
                                 <ToolLabel>Nível atual</ToolLabel>
-                                <input type="number" min="1" max="200" value={level} onChange={event => setLevel(event.target.value)} className="w-full bg-transparent text-2xl font-black text-slate-800 outline-none" />
+                                <input type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} className="w-full bg-transparent text-2xl font-black text-slate-800 outline-none" />
                                 <span className="mt-1 block text-[10px] font-bold text-slate-400">XP até o próximo: <strong className="text-blue-600">{formatNumberPtBr(getNextLevelXp(level))}</strong></span>
                             </label>
-                            <div className="guide-damage-ceiling rounded-2xl border-2 border-slate-200 bg-slate-900 p-4 text-white" data-rule-id="3.3">
-                                <ToolLabel>Limite de dano</ToolLabel>
-                                <strong className="block text-3xl font-black text-amber-300">{formatNumberPtBr(getDamageCeiling(level))}</strong>
-                                <span className="mt-1 block text-[10px] font-bold text-slate-400">Máximo comum por golpe, antes de aumentos temporários.</span>
+                            <article className="guide-damage-limit-card" data-rule-id="3.3" aria-label={`Limite comum de dano: ${formatNumberPtBr(getDamageCeiling(level))}`}>
+                                <div className="guide-damage-limit-value">
+                                    <span>Limite comum</span>
+                                    <strong>{formatNumberPtBr(getDamageCeiling(level))}</strong>
+                                </div>
+                                <p>No nível {formatNumberPtBr(level)}, este é o máximo comum por hit. Aumentos temporários elevam o limite proporcionalmente; críticos e danos de regra própria usam suas exceções.</p>
+                            </article>
+                        </div>
+                        <article className="guide-hit-kill-card mt-4" data-rule-id="3.4" aria-labelledby="guide-hit-kill-title">
+                            <header>
+                                <span className="guide-hit-kill-mark" aria-hidden="true">◆</span>
+                                <div>
+                                    <small>Regra separada do limite comum</small>
+                                    <strong id="guide-hit-kill-title">Proteção contra Hit Kill</strong>
+                                </div>
+                                <b>1 vez por batalha</b>
+                            </header>
+                            <div className="guide-hit-kill-flow" aria-label="Condições para a proteção agir">
+                                <span>HP máximo</span>
+                                <i aria-hidden="true">→</i>
+                                <span>Dano fatal menor que 3× o HP máximo</span>
+                                <i aria-hidden="true">→</i>
+                                <span>Permanece com 1 HP</span>
                             </div>
-                        </div>
-                        <div className="guide-critical-rules mt-4" aria-label="Regras críticas de dano">
-                            <article className="guide-critical-rule is-ceiling" data-rule-id="3.3">
-                                <span aria-hidden="true">!</span>
-                                <div>
-                                    <strong>Limite comum de dano</strong>
-                                    <p>No nível {formatNumberPtBr(level)}, um golpe causa normalmente até <b>{formatNumberPtBr(getDamageCeiling(level))}</b> de dano. Aumentos temporários podem elevar esse teto de forma proporcional.</p>
-                                </div>
-                            </article>
-                            <article className="guide-critical-rule is-hit-kill" data-rule-id="3.4">
-                                <span aria-hidden="true">◆</span>
-                                <div>
-                                    <strong>Proteção contra Hit Kill</strong>
-                                    <p>É uma verificação separada e única por batalha: no HP máximo, dano fatal abaixo de três vezes esse máximo deixa 1 HP. Multi-hit e dano indireto são resolvidos impacto por impacto; custo de HP próprio encerra a proteção. Crítico do atacante, erro crítico do defensor e nocaute direto atravessam a regra.</p>
-                                </div>
-                            </article>
-                        </div>
+                            <dl className="guide-hit-kill-facts">
+                                <div><dt>Conta</dt><dd>Cada hit e cada dano indireto que realmente cause HP.</dd></div>
+                                <div><dt>Não conta</dt><dd>Erro, imunidade, bloqueio ou dano absorvido pelo Substitute.</dd></div>
+                                <div><dt>Encerra</dt><dd>Uso da proteção ou perda de HP do próprio Pokémon; cura e troca não devolvem.</dd></div>
+                                <div><dt>Atravessa</dt><dd>Crítico do atacante, erro crítico do defensor e nocaute direto.</dd></div>
+                            </dl>
+                            <p className="guide-hit-kill-traits"><b>Sturdy, Focus Sash e afins continuam separados:</b> a proteção geral não os consome e pode preservar uma chance adicional para o próximo dano real.</p>
+                        </article>
                     </article>
                 </div>
 

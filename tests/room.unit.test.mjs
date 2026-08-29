@@ -460,8 +460,8 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     move: { ...move, power: 100 },
     random: sequence([0.8, 0.8, 0, 0]),
   });
-  assert.equal(fractionalCeiling.ceiling, 5.5);
-  assert.equal(fractionalCeiling.damage, 5.5);
+  assert.equal(fractionalCeiling.ceiling, 5);
+  assert.equal(fractionalCeiling.damage, 5);
 
   const firstLevelMinimum = calculateMoveResolution({
     attacker: { ...attacker, level: 1 },
@@ -489,6 +489,37 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
   });
   assert.equal(multiHit.hitCount, 5);
   assert.equal(multiHit.damage, multiHit.damagePerHit * 5);
+});
+
+test("damage applies multipliers before one final rounding and keeps weak and strong hits proportional", () => {
+  const attacker = {
+    id: "scale-attacker",
+    level: 100,
+    types: ["normal"],
+    stats: { attack: 4 },
+  };
+  const defender = {
+    id: "scale-defender",
+    types: ["normal"],
+    stats: { defense: 0 },
+  };
+  const resolvePower = power => calculateMoveResolution({
+    attacker,
+    defender,
+    move: {
+      name: "tackle",
+      power,
+      accuracy: null,
+      type: { name: "normal" },
+      damage_class: { name: "physical" },
+      target: { name: "selected-pokemon" },
+    },
+    random: sequence([0.8, 0.8, 0, 0]),
+  });
+
+  assert.equal(resolvePower(1).damage, 1, "a real weak hit must not vanish");
+  assert.equal(resolvePower(31).damage, 2, "STAB is applied before the single final rounding");
+  assert.equal(resolvePower(120).damage, 9, "the 1 HP floor must not flatten stronger attacks");
 });
 
 test("status, declaration and always-hit moves follow distinct resolution paths", () => {

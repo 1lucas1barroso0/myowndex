@@ -3,6 +3,7 @@ import { RPG_STATUS_LABELS } from '../../core/copy.js';
 import { describeMove, describeTrait } from '../../core/descriptions.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
+import { finiteNumber, finiteNumberOrNull, integerInRange, quantizeStepDown } from '../../core/math.js';
 import { randomChance, randomChoice, randomInt } from '../../core/random.js';
 import { RPG_STATUSES } from '../../core/team.js';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
@@ -191,9 +192,10 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             const profile = nextSpecies.species?.url
                 ? await fetchCached(nextSpecies.species.url)
                 : speciesProfile;
-            const nextRate = Number.isFinite(Number(profile?.gender_rate))
-                ? Number(profile.gender_rate)
-                : currentGenderRate;
+            const profileRate = finiteNumberOrNull(profile?.gender_rate);
+            const nextRate = profileRate == null
+                ? currentGenderRate
+                : integerInRange(profileRate, -1, 8, currentGenderRate);
             const oldPrimaryType = pk.species?.types?.[0]?.type?.name || "";
             const nextPrimaryType = nextSpecies.types?.[0]?.type?.name || "";
             const forcedGender = nextRate === -1 ? "N" : nextRate === 0 ? "M" : nextRate === 8 ? "F" : pk.gender;
@@ -216,17 +218,18 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const handleChange = (cat, stat, val) => {
         if (val === "") { updatePk({ ...pk, [cat]: { ...(pk[cat] || {}), [stat]: "" } }); return; }
-        let v = parseInt(val) || 0;
-        if (v < 0) v = 0;
+        let v = integerInRange(val, 0, cat === "evs" ? 252 : 31, 0);
         if (cat === "evs") {
-            v = Math.min(v, 252);
-            const rem = Object.entries(pk.evs || {}).reduce((s, [k, ev]) => k !== stat ? s + (parseInt(ev)||0) : s, 0);
+            const rem = Object.entries(pk.evs || {}).reduce(
+                (sum, [key, ev]) => key !== stat ? sum + integerInRange(ev, 0, 252, 0) : sum,
+                0,
+            );
             if (rem + v > 510) v = 510 - rem;
-        } else if (cat === "ivs") v = Math.min(v, 31);
+        }
         updatePk({ ...pk, [cat]: { ...(pk[cat] || {}), [stat]: v } });
     };
 
-    const currentGenderRate = Number(pk.genderRate ?? pk.species?.gender_rate ?? -1);
+    const currentGenderRate = integerInRange(pk.genderRate ?? pk.species?.gender_rate, -1, 8, -1);
     const canUseMale = currentGenderRate !== -1 && currentGenderRate !== 8;
     const canUseFemale = currentGenderRate !== -1 && currentGenderRate !== 0;
     const canUseNeutral = currentGenderRate === -1;
@@ -267,7 +270,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const getMulti = (sN) => { const n = NATURES[pk.nature || "hardy"]; return !n ? 1 : n.up === sN ? 1.1 : n.down === sN ? 0.9 : 1; };
 
-    const evTotal = Object.values(pk.evs || {}).reduce((s, v) => s + (parseInt(v)||0), 0);
+    const evTotal = Object.values(pk.evs || {}).reduce((sum, value) => sum + integerInRange(value, 0, 252, 0), 0);
     const artwork = pk.species?.sprites?.other?.["official-artwork"];
     const sprite = pk.shiny
         ? (artwork?.front_shiny || pk.species?.sprites?.front_shiny)
@@ -296,13 +299,15 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     }, [displayedMaxHp, rpg.currentHp]);
 
     const applyXpProgression = (xpValue = rpg.xp) => {
-        const xp = Math.max(0, Number(xpValue) || 0);
+        const xp = quantizeStepDown(xpValue, 0.5, { minimum: 0, maximum: 999999, fallback: rpg.xp });
         const levelCap = isHackmon ? 200 : 100;
-        if (xp < nextLevelXp || Number(pk.level) >= levelCap) {
-            if (xp !== Number(rpg.xp || 0)) updateRpg({ xp });
+        const currentLevel = integerInRange(pk.level, 1, levelCap, 1);
+        const currentXp = quantizeStepDown(rpg.xp, 0.5, { minimum: 0, maximum: 999999, fallback: 0 });
+        if (xp < nextLevelXp || currentLevel >= levelCap) {
+            if (xp !== currentXp) updateRpg({ xp });
             return;
         }
-        const nextLevel = Math.min(levelCap, (Number(pk.level) || 1) + 1);
+        const nextLevel = Math.min(levelCap, currentLevel + 1);
         const nextRawMaxHp = calculateStat(
             hpBase,
             pk.evs?.hp ?? 0,
@@ -322,12 +327,12 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 xp: 0,
                 currentHp: rpg.currentHp == null
                     ? null
-                    : Math.min(nextMaxHp, Number(rpg.currentHp) + hpGrowth),
+                    : Math.min(nextMaxHp, integerInRange(rpg.currentHp, 0, displayedMaxHp, displayedMaxHp) + hpGrowth),
             },
         });
     };
 
-    const awardXp = amount => applyXpProgression((Number(rpg.xp) || 0) + Number(amount || 0));
+    const awardXp = amount => applyXpProgression(finiteNumber(rpg.xp, 0) + finiteNumber(amount, 0));
     return (
         <div className="game-panel pokemon-editor p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative">
             <datalist id="eItems">{validItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
@@ -387,11 +392,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                             <div className="flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 shadow-sm">
                                 <label className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Nível</label>
-                                <input type="number" min="1" max={isHackmon?200:100} value={pk.level===""? "":pk.level} onKeyDown={handleEnter} onChange={e => updatePk({...pk, level: e.target.value===""? "":Math.max(1, Math.min(parseInt(e.target.value)||1, isHackmon?200:100))})} className="w-10 sm:w-12 bg-transparent text-slate-800 text-xs sm:text-sm font-black focus:outline-none text-center" />
+                                <input type="number" min="1" max={isHackmon?200:100} value={pk.level===""? "":pk.level} onKeyDown={handleEnter} onChange={e => updatePk({...pk, level: e.target.value === "" ? "" : integerInRange(e.target.value, 1, isHackmon ? 200 : 100, 1)})} className="w-10 sm:w-12 bg-transparent text-slate-800 text-xs sm:text-sm font-black focus:outline-none text-center" />
                             </div>
                             <div className="flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 shadow-sm">
                                 <label className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Amizade</label>
-                                <input type="number" min="0" max="255" value={pk.friendship===""? "":pk.friendship} onKeyDown={handleEnter} onChange={e => updatePk({...pk, friendship: e.target.value===""? "":Math.max(0, Math.min(parseInt(e.target.value)||0, 255))})} className="w-10 sm:w-12 bg-transparent text-slate-800 text-xs sm:text-sm font-black focus:outline-none text-center" />
+                                <input type="number" min="0" max="255" value={pk.friendship===""? "":pk.friendship} onKeyDown={handleEnter} onChange={e => updatePk({...pk, friendship: e.target.value === "" ? "" : integerInRange(e.target.value, 0, 255, 0)})} className="w-10 sm:w-12 bg-transparent text-slate-800 text-xs sm:text-sm font-black focus:outline-none text-center" />
                                 {isTTRPG && <span className="text-[10px] sm:text-xs font-black text-red-500 border-l-2 border-slate-200 pl-2 sm:pl-3 ml-0.5 sm:ml-1">{convertToTTRPG(pk.friendship || 0)}</span>}
                             </div>
                             <label className={"flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 transition-colors shadow-sm " + (isNativeGMax ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-red-400")}>
@@ -405,7 +410,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             </label>
                             <label className="flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-1.5 shadow-sm">
                                 <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">Nível Dynamax</span>
-                                <input type="number" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: Math.max(0, Math.min(10, parseInt(event.target.value, 10) || 0)) })} className="w-9 bg-transparent text-center text-xs font-black text-slate-800 outline-none" />
+                                <input type="number" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="w-9 bg-transparent text-center text-xs font-black text-slate-800 outline-none" />
                             </label>
                             {isHackmon && (
                                 <div className="flex gap-1.5 ml-1">
@@ -555,7 +560,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                                             placeholder={String(detail?.pp ?? "")}
                                                             onChange={event => {
                                                                 const pp = [...(rpg.pp || [null, null, null, null])];
-                                                                pp[index] = event.target.value === "" ? null : Math.max(0, Math.min(detail?.pp || 99, Number(event.target.value) || 0));
+                                                                pp[index] = event.target.value === "" ? null : integerInRange(event.target.value, 0, integerInRange(detail?.pp, 0, 99, 99), 0);
                                                                 updateRpg({ pp });
                                                             }}
                                                             className="editor-pp-control rounded-md border border-slate-200 bg-white p-1 text-center text-[9px] text-slate-700 outline-none"
@@ -595,7 +600,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             <label>
                                 <span className="editor-label">HP atual</span>
                                 <span className="flex gap-2">
-                                    <input type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? ""} placeholder={String(displayedMaxHp)} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : Math.max(0, Math.min(displayedMaxHp, Number(event.target.value) || 0)) })} className="editor-input" />
+                                    <input type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? ""} placeholder={String(displayedMaxHp)} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" />
                                     <button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button rounded-xl border-2 px-3 text-[9px] font-black uppercase">Recuperar tudo</button>
                                 </span>
                             </label>
@@ -603,8 +608,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 <span className="editor-label">XP atual</span>
                                 <span className="block">
                                     <span className="relative block">
-                                        <input type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: Math.max(0, Number(event.target.value) || 0) })} onBlur={() => applyXpProgression()} className="editor-input pr-24" />
-                                        <small className="absolute right-3 top-3 text-[9px] font-black text-slate-400">de {formatNumberPtBr(nextLevelXp)} até o nível {Math.min(isHackmon ? 200 : 100, (Number(pk.level) || 1) + 1)}</small>
+                                        <input type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: quantizeStepDown(event.target.value, 0.5, { minimum: 0, maximum: 999999, fallback: rpg.xp }) })} onBlur={() => applyXpProgression()} className="editor-input pr-24" />
+                                        <small className="absolute right-3 top-3 text-[9px] font-black text-slate-400">de {formatNumberPtBr(nextLevelXp)} até o nível {Math.min(isHackmon ? 200 : 100, integerInRange(pk.level, 1, isHackmon ? 200 : 100, 1) + 1)}</small>
                                     </span>
                                     <span className="editor-xp-actions">
                                         <button type="button" onClick={() => awardXp(0.5)}>+0,5</button>
@@ -688,7 +693,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                         <div className="pokemon-stat-controls flex items-center justify-between gap-2 w-full sm:flex-1">
                                             <div className="w-10 flex justify-center shrink-0">
                                                 {isHackmon ? (
-                                                    <input type="number" min="1" max="255" value={base === "" ? "" : base} onKeyDown={handleEnter} onChange={e => updatePk({...pk, customStats: {...(pk.customStats || {}), [sN]: e.target.value === "" ? "" : parseInt(e.target.value)}})} className="w-full bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" />
+                                                    <input type="number" min="1" max="255" value={base === "" ? "" : base} onKeyDown={handleEnter} onChange={e => updatePk({...pk, customStats: {...(pk.customStats || {}), [sN]: e.target.value === "" ? "" : integerInRange(e.target.value, 1, 255, 1)}})} className="w-full bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" />
                                                 ) : (
                                                     <div className="text-[11px] font-black text-slate-700">{base}</div>
                                                 )}

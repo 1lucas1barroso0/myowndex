@@ -10,6 +10,7 @@ import {
   safeRoomCode,
   safeText,
 } from "../../../../../server/rooms";
+import { integerInRange, MAX_SAFE_GAME_INTEGER } from "../../../../../src/core/math.js";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ export async function GET(request: Request, context: RouteContext) {
       return noStoreJson({ joined: false, selfId, members: [], signals: [], lastSignalId: 0 });
     }
 
-    const after = Math.max(0, Math.floor(Number(url.searchParams.get("after")) || 0));
+    const after = integerInRange(url.searchParams.get("after"), 0, MAX_SAFE_GAME_INTEGER, 0);
     const [members, signals] = await Promise.all([
       db.prepare(
         `SELECT participant_id, display_name, role, muted, joined_at, last_seen_at
@@ -88,7 +89,7 @@ export async function GET(request: Request, context: RouteContext) {
     ]);
 
     const normalizedSignals = (signals.results || []).map(signal => ({
-      id: Number(signal.id) || 0,
+      id: integerInRange(signal.id, 0, MAX_SAFE_GAME_INTEGER, 0),
       senderId: signal.sender_id,
       recipientId: signal.recipient_id,
       type: signal.type,
@@ -158,7 +159,7 @@ export async function POST(request: Request, context: RouteContext) {
       const active = await db.prepare(
         "SELECT COUNT(*) AS total FROM room_call_members WHERE room_code = ? AND last_seen_at >= datetime('now', ?)",
       ).bind(code, ACTIVE_MEMBER_WINDOW).first<{ total: number }>();
-      if (!current && Number(active?.total || 0) >= CALL_MEMBER_LIMIT) {
+      if (!current && integerInRange(active?.total, 0, CALL_MEMBER_LIMIT, 0) >= CALL_MEMBER_LIMIT) {
         return noStoreJson(
           { error: "A chamada já está completa. Aguarde alguém sair para entrar." },
           { status: 409 },
@@ -231,7 +232,10 @@ export async function POST(request: Request, context: RouteContext) {
         `UPDATE room_call_members SET last_seen_at = CURRENT_TIMESTAMP
          WHERE room_code = ? AND participant_id = ? AND connection_id = ?`,
       ).bind(code, selfId, connectionId).run();
-      return noStoreJson({ ok: true, id: Number(result.meta.last_row_id || 0) }, { status: 201 });
+      return noStoreJson({
+        ok: true,
+        id: integerInRange(result.meta.last_row_id, 0, MAX_SAFE_GAME_INTEGER, 0),
+      }, { status: 201 });
     }
 
     return noStoreJson({ error: "Escolha uma ação válida para a chamada." }, { status: 400 });

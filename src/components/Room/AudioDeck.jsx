@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import { activateAudio, playSoundEffect, SOUND_EFFECTS } from "../../core/audio.js";
 import { formatNumberPtBr } from "../../core/mechanics.js";
+import { clampFinite, integerInRange, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
 import { readStorage, writeStorage } from "../../core/storage.js";
 import {
     deleteRoomAudio,
@@ -10,7 +11,7 @@ import {
 } from "../../core/roomClient.js";
 
 const formatBytes = value => {
-    const bytes = Number(value) || 0;
+    const bytes = clampFinite(value, 0, MAX_SAFE_GAME_INTEGER, 0);
     if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
     return `${formatNumberPtBr(bytes / 1024 / 1024)} MB`;
 };
@@ -40,8 +41,7 @@ export default function AudioDeck({
 
     useEffect(() => {
         const preferences = readStorage("myowndex_audio_preferences_v1", {});
-        const savedVolume = Number(preferences?.volume);
-        if (Number.isFinite(savedVolume)) setLocalVolume(Math.min(1, Math.max(0, savedVolume)));
+        setLocalVolume(clampFinite(preferences?.volume, 0, 1, 0.85));
         setLocalMuted(Boolean(preferences?.muted));
         setPreferencesReady(true);
     }, []);
@@ -119,7 +119,7 @@ export default function AudioDeck({
     useEffect(() => {
         if (!enabled || !events.length) return;
         const recent = events.filter(event => event.id > heardEventRef.current);
-        heardEventRef.current = Math.max(heardEventRef.current, ...events.map(event => Number(event.id) || 0));
+        heardEventRef.current = Math.max(heardEventRef.current, ...events.map(event => integerInRange(event.id, 0, MAX_SAFE_GAME_INTEGER, 0)));
         recent.filter(event => event.type === "sfx").forEach(event => {
             void playSoundEffect(event.payload?.effectId, localMuted ? 0 : snapshot.audio.volume * localVolume);
         });
@@ -127,7 +127,7 @@ export default function AudioDeck({
 
     const enable = async () => {
         const active = await activateAudio();
-        heardEventRef.current = Math.max(0, ...events.map(event => Number(event.id) || 0));
+        heardEventRef.current = Math.max(0, ...events.map(event => integerInRange(event.id, 0, MAX_SAFE_GAME_INTEGER, 0)));
         setEnabled(active);
         if (!active) onError(new Error("O áudio não pôde ser ativado neste aparelho."));
     };
@@ -259,7 +259,7 @@ export default function AudioDeck({
                         max="1"
                         step="0.05"
                         value={localVolume}
-                        onChange={event => setLocalVolume(Number(event.target.value))}
+                        onChange={event => setLocalVolume(clampFinite(event.target.value, 0, 1, localVolume))}
                     />
                 </label>
                 <label className="audio-local-toggle">
@@ -277,7 +277,7 @@ export default function AudioDeck({
                             value={snapshot.audio.volume}
                             onChange={event => onSnapshotChange({
                                 ...snapshot,
-                                audio: { ...snapshot.audio, volume: Number(event.target.value) },
+                                audio: { ...snapshot.audio, volume: clampFinite(event.target.value, 0, 1, snapshot.audio.volume) },
                             })}
                         />
                     </label>

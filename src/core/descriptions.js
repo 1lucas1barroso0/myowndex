@@ -5,6 +5,7 @@ import {
     formatType,
     preferredLocalizedEntry,
 } from "./mechanics.js";
+import { finiteNumber as asNumber, finiteNumberOrNull } from "./math.js";
 import {
     getAbilityProfile,
     getItemProfile,
@@ -13,7 +14,6 @@ import {
 } from "./traitMechanics.js";
 
 const asArray = value => Array.isArray(value) ? value : [];
-const asNumber = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const asSlug = value => String(value || "").trim().toLowerCase().replace(/[\s_]+/g, "-");
 
 export const cleanDescription = (value, effectChance = "") => String(value || "")
@@ -219,14 +219,18 @@ export const describeSpecies = (species, pokemon) => {
     if (habitat) facts.push(`Habitat associado: ${HABITAT_COPY[habitat] || formatName(habitat).toLowerCase()}.`);
     const growth = asSlug(species?.growth_rate?.name);
     if (growth) facts.push(`Ritmo de crescimento: ${GROWTH_COPY[growth] || formatName(growth).toLowerCase()}.`);
-    if (Number.isFinite(Number(species?.capture_rate))) {
-        facts.push(`Taxa de captura dos jogos: ${Number(species.capture_rate)} em 255; números maiores representam capturas mais fáceis, antes dos bônus da Poké Ball e da condição do alvo.`);
+    const captureRate = finiteNumberOrNull(species?.capture_rate);
+    if (captureRate != null) {
+        facts.push(`Taxa de captura dos jogos: ${captureRate} em 255; números maiores representam capturas mais fáceis, antes dos bônus da Poké Ball e da condição do alvo.`);
     }
-    if (Number.isFinite(Number(species?.base_happiness))) {
-        facts.push(`Amizade inicial de referência: ${Number(species.base_happiness)} em 255; a ficha da sua aventura pode registrar outro vínculo.`);
+    const baseHappiness = finiteNumberOrNull(species?.base_happiness);
+    if (baseHappiness != null) {
+        facts.push(`Amizade inicial de referência: ${baseHappiness} em 255; a ficha da sua aventura pode registrar outro vínculo.`);
     }
-    if (pokemon?.height != null && pokemon?.weight != null) {
-        facts.push(`A forma consultada mede ${(Number(pokemon.height) / 10).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} m e pesa ${(Number(pokemon.weight) / 10).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg.`);
+    const height = finiteNumberOrNull(pokemon?.height);
+    const weight = finiteNumberOrNull(pokemon?.weight);
+    if (height != null && weight != null) {
+        facts.push(`A forma consultada mede ${(height / 10).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} m e pesa ${(weight / 10).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg.`);
     }
     return {
         flavor,

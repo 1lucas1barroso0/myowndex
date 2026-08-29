@@ -1,5 +1,6 @@
 import { convertToTTRPG } from "./mechanics.js";
-import { randomChoice, rollDie } from "./random.js";
+import { finiteNumberOrNull, integerInRange } from "./math.js";
+import { randomChoice, roll2D6, rollD6, rollD100 } from "./random.js";
 
 export const FUMBLE_SUGGESTIONS = Object.freeze([
     "Perder uma posição favorável ou ficar exposto até a próxima ação.",
@@ -76,7 +77,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "1.4",
                 title: "Probabilidades e efeitos secundários",
-                body: "Para uma chance percentual, role 1d100: o teste tem sucesso quando o resultado é igual ou menor que a chance. Se o teste do movimento superar a oposição por mais de 1, role o d100 duas vezes e use o melhor resultado. Um movimento nunca concede mais de dois d100."
+                body: "Para uma chance percentual, role 1d100: o teste tem sucesso quando o resultado é igual ou menor que a chance. Com vantagem, role dois d100 independentes e mantenha o menor; com desvantagem, mantenha o maior. Se o teste do movimento superar a oposição por mais de 1, ele concede a vantagem prevista aqui. Um movimento nunca concede mais de dois d100."
             }
         ]
     },
@@ -99,12 +100,12 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "2.3",
                 title: "Estágios de atributos",
-                body: "Ataque, Defesa, Ataque Especial, Defesa Especial e Velocidade usam estágios de −6 a +6 sobre o valor original; só depois o resultado é dividido por 20. Precisão e Evasão também usam estágios de −6 a +6 e ajustam a chance percentual do movimento."
+                body: "Ataque, Defesa, Ataque Especial, Defesa Especial e Velocidade usam estágios de −6 a +6 sobre o valor original; só depois o resultado é dividido por 20. Precisão e Evasão também usam estágios de −6 a +6. Dentro dos pisos e limites da regra, um estágio válido sempre altera o valor final na direção correta."
             },
             {
                 id: "2.4",
                 title: "Zeros e limites mínimos",
-                body: "Um atributo pode chegar a 0; nesse caso, role apenas os dados. HP máximo nunca fica abaixo de 1. Ataques causam ao menos 1 de dano, salvo imunidade ou redução final para 0,55 ou menos."
+                body: "Um atributo pode chegar a 0; nesse caso, role apenas os dados. HP máximo nunca fica abaixo de 1. Depois de combinar força, modificadores e multiplicadores, um dano real positivo causa ao menos 1 HP; imunidade, bloqueio e efeitos que anulam o dano continuam causando 0. O piso impede que um golpe desapareça, sem substituir a proporção nem o limite da fórmula."
             },
             {
                 id: "2.5",
@@ -139,8 +140,8 @@ export const RPG_RULE_SECTIONS = [
                 bullets: [
                     "Para causar dano, o atacante precisa superar o defensor. Um empate ou resultado menor impede o dano, mas não apaga efeitos secundários se o movimento alcançou o alvo.",
                     "O alvo original do movimento determina quem recebe cura, condição e modificadores; efeitos sobre o usuário não são transferidos ao adversário.",
-                    "O dano final combina dano base, STAB e modificadores de tipo.",
-                    "Um golpe não causa mais que metade do nível do atacante; no nível 1, vale o mínimo de 1 de dano. Aumentos temporários elevam esse limite proporcionalmente."
+                    "O dano final combina a força original, STAB, tipo e demais multiplicadores antes de arredondar uma única vez.",
+                    "O limite comum por hit é um número inteiro: metade do nível do atacante, arredondada para baixo; no nível 1, vale 1. Aumentos temporários elevam esse limite proporcionalmente."
                 ]
             },
             {
@@ -260,7 +261,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.3",
                 title: "Cura e recuperação",
-                body: "A cura respeita o efeito original e nunca ultrapassa o HP máximo. Drenagem usa o dano realmente aplicado; recuo, restauração de PP e remoção de condições são registrados separadamente para que o resultado permaneça consultável."
+                body: "A cura respeita o efeito original e nunca ultrapassa o HP máximo. Drenagem usa o dano realmente aplicado. Quando uma regra exige custo de HP, recuo, drenagem ou perda residual positiva, a fórmula é resolvida primeiro e remove ao menos 1 HP; imunidade, bloqueio ou ausência real de efeito continuam em 0. Cada consequência fica registrada separadamente."
             },
             {
                 id: "6.4",
@@ -348,17 +349,22 @@ export const rollAttributeTest = ({
     random
 } = {}) => {
     const normalizedMode = ["normal", "advantage", "disadvantage"].includes(mode) ? mode : "normal";
-    const dice = Array.from({ length: normalizedMode === "normal" ? 2 : 3 }, () => rollDie(6, random));
+    const dice = normalizedMode === "normal"
+        ? roll2D6(random).dice
+        : [rollD6(random), rollD6(random), rollD6(random)];
     const ordered = [...dice].sort((a, b) => a - b);
     const kept = normalizedMode === "advantage" ? ordered.slice(-2) : normalizedMode === "disadvantage" ? ordered.slice(0, 2) : dice;
     const diceTotal = kept.reduce((sum, value) => sum + value, 0);
-    const total = diceTotal + (Number(attribute) || 0);
-    const target = opposition === "" || opposition == null ? null : Number(opposition);
+    const normalizedAttribute = integerInRange(attribute, -99999, 99999, 0);
+    const total = diceTotal + normalizedAttribute;
+    const parsedTarget = opposition === "" || opposition == null ? null : finiteNumberOrNull(opposition);
+    const target = parsedTarget == null ? null : integerInRange(parsedTarget, -99999, 99999, 0);
     return {
         mode: normalizedMode,
         dice,
         kept,
         diceTotal,
+        attribute: normalizedAttribute,
         total,
         critical: kept.every(value => value === 6),
         fumble: kept.every(value => value === 1),
@@ -370,17 +376,33 @@ export const rollAttributeTest = ({
 export const rollPercentTest = ({
     chance = 100,
     advantage = false,
+    disadvantage = false,
+    mode,
     random
 } = {}) => {
-    const usesAdvantage = advantage === true;
-    const rolls = Array.from({ length: usesAdvantage ? 2 : 1 }, () => rollDie(100, random));
-    const result = Math.min(...rolls);
-    const normalizedChance = Math.min(100, Math.max(0, Number(chance) || 0));
-    return { rolls, result, chance: normalizedChance, advantage: usesAdvantage, success: result <= normalizedChance };
+    const normalizedMode = ["normal", "advantage", "disadvantage"].includes(mode)
+        ? mode
+        : advantage === true
+            ? "advantage"
+            : disadvantage === true
+                ? "disadvantage"
+                : "normal";
+    const rolls = normalizedMode === "normal" ? [rollD100(random)] : [rollD100(random), rollD100(random)];
+    const result = normalizedMode === "advantage" ? Math.min(...rolls) : Math.max(...rolls);
+    const normalizedChance = integerInRange(chance, 0, 100, 0);
+    return {
+        rolls,
+        result,
+        chance: normalizedChance,
+        mode: normalizedMode,
+        advantage: normalizedMode === "advantage",
+        disadvantage: normalizedMode === "disadvantage",
+        success: result <= normalizedChance,
+    };
 };
 
 export const getRpgScale = (value, isHp = false) => convertToTTRPG(value, isHp);
 
-export const getNextLevelXp = level => Math.max(1, (Math.max(1, Number(level) || 1) + 1) / 2);
+export const getNextLevelXp = level => (integerInRange(level, 1, 200, 1) + 1) / 2;
 
-export const getDamageCeiling = level => Math.max(1, (Math.max(1, Number(level) || 1)) / 2);
+export const getDamageCeiling = level => Math.max(1, Math.floor(integerInRange(level, 1, 200, 1) / 2));

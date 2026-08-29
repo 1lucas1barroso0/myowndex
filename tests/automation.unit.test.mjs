@@ -5,6 +5,7 @@ import {
   applyHitKillProtection,
   applyStageChange,
   accuracyStageMultiplier,
+  calculateStagedStats,
   getDefensiveTypes,
   getAffectedMoveTargets,
   getHitKillProtectionKey,
@@ -80,6 +81,10 @@ test("all seven stat stages use the correct multipliers and preserve original va
   const accuracy = applyStageChange(attacker, "accuracy", 2);
   assert.equal(accuracy.stages.accuracy, 2);
   assert.deepEqual(accuracy.stats, attacker.stats);
+
+  const tiny = { ...attacker, originalStats: { ...attacker.originalStats, attack: 20 }, stats: { ...attacker.stats, attack: 1 } };
+  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: 1 } }).attack, 2);
+  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: -1 } }).attack, 0);
 });
 
 test("move targets distinguish self, allies, opponents and groups", () => {
@@ -156,6 +161,44 @@ test("hit kill protection only saves full HP below three times maximum HP", () =
   const spent = applyHitKillProtection({ damage: 10, currentHp: 10, maxHp: 10, protectionUsed: true });
   assert.equal(spent.protectedFromKnockout, false);
   assert.equal(spent.remainingHp, 0);
+
+  const normalized = applyHitKillProtection({ damage: 10.9, currentHp: 10.9, maxHp: 10.9 });
+  assert.equal(normalized.maximumHp, 10);
+  assert.equal(normalized.calculatedDamage, 10);
+  assert.equal(normalized.remainingHp, 1);
+
+  const invalid = applyHitKillProtection({ damage: Infinity, currentHp: Number.NaN, maxHp: null });
+  assert.equal(invalid.remainingHp, 0);
+  assert.equal(invalid.protectedFromKnockout, false);
+});
+
+test("sequential reactive damage sources use the centralized hit kill state one source at a time", () => {
+  const fragileAttacker = {
+    ...attacker,
+    id: "reactive-attacker",
+    teamId: "team-reactive",
+    pokemonId: "pokemon-reactive",
+    maxHp: 1,
+    currentHp: 1,
+    moves: ["tackle", "", "", ""],
+  };
+  const reactiveDefender = {
+    ...defender,
+    id: "reactive-defender",
+    ability: "rough-skin",
+    item: "rocky-helmet",
+  };
+  const result = applyMoveConsequences({
+    tokens: [fragileAttacker, reactiveDefender],
+    attackerId: fragileAttacker.id,
+    defenderId: reactiveDefender.id,
+    move: { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} },
+    resolution: { hit: true, damage: 1, damagePerHit: 1, hitCount: 1, attackTest: {}, defenseTest: {} },
+  });
+  assert.equal(result.tokens.find(token => token.id === fragileAttacker.id).currentHp, 0);
+  assert.deepEqual(result.hitKillProtectionUsed, [getHitKillProtectionKey(fragileAttacker)]);
+  assert.equal(result.consequences.indirectHitKillProtections.length, 1);
+  assert.match(result.consequences.specialNarratives.join(" "), /Proteção contra Hit Kill manteve/);
 });
 
 test("attacker criticals, defender critical failures and declared knockout moves bypass hit kill protection", () => {

@@ -1,4 +1,5 @@
 import { fetchCached } from "./mechanics.js";
+import { clampFinite, finiteNumberOrNull, integerInRange, quantizeStepDown } from "./math.js";
 import { secureRandomId } from "./random.js";
 import { readStorage, removeStorage, writeStorage } from "./storage.js";
 
@@ -17,9 +18,7 @@ export const createId = (prefix = "box") => {
 };
 
 export const clampInteger = (value, minimum, maximum, fallback = minimum) => {
-    const parsed = Number.parseInt(value, 10);
-    if (!Number.isFinite(parsed)) return fallback;
-    return Math.min(maximum, Math.max(minimum, parsed));
+    return integerInRange(value, minimum, maximum, fallback);
 };
 
 export const normalizeStats = (stats, fallback, maximum) => Object.fromEntries(
@@ -32,21 +31,22 @@ const normalizeMoves = moves => {
     return normalized;
 };
 
-const normalizeOptionalNumber = (value, minimum, maximum) => {
+const normalizeOptionalNumber = (value, minimum, maximum, step = null) => {
     if (value === "" || value == null) return null;
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return null;
-    return Math.min(maximum, Math.max(minimum, parsed));
+    const parsed = finiteNumberOrNull(value);
+    if (parsed == null) return null;
+    if (!step) return clampFinite(parsed, minimum, maximum, minimum);
+    return quantizeStepDown(parsed, step, { minimum, maximum, fallback: minimum });
 };
 
 export const normalizeRpgData = (value = {}) => {
     const source = value && typeof value === "object" ? value : {};
     const status = asText(source.status);
-    const pp = asArray(source.pp).slice(0, 4).map(entry => normalizeOptionalNumber(entry, 0, 99));
+    const pp = asArray(source.pp).slice(0, 4).map(entry => normalizeOptionalNumber(entry, 0, 99, 1));
     while (pp.length < 4) pp.push(null);
     return {
-        xp: normalizeOptionalNumber(source.xp, 0, 999999) ?? 0,
-        currentHp: normalizeOptionalNumber(source.currentHp, 0, 99999),
+        xp: normalizeOptionalNumber(source.xp, 0, 999999, 0.5) ?? 0,
+        currentHp: normalizeOptionalNumber(source.currentHp, 0, 99999, 1),
         status: RPG_STATUSES.includes(status) ? status : "",
         caughtWith: asText(source.caughtWith).slice(0, 80),
         originalTrainer: asText(source.originalTrainer).slice(0, 120),
@@ -79,8 +79,8 @@ const speciesShell = input => {
 export const normalizePokemon = input => {
     const source = input && typeof input === "object" ? input : {};
     const species = speciesShell(source);
-    const rawRate = Number(source.genderRate ?? species.gender_rate ?? -1);
-    const genderRate = Number.isFinite(rawRate) ? Math.min(8, Math.max(-1, rawRate)) : -1;
+    const rawRate = finiteNumberOrNull(source.genderRate ?? species.gender_rate);
+    const genderRate = rawRate == null ? -1 : integerInRange(rawRate, -1, 8, -1);
     const customStatEntries = source.customStats && typeof source.customStats === "object"
         ? STAT_KEYS
             .filter(stat => Object.prototype.hasOwnProperty.call(source.customStats, stat))
@@ -140,13 +140,13 @@ export const compactPokemon = pokemon => {
 export const normalizeTeam = input => {
     const source = input && typeof input === "object" ? input : {};
     const id = asText(source.id) || createId("box");
-    const rawUpdatedAt = Number(source.updatedAt);
+    const rawUpdatedAt = finiteNumberOrNull(source.updatedAt);
     return {
         id,
         shareId: asText(source.shareId) || id,
         name: asText(source.name || source.boxName).trim().slice(0, 80) || "Box",
         versionGroup: asText(source.versionGroup || source.ruleset) || "auto",
-        updatedAt: Number.isFinite(rawUpdatedAt) ? Math.max(0, rawUpdatedAt) : now(),
+        updatedAt: rawUpdatedAt == null ? now() : integerInRange(rawUpdatedAt, 0, Number.MAX_SAFE_INTEGER, now()),
         pokemon: asArray(source.pokemon || source.partners).slice(0, 6).map(normalizePokemon)
     };
 };
@@ -185,7 +185,7 @@ export const removeTeamById = (teams, teamId) => {
 export const restoreTeamAt = (teams, team, index = 0) => {
     if (!team) return asArray(teams);
     const withoutDuplicate = asArray(teams).filter(candidate => candidate.id !== team.id && candidate.shareId !== team.shareId);
-    const targetIndex = Math.min(withoutDuplicate.length, Math.max(0, Number(index) || 0));
+    const targetIndex = integerInRange(index, 0, withoutDuplicate.length, 0);
     return [
         ...withoutDuplicate.slice(0, targetIndex),
         team,
@@ -228,15 +228,15 @@ export const hydratePokemon = async pokemon => {
     const data = await fetchCached(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(formName)}`);
     if (!data) return stored;
     const speciesData = data.species?.url ? await fetchCached(data.species.url) : null;
-    const genderRate = Number(speciesData?.gender_rate);
+    const genderRate = finiteNumberOrNull(speciesData?.gender_rate);
     const enriched = {
         ...data,
-        gender_rate: Number.isFinite(genderRate) ? genderRate : stored.genderRate
+        gender_rate: genderRate == null ? stored.genderRate : integerInRange(genderRate, -1, 8, stored.genderRate)
     };
     return normalizePokemon({
         ...stored,
         species: enriched,
-        genderRate: Number.isFinite(genderRate) ? genderRate : stored.genderRate
+        genderRate: genderRate == null ? stored.genderRate : integerInRange(genderRate, -1, 8, stored.genderRate)
     });
 };
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { formatPokemonCount } from "./core/copy.js";
+import { integerInRange } from "./core/math.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokemon, saveTeams, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
@@ -286,7 +287,7 @@ export default function App() {
     }, []);
 
     const integrateTeam = useCallback((formData, genderRate) => {
-        const resolvedRate = Number.isFinite(Number(genderRate)) ? Number(genderRate) : -1;
+        const resolvedRate = integerInRange(genderRate, -1, 8, -1);
         const targetTeam = teams.find(team => team.id === activeTeamId) || teams[0] || null;
         const legalMoves = filterMovesByLatestVersion(
             formData.moves || [],
@@ -294,7 +295,7 @@ export default function App() {
         );
         const levelMoves = legalMoves.filter(entry =>
             entry.latest_detail?.move_learn_method?.name === "level-up"
-            && Number(entry.latest_detail?.level_learned_at || 0) <= 5
+            && integerInRange(entry.latest_detail?.level_learned_at, 0, 200, 0) <= 5
         );
         const initialMoves = levelMoves.slice(-4).map(entry => entry.move?.name).filter(Boolean);
         let gender = "N";

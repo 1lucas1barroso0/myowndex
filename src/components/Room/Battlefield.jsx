@@ -2,12 +2,13 @@ import React, { useMemo, useState } from "react";
 import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
+import { clampFinite, finiteNumber, safeDivide } from "../../core/math.js";
 import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS, STATUS_LABELS } from "../../core/room.js";
 import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
 import { getTraitStatus } from "../../core/traitMechanics.js";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 
-const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+const clamp = (value, minimum, maximum) => clampFinite(value, minimum, maximum, minimum);
 
 const HIT_KILL_FIELD_LABELS = Object.freeze({
     available: "proteção contra hit kill disponível",
@@ -16,7 +17,7 @@ const HIT_KILL_FIELD_LABELS = Object.freeze({
 });
 
 const getHpTone = token => {
-    const percentage = token.maxHp ? token.currentHp / token.maxHp : 0;
+    const percentage = safeDivide(token.currentHp, token.maxHp, 0);
     if (percentage <= 0.25) return "danger";
     if (percentage <= 0.5) return "warning";
     return "healthy";
@@ -41,7 +42,7 @@ const Token = ({
     const traits = getTraitStatus(token);
     const hpPercentage = token.maxHp ? clamp(token.currentHp / token.maxHp * 100, 0, 100) : 0;
     const hpTone = getHpTone(token);
-    const hudPlacement = Number(position.x) > 50 ? "hud-left" : "hud-right";
+    const hudPlacement = finiteNumber(position.x, 50) > 50 ? "hud-left" : "hud-right";
     return (
     <button
         type="button"

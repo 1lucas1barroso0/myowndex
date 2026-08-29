@@ -1,3 +1,5 @@
+import { clampFinite } from "./math.js";
+
 let audioContext = null;
 
 const getContext = () => {
@@ -50,7 +52,7 @@ export const playSoundEffect = async (effectId, masterVolume = 0.8) => {
     const context = getContext();
     if (!context) return false;
     if (context.state === "suspended") await context.resume();
-    const normalizedVolume = Math.max(0, Math.min(1, Number(masterVolume) || 0));
+    const normalizedVolume = clampFinite(masterVolume, 0, 1, 0);
     if (normalizedVolume <= 0) return true;
     const now = context.currentTime + 0.01;
     const volume = normalizedVolume * 0.13;

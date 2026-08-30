@@ -213,6 +213,50 @@ test("a team keeps reserves off field and swaps them without resetting battle hi
   assert.equal(returned.traitState.markers.some(marker => marker.startsWith("choice-lock:")), false);
 });
 
+test("one team can place any number of its healthy Pokémon on the field together", () => {
+  const multiTeam = normalizeTeam({
+    ...team,
+    id: "box-multiple",
+    shareId: "box-multiple",
+    pokemon: [
+      { ...team.pokemon[0], id: "partner-one" },
+      { ...team.pokemon[0], id: "partner-two", nickname: "Segundo" },
+      { ...team.pokemon[0], id: "partner-three", nickname: "Terceiro" },
+    ],
+  });
+  const first = addTeamToSnapshot(createRoomSnapshot("Campo múltiplo"), multiTeam, "ally", "player-one", {
+    activePokemonIds: ["partner-one"],
+    benchRemaining: true,
+  });
+  assert.equal(first.room.tokens.length, 1);
+  assert.equal(first.room.benchTokens.length, 2);
+
+  const reservedSecond = first.room.benchTokens.find(token => token.pokemonId === "partner-two");
+  const second = addTeamToSnapshot(first.room, multiTeam, "ally", "player-one", {
+    activePokemonIds: ["partner-two"],
+    benchRemaining: true,
+  });
+  assert.equal(second.room.tokens.length, 2);
+  assert.equal(second.room.benchTokens.length, 1);
+  assert.equal(second.tokens[0].id, reservedSecond.id, "entering from the bench preserves the same battle identity");
+  assert.deepEqual(second.room.tokens.map(token => token.pokemonId), ["partner-one", "partner-two"]);
+
+  const third = addTeamToSnapshot(second.room, multiTeam, "ally", "player-one", {
+    activePokemonIds: ["partner-three"],
+    benchRemaining: true,
+  });
+  assert.equal(third.room.tokens.length, 3);
+  assert.equal(third.room.benchTokens.length, 0);
+  assert.deepEqual(third.room.tokens.map(token => token.pokemonId), ["partner-one", "partner-two", "partner-three"]);
+
+  const duplicate = addTeamToSnapshot(third.room, multiTeam, "ally", "player-one", {
+    activePokemonIds: ["partner-two"],
+    benchRemaining: true,
+  });
+  assert.equal(duplicate.tokens.length, 0);
+  assert.equal(duplicate.room.tokens.length, 3);
+});
+
 test("battle progress returns to the linked Box without erasing journey details", () => {
   const created = addTeamToSnapshot(createRoomSnapshot("Teste"), team, "ally", "player-one");
   const changedToken = {

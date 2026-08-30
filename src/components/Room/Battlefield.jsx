@@ -62,6 +62,7 @@ const Token = ({
             });
         }}
         aria-pressed={isSelected}
+        aria-expanded={isSelected}
         aria-label={`${display.name}, nível ${token.level}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
@@ -75,7 +76,7 @@ const Token = ({
                 />
             ) : <span className="room-token-fallback" aria-hidden="true">●</span>}
         </span>
-        <span className="room-token-status-card" aria-hidden="true">
+        {isSelected && <span className="room-token-status-card" aria-hidden="true">
             <span className="room-token-status-heading">
                 <strong className="room-token-name">{display.name}</strong>
                 <small>Nv. {token.level}</small>
@@ -104,7 +105,7 @@ const Token = ({
                     <small>{token.currentHp}/{token.maxHp}</small>
                 </span>
             )}
-        </span>
+        </span>}
     </button>
     );
 };

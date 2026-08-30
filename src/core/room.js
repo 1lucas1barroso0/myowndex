@@ -403,15 +403,23 @@ export const getPokemonSprite = pokemon => {
         : "");
 };
 
+const getBattlefieldPosition = (index = 0, side = "ally") => {
+    const ally = side === "ally";
+    const row = Math.floor(index / 3);
+    const column = index % 3;
+    return {
+        x: ally ? 20 + column * 11 : 80 - column * 11,
+        y: ally ? 67 + row * 10 : 33 - row * 10,
+    };
+};
+
 export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") => {
     const computed = calculatePokemonStats(pokemon);
     const maxHp = computed.hp.rpg;
     const currentHp = pokemon?.rpg?.currentHp == null
         ? maxHp
         : integerInRange(pokemon.rpg.currentHp, 0, maxHp, maxHp);
-    const ally = side === "ally";
-    const row = Math.floor(index / 3);
-    const column = index % 3;
+    const position = getBattlefieldPosition(index, side);
     return normalizeRoomToken({
         id: createId("token"),
         pokemonId: pokemon?.id,
@@ -423,8 +431,7 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
         sprite: getPokemonSprite(pokemon),
         weight: pokemon?.species?.weight || 0,
         side,
-        x: ally ? 20 + column * 11 : 80 - column * 11,
-        y: ally ? 67 + row * 10 : 33 - row * 10,
+        ...position,
         maxHp,
         currentHp,
         status: pokemon?.rpg?.status || "",
@@ -563,32 +570,52 @@ const activateEnteredTokens = (room, tokenInput, enteredIdInput) => {
 export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlayerId = "", options = {}) => {
     const room = normalizeRoomSnapshot(snapshot);
     const team = normalizeTeam(teamInput);
+    const belongsToTeam = token => token.teamId === team.id
+        || Boolean(token.teamShareId && token.teamShareId === team.shareId);
+    const relatedTokens = room.tokens.filter(belongsToTeam);
+    const relatedBenchTokens = room.benchTokens.filter(belongsToTeam);
+    const fieldPokemonIds = new Set(relatedTokens.map(token => token.pokemonId).filter(Boolean));
     const existingPokemon = new Set(
-        [...room.tokens, ...room.benchTokens]
-            .filter(token => token.teamId === team.id || (token.teamShareId && token.teamShareId === team.shareId))
+        [...relatedTokens, ...relatedBenchTokens]
             .map(token => token.pokemonId)
             .filter(Boolean)
     );
-    const available = team.pokemon.filter(pokemon => !existingPokemon.has(pokemon.id));
     const requestedActiveIds = new Set(asArray(options.activePokemonIds).map(asText).filter(Boolean));
+    const activeCapacity = Math.max(0, 40 - room.tokens.length);
+    const requestedBenchTokens = requestedActiveIds.size
+        ? relatedBenchTokens.filter(token => requestedActiveIds.has(token.pokemonId)
+            && !fieldPokemonIds.has(token.pokemonId)
+            && token.currentHp > 0)
+        : [];
+    const promotedTokens = requestedBenchTokens.slice(0, activeCapacity).map((token, index) => ({
+        ...token,
+        ...getBattlefieldPosition(room.tokens.length + index, side),
+        side,
+        ownerPlayerId: token.ownerPlayerId || asText(ownerPlayerId),
+        enteredRound: room.round,
+    }));
+    const promotedIds = new Set(promotedTokens.map(token => token.id));
+    const available = team.pokemon.filter(pokemon => !existingPokemon.has(pokemon.id));
     const activeCandidates = requestedActiveIds.size
         ? available.filter(pokemon => requestedActiveIds.has(pokemon.id))
         : available;
+    const createdTokens = activeCandidates.slice(0, Math.max(0, activeCapacity - promotedTokens.length)).map((pokemon, index) => ({
+        ...createTokenFromPokemon(pokemon, team, room.tokens.length + promotedTokens.length + index, side),
+        ownerPlayerId: asText(ownerPlayerId),
+        enteredRound: room.round,
+    }));
+    const enteredPokemonIds = new Set(createdTokens.map(token => token.pokemonId));
     const benchCandidates = options.benchRemaining
-        ? available.filter(pokemon => !activeCandidates.includes(pokemon))
+        ? available.filter(pokemon => !enteredPokemonIds.has(pokemon.id))
         : [];
-    const activeCapacity = Math.max(0, 40 - room.tokens.length);
-    const benchCapacity = Math.max(0, 40 - room.benchTokens.length);
-    const tokens = activeCandidates.slice(0, activeCapacity).map((pokemon, index) => ({
-        ...createTokenFromPokemon(pokemon, team, room.tokens.length + index, side),
-        ownerPlayerId: asText(ownerPlayerId),
-        enteredRound: room.round,
-    }));
+    const remainingBenchTokens = room.benchTokens.filter(token => !promotedIds.has(token.id));
+    const benchCapacity = Math.max(0, 40 - remainingBenchTokens.length);
     const benchTokens = benchCandidates.slice(0, benchCapacity).map((pokemon, index) => ({
-        ...createTokenFromPokemon(pokemon, team, room.benchTokens.length + index, side),
+        ...createTokenFromPokemon(pokemon, team, remainingBenchTokens.length + index, side),
         ownerPlayerId: asText(ownerPlayerId),
         enteredRound: room.round,
     }));
+    const tokens = [...promotedTokens, ...createdTokens];
     let combined = [...room.tokens, ...tokens];
     const enteredIds = new Set(tokens.map(token => token.id));
     const activated = activateEnteredTokens(room, combined, enteredIds);
@@ -599,7 +626,7 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
         weather: activated.weather,
         terrain: activated.terrain,
         tokens: combined,
-        benchTokens: [...room.benchTokens, ...benchTokens],
+        benchTokens: [...remainingBenchTokens, ...benchTokens],
     });
     return {
         room: normalizedRoom,

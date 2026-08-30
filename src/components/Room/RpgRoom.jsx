@@ -421,6 +421,18 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const selectedTeamPokemon = selectedTeam?.pokemon.find(pokemon => pokemon.id === selectedTeamPokemonId)
         || selectedTeam?.pokemon[0]
         || null;
+    const selectedTeamPokemonToken = selectedTeamPokemon
+        ? snapshot.tokens.find(token => token.pokemonId === selectedTeamPokemon.id && (
+            token.teamId === selectedTeam?.id
+            || (token.teamShareId && token.teamShareId === selectedTeam?.shareId)
+        )) || null
+        : null;
+    const selectedTeamPokemonBenchToken = selectedTeamPokemon
+        ? snapshot.benchTokens.find(token => token.pokemonId === selectedTeamPokemon.id && (
+            token.teamId === selectedTeam?.id
+            || (token.teamShareId && token.teamShareId === selectedTeam?.shareId)
+        )) || null
+        : null;
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId) || null;
     const selectedDisplayIdentity = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
     const selectedBenchTokens = selectedToken
@@ -803,12 +815,21 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const addSelectedTeam = async side => {
         if (!selectedTeam || !selectedTeamPokemon) return;
+        const pokemonName = selectedTeamPokemon.nickname
+            || formatName(selectedTeamPokemon.species?.species?.name || selectedTeamPokemon.species?.name);
         const result = addTeamToSnapshot(snapshot, selectedTeam, side, "", {
             activePokemonIds: [selectedTeamPokemon.id],
             benchRemaining: true,
         });
         if (!result.tokens.length && !result.benchTokens.length) {
-            setNotice?.({ tone: "amber", text: `${selectedTeam.name} já está vinculada a esta cena.` });
+            const text = selectedTeamPokemonToken
+                ? `${pokemonName} já está em campo.`
+                : selectedTeamPokemonBenchToken?.currentHp <= 0
+                    ? `${pokemonName} não pode mais batalhar.`
+                    : snapshot.tokens.length >= 40
+                        ? "O campo já chegou ao limite seguro de 40 Pokémon."
+                        : `${pokemonName} já está vinculado a esta cena.`;
+            setNotice?.({ tone: "amber", text });
             return;
         }
         commitSnapshot(result.room);
@@ -818,9 +839,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             return;
         }
         await sendEvent("system", {
-            text: `${selectedTeamPokemon.nickname || formatName(selectedTeamPokemon.species?.species?.name || selectedTeamPokemon.species?.name)} entrou em campo por ${selectedTeam.name}${side === "opponent" ? " no lado dos oponentes" : ""}.`,
+            text: `${pokemonName} entrou em campo por ${selectedTeam.name}${side === "opponent" ? " no lado dos oponentes" : ""}.`,
         });
-        if (result.tokens[0]) setSelectedTokenId(result.tokens[0].id);
     };
 
     const updateToken = (patch, { selfInflictedHpLoss = false } = {}) => {
@@ -1348,8 +1368,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 </div>
                                 {role === "narrator" ? (
                                     <div className="room-button-row">
-                                        <button type="button" disabled={!selectedTeamPokemon} onClick={() => addSelectedTeam("ally")}>Entrar como aliado</button>
-                                        <button type="button" disabled={!selectedTeamPokemon} onClick={() => addSelectedTeam("opponent")}>Entrar como oponente</button>
+                                        <button type="button" disabled={!selectedTeamPokemon || Boolean(selectedTeamPokemonToken)} onClick={() => addSelectedTeam("ally")}>
+                                            {selectedTeamPokemonToken ? "Já está em campo" : "Entrar como aliado"}
+                                        </button>
+                                        <button type="button" disabled={!selectedTeamPokemon || Boolean(selectedTeamPokemonToken)} onClick={() => addSelectedTeam("opponent")}>
+                                            {selectedTeamPokemonToken ? "Já está em campo" : "Entrar como oponente"}
+                                        </button>
                                     </div>
                                 ) : (
                                     <button type="button" className="room-secondary-button" disabled={!selectedTeam?.pokemon.length} onClick={offerTeam}>Enviar ao Narrador</button>

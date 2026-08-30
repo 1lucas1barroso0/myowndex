@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.14\.0/);
+  assert.match(worker, /myowndex-shell-v9\.14\.1/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -498,14 +498,18 @@ test("the adventure battle screen uses opposing HUDs and keeps hit kill state se
   ]);
   assert.match(battlefield, /battlefield-depth-front/);
   assert.match(battlefield, /room-token-status-card/);
+  assert.match(battlefield, /isSelected && <span className="room-token-status-card"/);
+  assert.match(battlefield, /aria-expanded=\{isSelected\}/);
   assert.match(battlefield, /room-token-hp-row/);
   assert.match(battlefield, /aria-pressed=\{isSelected\}/);
   assert.match(room, /token-battle-vitals/);
   assert.match(room, /Proteção contra hit kill/);
   assert.match(room, /Registrar autocusto/);
   assert.match(room, /token-self-damage-action/);
+  assert.doesNotMatch(room, /if \(result\.tokens\[0\]\) setSelectedTokenId/);
   assert.match(css, /\.room-token\.hud-right \.room-token-status-card/);
   assert.match(css, /\.room-token\.hud-left \.room-token-status-card/);
+  assert.match(css, /\.battlefield-depth\s*\{[\s\S]*?z-index:\s*2;[\s\S]*?background:\s*transparent;/);
   assert.match(css, /\.token-hit-kill-meter/);
   assert.match(room, /rollInFlight\.current/);
 });

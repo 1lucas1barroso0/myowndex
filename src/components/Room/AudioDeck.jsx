@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import { activateAudio, playSoundEffect, SOUND_EFFECTS } from "../../core/audio.js";
 import { formatNumberPtBr } from "../../core/mechanics.js";
-import { clampFinite, integerInRange, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
+import { clampFinite, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
 import { readStorage, writeStorage } from "../../core/storage.js";
 import {
     deleteRoomAudio,
@@ -15,6 +15,8 @@ const formatBytes = value => {
     if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
     return `${formatNumberPtBr(bytes / 1024 / 1024)} MB`;
 };
+
+const roomEventKey = (code, event) => `${code || "local"}:${String(event?.id ?? "")}`;
 
 export default function AudioDeck({
     session,
@@ -37,7 +39,7 @@ export default function AudioDeck({
     const [localMuted, setLocalMuted] = useState(false);
     const [preferencesReady, setPreferencesReady] = useState(false);
     const audioRef = useRef(null);
-    const heardEventRef = useRef(0);
+    const heardEventRef = useRef(new Set());
 
     useEffect(() => {
         const preferences = readStorage("myowndex_audio_preferences_v1", {});
@@ -118,16 +120,16 @@ export default function AudioDeck({
 
     useEffect(() => {
         if (!enabled || !events.length) return;
-        const recent = events.filter(event => event.id > heardEventRef.current);
-        heardEventRef.current = Math.max(heardEventRef.current, ...events.map(event => integerInRange(event.id, 0, MAX_SAFE_GAME_INTEGER, 0)));
+        const recent = events.filter(event => !heardEventRef.current.has(roomEventKey(session?.code, event)));
+        heardEventRef.current = new Set(events.map(event => roomEventKey(session?.code, event)));
         recent.filter(event => event.type === "sfx").forEach(event => {
             void playSoundEffect(event.payload?.effectId, localMuted ? 0 : snapshot.audio.volume * localVolume);
         });
-    }, [enabled, events, localMuted, localVolume, snapshot.audio.volume]);
+    }, [enabled, events, localMuted, localVolume, session?.code, snapshot.audio.volume]);
 
     const enable = async () => {
         const active = await activateAudio();
-        heardEventRef.current = Math.max(0, ...events.map(event => integerInRange(event.id, 0, MAX_SAFE_GAME_INTEGER, 0)));
+        heardEventRef.current = new Set(events.map(event => roomEventKey(session?.code, event)));
         setEnabled(active);
         if (!active) onError(new Error("O áudio não pôde ser ativado neste aparelho."));
     };

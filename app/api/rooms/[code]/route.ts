@@ -3,9 +3,12 @@ import {
   authenticateRoom,
   ensureRoomSchema,
   getBindings,
+  getRoom,
   getRoomBundle,
   noStoreJson,
+  parseJson,
   readRoomKey,
+  requireCurrentRoomProtocol,
   routeError,
   safeRoomCode,
   safeText,
@@ -36,6 +39,8 @@ export async function GET(request: Request, context: RouteContext) {
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
+  const protocolError = requireCurrentRoomProtocol(request);
+  if (protocolError) return protocolError;
   try {
     await ensureRoomSchema();
     const code = await roomCode(context);
@@ -58,6 +63,26 @@ export async function PATCH(request: Request, context: RouteContext) {
       return noStoreJson({ error: "Esta aventura recebeu outra mudança enquanto você editava. Tente a ação novamente." }, { status: 400 });
     }
     const title = safeText(payload.title ?? payload.snapshot.title, 80) || "Aventura Pokémon";
+    const currentRoom = await getRoom(code);
+    if (!currentRoom) return noStoreJson({ error: "Não encontramos essa aventura. Confira o código e tente novamente." }, { status: 404 });
+    const currentSnapshot = parseJson<Record<string, unknown>>(currentRoom.state_json, {});
+    const currentTokenIds = Array.isArray(currentSnapshot.tokens)
+      ? currentSnapshot.tokens.map(token => safeText((token as Record<string, unknown>)?.id, 100)).filter(Boolean)
+      : [];
+    const nextTokenIds = Array.isArray(payload.snapshot.tokens)
+      ? payload.snapshot.tokens.map(token => safeText((token as Record<string, unknown>)?.id, 100)).filter(Boolean)
+      : [];
+    const tokensUnchanged = JSON.stringify(currentTokenIds) === JSON.stringify(nextTokenIds);
+    const initiativeChanged = JSON.stringify(currentSnapshot.initiative || []) !== JSON.stringify(payload.snapshot.initiative || []);
+    const turnChanged = currentSnapshot.turnIndex !== payload.snapshot.turnIndex;
+    const roundChanged = currentSnapshot.round !== payload.snapshot.round;
+    if (roundChanged || (tokensUnchanged && (initiativeChanged || turnChanged))) {
+      return noStoreJson({
+        error: "Roladas, iniciativa e avanço de rodada são confirmados pelo servidor nesta aventura compartilhada.",
+        serverAuthoritative: true,
+        room: await getRoomBundle(code, "narrator"),
+      }, { status: 403 });
+    }
     const { db } = getBindings();
     const result = await db.prepare(
       `UPDATE rooms
@@ -95,6 +120,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     await db.batch([
       db.prepare("DELETE FROM room_call_signals WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_call_members WHERE room_code = ?").bind(code),
+      db.prepare("DELETE FROM room_rolls WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_events WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_players WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_media WHERE room_code = ?").bind(code),

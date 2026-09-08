@@ -40,6 +40,7 @@ import {
     buildPlayerInvite,
     buildRoomInviteToken,
     clearRoomSession,
+    createRoomActionRequestId,
     createRemoteRoom,
     deleteRemoteRoom,
     fetchRemoteRoom,
@@ -48,6 +49,7 @@ import {
     parseRoomInvite,
     parseRoomInviteValue,
     postRoomEvent,
+    requestRemoteRoomAction,
     saveRemoteRoom,
     saveRoomSession,
 } from "../../core/roomClient.js";
@@ -245,7 +247,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
     );
 }
 
-function QuickRoller({ onEvent, onError }) {
+function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
     const [kind, setKind] = useState("attribute");
     const [mode, setMode] = useState("normal");
     const [attribute, setAttribute] = useState(0);
@@ -259,6 +261,15 @@ function QuickRoller({ onEvent, onError }) {
         rollInFlight.current = true;
         setBusy(true);
         try {
+            if (!local) {
+                const authoritative = await onAuthoritativeAction({
+                    action: kind === "attribute" ? "quick-attribute" : "quick-percent",
+                    mode,
+                    ...(kind === "attribute" ? { attribute } : { chance }),
+                });
+                setResult(authoritative.result);
+                return;
+            }
             if (kind === "attribute") {
                 const test = rollAttributeTest({ mode, attribute });
                 const record = createRollRecord({
@@ -412,6 +423,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const pendingSavesRef = useRef(0);
     const saveQueueRef = useRef(Promise.resolve());
     const channelRef = useRef(null);
+    const authoritativeRequestsRef = useRef(new Map());
     const mountedRef = useRef(true);
     const snapshotRef = useRef(createRoomSnapshot());
 
@@ -471,6 +483,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         mountedRef.current = true;
         return () => { mountedRef.current = false; };
     }, []);
+
+    useEffect(() => {
+        authoritativeRequestsRef.current.clear();
+    }, [session?.code]);
 
     const showError = useCallback(value => {
         const message = errorMessage(value);
@@ -744,6 +760,43 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             return null;
         }
     }, [refresh, session, showError]);
+
+    const requestAuthoritativeAction = useCallback(async input => {
+        if (!session || session.local) throw new Error("Esta ação autoritativa só existe em aventuras compartilhadas.");
+        const requestKey = JSON.stringify(input);
+        let pending = authoritativeRequestsRef.current.get(requestKey);
+        if (!pending) {
+            await saveQueueRef.current;
+            pending = authoritativeRequestsRef.current.get(requestKey);
+            if (!pending) {
+                const needsRevision = ["initiative", "advance-turn", "combat"].includes(input.action);
+                pending = {
+                    requestId: createRoomActionRequestId(),
+                    ...(needsRevision ? { expectedRevision: revisionRef.current } : {}),
+                };
+                authoritativeRequestsRef.current.set(requestKey, pending);
+            }
+        }
+        setConnection("saving");
+        let completed = false;
+        try {
+            const response = await requestRemoteRoomAction(session, { ...input, ...pending });
+            authoritativeRequestsRef.current.delete(requestKey);
+            if (response.room && mountedRef.current) applyBundle(response.room);
+            channelRef.current?.postMessage({ type: "invalidate" });
+            completed = true;
+            return response.result;
+        } catch (value) {
+            if (value?.data?.room && mountedRef.current) applyBundle(value.data.room);
+            if (!value?.retryable && value?.status && value.status < 500 && ![408, 429].includes(value.status)) {
+                authoritativeRequestsRef.current.delete(requestKey);
+            }
+            if (mountedRef.current && !value?.data?.room) setConnection(navigator.onLine ? "error" : "offline");
+            throw value;
+        } finally {
+            if (mountedRef.current && completed) setConnection("connected");
+        }
+    }, [applyBundle, session]);
 
     const copy = async (value, label) => {
         try {
@@ -1081,6 +1134,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const generateInitiative = async () => {
         try {
+            if (!session.local) {
+                await requestAuthoritativeAction({ action: "initiative" });
+                return;
+            }
             const generated = buildInitiative(snapshot);
             commitSnapshot(generated.room);
             await sendEvent("system", {
@@ -1097,6 +1154,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const nextTurn = async () => {
         try {
+            if (!session.local) {
+                await requestAuthoritativeAction({ action: "advance-turn" });
+                return;
+            }
             const closingRound = snapshot.initiative.length > 0
                 && snapshot.turnIndex >= snapshot.initiative.length - 1;
             const roundEnd = closingRound ? applyEndOfRoundEffects(snapshot) : null;
@@ -1665,12 +1726,19 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
                 <aside className="room-tools">
                     <VoiceCall session={session} role={role} />
-                    <QuickRoller onEvent={sendEvent} onError={showError} />
+                    <QuickRoller
+                        local={Boolean(session.local)}
+                        onAuthoritativeAction={requestAuthoritativeAction}
+                        onEvent={sendEvent}
+                        onError={showError}
+                    />
                     <CombatAssistant
                         role={role}
                         playerId={session.playerId}
                         snapshot={snapshot}
                         selectedTokenId={selectedTokenId}
+                        remote={!session.local}
+                        onAuthoritativeAction={requestAuthoritativeAction}
                         onSnapshotChange={commitSnapshot}
                         onDeclareMove={declareMove}
                         onEvent={sendEvent}

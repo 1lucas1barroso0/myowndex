@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   createSecureUint32Source,
   randomChance,
+  randomInt,
   randomIntFromUint32,
   randomUnitFromUint32,
   roll2D6,
@@ -48,6 +49,19 @@ test("bounded draws reject the uneven tail and fail closed for a broken source",
   assert.equal(attempts, 128);
   assert.throws(() => randomIntFromUint32(6, () => -1), RangeError);
   assert.throws(() => randomIntFromUint32(6, () => 1.5), RangeError);
+});
+
+test("auditable server sources keep rejection sampling and report only the accepted bounded outcome", () => {
+  const values = [0xffffffff, 5];
+  const accepted = [];
+  let index = 0;
+  const result = randomInt(6, {
+    nextUint32: () => values[index++],
+    onInt: draw => accepted.push(draw),
+  });
+  assert.equal(result, 5);
+  assert.equal(index, 2);
+  assert.deepEqual(accepted, [{ maximum: 6, value: 5 }]);
 });
 
 test("secure source pools small batches and never falls back when Web Crypto is absent", () => {

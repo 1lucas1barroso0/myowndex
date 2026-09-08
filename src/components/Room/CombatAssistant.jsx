@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     fetchCached,
     formatDamageClass,
@@ -140,6 +140,8 @@ export default function CombatAssistant({
     playerId,
     snapshot,
     selectedTokenId,
+    remote,
+    onAuthoritativeAction,
     onSnapshotChange,
     onDeclareMove,
     onEvent,
@@ -157,6 +159,7 @@ export default function CombatAssistant({
     const [calledMoveName, setCalledMoveName] = useState("");
     const [calledMoveData, setCalledMoveData] = useState(null);
     const [loadingCalledMove, setLoadingCalledMove] = useState(false);
+    const resolveInFlight = useRef(false);
     const tokens = snapshot.tokens;
     const attacker = tokens.find(token => token.id === attackerId);
     const defender = tokens.find(token => token.id === defenderId);
@@ -283,11 +286,24 @@ export default function CombatAssistant({
     };
 
     const resolve = async () => {
-        if (!canResolve) return;
+        if (!canResolve || resolveInFlight.current) return;
+        resolveInFlight.current = true;
         setRunning(true);
         try {
             const move = resolvedMoveData || await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(moveName)}`);
             if (!move) throw new Error("A Pokédex não conseguiu abrir este movimento agora.");
+            if (remote) {
+                const authoritative = await onAuthoritativeAction({
+                    action: "combat",
+                    attackerId: attacker.id,
+                    defenderId: defender?.id || "",
+                    moveName: moveData.name,
+                    calledMoveName: needsCalledMove ? move.name : "",
+                    mode,
+                });
+                setResult(authoritative.result);
+                return;
+            }
             const targetsToResolve = affectedTargets.length ? affectedTargets : [null];
             let workingTokens = snapshot.tokens;
             let workingHitKillProtectionUsed = snapshot.hitKillProtectionUsed;
@@ -443,6 +459,7 @@ export default function CombatAssistant({
         } catch (error) {
             onError?.(error);
         } finally {
+            resolveInFlight.current = false;
             setRunning(false);
         }
     };

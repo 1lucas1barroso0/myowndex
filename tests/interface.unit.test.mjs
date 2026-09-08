@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.14\.1/);
+  assert.match(worker, /myowndex-shell-v9\.15\.0/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -490,7 +490,7 @@ test("unique Pokémon and exceptional Moves expose state, narrative and automati
   assert.match(mechanics, /illusion/);
 });
 
-test("the adventure battle screen opens HUDs only on request and keeps field layers unobstructed", async () => {
+test("the adventure battle screen uses opposing HUDs and keeps hit kill state separate from self-cost", async () => {
   const [battlefield, room, css] = await Promise.all([
     read("src/components/Room/Battlefield.jsx"),
     read("src/components/Room/RpgRoom.jsx"),
@@ -498,25 +498,18 @@ test("the adventure battle screen opens HUDs only on request and keeps field lay
   ]);
   assert.match(battlefield, /battlefield-depth-front/);
   assert.match(battlefield, /room-token-status-card/);
+  assert.match(battlefield, /isSelected && <span className="room-token-status-card"/);
+  assert.match(battlefield, /aria-expanded=\{isSelected\}/);
   assert.match(battlefield, /room-token-hp-row/);
   assert.match(battlefield, /aria-pressed=\{isSelected\}/);
-  assert.match(battlefield, /aria-expanded=\{isSelected\}/);
-  assert.match(battlefield, /token-inspector-\$\{token\.id\}/);
-  assert.match(battlefield, /\{isSelected \? <span/);
-  assert.match(battlefield, /suppressSelectionRef/);
   assert.match(room, /token-battle-vitals/);
-  assert.match(room, /id=\{`token-inspector-\$\{selectedToken\.id\}`\}/);
   assert.match(room, /Proteção contra hit kill/);
   assert.match(room, /Registrar autocusto/);
   assert.match(room, /token-self-damage-action/);
-  assert.match(room, /current => current === tokenId \? "" : tokenId/);
-  assert.match(room, /deployBenchPokemonInSnapshot/);
-  assert.match(room, /Adicionar como aliado/);
+  assert.doesNotMatch(room, /if \(result\.tokens\[0\]\) setSelectedTokenId/);
   assert.match(css, /\.room-token\.hud-right \.room-token-status-card/);
   assert.match(css, /\.room-token\.hud-left \.room-token-status-card/);
-  assert.match(css, /\.battlefield-board::after \{ z-index: 1; \}/);
-  assert.match(css, /\.battlefield-depth \{[\s\S]*?z-index: 2;[\s\S]*?background: transparent;/);
-  assert.match(css, /\.battlefield-pixel-grid \{\n  z-index: 1;/);
+  assert.match(css, /\.battlefield-depth\s*\{[\s\S]*?z-index:\s*2;[\s\S]*?background:\s*transparent;/);
   assert.match(css, /\.token-hit-kill-meter/);
   assert.match(room, /rollInFlight\.current/);
 });

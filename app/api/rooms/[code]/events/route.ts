@@ -8,6 +8,7 @@ import {
   noStoreJson,
   parseJson,
   readRoomKey,
+  requireCurrentRoomProtocol,
   routeError,
   safeRoomCode,
   safeText,
@@ -18,10 +19,12 @@ export const dynamic = "force-dynamic";
 
 type RouteContext = { params: Promise<{ code: string }> | { code: string } };
 
-const COMMON_EVENTS = new Set(["roll", "message", "ready", "team-offer", "token-request", "token-move", "move-declared", "leave"]);
-const NARRATOR_EVENTS = new Set(["system", "sfx", "team-accepted", "move", "roll", "message"]);
+const COMMON_EVENTS = new Set(["message", "ready", "team-offer", "token-request", "token-move", "move-declared", "leave"]);
+const NARRATOR_EVENTS = new Set(["system", "sfx", "team-accepted", "message"]);
 
 export async function POST(request: Request, context: RouteContext) {
+  const protocolError = requireCurrentRoomProtocol(request);
+  if (protocolError) return protocolError;
   try {
     await ensureRoomSchema();
     const params = await context.params;

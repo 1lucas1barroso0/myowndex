@@ -15,8 +15,24 @@ type RoomRow = {
   invite_secret_hash: string;
   state_json: string;
   revision: number;
+  authority_claim: string;
   created_at: string;
   updated_at: string;
+};
+
+type RoomRollRow = {
+  id: number;
+  request_id: string;
+  player_id: string | null;
+  author: string;
+  action_type: string;
+  mode: string;
+  request_json: string;
+  result_json: string;
+  event_type: string;
+  event_payload_json: string;
+  sfx_payload_json: string | null;
+  created_at: string;
 };
 
 const ROOM_CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -26,6 +42,7 @@ const MAX_EVENT_BYTES = 30_000;
 const MAX_EVENTS = 180;
 const encoder = new TextEncoder();
 let schemaPromise: Promise<void> | null = null;
+export const ROOM_PROTOCOL_VERSION = "2";
 
 export function getBindings() {
   const runtime = (globalThis as typeof globalThis & {
@@ -210,6 +227,18 @@ export function readRoomKey(request: Request) {
   return safeText(request.headers.get("x-myowndex-room-key"), 96);
 }
 
+export function requireCurrentRoomProtocol(request: Request) {
+  if (request.headers.get("x-myowndex-room-protocol") === ROOM_PROTOCOL_VERSION) return null;
+  return noStoreJson({
+    error: "Esta versão do MyOwnDex precisa ser atualizada antes de alterar uma aventura compartilhada. Recarregue o aplicativo e tente novamente.",
+    upgradeRequired: true,
+    protocol: ROOM_PROTOCOL_VERSION,
+  }, {
+    status: 426,
+    headers: { "x-myowndex-room-protocol": ROOM_PROTOCOL_VERSION },
+  });
+}
+
 export async function authenticateRoom(code: string, key: string): Promise<RoomAuth | null> {
   if (!code || !key) return null;
   await ensureRoomSchema();
@@ -237,7 +266,7 @@ export async function getRoom(code: string) {
   const { db } = getBindings();
   return db.prepare(
     `SELECT code, title, narrator_secret_hash, invite_secret_hash, state_json,
-      revision, created_at, updated_at
+      revision, authority_claim, created_at, updated_at
      FROM rooms WHERE code = ? LIMIT 1`,
   ).bind(code).first<RoomRow>();
 }
@@ -254,12 +283,83 @@ export async function getRoomBundle(code: string, role: RoomRole) {
     `SELECT id, player_id, author, type, payload_json, created_at
      FROM room_events WHERE room_code = ? ORDER BY id DESC LIMIT 80`,
   ).bind(code).all();
+  const rolls = await db.prepare(
+    `SELECT id, request_id, player_id, author, action_type, mode, request_json,
+      result_json, event_type, event_payload_json, sfx_payload_json, created_at
+     FROM room_rolls
+     WHERE room_code = ? AND status = 'ready' AND server_authoritative = 1
+     ORDER BY id DESC LIMIT 80`,
+  ).bind(code).all<RoomRollRow>();
   const media = await db.prepare(
     `SELECT id, title, mime_type, size, created_at
      FROM room_media WHERE room_code = ? ORDER BY created_at DESC LIMIT 30`,
   ).bind(code).all();
   const snapshot = parseJson<Record<string, unknown>>(room.state_json, {});
   if (role !== "narrator") delete snapshot.gmNotes;
+  const standardEvents = (events.results || []).reverse().map(event => ({
+    id: event.id,
+    playerId: event.player_id,
+    author: event.author,
+    type: event.type,
+    payload: parseJson(event.payload_json as string, {}),
+    createdAt: event.created_at,
+    authorityOrder: 0,
+  }));
+  const authorityRecords = (rolls.results || []).reverse().map(roll => {
+    const stored = parseJson<Record<string, unknown>>(roll.result_json, {});
+    return {
+      ...stored,
+      id: `authority-${roll.id}`,
+      sequence: roll.id,
+      requestId: roll.request_id,
+      playerId: roll.player_id,
+      author: roll.author,
+      actionType: roll.action_type,
+      mode: roll.mode,
+      request: parseJson(roll.request_json, {}),
+      createdAt: roll.created_at,
+      serverAuthoritative: true,
+    };
+  });
+  const authorityEvents = (rolls.results || []).flatMap(roll => {
+    const main = {
+      id: `authority-${roll.id}`,
+      playerId: roll.player_id,
+      author: roll.author,
+      type: roll.event_type,
+      payload: {
+        ...parseJson<Record<string, unknown>>(roll.event_payload_json, {}),
+        rollId: `authority-${roll.id}`,
+        sequence: roll.id,
+        serverAuthoritative: true,
+      },
+      createdAt: roll.created_at,
+      authorityOrder: 1,
+    };
+    const sfx = parseJson<Record<string, unknown> | null>(roll.sfx_payload_json, null);
+    return sfx
+      ? [main, {
+        id: `authority-${roll.id}-sfx`,
+        playerId: roll.player_id,
+        author: roll.author,
+        type: "sfx",
+        payload: { ...sfx, rollId: `authority-${roll.id}`, serverAuthoritative: true },
+        createdAt: roll.created_at,
+        authorityOrder: 2,
+      }]
+      : [main];
+  });
+  const combinedEvents = [...standardEvents, ...authorityEvents]
+    .sort((first, second) => {
+      const firstTime = Date.parse(String(first.createdAt || "").replace(" ", "T") + (String(first.createdAt || "").includes("T") ? "" : "Z")) || 0;
+      const secondTime = Date.parse(String(second.createdAt || "").replace(" ", "T") + (String(second.createdAt || "").includes("T") ? "" : "Z")) || 0;
+      return firstTime - secondTime || first.authorityOrder - second.authorityOrder || String(first.id).localeCompare(String(second.id));
+    })
+    .slice(-80)
+    .map(({ authorityOrder, ...event }) => {
+      void authorityOrder;
+      return event;
+    });
   return {
     code: room.code,
     title: room.title,
@@ -274,14 +374,8 @@ export async function getRoomBundle(code: string, role: RoomRole) {
       lastSeenAt: player.last_seen_at,
       joinedAt: player.joined_at,
     })),
-    events: (events.results || []).reverse().map(event => ({
-      id: event.id,
-      playerId: event.player_id,
-      author: event.author,
-      type: event.type,
-      payload: parseJson(event.payload_json as string, {}),
-      createdAt: event.created_at,
-    })),
+    events: combinedEvents,
+    rolls: authorityRecords,
     media: (media.results || []).map(item => ({
       id: item.id,
       title: item.title,

@@ -24,7 +24,6 @@ import {
     compactTeamOffer,
     createTokenFromPokemon,
     createRoomSnapshot,
-    deployBenchPokemonInSnapshot,
     eventSummary,
     LOCAL_ROOM_STORAGE_KEY,
     mergeRoomConflictSnapshot,
@@ -41,6 +40,7 @@ import {
     buildPlayerInvite,
     buildRoomInviteToken,
     clearRoomSession,
+    createRoomActionRequestId,
     createRemoteRoom,
     deleteRemoteRoom,
     fetchRemoteRoom,
@@ -49,6 +49,7 @@ import {
     parseRoomInvite,
     parseRoomInviteValue,
     postRoomEvent,
+    requestRemoteRoomAction,
     saveRemoteRoom,
     saveRoomSession,
 } from "../../core/roomClient.js";
@@ -246,7 +247,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
     );
 }
 
-function QuickRoller({ onEvent, onError }) {
+function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
     const [kind, setKind] = useState("attribute");
     const [mode, setMode] = useState("normal");
     const [attribute, setAttribute] = useState(0);
@@ -260,6 +261,15 @@ function QuickRoller({ onEvent, onError }) {
         rollInFlight.current = true;
         setBusy(true);
         try {
+            if (!local) {
+                const authoritative = await onAuthoritativeAction({
+                    action: kind === "attribute" ? "quick-attribute" : "quick-percent",
+                    mode,
+                    ...(kind === "attribute" ? { attribute } : { chance }),
+                });
+                setResult(authoritative.result);
+                return;
+            }
             if (kind === "attribute") {
                 const test = rollAttributeTest({ mode, attribute });
                 const record = createRollRecord({
@@ -413,6 +423,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const pendingSavesRef = useRef(0);
     const saveQueueRef = useRef(Promise.resolve());
     const channelRef = useRef(null);
+    const authoritativeRequestsRef = useRef(new Map());
     const mountedRef = useRef(true);
     const snapshotRef = useRef(createRoomSnapshot());
 
@@ -422,39 +433,18 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const selectedTeamPokemon = selectedTeam?.pokemon.find(pokemon => pokemon.id === selectedTeamPokemonId)
         || selectedTeam?.pokemon[0]
         || null;
-    const selectedTeamScene = useMemo(() => {
-        const teamId = selectedTeam?.id || "";
-        const teamShareId = selectedTeam?.shareId || "";
-        const matchesTeam = token => Boolean(teamId && (
-            token.teamId === teamId
-            || (token.teamShareId && teamShareId && token.teamShareId === teamShareId)
-        ));
-        const fieldTokens = snapshot.tokens.filter(matchesTeam);
-        const pokemonState = new Map(fieldTokens.map(token => [token.pokemonId, { state: "field", token }]));
-        snapshot.benchTokens.forEach(token => {
-            if (!matchesTeam(token) || pokemonState.has(token.pokemonId)) return;
-            pokemonState.set(token.pokemonId, {
-                state: token.currentHp > 0 ? "bench" : "fainted",
-                token,
-            });
-        });
-        return { fieldTokens, pokemonState };
-    }, [selectedTeam?.id, selectedTeam?.shareId, snapshot.benchTokens, snapshot.tokens]);
-    const selectedTeamPokemonScene = selectedTeamPokemon
-        ? selectedTeamScene.pokemonState.get(selectedTeamPokemon.id) || null
+    const selectedTeamPokemonToken = selectedTeamPokemon
+        ? snapshot.tokens.find(token => token.pokemonId === selectedTeamPokemon.id && (
+            token.teamId === selectedTeam?.id
+            || (token.teamShareId && token.teamShareId === selectedTeam?.shareId)
+        )) || null
         : null;
-    const selectedTeamFieldToken = selectedTeamPokemonScene?.state === "field"
-        ? selectedTeamPokemonScene.token
+    const selectedTeamPokemonBenchToken = selectedTeamPokemon
+        ? snapshot.benchTokens.find(token => token.pokemonId === selectedTeamPokemon.id && (
+            token.teamId === selectedTeam?.id
+            || (token.teamShareId && token.teamShareId === selectedTeam?.shareId)
+        )) || null
         : null;
-    const selectedTeamBenchToken = ["bench", "fainted"].includes(selectedTeamPokemonScene?.state)
-        ? selectedTeamPokemonScene.token
-        : null;
-    const selectedTeamPokemonState = selectedTeamPokemonScene?.state || "available";
-    const canAddSelectedTeamPokemon = Boolean(
-        selectedTeamPokemon
-        && !selectedTeamFieldToken
-        && (!selectedTeamBenchToken || selectedTeamBenchToken.currentHp > 0)
-    );
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId) || null;
     const selectedDisplayIdentity = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
     const selectedBenchTokens = selectedToken
@@ -493,6 +483,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         mountedRef.current = true;
         return () => { mountedRef.current = false; };
     }, []);
+
+    useEffect(() => {
+        authoritativeRequestsRef.current.clear();
+    }, [session?.code]);
 
     const showError = useCallback(value => {
         const message = errorMessage(value);
@@ -767,6 +761,43 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         }
     }, [refresh, session, showError]);
 
+    const requestAuthoritativeAction = useCallback(async input => {
+        if (!session || session.local) throw new Error("Esta ação autoritativa só existe em aventuras compartilhadas.");
+        const requestKey = JSON.stringify(input);
+        let pending = authoritativeRequestsRef.current.get(requestKey);
+        if (!pending) {
+            await saveQueueRef.current;
+            pending = authoritativeRequestsRef.current.get(requestKey);
+            if (!pending) {
+                const needsRevision = ["initiative", "advance-turn", "combat"].includes(input.action);
+                pending = {
+                    requestId: createRoomActionRequestId(),
+                    ...(needsRevision ? { expectedRevision: revisionRef.current } : {}),
+                };
+                authoritativeRequestsRef.current.set(requestKey, pending);
+            }
+        }
+        setConnection("saving");
+        let completed = false;
+        try {
+            const response = await requestRemoteRoomAction(session, { ...input, ...pending });
+            authoritativeRequestsRef.current.delete(requestKey);
+            if (response.room && mountedRef.current) applyBundle(response.room);
+            channelRef.current?.postMessage({ type: "invalidate" });
+            completed = true;
+            return response.result;
+        } catch (value) {
+            if (value?.data?.room && mountedRef.current) applyBundle(value.data.room);
+            if (!value?.retryable && value?.status && value.status < 500 && ![408, 429].includes(value.status)) {
+                authoritativeRequestsRef.current.delete(requestKey);
+            }
+            if (mountedRef.current && !value?.data?.room) setConnection(navigator.onLine ? "error" : "offline");
+            throw value;
+        } finally {
+            if (mountedRef.current && completed) setConnection("connected");
+        }
+    }, [applyBundle, session]);
+
     const copy = async (value, label) => {
         try {
             if (navigator.clipboard && window.isSecureContext) {
@@ -837,29 +868,21 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const addSelectedTeam = async side => {
         if (!selectedTeam || !selectedTeamPokemon) return;
-        if (selectedTeamFieldToken) {
-            setNotice?.({ tone: "amber", text: `${selectedTeamFieldToken.name} já está em campo.` });
-            return;
-        }
-        if (selectedTeamBenchToken) {
-            const deployed = deployBenchPokemonInSnapshot(snapshot, selectedTeamBenchToken.id, side);
-            if (!deployed.deployed) {
-                setNotice?.({ tone: "amber", text: deployed.reason });
-                return;
-            }
-            commitSnapshot(deployed.room);
-            setNotice?.({ tone: "blue", text: `${deployed.incoming.name} entrou em campo sem retirar os demais Pokémon.` });
-            await sendEvent("system", {
-                text: `${deployed.incoming.name} entrou em campo por ${selectedTeam.name}${side === "opponent" ? " no lado dos oponentes" : ""}.`,
-            });
-            return;
-        }
+        const pokemonName = selectedTeamPokemon.nickname
+            || formatName(selectedTeamPokemon.species?.species?.name || selectedTeamPokemon.species?.name);
         const result = addTeamToSnapshot(snapshot, selectedTeam, side, "", {
             activePokemonIds: [selectedTeamPokemon.id],
             benchRemaining: true,
         });
         if (!result.tokens.length && !result.benchTokens.length) {
-            setNotice?.({ tone: "amber", text: `${selectedTeam.name} já está vinculada a esta cena.` });
+            const text = selectedTeamPokemonToken
+                ? `${pokemonName} já está em campo.`
+                : selectedTeamPokemonBenchToken?.currentHp <= 0
+                    ? `${pokemonName} não pode mais batalhar.`
+                    : snapshot.tokens.length >= 40
+                        ? "O campo já chegou ao limite seguro de 40 Pokémon."
+                        : `${pokemonName} já está vinculado a esta cena.`;
+            setNotice?.({ tone: "amber", text });
             return;
         }
         commitSnapshot(result.room);
@@ -869,7 +892,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             return;
         }
         await sendEvent("system", {
-            text: `${selectedTeamPokemon.nickname || formatName(selectedTeamPokemon.species?.species?.name || selectedTeamPokemon.species?.name)} entrou em campo por ${selectedTeam.name}${side === "opponent" ? " no lado dos oponentes" : ""}.`,
+            text: `${pokemonName} entrou em campo por ${selectedTeam.name}${side === "opponent" ? " no lado dos oponentes" : ""}.`,
         });
     };
 
@@ -1032,6 +1055,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     initiative.splice(Math.min(initiativeIndex, initiative.length), 0, removed.id);
                 }
                 commitSnapshot({ ...latest, tokens, initiative });
+                setSelectedTokenId(removed.id);
                 setNotice?.({ tone: "blue", text: `${removed.name} voltou à cena.` });
             },
         });
@@ -1110,6 +1134,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const generateInitiative = async () => {
         try {
+            if (!session.local) {
+                await requestAuthoritativeAction({ action: "initiative" });
+                return;
+            }
             const generated = buildInitiative(snapshot);
             commitSnapshot(generated.room);
             await sendEvent("system", {
@@ -1126,6 +1154,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const nextTurn = async () => {
         try {
+            if (!session.local) {
+                await requestAuthoritativeAction({ action: "advance-turn" });
+                return;
+            }
             const closingRound = snapshot.initiative.length > 0
                 && snapshot.turnIndex >= snapshot.initiative.length - 1;
             const roundEnd = closingRound ? applyEndOfRoundEffects(snapshot) : null;
@@ -1374,71 +1406,35 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     {teams.map(team => <option key={team.id} value={team.id}>{team.name} • {team.pokemon.length}/6</option>)}
                                 </select>
                                 <label className="room-team-lead">
-                                    <span>Pokémon para adicionar</span>
+                                    <span>Quem entra em campo</span>
                                     <select
                                         className="room-wide-select"
                                         value={selectedTeamPokemon?.id || ""}
                                         onChange={event => setSelectedTeamPokemonId(event.target.value)}
                                     >
-                                        {selectedTeam?.pokemon.map(pokemon => {
-                                            const state = selectedTeamScene.pokemonState.get(pokemon.id)?.state || "available";
-                                            const stateLabel = state === "field"
-                                                ? "em campo"
-                                                : state === "fainted"
-                                                    ? "não pode batalhar"
-                                                    : state === "bench"
-                                                        ? "no banco"
-                                                        : "disponível";
-                                            return (
+                                        {selectedTeam?.pokemon.map(pokemon => (
                                             <option key={pokemon.id} value={pokemon.id}>
                                                 {pokemon.nickname || formatName(pokemon.species?.species?.name || pokemon.species?.name)}
-                                                {` • ${stateLabel}`}
                                             </option>
-                                            );
-                                        })}
+                                        ))}
                                     </select>
-                                    <small className={`room-team-entry-state is-${selectedTeamPokemonState}`}>
-                                        {selectedTeamPokemonState === "field"
-                                            ? "Este Pokémon já está em campo."
-                                            : selectedTeamPokemonState === "fainted"
-                                                ? "Este Pokémon não pode mais batalhar."
-                                                : selectedTeamPokemonState === "bench"
-                                                    ? "Pronto no banco para entrar junto dos demais."
-                                                    : "Ao entrar, os demais ficam disponíveis no banco."}
-                                        {` ${formatCount(selectedTeamScene.fieldTokens.length, "Pokémon", "Pokémon")} desta equipe em campo.`}
-                                    </small>
                                 </label>
                                 <div className="room-mini-team">
-                                    {selectedTeam?.pokemon.map(pokemon => {
-                                        const name = pokemon.nickname || formatName(pokemon.species?.species?.name || pokemon.species?.name);
-                                        const state = selectedTeamScene.pokemonState.get(pokemon.id)?.state || "available";
-                                        const stateLabel = state === "field"
-                                            ? "em campo"
-                                            : state === "fainted"
-                                                ? "não pode batalhar"
-                                                : state === "bench"
-                                                    ? "no banco"
-                                                    : "disponível";
-                                        return (
-                                        <button
-                                            type="button"
-                                            key={pokemon.id}
-                                            className={`is-${state} ${selectedTeamPokemon?.id === pokemon.id ? "is-selected" : ""}`}
-                                            aria-pressed={selectedTeamPokemon?.id === pokemon.id}
-                                            title={`${name} — ${stateLabel}`}
-                                            onClick={() => setSelectedTeamPokemonId(pokemon.id)}
-                                        >
+                                    {selectedTeam?.pokemon.map(pokemon => (
+                                        <span key={pokemon.id} title={pokemon.nickname || pokemon.species?.name}>
                                             <PokemonSprite src={pokemon.species?.sprites?.front_default} pokemonId={pokemon.species?.id} alt="" className="pixelated" fallbackClassName="room-token-fallback" />
-                                            <span className="sr-only">{name}</span>
-                                        </button>
-                                        );
-                                    })}
+                                        </span>
+                                    ))}
                                     {!selectedTeam?.pokemon.length && <small>Esta Box ainda está vazia.</small>}
                                 </div>
                                 {role === "narrator" ? (
                                     <div className="room-button-row">
-                                        <button type="button" disabled={!canAddSelectedTeamPokemon} onClick={() => addSelectedTeam("ally")}>Adicionar como aliado</button>
-                                        <button type="button" disabled={!canAddSelectedTeamPokemon} onClick={() => addSelectedTeam("opponent")}>Adicionar como oponente</button>
+                                        <button type="button" disabled={!selectedTeamPokemon || Boolean(selectedTeamPokemonToken)} onClick={() => addSelectedTeam("ally")}>
+                                            {selectedTeamPokemonToken ? "Já está em campo" : "Entrar como aliado"}
+                                        </button>
+                                        <button type="button" disabled={!selectedTeamPokemon || Boolean(selectedTeamPokemonToken)} onClick={() => addSelectedTeam("opponent")}>
+                                            {selectedTeamPokemonToken ? "Já está em campo" : "Entrar como oponente"}
+                                        </button>
                                     </div>
                                 ) : (
                                     <button type="button" className="room-secondary-button" disabled={!selectedTeam?.pokemon.length} onClick={offerTeam}>Enviar ao Narrador</button>
@@ -1508,12 +1504,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         role={role}
                         playerId={session.playerId}
                         selectedTokenId={selectedTokenId}
-                        onSelectToken={tokenId => setSelectedTokenId(current => current === tokenId ? "" : tokenId)}
+                        onSelectToken={setSelectedTokenId}
                         onSnapshotChange={handleBattlefieldChange}
                     />
 
                     {selectedToken && (
-                        <section id={`token-inspector-${selectedToken.id}`} className="token-inspector">
+                        <section className="token-inspector">
                             <button type="button" className="token-inspector-close" onClick={() => setSelectedTokenId("")} aria-label="Fechar ficha rápida">×</button>
                             <div className="token-inspector-identity">
                                 <PokemonSprite src={selectedDisplayIdentity?.sprite} pokemonId={selectedToken.speciesId} alt="" className="pixelated" fallbackClassName="room-token-fallback" />
@@ -1730,12 +1726,19 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
                 <aside className="room-tools">
                     <VoiceCall session={session} role={role} />
-                    <QuickRoller onEvent={sendEvent} onError={showError} />
+                    <QuickRoller
+                        local={Boolean(session.local)}
+                        onAuthoritativeAction={requestAuthoritativeAction}
+                        onEvent={sendEvent}
+                        onError={showError}
+                    />
                     <CombatAssistant
                         role={role}
                         playerId={session.playerId}
                         snapshot={snapshot}
                         selectedTokenId={selectedTokenId}
+                        remote={!session.local}
+                        onAuthoritativeAction={requestAuthoritativeAction}
                         onSnapshotChange={commitSnapshot}
                         onDeclareMove={declareMove}
                         onEvent={sendEvent}

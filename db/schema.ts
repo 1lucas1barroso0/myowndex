@@ -8,6 +8,7 @@ export const rooms = sqliteTable("rooms", {
   inviteSecretHash: text("invite_secret_hash").notNull(),
   stateJson: text("state_json").notNull(),
   revision: integer("revision").notNull().default(0),
+  authorityClaim: text("authority_claim").notNull().default(""),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, table => [
@@ -38,6 +39,30 @@ export const roomEvents = sqliteTable("room_events", {
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, table => [
   index("room_events_room_id_idx").on(table.roomCode, table.id),
+]);
+
+export const roomRolls = sqliteTable("room_rolls", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  roomCode: text("room_code").notNull().references(() => rooms.code, { onDelete: "cascade" }),
+  actorKey: text("actor_key").notNull(),
+  requestId: text("request_id").notNull(),
+  requestFingerprint: text("request_fingerprint").notNull(),
+  playerId: text("player_id"),
+  author: text("author").notNull(),
+  actionType: text("action_type").notNull(),
+  mode: text("mode").notNull().default("normal"),
+  requestJson: text("request_json").notNull(),
+  resultJson: text("result_json").notNull(),
+  eventType: text("event_type").notNull(),
+  eventPayloadJson: text("event_payload_json").notNull(),
+  sfxPayloadJson: text("sfx_payload_json"),
+  status: text("status").notNull().default("ready"),
+  claimToken: text("claim_token").notNull().default(""),
+  serverAuthoritative: integer("server_authoritative", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, table => [
+  uniqueIndex("room_rolls_request_idx").on(table.roomCode, table.actorKey, table.requestId),
+  index("room_rolls_room_id_idx").on(table.roomCode, table.id),
 ]);
 
 export const roomMedia = sqliteTable("room_media", {

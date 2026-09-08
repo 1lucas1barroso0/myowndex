@@ -1,9 +1,11 @@
 import { ROOM_SESSION_STORAGE_KEY } from "./room.js";
 import { finiteNumberOrNull, integerInRange, MAX_SAFE_GAME_INTEGER } from "./math.js";
+import { secureRandomId } from "./random.js";
 import { readStorage, removeStorage, writeStorage } from "./storage.js";
 
 const REQUEST_TIMEOUT = 15000;
 const SAFE_REQUEST_METHODS = new Set(["GET", "HEAD"]);
+export const ROOM_PROTOCOL_VERSION = "2";
 const pause = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
 
 const retryWait = (response, attempt) => {
@@ -13,22 +15,24 @@ const retryWait = (response, attempt) => {
 };
 
 const roomRequest = async (path, key, options = {}) => {
-    const method = String(options.method || "GET").toUpperCase();
-    const maximumAttempts = SAFE_REQUEST_METHODS.has(method) ? 3 : 1;
+    const { idempotent = false, ...requestOptions } = options;
+    const method = String(requestOptions.method || "GET").toUpperCase();
+    const maximumAttempts = SAFE_REQUEST_METHODS.has(method) || idempotent ? 3 : 1;
     let lastError = null;
     for (let attempt = 0; attempt < maximumAttempts; attempt += 1) {
         const controller = new AbortController();
         const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-        const headers = new Headers(options.headers || {});
+        const headers = new Headers(requestOptions.headers || {});
         if (key) headers.set("x-myowndex-room-key", key);
-        if (options.body && !(options.body instanceof FormData) && !headers.has("content-type")) {
+        headers.set("x-myowndex-room-protocol", ROOM_PROTOCOL_VERSION);
+        if (requestOptions.body && !(requestOptions.body instanceof FormData) && !headers.has("content-type")) {
             headers.set("content-type", "application/json");
         }
         headers.set("accept", "application/json");
         let response = null;
         try {
             response = await fetch(path, {
-                ...options,
+                ...requestOptions,
                 headers,
                 signal: controller.signal,
                 cache: "no-store",
@@ -41,13 +45,16 @@ const roomRequest = async (path, key, options = {}) => {
                 const error = new Error(data?.error || "A Central da Aventura perdeu a conexão. Tente novamente.");
                 error.status = response.status;
                 error.data = data;
-                error.retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+                error.retryable = Boolean(data?.retryable)
+                    || response.status === 408
+                    || response.status === 429
+                    || response.status >= 500;
                 throw error;
             }
             return data;
         } catch (error) {
             lastError = error;
-            const retryable = SAFE_REQUEST_METHODS.has(method)
+            const retryable = (SAFE_REQUEST_METHODS.has(method) || idempotent)
                 && (error?.name === "AbortError" || error?.retryable || error instanceof TypeError);
             if (!retryable || attempt === maximumAttempts - 1) break;
             await pause(retryWait(response, attempt));
@@ -93,6 +100,18 @@ export const postRoomEvent = (session, type, payload = {}) =>
     roomRequest(`/api/rooms/${encodeURIComponent(session.code)}/events`, session.key, {
         method: "POST",
         body: JSON.stringify({ type, payload }),
+    });
+
+export const createRoomActionRequestId = () => secureRandomId("room-action");
+
+export const requestRemoteRoomAction = (session, actionRequest) =>
+    roomRequest(`/api/rooms/${encodeURIComponent(session.code)}/rolls`, session.key, {
+        method: "POST",
+        idempotent: true,
+        body: JSON.stringify({
+            ...actionRequest,
+            requestId: actionRequest.requestId || createRoomActionRequestId(),
+        }),
     });
 
 export const joinRoomCall = (session, connectionId, { displayName, muted = false } = {}) =>

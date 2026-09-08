@@ -92,6 +92,11 @@ export const randomUnitFromUint32 = nextUint32 => {
 
 export const randomUnit = random => {
     if (typeof random === "function") return normalizeUnit(random());
+    if (random && typeof random.nextUint32 === "function") {
+        const value = randomUnitFromUint32(() => random.nextUint32());
+        random.onUnit?.({ value });
+        return value;
+    }
     return randomUnitFromUint32(nextSecureUint32);
 };
 
@@ -99,6 +104,11 @@ export const randomInt = (maximum, random) => {
     const normalizedMaximum = normalizeMaximum(maximum);
     if (typeof random === "function") {
         return Math.floor(normalizeUnit(random()) * normalizedMaximum);
+    }
+    if (random && typeof random.nextUint32 === "function") {
+        const value = randomIntFromUint32(normalizedMaximum, () => random.nextUint32());
+        random.onInt?.({ maximum: normalizedMaximum, value });
+        return value;
     }
     return randomIntFromUint32(normalizedMaximum, nextSecureUint32);
 };

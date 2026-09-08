@@ -8,6 +8,7 @@ import {
   getBindings,
   hashSecret,
   noStoreJson,
+  requireCurrentRoomProtocol,
   routeError,
   safeText,
 } from "../../../server/rooms";
@@ -15,6 +16,8 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  const protocolError = requireCurrentRoomProtocol(request);
+  if (protocolError) return protocolError;
   try {
     await ensureRoomSchema();
     const payload = await request.json().catch(() => ({})) as {

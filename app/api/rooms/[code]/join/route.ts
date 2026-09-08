@@ -7,6 +7,7 @@ import {
   getRoomBundle,
   hashSecret,
   noStoreJson,
+  requireCurrentRoomProtocol,
   routeError,
   safeRoomCode,
   safeText,
@@ -20,6 +21,8 @@ type RouteContext = { params: Promise<{ code: string }> | { code: string } };
 const ACCENTS = ["#38BDF8", "#67E8F9", "#0EA5E9", "#4ADE80", "#FB7185", "#FDE047"];
 
 export async function POST(request: Request, context: RouteContext) {
+  const protocolError = requireCurrentRoomProtocol(request);
+  if (protocolError) return protocolError;
   try {
     await ensureRoomSchema();
     const params = await context.params;

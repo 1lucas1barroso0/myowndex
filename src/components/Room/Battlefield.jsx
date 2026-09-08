@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
@@ -63,8 +63,7 @@ const Token = ({
         }}
         aria-pressed={isSelected}
         aria-expanded={isSelected}
-        aria-controls={isSelected ? `token-inspector-${token.id}` : undefined}
-        aria-label={`${display.name}, nível ${token.level}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}, pressione para ${isSelected ? "fechar" : "abrir"} a ficha`}
+        aria-label={`${display.name}, nível ${token.level}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
             {display.sprite ? (
@@ -77,7 +76,7 @@ const Token = ({
                 />
             ) : <span className="room-token-fallback" aria-hidden="true">●</span>}
         </span>
-        {isSelected ? <span className="room-token-status-card" aria-hidden="true">
+        {isSelected && <span className="room-token-status-card" aria-hidden="true">
             <span className="room-token-status-heading">
                 <strong className="room-token-name">{display.name}</strong>
                 <small>Nv. {token.level}</small>
@@ -106,7 +105,7 @@ const Token = ({
                     <small>{token.currentHp}/{token.maxHp}</small>
                 </span>
             )}
-        </span> : null}
+        </span>}
     </button>
     );
 };
@@ -120,7 +119,6 @@ export default function Battlefield({
     onSnapshotChange,
 }) {
     const [drag, setDrag] = useState(null);
-    const suppressSelectionRef = useRef(false);
     const currentTokenId = snapshot.initiative[snapshot.turnIndex] || "";
     const tokenById = useMemo(
         () => Object.fromEntries(snapshot.tokens.map(token => [token.id, token])),
@@ -144,18 +142,12 @@ export default function Battlefield({
         if (!rect) return;
         const x = clamp((event.clientX - rect.left) / rect.width * 100, 4, 96);
         const y = clamp((event.clientY - rect.top) / rect.height * 100, 8, 92);
-        const moved = drag.moved || Math.hypot(
-            event.clientX - drag.pointerStartX,
-            event.clientY - drag.pointerStartY,
-        ) >= 5;
-        const nextDrag = { ...drag, x, y, moved };
-        setDrag(nextDrag);
+        setDrag(current => current ? { ...current, x, y } : current);
         if (commit) {
             onSnapshotChange({
                 ...snapshot,
                 tokens: snapshot.tokens.map(token => token.id === drag.tokenId ? { ...token, x, y } : token),
             });
-            suppressSelectionRef.current = moved;
             setDrag(null);
         }
     };
@@ -163,29 +155,13 @@ export default function Battlefield({
     const handlePointerDown = (event, token) => {
         event.preventDefault();
         event.currentTarget.setPointerCapture?.(event.pointerId);
-        suppressSelectionRef.current = false;
-        setDrag({
-            tokenId: token.id,
-            x: token.x,
-            y: token.y,
-            pointerStartX: event.clientX,
-            pointerStartY: event.clientY,
-            moved: false,
-        });
+        setDrag({ tokenId: token.id, x: token.x, y: token.y });
     };
 
     const handlePointerUp = event => {
         if (!drag) return;
         updatePosition(event, true);
         event.currentTarget.releasePointerCapture?.(event.pointerId);
-    };
-
-    const handleTokenSelection = tokenId => {
-        if (suppressSelectionRef.current) {
-            suppressSelectionRef.current = false;
-            return;
-        }
-        onSelectToken(tokenId);
     };
 
     const handleKeyMove = (token, delta) => {
@@ -267,7 +243,7 @@ export default function Battlefield({
                             showHp={snapshot.settings.showHp}
                             mirrored={snapshot.settings.mirrorSprites}
                             protectionState={protectionState}
-                            onSelect={handleTokenSelection}
+                            onSelect={onSelectToken}
                             onPointerDown={handlePointerDown}
                             onPointerMove={event => updatePosition(event, false)}
                             onPointerUp={handlePointerUp}

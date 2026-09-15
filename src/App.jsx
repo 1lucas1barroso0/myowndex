@@ -14,29 +14,20 @@ import AppearanceControl from "./components/Shared/AppearanceControl.jsx";
 import InstallMyOwnDex from "./components/Shared/InstallMyOwnDex.jsx";
 import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
+import GameIcon from "./components/Shared/GameIcon.jsx";
+import { selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
 
-const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect }) {
+const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect, favorite, onFavorite }) {
     return (
-        <button
-            type="button"
-            onClick={onSelect}
-            className="game-card p-4 flex flex-col items-center cursor-pointer group relative text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
-            aria-label={`Consultar ${formatName(species.name)} na Pokédex`}
-        >
-            <span className="absolute top-2 left-3 text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-red-500 transition-colors">
-                No. {id.padStart(4, "0")}
-            </span>
-                                        <span className="pokemon-card-sprite-frame w-full h-20 mt-4 flex justify-center items-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200">
-                <PokemonSprite
-                    pokemonId={id}
-                    alt=""
-                    className="w-20 h-20 pixelated drop-shadow-md group-hover:scale-110 transition-transform duration-200"
-                />
-            </span>
-            <span className="pokemon-card-name text-[11px] font-black text-slate-700 mt-3 capitalize w-full text-center group-hover:text-red-600 transition-colors">
-                {formatName(species.name)}
-            </span>
-        </button>
+        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`}>
+            <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${formatName(species.name)} na Pokédex`}>
+                <span className="dex-number">No. {id.padStart(4, "0")}</span>
+                <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={id} alt="" className="pixelated" /></span>
+                <span className="pokemon-card-name">{formatName(species.name)}</span>
+                <span className="dex-entry-hint">Consultar ficha <span aria-hidden="true">↗</span></span>
+            </button>
+            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${formatName(species.name)} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
+        </article>
     );
 });
 
@@ -68,7 +59,15 @@ export default function App() {
     const [modeBooted, setModeBooted] = useState(false);
     const [limit, setLimit] = useState(60);
     const [selectedUrl, setSelectedUrl] = useState(null);
-    const [view, setView] = useState("room");
+    const [view, setViewState] = useState("room");
+    const [favorites, setFavorites] = useState([]);
+    const [onlyFavorites, setOnlyFavorites] = useState(false);
+    const [dexOrder, setDexOrder] = useState("number");
+    const setView = useCallback(next => {
+        setViewState(next);
+        if (viewFromUrl(window.location.href) !== next) window.history.pushState({}, "", urlForView(window.location.href, next));
+        window.requestAnimationFrame(() => document.querySelector(".app-scroll-area")?.scrollTo({ top: 0 }));
+    }, []);
     const [online, setOnline] = useState(true);
     const [notice, setNotice] = useState(null);
     const deferredSearchTerm = useDeferredValue(searchTerm);
@@ -103,21 +102,26 @@ export default function App() {
         const preferences = readStorage("myowndex_preferences_v1", {});
         const savedMode = preferences?.experienceMode;
         if (EXPERIENCE_MODES[savedMode]) setExperienceMode(savedMode);
-        const launchView = {
-            aventura: "room",
-            pokedex: "pokedex",
-            pc: "teambuilder",
-            guia: "guide",
-        }[new URLSearchParams(window.location.search).get("abrir")];
-        if (launchView) {
-            setView(launchView);
-            const cleanUrl = new URL(window.location.href);
-            cleanUrl.searchParams.delete("abrir");
-            window.history.replaceState({}, "", `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
-        }
-        else if (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view)) setView(preferences.view);
+        const initialView = viewFromUrl(window.location.href) || (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view) ? preferences.view : "room");
+        setViewState(initialView);
+        window.history.replaceState({}, "", urlForView(window.location.href, initialView));
+        const storedFavorites = readStorage("myowndex_dex_favorites_v1", []);
+        setFavorites(Array.isArray(storedFavorites) ? storedFavorites.filter(id => typeof id === "string" && /^\d+$/.test(id)) : []);
+        const onPop = () => setViewState(viewFromUrl(window.location.href) || "room");
+        window.addEventListener("popstate", onPop);
         setModeBooted(true);
+        return () => window.removeEventListener("popstate", onPop);
     }, []);
+
+    useEffect(() => {
+        document.title = `${{ room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" }[view]} · MyOwnDex`;
+    }, [view]);
+
+    const toggleFavorite = id => {
+        const next = favorites.includes(id) ? favorites.filter(value => value !== id) : [...favorites, id];
+        setFavorites(next);
+        if (!writeStorage("myowndex_dex_favorites_v1", next)) setNotice({ tone: "amber", text: "Seus favoritos estão disponíveis nesta sessão, mas o aparelho não permitiu salvá-los." });
+    };
 
     useEffect(() => {
         if (!modeBooted) return;
@@ -265,22 +269,14 @@ export default function App() {
         return () => { mounted = false; };
     }, [view, envLoaded]);
 
-    const filteredSpecies = useMemo(() => {
-        if (!deferredSearchTerm) return species;
-        const query = deferredSearchTerm.toLowerCase();
-        return species.filter(entry => {
-            const name = entry?.name || "";
-            const id = extractId(entry?.url);
-            return name.includes(query) || formatName(name).toLowerCase().includes(query) || id === query;
-        });
-    }, [species, deferredSearchTerm]);
+    const filteredSpecies = useMemo(() => selectDexSpecies(species, { query: deferredSearchTerm, favorites, onlyFavorites, order: dexOrder }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder]);
 
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 
-    const handleOpenPokedex = useCallback(() => setView("pokedex"), []);
-    const handleOpenTeambuilder = useCallback(() => setView("teambuilder"), []);
-    const handleOpenGuide = useCallback(() => setView("guide"), []);
-    const handleOpenRoom = useCallback(() => setView("room"), []);
+    const handleOpenPokedex = useCallback(() => setView("pokedex"), [setView]);
+    const handleOpenTeambuilder = useCallback(() => setView("teambuilder"), [setView]);
+    const handleOpenGuide = useCallback(() => setView("guide"), [setView]);
+    const handleOpenRoom = useCallback(() => setView("room"), [setView]);
     const handleSearchInputChange = useCallback(event => {
         setSearchInput(event.target.value);
         setLimit(60);
@@ -339,7 +335,7 @@ export default function App() {
             setNotice({ tone: "blue", text: `${formatName(formData.name)} agora faz parte de ${target.name}.` });
         }
         setView("teambuilder");
-    }, [activeTeamId, teams]);
+    }, [activeTeamId, teams, setView]);
 
     const teamBuilderProps = useMemo(() => ({
         teams,
@@ -359,7 +355,8 @@ export default function App() {
     }), [teams, env, activeTeamId, isTTRPG, isHackmon, experienceMode, envLoading, envError, handleOpenPokedex]);
 
     return (
-        <div className={`app-root view-${view} min-h-[100dvh] flex flex-col`}>
+        <div className={`app-root game-edition view-${view} min-h-[100dvh] flex flex-col`}>
+            <a className="skip-to-content" href="#main-content">Ir para o conteúdo</a>
             <header className="app-header shrink-0 px-2.5 sm:px-4 md:px-5 pt-2.5 sm:pt-4 pb-2 z-40">
                 <div className="max-w-[1900px] mx-auto game-shell app-header-shell p-2.5 sm:p-3.5">
                     <div className="app-header-row flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
@@ -369,35 +366,29 @@ export default function App() {
                                     <img src="/icons/myowndex-icon-v91.svg" alt="" />
                                 </button>
                                 <div className="app-brand flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Pokémon</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Seu mundo Pokémon</span>
                                     <h1 className="text-xl sm:text-2xl font-black text-slate-800">MyOwnDex</h1>
                                 </div>
                             </div>
                             <nav aria-label="Navegação principal" className="app-nav">
-                                <button type="button" title="Abrir a Central da Aventura para criar, entrar ou continuar uma jornada" aria-label="Abrir a Central da Aventura" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><span aria-hidden="true">◆</span>Aventura</button>
-                                <button type="button" title="Consultar espécies, formas, habilidades e movimentos" aria-label="Abrir a Pokédex" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule ${view === "pokedex" ? "is-active" : ""}`}><span aria-hidden="true">◉</span>Pokédex</button>
-                                <button type="button" title="Organizar Boxes, equipes e fichas de Pokémon" aria-label="Abrir o PC do Bill" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule ${view === "teambuilder" ? "is-active" : ""}`}><span aria-hidden="true">▦</span>PC</button>
-                                <button type="button" title="Consultar todas as regras usadas pelo MyOwnDex" aria-label="Abrir o Guia do Treinador" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><span aria-hidden="true">≡</span>Guia</button>
+                                <button type="button" title="Abrir a Central da Aventura para criar, entrar ou continuar uma jornada" aria-label="Abrir a Central da Aventura" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><GameIcon name="adventure" />Aventura</button>
+                                <button type="button" title="Consultar espécies, formas, habilidades e movimentos" aria-label="Abrir a Pokédex" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule ${view === "pokedex" ? "is-active" : ""}`}><GameIcon name="dex" />Pokédex</button>
+                                <button type="button" title="Organizar Boxes, equipes e fichas de Pokémon" aria-label="Abrir o PC do Bill" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule ${view === "teambuilder" ? "is-active" : ""}`}><GameIcon name="pc" />PC</button>
+                                <button type="button" title="Consultar todas as regras usadas pelo MyOwnDex" aria-label="Abrir o Guia do Treinador" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><GameIcon name="guide" />Guia</button>
                             </nav>
                             <AppearanceControl />
                             <InstallMyOwnDex />
                         </div>
 
                         <div className="app-actions flex gap-2.5 w-full xl:w-auto items-center justify-end flex-wrap sm:flex-nowrap">
-                            {view === "pokedex" && (
-                                <div className="relative flex-grow w-full sm:w-80">
-                                    <label htmlFor="pokemon-search" className="sr-only">Buscar Pokémon por nome ou número</label>
-                                    <input id="pokemon-search" type="search" value={searchInput} placeholder="Nome ou número…" className="w-full pl-11 pr-4 py-3 bg-slate-900 border-2 border-blue-700 rounded-full text-xs text-white font-bold outline-none focus:border-cyan-300 transition-colors shadow-inner" onChange={handleSearchInputChange} />
-                                    <svg aria-hidden="true" className="w-4 h-4 absolute left-4 top-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                </div>
-                            )}
+                            <span className="device-status"><i className={online ? "is-online" : ""} />{online ? "Pronto para explorar" : "Sem conexão"}</span>
                             <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
                         </div>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1 app-scroll-area px-2.5 sm:px-4 md:px-5 pt-1.5 pb-3 sm:pb-5 relative z-10">
+            <main id="main-content" tabIndex={-1} className="flex-1 app-scroll-area px-2.5 sm:px-4 md:px-5 pt-1.5 pb-3 sm:pb-5 relative z-10">
                 <div className="max-w-[1900px] mx-auto game-shell app-main-shell p-3 sm:p-5 md:p-6 min-h-[70vh]">
                     {!online && <StatusNotice tone="amber">Você está sem internet, mas tudo o que já consultou na Pokédex continua disponível.</StatusNotice>}
                     {storageError && <StatusNotice tone="red">Não conseguimos salvar esta Box neste aparelho. Libere espaço ou permita o armazenamento do site e tente novamente.</StatusNotice>}
@@ -424,22 +415,21 @@ export default function App() {
                             </div>
                         ) : (
                             <>
-                                <div className="bg-slate-900 border-4 border-slate-800 rounded-2xl p-5 mb-8 shadow-xl relative overflow-hidden">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className={`w-3 h-3 rounded-full shadow-[0_0_8px_currentColor] ${online ? "bg-emerald-400 text-emerald-400 animate-pulse" : "bg-amber-400 text-amber-400"}`} />
-                                        <span className={`text-[10px] font-mono font-bold tracking-widest uppercase ${online ? "text-emerald-400" : "text-amber-400"}`}>{online ? "Pokédex conectada" : "Consulta offline"}</span>
-                                    </div>
-                                    <h2 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight uppercase">
-                                        Pokédex Nacional<br />
-                                        <span className="text-slate-400 text-sm font-bold">&gt; {formatPokemonCount(filteredSpecies.length)}</span>
-                                    </h2>
+                                <header className="dex-heading">
+                                    <div><span className="screen-eyebrow">Explore • Descubra • Prepare sua equipe</span><h2>Pokédex Nacional</h2><p>Um mundo inteiro de parceiros para conhecer.</p></div>
+                                    <span className="dex-count" role="status">{formatPokemonCount(filteredSpecies.length)}</span>
+                                </header>
+                                <div className="dex-toolbar">
+                                    <label className="dex-search"><span className="sr-only">Buscar Pokémon por nome ou número</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} placeholder="Buscar nome ou número. Ex.: Pikachu, 0025" onChange={handleSearchInputChange} /></label>
+                                    <button type="button" className={`dex-filter ${onlyFavorites ? "is-active" : ""}`} aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setLimit(60); }}><GameIcon name="star" />Favoritos <span>{favorites.length}</span></button>
+                                    <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(60); }}><option value="number">Número crescente</option><option value="reverse">Número decrescente</option><option value="name">Nome de A a Z</option></select></label>
                                 </div>
                                 {visible.length ? (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3 sm:gap-5">
-                                        {visible.map(entry => <PokemonCard key={entry.name} species={entry} id={extractId(entry.url)} onSelect={() => setSelectedUrl(entry.url)} />)}
+                                    <div className="dex-grid">
+                                        {visible.map(entry => <PokemonCard key={entry.name} species={entry} id={extractId(entry.url)} onSelect={() => setSelectedUrl(entry.url)} favorite={favorites.includes(extractId(entry.url))} onFavorite={() => toggleFavorite(extractId(entry.url))} />)}
                                     </div>
                                 ) : (
-                                    <div className="py-16 text-center text-sm font-bold text-slate-500">Nenhum Pokémon apareceu para “{deferredSearchTerm}”. Tente outro nome ou número.</div>
+                                    <div className="py-16 text-center text-sm font-bold text-slate-500">{onlyFavorites && !favorites.length ? "Toque na estrela de um Pokémon para encontrá-lo aqui." : `Nenhum Pokémon apareceu para “${deferredSearchTerm}”. Tente outro nome ou número.`}</div>
                                 )}
                                 {limit < filteredSpecies.length && (
                                     <button type="button" onClick={() => setLimit(value => value + 60)} className="mt-8 sm:mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
@@ -451,6 +441,7 @@ export default function App() {
                     ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} onModeChange={setExperienceMode} />}
                 </div>
             </main>
+            <footer className="device-footer"><span>MyOwnDex <b>9.16.0</b></span><span>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
         </div>
     );

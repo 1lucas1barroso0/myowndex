@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
+import GameIcon from "../Shared/GameIcon.jsx";
 import {
     accuracyStageMultiplier,
     applyStageChange,
@@ -126,14 +127,14 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
 
     return (
         <div className="room-lobby animate-fade-in">
-            <section className="room-lobby-hero">
+            <section className="room-lobby-hero adventure-intro">
                 <div>
-                    <span className="room-kicker">Central da Aventura • MyOwnDex</span>
-                    <h2>Sua aventura Pokémon começa aqui.</h2>
-                    <p>Reúna campo, fichas, regras, rolagens, progresso e trilha em um só lugar, com tudo preparado para Narrador e jogadores.</p>
+                    <span className="room-kicker">Central da Aventura</span>
+                    <h2>Uma nova história.<br />Sua próxima aventura.</h2>
+                    <p>Escolha seu lugar na jornada. Seus parceiros estão esperando.</p>
                 </div>
-                <div className="room-live-orb" aria-hidden="true">
-                    <i className="room-live-screen" />
+                <div className="adventure-starters" aria-label="Bulbasaur, Charmander e Squirtle">
+                    {[1, 4, 7].map(id => <PokemonSprite key={id} pokemonId={id} alt="" loading="eager" className="pixelated" />)}
                 </div>
             </section>
 
@@ -157,10 +158,10 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     }}
                 >
                     <header>
-                        <span className="room-role-mark">N</span>
+                        <span className="room-role-mark"><GameIcon name="adventure" /></span>
                         <div>
-                            <small>Quem conduz a aventura</small>
-                            <h3>Começar como Narrador</h3>
+                            <small>01 · Crie a jornada</small>
+                            <h3>Sou o Narrador</h3>
                         </div>
                     </header>
                     <label>
@@ -192,17 +193,17 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     }}
                 >
                     <header>
-                        <span className="room-role-mark">J</span>
+                        <span className="room-role-mark"><GameIcon name="dex" /></span>
                         <div>
-                            <small>Um lugar na aventura</small>
-                            <h3>Entrar como Jogador</h3>
+                            <small>02 · Reúna-se ao grupo</small>
+                            <h3>Sou um Jogador</h3>
                         </div>
                     </header>
                     <label>
                         <span>Link ou convite da aventura</span>
                         <textarea
                             value={invite}
-                            rows={3}
+                            rows={2}
                             required
                             autoCapitalize="none"
                             autoCorrect="off"

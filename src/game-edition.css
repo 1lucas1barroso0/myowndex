@@ -1,0 +1,307 @@
+/* MyOwnDex 9.16 — consistent handheld game surfaces, shared across every screen.
+   Legacy layout rules retain battle geometry; this file owns visual presentation. */
+:root {
+  --ui-canvas: #eef2f3;
+  --ui-panel: #ffffff;
+  --ui-raised: #f5f8f9;
+  --ui-ink: #243447;
+  --ui-muted: #57697a;
+  --ui-line: #d8e1e5;
+  --ui-accent: #bf263c;
+  --ui-blue: #096582;
+  --ui-selected: #e3f2f6;
+  --ui-shadow: 0 3px 0 #dbe3e8, 0 8px 24px #19364d08;
+}
+html[data-theme="night"] {
+  --ui-canvas: #111b28;
+  --ui-panel: #1b2a3b;
+  --ui-raised: #233449;
+  --ui-ink: #ecf3f8;
+  --ui-muted: #a5bdce;
+  --ui-line: #3b5268;
+  --ui-accent: #c9344c;
+  --ui-blue: #8bd9eb;
+  --ui-selected: #244b60;
+  --ui-shadow: 0 3px 0 #0a1622, 0 8px 24px #00000018;
+}
+html body { background: var(--ui-canvas) !important; color: var(--ui-ink) !important; }
+html .game-edition {
+  --dex-radius-shell: 1.25rem;
+  --dex-radius-panel: 1rem;
+  --dex-radius-control: .65rem;
+  background: var(--ui-canvas) !important;
+  color: var(--ui-ink) !important;
+  font-family: "Trebuchet MS", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+  line-height: 1.55 !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+.game-edition *, .game-edition *::before, .game-edition *::after { scrollbar-width: thin !important; scrollbar-color: var(--ui-line) transparent !important; }
+.game-edition button { cursor: pointer !important; touch-action: manipulation !important; }
+.game-edition button:disabled { cursor: not-allowed !important; opacity: .55 !important; transform: none !important; }
+.game-edition :is(button, summary, input, select, textarea, a):focus-visible { outline: 3px solid #0796b8 !important; outline-offset: 3px !important; }
+.game-edition .game-icon { width: 1.4rem !important; height: 1.4rem !important; flex: 0 0 auto !important; }
+.game-edition .skip-to-content { position: fixed !important; left: 1rem !important; top: -8rem !important; z-index: 999 !important; padding: 1rem !important; background: var(--ui-panel) !important; border: 2px solid var(--ui-blue) !important; border-radius: .6rem !important; color: var(--ui-ink) !important; }
+.game-edition .skip-to-content:focus { top: 1rem !important; }
+html .game-edition .app-header { padding: 0 !important; background: var(--ui-panel) !important; border-top: 5px solid var(--ui-accent) !important; border-bottom: 1px solid var(--ui-line) !important; box-shadow: 0 3px 14px #16364b06 !important; }
+html .game-edition :is(.app-header-shell, .app-main-shell) { max-width: 1500px !important; width: 100% !important; margin: 0 auto !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; }
+html .game-edition :is(.app-header-shell, .app-main-shell)::before,
+html .game-edition :is(.app-header-shell, .app-main-shell)::after { content: none !important; }
+html .game-edition .app-header-shell { padding: 1rem 2rem .8rem !important; backdrop-filter: none !important; }
+html .game-edition .app-header-row { display: flex !important; flex-direction: column !important; gap: .75rem !important; }
+html .game-edition .app-header-primary { display: flex !important; flex-flow: row nowrap !important; width: 100% !important; align-items: center !important; gap: 1rem !important; }
+html .game-edition .app-brand-cluster { margin-right: auto !important; gap: .7rem !important; flex: 0 0 auto !important; }
+html .game-edition .app-brand-icon { width: 2.9rem !important; height: 2.9rem !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; }
+html .game-edition .app-brand h1 { color: var(--ui-ink) !important; font-size: 1.5rem !important; font-weight: 900 !important; line-height: 1.15 !important; letter-spacing: -.06em !important; text-shadow: none !important; }
+html .game-edition .app-brand > span { color: var(--ui-muted) !important; font-size: .65rem !important; letter-spacing: .08em !important; text-transform: uppercase !important; }
+html .game-edition .app-nav { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; width: auto !important; flex: 0 1 480px !important; padding: .25rem !important; gap: .25rem !important; border: 1px solid var(--ui-line) !important; border-radius: .85rem !important; background: var(--ui-raised) !important; box-shadow: none !important; }
+html .game-edition .app-nav .nav-capsule { display: flex !important; flex-direction: row !important; min-height: 2.7rem !important; padding: .5rem 1rem !important; border: 0 !important; border-radius: .6rem !important; box-shadow: none !important; color: var(--ui-muted) !important; background: transparent !important; font-size: .85rem !important; letter-spacing: 0 !important; font-weight: 800 !important; text-transform: none !important; gap: .45rem !important; }
+html .game-edition .app-nav .nav-capsule:hover { background: var(--ui-selected) !important; color: var(--ui-ink) !important; }
+html .game-edition .app-nav .nav-capsule.is-active { background: var(--ui-accent) !important; color: #fff !important; box-shadow: 0 2px 0 #7f1d1d !important; }
+html .game-edition :is(.appearance-control, .install-entry) { min-height: 2.75rem !important; background: var(--ui-panel) !important; color: var(--ui-muted) !important; border: 1px solid var(--ui-line) !important; box-shadow: none !important; border-radius: .65rem !important; padding: .5rem .7rem !important; }
+html .game-edition :is(.appearance-control, .install-entry) small { font-size: .72rem !important; letter-spacing: 0 !important; text-transform: none !important; }
+html .game-edition .app-actions { width: 100% !important; display: flex !important; justify-content: space-between !important; align-items: center !important; flex-wrap: wrap !important; gap: .5rem !important; border-top: 1px solid var(--ui-line) !important; padding-top: .65rem !important; }
+.game-edition .device-status { display: inline-flex !important; align-items: center !important; gap: .45rem !important; color: var(--ui-muted) !important; font-size: .75rem !important; }
+.game-edition .device-status i { width: .45rem !important; height: .45rem !important; border-radius: 50% !important; background: #d99017 !important; }
+.game-edition .device-status i.is-online { background: #219c7e !important; }
+html .game-edition .game-style-control { width: auto !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; gap: .6rem !important; }
+html .game-edition .game-style-label { color: var(--ui-muted) !important; font-size: .7rem !important; letter-spacing: .04em !important; }
+html .game-edition .game-style-options { gap: .2rem !important; }
+html .game-edition .game-style-options button { min-height: 2.2rem !important; min-width: 3.5rem !important; padding: .35rem .65rem !important; border: 1px solid transparent !important; border-radius: .5rem !important; box-shadow: none !important; background: transparent !important; color: var(--ui-muted) !important; font-size: .75rem !important; letter-spacing: 0 !important; }
+html .game-edition .game-style-options button.is-selected { color: var(--ui-blue) !important; border-color: var(--ui-line) !important; background: var(--ui-selected) !important; }
+html .game-edition .choice-help > summary { color: var(--ui-muted) !important; border: 1px solid var(--ui-line) !important; background: var(--ui-panel) !important; box-shadow: none !important; }
+html .game-edition .choice-help-popover { background: var(--ui-panel) !important; border: 1px solid var(--ui-line) !important; color: var(--ui-ink) !important; box-shadow: var(--ui-shadow) !important; }
+html .game-edition .app-scroll-area { padding: 0 2rem !important; overflow-y: auto !important; min-height: 0 !important; scroll-behavior: smooth !important; }
+html .game-edition .app-main-shell { padding: 2rem 0 !important; min-height: 0 !important; }
+.game-edition .device-footer { max-width: 1500px !important; width: 100% !important; margin: 0 auto !important; display: flex !important; justify-content: space-between !important; gap: .6rem !important; padding: .65rem 2rem !important; color: var(--ui-muted) !important; font-size: .65rem !important; }
+.game-edition .device-footer b { font-weight: 400 !important; padding-left: .25rem !important; }
+.game-edition .device-footer a { text-decoration: underline !important; text-underline-offset: 3px !important; }
+/* Core reading surfaces: one quiet background, one border, one level of elevation. */
+html .game-edition.game-edition :is(.game-panel, .game-card, .room-lobby-card, .room-local-entry, .room-section, .room-tool, .battlefield-card, .token-inspector, .room-note, .pc-sidebar, .pc-main-panel, .pokemon-editor, .install-dialog, .link-cable-dialog, .guide-rule-card, .pokemon-modal-shell) {
+  background: var(--ui-panel) !important; border: 1px solid var(--ui-line) !important; border-radius: 1rem !important; color: var(--ui-ink) !important; box-shadow: var(--ui-shadow) !important;
+}
+html .game-edition.game-edition :is(.room-section, .room-tool, .token-inspector, .pc-sidebar, .pc-main-panel, .pokemon-editor, .guide-rule-card)::before { content: none !important; }
+html .game-edition.game-edition :is(.text-slate-800, .text-slate-700, .text-slate-900) { color: var(--ui-ink) !important; }
+html .game-edition.game-edition :is(.text-slate-400, .text-slate-500, .text-slate-600) { color: var(--ui-muted) !important; }
+html .game-edition.game-edition :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-slate-200) { background: var(--ui-raised) !important; }
+html .game-edition.game-edition :is(.text-\[8px\], .text-\[9px\], .text-\[10px\], .text-\[11px\]) { font-size: .75rem !important; line-height: 1.5 !important; letter-spacing: .025em !important; }
+html .game-edition.game-edition :is(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea) { color: var(--ui-ink) !important; background: var(--ui-raised) !important; border-color: var(--ui-line) !important; box-shadow: none !important; border-radius: .65rem !important; min-height: 2.75rem !important; font-size: .9rem !important; font-weight: 600 !important; }
+html .game-edition.game-edition input::placeholder, html .game-edition.game-edition textarea::placeholder { color: var(--ui-muted) !important; opacity: .9 !important; font-weight: 400 !important; }
+html .game-edition :is(.room-primary-button, .link-cable-primary) { background: var(--ui-accent) !important; border: 1px solid #aa2237 !important; border-radius: .65rem !important; box-shadow: 0 3px 0 #7f1d1d !important; color: #fff !important; min-height: 2.9rem !important; font-size: .85rem !important; font-weight: 800 !important; letter-spacing: 0 !important; text-transform: none !important; }
+html .game-edition :is(.room-primary-button, .link-cable-primary):hover { filter: brightness(1.08) !important; }
+html .game-edition :is(.room-secondary-button, .link-cable-secondary, .room-header-actions > button) { background: var(--ui-raised) !important; border: 1px solid var(--ui-line) !important; box-shadow: none !important; border-radius: .65rem !important; color: var(--ui-blue) !important; min-height: 2.65rem !important; font-size: .8rem !important; letter-spacing: 0 !important; }
+html .game-edition :is(.screen-eyebrow, .room-kicker, .pc-eyebrow) { color: var(--ui-blue) !important; font-size: .7rem !important; font-weight: 800 !important; letter-spacing: .12em !important; text-transform: uppercase !important; }
+/* Adventure start menu. Familiar partners, readable choices and immediate actions. */
+html .game-edition .room-lobby { max-width: 1080px !important; margin: 0 auto !important; }
+html .game-edition .adventure-intro { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; background: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; padding: .25rem 0 2rem !important; min-height: 0 !important; overflow: visible !important; }
+html .game-edition .adventure-intro::before, html .game-edition .adventure-intro::after { content: none !important; }
+html .game-edition .adventure-intro > div:first-child { max-width: 650px !important; }
+html .game-edition .adventure-intro h2 { color: var(--ui-ink) !important; text-shadow: none !important; font-size: clamp(1.8rem, 3vw, 2.8rem) !important; font-family: inherit !important; line-height: 1.12 !important; letter-spacing: -.045em !important; margin: .6rem 0 !important; text-transform: none !important; }
+html .game-edition .adventure-intro p { color: var(--ui-muted) !important; font-size: .95rem !important; font-weight: 400 !important; line-height: 1.7 !important; max-width: 40rem !important; }
+.game-edition .adventure-starters { display: flex !important; align-items: end !important; flex: 0 0 auto !important; }
+.game-edition .adventure-starters img { width: clamp(70px, 8vw, 120px) !important; height: clamp(70px, 8vw, 120px) !important; object-fit: contain !important; filter: drop-shadow(0 5px 0 #16364b0a) !important; }
+.game-edition .adventure-starters img:nth-child(2) { transform: translateY(-.5rem) !important; }
+html .game-edition .room-lobby-grid { gap: 1.25rem !important; }
+html .game-edition .room-lobby-card { padding: 1.5rem !important; gap: 1rem !important; border-top: 4px solid var(--ui-accent) !important; }
+html .game-edition .room-lobby-card.is-player { border-top-color: #1594b3 !important; }
+html .game-edition .room-lobby-card header { padding-bottom: .5rem !important; gap: .85rem !important; }
+html .game-edition .room-role-mark { display: grid !important; place-items: center !important; width: 3rem !important; height: 3rem !important; border: 1px solid var(--ui-line) !important; border-radius: .8rem !important; background: var(--ui-raised) !important; color: var(--ui-blue) !important; box-shadow: none !important; }
+html .game-edition .room-role-mark .game-icon { width: 1.7rem !important; height: 1.7rem !important; }
+html .game-edition .room-lobby-card header small { color: var(--ui-muted) !important; font-size: .68rem !important; letter-spacing: .08em !important; }
+html .game-edition .room-lobby-card h3 { color: var(--ui-ink) !important; font-size: 1.3rem !important; letter-spacing: -.025em !important; }
+html .game-edition .room-lobby-card label > span { font-size: .8rem !important; color: var(--ui-ink) !important; letter-spacing: 0 !important; text-transform: none !important; font-weight: 700 !important; }
+html .game-edition .room-lobby-card :is(input, textarea) { padding: .75rem .9rem !important; }
+html .game-edition .room-role-help { background: var(--ui-raised) !important; border: 0 !important; border-radius: .65rem !important; padding: .7rem .8rem !important; color: var(--ui-muted) !important; }
+html .game-edition .room-role-help summary { font-size: .75rem !important; color: var(--ui-muted) !important; }
+html .game-edition .room-role-help ul { font-size: .8rem !important; color: var(--ui-muted) !important; }
+html .game-edition .room-invite-detection { font-size: .72rem !important; font-weight: 400 !important; color: var(--ui-muted) !important; }
+html .game-edition .room-local-entry, html .game-edition .room-resume { padding: 1.05rem 1.25rem !important; border-radius: .85rem !important; margin-top: 1.25rem !important; min-height: 5rem !important; }
+html .game-edition .room-local-entry strong { color: var(--ui-ink) !important; font-size: .95rem !important; }
+html .game-edition .room-local-entry small { color: var(--ui-muted) !important; font-size: .75rem !important; }
+html .game-edition .room-local-entry b { background: var(--ui-selected) !important; color: var(--ui-blue) !important; border: 0 !important; border-radius: .6rem !important; box-shadow: none !important; font-size: .7rem !important; }
+html .game-edition .room-lobby-footnote { color: var(--ui-muted) !important; font-size: .72rem !important; font-weight: 400 !important; max-width: 720px !important; }
+/* National Pokédex. Card actions never overlap or nest. */
+.game-edition .dex-heading { display: flex !important; align-items: end !important; justify-content: space-between !important; gap: 1rem !important; margin: .2rem 0 1.6rem !important; }
+.game-edition .dex-heading h2 { font-size: clamp(1.9rem, 3vw, 2.6rem) !important; letter-spacing: -.05em !important; line-height: 1.2 !important; font-weight: 900 !important; color: var(--ui-ink) !important; margin: .4rem 0 !important; }
+.game-edition .dex-heading p { color: var(--ui-muted) !important; font-size: .95rem !important; margin: 0 !important; }
+.game-edition .dex-count { font-size: .75rem !important; color: var(--ui-muted) !important; padding: .6rem .85rem !important; border: 1px solid var(--ui-line) !important; background: var(--ui-panel) !important; border-radius: .65rem !important; white-space: nowrap !important; }
+.game-edition .dex-toolbar { display: flex !important; gap: .65rem !important; margin-bottom: 1.5rem !important; flex-wrap: wrap !important; }
+.game-edition .dex-search { display: flex !important; flex: 1 1 280px !important; align-items: center !important; border: 1px solid var(--ui-line) !important; background: var(--ui-panel) !important; border-radius: .7rem !important; color: var(--ui-muted) !important; padding: 0 .85rem !important; gap: .65rem !important; }
+html .game-edition.game-edition .dex-search input { width: 100% !important; border: 0 !important; border-radius: .4rem !important; background: transparent !important; min-height: 3.15rem !important; outline-offset: -2px !important; }
+.game-edition .dex-filter { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: .4rem !important; padding: .6rem .85rem !important; border: 1px solid var(--ui-line) !important; border-radius: .7rem !important; color: var(--ui-muted) !important; background: var(--ui-panel) !important; font-size: .8rem !important; font-weight: 700 !important; }
+.game-edition .dex-filter.is-active { background: var(--ui-selected) !important; color: var(--ui-blue) !important; border-color: var(--ui-blue) !important; }
+.game-edition .dex-filter span { background: var(--ui-raised) !important; padding: .1rem .45rem !important; border-radius: .4rem !important; }
+.game-edition .dex-sort select { height: 100% !important; padding: .5rem .8rem !important; font-size: .8rem !important; border: 1px solid var(--ui-line) !important; }
+.game-edition .dex-grid { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; gap: 1rem !important; }
+.game-edition .dex-entry { min-width: 0 !important; position: relative !important; }
+html .game-edition .dex-entry-main { display: flex !important; flex-direction: column !important; width: 100% !important; padding: 1rem !important; align-items: center !important; transition: border-color .15s, transform .15s !important; text-align: left !important; }
+html .game-edition .dex-entry-main:hover { transform: translateY(-3px) !important; border-color: var(--ui-blue) !important; }
+.game-edition .dex-number { align-self: start !important; color: var(--ui-muted) !important; font-size: .7rem !important; font-variant-numeric: tabular-nums !important; letter-spacing: .1em !important; }
+html .game-edition .pokemon-card-sprite-frame { display: grid !important; place-items: center !important; width: 100% !important; height: 112px !important; margin: .4rem 0 !important; border: 0 !important; box-shadow: none !important; border-radius: .7rem !important; background: var(--ui-raised) !important; }
+.game-edition .pokemon-card-sprite-frame img { width: 96px !important; height: 96px !important; object-fit: contain !important; transition: transform .2s !important; }
+.game-edition .dex-entry-main:hover img { transform: translateY(-3px) !important; }
+html .game-edition .pokemon-card-name { width: 100% !important; text-align: left !important; color: var(--ui-ink) !important; font-size: .95rem !important; font-weight: 800 !important; text-transform: capitalize !important; }
+.game-edition .dex-entry-hint { width: 100% !important; margin-top: .5rem !important; padding-top: .55rem !important; border-top: 1px solid var(--ui-line) !important; display: flex !important; justify-content: space-between !important; color: var(--ui-muted) !important; font-size: .7rem !important; }
+.game-edition .dex-favorite { position: absolute !important; right: .5rem !important; top: .2rem !important; display: grid !important; place-items: center !important; width: 2.75rem !important; height: 2.75rem !important; background: transparent !important; color: var(--ui-muted) !important; border: 0 !important; border-radius: .5rem !important; }
+.game-edition .dex-favorite .game-icon { width: 1.1rem !important; height: 1.1rem !important; }
+.game-edition .dex-favorite[aria-pressed="true"] { color: #976309 !important; }
+.game-edition .dex-favorite[aria-pressed="true"] svg { fill: #f6ce5d !important; }
+/* PC and guide share the same scale as the Pokédex. */
+html .game-edition .pc-workspace { gap: 1.5rem !important; }
+html .game-edition .pc-sidebar { width: 250px !important; max-height: none !important; position: static !important; padding: 1.25rem !important; flex-shrink: 0 !important; }
+html .game-edition .pc-main-panel { padding: 1.5rem !important; }
+html .game-edition .pc-box-button { color: var(--ui-ink) !important; border: 1px solid var(--ui-line) !important; border-radius: .65rem !important; background: var(--ui-raised) !important; box-shadow: none !important; font-size: .85rem !important; }
+html .game-edition .pc-box-button.is-selected { border-color: var(--ui-blue) !important; background: var(--ui-selected) !important; color: var(--ui-blue) !important; box-shadow: inset 3px 0 var(--ui-blue) !important; }
+html .game-edition :is(.pc-create-box-button, .pc-import-button, .pc-action-button, .pc-add-partner) { color: var(--ui-blue) !important; background: var(--ui-raised) !important; border-color: var(--ui-line) !important; box-shadow: none !important; border-radius: .65rem !important; font-size: .8rem !important; letter-spacing: 0 !important; text-transform: none !important; }
+html .game-edition .pc-action-button.is-delete { color: #b92845 !important; }
+html[data-theme="night"] .game-edition .pc-action-button.is-delete { color: #ffa3b3 !important; }
+html .game-edition .pc-toolbar { border-bottom: 1px solid var(--ui-line) !important; }
+html .game-edition .pc-box-name { font-size: 1.8rem !important; letter-spacing: -.04em !important; }
+html .game-edition .pc-partner-card { border: 1px solid var(--ui-line) !important; box-shadow: 0 3px 0 var(--ui-line) !important; border-radius: .85rem !important; background: var(--ui-raised) !important; min-height: 112px !important; }
+html .game-edition .pc-partner-card.is-selected { background: var(--ui-selected) !important; border-color: var(--ui-blue) !important; }
+html .game-edition .pc-partner-sprite { width: 70px !important; height: 70px !important; border: 0 !important; background: var(--ui-panel) !important; box-shadow: none !important; }
+html .game-edition .pc-partner-name { font-size: .95rem !important; }
+html .game-edition .pc-partner-meta { font-size: .72rem !important; color: var(--ui-muted) !important; }
+.game-edition .pc-empty-state { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; min-height: 420px !important; padding: 2rem !important; border: 1px solid var(--ui-line) !important; border-radius: 1rem !important; background: var(--ui-panel) !important; text-align: center !important; }
+.game-edition .pc-empty-state h2 { font-size: 1.8rem !important; font-weight: 900 !important; letter-spacing: -.04em !important; margin: .5rem 0 !important; }
+.game-edition .pc-empty-state p { color: var(--ui-muted) !important; margin-bottom: 1.5rem !important; }
+.game-edition .pc-welcome-partners { display: flex !important; }
+.game-edition .pc-welcome-partners img { width: 120px !important; height: 120px !important; object-fit: contain !important; }
+html .game-edition .trainer-guide .rotom-hero { display: flex !important; align-items: center !important; gap: 1.5rem !important; justify-content: space-between !important; padding: 1.5rem 2rem !important; min-height: 0 !important; background: var(--ui-panel) !important; border: 1px solid var(--ui-line) !important; box-shadow: var(--ui-shadow) !important; border-left: 5px solid #dfb546 !important; border-radius: 1rem !important; }
+html .game-edition .trainer-guide .rotom-hero::before, html .game-edition .trainer-guide .rotom-hero::after { content: none !important; }
+html .game-edition .trainer-guide .rotom-hero h2 { color: var(--ui-ink) !important; font-size: clamp(1.7rem, 3vw, 2.5rem) !important; text-shadow: none !important; margin-top: .45rem !important; }
+html .game-edition .trainer-guide .rotom-hero p { color: var(--ui-muted) !important; font-size: .95rem !important; font-weight: 400 !important; margin-top: .65rem !important; }
+.game-edition .guide-companion { width: 120px !important; height: 120px !important; object-fit: contain !important; flex: 0 0 auto !important; }
+html .game-edition .guide-layout { margin-top: 1.5rem !important; gap: 1.5rem !important; }
+html .game-edition .guide-rule-card { padding: 1.25rem !important; }
+html .game-edition :is(.guide-choice-grid button, .quick-roll-kind button) { min-height: 2.75rem !important; border-radius: .6rem !important; box-shadow: none !important; letter-spacing: 0 !important; }
+/* Live adventure: retain the battlefield and all narrator/player capabilities. */
+html .game-edition .room-header { border: 0 !important; background: transparent !important; box-shadow: none !important; padding: .1rem 0 1.25rem !important; color: var(--ui-ink) !important; }
+html .game-edition .room-title h2 { font-size: 1.6rem !important; color: var(--ui-ink) !important; text-shadow: none !important; }
+html .game-edition .room-title small { color: var(--ui-muted) !important; font-size: .75rem !important; }
+html .game-edition .room-section-heading h3 { color: var(--ui-ink) !important; font-size: 1rem !important; }
+html .game-edition .room-layout { gap: 1rem !important; }
+html .game-edition .room-section { padding: 1rem !important; }
+html .game-edition .room-tool > summary { border: 0 !important; border-bottom: 1px solid var(--ui-line) !important; background: var(--ui-raised) !important; color: var(--ui-ink) !important; padding: 1rem !important; border-radius: 1rem 1rem 0 0 !important; }
+html .game-edition .room-tool > summary :is(strong, small) { color: var(--ui-ink) !important; }
+html .game-edition .room-tool > summary strong { font-size: .9rem !important; }
+html .game-edition .room-tool > summary small { font-size: .7rem !important; color: var(--ui-muted) !important; }
+html .game-edition :is(.room-empty-copy, .room-player, .event-log article, .combat-result, .initiative-list li) { border: 1px solid var(--ui-line) !important; background: var(--ui-raised) !important; border-radius: .65rem !important; color: var(--ui-ink) !important; font-size: .8rem !important; }
+html .game-edition .initiative-list li.is-current { border-color: #16829c !important; box-shadow: inset 3px 0 #16829c !important; background: var(--ui-selected) !important; }
+html .game-edition .room-scene-strip { background: var(--ui-panel) !important; border: 1px solid var(--ui-line) !important; box-shadow: none !important; border-radius: .85rem !important; }
+html .game-edition :is(.room-phase-control, .room-scene-stats > div) { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+html .game-edition .room-phase-options button { border-radius: .5rem !important; box-shadow: none !important; background: var(--ui-raised) !important; color: var(--ui-muted) !important; border: 1px solid var(--ui-line) !important; min-height: 2.65rem !important; }
+html .game-edition .room-phase-options button.is-selected { background: var(--ui-selected) !important; color: var(--ui-blue) !important; border-color: var(--ui-blue) !important; }
+html .game-edition :is(.room-phase-label, .room-scene-stats strong) { color: var(--ui-ink) !important; }
+html .game-edition .battlefield-toolbar, html .game-edition .battlefield-footer { background: var(--ui-raised) !important; border-color: var(--ui-line) !important; color: var(--ui-ink) !important; }
+html .game-edition .room-token-status-card { background: var(--ui-panel) !important; border: 1px solid var(--ui-line) !important; box-shadow: 0 3px 0 #183d5222 !important; border-radius: .65rem !important; }
+html .game-edition .room-token .room-token-name { color: var(--ui-ink) !important; }
+html .game-edition .room-invite-panel { border: 1px solid var(--ui-line) !important; background: var(--ui-selected) !important; border-radius: .8rem !important; box-shadow: none !important; }
+html .game-edition .room-invite-panel :is(strong, small, p) { color: var(--ui-ink) !important; }
+html .game-edition .status-notice { min-height: 0 !important; padding: .8rem 1rem !important; border: 1px solid var(--ui-line) !important; border-left: 4px solid #16829c !important; background: var(--ui-panel) !important; border-radius: .75rem !important; box-shadow: var(--ui-shadow) !important; }
+html .game-edition .status-notice-message { color: var(--ui-ink) !important; font-size: .85rem !important; font-weight: 600 !important; }
+html .game-edition .status-notice.is-caution { border-left-color: #c32a44 !important; }
+html .game-edition .status-notice.is-reversible { border-left-color: #bd850a !important; }
+/* Dialogs retain their original behavior with a lighter, consistent frame. */
+html .game-edition .pokemon-modal-shell { border: 1px solid var(--ui-line) !important; box-shadow: 0 20px 80px #071c3860 !important; }
+html .game-edition :is(.pokemon-modal-overview, .pokemon-modal-details, .pokemon-modal-body) { background: var(--ui-panel) !important; border-color: var(--ui-line) !important; }
+html .game-edition .pokemon-modal-tabs { background: var(--ui-raised) !important; border-bottom: 1px solid var(--ui-line) !important; }
+html .game-edition .pokemon-modal-tabs button { min-height: 3.25rem !important; letter-spacing: .02em !important; font-size: .8rem !important; box-shadow: none !important; }
+html .game-edition .pokemon-modal-tabs button[aria-pressed="true"] { background: var(--ui-selected) !important; color: var(--ui-blue) !important; border-bottom-color: var(--ui-blue) !important; }
+html .game-edition .pokemon-modal-overview h2 { font-size: 2rem !important; color: var(--ui-ink) !important; text-shadow: none !important; }
+html .game-edition .species-description { border-color: var(--ui-line) !important; background: var(--ui-raised) !important; color: var(--ui-ink) !important; }
+html .game-edition :is(.species-description p, .species-description h3, .species-description li) { color: var(--ui-ink) !important; }
+@media (min-width: 1280px) {
+  html .game-edition .room-layout { grid-template-columns: minmax(220px, .85fr) minmax(0, 2.2fr) minmax(285px, 1fr) !important; }
+  html .game-edition .pc-partner-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 1279px) {
+  html .game-edition .pc-sidebar { width: 100% !important; }
+  html .game-edition .app-brand > span { font-size: .6rem !important; }
+  html .game-edition .app-nav .nav-capsule { padding: .5rem .65rem !important; }
+  html .game-edition .appearance-control small, html .game-edition .install-entry small { display: none !important; }
+}
+@media (max-width: 900px) {
+  html .game-edition .app-header-shell { padding: .7rem 1rem !important; }
+  html .game-edition .app-header-primary { gap: .5rem !important; }
+  html .game-edition .app-brand h1 { font-size: 1.2rem !important; }
+  html .game-edition .app-brand-icon { width: 2.5rem !important; height: 2.5rem !important; }
+  html .game-edition .app-nav { flex-basis: 380px !important; }
+  html .game-edition .app-nav .nav-capsule .game-icon { display: none !important; }
+  html .game-edition .app-scroll-area { padding: 0 1rem !important; }
+  html .game-edition .app-main-shell { padding: 1.5rem 0 !important; }
+  html .game-edition .room-lobby-grid { gap: 1rem !important; }
+  html .game-edition .room-lobby-card { padding: 1.2rem !important; }
+  html .game-edition .room-layout { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 640px) {
+  html .game-edition { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important; }
+  html .game-edition .app-header { border-top-width: 4px !important; }
+  html .game-edition .app-header-shell { padding: .6rem .85rem !important; }
+  html .game-edition .app-header-row { gap: .5rem !important; }
+  html .game-edition .app-brand > span { font-size: .55rem !important; }
+  html .game-edition .app-brand h1 { font-size: 1.2rem !important; }
+  html .game-edition .app-nav { position: fixed !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 90 !important; width: 100% !important; max-width: none !important; padding: .35rem .5rem calc(.35rem + env(safe-area-inset-bottom, 0px)) !important; border: 0 !important; border-top: 1px solid var(--ui-line) !important; border-radius: 0 !important; background: var(--ui-panel) !important; box-shadow: 0 -3px 18px #16364b08 !important; }
+  html .game-edition .app-nav .nav-capsule { display: flex !important; flex-direction: column !important; min-height: 3.25rem !important; gap: .15rem !important; padding: .35rem !important; border-radius: .6rem !important; font-size: .68rem !important; }
+  html .game-edition .app-nav .nav-capsule .game-icon { display: block !important; width: 1.3rem !important; height: 1.3rem !important; }
+  html .game-edition .app-nav .nav-capsule.is-active { background: var(--ui-selected) !important; color: var(--ui-blue) !important; box-shadow: none !important; }
+  html .game-edition :is(.appearance-control, .install-entry) { width: 2.75rem !important; padding: .3rem !important; flex-shrink: 0 !important; }
+  html .game-edition .app-actions { padding-top: .45rem !important; flex-wrap: nowrap !important; }
+  html .game-edition .device-status { font-size: .62rem !important; }
+  html .game-edition .game-style-label { display: none !important; }
+  html .game-edition .game-style-options button { min-width: 2.65rem !important; min-height: 2.35rem !important; padding: .35rem .5rem !important; font-size: .7rem !important; }
+  html .game-edition .game-style-control { gap: .35rem !important; }
+  html .game-edition .app-scroll-area { padding: 0 .85rem !important; }
+  html .game-edition .app-main-shell { padding: 1.1rem 0 1.5rem !important; }
+  html .game-edition .adventure-intro { padding: .25rem 0 1.25rem !important; gap: .2rem !important; }
+  html .game-edition .adventure-intro h2 { font-size: 1.65rem !important; }
+  html .game-edition .adventure-intro p { font-size: .8rem !important; max-width: 28rem !important; }
+  html .game-edition .adventure-intro .room-kicker { font-size: .6rem !important; }
+  .game-edition .adventure-starters { flex-direction: column !important; padding: 0 .1rem !important; }
+  .game-edition .adventure-starters img { width: 48px !important; height: 48px !important; margin-top: -12px !important; }
+  .game-edition .adventure-starters img:nth-child(2) { transform: translateX(-.4rem) !important; }
+  html .game-edition .room-lobby-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  html .game-edition .room-lobby-card { padding: 1.2rem !important; }
+  html .game-edition .room-lobby-card h3 { font-size: 1.2rem !important; }
+  html .game-edition .room-local-entry { flex-wrap: wrap !important; gap: .7rem !important; }
+  html .game-edition .room-local-entry b { padding: .4rem .6rem !important; }
+  .game-edition .dex-heading { align-items: start !important; flex-direction: column !important; gap: .8rem !important; margin-bottom: 1rem !important; }
+  .game-edition .dex-heading h2 { font-size: 1.8rem !important; }
+  .game-edition .dex-heading p { font-size: .85rem !important; }
+  .game-edition .dex-count { font-size: .7rem !important; padding: .35rem .6rem !important; }
+  .game-edition .dex-toolbar { gap: .5rem !important; }
+  .game-edition .dex-search { flex-basis: 100% !important; }
+  .game-edition .dex-sort { flex: 1 !important; }
+  .game-edition .dex-sort select { width: 100% !important; }
+  .game-edition .dex-filter { flex: 1 !important; }
+  .game-edition .dex-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: .7rem !important; }
+  html .game-edition .dex-entry-main { padding: .8rem !important; }
+  html .game-edition .pokemon-card-name { font-size: .85rem !important; }
+  html .game-edition .pokemon-card-sprite-frame { height: 96px !important; }
+  .game-edition .dex-entry-hint { font-size: .65rem !important; }
+  html .game-edition .pc-main-panel, html .game-edition .pc-sidebar { padding: 1rem !important; }
+  html .game-edition .pc-partner-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  html .game-edition .pc-toolbar-actions { flex-wrap: wrap !important; }
+  html .game-edition .trainer-guide .rotom-hero { padding: 1.2rem !important; gap: .35rem !important; }
+  html .game-edition .trainer-guide .rotom-hero h2 { font-size: 1.65rem !important; }
+  html .game-edition .trainer-guide .rotom-hero p { font-size: .8rem !important; }
+  .game-edition .guide-companion { width: 64px !important; height: 64px !important; }
+  html .game-edition .room-title h2 { font-size: 1.25rem !important; }
+  html .game-edition .room-mobile-nav { background: var(--ui-panel) !important; border: 1px solid var(--ui-line) !important; border-radius: .7rem !important; }
+  html .game-edition .room-mobile-nav button { min-height: 2.75rem !important; color: var(--ui-muted) !important; box-shadow: none !important; }
+  html .game-edition .room-mobile-nav button.is-active { color: var(--ui-blue) !important; background: var(--ui-selected) !important; }
+  .game-edition .device-footer { padding: .45rem .85rem !important; font-size: .55rem !important; }
+  html .game-edition.game-edition :is(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea) { font-size: 16px !important; }
+  html .game-edition .pokemon-modal-shell { border-radius: 0 !important; }
+}
+@media (max-width: 390px) {
+  html .game-edition .device-status { gap: .25rem !important; font-size: .58rem !important; }
+  html .game-edition .game-style-options button { min-width: 2.4rem !important; }
+  .game-edition .device-footer { flex-wrap: wrap !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-edition *, .game-edition *::before, .game-edition *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+html .game-edition :is(button, input, select, textarea, p, label, h1, h2, h3, h4, small, span, summary, a, strong, b) { font-family: inherit !important; text-shadow: none !important; }
+html .game-edition .nav-capsule { white-space: nowrap !important; overflow-wrap: normal !important; word-break: normal !important; }

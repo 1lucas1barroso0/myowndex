@@ -274,18 +274,6 @@ export default function Teambuilder({ envProps }) {
         });
     };
 
-    if (!teams.length) {
-        return (
-            <div className="flex min-h-[60vh] w-full items-center justify-center p-4">
-                <div className="pc-empty-state w-full max-w-xl rounded-[2rem] border-4 border-slate-200 bg-white p-6 text-center shadow-[0_10px_0_#CBD5E1] sm:p-8">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl" aria-hidden="true">📦</div>
-                    <h2 className="text-2xl font-black text-slate-800">Seu PC está pronto para a primeira equipe</h2>
-                    <p className="mt-3 text-sm text-slate-500">Abra uma Box, reúna seus parceiros e prepare a próxima aventura no seu ritmo.</p>
-                    <button type="button" onClick={createTeam} className="mt-6 rounded-2xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_0_#991B1B] transition-all hover:bg-red-600 outline-none">Abrir primeira Box</button>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="pc-workspace flex flex-col xl:flex-row gap-5 animate-fade-in w-full">
@@ -327,6 +315,13 @@ export default function Teambuilder({ envProps }) {
             </aside>
 
             <section className="w-full xl:w-3/4 min-w-0 flex-1">
+                {!active && <div className="pc-empty-state">
+                    <div className="pc-welcome-partners" aria-hidden="true">{[133, 25].map(id => <PokemonSprite key={id} pokemonId={id} alt="" className="pixelated" />)}</div>
+                    <span className="screen-eyebrow">O começo de uma grande equipe</span>
+                    <h2>Um lugar para cada parceiro.</h2>
+                    <p>Crie sua primeira Box ou receba uma equipe pelo Link Cable.</p>
+                    <button type="button" onClick={createTeam} className="room-primary-button">Abrir primeira Box</button>
+                </div>}
                 {active && (
                     <div className="game-panel pc-main-panel p-4 sm:p-6 md:p-8">
                         <div className="pc-toolbar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b-4 border-slate-100 pb-5">

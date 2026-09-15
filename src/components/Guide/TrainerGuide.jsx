@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import { formatNumberPtBr } from "../../core/mechanics.js";
 import {
     createRollRecord,
@@ -183,16 +184,13 @@ export default function TrainerGuide({ experienceMode }) {
         <div className="trainer-guide animate-fade-in text-slate-800">
             <section className="rotom-hero relative overflow-hidden rounded-[1.75rem] border-4 border-slate-800 p-5 shadow-[0_8px_0_#075985] sm:p-7">
                 <div className="relative z-10 max-w-3xl">
-                    <div className="mb-3 flex flex-wrap items-center gap-2">
-                        <span className="rounded-full border-2 border-white/40 bg-slate-900/80 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">Guia Rotom</span>
-                        <span className="guide-hero-context rounded-full border-2 border-white/25 bg-white/15 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Regras para a aventura</span>
-                    </div>
+                    <span className="screen-eyebrow">Conhecimento para cada jornada</span>
                     <h2 className="text-3xl font-black tracking-tight text-white sm:text-5xl">Guia do Treinador</h2>
                     <p className="mt-3 max-w-2xl text-sm font-bold leading-6 text-orange-50 sm:text-base">
-                        Encontre uma regra, faça uma rolagem ou confira um cálculo sem interromper a aventura. Cada explicação mostra o que acontece e quando a regra se aplica.
+                        Regras à mão. Decisões com confiança. Consulte, role e volte à aventura.
                     </p>
                 </div>
-                <div aria-hidden="true" className="guide-hero-lens" />
+                <PokemonSprite pokemonId={479} alt="" className="guide-companion pixelated" />
             </section>
 
             <section className="guide-layout mt-7 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">

@@ -21,6 +21,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     useEffect(() => {
         let mounted = true;
         setBaseInfo(null);
+        setActiveForm(null);
+        setEvoChain([]);
         setFormData(null);
         setLoadError("");
         fetchCached(speciesUrl).then(async data => {
@@ -71,7 +73,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     }
                 }
                 
-                setFormData({ ...data, moves });
+                if (mounted) setFormData({ ...data, moves });
             }).catch(() => mounted && setLoadError("A Pokédex não conseguiu abrir esta forma agora. Tente novamente em instantes."));
         }
         return () => mounted = false;
@@ -117,7 +119,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             </div>
         </div>
     );
-    if (!baseInfo || !formData) return <div role="dialog" aria-modal="true" aria-label="Consultando a Pokédex" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"><div className="w-16 h-16 border-8 border-red-500 border-t-white rounded-full animate-spin shadow-lg"></div></div>;
+    if (!baseInfo || !formData) return <div role="dialog" aria-modal="true" aria-label="Consultando a Pokédex" className="fixed inset-0 z-50 flex flex-col gap-6 items-center justify-center bg-slate-900/60 backdrop-blur-sm"><button type="button" className="room-secondary-button" onClick={onClose}>Cancelar consulta</button><div className="w-16 h-16 border-8 border-red-500 border-t-white rounded-full animate-spin shadow-lg"></div></div>;
 
     const defenses = calculateDefenses(formData.types);
     const bst = formData.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
@@ -142,7 +144,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                             No. {String(baseInfo.id).padStart(4, "0")}
                         </span>
                         <h2 id="pokemon-modal-title" className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-5 tracking-tight leading-none drop-shadow-sm">
-                            {formatName(activeForm?.name?.split("-")[0] || baseInfo.name)}
+                            {formatName(baseInfo.name)}
                         </h2>
                         {activeForm?.name?.includes("-") && (
                             <span className="text-sm font-black text-red-500 capitalize block mt-2">
@@ -225,7 +227,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         
                         {["stats", "defenses", "moves"].map(t => (
                             <button 
-                                key={t} 
+                                key={t}
+                                aria-pressed={tab === t}
                                 onClick={(e) => { e.stopPropagation(); setTab(t); setIsExpanded(true); }} 
                                 className={"flex-1 pb-3 pt-2 md:py-5 px-1 text-[10px] sm:text-[11px] md:text-[12px] font-black uppercase tracking-wider transition-all outline-none text-center border-b-4 " + (tab === t ? "text-white bg-red-500 border-red-700 shadow-inner" : "text-slate-500 hover:text-slate-700 hover:bg-slate-300 border-transparent")}
                             >

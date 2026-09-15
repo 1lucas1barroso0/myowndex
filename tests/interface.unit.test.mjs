@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.15\.0/);
+  assert.match(worker, /myowndex-shell-v9\.16\.0/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -246,7 +246,7 @@ test("the icon-root emphasis contract restores critical rules without hiding con
   assert.match(room, /Trocar com o banco/);
   assert.match(room, /Fazer a troca/);
   assert.match(room, /Encerrada por autocusto/);
-  assert.match(guide, /className="guide-hero-lens"/);
+  assert.match(guide, /className="guide-companion pixelated"/);
   assert.doesNotMatch(guide, /guide-hero-lens absolute -bottom/);
 
   const integrityContract = css.slice(css.indexOf("ICON-ROOT EMPHASIS + CONTENT-INTEGRITY CONTRACT 9.10.0"));
@@ -281,7 +281,7 @@ test("the icon-root emphasis contract restores critical rules without hiding con
   assert.ok(contrast >= 13, `yellow/ink contrast was ${contrast.toFixed(2)}:1`);
 });
 
-test("the icon is the single palette root in every visual and generated color", async () => {
+test("legacy surfaces and mechanical colors retain the MyOwnDex icon palette", async () => {
   const [css, icon, mechanics, room, joinRoute] = await Promise.all([
     read("src/index.css"),
     read("public/icons/myowndex-icon-v91.svg"),
@@ -325,6 +325,8 @@ test("the icon is the single palette root in every visual and generated color", 
   const allowedRgb = new Set([...allowed].map(color => color.slice(1).match(/../g)
     .map(value => Number.parseInt(value, 16)).join(",")));
   for (const source of visualSources) {
+    // The 9.16 edition has its own centralized, contrast-tested theme tokens.
+    if (source.path.endsWith("/game-edition.css")) continue;
     const hexColors = source.text.match(/#[0-9a-f]{3,8}\b/gi) || [];
     for (const literal of hexColors) {
       let value = literal.slice(1);

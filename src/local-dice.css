@@ -10,8 +10,6 @@ html .game-edition .local-dice-panel h4 { font-size: 1.1rem; font-weight: 850; o
 html .game-edition .local-dice-panel small { font-size: .72rem; }
 html .game-edition .local-dice-heading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .8rem; align-items: center; margin-bottom: 1rem; }
 html .game-edition .local-dice-heading p { margin-top: .25rem; color: var(--ui-muted); font-size: .82rem; }
-html .game-edition .local-dice-source { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .7rem; border: 1px solid var(--ui-line); border-radius: 2rem; background: var(--ui-selected); color: var(--ui-blue); font-size: .7rem; font-weight: 850; white-space: nowrap; }
-html .game-edition .local-dice-source i { width: .5rem; height: .5rem; border-radius: 50%; background: var(--ui-blue); box-shadow: 0 0 0 .2rem var(--ui-panel); }
 html .game-edition .local-dice-controls { padding: clamp(.8rem,2.5cqw,1.15rem); border: 1px solid var(--ui-line); border-radius: .9rem; background: var(--ui-raised); }
 html .game-edition .local-dice-panel.is-compact .local-dice-controls { border-radius: .75rem; }
 html .game-edition .local-dice-panel fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
@@ -63,8 +61,6 @@ html .game-edition .local-dice-verdict > strong.is-failure { border-color: var(-
 html .game-edition .local-dice-verdict > strong small { margin-top: .15rem; color: var(--ui-muted); font-weight: 500; }
 html .game-edition .local-dice-config-note { display: block; color: var(--ui-muted); margin-top: .75rem; }
 html .game-edition .local-dice-result-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1rem; }
-html .game-edition .local-dice-receipt { border-top: 1px solid var(--ui-line); margin-top: .85rem; padding-top: .2rem; font-size: .73rem; color: var(--ui-muted); }
-html .game-edition .local-dice-receipt code { display: block; overflow-wrap: anywhere; margin: .3rem 0; }
 html .game-edition .local-dice-panel summary { cursor: pointer; padding: .65rem 0; min-height: 44px; }
 html .game-edition .local-dice-history { margin-top: 1rem; font-size: .8rem; border-top: 1px solid var(--ui-line); }
 html .game-edition .local-dice-history > summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; list-style: none; }
@@ -73,6 +69,8 @@ html .game-edition .local-dice-history > summary span { display: grid; font-weig
 html .game-edition .local-dice-history > summary small { color: var(--ui-muted); font-weight: 450; }
 html .game-edition .local-dice-history > summary b { padding: .2rem .55rem; border-radius: 2rem; background: var(--ui-raised); color: var(--ui-muted); font-variant-numeric: tabular-nums; }
 html .game-edition .local-dice-history > div > p { color: var(--ui-muted); margin: .4rem 0 .65rem; }
+html .game-edition .local-dice-history-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+html .game-edition .local-dice-history-actions .is-clear { color: var(--ui-accent); }
 html .game-edition .local-dice-history ol { list-style: none; padding: 0; margin-top: .7rem; max-height: 22rem; overflow-y: auto; overscroll-behavior: contain; }
 html .game-edition .local-dice-history li { padding: .45rem 0; border-top: 1px solid var(--ui-line); }
 html .game-edition .local-dice-history li button { display: flex; justify-content: space-between; gap: 1rem; width: 100%; text-align: left; background: var(--ui-panel); }

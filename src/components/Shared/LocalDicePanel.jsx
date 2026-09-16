@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { readStorage, writeStorage } from "../../core/storage.js";
-import { LOCAL_DICE_SIDES, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRolls, saveLocalRoll } from "../../core/localRolls.js";
+import { clearLocalRolls, LOCAL_DICE_SIDES, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRolls, saveLocalRoll } from "../../core/localRolls.js";
 
 const DEFAULTS = { kind:"attribute", mode:"normal", attribute:0, opposition:"", chance:50, quantity:1, sides:6, modifier:0, label:"" };
 const preferenceKey = "myowndex_local_dice_preferences_v1";
@@ -13,7 +13,7 @@ function Faces({ record }) {
         {record.values.map((value,index)=>{
             const matched=remaining.indexOf(value), kept=matched>=0;
             if(kept) remaining.splice(matched,1);
-            return <li key={index} className={kept ? "is-kept" : "is-discarded"}><b>{value}</b><small>{kept ? "Mantido" : "Descartado"}</small></li>;
+            return <li key={index} className={kept ? "is-kept" : "is-discarded"}><b>{value}</b>{!kept && <small>Descartado</small>}</li>;
         })}
     </ol>;
 }
@@ -33,7 +33,12 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
         const saved=readStorage(preferenceKey,null);
         if(saved) { try { setDraft({...DEFAULTS,...localRollSpec(saved)}); } catch { /* Invalid drafts cannot silently change a roll. */ } }
         const records=readLocalRolls(); setHistory(records); setResult(records.find(r=>!r.legacy) || null); setReady(true);
-        const sync=event=>{ if(event.key===null || event.key?.startsWith(LOCAL_ROLL_PREFIX)) setHistory(current=>mergeLocalRolls(current,readLocalRolls())); };
+        const sync=event=>{
+            if(event.key!==null && !event.key?.startsWith(LOCAL_ROLL_PREFIX) && event.key!=="myowndex_guide_roll_history_v1") return;
+            const next=readLocalRolls();
+            setHistory(next);
+            setResult(current=>current && next.some(entry=>entry.id===current.id) ? current : next.find(entry=>!entry.legacy) || null);
+        };
         window.addEventListener("storage",sync);
         return ()=>{ alive.current=false; clearTimeout(unlockTimer.current); window.removeEventListener("storage",sync); };
     },[]);
@@ -71,9 +76,14 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
             setFeedback("Histórico preparado para download.");
         } catch { setFeedback("O aparelho não permitiu baixar o histórico agora."); }
     };
+    const clearHistory=()=>{
+        if(!history.length || !window.confirm("Apagar o histórico de rolagens deste aparelho?")) return;
+        if(!clearLocalRolls()) { setFeedback("Não foi possível apagar o histórico neste aparelho."); return; }
+        setHistory([]); setResult(null); setFeedback("Histórico apagado.");
+    };
     const changed=result && !result.legacy && configuration.spec && JSON.stringify(result.spec)!==JSON.stringify(configuration.spec);
     return <section className={`local-dice-panel ${compact ? "is-compact" : "game-panel"}`} aria-label="Rolagens locais">
-        <header className="local-dice-heading"><div><span className="screen-eyebrow">Dados locais</span><h3>Rolagem rápida</h3><p>Escolha, role e veja o resultado.</p></div><span className="local-dice-source"><i aria-hidden="true" />Seguro e offline</span></header>
+        <header className="local-dice-heading"><div><span className="screen-eyebrow">Dados locais</span><h3>Rolagem rápida</h3><p>Escolha, role e veja o resultado.</p></div></header>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
             <fieldset disabled={busy}><legend className="sr-only">Configurar rolagem local</legend>
                 <span className="local-dice-group-label">Escolha os dados</span>
@@ -83,11 +93,11 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
                     {draft.kind==="attribute" && <><label>Atributo<input type="number" step="1" min="-99999" max="99999" value={draft.attribute} required onChange={e=>update("attribute",e.target.value)} /></label><label>Dificuldade <small>opcional</small><input type="number" step="1" min="-99999" max="99999" value={draft.opposition ?? ""} placeholder="Sem oposição" onChange={e=>update("opposition",e.target.value)} /></label></>}
                     {draft.kind==="percent" && <label className="local-dice-chance">Chance base (%)<input type="number" step="1" min="0" max="100" value={draft.chance} required onChange={e=>update("chance",e.target.value)} /><input aria-label="Ajustar chance percentual" type="range" min="0" max="100" value={draft.chance || 0} onChange={e=>update("chance",e.target.value)} /></label>}
                     {draft.kind==="free" && <><label>Quantidade<input type="number" step="1" min="1" max="20" value={draft.quantity} required onChange={e=>update("quantity",e.target.value)} /></label><label>Dado<select value={draft.sides} onChange={e=>update("sides",e.target.value)}>{LOCAL_DICE_SIDES.map(sides=><option key={sides} value={sides}>d{sides}</option>)}</select></label><label>Modificador<input type="number" step="1" min="-99999" max="99999" value={draft.modifier} required onChange={e=>update("modifier",e.target.value)} /></label></>}
-                    <label className="local-dice-label">Nome da ação <small>opcional</small><input maxLength={80} value={draft.label} placeholder="Ex.: procurar uma passagem" onChange={e=>update("label",e.target.value)} /></label>
+                    <label className="local-dice-label">Nome da ação <small>opcional</small><input maxLength={80} value={draft.label} placeholder="Atacar com Fire Blast" onChange={e=>update("label",e.target.value)} /></label>
                 </div>
                 <div className="local-dice-odds" aria-live="polite"><i aria-hidden="true">%</i><div>
                     {configuration.error ? configuration.error : <>
-                        {draft.kind==="attribute" && <><span>{configuration.odds.success!==null ? `Superar dificuldade: ${percentage(configuration.odds.success)}. ` : "2d6 + atributo. "}Crítico: {percentage(configuration.odds.critical)} · erro crítico: {percentage(configuration.odds.fumble)}.</span><small>{draft.mode==="normal" ? "Dois dados de seis faces." : draft.mode==="advantage" ? "Três dados; mantêm-se os dois maiores." : "Três dados; mantêm-se os dois menores."} Empate com a dificuldade não supera a oposição.</small></>}
+                        {draft.kind==="attribute" && <><span>{configuration.odds.success!==null ? `Superar dificuldade: ${percentage(configuration.odds.success)}. ` : "2d6 + atributo. "}Crítico: {percentage(configuration.odds.critical)} · erro crítico: {percentage(configuration.odds.fumble)}.</span><small>{draft.mode==="normal" ? "Dois dados de seis faces." : draft.mode==="advantage" ? "Três dados; mantêm-se os dois maiores." : "Três dados; mantêm-se os dois menores."} É preciso superar a dificuldade; empates falham.</small></>}
                         {draft.kind==="percent" && <><span>Chance efetiva de sucesso: <b>{percentage(configuration.odds.success)}</b></span><small>{draft.mode==="normal" ? "Rola de 1 a 100." : draft.mode==="advantage" ? "Vantagem · menor de dois d100." : "Desvantagem · maior de dois d100."} Sucesso quando o resultado é menor ou igual à chance base.</small></>}
                         {draft.kind==="free" && <span>Resultados possíveis: {configuration.odds.minimum} a {configuration.odds.maximum}. Cada dado é independente.</span>}
                     </>}
@@ -98,18 +108,17 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
         {error && <p className="local-dice-feedback is-error" role="alert">{error}</p>}
         {feedback && <p className="local-dice-feedback" role="status">{feedback}</p>}
         {result && !result.legacy && <article className="local-dice-result" key={result.id} aria-live="polite" aria-atomic="true">
-            <header><div><small>Resultado registrado · {kindLabel(result.spec)} · {LOCAL_ROLL_MODES[result.spec.mode]}</small><h4>{result.spec.label || "Rolagem local"}</h4></div><strong className="local-dice-total">{result.total}</strong></header>
+            <header><div><small>{kindLabel(result.spec)} · {LOCAL_ROLL_MODES[result.spec.mode]}</small><h4>{result.spec.label || "Rolagem local"}</h4></div><strong className="local-dice-total">{result.total}</strong></header>
             <Faces record={result} />
             <p className="local-dice-equation">{result.kept.join(" + ")}{(result.spec.attribute ?? result.spec.modifier ?? 0)!==0 && ` ${(result.spec.attribute ?? result.spec.modifier)<0 ? "−" : "+"} ${Math.abs(result.spec.attribute ?? result.spec.modifier)}`} = <b>{result.total}</b></p>
             <div className="local-dice-verdict">{result.critical && <b>Crítico</b>}{result.fumble && <b>Erro crítico</b>}{result.success!==null && <strong className={result.success ? "is-success" : "is-failure"}>{result.success ? "Sucesso" : "Falha"}<small>{result.spec.kind==="percent" ? `Chance base ${result.spec.chance}%` : `Dificuldade ${result.spec.opposition}${result.margin===0 ? " · empate" : ""}`}</small></strong>}</div>
             {result.suggestion && <p>Sugestão para o erro crítico: {result.suggestion}</p>}
             {changed && <small className="local-dice-config-note">Os controles mudaram. Este resultado mantém os parâmetros da rolagem registrada.</small>}
-            <div className="local-dice-result-actions"><button type="button" onClick={copy}>Copiar resultado</button><button type="button" disabled={busy} onClick={()=>setDraft({...DEFAULTS,...result.spec})}>Usar estes parâmetros</button></div>
-            <details className="local-dice-receipt"><summary>Detalhes e segurança</summary><p>{new Date(result.createdAt).toLocaleString("pt-BR")} · {result.context}</p><code>{result.id}</code><p>Web Crypto com rejeição de viés. O MyOwnDex nunca troca resultados para interromper uma sequência. A apresentação não sorteia valores extras.</p></details>
+            <div className="local-dice-result-actions"><button type="button" onClick={copy}>Copiar</button>{changed && <button type="button" disabled={busy} onClick={()=>setDraft({...DEFAULTS,...result.spec})}>Reutilizar</button>}</div>
         </article>}
         <details className="local-dice-history"><summary><span>Histórico local<small>Resultados deste aparelho</small></span><b>{history.length}/100</b></summary><div>
             <p>As últimas 100 rolagens locais ficam disponíveis aqui. Registros anteriores do Guia também são preservados.</p>
-            <button type="button" disabled={!history.length} onClick={download}>Baixar histórico (.txt)</button>
+            <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar .txt</button><button type="button" className="is-clear" disabled={!history.length} onClick={clearHistory}>Apagar histórico</button></div>
             {history.length ? <ol>{history.map(entry=><li key={entry.id}><button type="button" disabled={Boolean(entry.legacy)} onClick={()=>{setResult(entry);setFeedback("");}}><span>{entry.spec.label || kindLabel(entry.spec)} <small>{entry.context} · {new Date(entry.createdAt).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</small></span><b>{entry.total}</b></button><small>{entry.values.join(" • ")}{entry.legacy ? " · registro anterior" : ` · ${LOCAL_ROLL_MODES[entry.spec.mode]}`}</small></li>)}</ol> : <p>A primeira rolagem aparecerá aqui.</p>}
         </div></details>
     </section>;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { LOCAL_ROLL_LIMIT, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRolls, saveLocalRoll } from "../src/core/localRolls.js";
+import { clearLocalRolls, LOCAL_ROLL_LIMIT, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRolls, saveLocalRoll } from "../src/core/localRolls.js";
 import { rollAttributeTest } from "../src/core/rpgRules.js";
 
 class MemoryStorage {
@@ -141,4 +141,16 @@ test("history retains the newest hundred and exports full original parameters an
   assert.match(localRollText(records[0]),/chance 65% · Sucesso/);
   assert.match(localRollText(records[0]),/aventura · Rolagem local/);
   const event=localRollEvent(records[0]);assert.deepEqual(event.rolls,[70,30]);assert.equal(event.result,30);
+});
+
+test("clearing local roll history removes current and legacy receipts while preserving unrelated preferences", () => {
+  const storage=new MemoryStorage();
+  const record=performLocalRoll({}, {...options,random:faces([2,5])});
+  assert.equal(saveLocalRoll(record,storage),true);
+  storage.setItem("myowndex_guide_roll_history_v1","[]");
+  storage.setItem("myowndex_local_dice_preferences_v1","preferences");
+  assert.equal(clearLocalRolls(storage),true);
+  assert.deepEqual(readLocalRolls(storage),[]);
+  assert.equal(storage.getItem("myowndex_local_dice_preferences_v1"),"preferences");
+  assert.equal(clearLocalRolls(null),false);
 });

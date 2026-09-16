@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.16\.2/);
+  assert.match(worker, /myowndex-shell-v9\.16\.3/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -163,24 +163,26 @@ test("offline support caches the shell and sprites but never private room APIs",
   assert.match(app, /current\.update\(\)/);
 });
 
-test("local rolls expose their source, exact modes, receipts and preserved history", async () => {
+test("local rolls keep exact modes, a clean result and manageable local history", async () => {
   const [guide, panel, rolls] = await Promise.all([
     read("src/components/Guide/TrainerGuide.jsx"),
     read("src/components/Shared/LocalDicePanel.jsx"),
     read("src/core/localRolls.js"),
   ]);
   assert.match(guide, /<LocalDicePanel/);
-  assert.match(panel, /Seguro e offline/);
+  assert.doesNotMatch(panel, /Seguro e offline|Resultado registrado|Detalhes e segurança|>Mantido</);
+  assert.match(panel, /Atacar com Fire Blast/);
   assert.match(panel, /LOCAL_ROLL_MODES\[result\.spec\.mode\]/);
   assert.match(panel, /Vantagem · menor de dois d100/);
   assert.match(panel, /Desvantagem · maior de dois d100/);
   assert.match(panel, /Histórico local/);
   assert.match(rolls, /myowndex_guide_roll_history_v1/);
   assert.match(panel, /últimas 100 rolagens locais/);
-  assert.match(panel, /nunca troca resultados para interromper uma sequência/);
+  assert.match(panel, /Apagar histórico/);
+  assert.match(rolls, /clearLocalRolls/);
   assert.match(panel, /if\(lock\.current \|\| !ready/);
   assert.match(panel, /event\.repeat/);
-  assert.match(panel, /Baixar histórico/);
+  assert.match(panel, /Baixar \.txt/);
 });
 
 test("game style and adventure phase use compact tabs with complete help on demand", async () => {

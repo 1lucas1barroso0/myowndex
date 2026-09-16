@@ -120,6 +120,19 @@ export function saveLocalRoll(record, storage = browserStorage()) {
         return true;
     } catch { return false; }
 }
+export function clearLocalRolls(storage = browserStorage()) {
+    if (!storage) return false;
+    try {
+        const keys=[];
+        for(let i=0;i<storage.length;i++) {
+            const key=storage.key(i);
+            if(key?.startsWith(LOCAL_ROLL_PREFIX)) keys.push(key);
+        }
+        for(const key of keys) storage.removeItem(key);
+        storage.removeItem("myowndex_guide_roll_history_v1");
+        return true;
+    } catch { return false; }
+}
 export function localRollText(record) {
     if (record.legacy) return `${record.label}: ${record.values.join(" + ")} · ${record.detail}`;
     const { spec } = record;
@@ -128,7 +141,7 @@ export function localRollText(record) {
     const kind = spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.kind === "percent" ? "d100" : spec.mode === "normal" ? "2d6" : "3d6";
     const verdict = record.critical ? " · Crítico" : record.fumble ? " · Erro crítico" : "";
     const target = spec.kind === "percent" ? ` · chance ${spec.chance}%` : spec.opposition !== null && spec.opposition !== undefined ? ` · dificuldade ${spec.opposition} (é preciso superar)` : "";
-    return `${spec.label ? spec.label+" · " : ""}${kind} · ${LOCAL_ROLL_MODES[spec.mode]}\nDados: ${record.values.join(" • ")}\nMantidos: ${equation}${target}${record.success === null ? "" : record.success ? " · Sucesso" : " · Falha"}${verdict}${record.suggestion ? `\nSugestão: ${record.suggestion}` : ""}\n${new Date(record.createdAt).toISOString()} · ${record.id} · ${record.context} · Rolagem local`;
+    return `${spec.label ? spec.label+" · " : ""}${kind} · ${LOCAL_ROLL_MODES[spec.mode]}\nDados: ${record.values.join(" • ")}\nCálculo: ${equation}${target}${record.success === null ? "" : record.success ? " · Sucesso" : " · Falha"}${verdict}${record.suggestion ? `\nSugestão: ${record.suggestion}` : ""}\n${new Date(record.createdAt).toISOString()} · ${record.id} · ${record.context} · Rolagem local`;
 }
 export function localRollEvent(record) {
     const {spec}=record;

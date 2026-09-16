@@ -36,7 +36,7 @@ import {
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import { formatCount } from "../../core/copy.js";
 import { finiteNumber, integerInRange, quantizeStepDown } from "../../core/math.js";
-import { createRollRecord } from "../../core/rollHistory.js";
+import LocalDicePanel from "../Shared/LocalDicePanel.jsx";
 import {
     buildPlayerInvite,
     buildRoomInviteToken,
@@ -54,7 +54,7 @@ import {
     saveRemoteRoom,
     saveRoomSession,
 } from "../../core/roomClient.js";
-import { getFumbleSuggestion, getNextLevelXp, rollAttributeTest, rollPercentTest } from "../../core/rpgRules.js";
+import { getNextLevelXp } from "../../core/rpgRules.js";
 import { mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
 import { readStorage, removeStorage, writeStorage } from "../../core/storage.js";
 import { getBattleDisplayIdentity, normalizeSpecialState } from "../../core/specialMechanics.js";
@@ -262,78 +262,12 @@ function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
         rollInFlight.current = true;
         setBusy(true);
         try {
-            if (!local) {
-                const authoritative = await onAuthoritativeAction({
-                    action: kind === "attribute" ? "quick-attribute" : "quick-percent",
-                    mode,
-                    ...(kind === "attribute" ? { attribute } : { chance }),
-                });
-                setResult(authoritative.result);
-                return;
-            }
-            if (kind === "attribute") {
-                const test = rollAttributeTest({ mode, attribute });
-                const record = createRollRecord({
-                    kind: "attribute",
-                    mode: test.mode,
-                    label: mode === "advantage" ? "teste com vantagem" : mode === "disadvantage" ? "teste com desvantagem" : "teste de atributo",
-                    values: test.dice,
-                    kept: test.kept,
-                    result: test.total,
-                    detail: `Mantidos ${test.kept.join(" + ")} · total ${test.total}`,
-                    context: "aventura",
-                });
-                setResult({
-                    title: test.critical ? "Acerto crítico" : test.fumble ? "Erro crítico" : `Total ${test.total}`,
-                    detail: test.fumble
-                        ? getFumbleSuggestion()
-                        : `${test.dice.join(" • ")}${test.attribute ? ` + ${test.attribute}` : ""}`,
-                });
-                await onEvent("roll", {
-                    rollId: record?.id,
-                    rolledAt: record?.createdAt,
-                    label: record?.label,
-                    mode: test.mode,
-                    result: test.total,
-                    dice: test.dice,
-                    kept: test.kept,
-                    attribute: test.attribute,
-                    critical: test.critical,
-                    fumble: test.fumble,
-                });
-            } else {
-                const test = rollPercentTest({ chance, mode });
-                const record = createRollRecord({
-                    kind: "percent",
-                    mode: test.mode,
-                    label: test.advantage
-                        ? "teste percentual com vantagem"
-                        : test.disadvantage
-                            ? "teste percentual com desvantagem"
-                            : "teste percentual",
-                    values: test.rolls,
-                    kept: [test.result],
-                    result: test.result,
-                    chance: test.chance,
-                    success: test.success,
-                    detail: `${test.result} contra ${test.chance}%`,
-                    context: "aventura",
-                });
-                setResult({
-                    title: test.success ? "Sucesso" : "Falha",
-                    detail: `${test.rolls.join(" • ")} contra ${test.chance}%`,
-                });
-                await onEvent("roll", {
-                    rollId: record?.id,
-                    rolledAt: record?.createdAt,
-                    label: record?.label,
-                    mode: test.mode,
-                    result: test.result,
-                    rolls: test.rolls,
-                    chance: test.chance,
-                    success: test.success,
-                });
-            }
+            const authoritative = await onAuthoritativeAction({
+                action: kind === "attribute" ? "quick-attribute" : "quick-percent",
+                mode,
+                ...(kind === "attribute" ? { attribute } : { chance }),
+            });
+            setResult(authoritative.result);
         } catch (error) {
             onError(error);
         } finally {
@@ -341,6 +275,8 @@ function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
             setBusy(false);
         }
     };
+
+    if (local) return <LocalDicePanel context="aventura" compact onRoll={payload => onEvent("roll", payload)} />;
 
     return (
         <details className="room-tool" open>

@@ -34,8 +34,9 @@ test("remote Quick Roller and combat return before any local mechanical RNG", as
     read("src/components/Room/CombatAssistant.jsx"),
   ]);
   const quick = room.slice(room.indexOf("function QuickRoller"), room.indexOf("function NoteField"));
-  assert.ok(quick.indexOf("if (!local)") < quick.indexOf("rollAttributeTest({ mode, attribute })"));
-  assert.ok(quick.indexOf("if (!local)") < quick.indexOf("rollPercentTest({ chance, mode })"));
+  assert.match(quick, /if \(local\) return <LocalDicePanel context="aventura"/);
+  assert.match(quick, /await onAuthoritativeAction\(/);
+  assert.doesNotMatch(quick, /rollAttributeTest|rollPercentTest|performLocalRoll/);
   const resolve = combat.slice(combat.indexOf("const resolve = async"), combat.indexOf("const targetDescription"));
   assert.ok(resolve.indexOf("if (remote)") < resolve.indexOf("calculateMoveResolution({"));
   assert.ok(resolve.indexOf("if (remote)") < resolve.indexOf("applyMoveConsequences({"));

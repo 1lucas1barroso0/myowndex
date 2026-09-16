@@ -53,12 +53,17 @@ export const createSecureUint32Source = (cryptoSource, poolSize = DEFAULT_POOL_S
             throw new SecureRandomError();
         }
         if (index >= pool.length) {
-            pool = new Uint32Array(normalizedPoolSize);
+            // Publish a refill only after Crypto succeeds. A failed or partially
+            // filled buffer must never become the next request's entropy pool.
+            const refill = new Uint32Array(normalizedPoolSize);
             try {
-                source.getRandomValues(pool);
+                source.getRandomValues(refill);
             } catch (cause) {
+                pool = new Uint32Array(0);
+                index = 0;
                 throw new SecureRandomError("A fonte segura de aleatoriedade ficou indisponível. Nenhum resultado foi gerado.", { cause });
             }
+            pool = refill;
             index = 0;
         }
         return pool[index++];

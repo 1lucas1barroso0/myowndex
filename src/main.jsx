@@ -4,6 +4,7 @@ import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
 import './game-edition.css'
+import './local-dice.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -1,95 +1,24 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import { formatNumberPtBr } from "../../core/mechanics.js";
-import {
-    createRollRecord,
-    normalizeRollHistory,
-    prependRollHistory,
-} from "../../core/rollHistory.js";
-import { readStorage, writeStorage } from "../../core/storage.js";
+import LocalDicePanel from "../Shared/LocalDicePanel.jsx";
 import {
     EXPERIENCE_MODES,
-    getFumbleSuggestion,
     getDamageCeiling,
     getNextLevelXp,
     getRpgScale,
     RPG_RULE_SECTIONS,
-    rollAttributeTest,
-    rollPercentTest,
 } from "../../core/rpgRules.js";
-
-const DiceFaces = ({ values, kept = values }) => {
-    const remaining = [...kept];
-    return (
-        <div className="flex flex-wrap gap-2" aria-label={`Rolagem: ${values.join(", ")}`}>
-            {values.map((value, index) => {
-                const keptIndex = remaining.indexOf(value);
-                const isKept = keptIndex >= 0;
-                if (isKept) remaining.splice(keptIndex, 1);
-                return (
-                    <span
-                        key={`${value}-${index}`}
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl border-2 text-sm font-black shadow-[0_3px_0_#0E7490] ${isKept ? "border-slate-700 bg-white text-slate-800" : "border-slate-200 bg-slate-100 text-slate-400 opacity-60"}`}
-                    >
-                        {value}
-                    </span>
-                );
-            })}
-        </div>
-    );
-};
 
 const ToolLabel = ({ children }) => (
     <span className="mb-2 block text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{children}</span>
 );
 
-const ATTRIBUTE_MODE_LABELS = {
-    normal: "Normal",
-    advantage: "Vantagem",
-    disadvantage: "Desvantagem",
-};
-const PERCENT_MODE_LABELS = {
-    normal: "Normal",
-    advantage: "Vantagem",
-    disadvantage: "Desvantagem",
-};
-
-const ROLL_HISTORY_KEY = "myowndex_guide_roll_history_v1";
-
 export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
-    const [testMode, setTestMode] = useState("normal");
-    const [attribute, setAttribute] = useState(0);
-    const [opposition, setOpposition] = useState("");
-    const [attributeResult, setAttributeResult] = useState(null);
-    const [chance, setChance] = useState(30);
-    const [percentMode, setPercentMode] = useState("normal");
-    const [percentResult, setPercentResult] = useState(null);
-    const [rollError, setRollError] = useState("");
-    const [rollHistory, setRollHistory] = useState([]);
-    const [rollHistoryBooted, setRollHistoryBooted] = useState(false);
-    const [rollingKind, setRollingKind] = useState("");
-    const rollSequence = useRef(0);
-    const rollLock = useRef(false);
-    const rollUnlockTimer = useRef(null);
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
-
-    useEffect(() => {
-        const saved = normalizeRollHistory(readStorage(ROLL_HISTORY_KEY, []));
-        setRollHistory(saved);
-        rollSequence.current = saved.reduce((highest, entry) => Math.max(highest, entry.sequence), 0);
-        setRollHistoryBooted(true);
-    }, []);
-
-    useEffect(() => {
-        if (rollHistoryBooted) writeStorage(ROLL_HISTORY_KEY, rollHistory);
-    }, [rollHistory, rollHistoryBooted]);
-
-    useEffect(() => () => {
-        if (rollUnlockTimer.current) clearTimeout(rollUnlockTimer.current);
-    }, []);
 
     const visibleSections = useMemo(() => {
         const normalized = query.trim().toLowerCase();
@@ -107,79 +36,6 @@ export default function TrainerGuide({ experienceMode }) {
         );
     }, [query]);
 
-    const rememberRoll = entry => {
-        rollSequence.current += 1;
-        const record = createRollRecord(entry, { sequence: rollSequence.current });
-        if (!record) return;
-        setRollHistory(current => prependRollHistory(current, record, {
-            id: record.id,
-            sequence: record.sequence,
-            createdAt: record.createdAt,
-        }));
-    };
-
-    const beginRoll = kind => {
-        if (rollLock.current) return false;
-        rollLock.current = true;
-        setRollingKind(kind);
-        rollUnlockTimer.current = setTimeout(() => {
-            rollLock.current = false;
-            setRollingKind("");
-            rollUnlockTimer.current = null;
-        }, 350);
-        return true;
-    };
-
-    const runAttributeTest = () => {
-        if (!beginRoll("attribute")) return;
-        try {
-            const result = rollAttributeTest({ mode: testMode, attribute, opposition });
-            setAttributeResult(result.fumble ? { ...result, fumbleSuggestion: getFumbleSuggestion() } : result);
-            rememberRoll({
-                kind: "attribute",
-                label: `Teste de atributo · ${ATTRIBUTE_MODE_LABELS[result.mode]}`,
-                mode: result.mode,
-                values: result.dice,
-                kept: result.kept,
-                result: result.total,
-                success: result.success,
-                detail: `Mantidos ${result.kept.join(" + ")} · total ${result.total}`,
-                context: "guia",
-            });
-            setRollError("");
-        } catch (error) {
-            setAttributeResult(null);
-            setRollError(error instanceof Error ? error.message : "A rolagem segura não pôde ser concluída.");
-        }
-    };
-
-    const runPercentTest = () => {
-        if (!beginRoll("percent")) return;
-        try {
-            const result = rollPercentTest({
-                chance,
-                mode: percentMode,
-            });
-            setPercentResult(result);
-            rememberRoll({
-                kind: "percent",
-                label: `Teste percentual · ${PERCENT_MODE_LABELS[result.mode]}`,
-                mode: result.mode,
-                values: result.rolls,
-                kept: [result.result],
-                result: result.result,
-                chance: result.chance,
-                success: result.success,
-                detail: `${result.result} contra ${result.chance}% · ${result.success ? "sucesso" : "falha"}`,
-                context: "guia",
-            });
-            setRollError("");
-        } catch (error) {
-            setPercentResult(null);
-            setRollError(error instanceof Error ? error.message : "A rolagem segura não pôde ser concluída.");
-        }
-    };
-
     return (
         <div className="trainer-guide animate-fade-in text-slate-800">
             <section className="rotom-hero relative overflow-hidden rounded-[1.75rem] border-4 border-slate-800 p-5 shadow-[0_8px_0_#075985] sm:p-7">
@@ -195,131 +51,7 @@ export default function TrainerGuide({ experienceMode }) {
 
             <section className="guide-layout mt-7 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
                 <div className="space-y-5">
-                    <article className="game-panel p-4 sm:p-6">
-                        <div className="mb-5 flex flex-col justify-between gap-3 border-b-2 border-slate-200 pb-4 sm:flex-row sm:items-end">
-                            <div>
-                                <span className="text-[9px] font-black uppercase tracking-[0.22em] text-red-500">Laboratório Rotom</span>
-                                <h3 className="mt-1 text-xl font-black text-slate-800">Rolagens rápidas</h3>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-full border-2 border-cyan-200 bg-cyan-50 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-cyan-800">Sorteio seguro ativo</span>
-                                <span className="text-[10px] font-bold text-slate-500">Estas rolagens ficam somente neste aparelho.</span>
-                            </div>
-                        </div>
-                        {rollError && (
-                            <p role="alert" className="mb-5 rounded-xl border-2 border-blue-200 bg-blue-50 px-4 py-3 text-[10px] font-bold leading-5 text-blue-800">
-                                {rollError} Tente novamente em um navegador atualizado.
-                            </p>
-                        )}
-
-                        <div className="guide-tool-grid grid gap-5 lg:grid-cols-2">
-                            <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm">
-                                <ToolLabel>Teste de atributo</ToolLabel>
-                                <div className="guide-choice-grid grid grid-cols-3 gap-2">
-                                    {[
-                                        ["normal", "Normal"],
-                                        ["advantage", "Vantagem"],
-                                        ["disadvantage", "Desvantagem"]
-                                    ].map(([value, label]) => (
-                                        <button
-                                            key={value}
-                                            type="button"
-                                            aria-pressed={testMode === value}
-                                            onClick={() => setTestMode(value)}
-                                            className={`rounded-xl border-2 px-2 py-2 text-[9px] font-black uppercase transition-colors ${testMode === value ? "border-red-600 bg-red-500 text-white" : "border-slate-200 bg-slate-50 text-slate-500 hover:border-red-300"}`}
-                                        >
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="guide-input-grid mt-3 grid grid-cols-2 gap-3">
-                                    <label>
-                                        <ToolLabel>Atributo</ToolLabel>
-                                        <input type="number" min="-20" max="99" step="1" value={attribute} onChange={event => setAttribute(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
-                                    </label>
-                                    <label>
-                                        <ToolLabel>Dificuldade</ToolLabel>
-                                        <input type="number" min="-20" max="99999" step="1" value={opposition} placeholder="Opcional" onChange={event => setOpposition(event.target.value)} className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black outline-none focus:border-red-400" />
-                                    </label>
-                                </div>
-                                <button type="button" disabled={Boolean(rollingKind)} aria-busy={rollingKind === "attribute"} onClick={runAttributeTest} className="game-button mt-4 w-full bg-red-500 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white">{rollingKind === "attribute" ? "Rolando…" : "Rolar teste"}</button>
-                                {attributeResult && (
-                                    <div className="mt-5 rounded-2xl border-2 border-slate-200 bg-slate-50 p-4" aria-live="polite">
-                                        <DiceFaces values={attributeResult.dice} kept={attributeResult.kept} />
-                                        <p className="mt-3 text-[9px] font-black uppercase tracking-wider text-cyan-800">
-                                            {ATTRIBUTE_MODE_LABELS[attributeResult.mode]} · dados mantidos {attributeResult.kept.join(" + ")}
-                                        </p>
-                                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                                            <span className="text-xs font-bold text-slate-500">Total <strong className="text-xl text-slate-800">{attributeResult.total}</strong></span>
-                                            {attributeResult.critical && <span className="rounded-full bg-emerald-100 px-3 py-1 text-[9px] font-black uppercase text-emerald-700">Crítico</span>}
-                                            {attributeResult.fumble && <span className="rounded-full bg-red-100 px-3 py-1 text-[9px] font-black uppercase text-red-700">Erro crítico</span>}
-                                            {attributeResult.success === true && <span className="rounded-full bg-blue-100 px-3 py-1 text-[9px] font-black uppercase text-blue-700">Superou por {attributeResult.margin}</span>}
-                                            {attributeResult.success === false && <span className="rounded-full bg-amber-100 px-3 py-1 text-[9px] font-black uppercase text-amber-700">Defesa venceu</span>}
-                                        </div>
-                                        {attributeResult.fumbleSuggestion && <p className="mt-3 rounded-xl bg-red-100 p-3 text-[10px] font-bold leading-5 text-red-800">Sugestão para o erro crítico: {attributeResult.fumbleSuggestion}</p>}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm">
-                                <ToolLabel>Teste percentual</ToolLabel>
-                                <label>
-                                    <span className="sr-only">Chance percentual</span>
-                                    <div className="guide-percent-control flex items-center gap-3">
-                                        <input type="range" min="0" max="100" value={chance} onChange={event => setChance(event.target.value)} />
-                                        <input type="number" min="0" max="100" value={chance} onChange={event => setChance(event.target.value)} className="w-16 rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-2 text-center text-sm font-black outline-none focus:border-blue-400" />
-                                    </div>
-                                </label>
-                                <div className="guide-choice-grid mt-4 grid grid-cols-3 gap-2" aria-label="Modo do teste percentual">
-                                    {Object.entries(PERCENT_MODE_LABELS).map(([value, label]) => (
-                                        <button
-                                            key={value}
-                                            type="button"
-                                            aria-pressed={percentMode === value}
-                                            onClick={() => setPercentMode(value)}
-                                            className={`rounded-xl border-2 px-2 py-2 text-[9px] font-black uppercase transition-colors ${percentMode === value ? "border-blue-600 bg-blue-500 text-white" : "border-slate-200 bg-slate-50 text-slate-500 hover:border-blue-300"}`}
-                                        >
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-                                <p className="mt-2 text-[9px] font-bold text-slate-400">Vantagem mantém o menor de dois d100; desvantagem mantém o maior.</p>
-                                <button type="button" disabled={Boolean(rollingKind)} aria-busy={rollingKind === "percent"} onClick={runPercentTest} className="game-button mt-4 w-full bg-blue-500 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white">{rollingKind === "percent" ? "Rolando…" : "Rolar d100"}</button>
-                                {percentResult && (
-                                    <div className={`mt-5 rounded-2xl border-2 p-4 ${percentResult.success ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`} aria-live="polite">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{percentResult.rolls.join(" • ")}</p>
-                                        <p className="mt-1 text-[9px] font-black uppercase tracking-wider text-cyan-800">{percentResult.advantage ? "Vantagem · menor de dois" : percentResult.disadvantage ? "Desvantagem · maior de dois" : "Rolagem normal"}</p>
-                                        <p className={`mt-1 text-2xl font-black ${percentResult.success ? "text-emerald-700" : "text-red-700"}`}>{percentResult.success ? "Sucesso" : "Falha"} — {percentResult.result}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <details className="mt-5 rounded-2xl border-2 border-cyan-200 bg-cyan-50">
-                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-[10px] font-black text-slate-700">
-                                <span>Conferir sequência deste aparelho</span>
-                                <span className="rounded-full bg-slate-800 px-2.5 py-1 text-[9px] text-cyan-200">{rollHistory.length}</span>
-                            </summary>
-                            <div className="border-t-2 border-cyan-100 px-4 py-3">
-                                <p className="text-[10px] font-bold leading-5 text-slate-600">As últimas 30 rolagens ficam salvas neste aparelho, com os valores brutos e o modo usado. O MyOwnDex nunca troca resultados para interromper uma sequência.</p>
-                                {rollHistory.length ? (
-                                    <ol className="mt-3 space-y-2">
-                                        {rollHistory.map(entry => (
-                                            <li key={entry.id} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2">
-                                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                                    <span className="text-[9px] font-black text-slate-600">#{entry.sequence} · {entry.label}</span>
-                                                    <strong className="text-xs text-slate-800">{entry.values.join(" • ")}</strong>
-                                                </div>
-                                                <small className="mt-1 block text-[9px] font-bold text-slate-500">{entry.detail}</small>
-                                            </li>
-                                        ))}
-                                    </ol>
-                                ) : (
-                                    <p className="mt-3 text-[10px] font-bold text-slate-500">A primeira rolagem aparecerá aqui.</p>
-                                )}
-                            </div>
-                        </details>
-                    </article>
+                    <LocalDicePanel />
 
                     <article className="game-panel p-4 sm:p-6">
                         <div className="mb-4">

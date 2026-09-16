@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.16\.0/);
+  assert.match(worker, /myowndex-shell-v9\.16\.1/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -163,15 +163,24 @@ test("offline support caches the shell and sprites but never private room APIs",
   assert.match(app, /current\.update\(\)/);
 });
 
-test("Guide rolls expose their secure source, selected mode and local sequence", async () => {
-  const guide = await read("src/components/Guide/TrainerGuide.jsx");
-  assert.match(guide, /Sorteio seguro ativo/);
-  assert.match(guide, /ATTRIBUTE_MODE_LABELS\[attributeResult\.mode\]/);
-  assert.match(guide, /percentResult\.advantage \? "Vantagem · menor de dois" : percentResult\.disadvantage \? "Desvantagem · maior de dois" : "Rolagem normal"/);
-  assert.match(guide, /Conferir sequência deste aparelho/);
-  assert.match(guide, /myowndex_guide_roll_history_v1/);
-  assert.match(guide, /últimas 30 rolagens ficam salvas neste aparelho/);
-  assert.match(guide, /nunca troca resultados para interromper uma sequência/);
+test("local rolls expose their source, exact modes, receipts and preserved history", async () => {
+  const [guide, panel, rolls] = await Promise.all([
+    read("src/components/Guide/TrainerGuide.jsx"),
+    read("src/components/Shared/LocalDicePanel.jsx"),
+    read("src/core/localRolls.js"),
+  ]);
+  assert.match(guide, /<LocalDicePanel/);
+  assert.match(panel, /Web Crypto local/);
+  assert.match(panel, /LOCAL_ROLL_MODES\[result\.spec\.mode\]/);
+  assert.match(panel, /Vantagem · menor de dois d100/);
+  assert.match(panel, /Desvantagem · maior de dois d100/);
+  assert.match(panel, /Conferir sequência deste aparelho/);
+  assert.match(rolls, /myowndex_guide_roll_history_v1/);
+  assert.match(panel, /últimas 100 rolagens locais/);
+  assert.match(panel, /nunca troca resultados para interromper uma sequência/);
+  assert.match(panel, /if\(lock\.current \|\| !ready/);
+  assert.match(panel, /event\.repeat/);
+  assert.match(panel, /Baixar histórico/);
 });
 
 test("game style and adventure phase use compact tabs with complete help on demand", async () => {
@@ -546,9 +555,10 @@ test("Abilities and held items expose official context, lifecycle, narrative and
 });
 
 test("the internal Guide is the canonical source and explains hit kill protection", async () => {
-  const [guide, rules] = await Promise.all([
+  const [guide, rules, localPanel] = await Promise.all([
     read("src/components/Guide/TrainerGuide.jsx"),
     read("src/core/rpgRules.js"),
+    read("src/components/Shared/LocalDicePanel.jsx"),
   ]);
   assert.doesNotMatch(guide, /target="_blank"/);
   assert.match(guide, /Todas as regras necessárias para jogar estão reunidas aqui/);
@@ -560,6 +570,6 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(rules, /Somente dano realmente causado conta/);
   assert.match(rules, /reduz o próprio HP/);
   assert.match(rules, /Acertos críticos superam o limite de dano/);
-  assert.match(guide, /rollLock\.current/);
-  assert.match(guide, /entry\.id/);
+  assert.match(localPanel, /lock\.current/);
+  assert.match(localPanel, /entry\.id/);
 });

@@ -161,3 +161,31 @@ test("production source contains no Math.random downgrade", async () => {
   }
   assert.deepEqual(offenders, []);
 });
+
+test("a failed initial Web Crypto fill cannot expose zeroes or partially written values on retry", () => {
+  let fills=0;
+  const source=createSecureUint32Source({getRandomValues(values) {
+    fills++;
+    values[0]=77;
+    if(fills<3) throw new Error("temporary entropy failure");
+    values.fill(42);
+    return values;
+  }},8);
+  assert.throws(()=>source(),SecureRandomError);
+  assert.throws(()=>source(),SecureRandomError);
+  assert.equal(fills,2,"every failed request must attempt a new secure fill");
+  assert.equal(source(),42);assert.equal(source(),42);assert.equal(fills,3);
+});
+
+test("a failed exhausted-pool refill fails closed repeatedly and recovers with fresh entropy", () => {
+  let fills=0;
+  const source=createSecureUint32Source({getRandomValues(values) {
+    fills++;
+    if(fills===2 || fills===3) { values[0]=99;throw new Error("refill failed"); }
+    values.fill(fills===1?17:31);
+    return values;
+  }},8);
+  assert.deepEqual(Array.from({length:8},()=>source()),Array(8).fill(17));
+  assert.throws(()=>source(),SecureRandomError);assert.throws(()=>source(),SecureRandomError);
+  assert.equal(source(),31);assert.equal(fills,4);
+});

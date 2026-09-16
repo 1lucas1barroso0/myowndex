@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.16\.1/);
+  assert.match(worker, /myowndex-shell-v9\.16\.2/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -170,11 +170,11 @@ test("local rolls expose their source, exact modes, receipts and preserved histo
     read("src/core/localRolls.js"),
   ]);
   assert.match(guide, /<LocalDicePanel/);
-  assert.match(panel, /Web Crypto local/);
+  assert.match(panel, /Seguro e offline/);
   assert.match(panel, /LOCAL_ROLL_MODES\[result\.spec\.mode\]/);
   assert.match(panel, /Vantagem · menor de dois d100/);
   assert.match(panel, /Desvantagem · maior de dois d100/);
-  assert.match(panel, /Conferir sequência deste aparelho/);
+  assert.match(panel, /Histórico local/);
   assert.match(rolls, /myowndex_guide_roll_history_v1/);
   assert.match(panel, /últimas 100 rolagens locais/);
   assert.match(panel, /nunca troca resultados para interromper uma sequência/);

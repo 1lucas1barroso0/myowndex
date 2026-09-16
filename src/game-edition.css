@@ -155,10 +155,16 @@ html .game-edition .pc-box-button.is-selected { border-color: var(--ui-blue) !im
 html .game-edition :is(.pc-create-box-button, .pc-import-button, .pc-action-button, .pc-add-partner) { color: var(--ui-blue) !important; background: var(--ui-raised) !important; border-color: var(--ui-line) !important; box-shadow: none !important; border-radius: .65rem !important; font-size: .8rem !important; letter-spacing: 0 !important; text-transform: none !important; }
 html .game-edition .pc-action-button.is-delete { color: #b92845 !important; }
 html[data-theme="night"] .game-edition .pc-action-button.is-delete { color: #ffa3b3 !important; }
+html .game-edition .pc-box-button.is-selected :is(span, strong) { color: var(--ui-blue) !important; opacity: 1 !important; }
+html .game-edition :is(.pc-create-box-button, .pc-import-button, .pc-action-button:not(.is-delete), .pc-add-partner) :is(span, strong) { color: var(--ui-blue) !important; }
+html .game-edition .pc-action-button.is-delete :is(span, strong) { color: #b92845 !important; }
+html[data-theme="night"] .game-edition .pc-action-button.is-delete :is(span, strong) { color: #ffa3b3 !important; }
 html .game-edition .pc-toolbar { border-bottom: 1px solid var(--ui-line) !important; }
 html .game-edition .pc-box-name { font-size: 1.8rem !important; letter-spacing: -.04em !important; }
 html .game-edition .pc-partner-card { border: 1px solid var(--ui-line) !important; box-shadow: 0 3px 0 var(--ui-line) !important; border-radius: .85rem !important; background: var(--ui-raised) !important; min-height: 112px !important; }
 html .game-edition .pc-partner-card.is-selected { background: var(--ui-selected) !important; border-color: var(--ui-blue) !important; }
+html .game-edition .pc-partner-card.is-selected .pc-partner-name { color: var(--ui-ink) !important; }
+html .game-edition .pc-partner-card.is-selected .pc-partner-meta { color: var(--ui-muted) !important; }
 html .game-edition .pc-partner-sprite { width: 70px !important; height: 70px !important; border: 0 !important; background: var(--ui-panel) !important; box-shadow: none !important; }
 html .game-edition .pc-partner-name { font-size: .95rem !important; }
 html .game-edition .pc-partner-meta { font-size: .72rem !important; color: var(--ui-muted) !important; }

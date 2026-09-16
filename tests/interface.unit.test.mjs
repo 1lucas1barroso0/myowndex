@@ -151,7 +151,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.16\.4/);
+  assert.match(worker, /myowndex-shell-v9\.16\.5/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
@@ -371,6 +371,22 @@ test("legacy surfaces and mechanical colors retain the MyOwnDex icon palette", a
   for (const pair of [["#0F172A", "#ECFEFF"], ["#ECFEFF", "#B91C1C"], ["#67E8F9", "#0F172A"], ["#0F172A", "#FDE047"]]) {
     assert.ok(contrast(...pair) >= 4.5, `contraste insuficiente: ${pair.join(" / ")}`);
   }
+});
+
+test("light PC controls keep readable labels in selected and action states", async () => {
+  const [room, css, main, globals] = await Promise.all([
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/game-edition.css"),
+    read("src/main.jsx"),
+    read("app/globals.css"),
+  ]);
+  assert.match(room, /Suas Boxes ficam salvas neste aparelho/);
+  assert.match(room, /sincroniza as mudanças de todos/);
+  assert.match(css, /\.pc-box-button\.is-selected :is\(span, strong\)[^{]*\{[^}]*color: var\(--ui-blue\) !important/);
+  assert.match(css, /\.pc-action-button:not\(\.is-delete\)[^}]*:is\(span, strong\)[^{]*\{[^}]*color: var\(--ui-blue\) !important/);
+  assert.match(css, /\.pc-partner-card\.is-selected \.pc-partner-name[^}]*color: var\(--ui-ink\) !important/);
+  assert.ok(main.indexOf("./game-edition.css") > main.indexOf("./index.css"));
+  assert.ok(globals.indexOf("../src/game-edition.css") > globals.indexOf("../src/index.css"));
 });
 
 test("Link Cable previews selective imports and Adventure invitations open in one step", async () => {

@@ -243,7 +243,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                 </span>
                 <b>Neste aparelho</b>
             </button>
-            <p className="room-lobby-footnote">Suas Boxes continuam salvas neste aparelho. Em aventuras compartilhadas, o MyOwnDex mantém as mudanças de todos em ordem, mesmo quando acontecem juntas.</p>
+            <p className="room-lobby-footnote">Suas Boxes ficam salvas neste aparelho. Nas aventuras compartilhadas, o MyOwnDex sincroniza as mudanças de todos, mesmo quando várias acontecem ao mesmo tempo.</p>
         </div>
     );
 }

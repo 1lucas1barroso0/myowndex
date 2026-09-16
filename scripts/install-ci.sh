@@ -23,6 +23,10 @@ command -v sha256sum >/dev/null || {
   echo "install-ci.sh requires sha256sum for cache and install verification." >&2
   exit 69
 }
+command -v tee >/dev/null || {
+  echo "install-ci.sh requires tee for resumable install logs." >&2
+  exit 69
+}
 
 runtime_root="${SITES_PROJECT_ROOT}/.sites-runtime"
 expected_home="${runtime_root}/home"
@@ -129,7 +133,9 @@ NODE
     --location \
     --silent \
     --show-error \
-    --retry 0 \
+    --retry 3 \
+    --retry-all-errors \
+    --retry-delay 2 \
     --connect-timeout 15 \
     --max-time 120 \
     --output "${preflight_tarball}" \
@@ -154,19 +160,53 @@ NODE
   echo "[sites] network and integrity preflight passed"
 fi
 
-echo "[sites] running exactly one bounded npm ci"
+install_attempts="${SITES_INSTALL_ATTEMPTS:-3}"
+if [[ ! "${install_attempts}" =~ ^[1-5]$ ]]; then
+  echo "SITES_INSTALL_ATTEMPTS must be between 1 and 5." >&2
+  exit 64
+fi
+
+echo "[sites] running bounded npm ci with up to ${install_attempts} attempts for transient network failures"
 export NPM_CONFIG_MAXSOCKETS=1
-export NPM_CONFIG_FETCH_RETRIES=0
-export NPM_CONFIG_FETCH_TIMEOUT=30000
+export NPM_CONFIG_FETCH_RETRIES=2
+export NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=1000
+export NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=10000
+export NPM_CONFIG_FETCH_TIMEOUT=60000
 npm_ci_args=(ci --cache "${expected_cache}")
 if [[ "${use_seeded_cache}" == "1" ]]; then
   npm_ci_args+=(--prefer-offline)
 fi
-timeout \
-  --signal=TERM \
-  --kill-after="${SITES_INSTALL_KILL_AFTER:-15s}" \
-  "${SITES_INSTALL_TIMEOUT:-8m}" \
-  npm "${npm_ci_args[@]}"
+npm_attempt_log="${runtime_root}/npm-ci-attempt.log"
+npm_status=1
+for ((attempt=1; attempt<=install_attempts; attempt++)); do
+  echo "[sites] npm ci attempt ${attempt}/${install_attempts}"
+  set +e
+  timeout \
+    --signal=TERM \
+    --kill-after="${SITES_INSTALL_KILL_AFTER:-15s}" \
+    "${SITES_INSTALL_TIMEOUT:-8m}" \
+    npm "${npm_ci_args[@]}" 2>&1 | tee "${npm_attempt_log}"
+  pipeline_status=("${PIPESTATUS[@]}")
+  set -e
+  npm_status="${pipeline_status[0]}"
+  if [[ "${npm_status}" == "0" ]]; then
+    break
+  fi
+  if [[ "${attempt}" == "${install_attempts}" ]]; then
+    break
+  fi
+  if [[ "${npm_status}" != "124" && "${npm_status}" != "137" && "${npm_status}" != "143" ]] \
+    && ! grep -Eqi 'FETCH_ERROR|ETIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENETUNREACH|socket hang up|network timeout' "${npm_attempt_log}"; then
+    echo "[sites] npm ci failed for a non-network reason; it will not be repeated." >&2
+    exit "${npm_status}"
+  fi
+  echo "[sites] temporary network failure; keeping the npm cache and retrying shortly"
+  sleep "$((attempt * 2))"
+done
+if [[ "${npm_status}" != "0" ]]; then
+  echo "[sites] npm ci could not finish after ${install_attempts} attempts. The checkout and cache were preserved; run the installer again when the connection is stable." >&2
+  exit "${npm_status}"
+fi
 
 vinext="${SITES_PROJECT_ROOT}/node_modules/.bin/vinext"
 if [[ ! -x "${vinext}" ]]; then

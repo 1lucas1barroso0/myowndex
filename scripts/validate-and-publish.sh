@@ -39,16 +39,16 @@ if ! git merge-base --is-ancestor origin/main HEAD; then
   exit 65
 fi
 printf '\n==> Publicando por fast-forward, sem force-push\n'
-git push origin HEAD:refs/heads/codex/local-dice-9.16.3
+git push origin HEAD:refs/heads/codex/local-dice-9.16.4
 git push origin HEAD:refs/heads/main
 printf '\n==> Conferindo a atualização em produção\n'
 verified=0
 for attempt in {1..30}; do
-  if curl --fail --silent --show-error --connect-timeout 10 --max-time 20 --header 'Cache-Control: no-cache' "https://myowndex.vercel.app/sw.js?release=9.16.3" | grep -q 'myowndex-shell-v9.16.3'; then verified=1; break; fi
+  if curl --fail --silent --show-error --connect-timeout 10 --max-time 20 --header 'Cache-Control: no-cache' "https://myowndex.vercel.app/sw.js?release=9.16.4" | grep -q 'myowndex-shell-v9.16.4'; then verified=1; break; fi
   sleep 5
 done
 if [[ "$verified" != 1 ]]; then
-  echo 'GitHub atualizado, mas a versão 9.16.3 ainda não foi confirmada no domínio de produção.' >&2
+  echo 'GitHub atualizado, mas a versão 9.16.4 ainda não foi confirmada no domínio de produção.' >&2
   echo 'Seu código está salvo. Confira a publicação no painel de hospedagem.' >&2
   exit 75
 fi

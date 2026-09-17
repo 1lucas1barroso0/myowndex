@@ -176,7 +176,9 @@ export function createInitialRoomState(title: string) {
     sceneNotes: "",
     gmNotes: "",
     tokens: [],
+    benchTokens: [],
     initiative: [],
+    trainerInterventions: [],
     audio: {
       trackId: null,
       title: "",

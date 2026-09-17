@@ -86,7 +86,7 @@ test("server mapping preserves d100 normal, advantage and disadvantage", () => {
 test("critical and fumble flags plus the fumble choice are produced on the server", () => {
   const critical = quick({ action: "quick-attribute", mode: "normal", attribute: 0 }, [5, 5]);
   assert.equal(critical.audit.critical, true);
-  assert.equal(critical.result.title, "Acerto crítico");
+  assert.equal(critical.result.title, "Crítico potencial");
 
   const fumble = quick({ action: "quick-attribute", mode: "normal", attribute: 0 }, [0, 0, 2]);
   assert.equal(fumble.audit.fumble, true);
@@ -183,7 +183,7 @@ const ember = {
 test("initiative, combat consequences and round transitions are calculated from canonical state", () => {
   const room = battleRoom();
   const initiativeRequest = normalizeAuthoritativeRequest({ requestId, action: "initiative", expectedRevision: 7 });
-  const formed = resolveAuthoritativeAction({ request: initiativeRequest, snapshot: room, role: "narrator", random: uint32Source([0, 0, 1, 1]) });
+  const formed = resolveAuthoritativeAction({ request: initiativeRequest, snapshot: room, role: "narrator", random: uint32Source([0, 0, 1, 1, 0, 5]) });
   assert.equal(formed.nextSnapshot.initiative.length, 2);
   assert.equal(formed.audit.type, "initiative");
   assert.equal(formed.audit.rawDice.length, 2);

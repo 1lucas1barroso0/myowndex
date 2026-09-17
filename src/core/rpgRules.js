@@ -67,7 +67,7 @@ export const RPG_RULE_SECTIONS = [
                 id: "1.3",
                 title: "Acertos e erros críticos",
                 bullets: [
-                    "Acerto crítico: obtenha 6 e 6 nos dados mantidos; o resultado funciona como um golpe crítico dos jogos.",
+                    "Dois 6 nos dados mantidos indicam um crítico potencial. Ele só se torna um acerto crítico se o ataque superar a defesa e alcançar o alvo; não transforma empate, erro ou imunidade em sucesso.",
                     "Acertos críticos superam o limite de dano por nível e a proteção contra hit kill.",
                     "Erro crítico: obtenha 1 e 1 nos dados mantidos; o MyOwnDex sugere uma consequência, e Narrador e jogadores escolhem a que respeita melhor a cena.",
                     "Quando o defensor obtém um erro crítico em uma disputa vencida pelo atacante, o dano também pode atravessar a proteção contra hit kill.",
@@ -112,7 +112,9 @@ export const RPG_RULE_SECTIONS = [
                 title: "Experiência e evolução",
                 bullets: [
                     "Para alcançar o próximo nível, acumule XP igual à metade desse novo nível. A contagem volta a zero depois do avanço.",
-                    "Em batalhas com vários aliados, divida a XP proporcionalmente. Todo Pokémon que entrou em campo recebe pelo menos 1 XP."
+                    "Por desafio resolvido, cada participante recebe 1 XP em um desafio comum, 2 XP em um desafio importante ou 3 XP em uma grande conquista. A categoria é definida pelo Narrador conforme risco e impacto, não pelo número de ataques ou nocautes.",
+                    "Vitória, captura, negociação, resgate e descoberta podem resolver o mesmo desafio: conceda a recompensa uma única vez. Ações triviais, repetidas ou sem risco não geram XP.",
+                    "A divisão padrão é igual entre os participantes. Uma divisão proporcional diferente deve ser combinada antes da recompensa; todo Pokémon que entrou em campo recebe pelo menos 1 XP. Meio ponto de XP é válido."
                 ]
             }
         ]
@@ -126,7 +128,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.1",
                 title: "Ordem dos turnos",
-                body: "No início de cada rodada, todos testam Velocidade. Movimentos com prioridade são resolvidos primeiro; empates de iniciativa usam uma rolagem rápida de desempate."
+                body: "No início de cada rodada, declare os movimentos e depois teste Velocidade com 2d6. Resolva primeiro a prioridade do movimento e depois o total de Velocidade. Empatados rolam 1d6; somente quem continuar empatado repete até definir a ordem. Nenhum identificador interno decide a vez."
             },
             {
                 id: "3.2",
@@ -166,12 +168,22 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.5",
                 title: "Regras herdadas dos jogos",
-                body: "Tipos, STAB, imunidades, condições, golpes de múltiplos acertos, recuo, drenagem e outras regras mantêm sua intenção original, adaptadas apenas à escala e à narrativa."
+                body: "Tipos, STAB, imunidades, condições, recuo e drenagem mantêm sua intenção original, com as adaptações explícitas deste Guia. Para os movimentos comuns de 2 a 5 acertos, o RPG usa a distribuição moderna: 35% para 2, 35% para 3, 15% para 4 e 15% para 5. Skill Link garante o máximo; Loaded Dice dá 4 ou 5 com chances iguais nesses movimentos. Contagens fixas e movimentos de regra própria não são convertidos nessa tabela. O jogo de referência escolhe o repertório; não muda silenciosamente as regras do RPG."
             },
             {
                 id: "3.6",
                 title: "Posicionamento e espaço",
                 body: "O jogo não exige um tabuleiro quadriculado. As distâncias são narrativas: Perto, Longe e Muito Longe. Área, alcance, cenário e Velocidade são interpretados conforme a cena. Na Central da Aventura, uma equipe entra com o Pokémon escolhido e mantém os demais no banco; a troca preserva HP, condição, PP, itens consumidos e o histórico da proteção contra hit kill."
+            },
+            {
+                id: "3.7",
+                title: "Ações, trocas e reações",
+                bullets: [
+                    "Cada Pokémon ativo tem uma ação principal por rodada: usar um movimento, realizar um improviso importante ou ceder sua ação para uma troca voluntária. O Pokémon que entra pela troca não recebe uma ação extra nessa rodada; a reposição após nocaute não gasta a ação da rodada seguinte.",
+                    "Movimentar-se dentro da mesma faixa de distância acompanha a ação quando a cena permite. Cruzar uma faixa sob oposição ou obter uma posição decisiva pode exigir a ação principal e um teste; Velocidade, terreno e alcance fundamentam a decisão, sem metragem obrigatória.",
+                    "Reações precisam de uma permissão de movimento, habilidade, item ou situação. A rolagem defensiva normal já integra a disputa: não é uma ação extra e não é cobrada duas vezes.",
+                    "O Narrador controla a economia de ações e registra exceções no Diário. Movimentos que concedem outra ação, trocam o usuário ou alteram a ordem mantêm suas próprias permissões."
+                ]
             }
         ]
     },
@@ -189,14 +201,20 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "4.2",
                 title: "Capturas",
-                body: "Role 1d100 contra a chance dinâmica da fórmula dos jogos, considerando a Poké Ball escolhida, o HP restante e as condições do alvo."
+                body: "O Narrador confirma que o alvo é selvagem, está consciente e pode ser capturado. Uma tentativa gasta a intervenção do Treinador e a Poké Ball, mesmo se falhar; nunca ocupa a ação do Pokémon. O assistente usa uma adaptação explícita para d100, não uma reprodução de todas as fórmulas de cada geração.",
+                bullets: [
+                    "Chance = 100 × taxa da espécie ÷ 255 × (3 × HP máximo − 2 × HP atual) ÷ (3 × HP máximo) × bônus da Ball × bônus da condição. Arredonde para baixo, entre 1% e 100% para uma taxa positiva. Taxa 0 não permite captura comum.",
+                    "Poké Ball, Premier Ball, Luxury Ball e Heal Ball: ×1; Great Ball: ×1,5; Ultra Ball: ×2. Sono ou congelamento: ×2,5; queimadura, paralisia ou veneno: ×1,5. Master Ball dispensa a chance, mas não permite capturar Pokémon de outro Treinador.",
+                    "A taxa vem da Pokédex; HP e condição vêm da cena. O d100 deve ser igual ou menor que a chance. Captura não recebe a vantagem da disputa de ataque.",
+                    "Balls e modificadores especiais não listados são resolvidos pelo Narrador com sua descrição e registrados como exceção, nunca tratados silenciosamente como uma Poké Ball comum. Uma captura confirmada fica no Diário; registre o novo parceiro no PC e ajuste o inventário."
+                ]
             },
             {
                 id: "4.3",
                 title: "PP e Cura",
                 bullets: [
-                    "Os PP originais são mantidos por toda a sessão ou capítulo e só são restaurados ao fim do período mais longo.",
-                    "Curar HP, restaurar PP ou acessar o PC exige um lugar seguro na narrativa, como um Centro Pokémon ou refúgio equivalente."
+                    "HP, PP e condições persistem entre cenas e sessões. Encerrar uma sessão ou capítulo não restaura recursos automaticamente.",
+                    "Descanso seguro, Centro Pokémon ou refúgio equivalente permitem a recuperação definida pelo Narrador e o acesso ao PC. Movimentos, habilidades e itens de cura continuam funcionando durante a aventura ou batalha conforme suas regras e custos; não exigem um Centro Pokémon."
                 ]
             },
             {
@@ -251,7 +269,15 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.1",
                 title: "Condições principais",
-                body: "Queimadura, congelamento, paralisia, envenenamento, envenenamento grave e sono mantêm a intenção dos jogos. Marque uma condição por vez na ficha; imunidades, habilidades e efeitos que a removem continuam valendo."
+                body: "Marque apenas uma condição principal. O RPG usa as referências modernas abaixo, respeitando imunidades, habilidades e cura. A verificação ocorre uma vez antes da ação, não uma vez por alvo nem por hit. Se a condição impedir a ação, o turno é gasto, mas não há gasto de PP.",
+                bullets: [
+                    "Queimadura: metade do dano físico, salvo Guts ou Facade; perde 1/16 do HP máximo ao fim da rodada, respeitando o piso de dano positivo.",
+                    "Paralisia: metade da Velocidade, salvo Quick Feet; antes de agir, 25% de chance de perder a ação. A condição não se cura sozinha.",
+                    "Sono: dura de 1 a 3 oportunidades de agir, sorteadas uma vez. Depois disso, acorda antes da próxima ação. Trocar preserva a contagem. Early Bird reduz a duração; Snore e Sleep Talk mantêm a permissão de agir dormindo.",
+                    "Congelamento: antes da ação, 20% de chance de descongelar e agir. Movimentos que descongelam o próprio usuário dispensam esse teste. Dano de Fogo e movimentos com efeito próprio de descongelar também removem a condição.",
+                    "Veneno: perde 1/8 do HP máximo ao fim da rodada. Envenenamento grave: começa em 1/16 e aumenta em 1/16 por rodada, até 15/16; trocar reinicia o contador, não cura a condição.",
+                    "Confusão e hesitação são efeitos voláteis, separados da condição principal. Confusão afeta de 1 a 4 oportunidades de agir (Axe Kick: 2 a 4); em cada uma, há 33% de chance de perder a ação e causar a si mesmo 2 HP de dano, a adaptação do poder 40 ÷20 do RPG, sem STAB, tipo, crítico ou disputa. Hesitação impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra ambas."
+                ]
             },
             {
                 id: "6.2",
@@ -304,7 +330,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.6",
                 title: "Ordem de resolução conectada",
-                body: "Verifique restrições do usuário, alvo, precisão e imunidades; resolva a disputa; aplique poder situacional, STAB, tipo, clima, terreno, habilidade e item; depois trate sobrevivência, dano, efeitos secundários, contato, consumo, cura, nocaute e histórico. Shield Dust, Covert Cloak e Sheer Force só alteram efeitos secundários, sem apagar efeitos principais ou custos próprios."
+                body: "Verifique restrições, condições do usuário e alvo. Nos movimentos de dano, resolva a disputa para conhecer a margem; depois role a precisão com a vantagem cabível e aplique imunidades. Combine poder, STAB, tipo, clima, terreno, habilidade e item; trate sobrevivência, dano, efeitos secundários, contato, consumo, cura, nocaute e histórico. Um crítico potencial só se aplica se houver acerto. Shield Dust, Covert Cloak e Sheer Force só alteram efeitos secundários, sem apagar efeitos principais ou custos próprios."
             }
         ]
     },
@@ -329,7 +355,7 @@ export const RPG_RULE_SECTIONS = [
                 title: "Como resolver uma exceção",
                 bullets: [
                     "Primeiro, confira a descrição do movimento, habilidade, item ou forma.",
-                    "Depois, aplique imunidades, alterações de atributo, precisão, disputa, dano, limites e consequências uma única vez e nessa ordem.",
+                    "Depois, siga a ordem da regra 7.6: restrições e condições, alvo, disputa quando houver, precisão, imunidades, dano, limites e consequências, uma única vez.",
                     "Se ainda houver dúvida, escolha a solução que preserva a intenção da regra, a clareza para todos e o movimento da aventura."
                 ]
             },
@@ -337,6 +363,11 @@ export const RPG_RULE_SECTIONS = [
                 id: "8.4",
                 title: "A regra de ouro",
                 body: "A precisão dos jogos com o coração das grandes aventuras Pokémon. Use terreno, improvisos, defesas criativas e combinações inesperadas. A matemática sustenta a aventura; ela não limita a imaginação do grupo."
+            },
+            {
+                id: "8.5",
+                title: "Testes do Treinador",
+                body: "Só role diante de incerteza e risco relevantes. Declare intenção, oposição e consequências antes dos dados. O Treinador rola 2d6, sem inventar atributos de Pokémon para si; especialidade coerente com sua origem, preparação ou ajuda útil pode conceder vantagem, e um obstáculo relevante pode conceder desvantagem. Várias fontes não empilham dados; vantagem e desvantagem simultâneas se anulam. Contra dificuldade fixa, o total também precisa superá-la. Use 5 para um teste favorável, 7 para exigente e 9 para muito difícil como referências, ajustadas antes da rolagem. Ações impossíveis pedem outra abordagem; ações triviais não pedem dados."
             }
         ]
     }

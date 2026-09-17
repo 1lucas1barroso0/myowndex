@@ -369,6 +369,7 @@ export const getDamageTraitModifiers = ({ attacker, defender, move, effectivenes
     }
     if (["huge-power", "pure-power"].includes(ability) && damageClass === "physical") addModifier(entries, "ability", ability, 2, "Golpe físico fortalecido");
     if (ability === "guts" && attacker?.status && damageClass === "physical") addModifier(entries, "ability", ability, 1.5, "Condição ativou Guts");
+    if (attacker?.status === "burn" && damageClass === "physical" && ability !== "guts" && traitSlug(move?.name) !== "facade") addModifier(entries, "condition", "burn", 0.5, "Queimadura reduziu o dano físico");
     if (ability === "technician" && power > 0 && power <= 60) addModifier(entries, "ability", ability, 1.5, "Poder base até 60");
     if (ability === "strong-jaw" && moveHasTrait(move, "bite")) addModifier(entries, "ability", ability, 1.5, "Movimento de mordida");
     if (ability === "iron-fist" && moveHasTrait(move, "punch")) addModifier(entries, "ability", ability, 1.2, "Movimento de soco");
@@ -467,6 +468,7 @@ export const getInitiativeTraitState = (token, { weather = "limpo", round = 0 } 
     if (ability === "sand-rush" && weather === "areia") addModifier(entries, "ability", ability, 2, "Areia ativou Sand Rush");
     if (ability === "slush-rush" && weather === "neve") addModifier(entries, "ability", ability, 2, "Neve ativou Slush Rush");
     if (ability === "quick-feet" && token?.status) addModifier(entries, "ability", ability, 1.5, "Condição ativou Quick Feet");
+    if (token?.status === "paralysis" && ability !== "quick-feet") addModifier(entries, "condition", "paralysis", 0.5, "Paralisia reduziu a Velocidade");
     if (ability === "unburden" && state.item.consumed) addModifier(entries, "ability", ability, 2, "Item perdido ativou Unburden");
     if (ability === "slow-start" && Math.max(0, asNumber(round) - asNumber(token?.enteredRound, round)) < 5) {
         addModifier(entries, "ability", ability, 0.5, "Slow Start ainda está ativo");

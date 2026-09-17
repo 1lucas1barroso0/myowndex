@@ -139,7 +139,7 @@ export function localRollText(record) {
     const modifier = spec.attribute ?? spec.modifier ?? 0;
     const equation = `${record.kept.join(" + ")}${modifier ? modifier < 0 ? ` − ${Math.abs(modifier)}` : ` + ${modifier}` : ""} = ${record.total}`;
     const kind = spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.kind === "percent" ? "d100" : spec.mode === "normal" ? "2d6" : "3d6";
-    const verdict = record.critical ? " · Crítico" : record.fumble ? " · Erro crítico" : "";
+    const verdict = record.critical ? " · Crítico potencial" : record.fumble ? " · Erro crítico" : "";
     const target = spec.kind === "percent" ? ` · chance ${spec.chance}%` : spec.opposition !== null && spec.opposition !== undefined ? ` · dificuldade ${spec.opposition} (é preciso superar)` : "";
     return `${spec.label ? spec.label+" · " : ""}${kind} · ${LOCAL_ROLL_MODES[spec.mode]}\nDados: ${record.values.join(" • ")}\nCálculo: ${equation}${target}${record.success === null ? "" : record.success ? " · Sucesso" : " · Falha"}${verdict}${record.suggestion ? `\nSugestão: ${record.suggestion}` : ""}\n${new Date(record.createdAt).toISOString()} · ${record.id} · ${record.context} · Rolagem local`;
 }

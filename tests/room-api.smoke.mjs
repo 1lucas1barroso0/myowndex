@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 const baseUrl = process.env.MYOWNDEX_SMOKE_URL;
 if (!baseUrl) throw new Error("MYOWNDEX_SMOKE_URL is required.");
 
-const request = async (path, { key = "", body, protocol = "2", ...options } = {}) => {
+const request = async (path, { key = "", body, protocol = "3", ...options } = {}) => {
   const headers = new Headers(options.headers || {});
   headers.set("accept", "application/json");
   if (protocol) headers.set("x-myowndex-room-protocol", protocol);
@@ -32,7 +32,7 @@ try {
       protocol: "",
       body: { title: "Cliente antigo", narratorName: "PWA antigo", snapshot: {} },
     }),
-    error => error.status === 426 && error.data.upgradeRequired === true && error.data.protocol === "2",
+    error => error.status === 426 && error.data.upgradeRequired === true && error.data.protocol === "3",
   );
 
   const created = await request("/api/rooms", {

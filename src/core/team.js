@@ -48,6 +48,7 @@ export const normalizeRpgData = (value = {}) => {
         xp: normalizeOptionalNumber(source.xp, 0, 999999, 0.5) ?? 0,
         currentHp: normalizeOptionalNumber(source.currentHp, 0, 99999, 1),
         status: RPG_STATUSES.includes(status) ? status : "",
+        sleepTurns: status === "sleep" && source.sleepTurns != null ? clampInteger(source.sleepTurns, 0, 3, 0) : null,
         caughtWith: asText(source.caughtWith).slice(0, 80),
         originalTrainer: asText(source.originalTrainer).slice(0, 120),
         notes: asText(source.notes).slice(0, 2000),

@@ -61,6 +61,7 @@ import { getBattleDisplayIdentity, normalizeSpecialState } from "../../core/spec
 import AudioDeck from "./AudioDeck.jsx";
 import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
+import CaptureAssistant from "./CaptureAssistant.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
 import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
 import VoiceCall from "./VoiceCall.jsx";
@@ -706,7 +707,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             await saveQueueRef.current;
             pending = authoritativeRequestsRef.current.get(requestKey);
             if (!pending) {
-                const needsRevision = ["initiative", "advance-turn", "combat"].includes(input.action);
+                const needsRevision = ["initiative", "advance-turn", "combat", "capture"].includes(input.action);
                 pending = {
                     requestId: createRoomActionRequestId(),
                     ...(needsRevision ? { expectedRevision: revisionRef.current } : {}),
@@ -1681,6 +1682,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         onEvent={sendEvent}
                         onError={showError}
                     />
+                    <CaptureAssistant role={role} snapshot={snapshot} remote={!session.local} onAuthoritativeAction={requestAuthoritativeAction} onSnapshotChange={commitSnapshot} onEvent={sendEvent} onError={showError} />
                     <AudioDeck
                         session={session}
                         role={role}

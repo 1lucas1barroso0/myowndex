@@ -4,9 +4,9 @@ import test from "node:test";
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("every shared room mutation carries protocol 2 and authoritative requests retry idempotently", async () => {
+test("every shared room mutation carries protocol 3 and authoritative requests retry idempotently", async () => {
   const client = await read("src/core/roomClient.js");
-  assert.match(client, /ROOM_PROTOCOL_VERSION = "2"/);
+  assert.match(client, /ROOM_PROTOCOL_VERSION = "3"/);
   assert.match(client, /headers\.set\("x-myowndex-room-protocol", ROOM_PROTOCOL_VERSION\)/);
   assert.match(client, /SAFE_REQUEST_METHODS\.has\(method\) \|\| idempotent \? 3 : 1/);
   assert.match(client, /requestRemoteRoomAction[\s\S]*?idempotent: true/);
@@ -38,8 +38,10 @@ test("remote Quick Roller and combat return before any local mechanical RNG", as
   assert.match(quick, /await onAuthoritativeAction\(/);
   assert.doesNotMatch(quick, /rollAttributeTest|rollPercentTest|performLocalRoll/);
   const resolve = combat.slice(combat.indexOf("const resolve = async"), combat.indexOf("const targetDescription"));
-  assert.ok(resolve.indexOf("if (remote)") < resolve.indexOf("calculateMoveResolution({"));
-  assert.ok(resolve.indexOf("if (remote)") < resolve.indexOf("applyMoveConsequences({"));
+  const localCall = resolve.indexOf("resolveCombatAction({");
+  assert.ok(localCall > resolve.indexOf("if (remote)"));
+  assert.match(resolve.slice(resolve.indexOf("if (remote)"), localCall), /return;/);
+  assert.doesNotMatch(resolve, /calculateMoveResolution|applyMoveConsequences/);
   assert.match(resolve, /resolveInFlight\.current/);
 });
 

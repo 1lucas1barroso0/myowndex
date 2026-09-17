@@ -41,7 +41,7 @@ import {
     stageMultiplier,
 } from "./automation.js";
 import { getDamageCeiling, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
-import { randomChance, randomChoice, randomInt, randomUnit, rollD6 } from "./random.js";
+import { randomChance, randomChoice, randomInt, randomUnit, rollD6, SecureRandomError } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 import {
     applyBattleIllusion,
@@ -148,6 +148,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     tokens: [],
     benchTokens: [],
     initiative: [],
+    trainerInterventions: [],
     hitKillProtectionUsed: [],
     hitKillProtectionDisabled: [],
     hitKillSurvivalGrace: [],
@@ -202,6 +203,9 @@ export const normalizeRoomToken = value => {
         maxHp,
         currentHp: integerInRange(source.currentHp, 0, maxHp, maxHp),
         status: Object.prototype.hasOwnProperty.call(STATUS_LABELS, source.status) ? source.status : "",
+        sleepTurns: source.status === "sleep" && source.sleepTurns != null ? integerInRange(source.sleepTurns, 0, 3, 0) : null,
+        lastActionRound: integerInRange(source.lastActionRound, 0, 9999, 0),
+        captured: Boolean(source.captured),
         level: integerInRange(source.level, 1, 200, 5),
         enteredRound: integerInRange(source.enteredRound, 1, 9999, 1),
         xp: quantizeStepDown(source.xp, 0.5, { minimum: 0, maximum: 999999, fallback: 0 }),
@@ -270,6 +274,7 @@ export const normalizeRoomSnapshot = value => {
         tokens: resolvedTokens,
         benchTokens,
         initiative,
+        trainerInterventions: asArray(source.trainerInterventions).slice(0, 40).filter(entry => entry && typeof entry.trainerKey === "string").map(entry => ({ trainerKey: entry.trainerKey.slice(0, 100), round: integerInRange(entry.round, 1, 9999, 1) })),
         hitKillProtectionUsed: normalizeHitKillProtectionUsage(source.hitKillProtectionUsed),
         hitKillProtectionDisabled: normalizeHitKillProtectionUsage(source.hitKillProtectionDisabled),
         hitKillSurvivalGrace: normalizeHitKillProtectionUsage(source.hitKillSurvivalGrace),
@@ -302,6 +307,7 @@ export const changeRoomPhase = (snapshot, nextPhase) => {
     return normalizeRoomSnapshot({
         ...room,
         phase,
+        trainerInterventions: phase === "batalha" ? [] : room.trainerInterventions,
         hitKillProtectionUsed: phase === "batalha"
             ? []
             : room.hitKillProtectionUsed,
@@ -435,6 +441,7 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
         maxHp,
         currentHp,
         status: pokemon?.rpg?.status || "",
+        sleepTurns: pokemon?.rpg?.sleepTurns ?? null,
         level: pokemon?.level,
         xp: pokemon?.rpg?.xp || 0,
         types: pokemon?.customTypes?.length
@@ -650,6 +657,7 @@ const prepareTokenForSwitch = tokenInput => {
         declaredMove: "",
         priority: 0,
         volatileEffects: [],
+        toxicCounter: token.status === "bad-poison" ? 1 : 0,
         stages,
         traitState: {
             ...traitState,
@@ -692,6 +700,7 @@ export const swapTeamPokemonInSnapshot = (snapshot, outgoingTokenId, incomingTok
         y: outgoing.y,
         ownerPlayerId: outgoing.ownerPlayerId,
         enteredRound: room.round,
+        lastActionRound: room.phase === "batalha" && outgoing.currentHp > 0 ? room.round : incoming.lastActionRound,
     };
     const tokens = room.tokens.map((token, index) => index === outgoingIndex ? entered : token);
     const benchTokens = room.benchTokens.map((token, index) => index === incomingIndex ? benched : token);
@@ -742,6 +751,7 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 ...partner.rpg,
                 currentHp: token.currentHp,
                 status: token.status,
+                sleepTurns: token.sleepTurns,
                 xp: token.xp,
                 pp: synchronizedPp,
             };
@@ -751,6 +761,7 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 integerInRange(partner.level, 1, 200, 1) === token.level
                 && partner.rpg?.currentHp === token.currentHp
                 && (partner.rpg?.status || "") === token.status
+                && (partner.rpg?.sleepTurns ?? null) === token.sleepTurns
                 && clampFinite(partner.rpg?.xp, 0, 999999, 0) === token.xp
                 && JSON.stringify(partner.rpg?.pp || []) === JSON.stringify(synchronizedPp || [])
                 && JSON.stringify(partner.moves || []) === JSON.stringify(moves || [])
@@ -877,6 +888,11 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                         sources: ["bocejo"],
                     });
                 }
+                return;
+            }
+
+            if (effect.id === "confusion") {
+                volatileEffects.push(effect); // Counts attempts to act, not round endings.
                 return;
             }
 
@@ -1331,6 +1347,7 @@ export const buildInitiative = (snapshot, random) => {
             total: test.total,
             dice: test.kept,
             tieBreak: null,
+            tieBreakRolls: [],
             traitState,
         };
     });
@@ -1341,14 +1358,27 @@ export const buildInitiative = (snapshot, random) => {
         group.push(result);
         tiedResults.set(key, group);
     });
-    tiedResults.forEach(group => {
-        if (group.length > 1) group.forEach(result => { result.tieBreak = rollD6(random); });
-    });
+    const breakTies = (group, depth = 0) => {
+        if (group.length < 2) return group;
+        // A broken source must fail closed, never fall back to an ID or insertion order.
+        if (depth >= 64) throw new SecureRandomError("Não foi possível desempatar a iniciativa. Nenhuma ordem foi aplicada.");
+        const buckets = new Map();
+        group.forEach(result => {
+            const die = rollD6(random);
+            result.tieBreakRolls.push(die);
+            if (result.tieBreak === null) result.tieBreak = die;
+            const bucket = buckets.get(die) || [];
+            bucket.push(result);
+            buckets.set(die, bucket);
+        });
+        return [...buckets.keys()].sort((a, b) => b - a).flatMap(die => breakTies(buckets.get(die), depth + 1));
+    };
+    const ranked = [...tiedResults.values()].flatMap(group => breakTies(group));
+    const tieRanks = new Map(ranked.map((result, index) => [result.tokenId, index]));
     results.sort((first, second) =>
         second.priority - first.priority
         || second.total - first.total
-        || (second.tieBreak || 0) - (first.tieBreak || 0)
-        || first.tokenId.localeCompare(second.tokenId)
+        || tieRanks.get(first.tokenId) - tieRanks.get(second.tokenId)
     );
     return {
         room: {
@@ -1459,7 +1489,10 @@ export const calculateMoveResolution = ({
     const minimumHits = multiHitTraits.minimumHits;
     const maximumHits = multiHitTraits.maximumHits;
     const hitCount = damageHit && maximumHits > 1
-        ? minimumHits + randomInt(maximumHits - minimumHits + 1, random)
+        ? minimumHits === maximumHits ? minimumHits
+            : minimumHits === 2 && maximumHits === 5
+                ? [2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5][randomInt(20, random)]
+                : minimumHits + randomInt(maximumHits - minimumHits + 1, random)
         : 1;
     const moveName = normalizeSlug(move?.name);
     const fixedDamage = (() => {
@@ -1526,6 +1559,7 @@ export const calculateMoveResolution = ({
         attackKey,
         defenseKey,
         attackTest,
+        criticalHit: damageHit && Boolean(attackTest?.critical),
         defenseTest,
         attackerStagesIgnored,
         defenderStagesIgnored,

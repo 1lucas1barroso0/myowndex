@@ -12,6 +12,8 @@ import {
 } from "./math.js";
 import { RPG_STATUS_LABELS } from "./copy.js";
 import { rollPercentTest } from "./rpgRules.js";
+import { randomInt } from "./random.js";
+import { sleepDuration, THAW_TARGET_MOVES } from "./battleConditions.js";
 import {
     copyObservedMove,
     getMoveSpecialProfile,
@@ -984,6 +986,7 @@ export const applyMoveConsequences = ({
                 replaceEntity(statusTarget.id, {
                     ...statusTarget,
                     status,
+                    sleepTurns: status === "sleep" ? sleepDuration(random, isAbilityActive(statusTarget) ? normalizeSlug(statusTarget.ability) : "", moveName === "rest") : null,
                     toxicCounter: status === "bad-poison" ? 1 : statusTarget.toxicCounter,
                 });
             }
@@ -991,6 +994,27 @@ export const applyMoveConsequences = ({
     }
 
     let trackedEffect = "";
+    if (damage > 0 && target?.status === "freeze" && (move?.type?.name === "fire" || THAW_TARGET_MOVES.has(moveName))) {
+        replaceEntity(target.id, { ...target, status: "", sleepTurns: null });
+    }
+    if (moveConnected && target && !substituteBlockedTarget && !targetSecondariesBlocked) {
+        const ability = isAbilityActive(target) ? normalizeSlug(target.ability) : "";
+        const effects = normalizeVolatileEffects(target.volatileEffects);
+        const isConfusion = normalizeSlug(move?.meta?.ailment?.name) === "confusion";
+        if (isConfusion && ability !== "own-tempo" && !effects.some(effect => effect.id === "confusion") && !(resolution.terrain === "nevoa" && !target.types?.includes("flying") && ability !== "levitate")) {
+            const chance = moveEffectChance(move, "ailment_chance", move?.damage_class?.name === "status");
+            if (chanceResult(chance, random, effectAdvantage).success) {
+                effects.push({ id: "confusion", sourceMove: moveName, turns: moveName === "axe-kick" ? 2 + randomInt(3, random) : 1 + randomInt(4, random) });
+                trackedEffect = "confusion";
+            }
+        }
+        const flinchChance = asNumber(move?.meta?.flinch_chance);
+        if (flinchChance > 0 && target.lastActionRound !== round && ability !== "inner-focus" && chanceResult(flinchChance, random, effectAdvantage).success) {
+            effects.push({ id: "flinch", sourceMove: moveName, turns: 1 });
+            trackedEffect = trackedEffect ? `${trackedEffect}, flinch` : "flinch";
+        }
+        replaceEntity(target.id, { ...target, volatileEffects: effects });
+    }
     if (moveConnected && moveName === "yawn" && statusTarget) {
         blockedStatus = statusTarget.status
             ? `${statusTarget.name} já possui uma condição principal`

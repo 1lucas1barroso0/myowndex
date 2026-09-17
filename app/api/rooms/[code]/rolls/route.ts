@@ -109,6 +109,22 @@ const snapshotWithServerPriorities = async (snapshot: Record<string, unknown>) =
   return applyAuthoritativeMovePriorities(snapshot, priorities);
 };
 
+const fetchCaptureSpecies = async (snapshot: Record<string, unknown>, targetId: string) => {
+  const tokens = Array.isArray(snapshot.tokens) ? snapshot.tokens : [];
+  const target = tokens.find(token => token?.id === targetId);
+  if (!target?.speciesName && !target?.speciesId) throw new AuthoritativeActionError("A espécie do alvo não foi confirmada.", 409);
+  const load = async (endpoint: string, name: string) => {
+    const response = await fetch(`https://pokeapi.co/api/v2/${endpoint}/${encodeURIComponent(name)}`, {
+      headers: { accept: "application/json" }, signal: AbortSignal.timeout(12000),
+    });
+    if (!response.ok) throw new AuthoritativeActionError("A Pokédex não confirmou a taxa de captura. Tente novamente.", 502);
+    return await response.json() as { species?: { name?: string }; capture_rate?: number };
+  };
+  const pokemon = await load("pokemon", String(target.speciesName || target.speciesId));
+  if (!pokemon.species?.name) throw new AuthoritativeActionError("A Pokédex não identificou a espécie.", 502);
+  return load("pokemon-species", pokemon.species.name);
+};
+
 export async function POST(request: Request, context: RouteContext) {
   const protocolError = requireCurrentRoomProtocol(request);
   if (protocolError) return protocolError;
@@ -121,6 +137,7 @@ export async function POST(request: Request, context: RouteContext) {
 
     const input = await request.json().catch(() => null);
     const normalized = normalizeAuthoritativeRequest(input);
+    if (normalized.action === "capture" && auth.role !== "narrator") throw new AuthoritativeActionError("Só o Narrador confirma uma captura na cena.", 403);
     const actorKey = auth.role === "narrator" ? "narrator" : auth.playerId || "player";
     const fingerprintPayload = requestFingerprintPayload(normalized);
     const requestJson = JSON.stringify(fingerprintPayload);
@@ -155,9 +172,11 @@ export async function POST(request: Request, context: RouteContext) {
       ? await fetchMove(normalized.calledMoveName || "")
       : null;
     const auditedRandom = createAuditedSecureRandom();
+    const species = normalized.action === "capture" ? await fetchCaptureSpecies(snapshot, normalized.targetId || "") : null;
     const resolution = resolveAuthoritativeAction({
       request: normalized,
       snapshot,
+      species,
       role: auth.role,
       move,
       calledMove,

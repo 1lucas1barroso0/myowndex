@@ -42,7 +42,7 @@ const MAX_EVENT_BYTES = 30_000;
 const MAX_EVENTS = 180;
 const encoder = new TextEncoder();
 let schemaPromise: Promise<void> | null = null;
-export const ROOM_PROTOCOL_VERSION = "2";
+export const ROOM_PROTOCOL_VERSION = "3";
 
 export function getBindings() {
   const runtime = (globalThis as typeof globalThis & {

@@ -7,28 +7,23 @@ import {
     formatType,
 } from "../../core/mechanics.js";
 import {
-    applyMoveConsequences,
     getAffectedMoveTargets,
-    getHitKillProtectionKey,
-    hasHitKillProtectionDisabled,
-    hasHitKillSurvivalGrace,
     getMoveAutomationTags,
     getMovePpState,
     getMoveResolutionProfile,
     getSelectableMoveTargets,
-    isDirectKnockoutMove,
-    resolveDamageSequence,
     STAGE_LABELS,
 } from "../../core/automation.js";
 import { formatCount, formatRemainingPp } from "../../core/copy.js";
 import { integerInRange, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
-import { calculateMoveResolution, STATUS_LABELS } from "../../core/room.js";
+import { STATUS_LABELS } from "../../core/room.js";
+import { resolveCombatAction } from "../../../server/authoritativeActions.js";
 import {
     getMoveSpecialProfile,
     getSpecialMoveBlockReason,
     SPECIAL_AUTOMATION_LABELS,
 } from "../../core/specialMechanics.js";
-import { getTraitMoveBlock, isWeatherSuppressed } from "../../core/traitMechanics.js";
+import { getTraitMoveBlock } from "../../core/traitMechanics.js";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
@@ -44,96 +39,6 @@ const stageSummary = changes => changes
         return `${STAGE_LABELS[change.stat] || formatName(change.stat)} ${direction}`;
     }).join(", ") || "";
 
-const emptyConsequences = () => ({
-    ppAfter: null,
-    damage: 0,
-    calculatedDamage: 0,
-    healed: 0,
-    recoil: 0,
-    stageChanges: [],
-    appliedStatuses: [],
-    blockedStatuses: [],
-    trackedEffects: [],
-    hitKillProtected: false,
-    hitKillBypassedByAttackerCritical: false,
-    hitKillBypassedByDefenderFumble: false,
-    hitKillThreshold: 0,
-    fainted: false,
-    fieldChange: null,
-    scheduledDamage: 0,
-    specialNarratives: [],
-    abilityBlocks: [],
-    abilityDamage: 0,
-    itemDamage: 0,
-    traitHealing: 0,
-    traitProtected: false,
-    survivalGraceGranted: false,
-    survivalGraceUsed: false,
-    survivalGraceRemaining: false,
-    protectionDisabledThisAction: [],
-    indirectHitKillProtections: [],
-    hitKillProtectedHits: [],
-    traitProtectedHits: [],
-    faintedOnHit: null,
-    traitActivations: [],
-    consumedItems: [],
-    traitStatuses: [],
-});
-
-const addConsequences = (summary, current) => ({
-    ...summary,
-    ppAfter: summary.ppAfter ?? current.ppAfter,
-    damage: summary.damage + integerInRange(current.damage, 0, MAX_SAFE_GAME_INTEGER, 0),
-    calculatedDamage: summary.calculatedDamage + integerInRange(current.calculatedDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
-    healed: summary.healed + integerInRange(current.healed, 0, MAX_SAFE_GAME_INTEGER, 0),
-    recoil: summary.recoil + integerInRange(current.recoil, 0, MAX_SAFE_GAME_INTEGER, 0),
-    stageChanges: [...summary.stageChanges, ...(current.stageChanges || [])],
-    appliedStatuses: current.appliedStatus
-        ? [...summary.appliedStatuses, current.appliedStatus]
-        : summary.appliedStatuses,
-    blockedStatuses: current.blockedStatus
-        ? [...summary.blockedStatuses, current.blockedStatus]
-        : summary.blockedStatuses,
-    trackedEffects: current.trackedEffect
-        ? [...summary.trackedEffects, current.trackedEffect]
-        : summary.trackedEffects,
-    hitKillProtected: summary.hitKillProtected || Boolean(current.hitKillProtected),
-    hitKillBypassedByAttackerCritical: summary.hitKillBypassedByAttackerCritical || Boolean(current.hitKillBypassedByAttackerCritical),
-    hitKillBypassedByDefenderFumble: summary.hitKillBypassedByDefenderFumble || Boolean(current.hitKillBypassedByDefenderFumble),
-    hitKillThreshold: Math.max(summary.hitKillThreshold, integerInRange(current.hitKillThreshold, 0, MAX_SAFE_GAME_INTEGER, 0)),
-    fainted: summary.fainted || Boolean(current.fainted),
-    fieldChange: current.fieldChange || summary.fieldChange,
-    scheduledDamage: summary.scheduledDamage + integerInRange(current.scheduledDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
-    specialNarratives: [...summary.specialNarratives, ...(current.specialNarratives || [])],
-    abilityBlocks: current.abilityBlock
-        ? [...summary.abilityBlocks, current.abilityBlock]
-        : summary.abilityBlocks,
-    abilityDamage: summary.abilityDamage + integerInRange(current.abilityDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
-    itemDamage: summary.itemDamage + integerInRange(current.itemDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
-    traitHealing: summary.traitHealing + integerInRange(current.traitHealing, 0, MAX_SAFE_GAME_INTEGER, 0),
-    traitProtected: summary.traitProtected || Boolean(current.traitProtected),
-    survivalGraceGranted: summary.survivalGraceGranted || Boolean(current.survivalGraceGranted),
-    survivalGraceUsed: summary.survivalGraceUsed || Boolean(current.survivalGraceUsed),
-    survivalGraceRemaining: summary.survivalGraceRemaining || Boolean(current.survivalGraceRemaining),
-    protectionDisabledThisAction: [...summary.protectionDisabledThisAction, ...(current.protectionDisabledThisAction || [])],
-    indirectHitKillProtections: [...summary.indirectHitKillProtections, ...(current.indirectHitKillProtections || [])],
-    hitKillProtectedHits: [...summary.hitKillProtectedHits, ...(current.hitKillProtectedHits || [])],
-    traitProtectedHits: [...summary.traitProtectedHits, ...(current.traitProtectedHits || [])],
-    faintedOnHit: summary.faintedOnHit || current.faintedOnHit || null,
-    traitActivations: [...summary.traitActivations, ...(current.traitActivations || [])],
-    consumedItems: [...summary.consumedItems, ...(current.consumedItems || [])],
-    traitStatuses: [...summary.traitStatuses, ...(current.traitStatuses || [])],
-});
-
-const resolutionRollLabel = resolution => {
-    if (resolution.attackTest && resolution.defenseTest) {
-        return `${resolution.attackTest.total} × ${resolution.defenseTest.total}`;
-    }
-    if (!resolution.accuracyTest.automatic) {
-        return `${resolution.accuracyTest.result}/${resolution.accuracyTest.chance}`;
-    }
-    return "declarado";
-};
 
 export default function CombatAssistant({
     role,
@@ -304,158 +209,15 @@ export default function CombatAssistant({
                 setResult(authoritative.result);
                 return;
             }
-            const targetsToResolve = affectedTargets.length ? affectedTargets : [null];
-            let workingTokens = snapshot.tokens;
-            let workingHitKillProtectionUsed = snapshot.hitKillProtectionUsed;
-            let workingHitKillProtectionDisabled = snapshot.hitKillProtectionDisabled;
-            let workingHitKillSurvivalGrace = snapshot.hitKillSurvivalGrace;
-            let consequences = emptyConsequences();
-            const targetResults = [];
-
-            for (const [index, originalTarget] of targetsToResolve.entries()) {
-                const currentAttacker = workingTokens.find(token => token.id === attacker.id) || attacker;
-                const currentTarget = originalTarget
-                    ? workingTokens.find(token => token.id === originalTarget.id) || originalTarget
-                    : null;
-                const resolution = calculateMoveResolution({
-                    attacker: currentAttacker,
-                    defender: currentTarget,
-                    move,
-                    mode,
-                    round: snapshot.round,
-                    weather: snapshot.weather,
-                    terrain: snapshot.terrain,
-                    weatherSuppressed: isWeatherSuppressed(workingTokens),
-                });
-
-                if (role === "narrator") {
-                    const automated = applyMoveConsequences({
-                        tokens: workingTokens,
-                        attackerId: attacker.id,
-                        targetId: currentTarget?.id,
-                        move,
-                        ppMove: moveData,
-                        resolution,
-                        consumePp: index === 0,
-                        applySelfChanges: index === 0,
-                        clearDeclaration: index === targetsToResolve.length - 1,
-                        round: snapshot.round,
-                        hitKillProtectionUsed: workingHitKillProtectionUsed,
-                        hitKillProtectionDisabled: workingHitKillProtectionDisabled,
-                        hitKillSurvivalGrace: workingHitKillSurvivalGrace,
-                    });
-                    workingTokens = automated.tokens;
-                    workingHitKillProtectionUsed = automated.hitKillProtectionUsed;
-                    workingHitKillProtectionDisabled = automated.hitKillProtectionDisabled;
-                    workingHitKillSurvivalGrace = automated.hitKillSurvivalGrace;
-                    consequences = addConsequences(consequences, automated.consequences);
-                    targetResults.push({ target: currentTarget, resolution, consequences: automated.consequences });
-                } else {
-                    const previewHitKill = currentTarget
-                        ? resolveDamageSequence({
-                            token: currentTarget,
-                            damage: resolution.damageHit ? resolution.damage : 0,
-                            damagePerHit: resolution.damagePerHit,
-                            hitCount: integerInRange(resolution.hitCount, 1, 10, 1),
-                            round: snapshot.round,
-                            protectionUsed: snapshot.hitKillProtectionUsed.includes(
-                                getHitKillProtectionKey(currentTarget),
-                            ),
-                            protectionDisabled: hasHitKillProtectionDisabled(
-                                snapshot.hitKillProtectionDisabled,
-                                currentTarget,
-                            ),
-                            survivalGrace: hasHitKillSurvivalGrace(
-                                snapshot.hitKillSurvivalGrace,
-                                currentTarget,
-                            ),
-                            critical: Boolean(resolution.attackTest?.critical),
-                            defenderFumble: Boolean(resolution.defenseTest?.fumble),
-                            directKnockout: resolution.directKnockout || isDirectKnockoutMove(move),
-                        })
-                        : null;
-                    targetResults.push({ target: currentTarget, resolution, previewHitKill });
-                }
-            }
-
-            const connected = targetResults.some(entry => entry.resolution.moveConnected);
-            const damageHit = targetResults.some(entry => entry.resolution.damageHit);
-            const representative = targetResults[0].resolution;
-            const previewDamage = targetResults.reduce(
-                (sum, entry) => sum + integerInRange(entry.previewHitKill?.appliedDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
-                0,
-            );
-            const nextResult = {
-                ...representative,
-                hit: connected,
-                moveConnected: connected,
-                damageHit,
-                move,
-                targetResults,
-                consequences: role === "narrator" ? consequences : null,
-                previewDamage,
-            };
-            setResult(nextResult);
-
-            if (role === "narrator") {
-                const fieldChange = consequences.fieldChange;
-                onSnapshotChange({
-                    ...snapshot,
-                    ...(fieldChange?.weather ? { weather: fieldChange.weather } : {}),
-                    ...(fieldChange?.terrain ? { terrain: fieldChange.terrain } : {}),
-                    tokens: workingTokens,
-                    hitKillProtectionUsed: workingHitKillProtectionUsed,
-                    hitKillProtectionDisabled: workingHitKillProtectionDisabled,
-                    hitKillSurvivalGrace: workingHitKillSurvivalGrace,
-                });
-                await onEvent("move", {
-                    attackerName: attacker.name,
-                    attackerId: attacker.id,
-                    defenderName: affectedTargets.map(token => token.name).join(", ") || representative.profile.target.label,
-                    defenderId: defender?.id || "",
-                    moveName: formatName(move.name),
-                    selectedMoveName: formatName(moveData.name),
-                    calledMoveName: needsCalledMove ? formatName(move.name) : "",
-                    hit: connected,
-                    moveConnected: connected,
-                    damageHit,
-                    effectOnly: representative.profile.effectOnly,
-                    resolutionLabel: representative.resolutionLabel,
-                    damage: consequences.damage,
-                    calculatedDamage: consequences.calculatedDamage,
-                    hitKillThreshold: consequences.hitKillThreshold,
-                    hitKillProtected: consequences.hitKillProtected,
-                    hitKillProtectedHits: consequences.hitKillProtectedHits,
-                    traitProtectedHits: consequences.traitProtectedHits,
-                    faintedOnHit: consequences.faintedOnHit,
-                    fainted: consequences.fainted,
-                    status: consequences.appliedStatuses[0] || "",
-                    ppAfter: consequences.ppAfter,
-                    fumble: targetResults.some(entry => entry.resolution.attackTest?.fumble),
-                    defenderFumble: consequences.hitKillBypassedByDefenderFumble,
-                    specialNarrative: consequences.specialNarratives.join(" "),
-                });
-                if (connected) {
-                    const critical = targetResults.some(entry => entry.resolution.attackTest?.critical);
-                    const healedOnly = consequences.healed > 0 && !consequences.damage;
-                    await onEvent("sfx", {
-                        effectId: critical ? "critical" : healedOnly ? "heal" : representative.profile.effectOnly ? "confirm" : "hit",
-                        label: critical ? "Crítico" : healedOnly ? "Cura" : representative.profile.effectOnly ? "Efeito" : "Impacto",
-                    });
-                }
-            } else {
-                await onEvent("roll", {
-                    label: `simulação de ${formatName(move.name)}`,
-                    result: targetResults.map(entry => resolutionRollLabel(entry.resolution)).join("; "),
-                    damage: previewDamage,
-                    calculatedDamage: targetResults.reduce((sum, entry) => sum + entry.resolution.damage, 0),
-                    hitKillProtected: targetResults.some(entry => entry.previewHitKill?.protectedFromKnockout),
-                    hitKillProtectedHits: targetResults.flatMap(entry => entry.previewHitKill?.protectedHits || []),
-                    faintedOnHit: targetResults.find(entry => entry.previewHitKill?.faintedOnHit)?.previewHitKill?.faintedOnHit || null,
-                    attackerId: attacker.id,
-                    defenderId: defender?.id || "",
-                });
-            }
+            const resolved = resolveCombatAction({
+                snapshot, role,
+                request: { attackerId: attacker.id, defenderId: defender?.id || "", moveName: moveData.name, calledMoveName: needsCalledMove ? move.name : "", mode },
+                move: moveData, calledMove: needsCalledMove ? move : null,
+            });
+            setResult(resolved.result);
+            if (resolved.nextSnapshot) onSnapshotChange(resolved.nextSnapshot);
+            await onEvent(resolved.eventType, resolved.eventPayload);
+            if (resolved.sfxPayload) await onEvent("sfx", resolved.sfxPayload);
         } catch (error) {
             onError?.(error);
         } finally {
@@ -607,6 +369,7 @@ export default function CombatAssistant({
                 </button>
                 {result && (
                     <div className={`combat-result ${result.moveConnected ? "is-hit" : "is-miss"}`} aria-live="polite">
+                        {result.conditionNotes?.map(note => <p key={note}>{note}</p>)}
                         <div className="combat-result-metric is-resolution">
                             <small>Forma de resolução</small>
                             <strong>{result.resolutionLabel}</strong>
@@ -651,8 +414,9 @@ export default function CombatAssistant({
                                                 )}
                                             </span>
                                         )}
-                                        {resolution.attackTest?.critical && <span className="combat-damage-exception">Acerto crítico: o limite comum e a proteção contra Hit Kill não se aplicam.</span>}
-                                        {resolution.defenseTest?.fumble && <span className="combat-damage-exception">Erro crítico do defensor: a proteção contra Hit Kill não se aplica.</span>}
+                                        {resolution.criticalHit && <span className="combat-damage-exception">Acerto crítico: o limite comum e a proteção contra Hit Kill não se aplicam.</span>}
+                                        {resolution.attackTest?.critical && !resolution.criticalHit && <span>Dois 6: crítico potencial, mas sem acerto com dano.</span>}
+                                        {resolution.damageHit && resolution.defenseTest?.fumble && <span className="combat-damage-exception">Erro crítico do defensor: a proteção contra Hit Kill não se aplica.</span>}
                                         {resolution.directKnockout && <span className="combat-damage-exception">Nocaute direto: ignora o limite comum e a proteção geral contra Hit Kill; efeitos próprios, como Sturdy ou Focus Sash, são resolvidos separadamente.</span>}
                                         {resolution.fixedDamage != null && <span className="combat-damage-exception">Dano fixo: usa o valor próprio do movimento em vez do limite comum.</span>}
                                         {resolution.dynamicPower && <span>Poder situacional {formatNumberPtBr(resolution.power)}: {resolution.dynamicPower.explanation}.</span>}

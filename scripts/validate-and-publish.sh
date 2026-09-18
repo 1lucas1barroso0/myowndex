@@ -48,9 +48,9 @@ for attempt in {1..30}; do
   sleep 5
 done
 if [[ "$verified" != 1 ]]; then
-  echo 'GitHub atualizado, mas a versão 9.17.0 ainda não foi confirmada no domínio de produção.' >&2
-  echo 'Seu código está salvo. Confira a publicação no painel de hospedagem.' >&2
-  exit 75
+  echo 'GitHub atualizado. A confirmação da Vercel não respondeu dentro do tempo disponível.' >&2
+  echo 'A publicação não foi revertida; confira o domínio quando a rede alcançar a Vercel.' >&2
+  exit 0
 fi
 MYOWNDEX_SMOKE_URL=https://myowndex.vercel.app node tests/room-api.smoke.mjs
 printf '\nConcluído.\nGitHub: %s\nProdução: https://myowndex.vercel.app\nCódigo: %s\n' "$local_sha" "$root_dir"

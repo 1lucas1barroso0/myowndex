@@ -44,7 +44,7 @@ git push origin HEAD:refs/heads/main
 printf '\n==> Conferindo a atualização em produção\n'
 verified=0
 for attempt in {1..30}; do
-  if curl --fail --silent --show-error --connect-timeout 10 --max-time 20 --header 'Cache-Control: no-cache' "https://myowndex.vercel.app/sw.js?release=9.17.0" | grep -q 'myowndex-shell-v9.17.0'; then verified=1; break; fi
+  if curl --fail --silent --show-error --connect-timeout 10 --max-time 20 --header 'Cache-Control: no-cache' "https://myowndex.vercel.app/sw-v9.17.0.js" | grep -q 'myowndex-shell-v9.17.0'; then verified=1; break; fi
   sleep 5
 done
 if [[ "$verified" != 1 ]]; then

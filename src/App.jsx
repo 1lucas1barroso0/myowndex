@@ -174,7 +174,7 @@ export default function App() {
             updateTimer = window.setInterval(() => current.update().catch(() => {}), 60 * 60 * 1000);
         };
         const register = () => navigator.serviceWorker
-            .register("/sw.js", { updateViaCache: "none" })
+            .register("/sw-v9.17.0.js", { updateViaCache: "none" })
             .then(watchRegistration)
             .catch(() => {});
         const checkForUpdate = () => registration?.update().catch(() => {});

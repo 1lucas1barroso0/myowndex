@@ -34,6 +34,7 @@ export default function GameStyleControl({ value, onChange }) {
                             type="button"
                             role="radio"
                             aria-checked={selected}
+                            tabIndex={selected ? 0 : -1}
                             aria-label={`${mode.label}. ${mode.description}`}
                             className={selected ? "is-selected" : ""}
                             data-mode={mode.id}
@@ -46,7 +47,7 @@ export default function GameStyleControl({ value, onChange }) {
                 })}
             </div>
             <details className="choice-help game-style-help">
-                <summary aria-label="Entender os estilos de jogo">?</summary>
+                <summary aria-label="Entender os estilos de jogo" title="Sobre os estilos de jogo">?</summary>
                 <div className="choice-help-popover" role="note">
                     <strong>{selectedMode.label}</strong>
                     <p>{selectedMode.description}</p>

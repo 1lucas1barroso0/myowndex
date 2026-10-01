@@ -20,6 +20,9 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - HP, PP, XP, EVs, IVs e STAB permanecem em maiúsculas.
 - tipo Tera e Terastalizar seguem essa grafia.
 - Poké Bola é escrita em duas palavras.
+- Dispositivo é o termo para computador, celular ou tablet. Use “neste
+  dispositivo” para dados salvos localmente e “como o dispositivo” para
+  preferências herdadas.
 
 ## Padrões de texto
 
@@ -39,6 +42,11 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Contagens respeitam singular e plural; “Pokémon” não recebe “s”.
 - Botões começam com verbos diretos: “Criar”, “Entrar”, “Rolar”, “Adicionar”,
   “Compartilhar” e “Continuar”.
+- Títulos identificam a área; avisos aparecem somente quando há informação
+  útil ou uma ação disponível. Evite slogans, confirmações permanentes de
+  prontidão e a repetição de uma instrução em todos os cartões.
+- As instruções de instalação pertencem ao navegador ou ao dispositivo;
+  não crie um botão de instalação dentro da navegação do MyOwnDex.
 
 ## Voz por área
 

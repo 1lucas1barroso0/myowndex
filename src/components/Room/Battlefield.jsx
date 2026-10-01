@@ -181,12 +181,11 @@ export default function Battlefield({
         <section className="battlefield-card" aria-label="Campo de batalha">
             <div className="battlefield-toolbar">
                 <div>
-                    <span className="room-kicker">A cena agora</span>
                     <h3>Campo de batalha</h3>
                 </div>
                 <div className="battlefield-selectors">
                     <label>
-                        <span className="sr-only">Cenário</span>
+                        <span>Cenário</span>
                         <select
                             value={snapshot.scenario}
                             disabled={role !== "narrator"}
@@ -196,7 +195,7 @@ export default function Battlefield({
                         </select>
                     </label>
                     <label>
-                        <span className="sr-only">Clima</span>
+                        <span>Clima</span>
                         <select
                             value={snapshot.weather}
                             disabled={role !== "narrator"}
@@ -206,7 +205,7 @@ export default function Battlefield({
                         </select>
                     </label>
                     <label>
-                        <span className="sr-only">Terreno</span>
+                        <span>Terreno</span>
                         <select
                             value={snapshot.terrain}
                             disabled={role !== "narrator"}
@@ -253,9 +252,8 @@ export default function Battlefield({
                 })}
                 {!snapshot.tokens.length && (
                     <div className="battlefield-empty">
-                        <span aria-hidden="true">◇</span>
-                        <strong>O campo está pronto</strong>
-                        <small>Leve uma equipe para a cena quando estiver tudo pronto.</small>
+                        <strong>Nenhum Pokémon em campo</strong>
+                        <small>Escolha um parceiro em “Equipe para a cena”.</small>
                     </div>
                 )}
                 <div className="battlefield-pixel-grid" aria-hidden="true" />

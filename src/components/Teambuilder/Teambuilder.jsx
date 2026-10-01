@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatCanonicalItemName, formatCount, formatPartnerArrival } from "../../core/copy.js";
 import { formatName, formatType, TYPE_COLORS, TYPE_TEXT_COLORS, VERSION_GROUPS } from "../../core/mechanics.js";
 import { createTeam as makeTeam, createId, hydrateTeam, insertImportedPokemon, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, touchTeam } from "../../core/team.js";
@@ -9,6 +9,18 @@ import PokemonEditor from "./PokemonEditor.jsx";
 import "../../pc-retro.css";
 
 const PARTY_SIZE = 6;
+const handleRadioNavigation = event => {
+    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
+    const choices = [...event.currentTarget.querySelectorAll('button[role="radio"]:not([disabled])')];
+    if (!choices.length) return;
+    const index = choices.indexOf(document.activeElement);
+    const next = event.key === "Home" ? 0
+        : event.key === "End" ? choices.length - 1
+            : (Math.max(0, index) + (["ArrowLeft", "ArrowUp"].includes(event.key) ? -1 : 1) + choices.length) % choices.length;
+    event.preventDefault();
+    choices[next].focus();
+    choices[next].click();
+};
 const getPartnerSprite = partner => partner?.shiny
     ? partner.species?.sprites?.front_shiny
     : partner?.species?.sprites?.front_default;
@@ -78,6 +90,8 @@ export default function Teambuilder({ envProps }) {
     const [pendingDelete, setPendingDelete] = useState(null);
     const [pendingPartnerDelete, setPendingPartnerDelete] = useState(null);
     const partySlotRefs = useRef([]);
+    const linkCableRef = useRef(null);
+    const importRequestRef = useRef(0);
     const active = useMemo(() => teams.find(team => team.id === activeTeamId), [teams, activeTeamId]);
     const occupiedSlots = active?.pokemon?.length || 0;
     const freeSlots = PARTY_SIZE - occupiedSlots;
@@ -162,20 +176,79 @@ export default function Teambuilder({ envProps }) {
             setCopied(true);
             window.setTimeout(() => setCopied(false), 3000);
         } catch {
-            setNotice?.({ tone: "red", text: "Não foi possível copiar o código com um toque. Selecione o conteúdo e use a opção Copiar do aparelho." });
+            setNotice?.({ tone: "red", text: "Selecione o código e use a opção Copiar do dispositivo." });
         }
     };
 
-    const resetImport = () => {
+    const resetImport = useCallback(() => {
+        importRequestRef.current += 1;
         setImporting(false);
         setImportData("");
         setImportError("");
         setImportPreview(null);
         setImportStrategy("add");
         setImportTargetId("");
-    };
+    }, []);
+
+    useEffect(() => () => { importRequestRef.current += 1; }, []);
+
+    useEffect(() => {
+        if (!sharing && !importing) return;
+        const dialog = linkCableRef.current;
+        if (!dialog) return;
+        const previousFocus = document.activeElement;
+        const previousOverflow = document.body.style.overflow;
+        const inertElements = [];
+        const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')]
+            .filter(element => element.tabIndex >= 0 && element.getClientRects().length && !element.closest('[hidden], [inert]'));
+        const focusFirst = () => (dialog.querySelector('textarea:not([readonly])') || focusable()[0] || dialog).focus({ preventScroll: true });
+        focusFirst();
+        document.body.style.overflow = "hidden";
+        let branch = dialog;
+        while (branch.parentElement && branch.parentElement !== document.documentElement) {
+            for (const sibling of branch.parentElement.children) {
+                if (sibling === branch || !(sibling instanceof HTMLElement) || ["SCRIPT", "STYLE", "LINK"].includes(sibling.tagName)) continue;
+                inertElements.push([sibling, sibling.inert]);
+                sibling.inert = true;
+            }
+            branch = branch.parentElement;
+        }
+        const handleKeyDown = event => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                if (sharing) { setSharing(false); setShareCode(""); }
+                if (importing) resetImport();
+                return;
+            }
+            if (event.key !== "Tab") return;
+            const controls = focusable();
+            const first = controls[0];
+            const last = controls[controls.length - 1];
+            if (!first) { event.preventDefault(); dialog.focus(); }
+            else if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        };
+        const handleFocus = event => { if (!dialog.contains(event.target)) focusFirst(); };
+        document.addEventListener("keydown", handleKeyDown, true);
+        document.addEventListener("focusin", handleFocus);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown, true);
+            document.removeEventListener("focusin", handleFocus);
+            document.body.style.overflow = previousOverflow;
+            inertElements.forEach(([element, previous]) => { element.inert = previous; });
+            if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
+        };
+    }, [sharing, importing, resetImport]);
+
+    useEffect(() => {
+        if ((sharing || importing) && linkCableRef.current && !linkCableRef.current.contains(document.activeElement)) {
+            linkCableRef.current.querySelector("button")?.focus({ preventScroll: true });
+        }
+    }, [sharing, importing, importPreview, shareCode]);
 
     const previewLinkCable = async () => {
+        const requestId = ++importRequestRef.current;
         dismissKeyboard();
         setIsProcessing(true);
         setImportError("");
@@ -189,6 +262,7 @@ export default function Teambuilder({ envProps }) {
                     pokemon: decoded.pokemon,
                 });
             const hydrated = await hydrateTeam(sourceTeam);
+            if (requestId !== importRequestRef.current) return;
             const preview = decoded.kind === "team"
                 ? { kind: "team", team: hydrated, pokemon: hydrated.pokemon, sourceName: hydrated.name }
                 : { kind: "pokemon", pokemon: hydrated.pokemon, sourceName: decoded.sourceName, versionGroup: decoded.versionGroup };
@@ -198,7 +272,7 @@ export default function Teambuilder({ envProps }) {
             setImportStrategy(decoded.kind === "team" ? "team" : "add");
             setImportTargetId(suggested?.id || "__new__");
         } catch (error) {
-            setImportError(error?.message || "O Link Cable não conseguiu ler este envio. Confira o código e tente novamente.");
+            if (requestId === importRequestRef.current) setImportError(error?.message || "O Link Cable não conseguiu ler este envio. Confira o código e tente novamente.");
         } finally {
             setIsProcessing(false);
         }
@@ -341,16 +415,14 @@ export default function Teambuilder({ envProps }) {
                         <span aria-hidden="true">⇩</span>
                         <span>Importar Pokémon ou Box</span>
                     </button>
-                    <p className="pc-sidebar-tip mt-2 px-1 text-xs font-semibold leading-relaxed text-slate-500">Pelo Link Cable, seus parceiros podem viajar para outra aventura.</p>
                 </div>
             </aside>
 
             <section className="w-full xl:w-3/4 min-w-0 flex-1">
                 {!active && <div className="pc-empty-state">
                     <div className="pc-welcome-partners" aria-hidden="true">{[133, 25].map(id => <PokemonSprite key={id} pokemonId={id} alt="" className="pixelated" />)}</div>
-                    <span className="screen-eyebrow">Conexão com o PC estabelecida!</span>
-                    <h2>Sua próxima aventura começa aqui.</h2>
-                    <p>Eevee e Pikachu já estão de olho! Abra uma Box para guardar até seis parceiros ou receba uma equipe pelo Link Cable.</p>
+                    <h2>Seu PC de Pokémon</h2>
+                    <p>Abra uma Box para até seis parceiros ou receba uma equipe pelo Link Cable.</p>
                     <button type="button" onClick={createTeam} className="room-primary-button">Abrir primeira Box</button>
                 </div>}
                 {active && (
@@ -359,20 +431,19 @@ export default function Teambuilder({ envProps }) {
                             <span><span className="pc-mini-ball" aria-hidden="true" /> Organização de Pokémon</span>
                             <span className="pc-storage-status">{occupiedSlots === PARTY_SIZE ? "Equipe completa!" : `${freeSlots} ${freeSlots === 1 ? "espaço livre" : "espaços livres"}`}</span>
                         </div>
-                        <div className="pc-toolbar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b-4 border-slate-100 pb-5">
-                            <div className="w-full min-w-0">
+                        <div className="pc-toolbar">
+                            <div className="pc-toolbar-fields">
                                 <label htmlFor="active-box-name" className="sr-only">Nome da Box</label>
                                 <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" placeholder="Nome da Box" />
-                                <label className="mt-3 flex max-w-md items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
+                                <label className="pc-version-field">
                                     Jogo de referência
                                     <select value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="min-w-0 flex-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-[10px] text-slate-700 outline-none focus:border-blue-400">
                                         {VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}
                                     </select>
                                 </label>
-                                <p className="pc-reference-tip mt-2 text-xs font-semibold text-slate-500">Os movimentos e as habilidades acompanham o jogo da sua aventura.</p>
                             </div>
 
-                            <div className="pc-toolbar-actions flex gap-2 sm:gap-3 self-stretch sm:self-auto shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
+                            <div className="pc-toolbar-actions">
                                 <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="pc-action-button is-share flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 border shadow-sm rounded-xl outline-none disabled:opacity-50">
                                     <span aria-hidden="true">↗</span><span className="text-xs font-black">Compartilhar</span>
                                 </button>
@@ -413,8 +484,8 @@ export default function Teambuilder({ envProps }) {
 
                         <div className={`pc-grid-heading ${occupiedSlots ? "" : "is-empty"}`}>
                             {!occupiedSlots && <span className="pc-box-guide-sprite" aria-hidden="true"><PokemonSprite pokemonId={133} alt="" className="pixelated" /></span>}
-                            <h3>{occupiedSlots ? "Seus parceiros" : "A Box está esperando por você"}</h3>
-                            <p>{occupiedSlots ? "Escolha um parceiro para abrir a ficha." : "Toque em um espaço e encontre seu primeiro Pokémon."}</p>
+                            <h3>{occupiedSlots ? "Equipe" : "Uma Box para sua equipe"}</h3>
+                            {!occupiedSlots && <p>Escolha um espaço para buscar um Pokémon.</p>}
                         </div>
 
                         <div className="pc-partner-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 w-full">
@@ -445,7 +516,7 @@ export default function Teambuilder({ envProps }) {
                             {Array.from({ length: Math.max(0, freeSlots) }, (_, index) => (
                                 <button key={`empty-${index}`} type="button" onClick={onSearchClick} className="pc-add-partner p-3 sm:p-4 rounded-2xl border-2 border-dashed flex justify-center items-center text-[10px] font-black transition-all min-h-[80px] sm:min-h-[96px] outline-none">
                                     <span className="pc-empty-ball" aria-hidden="true" />
-                                    <span><strong>Buscar um Pokémon</strong><small>Espaço {occupiedSlots + index + 1} · Um novo amigo cabe aqui</small></span>
+                                    <span><strong>Buscar Pokémon</strong><small>Espaço {occupiedSlots + index + 1}</small></span>
                                     <span className="pc-add-plus" aria-hidden="true">+</span>
                                 </button>
                             ))}
@@ -458,6 +529,7 @@ export default function Teambuilder({ envProps }) {
                                     <button type="button" onClick={() => { partySlotRefs.current[editingSlot]?.focus(); setEditingSlot(null); }}>Fechar ficha <span aria-hidden="true">×</span></button>
                                 </div>
                                 <PokemonEditor
+                                    key={active.pokemon[editingSlot].id}
                                     pk={active.pokemon[editingSlot]}
                                     updatePk={next => updateActive(team => {
                                         const pokemon = [...(team.pokemon || [])];
@@ -486,20 +558,20 @@ export default function Teambuilder({ envProps }) {
             </section>
             {sharing && active && (
                 <div className="link-cable-overlay" role="presentation">
-                    <section className="link-cable-dialog" role="dialog" aria-modal="true" aria-labelledby="share-dialog-title">
+                    <section ref={linkCableRef} tabIndex={-1} className="link-cable-dialog" role="dialog" aria-modal="true" aria-labelledby="share-dialog-title">
                         <button type="button" className="link-cable-close" onClick={() => { setSharing(false); setShareCode(""); }} aria-label="Fechar compartilhamento">×</button>
                         <span className="link-cable-kicker">Link Cable</span>
-                        <h2 id="share-dialog-title">O que você quer compartilhar?</h2>
-                        <p className="link-cable-intro">Envie a Box inteira ou escolha só os Pokémon que devem viajar. O aparelho que receber decide em qual Box colocá-los.</p>
+                        <h2 id="share-dialog-title">Compartilhar equipe</h2>
+                        <p className="link-cable-intro">Escolha Pokémon ou a Box inteira. O dispositivo que receber escolhe o destino.</p>
 
                         {!shareCode ? (
                             <>
-                                <div className="link-cable-segment" role="radiogroup" aria-label="Tipo de compartilhamento">
-                                    <button type="button" role="radio" aria-checked={shareScope === "pokemon"} onClick={() => setShareScope("pokemon")} disabled={!active.pokemon.length}>
+                                <div className="link-cable-segment" role="radiogroup" aria-label="Tipo de compartilhamento" onKeyDown={handleRadioNavigation}>
+                                    <button type="button" role="radio" tabIndex={shareScope === "pokemon" ? 0 : -1} aria-checked={shareScope === "pokemon"} onClick={() => setShareScope("pokemon")} disabled={!active.pokemon.length}>
                                         <strong>Pokémon escolhidos</strong>
                                         <small>Um ou vários parceiros</small>
                                     </button>
-                                    <button type="button" role="radio" aria-checked={shareScope === "team"} onClick={() => setShareScope("team")}>
+                                    <button type="button" role="radio" tabIndex={shareScope === "team" ? 0 : -1} aria-checked={shareScope === "team"} onClick={() => setShareScope("team")}>
                                         <strong>Box inteira</strong>
                                         <small>Equipe e jogo de referência</small>
                                     </button>
@@ -540,7 +612,7 @@ export default function Teambuilder({ envProps }) {
                             <div className="link-cable-result animate-fade-in">
                                 <span className="link-cable-success" aria-hidden="true">✓</span>
                                 <strong>Envio pronto</strong>
-                                <p>Copie o código abaixo e envie por qualquer aplicativo. Ele contém apenas o que você escolheu.</p>
+                                <p>Copie o código e envie para outro treinador.</p>
                                 <label>
                                     <span className="sr-only">Código de compartilhamento</span>
                                     <textarea readOnly value={shareCode} rows={5} onFocus={event => event.currentTarget.select()} />
@@ -557,11 +629,11 @@ export default function Teambuilder({ envProps }) {
 
             {importing && (
                 <div className="link-cable-overlay" role="presentation">
-                    <section className="link-cable-dialog" role="dialog" aria-modal="true" aria-labelledby="import-dialog-title">
+                    <section ref={linkCableRef} tabIndex={-1} className="link-cable-dialog" role="dialog" aria-modal="true" aria-labelledby="import-dialog-title">
                         <button type="button" className="link-cable-close" onClick={resetImport} aria-label="Fechar importação">×</button>
                         <span className="link-cable-kicker">Link Cable</span>
                         <h2 id="import-dialog-title">{importPreview ? "Escolha onde guardar" : "Receber Pokémon ou Box"}</h2>
-                        <p className="link-cable-intro">{importPreview ? "Confira o conteúdo e escolha o destino. Sua Box atual não será substituída." : "Cole um código do MyOwnDex. Primeiro mostraremos tudo o que chegou; nada será salvo ainda."}</p>
+                        <p className="link-cable-intro">{importPreview ? "Confira o envio e escolha o destino." : "Cole um código do MyOwnDex para conferir o envio."}</p>
 
                         {!importPreview ? (
                             <>
@@ -595,12 +667,12 @@ export default function Teambuilder({ envProps }) {
                                 </div>
 
                                 {importPreview.kind === "team" && (
-                                    <div className="link-cable-segment" role="radiogroup" aria-label="Como receber a Box">
-                                        <button type="button" role="radio" aria-checked={importStrategy === "team"} onClick={() => setImportStrategy("team")}>
+                                    <div className="link-cable-segment" role="radiogroup" aria-label="Como receber a Box" onKeyDown={handleRadioNavigation}>
+                                        <button type="button" role="radio" tabIndex={importStrategy === "team" ? 0 : -1} aria-checked={importStrategy === "team"} onClick={() => setImportStrategy("team")}>
                                             <strong>Como Box inteira</strong>
                                             <small>Mantém a equipe compartilhada</small>
                                         </button>
-                                        <button type="button" role="radio" aria-checked={importStrategy === "add"} onClick={() => setImportStrategy("add")}>
+                                        <button type="button" role="radio" tabIndex={importStrategy === "add" ? 0 : -1} aria-checked={importStrategy === "add"} onClick={() => setImportStrategy("add")}>
                                             <strong>Adicionar a uma Box</strong>
                                             <small>Preenche espaços disponíveis</small>
                                         </button>
@@ -618,7 +690,7 @@ export default function Teambuilder({ envProps }) {
                                             })}
                                             <option value="__new__">Criar nova Box para este envio</option>
                                         </select>
-                                        <small>{importTargetId === "__new__" ? "Uma nova Box será criada somente porque você escolheu essa opção." : "Os Pokémon entrarão nos espaços livres desta Box."}</small>
+                                        <small>{importTargetId === "__new__" ? "Cria uma Box para os Pokémon recebidos." : "Os Pokémon ocuparão os espaços livres."}</small>
                                     </label>
                                 )}
                                 {importError && <div role="alert" className="link-cable-error">{importError}</div>}

@@ -180,7 +180,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const defenses = calculateDefenses(formData?.types || []);
     const bst = formData?.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
     const primaryColor = TYPE_COLORS[formData?.types?.[0]?.type?.name] || "#0EA5E9";
-    const sprite = formData?.sprites?.front_default || formData?.sprites?.other?.["official-artwork"]?.front_default;
+    const sprite = formData?.sprites?.other?.["official-artwork"]?.front_default || formData?.sprites?.front_default;
     const speciesDescription = phase === "ready" ? describeSpecies(baseInfo, formData) : null;
 
     return (
@@ -192,9 +192,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 {phase !== "ready" ? (
                     <div className="record-state">
                         <span className={`record-pokeball ${phase === "loading" ? "is-reading" : ""}`} aria-hidden="true" />
-                        <small>Pokédex · registro de campo</small>
-                        <h2 id={titleId}>{phase === "loading" ? "Um instante, treinador!" : "Este registro não abriu"}</h2>
-                        <p role={phase === "loading" ? "status" : "alert"}>{phase === "loading" ? "Estamos buscando a ficha do seu próximo parceiro." : loadError}</p>
+                        <small>Pokédex</small>
+                        <h2 id={titleId}>{phase === "loading" ? "Consultando Pokémon…" : "Registro indisponível"}</h2>
+                        <p role={phase === "loading" ? "status" : "alert"}>{phase === "loading" ? "Carregando a ficha." : loadError}</p>
                         <button type="button" className="record-state-button" onClick={onClose}>{phase === "loading" ? "Cancelar consulta" : "Voltar à Pokédex"}</button>
                     </div>
                 ) : (<>
@@ -207,7 +207,6 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         {activeForm?.name !== baseInfo.name && <p className="record-form-label">Forma {formatName(activeForm.name.replace(`${baseInfo.name}-`, ""))}</p>}
                     </header>
                     <div className="record-sprite-stage">
-                        <span className="record-screen-caption" aria-hidden="true">POKÉMON DATA</span>
                         <span className="record-sprite-ground" aria-hidden="true" />
                         {sprite ? (
                             <PokemonSprite
@@ -273,28 +272,27 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         {tab === "stats" && (
                             <div className="animate-fade-in space-y-8">
                                 <section className="species-description" aria-labelledby={`${recordId}-description-title`}>
-                                    <span>Registro de campo</span>
-                                    <h3 id={`${recordId}-description-title`}>Conheça seu parceiro</h3>
+                                    <h3 id={`${recordId}-description-title`}>Registro da Pokédex</h3>
                                     <p lang={speciesDescription.flavor.text ? speciesDescription.flavor.code : "pt-BR"}>{speciesDescription.summary}</p>
-                                    {speciesDescription.flavor.text && speciesDescription.flavor.code === "en" && <small>A Pokédex identificou este relato como texto original em inglês. Os dados explicativos abaixo continuam em português.</small>}
+                                    {speciesDescription.flavor.text && speciesDescription.flavor.code === "en" && <small>Texto original em inglês.</small>}
                                     <ul>
                                         {speciesDescription.facts.map((fact, index) => <li key={`species-fact-${index}`}>{fact}</li>)}
                                     </ul>
                                 </section>
-                                <div className="flex gap-4">
-                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#CBD5E1]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Altura</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.height || 0) / 10)} m</span></div>
-                                    <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 flex-1 flex flex-col items-center shadow-[0_4px_0_#CBD5E1]"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Peso</span><span className="text-3xl font-black text-slate-800">{formatNumberPtBr((formData.weight || 0) / 10)} kg</span></div>
-                                </div>
+                                <dl className="record-measurements">
+                                    <div><dt>Altura</dt><dd>{formatNumberPtBr((formData.height || 0) / 10)} m</dd></div>
+                                    <div><dt>Peso</dt><dd>{formatNumberPtBr((formData.weight || 0) / 10)} kg</dd></div>
+                                </dl>
                                 
                                 <div>
-                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500"></div> Habilidades</h3>
+                                    <h3 className="record-section-title">Habilidades</h3>
                                     <div className="flex flex-col gap-3">{formData.abilities?.map((a, i) => <AbilityCard key={i} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
                                 </div>
                                 
                                 {baseInfo.varieties?.length > 1 && (
                                     <div>
-                                        <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Outras formas</h3>
-                                        <div className="flex flex-wrap gap-2 bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm">
+                                        <h3 className="record-section-title">Formas</h3>
+                                        <div className="record-form-options">
                                             {baseInfo.varieties.map((v, index) => {
                                                 const formSlug = (v.pokemon?.name || "").replace(baseInfo.name + "-", "");
                                                 const btnName = v.pokemon?.name === baseInfo.name || !formSlug
@@ -306,7 +304,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                         type="button"
                                                         aria-pressed={activeForm?.name === v.pokemon?.name}
                                                         onClick={() => setActiveForm(v.pokemon)} 
-                                                        className={"px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-2 outline-none shadow-sm " + (activeForm?.name === v.pokemon?.name ? "bg-blue-500 text-white border-blue-700 shadow-[0_3px_0_#0EA5E9] scale-105" : "bg-slate-50 text-slate-600 border-slate-300 hover:border-blue-400 hover:bg-white")}
+                                                        className={`record-form-button ${activeForm?.name === v.pokemon?.name ? "is-selected" : ""}`}
                                                     >
                                                         {btnName}
                                                     </button>
@@ -317,14 +315,14 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 )}
                                 
                                 <div>
-                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Linha evolutiva</h3>
+                                    <h3 className="record-section-title">Linha evolutiva</h3>
                                     <p className="record-section-note">Cada evolução tem suas próprias condições.</p>
                                     <div className="record-evolution-list bg-white p-6 rounded-2xl border-2 border-slate-200 flex flex-col gap-6 shadow-sm">
                                         {evolutionStatus === "loading" ? <p role="status" className="record-section-note">Consultando a linha evolutiva...</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">A linha evolutiva não chegou desta vez. As outras páginas da ficha continuam disponíveis.</p> : evoChain.length > 0 ? evoChain.map((path, idx) => (
-                                            <div key={idx} className="flex items-center gap-4 overflow-x-auto pb-2 no-scrollbar">
+                                            <div key={idx} className="record-evolution-path">
                                                 {path.map((node, i) => (
                                                     <React.Fragment key={node.name + i}>
-                                                        <div className="flex flex-col items-center min-w-[85px] group">
+                                                        <div className="record-evolution-node group">
                                                             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-4 border-slate-200 shadow-inner group-hover:border-red-400 transition-colors">
                                                                 <PokemonSprite
                                                                     pokemonId={node.id}
@@ -345,7 +343,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         )}
                         {tab === "defenses" && (
                             <div className="animate-fade-in">
-                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Como os tipos afetam este Pokémon</h3>
+                                <h3 className="record-section-title">Afinidades de tipo</h3>
                                 <p className="record-section-note">Os multiplicadores consideram os tipos. Habilidades e outros efeitos podem mudar o dano.</p>
                                 <div className="record-matchups">
                                     {[
@@ -366,9 +364,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         )}
                         {tab === "moves" && (
                             <div className="animate-fade-in">
-                                <div className="record-moves-heading flex justify-between items-center mb-6">
-                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500"></div> Movimentos que pode aprender</h3>
-                                    <span className="bg-slate-800 px-3 py-1 rounded-full text-white text-[10px] font-black shadow-inner">{formatCount(legalMoves.length, "movimento")} • {VERSION_LABELS[moveVersion] || "Mais recente"}</span>
+                                <div className="record-moves-heading">
+                                    <h3 className="record-section-title">Movimentos</h3>
+                                    <span className="record-move-version">{formatCount(legalMoves.length, "movimento")} · {VERSION_LABELS[moveVersion] || "Mais recente"}</span>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     {legalMoves.map(move => <MoveAccordion key={move.move?.name} moveData={move} isTTRPG={isTTRPG} />)}

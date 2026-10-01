@@ -5,7 +5,7 @@ const DEFAULT_POOL_SIZE = 64;
 const MAX_REJECTION_ATTEMPTS = 128;
 
 export class SecureRandomError extends Error {
-    constructor(message = "Este aparelho não ofereceu uma fonte segura de aleatoriedade. Nenhum resultado foi gerado.", options) {
+    constructor(message = "Este dispositivo não ofereceu uma fonte segura de aleatoriedade. Nenhum resultado foi gerado.", options) {
         super(message, options);
         this.name = "SecureRandomError";
     }

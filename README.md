@@ -1,10 +1,10 @@
-# MyOwnDex 10
+# MyOwnDex
 
-Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para Pokémon RPG. Aplicação independente, executada na própria Vercel com Next.js, React e regras em JavaScript. Não usa IA, autenticação externa ou encaminhamento para outra hospedagem.
+Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para Pokémon RPG. Aplicação independente, executada na Vercel com Next.js, React e regras em JavaScript.
 
-## O que mudou
+## Recursos
 
-- Interface de console portátil: molduras de pixels, botões com relevo, cores vivas, tema noturno e fonte VT323 incluída no projeto.
+- Interface inspirada nos jogos de Pokémon: sprites, painéis de pixels, cores por função, tema noturno e fonte VT323 incluída no projeto.
 - Catálogo nacional de 1.025 espécies incluído; 152 sprites locais (Kanto e Rotom). A abertura da Pokédex não precisa esperar pela rede.
 - Busca por nome/número, favoritos e filtro por geração de estreia. Detalhes, formas, habilidades e movimentos usam a PokéAPI, com cache.
 - PC com seis slots visuais, mini-equipes nas Boxes, tipos e Shiny em destaque. Importação, compartilhamento, duplicação, exclusão e desfazer preservados.
@@ -21,35 +21,21 @@ npm ci
 npm run dev
 ```
 
-Abra `http://localhost:3000`. Pokédex, PC, Guia e aventura local funcionam sem configurar banco. Boxes e preferências continuam salvas neste navegador; trocar de domínio ou aparelho não transfere o armazenamento local. Exporte as Boxes pelo Link Cable antes de trocar de domínio.
+Abra `http://localhost:3000`. Pokédex, PC, Guia e aventura local funcionam sem configurar banco. Boxes e preferências ficam salvas neste navegador e dispositivo. Exporte suas Boxes pelo Link Cable para transferi-las a outro navegador ou domínio.
 
-Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configure `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN`. Trilhas enviadas pelo narrador também precisam das variáveis S3 e de CORS. Consulte [docs/RUNTIME.md](docs/RUNTIME.md) para configuração completa, limites, TURN e migração.
+Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configure `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN`. Trilhas enviadas pelo narrador também precisam das variáveis S3 e de CORS. Consulte [docs/RUNTIME.md](docs/RUNTIME.md) para configuração, limites e TURN. As salas da instalação atual usam Turso; a atualização não depende de migrar o serviço antigo.
 
-**Aventuras antigas:** foram identificadas 7 salas no banco anterior. O pacote contém código, catálogo e sprites; os registros privados ficam no serviço original. Antes de substituir a produção, importe um backup SQLite completo no Turso. A consulta encontrou zero áudios cadastrados; se houver objetos no bucket antigo, preserve suas chaves ao copiá-los. Não publique backups ou credenciais no GitHub.
+## Atualizar pelo Linux
 
-## Automatizar no Linux
-
-O arquivo `myowndex-corrigido-linux.sh` inclui o projeto completo. Se você baixou esse instalador, execute `bash myowndex-corrigido-linux.sh` na pasta do download. Ele cria uma pasta nova na sua pasta pessoal, confere a integridade e inicia a preparação. Você não precisa extrair um ZIP ou TAR manualmente.
-
-Se já extraiu o projeto, execute dentro dele:
+Baixe `myowndex-v11-linux.sh`, abra o terminal na pasta do download e execute:
 
 ```bash
-bash preparar-linux.sh enviar
+bash myowndex-v11-linux.sh
 ```
 
-O comando instala as ferramentas ausentes em Ubuntu/Debian/Mint, prepara o Node.js, abre os logins necessários, executa testes, lint, verificação de tipos e build, envia um branch ao GitHub, abre um PR em rascunho e cria um Preview na Vercel. A instalação pode pedir sua senha do Linux; os logins precisam de sua autorização no navegador. Credenciais não são enviadas ao repositório.
+O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da Vercel e os bancos já configurados. Você não precisa criar outra conta Turso, copiar tokens, extrair um arquivo ZIP ou migrar salas.
 
-Uma falha identifica a etapa interrompida e a pasta preservada. Copie as últimas linhas do terminal para investigar um erro de instalação, login, lint, tipos ou build.
-
-O site atual continua disponível. Se o repositório evoluiu desde a versão-base, o script interrompe o envio para preservar as mudanças mais recentes. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para os modos de verificação, Preview e publicação.
-
-Depois de configurar o banco independente e migrar as aventuras antigas, a publicação final é:
-
-```bash
-bash preparar-linux.sh publicar
-```
-
-Esse modo atualiza `main` e produção. Configure as variáveis do banco na Vercel em Production e Preview quando utilizar salas. A publicação não migra os dados do serviço anterior. A integração GitHub/Vercel também pode publicar automaticamente quando o PR for integrado em `main`.
+O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
 ## Arquitetura e fontes
 
@@ -58,5 +44,6 @@ Esse modo atualiza `main` e produção. Configure as variáveis do banco na Verc
 - `src/components/`: Pokédex, PC, aventura e Guia.
 - [PokéAPI](https://pokeapi.co/), [dados das espécies](https://github.com/PokeAPI/pokeapi/blob/master/data/v2/csv/pokemon_species.csv) e [sprites](https://github.com/PokeAPI/sprites) são as fontes do catálogo e das imagens.
 - Fonte [VT323](https://github.com/google/fonts/tree/main/ofl/vt323), sob SIL Open Font License; licença incluída em `public/fonts/OFL.txt`.
+- [Sistema visual e referências](docs/icon-visual-system.md), [validação](docs/VALIDACAO.md) e [publicação](docs/AUTOMACAO.md).
 
 Projeto de fãs, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Sprites e personagens pertencem aos respectivos titulares.

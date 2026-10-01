@@ -37,7 +37,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: "#7F1D1D",
+  themeColor: "#da3041",
 };
 
 const themeBootScript = `try{const saved=JSON.parse(localStorage.getItem("myowndex_appearance_v1")||'"system"');const preference=["normal","night","system"].includes(saved)?saved:"system";const resolved=preference==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"night":"normal"):preference;document.documentElement.dataset.theme=resolved;document.documentElement.dataset.themePreference=preference;document.documentElement.style.colorScheme=resolved==="night"?"dark":"light"}catch{}`;

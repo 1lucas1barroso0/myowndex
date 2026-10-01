@@ -74,11 +74,11 @@ O narrador pede uma URL de upload válida por 15 minutos. O navegador envia o á
 
 Se um envio for interrompido antes da confirmação, o objeto pode ficar no bucket sem registro no banco. Ele não aparece na aventura; você pode removê-lo pelo painel do armazenamento. As trilhas registradas são removidas ao excluir a trilha ou a aventura.
 
-## Dados de uma instalação anterior
+## Dados locais e do servidor
 
 Os dados locais do navegador permanecem no domínio onde foram salvos. Antes de mudar o endereço do app, exporte seu backup e importe no novo endereço. Quem mantém `myowndex.vercel.app` mantém a mesma origem para esses dados.
 
-O deploy não copia automaticamente aventuras do banco anterior. Para preservar salas, exporte o SQLite/D1 antigo e importe em seu Turso; os nomes das tabelas, hashes dos tokens e registros são compatíveis. A consulta de 1 de outubro identificou 7 salas e nenhum áudio cadastrado em `room_media`. Se houver objetos no bucket antigo, copie-os preservando as chaves `rooms/CODIGO/audio/ID`. Faça backup antes da migração. O visualizador disponível nesta sessão trunca o estado de duas salas e não substitui uma exportação integral. Sem acesso administrativo ao banco anterior, as salas existentes continuam apenas onde seus dados estavam hospedados; novas salas usarão seu banco próprio.
+As aventuras compartilhadas ficam no banco Turso configurado para cada ambiente. Atualizações de código mantêm esses dados quando usam as mesmas variáveis. Production e Preview devem usar bancos separados para que testes não alterem suas aventuras reais. As salas da hospedagem anterior foram deixadas fora desta instalação por escolha do proprietário; não há migração pendente para publicar atualizações.
 
 ## Verificar salas após configurar o banco
 

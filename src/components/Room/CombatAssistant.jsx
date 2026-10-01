@@ -260,7 +260,6 @@ export default function CombatAssistant({
                     <small>Assistente Rotom</small>
                     <strong>Resolver um movimento</strong>
                 </span>
-                <span className="room-tool-badge">Rotom</span>
             </summary>
             <div className="room-tool-body">
                 <div className="combat-grid">

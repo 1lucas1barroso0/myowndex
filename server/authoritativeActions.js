@@ -99,7 +99,7 @@ export const normalizeAuthoritativeRequest = input => {
     const allowed = ACTION_KEYS[action];
     for (const key of Object.keys(input)) {
         if (!COMMON_KEYS.has(key) && !allowed.has(key)) {
-            throw new AuthoritativeActionError("O servidor não aceita dados de resultado enviados pelo aparelho.");
+            throw new AuthoritativeActionError("O servidor não aceita dados de resultado enviados pelo dispositivo.");
         }
     }
 
@@ -424,7 +424,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         throw new AuthoritativeActionError("Confirme o movimento resultante antes de resolver a jogada.");
     }
     if (!needsCalledMove && request.calledMoveName) {
-        throw new AuthoritativeActionError("Este movimento não aceita um movimento resultante enviado pelo aparelho.");
+        throw new AuthoritativeActionError("Este movimento não aceita um movimento resultante enviado pelo dispositivo.");
     }
     const resolvedMove = needsCalledMove ? calledMove : move;
     const ppState = getMovePpState(attacker, move, request.moveName);

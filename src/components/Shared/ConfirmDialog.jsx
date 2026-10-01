@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 
 export default function ConfirmDialog({
@@ -12,37 +12,64 @@ export default function ConfirmDialog({
     onCancel
 }) {
     const cancelRef = useRef(null);
+    const dialogRef = useRef(null);
+    const titleId = useId();
+    const descriptionId = useId();
+    const onCancelRef = useRef(onCancel);
+
+    useEffect(() => {
+        onCancelRef.current = onCancel;
+    }, [onCancel]);
 
     useEffect(() => {
         if (!open) return undefined;
         const previous = document.activeElement;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
         const handleKeyDown = event => {
-            if (event.key === "Escape") onCancel();
+            if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                onCancelRef.current();
+                return;
+            }
+            if (event.key !== "Tab") return;
+            const buttons = Array.from(dialogRef.current?.querySelectorAll("button:not(:disabled)") || []);
+            const first = buttons[0];
+            const last = buttons[buttons.length - 1];
+            if (!first) {
+                event.preventDefault();
+                dialogRef.current?.focus();
+            } else if (event.shiftKey && (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))) {
+                event.preventDefault();
+                first.focus();
+            }
         };
-        document.addEventListener("keydown", handleKeyDown);
-        window.requestAnimationFrame(() => cancelRef.current?.focus());
+        document.addEventListener("keydown", handleKeyDown, true);
+        const focusFrame = window.requestAnimationFrame(() => cancelRef.current?.focus());
         return () => {
-            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("keydown", handleKeyDown, true);
+            window.cancelAnimationFrame(focusFrame);
+            document.body.style.overflow = previousOverflow;
             previous?.focus?.();
         };
-    }, [open, onCancel]);
+    }, [open]);
 
     if (!open || typeof document === "undefined") return null;
-    const confirmStyle = tone === "danger"
-        ? "bg-red-500 text-white shadow-[0_4px_0_#991B1B] hover:bg-red-600"
-        : "bg-blue-500 text-white shadow-[0_4px_0_#0EA5E9] hover:bg-blue-600";
-
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" onMouseDown={event => event.target === event.currentTarget && onCancel()}>
-            <section role="alertdialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-description" className="game-shell w-full max-w-md p-5 text-center sm:p-7">
-                <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full border-4 border-white text-2xl shadow-lg ${tone === "danger" ? "bg-red-500" : "bg-blue-500"}`} aria-hidden="true">
+        <div className="confirm-dialog-overlay" onMouseDown={event => event.target === event.currentTarget && onCancel()}>
+            <section ref={dialogRef} tabIndex={-1} role="alertdialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId} className={`game-shell confirm-dialog-shell ${tone === "danger" ? "is-danger" : "is-info"}`}>
+                <div className="confirm-dialog-symbol" aria-hidden="true">
                     {tone === "danger" ? "!" : "?"}
                 </div>
-                <h2 id="confirm-dialog-title" className="mt-4 text-xl font-black text-slate-800">{title}</h2>
-                <p id="confirm-dialog-description" className="mt-2 text-sm font-semibold leading-6 text-slate-500">{description}</p>
-                <div className="mt-6 grid grid-cols-2 gap-3">
-                    <button ref={cancelRef} type="button" onClick={onCancel} className="rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 transition-colors hover:border-slate-400">{cancelLabel}</button>
-                    <button type="button" onClick={onConfirm} className={`rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${confirmStyle}`}>{confirmLabel}</button>
+                <h2 id={titleId}>{title}</h2>
+                <p id={descriptionId}>{description}</p>
+                <div className="confirm-dialog-actions">
+                    <button ref={cancelRef} type="button" onClick={onCancel} className="room-secondary-button">{cancelLabel}</button>
+                    <button type="button" onClick={onConfirm} className="room-primary-button confirm-dialog-confirm">{confirmLabel}</button>
                 </div>
             </section>
         </div>,

@@ -53,7 +53,7 @@ const TraitCard = ({ kind, id, profile, active, consumed, suppressed, detail, ca
                 {explanation.catalog.text ? (
                     <details><summary>{explanation.catalog.label}</summary><p lang={explanation.catalog.code}>{explanation.catalog.text}</p></details>
                 ) : (
-                    <p className="catalog-description-missing">O catálogo não trouxe outro texto. O gatilho e o modo de resolver continuam visíveis acima, sem completar a regra por suposição.</p>
+                    <p className="catalog-description-missing">Descrição adicional indisponível.</p>
                 )}
             </div>
             {canEdit && (
@@ -178,7 +178,6 @@ export default function TraitMechanicsPanel({ token, snapshot, role, onTokenChan
                         </ol>
                     </div>
                 )}
-                <p className="trait-integrity-note">O MyOwnDex só aplica sozinho o que a cena comprova. Sempre que faltar alvo, escolha ou interpretação, a regra permanece à vista para o Narrador decidir com o grupo.</p>
             </div>
         </details>
     );

@@ -294,23 +294,10 @@ html:not([data-theme="night"]) .text-slate-500 { color: #0E7490; }
   text-transform: uppercase;
 }
 
-.appearance-control,
-.install-entry { display: inline-flex; min-height: 2.7rem; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: .85rem; font-size: .56rem; font-weight: 950; letter-spacing: .04em; text-transform: uppercase; }
+.appearance-control { display: inline-flex; min-height: 2.7rem; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: .85rem; font-size: .56rem; font-weight: 950; letter-spacing: .04em; text-transform: uppercase; }
 .appearance-control { min-width: 3.8rem; flex-direction: column; gap: .05rem; border: 1px solid #CBD5E1; background: linear-gradient(145deg,#FFFFFF,#F8FAFC); padding: .28rem .55rem; color: #075985; }
 .appearance-control > span { color: #0E7490; font-size: .88rem; line-height: 1; }
 .appearance-control small { font-size: .43rem; font-weight: 950; }
-.install-entry { gap: .42rem; border: 1px solid #F0FDFF; background: linear-gradient(135deg,#FFFFFF,#F0FDFF); padding: .32rem .62rem .32rem .34rem; color: #075985; box-shadow: 0 5px 14px rgba(7,89,133,.08); }
-.install-entry img { width: 1.75rem; height: 1.75rem; border-radius: .5rem; }
-.install-entry:hover { border-color: #67E8F9; background: #F0FDFF; }
-.install-overlay { position: fixed; z-index: 200; inset: 0; display: grid; place-items: center; background: rgba(15,23,42,.58); padding: 1rem; backdrop-filter: blur(10px); }
-.install-dialog { position: relative; width: min(100%,25rem); max-height: min(90dvh,42rem); overflow-y: auto; border: 1px solid rgba(255,255,255,.8); border-radius: 1.25rem; background: #FFFFFF; padding: 1.35rem; color: #0F172A; box-shadow: 0 30px 75px rgba(15,23,42,.32); text-align: left; }
-.install-dialog > img { width: 4rem; height: 4rem; border-radius: 1.08rem; box-shadow: 0 12px 24px rgba(127,29,29,.22); }
-.install-dialog > small { display: block; margin-top: .9rem; color: #0E7490; font-size: .56rem; font-weight: 950; letter-spacing: .12em; text-transform: uppercase; }
-.install-dialog h2 { margin: .25rem 2rem .75rem 0; font-size: 1.35rem; font-weight: 950; letter-spacing: -.035em; }
-.install-dialog ol { display: grid; gap: .48rem; margin: 0; padding-left: 1.2rem; color: #075985; font-size: .7rem; font-weight: 700; line-height: 1.45; }
-.install-dialog p { margin: .8rem 0; border-radius: .72rem; background: #F8FAFC; padding: .7rem .75rem; color: #0E7490; font-size: .62rem; font-weight: 700; line-height: 1.5; }
-.install-close { position: absolute; top: .8rem; right: .8rem; display: grid; width: 2rem; height: 2rem; place-items: center; border: 0; border-radius: .6rem; background: #F8FAFC; color: #0E7490; font-size: 1.15rem; }
-.install-done { width: 100%; min-height: 2.55rem; border: 0; border-radius: .72rem; background: #0F172A; color: #FFFFFF; font-size: .58rem; font-weight: 950; text-transform: uppercase; }
 
 .editor-input {
   width: 100%;
@@ -342,25 +329,6 @@ html:not([data-theme="night"]) .text-slate-500 { color: #0E7490; }
   outline: none;
 }
 
-.rotom-automation-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: .4rem;
-  margin: -.1rem 0 1.25rem;
-  border: 1px solid #BAE6FD;
-  border-radius: .85rem;
-  background: linear-gradient(90deg,#F0FDFF,#FFFFFF);
-  padding: .52rem .65rem;
-  color: #0E7490;
-  font-size: .5rem;
-  font-weight: 800;
-}
-.rotom-automation-bar strong { display: flex; align-items: center; gap: .3rem; color: #075985; font-weight: 950; text-transform: uppercase; }
-.rotom-automation-bar strong span { color: #4ADE80; font-size: .62rem; }
-.rotom-automation-bar > span { border-left: 1px solid #F0FDFF; padding-left: .4rem; }
-.rotom-automation-bar em { margin-left: auto; border-radius: 999px; background: #ECFEFF; padding: .22rem .48rem; color: #0F172A; font-style: normal; font-weight: 900; }
-.rotom-automation-bar em.has-exceptions { background: #F8FAFC; color: #991B1B; }
 
 .editor-xp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin-top: .35rem; }
 .editor-xp-actions button { border: 1px solid #ECFEFF; border-radius: .48rem; background: #ECFEFF; padding: .28rem .48rem; color: #0F172A; font-size: .48rem; font-weight: 950; }
@@ -1420,7 +1388,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   .app-header-shell > div { flex-direction: row; align-items: center; }
   .app-header-shell > div > div:first-child { width: auto; flex: 1; }
   .app-nav { width: 100%; min-width: 0; max-width: none; flex: 1; }
-  .appearance-control,.install-entry { min-height: 2.45rem; }
+  .appearance-control { min-height: 2.45rem; }
   .app-actions { width: auto; flex: 0 0 auto; }
   .mode-select { min-height: 2.45rem; }
   .room-header { align-items: flex-start; }
@@ -1464,9 +1432,6 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
   .nav-capsule span { font-size: .63rem; }
   .appearance-control { min-width: 2.45rem; padding: .3rem; }
   .appearance-control small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
-  .install-entry { min-width: 2.45rem; padding: .3rem; }
-  .install-entry img { width: 1.72rem; height: 1.72rem; }
-  .install-entry span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
   .app-actions { display: none; }
   .app-main-shell { padding: .6rem !important; border-radius: .9rem; }
   .room-lobby-hero { min-height: 12rem; padding: 1.35rem; }
@@ -1555,8 +1520,7 @@ html[data-theme="night"] .nav-capsule { color: #0E7490; }
 html[data-theme="night"] .nav-capsule:hover { background: #0F172A; color: #CBD5E1; }
 html[data-theme="night"] .nav-capsule.is-active { background: #CBD5E1; color: #0F172A; }
 html[data-theme="night"] .mode-select,
-html[data-theme="night"] .appearance-control,
-html[data-theme="night"] .install-entry { border-color: #075985; background: linear-gradient(145deg,#0F172A,#0F172A); color: #CBD5E1; }
+html[data-theme="night"] .appearance-control { border-color: #075985; background: linear-gradient(145deg,#0F172A,#0F172A); color: #CBD5E1; }
 html[data-theme="night"] .mode-select select { color: #CBD5E1; }
 html[data-theme="night"] .appearance-control > span { color: #67E8F9; }
 
@@ -1569,8 +1533,7 @@ html[data-theme="night"] .room-section,
 html[data-theme="night"] .room-tool,
 html[data-theme="night"] .battlefield-card,
 html[data-theme="night"] .token-inspector,
-html[data-theme="night"] .room-note,
-html[data-theme="night"] .install-dialog { border-color: #075985; background: #0F172A; color: #CBD5E1; box-shadow: 0 8px 24px rgba(15,23,42,.24); }
+html[data-theme="night"] .room-note { border-color: #075985; background: #0F172A; color: #CBD5E1; box-shadow: 0 8px 24px rgba(15,23,42,.24); }
 html[data-theme="night"] .room-lobby-card input,
 html[data-theme="night"] .room-lobby-card textarea,
 html[data-theme="night"] .room-lobby-card select,
@@ -1730,11 +1693,6 @@ html[data-theme="night"] .room-team-lead > span { color: #BAE6FD; }
 html[data-theme="night"] .token-hit-kill-state > button { background: #0F172A; color: #F8FAFC; }
 html[data-theme="night"] .room-mobile-nav { border-color: #075985; background: rgba(15,23,42,.94); }
 html[data-theme="night"] .room-mobile-nav button[aria-pressed=true] { background: #CBD5E1; color: #0F172A; }
-html[data-theme="night"] .install-dialog ol,
-html[data-theme="night"] .install-dialog p { color: #CBD5E1; }
-html[data-theme="night"] .install-dialog p,
-html[data-theme="night"] .install-close { background: #0F172A; }
-html[data-theme="night"] .install-dialog h2 { color: #F8FAFC; }
 
 html[data-theme="night"] .bg-white { background-color: #0F172A; }
 html[data-theme="night"] .bg-slate-50 { background-color: #0F172A; }
@@ -1982,7 +1940,6 @@ html[data-theme="night"] .text-slate-300 { color: var(--night-ink); }
 html[data-theme="night"] .text-slate-500,
 html[data-theme="night"] .text-slate-400 { color: var(--night-muted); }
 html[data-theme="night"] .guide-pill,
-html[data-theme="night"] .install-done,
 html[data-theme="night"] .link-cable-primary,
 html[data-theme="night"] .link-cable-success,
 html[data-theme="night"] .room-resume b,
@@ -1999,7 +1956,6 @@ html[data-theme="night"] .combat-called-move button,
 html[data-theme="night"] .audio-now,
 html[data-theme="night"] .event-log article > button { color: var(--night-cyan-soft); }
 html[data-theme="night"] .room-lobby-hero h2,
-html[data-theme="night"] .install-dialog h2,
 html[data-theme="night"] .link-cable-dialog h2,
 html[data-theme="night"] .room-title h2,
 html[data-theme="night"] .room-section-heading h3,
@@ -2116,7 +2072,6 @@ html[data-theme="night"] select:-webkit-autofill {
 .battlefield-card,
 .token-inspector,
 .room-note,
-.install-dialog,
 .link-cable-dialog {
   border-width: 2px;
   border-color: var(--rom-line);
@@ -2173,8 +2128,6 @@ html[data-theme="night"] select:-webkit-autofill {
 .nav-capsule,
 .mode-select,
 .appearance-control,
-.install-entry,
-.rotom-automation-bar,
 .pokemon-editor label,
 .pc-main-panel label {
   font-family: var(--rom-ui-font);
@@ -2332,16 +2285,6 @@ html:not([data-theme="night"]) .nav-capsule.is-active span { color: #FB7185; }
 }
 .room-note.is-private { box-shadow: inset 3px 0 0 var(--rom-coral); }
 
-.rotom-automation-bar {
-  border: 2px solid #0EA5E9;
-  border-radius: .38rem;
-  background: #ECFEFF;
-  color: #075985;
-  box-shadow: 3px 3px 0 rgba(14,116,144,.24);
-}
-.rotom-automation-bar > span { border-left-color: #67E8F9; }
-.rotom-automation-bar em { border-radius: .2rem; background: #ECFEFF; color: #0F172A; }
-.rotom-automation-bar em.has-exceptions { background: #ECFEFF; color: #991B1B; }
 
 input[type="range"] { accent-color: var(--rom-coral); }
 input[type="range"]::-webkit-slider-thumb {
@@ -2442,7 +2385,6 @@ html[data-theme="night"] .room-tool,
 html[data-theme="night"] .battlefield-card,
 html[data-theme="night"] .token-inspector,
 html[data-theme="night"] .room-note,
-html[data-theme="night"] .install-dialog,
 html[data-theme="night"] .pc-workspace aside,
 html[data-theme="night"] .pc-main-panel,
 html[data-theme="night"] .pokemon-editor {
@@ -2626,17 +2568,6 @@ html[data-theme="night"] .pc-action-button.is-delete {
   box-shadow: 3px 3px 0 #0F172A, inset 3px 0 0 #FB7185;
 }
 
-html[data-theme="night"] .rotom-automation-bar {
-  border-color: #0E7490;
-  background: linear-gradient(90deg,#0F172A,#0F172A);
-  color: #67E8F9;
-  box-shadow: 3px 3px 0 #0F172A;
-}
-html[data-theme="night"] .rotom-automation-bar strong { color: #67E8F9; }
-html[data-theme="night"] .rotom-automation-bar strong span { color: var(--rom-green); }
-html[data-theme="night"] .rotom-automation-bar > span { border-left-color: #075985; }
-html[data-theme="night"] .rotom-automation-bar em { background: #075985; color: #CBD5E1; }
-html[data-theme="night"] .rotom-automation-bar em.has-exceptions { background: #7F1D1D; color: #FB7185; }
 
 html[data-theme="night"] .room-lobby-hero {
   border-color: #0EA5E9;
@@ -2787,7 +2718,6 @@ html[data-theme="night"] .nav-capsule.is-active span,
 .catalog-description-missing,
 .combat-permission-note,
 .token-volatile-list span,
-.rotom-automation-bar em.has-exceptions,
 .pc-action-button.is-delete,
 html[data-theme="night"] .pc-action-button.is-delete,
 html[data-theme="night"] .trait-card.is-item > header small,
@@ -2801,8 +2731,7 @@ html[data-theme="night"] .room-note.is-private,
 html[data-theme="night"] .call-badge.is-connecting,
 html[data-theme="night"] .call-badge.is-reconnecting,
 html[data-theme="night"] .call-local-mute[aria-pressed="true"],
-html[data-theme="night"] .call-actions button.is-muted,
-html[data-theme="night"] .rotom-automation-bar em.has-exceptions {
+html[data-theme="night"] .call-actions button.is-muted {
   color: var(--rom-text-special) !important;
 }
 
@@ -2812,8 +2741,7 @@ html[data-theme="night"] .room-mobile-nav button[aria-pressed="true"] {
 
 .room-connection.is-connected,
 .call-badge.is-connected,
-.trait-card.is-active > header strong,
-.rotom-automation-bar em:not(.has-exceptions) {
+.trait-card.is-active > header strong {
   color: var(--rom-text-success);
 }
 
@@ -2863,7 +2791,6 @@ html[data-theme="night"] .room-mobile-nav button[aria-pressed="true"] {
 .battlefield-card,
 .token-inspector,
 .room-note,
-.install-dialog,
 .link-cable-dialog,
 .pc-sidebar,
 .pc-main-panel,
@@ -2908,7 +2835,6 @@ html[data-theme="night"] .room-mobile-nav button[aria-pressed="true"] {
 .pc-import-button,
 .link-cable-primary,
 .link-cable-secondary,
-.install-entry,
 .appearance-control,
 .mode-select,
 button[class*="rounded-"] {
@@ -2975,8 +2901,6 @@ button:focus-visible,
 .nav-capsule,
 .mode-select,
 .appearance-control,
-.install-entry,
-.rotom-automation-bar,
 .pokemon-editor label,
 .pc-main-panel label,
 .room-role-badge,
@@ -3044,12 +2968,7 @@ button:focus-visible,
   border-color: var(--rom-text-special);
 }
 
-.rotom-automation-bar {
-  border-radius: 3px;
-  box-shadow: 3px 3px 0 var(--rom-pixel-shadow);
-}
 
-.rotom-automation-bar em.has-exceptions,
 .catalog-description-missing,
 .combat-permission-note,
 .token-volatile-list span,
@@ -3061,7 +2980,6 @@ button:focus-visible,
   background-color: rgba(7,89,133, .1);
 }
 
-html[data-theme="night"] .rotom-automation-bar em.has-exceptions,
 html[data-theme="night"] .catalog-description-missing,
 html[data-theme="night"] .combat-permission-note,
 html[data-theme="night"] .token-volatile-list span,
@@ -3212,10 +3130,6 @@ body {
   grid-row: 1;
 }
 
-.app-header-primary > .install-entry {
-  grid-column: 4;
-  grid-row: 1;
-}
 
 .app-actions {
   display: flex !important;
@@ -3609,7 +3523,6 @@ html[data-theme="night"] .room-tool,
 html[data-theme="night"] .battlefield-card,
 html[data-theme="night"] .token-inspector,
 html[data-theme="night"] .room-note,
-html[data-theme="night"] .install-dialog,
 html[data-theme="night"] .link-cable-dialog,
 html[data-theme="night"] .pc-sidebar,
 html[data-theme="night"] .pc-main-panel,
@@ -3624,8 +3537,7 @@ html[data-theme="night"] .pokemon-modal-details {
 
 html[data-theme="night"] .app-nav,
 html[data-theme="night"] .mode-select,
-html[data-theme="night"] .appearance-control,
-html[data-theme="night"] .install-entry {
+html[data-theme="night"] .appearance-control {
   border-color: #075985;
   background: #0F172A;
   color: var(--rom-muted);
@@ -3931,7 +3843,6 @@ body {
 .battlefield-card,
 .token-inspector,
 .room-note,
-.install-dialog,
 .link-cable-dialog,
 .pc-sidebar,
 .pc-main-panel,
@@ -3990,9 +3901,7 @@ html:not([data-theme="night"]) .nav-capsule.is-active span {
   color: var(--dex-lens-cyan);
 }
 
-.app-brand-icon,
-.install-entry img,
-.install-entry > span:first-child {
+.app-brand-icon {
   border-color: var(--dex-lens-cyan);
   background: var(--dex-case-deep);
   box-shadow: 2px 2px 0 var(--dex-bezel);
@@ -4031,7 +3940,6 @@ html:not([data-theme="night"]) .nav-capsule.is-active span {
 .link-cable-secondary,
 .pc-action-button,
 .pc-import-button,
-.install-entry,
 .appearance-control,
 .mode-select {
   border: 2px solid var(--dex-lens-deep);
@@ -4052,7 +3960,6 @@ html:not([data-theme="night"]) .nav-capsule.is-active span {
 
 .pc-action-button.is-delete,
 .token-remove,
-.install-close,
 .link-cable-close {
   border-color: var(--dex-case-deep);
   background: var(--dex-case-deep);
@@ -4119,7 +4026,6 @@ html:not([data-theme="night"]) .nav-capsule.is-active span {
   background: var(--dex-screen);
 }
 
-.rotom-automation-bar,
 .token-traits,
 .editor-trait-reference,
 .species-description,
@@ -4380,7 +4286,6 @@ html[data-theme="night"] .room-tool,
 html[data-theme="night"] .battlefield-card,
 html[data-theme="night"] .token-inspector,
 html[data-theme="night"] .room-note,
-html[data-theme="night"] .install-dialog,
 html[data-theme="night"] .link-cable-dialog,
 html[data-theme="night"] .pc-sidebar,
 html[data-theme="night"] .pc-main-panel,
@@ -4419,7 +4324,6 @@ html[data-theme="night"] .room-secondary-button,
 html[data-theme="night"] .link-cable-secondary,
 html[data-theme="night"] .pc-action-button,
 html[data-theme="night"] .pc-import-button,
-html[data-theme="night"] .install-entry,
 html[data-theme="night"] .appearance-control,
 html[data-theme="night"] .mode-select,
 html[data-theme="night"] .pokemon-grid-card,
@@ -4454,7 +4358,6 @@ html[data-theme="night"] .combat-grid select {
 html[data-theme="night"] .app-root input::placeholder,
 html[data-theme="night"] .app-root textarea::placeholder { color: var(--dex-lens-cyan); }
 
-html[data-theme="night"] .rotom-automation-bar,
 html[data-theme="night"] .token-traits,
 html[data-theme="night"] .editor-trait-reference,
 html[data-theme="night"] .species-description,
@@ -5131,7 +5034,6 @@ html[data-theme="night"] .token-self-damage-action strong { color: var(--dex-led
 
   .app-brand-cluster { grid-column: 1; }
   .app-header-primary > .appearance-control { grid-column: 2; }
-  .app-header-primary > .install-entry { grid-column: 3; }
   .app-nav {
     grid-column: 1 / -1;
     grid-row: 2;
@@ -6517,7 +6419,6 @@ html {
   white-space: pre-wrap;
 }
 
-.install-dialog,
 .link-cable-dialog,
 .pokemon-modal-shell {
   max-width: calc(100vw - max(1.5rem, env(safe-area-inset-left) + env(safe-area-inset-right)));

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { readStorage, writeStorage } from "../../core/storage.js";
+import GameIcon from "./GameIcon.jsx";
 
 const APPEARANCE_KEY = "myowndex_appearance_v1";
 const THEMES = [
-    { id: "normal", label: "Claro", icon: "☀" },
-    { id: "night", label: "Escuro", icon: "☾" },
-    { id: "system", label: "Como o aparelho", icon: "◐" },
+    { id: "normal", label: "Claro", icon: "sun" },
+    { id: "night", label: "Escuro", icon: "moon" },
+    { id: "system", label: "Dispositivo", icon: "theme" },
 ];
 
 const validTheme = value => THEMES.some(theme => theme.id === value) ? value : "system";
@@ -29,7 +30,7 @@ export default function AppearanceControl() {
             document.documentElement.dataset.theme = resolved;
             document.documentElement.dataset.themePreference = preference;
             document.documentElement.style.colorScheme = resolved === "night" ? "dark" : "light";
-            document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "night" ? "#0F172A" : "#7F1D1D");
+            document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "night" ? "#17283e" : "#da3041");
         };
         apply();
         writeStorage(APPEARANCE_KEY, preference);
@@ -45,7 +46,7 @@ export default function AppearanceControl() {
             aria-label={`A aparência está em ${current.label}. Alterar para ${next.label}.`}
             onClick={() => setPreference(next.id)}
         >
-            <span aria-hidden="true">{current.icon}</span>
+            <GameIcon name={current.icon} />
             <small>{current.label}</small>
         </button>
     );

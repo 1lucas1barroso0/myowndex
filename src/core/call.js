@@ -1,8 +1,26 @@
 import { secureRandomId } from "./random.js";
 
-export const CALL_ICE_SERVERS = [
+const DEFAULT_ICE_SERVERS = [
     { urls: ["stun:stun.cloudflare.com:3478"] },
 ];
+
+export const getCallIceServers = value => {
+    if (!value) return DEFAULT_ICE_SERVERS;
+    try {
+        const parsed = JSON.parse(value);
+        if (!Array.isArray(parsed) || !parsed.length || parsed.length > 8) return DEFAULT_ICE_SERVERS;
+        const servers = parsed.map(server => {
+            const urls = Array.isArray(server?.urls) ? server.urls : [server?.urls];
+            if (!urls.length || urls.length > 8 || urls.some(url => typeof url !== "string" || !/^(stun|stuns|turn|turns):\S+$/.test(url))) return null;
+            return { urls, ...(typeof server.username === "string" ? { username: server.username } : {}), ...(typeof server.credential === "string" ? { credential: server.credential } : {}) };
+        });
+        return servers.every(Boolean) ? servers : DEFAULT_ICE_SERVERS;
+    } catch {
+        return DEFAULT_ICE_SERVERS;
+    }
+};
+
+export const CALL_ICE_SERVERS = getCallIceServers(process.env.NEXT_PUBLIC_MYOWNDEX_ICE_SERVERS);
 
 export const createCallConnectionId = () => {
     return secureRandomId("call");

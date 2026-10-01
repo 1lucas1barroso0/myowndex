@@ -1,0 +1,143 @@
+@font-face { font-family: "Dex Pixel"; src: url("/fonts/VT323-Regular.ttf") format("truetype"); font-display: swap; }
+
+/* The portable console skin uses the existing layout and battle geometry. */
+:root {
+  --ui-canvas: #24495e;
+  --ui-panel: #f5fff4;
+  --ui-raised: #e6f2df;
+  --ui-ink: #183b3f;
+  --ui-muted: #436159;
+  --ui-line: #7a9b85;
+  --ui-accent: #b52843;
+  --ui-blue: #075c72;
+  --ui-selected: #d2edf0;
+  --ui-shadow: 3px 4px 0 #294b46;
+  --handheld-edge: #183c49;
+  --handheld-red: #b52843;
+  --handheld-glow: #e9f98e;
+}
+html[data-theme="night"] {
+  --ui-canvas: #122738;
+  --ui-panel: #1d3639;
+  --ui-raised: #294648;
+  --ui-ink: #edffdc;
+  --ui-muted: #bed5bd;
+  --ui-line: #638980;
+  --ui-accent: #b52843;
+  --ui-blue: #a4e8ed;
+  --ui-selected: #29565c;
+  --ui-shadow: 3px 4px 0 #0e232b;
+  --handheld-edge: #0d222e;
+  --handheld-glow: #355d4d;
+}
+html .game-edition.handheld-edition {
+  background: repeating-linear-gradient(0deg, #ffffff04 0 2px, transparent 2px 8px), var(--ui-canvas) !important;
+  font-family: "Trebuchet MS", system-ui, sans-serif !important;
+  line-height: 1.55 !important;
+}
+html .game-edition.handheld-edition :is(h1, h2, h3, .dex-number, .screen-eyebrow, .room-kicker, .pc-eyebrow) {
+  font-family: "Dex Pixel", ui-monospace, monospace !important;
+  font-weight: 400 !important;
+  letter-spacing: .01em !important;
+  line-height: 1.05 !important;
+}
+html .game-edition.handheld-edition :is(.app-brand h1, .dex-heading h2, .adventure-intro h2, .pc-box-name, .trainer-guide .rotom-hero h2) { font-size: clamp(2rem, 3.3vw, 3rem) !important; }
+html .game-edition.handheld-edition .app-header {
+  background: var(--handheld-red) !important;
+  border-top: 4px solid #e96671 !important;
+  border-bottom: 5px solid #691d38 !important;
+  box-shadow: 0 3px 0 #112c3e !important;
+}
+html .game-edition.handheld-edition .app-header-shell { max-width: 1376px !important; padding: .7rem 1.5rem !important; }
+html .game-edition.handheld-edition .app-header-primary { gap: .8rem !important; }
+html .game-edition.handheld-edition .app-brand :is(h1, span) { color: #fff3d6 !important; }
+html .game-edition.handheld-edition .app-brand > span { font-size: .75rem !important; letter-spacing: .06em !important; }
+html .game-edition.handheld-edition .app-brand-icon { width: 3.5rem !important; height: 3.5rem !important; }
+html .game-edition.handheld-edition .app-nav { border: 2px solid #631c37 !important; background: #821f38 !important; border-radius: 6px !important; box-shadow: inset 0 2px 0 #5b1d35 !important; gap: .35rem !important; padding: .35rem !important; }
+html .game-edition.handheld-edition .app-nav .nav-capsule { color: #fff3d6 !important; border-radius: 3px !important; min-height: 2.75rem !important; }
+html .game-edition.handheld-edition .app-nav .nav-capsule:is(:hover, .is-active) { background: #f9e78c !important; color: #29493c !important; box-shadow: 0 3px 0 #886442 !important; }
+html .game-edition.handheld-edition .app-actions { border-color: #ec899350 !important; padding-top: .45rem !important; }
+html .game-edition.handheld-edition :is(.device-status, .game-style-label) { color: #fff2dc !important; font-size: .875rem !important; }
+html .game-edition.handheld-edition .game-style-options button { color: #fff2dc !important; font-size: .875rem !important; }
+html .game-edition.handheld-edition .game-style-options button.is-selected { background: #f9e78c !important; color: #29493c !important; border-color: #631c37 !important; }
+html .game-edition.handheld-edition :is(.appearance-control, .install-entry) { border-radius: 4px !important; border: 2px solid #631c37 !important; background: #fff2dc !important; color: #29493c !important; box-shadow: 0 3px 0 #631c37 !important; }
+html .game-edition.handheld-edition .app-scroll-area { padding: 1.4rem 1.5rem !important; }
+html .game-edition.handheld-edition .app-main-shell { max-width: 1328px !important; background: var(--ui-panel) !important; border: 3px solid var(--handheld-edge) !important; border-radius: 8px !important; padding: 1.6rem !important; box-shadow: 0 6px 0 var(--handheld-edge), inset 0 0 0 5px var(--ui-raised) !important; }
+html .game-edition.handheld-edition :is(.game-panel, .game-card, .room-lobby-card, .room-local-entry, .room-section, .room-tool, .battlefield-card, .token-inspector, .pc-sidebar, .pc-main-panel, .pokemon-editor, .guide-rule-card, .pokemon-modal-shell, .install-dialog, .link-cable-dialog) { border: 2px solid var(--ui-line) !important; border-radius: 5px !important; box-shadow: var(--ui-shadow) !important; }
+html .game-edition.handheld-edition :is(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea) { border: 2px solid var(--ui-line) !important; border-radius: 4px !important; font-size: 1rem !important; min-height: 2.75rem !important; }
+html .game-edition.handheld-edition :is(.room-primary-button, .link-cable-primary) { border-radius: 4px !important; border: 2px solid #7c2340 !important; box-shadow: 0 4px 0 #7c2340 !important; font-size: 1rem !important; }
+html .game-edition.handheld-edition :is(.room-secondary-button, .link-cable-secondary, .room-header-actions > button) { border-radius: 4px !important; border: 2px solid var(--ui-line) !important; box-shadow: 0 3px 0 var(--ui-line) !important; font-size: .875rem !important; }
+html .game-edition.handheld-edition button { transition: transform .14s ease, background .14s ease !important; }
+html .game-edition.handheld-edition button:active:not(:disabled) { transform: translateY(2px) !important; }
+html .game-edition.handheld-edition .dex-heading { align-items: center !important; gap: 1rem !important; margin-bottom: 1rem !important; border-bottom: 3px double var(--ui-line) !important; padding-bottom: 1rem !important; }
+html .game-edition.handheld-edition .dex-title { margin-right: auto; }
+html .game-edition.handheld-edition .screen-eyebrow { font-size: 1.125rem !important; text-transform: uppercase !important; }
+html .game-edition.handheld-edition .dex-heading p { font-size: 1rem !important; }
+html .game-edition.handheld-edition .dex-companion { width: 96px; height: 96px; flex-shrink: 0; }
+html .game-edition.handheld-edition .dex-companion img { width: 100%; height: 100%; object-fit: contain; animation: partner-hop 2.8s steps(2, end) infinite; }
+html .game-edition.handheld-edition .dex-count { background: var(--handheld-glow) !important; border: 2px solid var(--ui-line) !important; border-radius: 4px !important; color: var(--ui-ink) !important; font-size: .875rem !important; font-weight: 700 !important; padding: .65rem .8rem !important; }
+html .game-edition.handheld-edition .dex-count small { display: block; font-size: .75rem; color: var(--ui-muted); margin-top: .15rem; }
+html .game-edition.handheld-edition :is(.dex-search, .dex-filter, .dex-sort select) { border: 2px solid var(--ui-line) !important; border-radius: 4px !important; background: var(--ui-raised) !important; font-size: .875rem !important; }
+html .game-edition.handheld-edition .dex-search input { border: 0 !important; }
+html .game-edition.handheld-edition .dex-toolbar { margin-bottom: .8rem !important; }
+html .game-edition.handheld-edition .dex-generations { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding-bottom: 1.3rem; }
+html .game-edition.handheld-edition .dex-generations > span { font-size: .875rem; color: var(--ui-muted); margin-right: .35rem; }
+html .game-edition.handheld-edition .dex-generations button { min-width: 2.75rem; min-height: 2.75rem; border: 2px solid var(--ui-line); background: var(--ui-panel); border-radius: 3px; font-size: .875rem; font-weight: 700; color: var(--ui-ink); padding: .35rem .6rem; }
+html .game-edition.handheld-edition .dex-generations button[aria-pressed="true"] { background: var(--handheld-glow); box-shadow: 0 3px 0 var(--ui-line); }
+html .game-edition.handheld-edition .dex-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)) !important; gap: 1rem !important; }
+html .game-edition.handheld-edition .dex-entry-main { border: 2px solid var(--ui-line) !important; padding: .8rem !important; background: var(--ui-raised) !important; border-radius: 5px !important; box-shadow: 3px 4px 0 var(--ui-line) !important; }
+html .game-edition.handheld-edition .dex-entry-main:is(:hover, :focus-visible) { border-color: var(--ui-blue) !important; background: var(--ui-selected) !important; }
+html .game-edition.handheld-edition .dex-number { font-size: 1.125rem !important; color: var(--ui-muted) !important; padding-right: 2rem !important; }
+html .game-edition.handheld-edition .pokemon-card-sprite-frame { height: 124px !important; border: 1px solid var(--ui-line) !important; border-radius: 3px !important; background: repeating-linear-gradient(0deg, #183b3f06 0 1px, transparent 1px 4px), var(--ui-panel) !important; }
+html .game-edition.handheld-edition .pokemon-card-sprite-frame img { width: 112px !important; height: 112px !important; }
+html .game-edition.handheld-edition .dex-entry-main:is(:hover, :focus-visible) img { animation: partner-hop .75s steps(2, end) infinite; }
+html .game-edition.handheld-edition .pokemon-card-name { font-size: 1rem !important; }
+html .game-edition.handheld-edition .dex-entry-hint { font-size: .75rem !important; gap: .25rem !important; border-top: 2px dotted var(--ui-line) !important; }
+html .game-edition.handheld-edition .dex-generation-mark { color: var(--ui-blue); }
+html .game-edition.handheld-edition .dex-favorite { top: .2rem !important; right: .3rem !important; }
+html .game-edition.handheld-edition .dex-favorite[aria-pressed="true"] { color: #805600 !important; }
+html .game-edition.handheld-edition .dex-empty { text-align: center; padding: 2rem 1rem; max-width: 32rem; margin: auto; }
+html .game-edition.handheld-edition .dex-empty img { width: 112px; height: 112px; margin: auto; object-fit: contain; }
+html .game-edition.handheld-edition .dex-empty p { margin: .6rem 0 1.2rem; font-size: 1rem; color: var(--ui-muted); }
+html .game-edition.handheld-edition :is(.screen-opening, .dex-catalog-note) { padding: 1rem; background: var(--ui-raised); border: 2px dotted var(--ui-line); border-radius: 4px; color: var(--ui-muted); font-size: 1rem; }
+html .game-edition.handheld-edition .adventure-intro { border-bottom: 3px double var(--ui-line) !important; padding: .4rem 0 1.4rem !important; margin-bottom: 1.3rem !important; }
+html .game-edition.handheld-edition .adventure-starters img { image-rendering: pixelated; animation: partner-hop 2.8s steps(2, end) infinite; }
+html .game-edition.handheld-edition .adventure-starters img:nth-child(2) { animation-delay: .6s; }
+html .game-edition.handheld-edition .adventure-starters img:nth-child(3) { animation-delay: 1.2s; }
+html .game-edition.handheld-edition :is(.room-lobby-card label > span, .room-role-help summary, .room-lobby-footnote, .room-tool > summary small, .pc-partner-meta) { font-size: .875rem !important; }
+html .game-edition.handheld-edition .room-lobby-card h3 { font-size: 2rem !important; }
+html .game-edition.handheld-edition .room-lobby-card.is-player { border-top: 4px solid #1694b3 !important; }
+html .game-edition.handheld-edition .room-lobby-card.is-narrator { border-top: 4px solid var(--ui-accent) !important; }
+html .game-edition.handheld-edition .device-footer { max-width: 1376px !important; color: #e0f0df !important; font-size: .75rem !important; padding: .4rem 1.5rem .7rem !important; }
+@keyframes partner-hop { 0%, 75%, 100% { transform: translateY(0); } 25%, 50% { transform: translateY(-5px); } }
+@media (max-width: 900px) {
+  html .game-edition.handheld-edition .app-header-primary { flex-wrap: wrap !important; }
+  html .game-edition.handheld-edition .app-nav { order: 4 !important; flex-basis: 100% !important; }
+  html .game-edition.handheld-edition .app-brand-cluster { flex: 1 !important; }
+}
+@media (max-width: 600px) {
+  html .game-edition.handheld-edition .app-header-shell { padding: .6rem .75rem !important; }
+  html .game-edition.handheld-edition .app-brand h1 { font-size: 2rem !important; }
+  html .game-edition.handheld-edition .app-brand > span { font-size: .75rem !important; }
+  html .game-edition.handheld-edition .app-nav .nav-capsule { flex-direction: row !important; font-size: .875rem !important; min-height: 3rem !important; gap: .25rem !important; padding: .4rem !important; }
+  html .game-edition.handheld-edition .app-nav .game-icon { width: 1.125rem !important; height: 1.125rem !important; }
+  html .game-edition.handheld-edition .app-scroll-area { padding: .9rem .6rem !important; }
+  html .game-edition.handheld-edition .app-main-shell { padding: .85rem !important; }
+  html .game-edition.handheld-edition .dex-heading { flex-direction: row !important; align-items: center !important; flex-wrap: wrap !important; gap: .5rem !important; }
+  html .game-edition.handheld-edition .dex-title { flex: 1 1 calc(100% - 70px); }
+  html .game-edition.handheld-edition .dex-heading h2 { font-size: 2.15rem !important; }
+  html .game-edition.handheld-edition .dex-companion { width: 64px; height: 64px; }
+  html .game-edition.handheld-edition .dex-count { display: flex !important; gap: .75rem !important; flex-basis: 100% !important; }
+  html .game-edition.handheld-edition .dex-count small { margin: 0 !important; }
+  html .game-edition.handheld-edition .dex-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: .65rem !important; }
+  html .game-edition.handheld-edition .dex-entry-main { padding: .6rem !important; }
+  html .game-edition.handheld-edition .pokemon-card-name { font-size: .875rem !important; }
+  html .game-edition.handheld-edition .dex-entry-hint { flex-wrap: wrap !important; }
+  html .game-edition.handheld-edition .device-status { font-size: .75rem !important; }
+  html .game-edition.handheld-edition .game-style-options button { font-size: .75rem !important; min-width: 2.6rem !important; padding: .3rem !important; }
+  html .game-edition.handheld-edition .device-footer { font-size: .75rem !important; padding: .3rem .75rem .5rem !important; }
+}
+@media (max-width: 360px) { html .game-edition.handheld-edition .app-nav .game-icon { display: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  html .game-edition.handheld-edition *, html .game-edition.handheld-edition *::before, html .game-edition.handheld-edition *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

@@ -145,18 +145,28 @@ export const leaveRoomCall = (session, connectionId, { keepalive = false } = {})
         keepalive,
     });
 
-export const uploadRoomAudio = (session, file, title, onProgress) => {
-    const form = new FormData();
-    form.set("file", file);
-    form.set("title", title || file.name);
-    onProgress?.(0.2);
-    return roomRequest(`/api/rooms/${encodeURIComponent(session.code)}/audio`, session.key, {
+export const uploadRoomAudio = async (session, file, title, onProgress) => {
+    const path = `/api/rooms/${encodeURIComponent(session.code)}/audio`;
+    onProgress?.(0.1);
+    const prepared = await roomRequest(path, session.key, {
         method: "POST",
-        body: form,
-    }).then(result => {
-        onProgress?.(1);
-        return result;
+        body: JSON.stringify({ action: "prepare", title: title || file.name, fileName: file.name, mimeType: file.type, size: file.size }),
     });
+    const upload = await fetch(prepared.uploadUrl, {
+        method: "PUT",
+        headers: prepared.headers,
+        body: file,
+        signal: AbortSignal.timeout(120000),
+    });
+    if (!upload.ok) throw new Error("Não foi possível enviar esta trilha. Confira a conexão e a configuração de áudio da aventura.");
+    onProgress?.(0.85);
+    const result = await roomRequest(path, session.key, {
+        method: "POST",
+        body: JSON.stringify({ action: "complete", uploadToken: prepared.uploadToken }),
+        idempotent: true,
+    });
+    onProgress?.(1);
+    return result;
 };
 
 export const fetchRoomAudioUrl = async (session, mediaId) => {

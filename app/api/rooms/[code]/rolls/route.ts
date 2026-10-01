@@ -24,7 +24,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type RouteContext = { params: Promise<{ code: string }> | { code: string } };
+type RouteContext = { params: Promise<{ code: string }> };
 
 type StoredRollRow = {
   id: number;

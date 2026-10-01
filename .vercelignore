@@ -1,0 +1,12 @@
+.git
+node_modules
+.next
+.npm-cache
+.sites-runtime
+.env*
+!.env.example
+*.tsbuildinfo
+docs
+tests
+publicar-linux.sh
+preparar-linux.sh

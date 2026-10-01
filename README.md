@@ -1,60 +1,62 @@
-# MyOwnDex
+# MyOwnDex 10
 
-MyOwnDex reúne Pokédex, PC do Bill, criação de equipes, Guia do Treinador e uma Central da Aventura conectada para Narrador e Jogadores.
+Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para Pokémon RPG. Aplicação independente, executada na própria Vercel com Next.js, React e regras em JavaScript. Não usa IA, autenticação externa ou encaminhamento para outra hospedagem.
 
-A voz da interface segue o guia em
-[`docs/voice-and-terminology.md`](docs/voice-and-terminology.md), que centraliza
-os termos fixos, a concordância e o tom usado em toda a jornada.
+## O que mudou
 
-## Experiência
+- Interface de console portátil: molduras de pixels, botões com relevo, cores vivas, tema noturno e fonte VT323 incluída no projeto.
+- Catálogo nacional de 1.025 espécies incluído; 152 sprites locais (Kanto e Rotom). A abertura da Pokédex não precisa esperar pela rede.
+- Busca por nome/número, favoritos e filtro por geração de estreia. Detalhes, formas, habilidades e movimentos usam a PokéAPI, com cache.
+- PC com seis slots visuais, mini-equipes nas Boxes, tipos e Shiny em destaque. Importação, compartilhamento, duplicação, exclusão e desfazer preservados.
+- Registro da Pokédex acessível por teclado, abas com setas, retorno do foco e rolagem contínua no celular. Movimento respeita a preferência de redução de animações.
+- Telas grandes carregadas sob demanda; service worker nunca guarda APIs privadas nem respostas RSC.
+- A Vercel executa páginas e APIs diretamente. Salas usam banco Turso sob seu controle; áudio compartilhado usa armazenamento S3/R2 sob seu controle, com upload direto assinado.
 
-- Pokédex responsiva com espécies, formas, atributos, tipos, movimentos, habilidades e evolução.
-- Boxes locais com salvamento automático, exportação de uma equipe inteira ou de Pokémon escolhidos, importação com prévia e destino selecionável e restauração após exclusões.
-- Fichas que mantêm forma, habilidade, tipo Tera, atributos, HP, PP, XP e sugestões do jogo sempre em dia.
-- Central da Aventura persistente com papéis separados, convite único que já abre a aventura correta, campo 2D, iniciativa, conversa, áudio e progresso integrado às Boxes.
-- Assistente Rotom que resolve disputa, precisão, golpe crítico, STAB, tipos, limite de dano, PP, cura, recuo, condições, estágios e famílias de movimentos excepcionais.
-- Mecânicas próprias de Ditto, Smeargle, Zorua e Zoroark: Transform/Imposter preservam a ficha real, Sketch e Mimic distinguem aprendizado permanente de cópia temporária e Illusion separa identidade pública de identidade verdadeira.
-- Painel de exceções que identifica automação integral, resolução guiada e decisão narrativa para formas, habilidades e movimentos cuja regra depende do contexto da cena.
-- Uso offline para a interface e os dados da Pokédex já consultados; APIs privadas da aventura nunca entram no cache.
+## Rodar no Linux
 
-O MyOwnDex sugere e calcula o que puder, sem tirar a liberdade de registrar escolhas próprias da aventura.
-
-## Arquitetura
-
-- React 19 e Vinext/Vite na interface.
-- PokéAPI com cache em memória e Cache Storage para dados oficiais.
-- Cloudflare D1 para aventuras, participantes e acontecimentos.
-- Cloudflare R2 para trilhas compartilhadas.
-- Estado local versionado para Boxes e preferências do aparelho.
-
-## Publicação oficial
-
-- `https://myowndex.vercel.app` é o endereço público e permanece visível durante toda a navegação.
-- A Vercel encaminha interface, PWA e APIs para o mesmo runtime validado, sem copiar ou fragmentar dados.
-- Aventuras, participantes e chamadas continuam isolados no D1; trilhas continuam no R2.
-- O gateway não armazena respostas privadas e preserva a permissão de microfone no domínio oficial.
-- A arquitetura usa apenas os recursos gratuitos já vinculados ao projeto; nenhum segredo é salvo no repositório.
-
-O arquivo `vercel.json` é a fonte única da integração do domínio. A validação automatizada impede que o gateway seja publicado sem o encaminhamento completo ou com cache em APIs privadas.
-
-O núcleo de regras fica em `src/core/`; componentes de Pokédex, PC e Central da Aventura ficam em `src/components/`; rotas persistentes ficam em `app/api/rooms/`.
-
-## Desenvolvimento
-
-Requer Node.js 22.13 ou superior.
+Use Node.js 24 LTS (mínimo 22.18), npm e Git.
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Validações:
+Abra `http://localhost:3000`. Pokédex, PC, Guia e aventura local funcionam sem configurar banco. Boxes e preferências continuam salvas neste navegador; trocar de domínio ou aparelho não transfere o armazenamento local. Exporte as Boxes pelo Link Cable antes de trocar de domínio.
+
+Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configure `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN`. Trilhas enviadas pelo narrador também precisam das variáveis S3 e de CORS. Consulte [docs/RUNTIME.md](docs/RUNTIME.md) para configuração completa, limites, TURN e migração.
+
+**Aventuras antigas:** foram identificadas 7 salas no banco anterior. O pacote contém código, catálogo e sprites; os registros privados ficam no serviço original. Antes de substituir a produção, importe um backup SQLite completo no Turso. A consulta encontrou zero áudios cadastrados; se houver objetos no bucket antigo, preserve suas chaves ao copiá-los. Não publique backups ou credenciais no GitHub.
+
+## Automatizar no Linux
+
+O arquivo `myowndex-corrigido-linux.sh` inclui o projeto completo. Se você baixou esse instalador, execute `bash myowndex-corrigido-linux.sh` na pasta do download. Ele cria uma pasta nova na sua pasta pessoal, confere a integridade e inicia a preparação. Você não precisa extrair um ZIP ou TAR manualmente.
+
+Se já extraiu o projeto, execute dentro dele:
 
 ```bash
-npm test
-npm run lint
-npx tsc --noEmit --incremental false
-npm run build
+bash preparar-linux.sh enviar
 ```
 
-As regras canônicas do sistema ficam em `src/core/rpgRules.js` e são apresentadas integralmente no Guia do Treinador dentro do próprio MyOwnDex.
+O comando instala as ferramentas ausentes em Ubuntu/Debian/Mint, prepara o Node.js, abre os logins necessários, executa testes, lint, verificação de tipos e build, envia um branch ao GitHub, abre um PR em rascunho e cria um Preview na Vercel. A instalação pode pedir sua senha do Linux; os logins precisam de sua autorização no navegador. Credenciais não são enviadas ao repositório.
+
+Uma falha identifica a etapa interrompida e a pasta preservada. Copie as últimas linhas do terminal para investigar um erro de instalação, login, lint, tipos ou build.
+
+O site atual continua disponível. Se o repositório evoluiu desde a versão-base, o script interrompe o envio para preservar as mudanças mais recentes. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para os modos de verificação, Preview e publicação.
+
+Depois de configurar o banco independente e migrar as aventuras antigas, a publicação final é:
+
+```bash
+bash preparar-linux.sh publicar
+```
+
+Esse modo atualiza `main` e produção. Configure as variáveis do banco na Vercel em Production e Preview quando utilizar salas. A publicação não migra os dados do serviço anterior. A integração GitHub/Vercel também pode publicar automaticamente quando o PR for integrado em `main`.
+
+## Arquitetura e fontes
+
+- `app/`: aplicação Next.js e APIs de sala; `server/`: persistência, autorização e regras autoritativas.
+- `src/core/`: regras RPG, cálculos, captura e armazenamento local. Os estilos RPG/Jogo/Hackmon continuam distintos; regras próprias do RPG não são apresentadas como regras oficiais de cartucho.
+- `src/components/`: Pokédex, PC, aventura e Guia.
+- [PokéAPI](https://pokeapi.co/), [dados das espécies](https://github.com/PokeAPI/pokeapi/blob/master/data/v2/csv/pokemon_species.csv) e [sprites](https://github.com/PokeAPI/sprites) são as fontes do catálogo e das imagens.
+- Fonte [VT323](https://github.com/google/fonts/tree/main/ofl/vt323), sob SIL Open Font License; licença incluída em `public/fonts/OFL.txt`.
+
+Projeto de fãs, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Sprites e personagens pertencem aos respectivos titulares.

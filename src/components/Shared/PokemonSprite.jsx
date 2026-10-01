@@ -6,12 +6,18 @@ const EMPTY_CANDIDATES = Object.freeze([]);
 const spriteUrls = ({ src, pokemonId, shiny = false, candidates = [] }) => {
     const id = finiteNumberOrNull(pokemonId);
     const regularPath = shiny ? "shiny/" : "";
+    const frontUrl = Number.isFinite(id) && id > 0
+        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${regularPath}${id}.png`
+        : "";
+    const localUrl = Number.isInteger(id) && ((id >= 1 && id <= 151) || id === 479) && !shiny
+        ? `/sprites/${id}.png`
+        : "";
     return [...new Set([
+        (!src || src === frontUrl) ? localUrl : "",
         src,
         ...candidates,
-        Number.isFinite(id) && id > 0
-            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${regularPath}${id}.png`
-            : "",
+        localUrl,
+        frontUrl,
         Number.isFinite(id) && id > 0
             ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${shiny ? "shiny/" : ""}${id}.png`
             : "",

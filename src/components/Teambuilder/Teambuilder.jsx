@@ -1,11 +1,29 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { formatCanonicalItemName, formatCount, formatPartnerArrival } from "../../core/copy.js";
-import { formatName, VERSION_GROUPS } from "../../core/mechanics.js";
+import { formatName, formatType, TYPE_COLORS, TYPE_TEXT_COLORS, VERSION_GROUPS } from "../../core/mechanics.js";
 import { createTeam as makeTeam, createId, hydrateTeam, insertImportedPokemon, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, touchTeam } from "../../core/team.js";
 import { decodeShare, encodePokemonBundle, encodeTeam } from "../../core/teamShare.js";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonEditor from "./PokemonEditor.jsx";
+import "../../pc-retro.css";
+
+const PARTY_SIZE = 6;
+const getPartnerSprite = partner => partner?.shiny
+    ? partner.species?.sprites?.front_shiny
+    : partner?.species?.sprites?.front_default;
+
+function BoxPortraits({ pokemon = [] }) {
+    return (
+        <span className="pc-box-portraits" aria-hidden="true">
+            {Array.from({ length: PARTY_SIZE }, (_, index) => (
+                <span key={index} className={`pc-box-portrait ${pokemon[index] ? "is-occupied" : ""}`}>
+                    {pokemon[index] ? <PokemonSprite src={getPartnerSprite(pokemon[index])} pokemonId={pokemon[index].species?.id} shiny={pokemon[index].shiny} alt="" /> : <span className="pc-mini-ball" />}
+                </span>
+            ))}
+        </span>
+    );
+}
 
 const dismissKeyboard = () => {
     if (document.activeElement?.blur) document.activeElement.blur();
@@ -59,7 +77,15 @@ export default function Teambuilder({ envProps }) {
     const [copied, setCopied] = useState(false);
     const [pendingDelete, setPendingDelete] = useState(null);
     const [pendingPartnerDelete, setPendingPartnerDelete] = useState(null);
+    const partySlotRefs = useRef([]);
     const active = useMemo(() => teams.find(team => team.id === activeTeamId), [teams, activeTeamId]);
+    const occupiedSlots = active?.pokemon?.length || 0;
+    const freeSlots = PARTY_SIZE - occupiedSlots;
+
+    const selectPartner = index => {
+        dismissKeyboard();
+        setEditingSlot(index);
+    };
 
     useEffect(() => {
         if (teams.length && !active) setActiveTeamId(teams[0].id);
@@ -276,19 +302,22 @@ export default function Teambuilder({ envProps }) {
 
 
     return (
-        <div className="pc-workspace flex flex-col xl:flex-row gap-5 animate-fade-in w-full">
+        <div className="pc-workspace pc-retro flex flex-col xl:flex-row gap-5 animate-fade-in w-full">
             <aside className="pc-sidebar w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-5 flex flex-col gap-3 h-full xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-6" aria-label="Boxes do PC">
-                <div className="mb-2 flex items-center justify-between gap-3 px-1">
+                <div className="pc-sidebar-heading mb-2 flex items-center justify-between gap-3 px-1">
                     <div>
-                        <span className="pc-eyebrow">Suas equipes</span>
+                        <span className="pc-eyebrow"><span className="pc-status-light" aria-hidden="true" /> Sistema de armazenamento</span>
                         <h3 className="text-base font-black text-slate-800">PC do Bill</h3>
                     </div>
                     <span className="pc-box-count rounded-full bg-blue-100 px-2.5 py-1.5 text-xs font-black text-blue-700">{formatCount(teams.length, "Box", "Boxes")}</span>
                 </div>
+                <div className="pc-box-list">
                 {teams.map(team => (
                     <button
                         type="button"
                         key={team.id}
+                        aria-pressed={activeTeamId === team.id}
+                        aria-label={`${team.name}, ${team.pokemon?.length || 0} de 6 Pokémon`}
                         onClick={() => {
                             dismissKeyboard();
                             setActiveTeamId(team.id);
@@ -297,12 +326,14 @@ export default function Teambuilder({ envProps }) {
                         }}
                         className={`pc-box-button w-full p-3.5 rounded-xl text-left font-black text-sm border transition-all outline-none shadow-sm break-words ${activeTeamId === team.id ? "is-selected bg-blue-600 border-blue-700 text-white shadow-[0_3px_0_#0EA5E9] translate-y-[-1px]" : "bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-white"}`}
                     >
-                        <span className="flex justify-between gap-3">
-                            <span>{team.name}</span>
-                            <span className="opacity-70">{team.pokemon?.length || 0}/6</span>
+                        <span className="pc-box-button-heading flex justify-between gap-3">
+                            <span><span className="pc-box-cursor" aria-hidden="true">{activeTeamId === team.id ? "▶" : "▸"}</span>{team.name}</span>
+                            <span className="pc-box-capacity">{team.pokemon?.length || 0}/6</span>
                         </span>
+                        <BoxPortraits pokemon={team.pokemon} />
                     </button>
                 ))}
+                </div>
                 <button type="button" onClick={createTeam} className="pc-create-box-button w-full p-3.5 mt-1 text-xs font-black border-2 border-dashed rounded-xl transition-all outline-none">+ Criar nova Box</button>
 
                 <div className="mt-3 pt-4 border-t border-slate-200">
@@ -310,20 +341,24 @@ export default function Teambuilder({ envProps }) {
                         <span aria-hidden="true">⇩</span>
                         <span>Importar Pokémon ou Box</span>
                     </button>
-                    <p className="mt-2 px-1 text-xs font-semibold leading-relaxed text-slate-500">Escolha a Box de destino antes de salvar. Nada é substituído sem você decidir.</p>
+                    <p className="pc-sidebar-tip mt-2 px-1 text-xs font-semibold leading-relaxed text-slate-500">Pelo Link Cable, seus parceiros podem viajar para outra aventura.</p>
                 </div>
             </aside>
 
             <section className="w-full xl:w-3/4 min-w-0 flex-1">
                 {!active && <div className="pc-empty-state">
                     <div className="pc-welcome-partners" aria-hidden="true">{[133, 25].map(id => <PokemonSprite key={id} pokemonId={id} alt="" className="pixelated" />)}</div>
-                    <span className="screen-eyebrow">O começo de uma grande equipe</span>
-                    <h2>Um lugar para cada parceiro.</h2>
-                    <p>Crie sua primeira Box ou receba uma equipe pelo Link Cable.</p>
+                    <span className="screen-eyebrow">Conexão com o PC estabelecida!</span>
+                    <h2>Sua próxima aventura começa aqui.</h2>
+                    <p>Eevee e Pikachu já estão de olho! Abra uma Box para guardar até seis parceiros ou receba uma equipe pelo Link Cable.</p>
                     <button type="button" onClick={createTeam} className="room-primary-button">Abrir primeira Box</button>
                 </div>}
                 {active && (
                     <div className="game-panel pc-main-panel p-4 sm:p-6 md:p-8">
+                        <div className="pc-screen-topline">
+                            <span><span className="pc-mini-ball" aria-hidden="true" /> Organização de Pokémon</span>
+                            <span className="pc-storage-status">{occupiedSlots === PARTY_SIZE ? "Equipe completa!" : `${freeSlots} ${freeSlots === 1 ? "espaço livre" : "espaços livres"}`}</span>
+                        </div>
                         <div className="pc-toolbar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b-4 border-slate-100 pb-5">
                             <div className="w-full min-w-0">
                                 <label htmlFor="active-box-name" className="sr-only">Nome da Box</label>
@@ -334,7 +369,7 @@ export default function Teambuilder({ envProps }) {
                                         {VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}
                                     </select>
                                 </label>
-                                <p className="mt-2 text-xs font-semibold text-slate-500">As sugestões acompanham o jogo escolhido. Você continua livre para registrar escolhas próprias da aventura.</p>
+                                <p className="pc-reference-tip mt-2 text-xs font-semibold text-slate-500">Os movimentos e as habilidades acompanham o jogo da sua aventura.</p>
                             </div>
 
                             <div className="pc-toolbar-actions flex gap-2 sm:gap-3 self-stretch sm:self-auto shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
@@ -352,34 +387,76 @@ export default function Teambuilder({ envProps }) {
                             </div>
                         )}
 
+                        <div className="pc-party-ribbon" aria-label="Acesso rápido aos seis espaços da Box">
+                            {Array.from({ length: PARTY_SIZE }, (_, index) => {
+                                const partner = active.pokemon?.[index];
+                                return (
+                                    <button
+                                        key={partner?.id || `slot-${index}`}
+                                        type="button"
+                                        className={`pc-party-slot ${partner ? "is-occupied" : "is-empty"} ${partner && editingSlot === index ? "is-selected" : ""}`}
+                                        onClick={() => partner ? selectPartner(index) : onSearchClick()}
+                                        aria-pressed={Boolean(partner && editingSlot === index)}
+                                        ref={element => { partySlotRefs.current[index] = element; }}
+                                        aria-label={partner ? `Abrir ficha de ${partner.nickname || formatName(partner.species?.name)}, espaço ${index + 1}` : `Espaço ${index + 1} livre: buscar um Pokémon`}
+                                        title={partner ? partner.nickname || formatName(partner.species?.name) : "Um lugar para o próximo parceiro"}
+                                    >
+                                        <span className="pc-party-slot-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                                        {partner
+                                            ? <PokemonSprite src={getPartnerSprite(partner)} pokemonId={partner.species?.id} shiny={partner.shiny} alt="" className="pixelated" />
+                                            : <span className="pc-empty-ball" aria-hidden="true" />}
+                                        <span className="pc-party-slot-label">{partner ? `Nv. ${partner.level || 1}` : "+"}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className={`pc-grid-heading ${occupiedSlots ? "" : "is-empty"}`}>
+                            {!occupiedSlots && <span className="pc-box-guide-sprite" aria-hidden="true"><PokemonSprite pokemonId={133} alt="" className="pixelated" /></span>}
+                            <h3>{occupiedSlots ? "Seus parceiros" : "A Box está esperando por você"}</h3>
+                            <p>{occupiedSlots ? "Escolha um parceiro para abrir a ficha." : "Toque em um espaço e encontre seu primeiro Pokémon."}</p>
+                        </div>
+
                         <div className="pc-partner-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 w-full">
                             {active.pokemon?.map((partner, index) => {
-                                const sprite = partner.shiny
-                                    ? partner.species?.sprites?.front_shiny
-                                    : partner.species?.sprites?.front_default;
+                                const sprite = getPartnerSprite(partner);
+                                const types = (partner.species?.types || []).map(entry => entry.type?.name).filter(Boolean);
                                 return (
-                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => { dismissKeyboard(); setEditingSlot(index); }} className={`pc-partner-card p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative group shadow-sm text-left ${editingSlot === index ? "is-selected bg-blue-50 border-blue-400 shadow-[0_4px_0_#38BDF8] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white"}`}>
+                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => selectPartner(index)} aria-pressed={editingSlot === index} style={{ "--pc-partner-type": TYPE_COLORS[types[0]] || "var(--ui-line)" }} className={`pc-partner-card p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative group shadow-sm text-left ${editingSlot === index ? "is-selected bg-blue-50 border-blue-400 shadow-[0_4px_0_#38BDF8] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white"}`}>
                                         {partner.canGMax && <span className="absolute -bottom-4 -right-4 text-red-500/10 text-[80px] font-black rotate-12 pointer-events-none">X</span>}
+                                        <span className="pc-card-position" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                                         <span className="pc-partner-sprite w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl border-2 border-slate-100 flex items-center justify-center shadow-inner relative z-10 flex-shrink-0">
                                             <PokemonSprite src={sprite} pokemonId={partner.species?.id} shiny={partner.shiny} className="w-10 h-10 sm:w-14 sm:h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" alt="" />
+                                            {partner.shiny && <span className="pc-shiny-mark" role="img" aria-label="Shiny">✦</span>}
                                         </span>
                                         <span className="relative z-10 min-w-0 flex-1">
                                             <span className="flex items-center justify-between gap-1 sm:gap-2 mb-0.5">
                                                 <span className="pc-partner-name font-black text-xs sm:text-sm text-slate-800 capitalize">{partner.nickname || formatName(partner.species?.name)}</span>
-                                                <span className={`pc-partner-gender text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 ${partner.gender === "M" ? "text-blue-500 bg-blue-50 border-blue-200" : partner.gender === "F" ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200"}`}>{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
+                                                <span aria-label={partner.gender === "M" ? "Macho" : partner.gender === "F" ? "Fêmea" : "Sem gênero definido"} className={`pc-partner-gender text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 ${partner.gender === "M" ? "text-blue-500 bg-blue-50 border-blue-200" : partner.gender === "F" ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200"}`}>{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
                                             </span>
                                             <span className="pc-partner-meta block text-[9px] sm:text-[10px] font-bold text-slate-400">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span>
+                                            <span className="pc-partner-types">
+                                                {types.map(type => <span key={type} style={{ backgroundColor: TYPE_COLORS[type], color: TYPE_TEXT_COLORS[type] }}>{formatType(type)}</span>)}
+                                            </span>
                                         </span>
                                     </button>
                                 );
                             })}
-                            {(active.pokemon?.length || 0) < 6 && (
-                                <button type="button" onClick={onSearchClick} className="pc-add-partner p-3 sm:p-4 rounded-2xl border-2 border-dashed flex flex-col justify-center items-center text-[10px] font-black uppercase tracking-widest transition-all min-h-[80px] sm:min-h-[96px] outline-none">+ Buscar um Pokémon</button>
-                            )}
+                            {Array.from({ length: Math.max(0, freeSlots) }, (_, index) => (
+                                <button key={`empty-${index}`} type="button" onClick={onSearchClick} className="pc-add-partner p-3 sm:p-4 rounded-2xl border-2 border-dashed flex justify-center items-center text-[10px] font-black transition-all min-h-[80px] sm:min-h-[96px] outline-none">
+                                    <span className="pc-empty-ball" aria-hidden="true" />
+                                    <span><strong>Buscar um Pokémon</strong><small>Espaço {occupiedSlots + index + 1} · Um novo amigo cabe aqui</small></span>
+                                    <span className="pc-add-plus" aria-hidden="true">+</span>
+                                </button>
+                            ))}
                         </div>
 
                         {editingSlot !== null && active.pokemon?.[editingSlot] && (
-                            <div className="mt-4 sm:mt-6">
+                            <div className="pc-editor-region mt-4 sm:mt-6">
+                                <div className="pc-editor-heading">
+                                    <span><span aria-hidden="true">▶</span> Ficha de {active.pokemon[editingSlot].nickname || formatName(active.pokemon[editingSlot].species?.name)}</span>
+                                    <button type="button" onClick={() => { partySlotRefs.current[editingSlot]?.focus(); setEditingSlot(null); }}>Fechar ficha <span aria-hidden="true">×</span></button>
+                                </div>
                                 <PokemonEditor
                                     pk={active.pokemon[editingSlot]}
                                     updatePk={next => updateActive(team => {

@@ -17,7 +17,7 @@ import { clampFinite, integerInRange } from "../../../../../src/core/math.js";
 
 export const dynamic = "force-dynamic";
 
-type RouteContext = { params: Promise<{ code: string }> | { code: string } };
+type RouteContext = { params: Promise<{ code: string }> };
 
 const COMMON_EVENTS = new Set(["message", "ready", "team-offer", "token-request", "token-move", "move-declared", "leave"]);
 const NARRATOR_EVENTS = new Set(["system", "sfx", "team-accepted", "message"]);

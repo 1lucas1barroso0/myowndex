@@ -1,4 +1,6 @@
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import bundledSpecies from "./data/species.json";
 import { formatPokemonCount } from "./core/copy.js";
 import { integerInRange } from "./core/math.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
@@ -6,25 +8,27 @@ import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokem
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
 import { randomChance } from "./core/random.js";
 import { readStorage, writeStorage } from "./core/storage.js";
-import TrainerGuide from "./components/Guide/TrainerGuide.jsx";
-import PokemonModal from "./components/Pokedex/PokemonModal.jsx";
-import Teambuilder from "./components/Teambuilder/Teambuilder.jsx";
-import RpgRoom from "./components/Room/RpgRoom.jsx";
 import AppearanceControl from "./components/Shared/AppearanceControl.jsx";
 import InstallMyOwnDex from "./components/Shared/InstallMyOwnDex.jsx";
 import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
 import GameIcon from "./components/Shared/GameIcon.jsx";
-import { selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
+import { DEX_GENERATIONS, debutGeneration, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
+
+function OpeningScreen() { return <div className="screen-opening" role="status">Abrindo sua próxima tela…</div>; }
+const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
+const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: OpeningScreen });
+const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: OpeningScreen });
+const RpgRoom = dynamic(() => import("./components/Room/RpgRoom.jsx"), { loading: OpeningScreen });
 
 const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect, favorite, onFavorite }) {
     return (
-        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`}>
+        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={debutGeneration(id)?.id}>
             <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${formatName(species.name)} na Pokédex`}>
                 <span className="dex-number">No. {id.padStart(4, "0")}</span>
                 <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={id} alt="" className="pixelated" /></span>
                 <span className="pokemon-card-name">{formatName(species.name)}</span>
-                <span className="dex-entry-hint">Consultar ficha <span aria-hidden="true">↗</span></span>
+                <span className="dex-entry-hint"><span>Ver registro</span><span className="dex-generation-mark">{debutGeneration(id) ? `Gen. ${debutGeneration(id).label}` : "Nacional"}</span></span>
             </button>
             <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${formatName(species.name)} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
         </article>
@@ -49,8 +53,8 @@ const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction 
 };
 
 export default function App() {
-    const [species, setSpecies] = useState([]);
-    const [dexLoading, setDexLoading] = useState(true);
+    const [species, setSpecies] = useState(bundledSpecies);
+    const [dexLoading, setDexLoading] = useState(false);
     const [dexError, setDexError] = useState("");
     const [dexAttempt, setDexAttempt] = useState(0);
     const [searchInput, setSearchInput] = useState("");
@@ -59,10 +63,11 @@ export default function App() {
     const [modeBooted, setModeBooted] = useState(false);
     const [limit, setLimit] = useState(60);
     const [selectedUrl, setSelectedUrl] = useState(null);
-    const [view, setViewState] = useState("room");
+    const [view, setViewState] = useState("pokedex");
     const [favorites, setFavorites] = useState([]);
     const [onlyFavorites, setOnlyFavorites] = useState(false);
     const [dexOrder, setDexOrder] = useState("number");
+    const [dexGeneration, setDexGeneration] = useState("all");
     const setView = useCallback(next => {
         setViewState(next);
         if (viewFromUrl(window.location.href) !== next) window.history.pushState({}, "", urlForView(window.location.href, next));
@@ -102,12 +107,12 @@ export default function App() {
         const preferences = readStorage("myowndex_preferences_v1", {});
         const savedMode = preferences?.experienceMode;
         if (EXPERIENCE_MODES[savedMode]) setExperienceMode(savedMode);
-        const initialView = viewFromUrl(window.location.href) || (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view) ? preferences.view : "room");
+        const initialView = viewFromUrl(window.location.href) || (new URL(window.location.href).searchParams.has("room") ? "room" : (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view) ? preferences.view : "pokedex"));
         setViewState(initialView);
         window.history.replaceState({}, "", urlForView(window.location.href, initialView));
         const storedFavorites = readStorage("myowndex_dex_favorites_v1", []);
         setFavorites(Array.isArray(storedFavorites) ? storedFavorites.filter(id => typeof id === "string" && /^\d+$/.test(id)) : []);
-        const onPop = () => setViewState(viewFromUrl(window.location.href) || "room");
+        const onPop = () => setViewState(viewFromUrl(window.location.href) || "pokedex");
         window.addEventListener("popstate", onPop);
         setModeBooted(true);
         return () => window.removeEventListener("popstate", onPop);
@@ -146,7 +151,7 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return undefined;
+        if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return undefined;
         let refreshing = false;
         let offeredWorker = null;
         let registration = null;
@@ -174,7 +179,7 @@ export default function App() {
             updateTimer = window.setInterval(() => current.update().catch(() => {}), 60 * 60 * 1000);
         };
         const register = () => navigator.serviceWorker
-            .register("/sw-v9.17.0.js", { updateViaCache: "none" })
+            .register("/sw.js", { updateViaCache: "none" })
             .then(watchRegistration)
             .catch(() => {});
         const checkForUpdate = () => registration?.update().catch(() => {});
@@ -207,7 +212,6 @@ export default function App() {
 
     useEffect(() => {
         let mounted = true;
-        setDexLoading(true);
         setDexError("");
         fetchCached("https://pokeapi.co/api/v2/pokemon-species?limit=1500", {
             maxAgeMs: 24 * 60 * 60 * 1000,
@@ -215,7 +219,7 @@ export default function App() {
         }).then(result => {
             if (!mounted) return;
             if (!result?.results?.length) {
-                setDexError("A Pokédex não conseguiu se conectar ao Centro Pokémon. Vamos tentar de novo?");
+                setDexError("O catálogo incluído no MyOwnDex está disponível. Os detalhes serão consultados quando a conexão voltar.");
                 return;
             }
             setSpecies(result.results);
@@ -269,7 +273,7 @@ export default function App() {
         return () => { mounted = false; };
     }, [view, envLoaded]);
 
-    const filteredSpecies = useMemo(() => selectDexSpecies(species, { query: deferredSearchTerm, favorites, onlyFavorites, order: dexOrder }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder]);
+    const filteredSpecies = useMemo(() => selectDexSpecies(species, { query: deferredSearchTerm, favorites, onlyFavorites, order: dexOrder, generation: dexGeneration }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder, dexGeneration]);
 
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 
@@ -355,7 +359,7 @@ export default function App() {
     }), [teams, env, activeTeamId, isTTRPG, isHackmon, experienceMode, envLoading, envError, handleOpenPokedex]);
 
     return (
-        <div className={`app-root game-edition view-${view} min-h-[100dvh] flex flex-col`}>
+        <div className={`app-root game-edition handheld-edition view-${view} min-h-[100dvh] flex flex-col`}>
             <a className="skip-to-content" href="#main-content">Ir para o conteúdo</a>
             <header className="app-header shrink-0 px-2.5 sm:px-4 md:px-5 pt-2.5 sm:pt-4 pb-2 z-40">
                 <div className="max-w-[1900px] mx-auto game-shell app-header-shell p-2.5 sm:p-3.5">
@@ -416,20 +420,26 @@ export default function App() {
                         ) : (
                             <>
                                 <header className="dex-heading">
-                                    <div><span className="screen-eyebrow">Explore • Descubra • Prepare sua equipe</span><h2>Pokédex Nacional</h2><p>Um mundo inteiro de parceiros para conhecer.</p></div>
-                                    <span className="dex-count" role="status">{formatPokemonCount(filteredSpecies.length)}</span>
+                                    <div className="dex-title"><span className="screen-eyebrow">Registro de parceiros</span><h2>Pokédex Nacional</h2><p>Quem vai acompanhar sua próxima aventura?</p></div>
+                                    <div className="dex-companion" aria-hidden="true"><PokemonSprite pokemonId={25} alt="" loading="eager" className="pixelated" /></div>
+                                    <span className="dex-count" role="status">{formatPokemonCount(filteredSpecies.length)}<small>{favorites.length} favoritos</small></span>
                                 </header>
                                 <div className="dex-toolbar">
                                     <label className="dex-search"><span className="sr-only">Buscar Pokémon por nome ou número</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} placeholder="Buscar nome ou número. Ex.: Pikachu, 0025" onChange={handleSearchInputChange} /></label>
                                     <button type="button" className={`dex-filter ${onlyFavorites ? "is-active" : ""}`} aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setLimit(60); }}><GameIcon name="star" />Favoritos <span>{favorites.length}</span></button>
                                     <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(60); }}><option value="number">Número crescente</option><option value="reverse">Número decrescente</option><option value="name">Nome de A a Z</option></select></label>
                                 </div>
+                                <div className="dex-generations" role="group" aria-label="Filtrar por geração de estreia">
+                                    <span>Geração</span>
+                                    {DEX_GENERATIONS.map(gen => <button key={gen.id} type="button" aria-pressed={dexGeneration === gen.id} aria-label={gen.id === "all" ? "Todas as gerações" : `Geração ${gen.label}`} onClick={() => { setDexGeneration(gen.id); setLimit(60); }}>{gen.label}</button>)}
+                                </div>
+                                {dexError && <p className="dex-catalog-note" role="status">{dexError}</p>}
                                 {visible.length ? (
                                     <div className="dex-grid">
                                         {visible.map(entry => <PokemonCard key={entry.name} species={entry} id={extractId(entry.url)} onSelect={() => setSelectedUrl(entry.url)} favorite={favorites.includes(extractId(entry.url))} onFavorite={() => toggleFavorite(extractId(entry.url))} />)}
                                     </div>
                                 ) : (
-                                    <div className="py-16 text-center text-sm font-bold text-slate-500">{onlyFavorites && !favorites.length ? "Toque na estrela de um Pokémon para encontrá-lo aqui." : `Nenhum Pokémon apareceu para “${deferredSearchTerm}”. Tente outro nome ou número.`}</div>
+                                    <div className="dex-empty"><PokemonSprite pokemonId={54} alt="" className="pixelated" /><p>{onlyFavorites && !favorites.length ? "Seu cantinho de favoritos está esperando um parceiro. Toque na estrela de um Pokémon para guardá-lo aqui." : "Nenhum parceiro apareceu com esses filtros. Vamos procurar de novo?"}</p><button type="button" className="room-secondary-button" onClick={() => { setSearchInput(""); setSearchTerm(""); setOnlyFavorites(false); setDexGeneration("all"); setLimit(60); }}>Ver todos os Pokémon</button></div>
                                 )}
                                 {limit < filteredSpecies.length && (
                                     <button type="button" onClick={() => setLimit(value => value + 60)} className="mt-8 sm:mt-10 w-full py-4 bg-slate-300 border-2 border-slate-400 hover:bg-red-500 hover:border-red-700 text-slate-600 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md outline-none">
@@ -441,7 +451,7 @@ export default function App() {
                     ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} onModeChange={setExperienceMode} />}
                 </div>
             </main>
-            <footer className="device-footer"><span>MyOwnDex <b>9.17.0</b></span><span>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
+            <footer className="device-footer"><span>MyOwnDex <b>10.0.0</b></span><span>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
         </div>
     );

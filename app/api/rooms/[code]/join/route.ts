@@ -16,7 +16,7 @@ import { randomChoice } from "../../../../../src/core/random.js";
 
 export const dynamic = "force-dynamic";
 
-type RouteContext = { params: Promise<{ code: string }> | { code: string } };
+type RouteContext = { params: Promise<{ code: string }> };
 // Participantes também usam os LEDs e a lente do ícone, sem uma paleta paralela.
 const ACCENTS = ["#38BDF8", "#67E8F9", "#0EA5E9", "#4ADE80", "#FB7185", "#FDE047"];
 

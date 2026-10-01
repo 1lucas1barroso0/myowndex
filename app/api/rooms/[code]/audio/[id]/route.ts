@@ -8,11 +8,12 @@ import {
   safeRoomCode,
   safeText,
 } from "../../../../../../server/rooms";
+import { RuntimeConfigurationError } from "../../../../../../server/runtime";
 
 export const dynamic = "force-dynamic";
 
 type RouteContext = {
-  params: Promise<{ code: string; id: string }> | { code: string; id: string };
+  params: Promise<{ code: string; id: string }>;
 };
 
 export async function GET(request: Request, context: RouteContext) {
@@ -24,7 +25,7 @@ export async function GET(request: Request, context: RouteContext) {
     const auth = await authenticateRoom(code, readRoomKey(request));
     if (!auth) return noStoreJson({ error: "Não foi possível acessar o áudio desta aventura. Entre novamente e tente outra vez." }, { status: 401 });
     const { db, bucket } = getBindings();
-    if (!bucket) throw new Error("As trilhas da aventura não estão disponíveis agora. Tente novamente em instantes.");
+    if (!bucket) throw new RuntimeConfigurationError("Para abrir trilhas compartilhadas, configure as variáveis MYOWNDEX_S3 na Vercel.");
     const media = await db.prepare(
       "SELECT object_key, title, mime_type FROM room_media WHERE id = ? AND room_code = ? LIMIT 1",
     ).bind(id, code).first<{ object_key: string; title: string; mime_type: string }>();

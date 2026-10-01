@@ -1,26 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:gateway",
-  "outputDirectory": "dist-gateway",
-  "framework": "vite",
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "https://myowndex-update.neat-calf-9750.chatgpt.site/"
-    },
-    {
-      "source": "/:path*",
-      "destination": "https://myowndex-update.neat-calf-9750.chatgpt.site/:path*"
-    }
-  ],
+  "buildCommand": "npm run build",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
   "headers": [
     {
       "source": "/api/:path*",
       "headers": [
-        {
-          "key": "x-vercel-enable-rewrite-caching",
-          "value": "0"
-        },
         {
           "key": "Cache-Control",
           "value": "private, no-store"
@@ -30,10 +16,6 @@
     {
       "source": "/sw.js",
       "headers": [
-        {
-          "key": "x-vercel-enable-rewrite-caching",
-          "value": "0"
-        },
         {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"

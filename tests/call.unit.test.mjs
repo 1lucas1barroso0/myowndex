@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   CALL_ICE_SERVERS,
+  getCallIceServers,
   callParticipantId,
   createCallConnectionId,
   normalizeCallMembers,
@@ -35,4 +36,11 @@ test("call members are humanized, deduplicated and ordered with the narrator fir
     ["player-b", "Bianca", true],
   ]);
   assert.equal(CALL_ICE_SERVERS[0].urls[0], "stun:stun.cloudflare.com:3478");
+});
+
+test("custom TURN servers preserve credentials and malformed configuration keeps usable defaults", () => {
+  const servers = [{ urls: ["turn:relay.example.com:3478"], username: "trainer", credential: "turn-only-password" }];
+  assert.deepEqual(getCallIceServers(JSON.stringify(servers)), servers);
+  assert.deepEqual(getCallIceServers("broken-json"), getCallIceServers(""));
+  assert.deepEqual(getCallIceServers('[{"urls":"https://wrong.example.com"}]'), getCallIceServers(""));
 });

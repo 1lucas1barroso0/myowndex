@@ -17,7 +17,7 @@ import { finiteNumberOrNull } from "../../../../src/core/math.js";
 
 export const dynamic = "force-dynamic";
 
-type RouteContext = { params: Promise<{ code: string }> | { code: string } };
+type RouteContext = { params: Promise<{ code: string }> };
 
 async function roomCode(context: RouteContext) {
   const params = await context.params;

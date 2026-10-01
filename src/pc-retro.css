@@ -1,0 +1,175 @@
+/* The PC is a little storage screen: six partners, a friendly field and a
+   visible cursor. Scope every rule to this component so the battle stays intact. */
+html .game-edition .pc-workspace.pc-retro {
+  --pc-ink: #263d35;
+  --pc-muted: #506557;
+  --pc-line: #658269;
+  --pc-paper: #fffef3;
+  --pc-screen: #e9f3d1;
+  --pc-grass: #d4e9a6;
+  --pc-selected: #fff2ad;
+  display: grid !important;
+  grid-template-columns: 240px minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 1.4rem !important;
+  color: var(--pc-ink) !important;
+}
+html[data-theme="night"] .game-edition .pc-workspace.pc-retro {
+  --pc-ink: #e9f4ce;
+  --pc-muted: #bccbad;
+  --pc-line: #6e967c;
+  --pc-paper: #21382f;
+  --pc-screen: #2b4938;
+  --pc-grass: #345942;
+  --pc-selected: #4c5030;
+}
+html .game-edition .pc-workspace.pc-retro :is(.pc-sidebar, .pc-main-panel, .pc-empty-state) {
+  color: var(--pc-ink) !important;
+  background: var(--pc-paper) !important;
+  border: 3px solid var(--pc-line) !important;
+  border-radius: 10px !important;
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--pc-line), transparent 45%), inset 0 0 0 3px var(--pc-paper) !important;
+}
+html .game-edition .pc-workspace.pc-retro .pc-sidebar {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 1rem !important;
+  gap: .8rem !important;
+}
+html .game-edition .pc-workspace.pc-retro > section { width: 100% !important; min-width: 0 !important; }
+html .game-edition .pc-workspace.pc-retro .pc-main-panel { padding: 1.2rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-sidebar-heading { align-items: flex-start !important; }
+html .game-edition .pc-workspace.pc-retro .pc-sidebar-heading h3 { color: var(--pc-ink) !important; font-size: 1.45rem !important; line-height: 1.3 !important; margin-top: .25rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-eyebrow { display: flex !important; align-items: center !important; gap: .35rem !important; color: var(--pc-muted) !important; letter-spacing: .05em !important; font-size: .6rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-status-light { width: 7px; height: 7px; flex-shrink: 0; background: #6abe46; border: 1px solid #37692b; box-shadow: 2px 2px 0 #6abe4628; }
+html .game-edition .pc-workspace.pc-retro .pc-box-count { color: var(--pc-ink) !important; background: var(--pc-screen) !important; border: 1px solid var(--pc-line) !important; border-radius: 5px !important; white-space: nowrap !important; font-size: .65rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-box-list { display: grid; gap: .65rem; min-width: 0; }
+html .game-edition .pc-workspace.pc-retro .pc-box-button {
+  padding: .7rem .6rem !important;
+  background: var(--pc-screen) !important;
+  color: var(--pc-ink) !important;
+  border: 2px solid var(--pc-line) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--pc-line), transparent 65%) !important;
+  transform: none !important;
+}
+html .game-edition .pc-workspace.pc-retro .pc-box-button:hover { background: var(--pc-selected) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-box-button.is-selected { background: var(--pc-selected) !important; color: var(--pc-ink) !important; border-color: var(--pc-ink) !important; box-shadow: 0 3px 0 var(--pc-line) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-box-button.is-selected :is(span, strong) { color: var(--pc-ink) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-box-button-heading { align-items: center; font-size: .85rem; }
+html .game-edition .pc-workspace.pc-retro .pc-box-button-heading > span:first-child { display: flex; align-items: center; gap: .3rem; min-width: 0; overflow-wrap: anywhere; }
+html .game-edition .pc-workspace.pc-retro .pc-box-cursor { font-size: .65rem; flex-shrink: 0; }
+html .game-edition .pc-workspace.pc-retro .pc-box-capacity { white-space: nowrap; opacity: 1 !important; font-family: ui-monospace, monospace; font-size: .7rem; }
+html .game-edition .pc-workspace.pc-retro .pc-box-portraits { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; margin-top: .35rem; }
+html .game-edition .pc-workspace.pc-retro .pc-box-portrait { display: grid; min-width: 0; height: 32px; place-items: center; border-radius: 3px; }
+html .game-edition .pc-workspace.pc-retro .pc-box-portrait img { width: 36px; height: 36px; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+html .game-edition .pc-workspace.pc-retro :is(.pc-mini-ball, .pc-empty-ball) { display: inline-block; position: relative; flex-shrink: 0; width: 14px; height: 14px; overflow: hidden; border: 2px solid var(--pc-line); border-radius: 50%; background: linear-gradient(var(--pc-grass) 45%, var(--pc-line) 45%, var(--pc-line) 60%, var(--pc-paper) 60%); }
+html .game-edition .pc-workspace.pc-retro :is(.pc-mini-ball, .pc-empty-ball)::after { content: ""; position: absolute; width: 5px; height: 5px; border: 1px solid var(--pc-line); background: var(--pc-paper); border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+html .game-edition .pc-workspace.pc-retro .pc-empty-ball { width: 34px; height: 34px; opacity: .65; }
+html .game-edition .pc-workspace.pc-retro .pc-empty-ball::after { width: 10px; height: 10px; border-width: 2px; }
+html .game-edition .pc-workspace.pc-retro :is(.pc-create-box-button, .pc-import-button, .pc-action-button) { min-height: 44px !important; border: 2px solid var(--pc-line) !important; border-radius: 6px !important; background: var(--pc-screen) !important; color: var(--pc-ink) !important; box-shadow: 0 3px 0 color-mix(in srgb, var(--pc-line), transparent 60%) !important; font-size: .75rem !important; letter-spacing: 0 !important; }
+html .game-edition .pc-workspace.pc-retro :is(.pc-create-box-button, .pc-import-button, .pc-action-button) :is(span, strong) { color: inherit !important; }
+html .game-edition .pc-workspace.pc-retro .pc-create-box-button { border-style: dashed !important; background: transparent !important; }
+html .game-edition .pc-workspace.pc-retro .pc-import-button { background: var(--pc-selected) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-action-button.is-delete { color: #a72a3e !important; }
+html[data-theme="night"] .game-edition .pc-workspace.pc-retro .pc-action-button.is-delete { color: #ffafba !important; }
+html .game-edition .pc-workspace.pc-retro :is(.pc-sidebar-tip, .pc-reference-tip) { color: var(--pc-muted) !important; font-size: .75rem !important; line-height: 1.6 !important; }
+html .game-edition .pc-workspace.pc-retro .pc-screen-topline { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding-bottom: .75rem; margin-bottom: .7rem; border-bottom: 2px dashed var(--pc-line); font-family: ui-monospace, monospace; font-size: .68rem; font-weight: 800; letter-spacing: .025em; }
+html .game-edition .pc-workspace.pc-retro .pc-screen-topline > span:first-child { display: flex; gap: .4rem; align-items: center; }
+html .game-edition .pc-workspace.pc-retro .pc-storage-status { background: var(--pc-screen); border: 1px solid var(--pc-line); padding: .25rem .4rem; border-radius: 3px; white-space: nowrap; }
+html .game-edition .pc-workspace.pc-retro .pc-toolbar { align-items: start !important; flex-wrap: wrap !important; border-bottom: 0 !important; margin-bottom: 1rem !important; padding-bottom: 0 !important; }
+html .game-edition .pc-workspace.pc-retro .pc-toolbar > div:first-child { flex: 1 1 310px !important; width: auto !important; }
+html .game-edition .pc-workspace.pc-retro .pc-toolbar-actions { flex-wrap: wrap !important; align-self: auto !important; width: auto !important; margin-top: .25rem !important; gap: .45rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-toolbar-actions > button { padding: .65rem .7rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-main-panel .pc-toolbar input.pc-box-name { background: transparent !important; color: var(--pc-ink) !important; font-size: 1.7rem !important; letter-spacing: -.025em !important; border-radius: 0 !important; padding: .2rem 0 !important; }
+html .game-edition .pc-workspace.pc-retro .pc-main-panel .pc-toolbar input.pc-box-name:focus { border-bottom-color: var(--pc-line) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-toolbar label { color: var(--pc-muted) !important; font-size: .65rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-main-panel .pc-toolbar select:not([multiple]) { background: var(--pc-screen) !important; color: var(--pc-ink) !important; border: 2px solid var(--pc-line) !important; border-radius: 5px !important; }
+html .game-edition .pc-workspace.pc-retro .pc-party-ribbon { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .55rem; border: 3px solid var(--pc-line); border-radius: 7px; padding: .7rem; background: repeating-linear-gradient(0deg, transparent 0 7px, #64844909 7px 8px), var(--pc-grass); box-shadow: inset 0 0 0 3px var(--pc-screen); }
+html .game-edition .pc-workspace.pc-retro .pc-party-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-width: 0; min-height: 92px; padding: .6rem .15rem .2rem; background: var(--pc-screen); color: var(--pc-ink); border: 2px solid transparent; border-bottom: 3px solid var(--pc-line); border-radius: 5px; transition: background 150ms, transform 150ms; }
+html .game-edition .pc-workspace.pc-retro .pc-party-slot:hover { background: var(--pc-selected); transform: translateY(-2px); }
+html .game-edition .pc-workspace.pc-retro .pc-party-slot.is-selected { border-color: var(--pc-ink); background: var(--pc-selected); }
+html .game-edition .pc-workspace.pc-retro .pc-party-slot-number { position: absolute; top: .25rem; left: .35rem; font-size: .55rem; color: var(--pc-muted); font-family: ui-monospace, monospace; font-weight: 800; }
+html .game-edition .pc-workspace.pc-retro .pc-party-slot img { display: block; width: 64px; height: 64px; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+html .game-edition .pc-workspace.pc-retro .pc-party-slot-label { font-size: .6rem; font-weight: 800; line-height: 1.5; }
+html .game-edition .pc-workspace.pc-retro .pc-party-slot.is-empty { background: color-mix(in srgb, var(--pc-paper), transparent 62%); gap: .5rem; }
+html .game-edition .pc-workspace.pc-retro .pc-grid-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .3rem .75rem; margin: 1.1rem 0 .7rem; }
+html .game-edition .pc-workspace.pc-retro .pc-grid-heading h3 { font-size: .9rem; font-weight: 900; }
+html .game-edition .pc-workspace.pc-retro .pc-grid-heading p { color: var(--pc-muted); font-size: .72rem; }
+html .game-edition .pc-workspace.pc-retro .pc-grid-heading.is-empty { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: .1rem .5rem; align-items: center; }
+html .game-edition .pc-workspace.pc-retro .pc-box-guide-sprite { grid-row: span 2; }
+html .game-edition .pc-workspace.pc-retro .pc-box-guide-sprite img { width: 50px; height: 50px; image-rendering: pixelated; object-fit: contain; }
+html .game-edition .pc-workspace.pc-retro .pc-grid-heading.is-empty :is(h3, p) { grid-column: 2; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: .85rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-card { overflow: hidden !important; min-height: 115px !important; border: 2px solid var(--pc-line) !important; border-left: 6px solid var(--pc-partner-type) !important; border-radius: 7px !important; padding: .7rem !important; gap: .65rem !important; background: var(--pc-screen) !important; box-shadow: 0 3px 0 color-mix(in srgb, var(--pc-line), transparent 60%) !important; transform: none !important; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-card:hover { background: var(--pc-selected) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-card.is-selected { background: var(--pc-selected) !important; border-color: var(--pc-ink) !important; border-left-color: var(--pc-partner-type) !important; box-shadow: 0 3px 0 var(--pc-line) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-card-position { position: absolute; right: .45rem; bottom: .15rem; font-family: ui-monospace, monospace; font-size: .65rem; font-weight: 900; opacity: .5; color: var(--pc-muted); }
+html .game-edition .pc-workspace.pc-retro .pc-partner-sprite { width: 68px !important; height: 76px !important; border-radius: 4px !important; background: color-mix(in srgb, var(--pc-paper), transparent 25%) !important; border: 0 !important; box-shadow: none !important; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-sprite::after { content: ""; position: absolute; bottom: 9px; width: 38px; height: 8px; border-radius: 50%; background: color-mix(in srgb, var(--pc-line), transparent 78%); z-index: -1; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-sprite img { width: 68px !important; height: 68px !important; object-fit: contain; image-rendering: pixelated; filter: none !important; }
+html .game-edition .pc-workspace.pc-retro .pc-shiny-mark { position: absolute; right: 1px; top: 0; color: #ba7a09; font-size: 1rem; text-shadow: 1px 1px 0 var(--pc-paper); }
+html .game-edition .pc-workspace.pc-retro .pc-partner-name { color: var(--pc-ink) !important; font-size: .9rem !important; line-height: 1.3 !important; overflow-wrap: anywhere !important; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-meta { color: var(--pc-muted) !important; font-size: .65rem !important; line-height: 1.6 !important; margin-top: .2rem; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-card.is-selected :is(.pc-partner-name, .pc-partner-meta) { color: var(--pc-ink) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-gender { color: var(--pc-ink) !important; background: var(--pc-paper) !important; border-color: var(--pc-line) !important; font-size: .7rem !important; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-types { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .45rem; }
+html .game-edition .pc-workspace.pc-retro .pc-partner-types > span { font-size: .55rem; line-height: 1.5; font-weight: 900; padding: 1px 5px; border: 1px solid #263d3540; border-radius: 3px; }
+html .game-edition .pc-workspace.pc-retro .pc-add-partner { flex-direction: row !important; gap: .65rem !important; justify-content: flex-start !important; min-height: 115px !important; border: 2px dashed var(--pc-line) !important; background: color-mix(in srgb, var(--pc-screen), transparent 55%) !important; color: var(--pc-muted) !important; border-radius: 7px !important; box-shadow: none !important; padding: .75rem !important; text-align: left !important; letter-spacing: 0 !important; text-transform: none !important; }
+html .game-edition .pc-workspace.pc-retro .pc-add-partner:hover { background: var(--pc-screen) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-add-partner > span:nth-child(2) { min-width: 0; }
+html .game-edition .pc-workspace.pc-retro .pc-add-partner :is(strong, small) { display: block; color: var(--pc-muted) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-add-partner strong { font-size: .8rem; line-height: 1.4; }
+html .game-edition .pc-workspace.pc-retro .pc-add-partner small { margin-top: .25rem; font-size: .65rem; font-weight: 600; line-height: 1.5; }
+html .game-edition .pc-workspace.pc-retro .pc-add-plus { margin-left: auto; flex-shrink: 0; font-size: 1.5rem; color: var(--pc-line) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-editor-heading { display: flex; justify-content: space-between; align-items: center; gap: .6rem; margin: 1.25rem 0 .6rem; color: var(--pc-ink); font-size: .8rem; font-weight: 900; }
+html .game-edition .pc-workspace.pc-retro .pc-editor-heading > span { min-width: 0; overflow-wrap: anywhere; }
+html .game-edition .pc-workspace.pc-retro .pc-editor-heading button { min-height: 44px; padding: .45rem .6rem; flex-shrink: 0; border: 2px solid var(--pc-line); border-radius: 5px; background: var(--pc-screen); color: var(--pc-ink); font-size: .7rem; }
+html .game-edition .pc-workspace.pc-retro .pc-empty-state { min-height: 450px !important; background: repeating-linear-gradient(0deg, transparent 0 7px, #64844909 7px 8px), var(--pc-screen) !important; }
+html .game-edition .pc-workspace.pc-retro .pc-empty-state h2 { color: var(--pc-ink) !important; font-size: clamp(1.35rem, 3vw, 2rem) !important; max-width: 25rem; }
+html .game-edition .pc-workspace.pc-retro .pc-empty-state p { color: var(--pc-muted) !important; font-size: .9rem; max-width: 29rem; line-height: 1.7; }
+html .game-edition .pc-workspace.pc-retro .pc-welcome-partners img { image-rendering: pixelated; }
+html .game-edition .pc-workspace.pc-retro :is(button, input, select):focus-visible { outline: 3px solid #da9417 !important; outline-offset: 3px !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot.is-occupied img { animation: pc-partner-idle 4.2s steps(2, end) infinite; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot:nth-child(2n) img { animation-delay: -1.4s; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot:nth-child(3n) img { animation-delay: -2.8s; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot:hover img { animation: none; transform: translateY(-3px); }
+  html .game-edition .pc-workspace.pc-retro .pc-partner-card:hover .pc-partner-sprite img { transform: translateY(-3px) !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-welcome-partners img { animation: pc-partner-idle 3.6s steps(2, end) infinite; }
+  html .game-edition .pc-workspace.pc-retro .pc-welcome-partners img:nth-child(2) { animation-delay: -1.8s; }
+}
+@keyframes pc-partner-idle { 0%, 70%, 100% { transform: translateY(0); } 80% { transform: translateY(-3px); } 90% { transform: translateY(-1px); } }
+@media (max-width: 1100px) {
+  html .game-edition .pc-workspace.pc-retro { grid-template-columns: minmax(0, 1fr) !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-box-list { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  html .game-edition .pc-workspace.pc-retro .pc-sidebar { max-height: none !important; }
+}
+@media (max-width: 640px) {
+  html .game-edition .pc-workspace.pc-retro { gap: 1rem !important; }
+  html .game-edition .pc-workspace.pc-retro :is(.pc-main-panel, .pc-sidebar) { padding: .85rem !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-toolbar > div:first-child { flex-basis: 100% !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-toolbar-actions { width: 100% !important; flex-wrap: nowrap !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-toolbar-actions > button { flex: 1 1 0 !important; min-width: 0 !important; padding: .6rem .3rem !important; font-size: .65rem !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-toolbar-actions > button span { font-size: .65rem !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-ribbon { gap: .25rem; padding: .45rem; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot { min-height: 72px; border-width: 1px; border-bottom-width: 3px; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot img { width: 46px; height: 46px; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot-number { font-size: .5rem; left: .2rem; top: .2rem; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot .pc-empty-ball { width: 22px; height: 22px; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot .pc-empty-ball::after { width: 7px; height: 7px; border-width: 1px; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot-label { font-size: .5rem; }
+  html .game-edition .pc-workspace.pc-retro .pc-partner-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-partner-card { min-height: 105px !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-add-partner { min-height: 90px !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-screen-topline { font-size: .58rem; flex-wrap: wrap; }
+  html .game-edition .pc-workspace.pc-retro .pc-empty-state { min-height: 400px !important; padding: 1.5rem 1rem !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-welcome-partners img { width: 96px !important; height: 96px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html .game-edition .pc-workspace.pc-retro,
+  html .game-edition .pc-workspace.pc-retro * { animation: none !important; transition: none !important; }
+  html .game-edition .pc-workspace.pc-retro .pc-party-slot:hover,
+  html .game-edition .pc-workspace.pc-retro .pc-partner-sprite img { transform: none !important; }
+}

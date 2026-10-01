@@ -14,7 +14,7 @@ import { integerInRange, MAX_SAFE_GAME_INTEGER } from "../../../../../src/core/m
 
 export const dynamic = "force-dynamic";
 
-type RouteContext = { params: Promise<{ code: string }> | { code: string } };
+type RouteContext = { params: Promise<{ code: string }> };
 
 const CALL_SIGNAL_TYPES = new Set(["offer", "answer", "ice"]);
 const CALL_MEMBER_LIMIT = 12;

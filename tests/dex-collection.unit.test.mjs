@@ -1,8 +1,24 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { normalizeDexSearch, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
+import { DEX_GENERATIONS, debutGeneration, normalizeDexSearch, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
 const species = [[25, "pikachu"], [122, "mr-mime"], [29, "nidoran-f"], [83, "farfetchd"], [1, "bulbasaur"]].map(([id, name]) => ({ name, url: `https://pokeapi.co/api/v2/pokemon-species/${id}/` }));
+
+test("generation filters respect every National Dex debut boundary, including Hisui and Pecharunt", () => {
+  const catalogue = Array.from({ length: 1026 }, (_, i) => ({ name: `pokemon-${i + 1}`, url: `https://pokeapi.co/api/v2/pokemon-species/${i + 1}/` }));
+  for (const generation of DEX_GENERATIONS.slice(1)) {
+    const selected = selectDexSpecies(catalogue, { generation: generation.id });
+    assert.equal(selected.length, generation.end - generation.start + 1);
+    assert.equal(selected[0].name, `pokemon-${generation.start}`);
+    assert.equal(selected.at(-1).name, `pokemon-${generation.end}`);
+  }
+  assert.equal(debutGeneration(905).label, "VIII");
+  assert.equal(debutGeneration(1025).label, "IX");
+  assert.equal(debutGeneration(1026), undefined);
+  assert.equal(selectDexSpecies(catalogue).length, 1026);
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "2", query: "0025" }), []);
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "1", favorites: ["25"], onlyFavorites: true }).map(p => p.name), ["pokemon-25"]);
+});
 
 test("dex search understands padded numbers, accents, punctuation and gender", () => {
   for (const [query, expected] of [["#0025", "pikachu"], ["Mr. Mime", "mr-mime"], ["nídoran ♀", "nidoran-f"], ["Farfetch’d", "farfetchd"]]) {
@@ -37,8 +53,9 @@ const luminance = hex => {
   const c = hex.match(/[a-f0-9]{2}/gi).map(v => parseInt(v, 16) / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
   return c[0] * .2126 + c[1] * .7152 + c[2] * .0722;
 };
-test("both game-edition themes keep normal text above WCAG AA contrast", async () => {
-  const css = await readFile(new URL("../src/game-edition.css", import.meta.url), "utf8");
+test("both base and handheld themes keep normal text above WCAG AA contrast", async () => {
+ for (const filename of ["game-edition.css", "handheld.css"]) {
+  const css = await readFile(new URL(`../src/${filename}`, import.meta.url), "utf8");
   for (const block of [css.match(/:root\s*\{([^}]+)/)[1], css.match(/html\[data-theme="night"\]\s*\{([^}]+)/)[1]]) {
     const tokens = Object.fromEntries([...block.matchAll(/--ui-([a-z]+):\s*#([a-f0-9]{6});/gi)].map(m => [m[1], m[2]]));
     for (const [foreground, background] of [["ink", "panel"], ["muted", "panel"], ["muted", "raised"], ["blue", "selected"]]) {
@@ -47,4 +64,5 @@ test("both game-edition themes keep normal text above WCAG AA contrast", async (
     }
     assert.ok((1.05)/(luminance(tokens.accent)+.05) >= 4.5, "white on action red");
   }
+ }
 });

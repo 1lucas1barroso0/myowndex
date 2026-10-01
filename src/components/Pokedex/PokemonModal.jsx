@@ -1,10 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { describeSpecies } from '../../core/descriptions.js';
 import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
+import '../../pokedex-record.css';
+
+const RECORD_TABS = [
+    { id: 'stats', label: 'Perfil', icon: '▤' },
+    { id: 'defenses', label: 'Tipos', icon: '◆' },
+    { id: 'moves', label: 'Movimentos', icon: '✦' },
+];
+const FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
 
 export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam }) {
     const [baseInfo, setBaseInfo] = useState(null);
@@ -12,11 +20,17 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const [formData, setFormData] = useState(null);
     const [evoChain, setEvoChain] = useState([]);
     const [tab, setTab] = useState("stats");
-    const [isExpanded, setIsExpanded] = useState(false);
     const [loadError, setLoadError] = useState("");
-    
-    // Estado para detetar o arrastar do dedo (Swipe)
-    const [touchStartY, setTouchStartY] = useState(null);
+    const [evolutionStatus, setEvolutionStatus] = useState("loading");
+    const dialogRef = useRef(null);
+    const closeRef = useRef(null);
+    const onCloseRef = useRef(onClose);
+    const recordId = useId();
+    const titleId = `${recordId}-title`;
+    const panelId = `${recordId}-panel`;
+    const phase = loadError ? "error" : !baseInfo || !formData ? "loading" : "ready";
+
+    useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
     useEffect(() => {
         let mounted = true;
@@ -25,6 +39,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         setEvoChain([]);
         setFormData(null);
         setLoadError("");
+        setEvolutionStatus("loading");
+        setTab("stats");
         fetchCached(speciesUrl).then(async data => {
             if (!mounted) return;
             if (!data) {
@@ -32,11 +48,12 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 return;
             }
             setBaseInfo(data);
-            const defVar = data.varieties?.find(v => v.is_default)?.pokemon;
-            if (defVar) setActiveForm(defVar);
+            const defVar = data.varieties?.find(v => v.is_default)?.pokemon || data.varieties?.[0]?.pokemon;
+            if (defVar?.url) setActiveForm(defVar);
+            else setLoadError("Este registro não trouxe os dados de uma forma. Feche a ficha e tente novamente.");
 
             if (data.evolution_chain?.url) {
-                const evo = await fetchCached(data.evolution_chain.url);
+                const evo = await fetchCached(data.evolution_chain.url).catch(() => null);
                 if (mounted && evo) {
                     const paths = [];
                     const traverse = (node, path) => {
@@ -48,6 +65,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     traverse(evo.chain, []);
                     setEvoChain(paths);
                 }
+                if (mounted) setEvolutionStatus(evo ? "ready" : "unavailable");
+            } else {
+                setEvolutionStatus("ready");
             }
         }).catch(() => mounted && setLoadError("A Pokédex não conseguiu abrir este registro agora. Feche e tente novamente."));
         return () => mounted = false;
@@ -79,109 +99,144 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         return () => mounted = false;
     }, [activeForm, baseInfo]);
 
+    // Keep keyboard and assistive-technology navigation inside the open record.
     useEffect(() => {
+        const dialog = dialogRef.current;
+        const previousFocus = document.activeElement;
+        const previousOverflow = document.body.style.overflow;
+        const inertElements = [];
+        const getFocusable = () => [...dialog.querySelectorAll(FOCUSABLE)]
+            .filter(element => element.tabIndex >= 0 && element.getClientRects().length && !element.closest('[hidden], [inert]'));
+        const focusFirst = () => (closeRef.current || getFocusable()[0] || dialog).focus({ preventScroll: true });
+        focusFirst();
+        document.body.style.overflow = "hidden";
+
+        // The record lives inside the app, so hide siblings at each ancestor level.
+        let branch = dialog;
+        while (branch.parentElement && branch.parentElement !== document.documentElement) {
+            for (const sibling of branch.parentElement.children) {
+                if (sibling === branch || !(sibling instanceof HTMLElement) || ["SCRIPT", "STYLE", "LINK"].includes(sibling.tagName)) continue;
+                inertElements.push([sibling, sibling.inert]);
+                sibling.inert = true;
+            }
+            branch = branch.parentElement;
+        }
+
         const handleKeyDown = event => {
-            if (event.key === "Escape") onClose();
+            if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                onCloseRef.current();
+            }
+            if (event.key !== "Tab") return;
+            const items = getFocusable();
+            const first = items[0];
+            const last = items[items.length - 1];
+            if (!first) {
+                event.preventDefault();
+                dialog.focus();
+            } else if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
         };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [onClose]);
+        const handleFocus = event => {
+            if (!dialog.contains(event.target)) focusFirst();
+        };
+        document.addEventListener("keydown", handleKeyDown, true);
+        document.addEventListener("focusin", handleFocus);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown, true);
+            document.removeEventListener("focusin", handleFocus);
+            document.body.style.overflow = previousOverflow;
+            inertElements.forEach(([element, previous]) => { element.inert = previous; });
+            if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
+        };
+    }, []);
+
+    useEffect(() => {
+        // A loading screen or form switch can remove the previously focused control.
+        if (!dialogRef.current?.contains(document.activeElement)) closeRef.current?.focus({ preventScroll: true });
+    }, [phase]);
 
     const legalMoves = useMemo(() => filterMovesByLatestVersion(formData?.moves || []), [formData?.moves]);
     const moveVersion = legalMoves[0]?.version_group;
-
-    const handleTouchStart = (e) => {
-        setTouchStartY(e.targetTouches[0].clientY);
+    const handleTabKeyDown = event => {
+        const index = RECORD_TABS.findIndex(item => item.id === tab);
+        let nextIndex;
+        if (event.key === "ArrowRight") nextIndex = (index + 1) % RECORD_TABS.length;
+        if (event.key === "ArrowLeft") nextIndex = (index + RECORD_TABS.length - 1) % RECORD_TABS.length;
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = RECORD_TABS.length - 1;
+        if (nextIndex == null) return;
+        event.preventDefault();
+        setTab(RECORD_TABS[nextIndex].id);
+        document.getElementById(`${recordId}-tab-${RECORD_TABS[nextIndex].id}`)?.focus();
     };
 
-    const handleTouchEnd = (e) => {
-        if (!touchStartY) return;
-        const touchEndY = e.changedTouches[0].clientY;
-        const swipeDistance = touchEndY - touchStartY;
-        
-        // Se deslizou o dedo para baixo (fechar cortina)
-        if (swipeDistance > 40 && isExpanded) {
-            setIsExpanded(false);
-        }
-        // Se deslizou o dedo para cima (abrir cortina)
-        else if (swipeDistance < -40 && !isExpanded) {
-            setIsExpanded(true);
-        }
-        setTouchStartY(null);
-    };
-
-    if (loadError) return (
-        <div role="dialog" aria-modal="true" aria-label="A Pokédex não conseguiu abrir este registro" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-5" onClick={onClose}>
-            <div className="game-shell max-w-md p-7 text-center" onClick={event => event.stopPropagation()}>
-                <div className="text-4xl mb-3" aria-hidden="true">📡</div>
-                <p className="font-black text-slate-800">{loadError}</p>
-                <button type="button" onClick={onClose} className="mt-5 rounded-xl bg-red-500 px-5 py-3 text-xs font-black uppercase tracking-widest text-white">Fechar</button>
-            </div>
-        </div>
-    );
-    if (!baseInfo || !formData) return <div role="dialog" aria-modal="true" aria-label="Consultando a Pokédex" className="fixed inset-0 z-50 flex flex-col gap-6 items-center justify-center bg-slate-900/60 backdrop-blur-sm"><button type="button" className="room-secondary-button" onClick={onClose}>Cancelar consulta</button><div className="w-16 h-16 border-8 border-red-500 border-t-white rounded-full animate-spin shadow-lg"></div></div>;
-
-    const defenses = calculateDefenses(formData.types);
-    const bst = formData.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
-    const primaryColor = formData.types?.[0]?.type?.name ? TYPE_COLORS[formData.types[0].type.name] : "#0EA5E9";
-    const sprite = formData.sprites?.other?.["official-artwork"]?.front_default || formData.sprites?.front_default;
-    const speciesDescription = describeSpecies(baseInfo, formData);
+    const defenses = calculateDefenses(formData?.types || []);
+    const bst = formData?.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
+    const primaryColor = TYPE_COLORS[formData?.types?.[0]?.type?.name] || "#0EA5E9";
+    const sprite = formData?.sprites?.front_default || formData?.sprites?.other?.["official-artwork"]?.front_default;
+    const speciesDescription = phase === "ready" ? describeSpecies(baseInfo, formData) : null;
 
     return (
-        <div role="dialog" aria-modal="true" aria-labelledby="pokemon-modal-title" className="pokemon-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 md:p-8 animate-fade-in" onClick={onClose}>
-            
-            <div className="pokemon-modal-shell game-shell w-full max-w-6xl h-[100dvh] md:h-[90dvh] flex flex-col md:flex-row overflow-hidden relative shadow-2xl bg-slate-50 md:rounded-3xl" onClick={e => e.stopPropagation()}>
-                
-                <button type="button" aria-label="Fechar registro da Pokédex" onClick={onClose} className="absolute top-5 right-5 sm:top-6 sm:right-6 w-11 h-11 flex items-center justify-center bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-full z-[60] transition-all border-4 border-slate-200 shadow-sm">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <div className="pokemon-modal-backdrop record-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={phase === "loading"} tabIndex={-1} className={`pokemon-modal-shell record-shell ${phase !== "ready" ? "record-state-shell" : ""}`} style={{ "--record-type": primaryColor }}>
+                <button ref={closeRef} type="button" aria-label="Fechar registro da Pokédex" onClick={onClose} className="record-close">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
-                
-                {/* === TELA 1: APRESENTAÇÃO === */}
-                <div className="pokemon-modal-overview w-full h-full md:w-5/12 pt-7 px-6 pb-[85px] sm:pt-8 sm:px-8 md:pb-8 flex flex-col overflow-y-auto no-scrollbar app-scroll-area border-r-0 md:border-r-4 border-slate-200 z-10 relative bg-slate-50/90">
-                    
-                    <div className="z-10 mb-6 flex flex-col items-start">
-                        <span className="whitespace-nowrap text-[9px] sm:text-[11px] font-black text-slate-500 tracking-widest uppercase border-2 border-slate-200 px-3 py-1 rounded-full bg-slate-50 shadow-sm">
-                            No. {String(baseInfo.id).padStart(4, "0")}
-                        </span>
-                        <h2 id="pokemon-modal-title" className="text-4xl lg:text-5xl font-black capitalize text-slate-800 mt-5 tracking-tight leading-none drop-shadow-sm">
-                            {formatName(baseInfo.name)}
-                        </h2>
-                        {activeForm?.name?.includes("-") && (
-                            <span className="text-sm font-black text-red-500 capitalize block mt-2">
-                                Forma {formatName(activeForm.name.substring(activeForm.name.indexOf("-") + 1))}
-                            </span>
-                        )}
+                {phase !== "ready" ? (
+                    <div className="record-state">
+                        <span className={`record-pokeball ${phase === "loading" ? "is-reading" : ""}`} aria-hidden="true" />
+                        <small>Pokédex · registro de campo</small>
+                        <h2 id={titleId}>{phase === "loading" ? "Um instante, treinador!" : "Este registro não abriu"}</h2>
+                        <p role={phase === "loading" ? "status" : "alert"}>{phase === "loading" ? "Estamos buscando a ficha do seu próximo parceiro." : loadError}</p>
+                        <button type="button" className="record-state-button" onClick={onClose}>{phase === "loading" ? "Cancelar consulta" : "Voltar à Pokédex"}</button>
                     </div>
+                ) : (<>
+                {/* === TELA 1: APRESENTAÇÃO === */}
+                <div className="pokemon-modal-overview record-overview">
                     
-                    <div className="flex-grow min-h-[220px] shrink-0 flex justify-center items-center py-6 relative group mb-8 bg-slate-50 rounded-3xl border-4 border-slate-200 shadow-inner">
-                        <div className="absolute inset-0 opacity-10 transition-opacity duration-500 group-hover:opacity-20" style={{ background: "radial-gradient(circle at center, " + primaryColor + " 0%, transparent 70%)" }}></div>
+                    <header className="record-header">
+                        <div className="record-cartridge-label"><span aria-hidden="true" /><small>Pokédex nacional</small><b>No. {String(baseInfo.id).padStart(4, "0")}</b></div>
+                        <h2 id={titleId}>{formatName(baseInfo.name)}</h2>
+                        {activeForm?.name !== baseInfo.name && <p className="record-form-label">Forma {formatName(activeForm.name.replace(`${baseInfo.name}-`, ""))}</p>}
+                    </header>
+                    <div className="record-sprite-stage">
+                        <span className="record-screen-caption" aria-hidden="true">POKÉMON DATA</span>
+                        <span className="record-sprite-ground" aria-hidden="true" />
                         {sprite ? (
                             <PokemonSprite
                                 src={sprite} 
-                                pokemonId={baseInfo.id}
+                                pokemonId={formData.id}
                                 alt={formatName(activeForm?.name || baseInfo.name)}
                                 loading="eager"
-                                className="h-full max-h-[190px] sm:max-h-64 object-contain drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500"
+                                className="record-partner-sprite"
                             />
                         ) : (
                             <span className="text-sm font-black text-slate-400">Este registro ainda não tem imagem.</span>
                         )}
                     </div>
                     
-                    <button onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1); onClose(); }} className="w-full py-4 mb-8 bg-red-500 hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-[0_6px_0_#991B1B] active:shadow-[0_0px_0_#991B1B] active:translate-y-1.5 transition-all flex justify-center items-center gap-2 outline-none shrink-0">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path></svg> Adicionar à equipe
+                    <button type="button" onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1); onClose(); }} className="record-add-partner">
+                        <span className="record-mini-ball" aria-hidden="true" /> Adicionar à equipe <span aria-hidden="true">＋</span>
                     </button>
 
-                    <div className="grid gap-4 shrink-0">
-                        <div className="flex flex-wrap gap-2 mb-2">
+                    <div className="record-attributes">
+                        <div className="record-types" aria-label="Tipos deste Pokémon">
                             {formData.types?.map(t => (
-                                <span key={t.type?.name} className="text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm border border-black/10" style={{ backgroundColor: TYPE_COLORS[t.type?.name] || TYPE_COLORS.normal, color: TYPE_TEXT_COLORS[t.type?.name] || TYPE_TEXT_COLORS.normal }}>
+                                <span key={t.type?.name} className="record-type-chip" style={{ backgroundColor: TYPE_COLORS[t.type?.name] || TYPE_COLORS.normal, color: TYPE_TEXT_COLORS[t.type?.name] || TYPE_TEXT_COLORS.normal }}>
                                     {formatType(t.type?.name)}
                                 </span>
                             ))}
                         </div>
                         
-                        <div className="bg-slate-50 p-5 rounded-2xl border-2 border-slate-200 shadow-inner flex flex-col gap-3">
+                        <section className="record-stats" aria-labelledby={`${recordId}-stats-title`}>
+                            <h3 id={`${recordId}-stats-title`}>{isTTRPG ? "Atributos do RPG" : "Atributos base"}<span aria-hidden="true">▰ ▰ ▰</span></h3>
                             {formData.stats?.map(s => {
                                 if (!s.stat?.name) return null;
                                 const val = isTTRPG ? convertToTTRPG(s.base_stat, s.stat.name === "hp") : (s.base_stat || 0);
@@ -192,58 +247,35 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[s.stat.name] || s.stat.name}</span>
                                             <span className={"text-xs font-black " + (isTTRPG ? "text-red-500" : "text-slate-800")}>{val}</span>
                                         </div>
-                                        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden shadow-inner">
-                                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: pct + "%", backgroundColor: primaryColor }}></div>
+                                        <div className="record-stat-track" role="meter" aria-label={STAT_MAP[s.stat.name] || s.stat.name} aria-valuemin={0} aria-valuemax={Math.max(isTTRPG ? 13 : 255, val)} aria-valuenow={val}>
+                                            <div className="record-stat-fill" style={{ width: pct + "%", backgroundColor: primaryColor }} />
                                         </div>
                                     </div>
                                 );
                             })}
                             <div className="flex justify-between items-center mt-3 pt-3 border-t-2 border-slate-200">
-                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Total de atributos base</span>
+                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{isTTRPG ? "Total no RPG" : "Total de atributos base"}</span>
                                 <span className="text-xl font-black text-slate-800">{bst}</span>
                             </div>
-                        </div>
+                        </section>
                     </div>
                 </div>
 
-                {/* === ESCUDO PROTETOR (Backdrop) === */}
-                {/* Bloqueia cliques no fundo apenas quando a cortina está aberta no telemóvel */}
-                <div 
-                    className={"absolute inset-0 z-30 md:hidden transition-opacity duration-500 ease-out " + (isExpanded ? "opacity-100 pointer-events-auto bg-slate-900/30 backdrop-blur-[2px]" : "opacity-0 pointer-events-none")}
-                    onClick={() => setIsExpanded(false)}
-                ></div>
-
-                {/* === TELA 2: A CORTINA === */}
-                <div className={"pokemon-modal-details absolute md:relative bottom-0 left-0 w-full md:w-7/12 flex flex-col bg-slate-100 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-t-[2rem] md:rounded-none shadow-[0_-15px_40px_rgba(15,23,42,0.2)] md:shadow-none border-t-[8px] md:border-t-0 border-slate-900 " + (isExpanded ? "h-[96%] md:h-full" : "h-[76px] md:h-full")}>
-                    
-                    {/* Cabeçalho com Sensor de Swipe Integrado */}
-                    <div 
-                        className="pokemon-modal-tabs flex bg-slate-200 border-b-4 border-slate-300 w-full shrink-0 pt-3 md:pt-0 rounded-t-[1.5rem] md:rounded-none relative z-20 cursor-pointer md:cursor-auto select-none"
-                        onClick={() => !isExpanded && setIsExpanded(true)}
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                    >
-                        <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-400 rounded-full md:hidden" onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}></div>
-                        
-                        {["stats", "defenses", "moves"].map(t => (
-                            <button 
-                                key={t}
-                                aria-pressed={tab === t}
-                                onClick={(e) => { e.stopPropagation(); setTab(t); setIsExpanded(true); }} 
-                                className={"flex-1 pb-3 pt-2 md:py-5 px-1 text-[10px] sm:text-[11px] md:text-[12px] font-black uppercase tracking-wider transition-all outline-none text-center border-b-4 " + (tab === t ? "text-white bg-red-500 border-red-700 shadow-inner" : "text-slate-500 hover:text-slate-700 hover:bg-slate-300 border-transparent")}
-                            >
-                                {t === "stats" ? "Perfil" : t === "defenses" ? "Tipos" : "Movimentos"}
+                <div className="pokemon-modal-details record-details">
+                    <div className="pokemon-modal-tabs record-tabs" role="tablist" aria-label="Páginas da ficha" onKeyDown={handleTabKeyDown}>
+                        {RECORD_TABS.map(item => (
+                            <button key={item.id} type="button" role="tab" id={`${recordId}-tab-${item.id}`} aria-selected={tab === item.id} aria-controls={panelId} tabIndex={tab === item.id ? 0 : -1} onClick={() => setTab(item.id)}>
+                                <span aria-hidden="true">{item.icon}</span>{item.label}
                             </button>
                         ))}
                     </div>
-                    
-                    <div className="pokemon-modal-body flex-1 p-5 sm:p-6 md:p-10 overflow-y-auto no-scrollbar app-scroll-area">
+                    <div id={panelId} role="tabpanel" aria-labelledby={`${recordId}-tab-${tab}`} tabIndex={0} className="pokemon-modal-body record-body">
                         {tab === "stats" && (
                             <div className="animate-fade-in space-y-8">
-                                <section className="species-description" aria-labelledby="species-description-title">
-                                    <span>Visão geral</span>
-                                    <h3 id="species-description-title">Quem é este Pokémon</h3>
-                                    <p lang={speciesDescription.flavor.code}>{speciesDescription.summary}</p>
+                                <section className="species-description" aria-labelledby={`${recordId}-description-title`}>
+                                    <span>Registro de campo</span>
+                                    <h3 id={`${recordId}-description-title`}>Conheça seu parceiro</h3>
+                                    <p lang={speciesDescription.flavor.text ? speciesDescription.flavor.code : "pt-BR"}>{speciesDescription.summary}</p>
                                     {speciesDescription.flavor.text && speciesDescription.flavor.code === "en" && <small>A Pokédex identificou este relato como texto original em inglês. Os dados explicativos abaixo continuam em português.</small>}
                                     <ul>
                                         {speciesDescription.facts.map((fact, index) => <li key={`species-fact-${index}`}>{fact}</li>)}
@@ -271,6 +303,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                 return (
                                                     <button 
                                                         key={v.pokemon?.name || `form-${index}`}
+                                                        type="button"
+                                                        aria-pressed={activeForm?.name === v.pokemon?.name}
                                                         onClick={() => setActiveForm(v.pokemon)} 
                                                         className={"px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-2 outline-none shadow-sm " + (activeForm?.name === v.pokemon?.name ? "bg-blue-500 text-white border-blue-700 shadow-[0_3px_0_#0EA5E9] scale-105" : "bg-slate-50 text-slate-600 border-slate-300 hover:border-blue-400 hover:bg-white")}
                                                     >
@@ -284,8 +318,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 
                                 <div>
                                     <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Linha evolutiva</h3>
-                                    <div className="bg-white p-6 rounded-2xl border-2 border-slate-200 flex flex-col gap-6 shadow-sm">
-                                        {evoChain.length > 0 ? evoChain.map((path, idx) => (
+                                    <p className="record-section-note">Cada evolução tem suas próprias condições.</p>
+                                    <div className="record-evolution-list bg-white p-6 rounded-2xl border-2 border-slate-200 flex flex-col gap-6 shadow-sm">
+                                        {evolutionStatus === "loading" ? <p role="status" className="record-section-note">Consultando a linha evolutiva...</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">A linha evolutiva não chegou desta vez. As outras páginas da ficha continuam disponíveis.</p> : evoChain.length > 0 ? evoChain.map((path, idx) => (
                                             <div key={idx} className="flex items-center gap-4 overflow-x-auto pb-2 no-scrollbar">
                                                 {path.map((node, i) => (
                                                     <React.Fragment key={node.name + i}>
@@ -293,13 +328,13 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                                             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-4 border-slate-200 shadow-inner group-hover:border-red-400 transition-colors">
                                                                 <PokemonSprite
                                                                     pokemonId={node.id}
-                                                                    className="w-16 h-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
+                                                                    className="record-evolution-sprite w-16 h-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
                                                                     alt={formatName(node.name)}
                                                                 />
                                                             </div>
                                                             <span className="pokemon-evolution-name mt-3 w-full text-center text-[10px] font-black uppercase text-slate-600 transition-colors group-hover:text-red-600">{formatName(node.name)}</span>
                                                         </div>
-                                                        {i < path.length - 1 && <svg className="w-8 h-8 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>}
+                                                        {i < path.length - 1 && <svg aria-hidden="true" className="w-8 h-8 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>}
                                                     </React.Fragment>
                                                 ))}
                                             </div>
@@ -311,29 +346,27 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         {tab === "defenses" && (
                             <div className="animate-fade-in">
                                 <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Como os tipos afetam este Pokémon</h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
-                                    {Object.entries(defenses).map(([t, multi]) => {
-                                        let cardStyle = "text-slate-600 border-slate-300 bg-white";
-                                        if (multi > 1) cardStyle = "text-red-700 border-red-300 bg-red-50";
-                                        if (multi < 1 && multi > 0) cardStyle = "text-emerald-700 border-emerald-300 bg-emerald-50";
-                                        if (multi === 0) cardStyle = "text-slate-400 border-slate-300 bg-slate-100 opacity-70";
-                                        
-                                        return (
-                                            <div key={t} className={"flex items-center justify-between p-4 rounded-xl border-2 shadow-sm " + cardStyle}>
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="w-3 h-3 rounded-full shadow-sm border border-black/10" style={{ backgroundColor: TYPE_COLORS[t] || TYPE_COLORS.normal }}></div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">{formatType(t)}</span>
-                                                </div>
-                                                <span className="text-sm font-black">{formatNumberPtBr(multi)}×</span>
-                                            </div>
-                                        );
+                                <p className="record-section-note">Os multiplicadores consideram os tipos. Habilidades e outros efeitos podem mudar o dano.</p>
+                                <div className="record-matchups">
+                                    {[
+                                        { label: "Fraquezas", kind: "weak", match: value => value > 1, empty: "Nenhuma fraqueza por tipo." },
+                                        { label: "Resistências", kind: "resist", match: value => value > 0 && value < 1, empty: "Nenhuma resistência por tipo." },
+                                        { label: "Imunidades", kind: "immune", match: value => value === 0, empty: "Nenhuma imunidade por tipo." },
+                                        { label: "Dano normal", kind: "neutral", match: value => value === 1 },
+                                    ].map(group => {
+                                        const matchups = Object.entries(defenses).filter(([, multiplier]) => group.match(multiplier));
+                                        return <section key={group.kind} className={`record-matchup-group is-${group.kind}`}>
+                                            <h4>{group.label}<span>{matchups.length}</span></h4>
+                                            <div>{matchups.map(([type, multiplier]) => <span key={type} className="record-matchup-chip"><i aria-hidden="true" style={{ backgroundColor: TYPE_COLORS[type] || TYPE_COLORS.normal }} />{formatType(type)}<b>{formatNumberPtBr(multiplier)}×</b></span>)}</div>
+                                            {!matchups.length && <p>{group.empty || "Nenhum tipo nesta faixa."}</p>}
+                                        </section>;
                                     })}
                                 </div>
                             </div>
                         )}
                         {tab === "moves" && (
                             <div className="animate-fade-in">
-                                <div className="flex justify-between items-center mb-6">
+                                <div className="record-moves-heading flex justify-between items-center mb-6">
                                     <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500"></div> Movimentos que pode aprender</h3>
                                     <span className="bg-slate-800 px-3 py-1 rounded-full text-white text-[10px] font-black shadow-inner">{formatCount(legalMoves.length, "movimento")} • {VERSION_LABELS[moveVersion] || "Mais recente"}</span>
                                 </div>
@@ -345,6 +378,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         )}
                     </div>
                 </div>
+                </>)}
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v9.17.0";
+const CACHE_NAME = "myowndex-shell-v10.0.0";
 const CACHE_PREFIX = "myowndex-shell-";
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
@@ -11,6 +11,7 @@ const CORE_ASSETS = [
   "/icons/myowndex-maskable-512-v91.png",
   "/icons/apple-touch-icon-v91.png",
   "/icons/myowndex-shortcut-96-v91.png",
+  "/fonts/VT323-Regular.ttf",
 ];
 
 self.addEventListener("install", event => {
@@ -19,7 +20,7 @@ self.addEventListener("install", event => {
       CORE_ASSETS.map(asset => fetch(asset)
         .then(response => response.ok ? cache.put(asset, response) : undefined)
         .catch(() => undefined))
-    )).then(() => self.skipWaiting())
+    ))
   );
 });
 
@@ -55,7 +56,7 @@ self.addEventListener("fetch", event => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   const sameOrigin = url.origin === self.location.origin;
-  if (sameOrigin && url.pathname.startsWith("/api/")) return;
+  if (sameOrigin && (url.pathname.startsWith("/api/") || request.headers.get("RSC") === "1" || url.searchParams.has("_rsc"))) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
@@ -69,7 +70,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  const reusableAsset = sameOrigin
+  const reusableAsset = (sameOrigin && (/^\/(?:_next\/static|icons|fonts|sprites)\//.test(url.pathname) || /^\/favicon[^/]*\.svg$/.test(url.pathname)))
     || url.hostname === "raw.githubusercontent.com";
   if (!reusableAsset) return;
 

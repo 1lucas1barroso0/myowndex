@@ -1,0 +1,232 @@
+/* A two-screen field record, with pixel sprites and ordinary keyboard navigation. */
+html .game-edition.game-edition .record-backdrop {
+  position: fixed !important; inset: 0 !important; z-index: 100 !important;
+  display: grid !important; place-items: center !important;
+  padding: 1.5rem !important; background: #102437b8 !important;
+  backdrop-filter: blur(3px) !important;
+}
+html .game-edition.game-edition .record-shell {
+  position: relative !important; display: grid !important;
+  grid-template-columns: minmax(290px, .85fr) minmax(0, 1.15fr) !important;
+  width: min(1120px, 100%) !important; height: min(860px, 92dvh) !important;
+  min-width: 0 !important; min-height: 0 !important; max-height: 100% !important;
+  overflow: hidden !important; border: 3px solid var(--ui-ink) !important;
+  border-radius: .8rem !important; background: var(--ui-panel) !important;
+  box-shadow: 0 7px 0 #102437, 0 24px 70px #0005 !important;
+  animation: record-enter .22s steps(4, end) !important;
+}
+html .game-edition.game-edition .record-shell::before,
+html .game-edition.game-edition .record-shell::after { content: none !important; }
+html .game-edition.game-edition .record-close {
+  position: absolute !important; top: .8rem !important; right: .8rem !important;
+  display: grid !important; place-items: center !important; z-index: 5 !important;
+  width: 44px !important; height: 44px !important; padding: .6rem !important;
+  border: 2px solid var(--ui-ink) !important; border-radius: .4rem !important;
+  background: var(--ui-panel) !important; color: var(--ui-ink) !important;
+  box-shadow: 0 3px 0 var(--ui-ink) !important;
+}
+html .game-edition.game-edition .record-close:hover { background: var(--ui-selected) !important; }
+html .game-edition.game-edition .record-close svg { width: 21px !important; height: 21px !important; }
+html .game-edition.game-edition .record-overview {
+  width: auto !important; height: auto !important; padding: 1.5rem !important;
+  display: flex !important; flex-direction: column !important; gap: 1rem !important;
+  min-width: 0 !important; min-height: 0 !important; overflow-y: auto !important;
+  border: 0 !important; border-right: 3px solid var(--ui-ink) !important;
+  background: var(--ui-raised) !important; overscroll-behavior: contain !important;
+}
+html .game-edition.game-edition .record-header { margin: 0 !important; }
+html .game-edition.game-edition .record-cartridge-label {
+  display: flex !important; align-items: center !important; gap: .5rem !important;
+  color: var(--ui-blue) !important; font-size: .7rem !important; font-weight: 900 !important;
+}
+html .game-edition.game-edition .record-cartridge-label > span {
+  width: .55rem !important; height: .55rem !important; border: 2px solid #174730 !important;
+  background: #64d77e !important; box-shadow: 2px 2px 0 #174730 !important;
+}
+html .game-edition.game-edition .record-cartridge-label small {
+  font-size: .65rem !important; text-transform: uppercase !important; letter-spacing: .12em !important;
+}
+html .game-edition.game-edition .record-cartridge-label b { margin-left: auto !important; font-variant-numeric: tabular-nums !important; }
+html .game-edition.game-edition .record-header h2 {
+  margin: .7rem 0 0 !important; color: var(--ui-ink) !important;
+  font-size: clamp(1.8rem, 3.2vw, 2.75rem) !important; font-weight: 900 !important;
+  line-height: 1.1 !important; letter-spacing: -.045em !important; overflow-wrap: anywhere !important;
+}
+html .game-edition.game-edition .record-form-label {
+  margin: .35rem 0 0 !important; color: var(--ui-blue) !important;
+  font-size: .8rem !important; font-weight: 800 !important;
+}
+html .game-edition.game-edition .record-sprite-stage {
+  position: relative !important; display: grid !important; place-items: center !important;
+  flex: 0 0 auto !important; min-height: 220px !important; padding: 1rem !important;
+  overflow: hidden !important; border: 3px solid #38545b !important; border-radius: .4rem !important;
+  background: repeating-linear-gradient(0deg, #00000003 0 1px, transparent 1px 4px), #e2f2cb !important;
+  box-shadow: inset 0 4px 0 #3e67612b, 0 3px 0 var(--ui-line) !important;
+}
+html .game-edition.game-edition .record-screen-caption {
+  position: absolute !important; top: .55rem !important; left: .65rem !important;
+  color: #506845 !important; font-size: .58rem !important; letter-spacing: .18em !important;
+  font-weight: 900 !important;
+}
+html .game-edition.game-edition .record-sprite-ground {
+  position: absolute !important; left: 20% !important; right: 20% !important; bottom: 28px !important;
+  height: 19px !important; border-radius: 50% !important; background: #617a4338 !important;
+}
+html .game-edition.game-edition .record-partner-sprite {
+  position: relative !important; z-index: 1 !important; width: 192px !important; height: 192px !important;
+  max-width: 100% !important; object-fit: contain !important; image-rendering: pixelated !important;
+  filter: drop-shadow(0 4px 0 #27433018) !important; animation: record-partner-idle 2.8s steps(2, end) infinite !important;
+}
+html .game-edition.game-edition .record-add-partner {
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  flex: 0 0 auto !important; gap: .7rem !important; min-height: 50px !important;
+  padding: .85rem 1rem !important; margin: 0 0 .25rem !important;
+  border: 2px solid #761c2b !important; border-radius: .4rem !important;
+  background: var(--ui-accent) !important; color: #fff !important;
+  box-shadow: 0 4px 0 #761c2b !important; font-size: .85rem !important; font-weight: 900 !important;
+}
+html .game-edition.game-edition .record-add-partner:hover { filter: brightness(1.1) !important; }
+html .game-edition.game-edition .record-add-partner:active { transform: translateY(3px) !important; box-shadow: 0 1px 0 #761c2b !important; }
+html .game-edition.game-edition .record-mini-ball,
+html .game-edition.game-edition .record-pokeball {
+  position: relative !important; display: block !important; width: 22px !important; height: 22px !important;
+  border: 2px solid #253449 !important; border-radius: 50% !important; flex: 0 0 auto !important;
+  background: linear-gradient(#f14b5d 0 43%, #253449 43% 57%, #fff7e2 57%) !important;
+}
+html .game-edition.game-edition .record-mini-ball::after,
+html .game-edition.game-edition .record-pokeball::after {
+  content: "" !important; position: absolute !important; inset: 50% auto auto 50% !important;
+  width: 7px !important; height: 7px !important; transform: translate(-50%, -50%) !important;
+  border: 2px solid #253449 !important; border-radius: 50% !important; background: #fff7e2 !important;
+}
+html .game-edition.game-edition .record-attributes { display: grid !important; gap: 1rem !important; }
+html .game-edition.game-edition .record-types { display: flex !important; flex-wrap: wrap !important; gap: .5rem !important; }
+html .game-edition.game-edition .record-type-chip {
+  padding: .3rem .8rem !important; border: 2px solid #0003 !important; border-radius: .3rem !important;
+  font-size: .72rem !important; font-weight: 900 !important; text-transform: uppercase !important;
+  letter-spacing: .07em !important; box-shadow: inset 0 2px 0 #fff5, 0 2px 0 #0002 !important;
+}
+html .game-edition.game-edition .record-stats {
+  display: grid !important; gap: .75rem !important; padding: 1rem !important;
+  border: 2px solid var(--ui-line) !important; border-radius: .4rem !important; background: var(--ui-panel) !important;
+}
+html .game-edition.game-edition .record-stats h3 {
+  display: flex !important; justify-content: space-between !important; margin: 0 0 .2rem !important;
+  color: var(--ui-blue) !important; font-size: .72rem !important; font-weight: 900 !important;
+  text-transform: uppercase !important; letter-spacing: .07em !important;
+}
+html .game-edition.game-edition .record-stats h3 > span { color: var(--record-type) !important; }
+html .game-edition.game-edition .record-stat-track {
+  position: relative !important; width: 100% !important; height: 9px !important;
+  background: var(--ui-raised) !important; border: 1px solid var(--ui-line) !important;
+  overflow: hidden !important;
+}
+html .game-edition.game-edition .record-stat-track::after {
+  content: "" !important; position: absolute !important; inset: 0 !important;
+  background: repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 2px), var(--ui-panel) calc(10% - 2px), var(--ui-panel) 10%) !important;
+}
+html .game-edition.game-edition .record-stat-fill { height: 100% !important; transition: width .35s steps(10, end) !important; }
+html .game-edition.game-edition .record-details {
+  display: flex !important; flex-direction: column !important; position: relative !important;
+  inset: auto !important; width: auto !important; height: auto !important;
+  min-width: 0 !important; min-height: 0 !important; overflow: hidden !important;
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  background: var(--ui-panel) !important;
+}
+html .game-edition.game-edition .record-tabs {
+  display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: .4rem !important; padding: .85rem 4.25rem .85rem .85rem !important;
+  flex: 0 0 auto !important; border: 0 !important; border-bottom: 2px solid var(--ui-line) !important;
+  border-radius: 0 !important; background: var(--ui-raised) !important;
+}
+html .game-edition.game-edition .record-tabs button {
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  gap: .4rem !important; min-height: 44px !important; padding: .55rem .4rem !important;
+  border: 2px solid var(--ui-line) !important; border-radius: .35rem !important;
+  background: var(--ui-panel) !important; color: var(--ui-muted) !important;
+  font-size: .76rem !important; font-weight: 900 !important; letter-spacing: 0 !important;
+  text-transform: none !important; box-shadow: 0 2px 0 var(--ui-line) !important;
+}
+html .game-edition.game-edition .record-tabs button[aria-selected="true"] {
+  color: #fff !important; background: var(--ui-accent) !important;
+  border-color: #761c2b !important; box-shadow: 0 2px 0 #761c2b !important;
+}
+html .game-edition.game-edition .record-tabs button > span { font-size: 1rem !important; }
+html .game-edition.game-edition .record-body {
+  padding: 1.5rem !important; flex: 1 1 auto !important; min-height: 0 !important;
+  overflow-y: auto !important; overflow-x: hidden !important; overscroll-behavior: contain !important;
+  background: var(--ui-panel) !important;
+}
+html .game-edition.game-edition .record-body .species-description {
+  padding: 1.1rem !important; background: var(--ui-selected) !important;
+  border: 2px solid var(--ui-line) !important; border-left: 5px solid var(--ui-blue) !important;
+  border-radius: .4rem !important; box-shadow: none !important;
+}
+html .game-edition.game-edition .record-body .species-description :is(h3,p,li) { color: var(--ui-ink) !important; }
+html .game-edition.game-edition .record-body .species-description h3 { font-size: 1.25rem !important; }
+html .game-edition.game-edition .record-body .species-description :is(p,li) { font-size: .85rem !important; line-height: 1.7 !important; }
+html .game-edition.game-edition .record-section-note {
+  margin: -.5rem 0 1rem !important; color: var(--ui-muted) !important;
+  font-size: .8rem !important; line-height: 1.65 !important;
+}
+html .game-edition.game-edition .record-evolution-list { padding: 1rem !important; border-radius: .4rem !important; }
+html .game-edition.game-edition .record-evolution-sprite { image-rendering: pixelated !important; }
+html .game-edition.game-edition .record-matchups { display: grid !important; gap: 1rem !important; }
+html .game-edition.game-edition .record-matchup-group {
+  padding: 1rem !important; border: 2px solid var(--ui-line) !important;
+  border-left: 5px solid var(--ui-blue) !important; border-radius: .4rem !important;
+  background: var(--ui-raised) !important;
+}
+html .game-edition.game-edition .record-matchup-group.is-weak { border-left-color: #ed6658 !important; }
+html .game-edition.game-edition .record-matchup-group.is-resist { border-left-color: #3ea57b !important; }
+html .game-edition.game-edition .record-matchup-group.is-immune { border-left-color: #9565c8 !important; }
+html .game-edition.game-edition .record-matchup-group h4 {
+  display: flex !important; justify-content: space-between !important; margin: 0 0 .65rem !important;
+  color: var(--ui-ink) !important; font-size: .85rem !important; font-weight: 900 !important;
+}
+html .game-edition.game-edition .record-matchup-group h4 > span { color: var(--ui-muted) !important; }
+html .game-edition.game-edition .record-matchup-group > div { display: flex !important; flex-wrap: wrap !important; gap: .5rem !important; }
+html .game-edition.game-edition .record-matchup-chip {
+  display: inline-flex !important; align-items: center !important; gap: .4rem !important;
+  padding: .4rem .55rem !important; background: var(--ui-panel) !important;
+  border: 1px solid var(--ui-line) !important; border-radius: .3rem !important;
+  color: var(--ui-ink) !important; font-size: .76rem !important; font-weight: 700 !important;
+}
+html .game-edition.game-edition .record-matchup-chip i { width: .6rem !important; height: .6rem !important; border: 1px solid #0002 !important; }
+html .game-edition.game-edition .record-matchup-chip b { padding-left: .15rem !important; color: var(--ui-blue) !important; font-variant-numeric: tabular-nums !important; }
+html .game-edition.game-edition .record-matchup-group > p { margin: 0 !important; font-size: .78rem !important; color: var(--ui-muted) !important; }
+html .game-edition.game-edition .record-moves-heading { align-items: flex-start !important; flex-wrap: wrap !important; gap: .75rem !important; }
+html .game-edition.game-edition .record-moves-heading > span { white-space: normal !important; }
+html .game-edition.game-edition .record-state-shell { display: block !important; width: min(460px, 100%) !important; height: auto !important; }
+html .game-edition.game-edition .record-state {
+  display: grid !important; justify-items: center !important; gap: .9rem !important;
+  padding: 3.5rem 2rem 2rem !important; text-align: center !important;
+}
+html .game-edition.game-edition .record-state .record-pokeball { width: 64px !important; height: 64px !important; border-width: 4px !important; }
+html .game-edition.game-edition .record-state .record-pokeball::after { width: 19px !important; height: 19px !important; border-width: 4px !important; }
+html .game-edition.game-edition .record-pokeball.is-reading { animation: record-reading 1s steps(4, end) infinite !important; }
+html .game-edition.game-edition .record-state small { color: var(--ui-blue) !important; font-size: .68rem !important; font-weight: 900 !important; text-transform: uppercase !important; letter-spacing: .08em !important; }
+html .game-edition.game-edition .record-state h2 { margin: 0 !important; color: var(--ui-ink) !important; font-size: 1.7rem !important; line-height: 1.2 !important; }
+html .game-edition.game-edition .record-state p { margin: 0 !important; color: var(--ui-muted) !important; font-size: .87rem !important; line-height: 1.7 !important; }
+html .game-edition.game-edition .record-state-button { min-height: 44px !important; padding: .65rem 1rem !important; color: #fff !important; background: var(--ui-accent) !important; border: 2px solid #761c2b !important; border-radius: .4rem !important; font-size: .85rem !important; font-weight: 900 !important; box-shadow: 0 3px 0 #761c2b !important; }
+@keyframes record-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes record-partner-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes record-reading { 0%, 100% { transform: rotate(-18deg); } 50% { transform: rotate(18deg); } }
+@media (max-width: 767px) {
+  html .game-edition.game-edition .record-backdrop { padding: .6rem !important; padding-top: max(.6rem, env(safe-area-inset-top)) !important; padding-bottom: max(.6rem, env(safe-area-inset-bottom)) !important; }
+  html .game-edition.game-edition .record-shell { display: block !important; height: 100% !important; max-height: 100% !important; overflow-y: auto !important; overscroll-behavior: contain !important; border-radius: .5rem !important; }
+  html .game-edition.game-edition .record-overview { height: auto !important; padding: 1rem !important; padding-top: 1.2rem !important; overflow: visible !important; border-right: 0 !important; border-bottom: 3px solid var(--ui-ink) !important; }
+  html .game-edition.game-edition .record-cartridge-label { padding-right: 3.5rem !important; flex-wrap: wrap !important; }
+  html .game-edition.game-edition .record-header h2 { padding-right: 2.5rem !important; font-size: 2.2rem !important; }
+  html .game-edition.game-edition .record-sprite-stage { min-height: 196px !important; }
+  html .game-edition.game-edition .record-partner-sprite { width: 160px !important; height: 160px !important; }
+  html .game-edition.game-edition .record-details { overflow: visible !important; }
+  html .game-edition.game-edition .record-tabs { position: sticky !important; top: 0 !important; z-index: 3 !important; padding: .65rem !important; }
+  html .game-edition.game-edition .record-tabs button { font-size: .76rem !important; }
+  html .game-edition.game-edition .record-body { overflow: visible !important; padding: 1rem !important; }
+  html .game-edition.game-edition .record-state-shell { height: auto !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html .game-edition.game-edition :is(.record-shell, .record-partner-sprite, .record-pokeball.is-reading) { animation: none !important; }
+  html .game-edition.game-edition .record-stat-fill { transition: none !important; }
+}

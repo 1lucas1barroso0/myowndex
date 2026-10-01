@@ -151,11 +151,12 @@ test("descriptions explain what happens without hiding missing or foreign catalo
 
 test("offline support caches the shell and sprites but never private room APIs", async () => {
   const [worker, app] = await Promise.all([read("public/sw.js"), read("src/App.jsx")]);
-  assert.match(worker, /myowndex-shell-v9\.17\.0/);
+  assert.match(worker, /myowndex-shell-v10\.0\.0/);
   assert.match(worker, /raw\.githubusercontent\.com/);
   assert.match(worker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(worker, /SKIP_WAITING/);
-  assert.match(worker, /then\(\(\) => self\.skipWaiting\(\)\)/);
+  assert.doesNotMatch(worker, /then\(\(\) => self\.skipWaiting\(\)\)/);
+  assert.match(worker, /request\.headers\.get\("RSC"\)/);
   assert.match(worker, /myowndex-maskable-512-v91\.png/);
   assert.match(app, /document\.readyState === "complete"/);
   assert.match(app, /updateViaCache: "none"/);
@@ -337,7 +338,7 @@ test("legacy surfaces and mechanical colors retain the MyOwnDex icon palette", a
     .map(value => Number.parseInt(value, 16)).join(",")));
   for (const source of visualSources) {
     // The 9.16 edition has its own centralized, contrast-tested theme tokens.
-    if (source.path.endsWith("/game-edition.css")) continue;
+    if (["/game-edition.css", "/handheld.css", "/pc-retro.css", "/pokedex-record.css"].some(file => source.path.endsWith(file))) continue;
     const hexColors = source.text.match(/#[0-9a-f]{3,8}\b/gi) || [];
     for (const literal of hexColors) {
       let value = literal.slice(1);

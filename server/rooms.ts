@@ -1,4 +1,5 @@
 import { secureRandomString } from "../src/core/random.js";
+import { getRuntimeBindings, RuntimeConfigurationError, RuntimeServiceError } from "./runtime";
 
 export type RoomRole = "narrator" | "player";
 
@@ -45,14 +46,7 @@ let schemaPromise: Promise<void> | null = null;
 export const ROOM_PROTOCOL_VERSION = "3";
 
 export function getBindings() {
-  const runtime = (globalThis as typeof globalThis & {
-    __MYOWNDEX_ENV__?: { DB?: D1Database; BUCKET?: R2Bucket };
-  }).__MYOWNDEX_ENV__;
-  if (!runtime?.DB) throw new Error("A Central da Aventura não conseguiu acessar esta aventura agora. Tente novamente em instantes.");
-  return {
-    db: runtime.DB,
-    bucket: runtime.BUCKET,
-  };
+  return getRuntimeBindings();
 }
 
 export async function ensureRoomSchema() {
@@ -67,6 +61,7 @@ export async function ensureRoomSchema() {
         invite_secret_hash TEXT NOT NULL,
         state_json TEXT NOT NULL,
         revision INTEGER NOT NULL DEFAULT 0,
+        authority_claim TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )`),
@@ -95,6 +90,29 @@ export async function ensureRoomSchema() {
         FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
       )`),
       db.prepare("CREATE INDEX IF NOT EXISTS room_events_room_id_idx ON room_events (room_code, id)"),
+      db.prepare(`CREATE TABLE IF NOT EXISTS room_rolls (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        room_code TEXT NOT NULL,
+        actor_key TEXT NOT NULL,
+        request_id TEXT NOT NULL,
+        request_fingerprint TEXT NOT NULL,
+        player_id TEXT,
+        author TEXT NOT NULL,
+        action_type TEXT NOT NULL,
+        mode TEXT NOT NULL DEFAULT 'normal',
+        request_json TEXT NOT NULL,
+        result_json TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        event_payload_json TEXT NOT NULL,
+        sfx_payload_json TEXT,
+        status TEXT NOT NULL DEFAULT 'ready',
+        claim_token TEXT NOT NULL DEFAULT '',
+        server_authoritative INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
+      )`),
+      db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS room_rolls_request_idx ON room_rolls (room_code, actor_key, request_id)"),
+      db.prepare("CREATE INDEX IF NOT EXISTS room_rolls_room_id_idx ON room_rolls (room_code, id)"),
       db.prepare(`CREATE TABLE IF NOT EXISTS room_media (
         id TEXT PRIMARY KEY NOT NULL,
         room_code TEXT NOT NULL,
@@ -133,6 +151,16 @@ export async function ensureRoomSchema() {
       db.prepare("CREATE INDEX IF NOT EXISTS room_call_signals_recipient_idx ON room_call_signals (room_code, recipient_id, id)"),
       db.prepare("CREATE INDEX IF NOT EXISTS room_call_signals_created_at_idx ON room_call_signals (created_at)"),
     ]);
+    // A database imported from an older release can predate authoritative rolls.
+    const columns = await db.prepare("PRAGMA table_info(rooms)").all<{ name: string }>();
+    if (!columns.results.some(column => column.name === "authority_claim")) {
+      try {
+        await db.prepare("ALTER TABLE rooms ADD COLUMN authority_claim TEXT NOT NULL DEFAULT ''").run();
+      } catch (error) {
+        const refreshed = await db.prepare("PRAGMA table_info(rooms)").all<{ name: string }>();
+        if (!refreshed.results.some(column => column.name === "authority_claim")) throw error;
+      }
+    }
   })().catch(error => {
     schemaPromise = null;
     throw error;
@@ -417,7 +445,8 @@ export async function appendRoomEvent(input: {
 
 export function routeError(error: unknown) {
   const message = error instanceof Error ? error.message : "Algo impediu esta ação. Tente novamente.";
-  return Response.json({ error: message }, { status: 500 });
+  const runtimeError = error instanceof RuntimeConfigurationError || error instanceof RuntimeServiceError;
+  return noStoreJson({ error: message, ...(runtimeError ? { code: error.code, setupRequired: error instanceof RuntimeConfigurationError } : {}) }, { status: runtimeError ? error.status : 500 });
 }
 
 export function noStoreJson(value: unknown, init?: ResponseInit) {

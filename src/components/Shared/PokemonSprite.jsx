@@ -18,11 +18,8 @@ const spriteUrls = ({ src, pokemonId, shiny = false, candidates = [] }) => {
         ...candidates,
         localUrl,
         frontUrl,
-        Number.isFinite(id) && id > 0
-            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${shiny ? "shiny/" : ""}${id}.png`
-            : "",
-        Number.isFinite(id) && id > 0 && !shiny
-            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${id}.png`
+        Number.isInteger(id) && id > 0 && id <= 649
+            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/${regularPath}${id}.png`
             : "",
     ].filter(Boolean))];
 };

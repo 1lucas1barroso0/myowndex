@@ -25,7 +25,7 @@ const friendlyCallError = error => {
         return "Para entrar, permita o uso do microfone nas configurações do navegador.";
     }
     if (error?.name === "NotFoundError" || error?.name === "DevicesNotFoundError") {
-        return "Não encontramos um microfone neste aparelho.";
+        return "Não encontramos um microfone neste dispositivo.";
     }
     if (error?.name === "NotReadableError" || error?.name === "TrackStartError") {
         return "O microfone está ocupado em outro aplicativo. Libere-o e tente novamente.";

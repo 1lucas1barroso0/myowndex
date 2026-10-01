@@ -53,16 +53,19 @@ const luminance = hex => {
   const c = hex.match(/[a-f0-9]{2}/gi).map(v => parseInt(v, 16) / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
   return c[0] * .2126 + c[1] * .7152 + c[2] * .0722;
 };
-test("both base and handheld themes keep normal text above WCAG AA contrast", async () => {
- for (const filename of ["game-edition.css", "handheld.css"]) {
-  const css = await readFile(new URL(`../src/${filename}`, import.meta.url), "utf8");
-  for (const block of [css.match(/:root\s*\{([^}]+)/)[1], css.match(/html\[data-theme="night"\]\s*\{([^}]+)/)[1]]) {
+test("both journey themes keep normal text and primary actions above WCAG AA contrast", async () => {
+  const css = await readFile(new URL("../src/journey.css", import.meta.url), "utf8");
+  const blocks = [css.match(/(?:html)?:root\s*\{([^}]+)/)[1], css.match(/html\[data-theme="night"\]\s*\{([^}]+)/)[1]];
+  for (const [index, block] of blocks.entries()) {
     const tokens = Object.fromEntries([...block.matchAll(/--ui-([a-z]+):\s*#([a-f0-9]{6});/gi)].map(m => [m[1], m[2]]));
-    for (const [foreground, background] of [["ink", "panel"], ["muted", "panel"], ["muted", "raised"], ["blue", "selected"]]) {
+    for (const [foreground, background] of [["ink", "panel"], ["muted", "panel"], ["muted", "raised"], ["blue", "selected"], ["accent", "panel"]]) {
       const values = [luminance(tokens[foreground]), luminance(tokens[background])].sort((a,b) => b-a);
-      assert.ok((values[0]+.05)/(values[1]+.05) >= 4.5, `${foreground} on ${background}`);
+      const ratio = (values[0]+.05)/(values[1]+.05);
+      assert.ok(ratio >= 4.5, `theme ${index}: ${foreground} on ${background}, ${ratio.toFixed(2)}:1`);
     }
-    assert.ok((1.05)/(luminance(tokens.accent)+.05) >= 4.5, "white on action red");
   }
- }
+  const primaryAction = css.match(/:is\(\.room-primary-button,[^{]*\{([^}]+)/)[1];
+  const background = primaryAction.match(/background:\s*#([a-f0-9]{6})/i)[1];
+  assert.match(primaryAction, /color:\s*#fff\b/);
+  assert.ok(1.05/(luminance(background)+.05) >= 4.5, "white text on the primary action");
 });

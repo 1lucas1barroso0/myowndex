@@ -1,6 +1,6 @@
 {
   "name": "myowndex",
-  "version": "10.0.0",
+  "version": "11.0.0",
   "description": "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para RPG de Pokémon.",
   "private": true,
   "homepage": "https://myowndex.vercel.app",
@@ -20,11 +20,9 @@
     "start": "next start --hostname 0.0.0.0",
     "test": "node --test tests/*.unit.test.mjs",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit --incremental false",
-    "db:generate": "drizzle-kit generate"
+    "typecheck": "tsc --noEmit --incremental false"
   },
   "dependencies": {
-    "drizzle-orm": "0.45.2",
     "fflate": "0.8.3",
     "next": "16.2.12",
     "react": "19.2.6",
@@ -35,7 +33,6 @@
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "4.2.1",

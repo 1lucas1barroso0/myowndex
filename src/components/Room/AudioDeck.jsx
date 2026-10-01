@@ -131,7 +131,7 @@ export default function AudioDeck({
         const active = await activateAudio();
         heardEventRef.current = new Set(events.map(event => roomEventKey(session?.code, event)));
         setEnabled(active);
-        if (!active) onError(new Error("O áudio não pôde ser ativado neste aparelho."));
+        if (!active) onError(new Error("O áudio não pôde ser ativado neste dispositivo."));
     };
 
     const triggerEffect = async effect => {
@@ -197,7 +197,7 @@ export default function AudioDeck({
     };
 
     return (
-        <details className="room-tool" open>
+        <details className="room-tool audio-tool">
             <summary>
                 <span>
                     <small>Rádio Rotom</small>
@@ -208,7 +208,7 @@ export default function AudioDeck({
             <div className="room-tool-body">
                 {!enabled && (
                     <button type="button" className="room-primary-button" onClick={enable}>
-                        Ativar áudio neste aparelho
+                        Ativar áudio neste dispositivo
                     </button>
                 )}
                 <div className="sfx-grid" aria-label="Efeitos sonoros">
@@ -266,7 +266,7 @@ export default function AudioDeck({
                 </label>
                 <label className="audio-local-toggle">
                     <input type="checkbox" checked={localMuted} onChange={event => setLocalMuted(event.target.checked)} />
-                    <span>Silenciar trilha e efeitos neste aparelho</span>
+                    <span>Silenciar trilha e efeitos neste dispositivo</span>
                 </label>
                 {role === "narrator" && (
                     <label className="audio-volume">
@@ -287,7 +287,7 @@ export default function AudioDeck({
 
                 {role === "narrator" && (
                     isLocal ? (
-                        <p className="audio-local-note">Comece uma aventura compartilhada para tocar trilhas para todos. Os efeitos sonoros continuam disponíveis neste aparelho.</p>
+                        <p className="audio-local-note">Comece uma aventura compartilhada para tocar trilhas para todos. Os efeitos sonoros continuam disponíveis neste dispositivo.</p>
                     ) : (
                         <label className={`audio-upload ${uploading ? "is-uploading" : ""}`}>
                             <input type="file" accept="audio/*" disabled={uploading} onChange={upload} />

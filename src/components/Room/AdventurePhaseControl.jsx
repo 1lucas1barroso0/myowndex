@@ -39,6 +39,7 @@ export default function AdventurePhaseControl({ value, readOnly, onChange }) {
                             role="radio"
                             aria-checked={selected}
                             aria-label={`${phase.label}. ${phase.description}`}
+                            tabIndex={selected ? 0 : -1}
                             className={selected ? "is-selected" : ""}
                             data-phase={phase.id}
                             disabled={readOnly}
@@ -50,9 +51,9 @@ export default function AdventurePhaseControl({ value, readOnly, onChange }) {
                     );
                 })}
             </div>
-            <details className="choice-help room-phase-help">
-                <summary aria-label="Entender as fases da aventura">?</summary>
-                <div className="choice-help-popover" role="note">
+            <details className="room-phase-help">
+                <summary>Sobre as fases</summary>
+                <div className="room-phase-help-content" role="note">
                     <strong>{selectedPhase.label}</strong>
                     <p>{selectedPhase.description}</p>
                     <small>{readOnly ? "O Narrador escolhe a fase atual." : "Você pode mudar a fase quando a aventura pedir."}</small>

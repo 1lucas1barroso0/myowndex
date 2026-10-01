@@ -46,17 +46,13 @@ test("remote Quick Roller and combat return before any local mechanical RNG", as
 });
 
 test("the durable audit has one idempotency key, a sequence and a transactional state claim", async () => {
-  const [schema, migration, route, rooms] = await Promise.all([
-    read("db/schema.ts"),
-    read("drizzle/0002_authoritative_rng.sql"),
+  const [route, rooms] = await Promise.all([
     read("app/api/rooms/[code]/rolls/route.ts"),
     read("server/rooms.ts"),
   ]);
-  for (const source of [schema, migration]) {
-    assert.match(source, /room_rolls/);
-    assert.match(source, /room_rolls_request_idx/);
-    assert.match(source, /server_authoritative/);
-  }
+  assert.match(rooms, /CREATE TABLE IF NOT EXISTS room_rolls/);
+  assert.match(rooms, /room_rolls_request_idx/);
+  assert.match(rooms, /server_authoritative/);
   assert.match(route, /INSERT OR IGNORE INTO room_rolls/);
   assert.match(route, /authority_claim = \?/);
   assert.match(route, /status = 'ready'/);

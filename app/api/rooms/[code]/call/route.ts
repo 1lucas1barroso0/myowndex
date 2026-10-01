@@ -152,7 +152,7 @@ export async function POST(request: Request, context: RouteContext) {
       ).bind(code, selfId).first<{ connection_id: string }>();
       if (current && current.connection_id !== connectionId) {
         return noStoreJson(
-          { error: "Sua chamada já está aberta em outra aba ou aparelho. Saia dela antes de entrar aqui." },
+          { error: "Sua chamada já está aberta em outra aba ou dispositivo. Saia dela antes de entrar aqui." },
           { status: 409 },
         );
       }

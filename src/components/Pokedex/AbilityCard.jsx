@@ -23,34 +23,31 @@ export default function AbilityCard({ url, isHidden }) {
     }, [url]);
 
     if (loadError) return (
-        <div className="w-full rounded-xl border-2 border-slate-300 bg-white p-4 text-[11px] font-semibold text-slate-500">
-            A Pokédex não conseguiu mostrar os detalhes desta habilidade agora.
+        <div className="record-ability-card is-unavailable" role="status">
+            Não foi possível consultar esta habilidade.
         </div>
     );
-    if (!data) return <div className="h-16 w-full skeleton rounded-xl border-2 border-slate-300" />;
+    if (!data) return <div className="record-ability-card skeleton" aria-label="Consultando habilidade" role="status" />;
 
     const explanation = describeTrait("ability", data.name, data);
 
     return (
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-[0_4px_0_#CBD5E1] relative group hover:border-blue-400 transition-colors">
-            <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: isHidden ? "#075985" : "#EF4444" }} />
-            <div className="flex items-center gap-2 mb-2 pl-2">
-                <span className={`text-xs font-black uppercase tracking-widest ${isHidden ? "text-purple-600" : "text-slate-800"}`}>{formatName(data.name)}</span>
-                {isHidden && <span className="text-[9px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-black uppercase tracking-widest border border-purple-200">Habilidade oculta</span>}
+        <article className={`record-ability-card ${isHidden ? "is-hidden" : ""}`}>
+            <header className="record-ability-heading">
+                <h4>{formatName(data.name)}</h4>
+                {isHidden && <span className="record-ability-badge">Oculta</span>}
+            </header>
+            <div className="ability-description">
+                <p lang={explanation.catalog.text ? explanation.catalog.code : "pt-BR"}>
+                    {explanation.catalog.text || "Descrição indisponível no catálogo."}
+                </p>
+                <details className="catalog-description record-ability-rules">
+                    <summary>Na aventura</summary>
+                    <p>{explanation.summary}</p>
+                    <p><strong>Gatilho:</strong> {explanation.profile.trigger}.</p>
+                    <p>{explanation.handling}</p>
+                </details>
             </div>
-            <div className="ability-description pl-2">
-                <p>{explanation.summary}</p>
-                <p><strong>Quando entra em jogo:</strong> {explanation.profile.trigger}.</p>
-                <p><strong>Como a mesa resolve:</strong> {explanation.handling}</p>
-                {explanation.catalog.text ? (
-                    <details className="catalog-description">
-                        <summary>{explanation.catalog.label}</summary>
-                        <p lang={explanation.catalog.code}>{explanation.catalog.text}</p>
-                    </details>
-                ) : (
-                    <p className="catalog-description-missing">O catálogo não trouxe outro texto para esta habilidade. O MyOwnDex mantém o gatilho à vista e deixa qualquer exceção para a decisão do grupo.</p>
-                )}
-            </div>
-        </div>
+        </article>
     );
 }

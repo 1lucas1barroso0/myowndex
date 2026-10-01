@@ -8,5 +8,4 @@ node_modules
 *.tsbuildinfo
 docs
 tests
-publicar-linux.sh
-preparar-linux.sh
+scripts

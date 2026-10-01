@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { readStorage, writeStorage } from "../../core/storage.js";
 import { clearLocalRolls, LOCAL_DICE_SIDES, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRolls, saveLocalRoll } from "../../core/localRolls.js";
+import ConfirmDialog from "./ConfirmDialog.jsx";
 
 const DEFAULTS = { kind:"attribute", mode:"normal", attribute:0, opposition:"", chance:50, quantity:1, sides:6, modifier:0, label:"" };
 const preferenceKey = "myowndex_local_dice_preferences_v1";
@@ -27,6 +28,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
     const [error,setError]=useState("");
     const [feedback,setFeedback]=useState("");
     const [vibrate,setVibrate]=useState(false);
+    const [clearPending,setClearPending]=useState(false);
     const lock=useRef(false), unlockTimer=useRef(null), alive=useRef(true);
     useEffect(()=>{
         alive.current=true;
@@ -55,7 +57,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
             // Result and history use this same receipt. Effects never generate dice.
             const persisted=saveLocalRoll(receipt);
             setResult(receipt); setHistory(current=>mergeLocalRolls([receipt],current,readLocalRolls()));
-            if(!persisted) setFeedback("Resultado preservado nesta sessão. O aparelho não permitiu salvar o histórico; você pode baixá-lo.");
+            if(!persisted) setFeedback("Resultado preservado nesta sessão. O dispositivo não permitiu salvar o histórico; você pode baixá-lo.");
             if(vibrate) { try { navigator.vibrate?.(30); } catch { /* Optional feedback never changes a roll. */ } }
             if(onRoll) await onRoll(localRollEvent(receipt));
         } catch(e) {
@@ -70,20 +72,21 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
     };
     const download=()=>{
         try {
-            const text="MyOwnDex · Histórico de rolagens locais\nEstes registros pertencem ao aparelho; não são comprovantes de rolagens do servidor.\n\n"+history.map(localRollText).join("\n\n────────────────\n\n");
+            const text="MyOwnDex · Histórico de rolagens locais\nEstes registros pertencem ao dispositivo; não são comprovantes de rolagens do servidor.\n\n"+history.map(localRollText).join("\n\n────────────────\n\n");
             const url=URL.createObjectURL(new Blob([text],{type:"text/plain;charset=utf-8"}));
             const a=document.createElement("a");a.href=url;a.download=`MyOwnDex-rolagens-${new Date().toISOString().slice(0,10)}.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
             setFeedback("Histórico preparado para download.");
-        } catch { setFeedback("O aparelho não permitiu baixar o histórico agora."); }
+        } catch { setFeedback("O dispositivo não permitiu baixar o histórico agora."); }
     };
     const clearHistory=()=>{
-        if(!history.length || !window.confirm("Apagar o histórico de rolagens deste aparelho?")) return;
-        if(!clearLocalRolls()) { setFeedback("Não foi possível apagar o histórico neste aparelho."); return; }
+        setClearPending(false);
+        if(!history.length) return;
+        if(!clearLocalRolls()) { setFeedback("Não foi possível apagar o histórico neste dispositivo."); return; }
         setHistory([]); setResult(null); setFeedback("Histórico apagado.");
     };
     const changed=result && !result.legacy && configuration.spec && JSON.stringify(result.spec)!==JSON.stringify(configuration.spec);
     return <section className={`local-dice-panel ${compact ? "is-compact" : "game-panel"}`} aria-label="Rolagens locais">
-        <header className="local-dice-heading"><div><span className="screen-eyebrow">Dados locais</span><h3>Rolagem rápida</h3><p>Escolha, role e veja o resultado.</p></div></header>
+        <header className="local-dice-heading"><div><h3>Dados locais</h3></div></header>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
             <fieldset disabled={busy}><legend className="sr-only">Configurar rolagem local</legend>
                 <span className="local-dice-group-label">Escolha os dados</span>
@@ -116,10 +119,18 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
             {changed && <small className="local-dice-config-note">Os controles mudaram. Este resultado mantém os parâmetros da rolagem registrada.</small>}
             <div className="local-dice-result-actions"><button type="button" onClick={copy}>Copiar</button>{changed && <button type="button" disabled={busy} onClick={()=>setDraft({...DEFAULTS,...result.spec})}>Reutilizar</button>}</div>
         </article>}
-        <details className="local-dice-history"><summary><span>Histórico local<small>Resultados deste aparelho</small></span><b>{history.length}/100</b></summary><div>
+        <details className="local-dice-history"><summary><span>Histórico<small>Neste dispositivo</small></span><b>{history.length}/100</b></summary><div>
             <p>As últimas 100 rolagens locais ficam disponíveis aqui. Registros anteriores do Guia também são preservados.</p>
-            <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar .txt</button><button type="button" className="is-clear" disabled={!history.length} onClick={clearHistory}>Apagar histórico</button></div>
+            <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar .txt</button><button type="button" className="is-clear" disabled={!history.length} onClick={()=>setClearPending(true)}>Apagar histórico</button></div>
             {history.length ? <ol>{history.map(entry=><li key={entry.id}><button type="button" disabled={Boolean(entry.legacy)} onClick={()=>{setResult(entry);setFeedback("");}}><span>{entry.spec.label || kindLabel(entry.spec)} <small>{entry.context} · {new Date(entry.createdAt).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</small></span><b>{entry.total}</b></button><small>{entry.values.join(" • ")}{entry.legacy ? " · registro anterior" : ` · ${LOCAL_ROLL_MODES[entry.spec.mode]}`}</small></li>)}</ol> : <p>A primeira rolagem aparecerá aqui.</p>}
         </div></details>
+        <ConfirmDialog
+            open={clearPending}
+            title="Apagar histórico de rolagens?"
+            description="Os resultados salvos neste dispositivo serão apagados. O Diário das aventuras não será alterado."
+            confirmLabel="Apagar histórico"
+            onConfirm={clearHistory}
+            onCancel={()=>setClearPending(false)}
+        />
     </section>;
 }

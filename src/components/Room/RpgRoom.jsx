@@ -72,7 +72,7 @@ const connectionLabels = {
     connecting: "Entrando na aventura…",
     saving: "Guardando mudanças…",
     offline: "Sem conexão",
-    local: "Neste aparelho",
+    local: "Neste dispositivo",
     error: "Conexão interrompida",
 };
 
@@ -130,9 +130,8 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
         <div className="room-lobby animate-fade-in">
             <section className="room-lobby-hero adventure-intro">
                 <div>
-                    <span className="room-kicker">Central da Aventura</span>
-                    <h2>Uma nova história.<br />Sua próxima aventura.</h2>
-                    <p>Escolha seu lugar na jornada. Seus parceiros estão esperando.</p>
+                    <h2>Aventuras</h2>
+                    <p>Crie uma sala como Narrador ou entre com o convite do seu grupo.</p>
                 </div>
                 <div className="adventure-starters" aria-label="Bulbasaur, Charmander e Squirtle">
                     {[1, 4, 7].map(id => <PokemonSprite key={id} pokemonId={id} alt="" loading="eager" className="pixelated" />)}
@@ -161,7 +160,6 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     <header>
                         <span className="room-role-mark"><GameIcon name="adventure" /></span>
                         <div>
-                            <small>01 · Crie a jornada</small>
                             <h3>Sou o Narrador</h3>
                         </div>
                     </header>
@@ -196,7 +194,6 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     <header>
                         <span className="room-role-mark"><GameIcon name="dex" /></span>
                         <div>
-                            <small>02 · Reúna-se ao grupo</small>
                             <h3>Sou um Jogador</h3>
                         </div>
                     </header>
@@ -212,7 +209,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                             onChange={event => setInvite(event.target.value)}
                         />
                         <small className={`room-invite-detection ${parsedInvite ? "is-valid" : ""}`}>
-                            {parsedInvite ? `Aventura ${parsedInvite.code} encontrada` : "O código e a chave serão reconhecidos juntos."}
+                            {parsedInvite ? `Aventura ${parsedInvite.code} encontrada` : "Use o link ou convite curto enviado pelo Narrador."}
                         </small>
                     </label>
                     <label>
@@ -239,12 +236,12 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                 onClick={() => onLocal({ title, narratorName })}
             >
                 <span>
-                    <small>Para jogar sozinho ou no mesmo aparelho</small>
+                    <small>Sem conexão com outros jogadores</small>
                     <strong>Começar uma aventura local</strong>
                 </span>
-                <b>Neste aparelho</b>
+                <b>Neste dispositivo</b>
             </button>
-            <p className="room-lobby-footnote">Suas Boxes ficam salvas neste aparelho. Nas aventuras compartilhadas, o MyOwnDex sincroniza as mudanças de todos, mesmo quando várias acontecem ao mesmo tempo.</p>
+            <p className="room-lobby-footnote">Suas Boxes ficam salvas neste dispositivo. As salas compartilhadas sincronizam as ações do grupo.</p>
         </div>
     );
 }
@@ -470,7 +467,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         try {
             if (targetSession.local) {
                 const localRoom = readStorage(LOCAL_ROOM_STORAGE_KEY, null);
-                if (!localRoom?.snapshot) throw new Error("Não encontramos a aventura salva neste aparelho.");
+                if (!localRoom?.snapshot) throw new Error("Não encontramos a aventura salva neste dispositivo.");
                 setSession(targetSession);
                 setRoom(localRoom);
                 setConnection("local");
@@ -573,7 +570,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 playerId: null,
                 author: input.narratorName || "Narrador",
                 type: "system",
-                payload: { text: `A aventura “${input.title}” começou neste aparelho.` },
+                payload: { text: `A aventura “${input.title}” começou neste dispositivo.` },
                 createdAt: new Date().toISOString(),
             }],
             media: [],
@@ -752,7 +749,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             }
             setNotice?.({ tone: "blue", text: `${label} está na área de transferência.` });
         } catch {
-            showError(new Error("Não foi possível copiar o convite com um toque. Selecione o conteúdo e use a opção Copiar do aparelho."));
+            showError(new Error("Não foi possível copiar o convite com um toque. Selecione o conteúdo e use a opção Copiar do dispositivo."));
         }
     };
 
@@ -1241,7 +1238,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 <div className="room-title">
                     <span className={`room-connection is-${connection}`} />
                     <div>
-                        <small>{session.local ? "Aventura neste aparelho" : `${connectionLabels[connection]} • Código ${session.code}`}</small>
+                        <small>{session.local ? "Aventura neste dispositivo" : `${connectionLabels[connection]} • Código ${session.code}`}</small>
                         <h2>{snapshot.title}</h2>
                     </div>
                 </div>
@@ -1267,7 +1264,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <b>Código {session.code}</b>
                     </summary>
                     <div>
-                        <p>Envie um único link. Quem abrir só precisa escrever o próprio nome; o MyOwnDex reconhece a aventura e o convite automaticamente.</p>
+                        <p>Compartilhe o convite. Cada jogador informa seu nome ao entrar.</p>
                         <label>
                             <span className="sr-only">Link de convite dos jogadores</span>
                             <input readOnly value={inviteUrl} onFocus={event => event.currentTarget.select()} />
@@ -1294,8 +1291,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     <section className="room-section">
                         <div className="room-section-heading">
                             <div>
-                                <span className="room-kicker">Na aventura</span>
-                                <h3>Quem participa</h3>
+                                <h3>Participantes</h3>
                             </div>
                             <span>{players.length + 1}</span>
                         </div>
@@ -1332,17 +1328,20 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         </div>
                         {teams.length ? (
                             <>
-                                <select
-                                    className="room-wide-select"
-                                    value={selectedTeam?.id || ""}
-                                    onChange={event => {
-                                        const nextTeam = teams.find(team => team.id === event.target.value);
-                                        setSelectedTeamId(event.target.value);
-                                        setSelectedTeamPokemonId(nextTeam?.pokemon[0]?.id || "");
-                                    }}
-                                >
-                                    {teams.map(team => <option key={team.id} value={team.id}>{team.name} • {team.pokemon.length}/6</option>)}
-                                </select>
+                                <label className="room-team-box">
+                                    <span>Box</span>
+                                    <select
+                                        className="room-wide-select"
+                                        value={selectedTeam?.id || ""}
+                                        onChange={event => {
+                                            const nextTeam = teams.find(team => team.id === event.target.value);
+                                            setSelectedTeamId(event.target.value);
+                                            setSelectedTeamPokemonId(nextTeam?.pokemon[0]?.id || "");
+                                        }}
+                                    >
+                                        {teams.map(team => <option key={team.id} value={team.id}>{team.name} • {team.pokemon.length}/6</option>)}
+                                    </select>
+                                </label>
                                 <label className="room-team-lead">
                                     <span>Quem entra em campo</span>
                                     <select
@@ -1448,17 +1447,19 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
                     {selectedToken && (
                         <section className="token-inspector">
-                            <button type="button" className="token-inspector-close" onClick={() => setSelectedTokenId("")} aria-label="Fechar ficha rápida">×</button>
-                            <div className="token-inspector-identity">
-                                <PokemonSprite src={selectedDisplayIdentity?.sprite} pokemonId={selectedToken.speciesId} alt="" className="pixelated" fallbackClassName="room-token-fallback" />
-                                <span>
-                                    <small>Nível {selectedToken.level}</small>
-                                    <strong>{selectedDisplayIdentity?.name || selectedToken.name}</strong>
-                                    <em>{(selectedDisplayIdentity?.types || selectedToken.types).map(formatType).join(" / ") || "Tipo personalizado"}</em>
-                                    {role === "narrator" && selectedDisplayIdentity?.disguised && <small>Identidade real: {selectedToken.name}</small>}
-                                    {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
-                                </span>
-                            </div>
+                            <header className="token-inspector-header">
+                                <div className="token-inspector-identity">
+                                    <PokemonSprite src={selectedDisplayIdentity?.sprite} pokemonId={selectedToken.speciesId} alt="" className="pixelated" fallbackClassName="room-token-fallback" />
+                                    <span>
+                                        <small>Nível {selectedToken.level}</small>
+                                        <strong>{selectedDisplayIdentity?.name || selectedToken.name}</strong>
+                                        <em>{(selectedDisplayIdentity?.types || selectedToken.types).map(formatType).join(" / ") || "Tipo personalizado"}</em>
+                                        {role === "narrator" && selectedDisplayIdentity?.disguised && <small>Identidade real: {selectedToken.name}</small>}
+                                        {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
+                                    </span>
+                                </div>
+                                <button type="button" className="token-inspector-close" onClick={() => setSelectedTokenId("")} aria-label="Fechar ficha rápida">×</button>
+                            </header>
                             <div className="token-battle-vitals">
                                 <div className="token-hp-control">
                                     <span>HP</span>
@@ -1515,8 +1516,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                 )}
                             </div>
                             <div className="token-xp-control">
-                                <span>XP</span>
+                                <label htmlFor="room-token-xp">XP</label>
                                 <input
+                                    id="room-token-xp"
                                     type="number"
                                     min="0"
                                     step="0.5"
@@ -1525,7 +1527,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     onChange={event => updateToken({ xp: event.target.value })}
                                     onBlur={() => applySelectedExperience(selectedToken.xp)}
                                 />
-                                <small>/ {formatNumberPtBr(getNextLevelXp(selectedToken.level))}</small>
+                                <small className="token-xp-next-level">/ {formatNumberPtBr(getNextLevelXp(selectedToken.level))}</small>
                                 {role === "narrator" && (
                                     <span className="token-xp-actions">
                                         <button type="button" disabled={selectedToken.level >= 200} onClick={() => awardSelectedExperience(0.5)}>+0,5</button>
@@ -1663,7 +1665,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 </main>
 
                 <aside className="room-tools">
-                    <VoiceCall session={session} role={role} />
+                    {!session.local && <VoiceCall session={session} role={role} />}
                     <QuickRoller
                         local={Boolean(session.local)}
                         onAuthoritativeAction={requestAuthoritativeAction}
@@ -1743,7 +1745,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <small>Visão do campo</small>
                                     <strong>Preferências da cena</strong>
                                 </span>
-                                <span className="room-tool-badge">N</span>
                             </summary>
                             <div className="room-tool-body room-settings">
                                 <label>

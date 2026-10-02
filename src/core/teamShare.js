@@ -1,4 +1,4 @@
-import { normalizeTeam, STAT_KEYS } from "./team.js";
+import { normalizeTeam, RPG_SCALE_VERSION, STAT_KEYS } from "./team.js";
 import { decompressSync, zlibSync } from "fflate";
 
 export const SHARE_PREFIX = "MYOWNDEX4.";
@@ -92,6 +92,7 @@ const packPokemon = pokemon => ({
     c: pokemon.customStats || null,
     x: pokemon.customTypes || null,
     j: pokemon.rpg ? {
+        v: pokemon.rpg.scaleVersion ?? RPG_SCALE_VERSION,
         x: pokemon.rpg.xp ?? 0,
         h: pokemon.rpg.currentHp,
         s: pokemon.rpg.status || "",
@@ -125,6 +126,7 @@ const unpackPokemon = pokemon => ({
     customStats: pokemon.c || null,
     customTypes: pokemon.x || null,
     rpg: pokemon.j ? {
+        scaleVersion: pokemon.j.v ?? 1,
         xp: pokemon.j.x ?? 0,
         currentHp: pokemon.j.h,
         status: pokemon.j.s || "",

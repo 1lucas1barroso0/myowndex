@@ -35,7 +35,7 @@ const attacker = {
   moves: ["ember", "", "", ""],
   pp: [null, null, null, null],
   stages: {},
-  stats: { attack: 3, defense: 3, "special-attack": 3, "special-defense": 3, speed: 4 },
+  stats: { attack: 6, defense: 6, "special-attack": 6, "special-defense": 6, speed: 8 },
   originalStats: { attack: 60, defense: 60, "special-attack": 60, "special-defense": 60, speed: 80 },
 };
 

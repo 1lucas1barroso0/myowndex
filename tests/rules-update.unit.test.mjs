@@ -122,6 +122,14 @@ test("capture adaptation shows exact factors and rejects unsupported balls and i
   assert.throws(() => calculateCaptureChance({ target: token("b"), captureRate: 45, ball: "net-ball" }), /guiada/);
 });
 
+test("low-level capture gains a real weakened-but-conscious state on the wider HP scale", () => {
+  const full = calculateCaptureChance({ target: token("b", { maxHp: 2, currentHp: 2 }), captureRate: 45 });
+  const weakened = calculateCaptureChance({ target: token("b", { maxHp: 2, currentHp: 1 }), captureRate: 45 });
+  assert.equal(full.chance, 5);
+  assert.equal(weakened.chance, 11);
+  assert.ok(weakened.chance > full.chance);
+});
+
 test("capture accepts intent only, uses canonical HP and consumes one intervention on failure", () => {
   const normalized = normalizeAuthoritativeRequest({ ...captureRequest, requestId: "capture-test-123456", expectedRevision: 1 });
   for (const key of ["chance", "captureRate", "result", "success", "currentHp"]) {

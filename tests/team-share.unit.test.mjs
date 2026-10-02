@@ -44,6 +44,35 @@ const completeTeam = normalizeTeam({
   }],
 });
 
+test("legacy HP migration waits for species stats instead of guessing", () => {
+  const deferred = normalizeTeam({
+    id: "deferred-scale",
+    pokemon: [{ speciesName: "bulbasaur", level: 5, rpg: { currentHp: 1 } }],
+  }).pokemon[0];
+  assert.equal(deferred.rpg.scaleVersion, 1);
+  assert.equal(deferred.rpg.currentHp, 1);
+
+  const hydrated = normalizeTeam({
+    id: "hydrated-scale",
+    pokemon: [{
+      ...deferred,
+      species: {
+        ...deferred.species,
+        stats: [
+          { base_stat: 45, stat: { name: "hp" } },
+          { base_stat: 49, stat: { name: "attack" } },
+          { base_stat: 49, stat: { name: "defense" } },
+          { base_stat: 65, stat: { name: "special-attack" } },
+          { base_stat: 65, stat: { name: "special-defense" } },
+          { base_stat: 45, stat: { name: "speed" } },
+        ],
+      },
+    }],
+  }).pokemon[0];
+  assert.equal(hydrated.rpg.scaleVersion, RPG_SCALE_VERSION);
+  assert.equal(hydrated.rpg.currentHp, 2);
+});
+
 test("legacy scale preserves HP proportion when a saved partner migrates", () => {
   const migrated = normalizeTeam({
     id: "legacy-scale",

@@ -1,5 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { describeSpecies } from '../../core/descriptions.js';
+import { getPokedexRecord } from '../../core/pokedexRecord.js';
+import pokedexEntries from '../../data/pokedex-entries.json';
 import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
 import AbilityCard from './AbilityCard.jsx';
@@ -30,7 +32,7 @@ const organizeSpeciesFacts = facts => facts
         const [value, note] = fact.slice(match[0].length).replace(/\.$/, '').split('; ');
         const catalogScale = value.match(/^(\d+) em (\d+)$/);
         return catalogScale
-            ? { label: match[1], value: catalogScale[1], note: `Escala dos jogos: 0 a ${catalogScale[2]}. ${note ? note.charAt(0).toUpperCase() + note.slice(1) : ''}`.trim() }
+            ? { label: match[1], value: catalogScale[1], scale: catalogScale[2], note: note ? note.charAt(0).toUpperCase() + note.slice(1) : '' }
             : { label: match[1], value, note };
     });
 
@@ -40,6 +42,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const [formData, setFormData] = useState(null);
     const [evoChain, setEvoChain] = useState([]);
     const [tab, setTab] = useState("stats");
+    const [recordLanguage, setRecordLanguage] = useState('en');
     const [loadError, setLoadError] = useState("");
     const [evolutionStatus, setEvolutionStatus] = useState("loading");
     const dialogRef = useRef(null);
@@ -61,6 +64,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         setLoadError("");
         setEvolutionStatus("loading");
         setTab("stats");
+        setRecordLanguage('en');
         fetchCached(speciesUrl).then(async data => {
             if (!mounted) return;
             if (!data) {
@@ -203,6 +207,11 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const sprite = formData?.sprites?.other?.["official-artwork"]?.front_default || formData?.sprites?.front_default;
     const speciesDescription = phase === "ready" ? describeSpecies(baseInfo, formData) : null;
     const speciesFacts = speciesDescription ? organizeSpeciesFacts(speciesDescription.facts) : [];
+    const profileFacts = speciesFacts.filter(fact => !fact.scale);
+    const referenceFacts = speciesFacts.filter(fact => fact.scale);
+    const record = getPokedexRecord(baseInfo?.id, pokedexEntries, speciesDescription?.flavor, activeForm?.name);
+    const recordText = recordLanguage === 'pt-BR' && record.portuguese ? record.portuguese : record.original;
+    const recordTextLanguage = recordLanguage === 'pt-BR' && record.portuguese ? 'pt-BR' : record.originalLanguage;
 
     return (
         <div className="pokemon-modal-backdrop record-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
@@ -291,16 +300,19 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     </div>
                     <div id={panelId} role="tabpanel" aria-labelledby={`${recordId}-tab-${tab}`} tabIndex={0} className="pokemon-modal-body record-body">
                         {tab === "stats" && (
-                            <div className="animate-fade-in space-y-8">
+                            <div className="animate-fade-in record-profile">
                                 <section className="species-description" aria-labelledby={`${recordId}-description-title`}>
                                     <header className="record-entry-heading">
                                         <h3 id={`${recordId}-description-title`}>Registro da Pokédex</h3>
-                                        {speciesDescription.flavor.text && speciesDescription.flavor.code === "en" && <span className="record-catalog-language">EN <span className="sr-only">Texto original em inglês</span></span>}
+                                        {record.portuguese && <button type="button" className="record-language-toggle" aria-pressed={recordLanguage === 'pt-BR'} aria-label={recordLanguage === 'pt-BR' ? 'Ver registro original em inglês' : 'Traduzir registro para português'} aria-controls={`${recordId}-description-text`} onClick={() => setRecordLanguage(language => language === 'en' ? 'pt-BR' : 'en')}>
+                                            {recordLanguage === 'pt-BR' ? 'PT' : 'EN'}
+                                        </button>}
                                     </header>
-                                    <p lang={speciesDescription.flavor.text ? speciesDescription.flavor.code : "pt-BR"}>{speciesDescription.summary}</p>
+                                    <p id={`${recordId}-description-text`} lang={recordTextLanguage} aria-live="polite" aria-atomic="true">{recordText || speciesDescription.summary}</p>
+                                    {record.source && <small className="record-entry-source">{record.source === 'pokemon-go' ? 'Pokémon GO' : 'Pokémon Scarlet'}{recordTextLanguage === 'pt-BR' && record.sourceKind === 'editorial' ? ' · Tradução MyOwnDex' : ''}</small>}
                                 </section>
                                 <dl className="record-species-facts">
-                                    {speciesFacts.map((fact, index) => <div key={`species-fact-${index}`}>
+                                    {profileFacts.map((fact, index) => <div key={`species-fact-${index}`} className={fact.label === 'Categoria' ? 'record-species-category' : undefined}>
                                         <dt>{fact.label}</dt>
                                         <dd>{fact.value}{fact.note && <small>{fact.note}</small>}</dd>
                                     </div>)}
@@ -309,6 +321,20 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                     <div><dt>Altura</dt><dd>{formatNumberPtBr((formData.height || 0) / 10)} m</dd></div>
                                     <div><dt>Peso</dt><dd>{formatNumberPtBr((formData.weight || 0) / 10)} kg</dd></div>
                                 </dl>
+                                {referenceFacts.length > 0 && <section className="record-references" aria-labelledby={`${recordId}-references-title`}>
+                                    <h3 id={`${recordId}-references-title`}>Referências dos jogos</h3>
+                                    <dl className="record-reference-values">
+                                        {referenceFacts.map(fact => <div key={fact.label}>
+                                            <dt>{fact.label}</dt>
+                                            <dd>{fact.value}</dd>
+                                        </div>)}
+                                    </dl>
+                                    <details className="record-reference-help">
+                                        <summary>Como interpretar esses valores</summary>
+                                        <p>Escala de 0 a {referenceFacts[0].scale}.</p>
+                                        {referenceFacts.filter(fact => fact.note).map(fact => <p key={fact.label}><strong>{fact.label}.</strong> {fact.note}</p>)}
+                                    </details>
+                                </section>}
                                 
                                 <div>
                                     <h3 className="record-section-title">Habilidades</h3>

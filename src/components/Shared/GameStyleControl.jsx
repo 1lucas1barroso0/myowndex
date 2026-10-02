@@ -23,7 +23,6 @@ export default function GameStyleControl({ value, onChange }) {
 
     return (
         <section className="game-style-control" aria-label="Estilo de jogo">
-            <span className="game-style-label">Modo</span>
             <div className="game-style-options" role="radiogroup" aria-label="Escolha como o MyOwnDex aplica as regras">
                 {modes.map((mode, index) => {
                     const selected = mode.id === selectedMode.id;

@@ -25,12 +25,17 @@ html .app-root .record-tabs { display:grid; grid-template-columns:repeat(3,minma
 html .app-root .record-tabs button { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.4rem; min-width:0; min-height:48px; padding:.7rem .35rem; font-size:.9rem; color:var(--ui-ink); background:var(--ui-raised); border:1px solid var(--ui-line); border-radius:.25rem; font-weight:700; }
 html .app-root .record-tabs button[aria-selected=true] { background:#222b30; color:#fff; border-color:#222b30; }
 html .app-root .record-body { padding:clamp(1.25rem,3vw,2rem); overflow:visible; min-width:0; }
+html .app-root .record-profile { display:grid; gap:2rem; min-width:0; }
 html .app-root .record-body :is(p,li) { font-size:1rem; line-height:1.75; max-width:68ch; }
 html .app-root .species-description { padding:1.25rem; border:0; border-left:4px solid var(--record-type); background:color-mix(in srgb,var(--record-type) 9%,var(--ui-panel)); box-shadow:none; }
 html .app-root .record-entry-heading { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem 1rem; margin-bottom:1rem; }
 html .app-root .species-description h3 { flex:1; min-width:0; font-size:1.3rem; font-weight:800; margin:0; }
 html .app-root .record-catalog-language { display:inline-flex; align-items:center; align-self:flex-start; justify-self:start; width:max-content; max-width:100%; padding:.2rem .4rem; color:var(--ui-muted); border:1px solid var(--ui-line); border-radius:.15rem; font-size:.7rem; font-weight:750; letter-spacing:.06em; }
-html .app-root .record-species-facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); gap:1.25rem; }
+html .app-root .record-language-toggle { display:grid; place-items:center; flex:0 0 44px; width:44px; min-height:44px; padding:.4rem; background:var(--ui-panel); color:var(--ui-blue); border:1px solid var(--ui-blue); border-radius:.2rem; font-size:.85rem; font-weight:800; }
+html .app-root .record-language-toggle[aria-pressed=true] { background:var(--ui-blue); color:var(--ui-panel); }
+html .app-root .record-entry-source { display:block; margin-top:1rem; color:var(--ui-muted); font-size:.8rem; line-height:1.5; }
+html .app-root .record-species-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:1.5rem; }
+html .app-root .record-species-category { grid-column:1/-1; }
 html .app-root .record-species-facts > div { min-width:0; padding-bottom:.9rem; border-bottom:1px solid var(--ui-line); }
 html .app-root .record-species-facts dt { color:var(--ui-muted); font-size:.85rem; margin-bottom:.35rem; }
 html .app-root .record-species-facts dd { margin:0; font-size:1rem; line-height:1.5; font-weight:750; }
@@ -39,10 +44,18 @@ html .app-root .catalog-description { margin-top:1rem; background:transparent; p
 html .app-root .catalog-description > summary { min-height:44px; padding:.7rem 0; color:var(--ui-muted); font-weight:700; }
 html .app-root .catalog-description p { margin-top:.75rem; }
 html .app-root .catalog-description-missing { color:var(--ui-muted); font-size:.85rem; }
-html .app-root .record-measurements { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin:1.75rem 0; }
+html .app-root .record-measurements { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5rem; margin:0; }
 html .app-root .record-measurements > div { padding-bottom:.75rem; border-bottom:1px solid var(--ui-line); }
 html .app-root .record-measurements dt { font-size:.85rem; color:var(--ui-muted); }
 html .app-root .record-measurements dd { margin-top:.35rem; font-weight:750; }
+html .app-root .record-references { display:grid; gap:1.25rem; padding:1.25rem; background:var(--ui-raised); border-left:3px solid var(--ui-blue); }
+html .app-root .record-references h3 { font-size:1rem; font-weight:800; margin:0; }
+html .app-root .record-reference-values { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5rem; }
+html .app-root .record-reference-values dt { color:var(--ui-muted); font-size:.85rem; line-height:1.5; }
+html .app-root .record-reference-values dd { color:var(--ui-blue); font-size:1.65rem; font-weight:800; font-variant-numeric:tabular-nums; margin:.35rem 0 0; }
+html .app-root .record-reference-help { border-top:1px solid var(--ui-line); padding-top:.5rem; }
+html .app-root .record-reference-help summary { display:flex; align-items:center; gap:.5rem; min-height:44px; padding:.5rem 0; font-size:.85rem; font-weight:650; color:var(--ui-ink); }
+html .app-root .record-reference-help p { margin:.75rem 0 0; font-size:.9rem; line-height:1.7; }
 html .app-root .record-section-title { font-size:1.25rem; font-weight:800; margin:1.75rem 0 1rem; }
 html .app-root .record-form-options { display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0; }
 html .app-root .record-form-button { min-height:44px; padding:.7rem .8rem; color:var(--ui-ink); background:var(--ui-raised); border:1px solid var(--ui-line); border-radius:.25rem; }

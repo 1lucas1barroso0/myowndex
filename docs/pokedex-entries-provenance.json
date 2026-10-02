@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 1,
+  "languages": [
+    "en",
+    "pt-BR"
+  ],
+  "speciesCount": 1025,
+  "officialLocalizedPairs": 1007,
+  "additionalOfficialFormPairs": 1,
+  "editorialLocalizedPairs": 18,
+  "editorialVersion": "Pokémon Scarlet",
+  "editorialSpecies": [
+    {
+      "id": 999,
+      "name": "gimmighoul"
+    },
+    {
+      "id": 1009,
+      "name": "walking-wake"
+    },
+    {
+      "id": 1010,
+      "name": "iron-leaves"
+    },
+    {
+      "id": 1011,
+      "name": "dipplin"
+    },
+    {
+      "id": 1012,
+      "name": "poltchageist"
+    },
+    {
+      "id": 1013,
+      "name": "sinistcha"
+    },
+    {
+      "id": 1014,
+      "name": "okidogi"
+    },
+    {
+      "id": 1015,
+      "name": "munkidori"
+    },
+    {
+      "id": 1016,
+      "name": "fezandipiti"
+    },
+    {
+      "id": 1017,
+      "name": "ogerpon"
+    },
+    {
+      "id": 1018,
+      "name": "archaludon"
+    },
+    {
+      "id": 1019,
+      "name": "hydrapple"
+    },
+    {
+      "id": 1020,
+      "name": "gouging-fire"
+    },
+    {
+      "id": 1021,
+      "name": "raging-bolt"
+    },
+    {
+      "id": 1022,
+      "name": "iron-boulder"
+    },
+    {
+      "id": 1023,
+      "name": "iron-crown"
+    },
+    {
+      "id": 1024,
+      "name": "terapagos"
+    },
+    {
+      "id": 1025,
+      "name": "pecharunt"
+    }
+  ],
+  "officialStandardFormResources": {
+    "905": {
+      "resourceId": "pokemon_desc_0905_2802",
+      "pokeapiDefaultForm": "enamorus-incarnate"
+    },
+    "916": {
+      "resourceId": "pokemon_desc_0916_2981",
+      "pokeapiDefaultForm": "oinkologne-male"
+    },
+    "925": {
+      "resourceId": "pokemon_desc_0925_2984",
+      "pokeapiDefaultForm": "maushold-family-of-four"
+    },
+    "931": {
+      "resourceId": "pokemon_desc_0931_2985",
+      "pokeapiDefaultForm": "squawkabilly-green-plumage"
+    },
+    "964": {
+      "resourceId": "pokemon_desc_0964_2989",
+      "pokeapiDefaultForm": "palafin-zero"
+    },
+    "978": {
+      "resourceId": "pokemon_desc_0978_2991",
+      "pokeapiDefaultForm": "tatsugiri-curly"
+    },
+    "982": {
+      "resourceId": "pokemon_desc_0982_2994",
+      "pokeapiDefaultForm": "dudunsparce-two-segment"
+    },
+    "1007": {
+      "resourceId": "pokemon_desc_1007_2996",
+      "pokeapiDefaultForm": "koraidon"
+    },
+    "1008": {
+      "resourceId": "pokemon_desc_1008_2997",
+      "pokeapiDefaultForm": "miraidon"
+    }
+  },
+  "sources": {
+    "go-apk-en": {
+      "repository": "PokeMiners/pogo_assets",
+      "commit": "8353f3c4451f4b9154684222ce55128b8a33c7e4",
+      "path": "Texts/Latest APK/English.txt",
+      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/8353f3c4451f4b9154684222ce55128b8a33c7e4/Texts/Latest%20APK/English.txt",
+      "sha256": "1f9b1ff0b456498e542f1b222df94ae20ab76bc8ce53775c0ca64911b707e79b",
+      "bytes": 3817972
+    },
+    "go-apk-pt": {
+      "repository": "PokeMiners/pogo_assets",
+      "commit": "8353f3c4451f4b9154684222ce55128b8a33c7e4",
+      "path": "Texts/Latest APK/BrazilianPortuguese.txt",
+      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/8353f3c4451f4b9154684222ce55128b8a33c7e4/Texts/Latest%20APK/BrazilianPortuguese.txt",
+      "sha256": "1c1a2fd80873299356168c0c7d9374adc8f38976d228732c3db928043b0748ab",
+      "bytes": 4044780
+    },
+    "go-remote-en": {
+      "repository": "PokeMiners/pogo_assets",
+      "commit": "8353f3c4451f4b9154684222ce55128b8a33c7e4",
+      "path": "Texts/Latest Remote/English.txt",
+      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/8353f3c4451f4b9154684222ce55128b8a33c7e4/Texts/Latest%20Remote/English.txt",
+      "sha256": "66b711325a3c21a188bf1870e55f98a0c9546bff8deee7e7ed63b18270c1b1eb",
+      "bytes": 55806
+    },
+    "go-remote-pt": {
+      "repository": "PokeMiners/pogo_assets",
+      "commit": "8353f3c4451f4b9154684222ce55128b8a33c7e4",
+      "path": "Texts/Latest Remote/BrazilianPortuguese.txt",
+      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/8353f3c4451f4b9154684222ce55128b8a33c7e4/Texts/Latest%20Remote/BrazilianPortuguese.txt",
+      "sha256": "a95ab3aa12a45a640b6bc4cebd333e76f4a2826f1a6f8a1b89340120bd1226c8",
+      "bytes": 57856
+    },
+    "api-flavors": {
+      "repository": "PokeAPI/pokeapi",
+      "commit": "bc92d3b6029ef1abe9e7ad424c400b338f3c11fe",
+      "path": "data/v2/csv/pokemon_species_flavor_text.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/bc92d3b6029ef1abe9e7ad424c400b338f3c11fe/data/v2/csv/pokemon_species_flavor_text.csv",
+      "sha256": "c341e602ab623084fef4c44ca4a174938e617802cfcf2deec830d824f688dc69",
+      "bytes": 9206001
+    },
+    "api-species": {
+      "repository": "PokeAPI/pokeapi",
+      "commit": "bc92d3b6029ef1abe9e7ad424c400b338f3c11fe",
+      "path": "data/v2/csv/pokemon_species.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/bc92d3b6029ef1abe9e7ad424c400b338f3c11fe/data/v2/csv/pokemon_species.csv",
+      "sha256": "e66e2eeb25fd3836b0ebab6bf87bbf01960aa3c0555e2bac495fa8393c5e0c45",
+      "bytes": 56884
+    },
+    "api-pokemon": {
+      "repository": "PokeAPI/pokeapi",
+      "commit": "bc92d3b6029ef1abe9e7ad424c400b338f3c11fe",
+      "path": "data/v2/csv/pokemon.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/bc92d3b6029ef1abe9e7ad424c400b338f3c11fe/data/v2/csv/pokemon.csv",
+      "sha256": "16c81c33188b0eac403aa2f759fcbe9e42c611f722d263f5b5a6a5bff9f8ce6b",
+      "bytes": 47082
+    },
+    "api-versions": {
+      "repository": "PokeAPI/pokeapi",
+      "commit": "bc92d3b6029ef1abe9e7ad424c400b338f3c11fe",
+      "path": "data/v2/csv/versions.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/bc92d3b6029ef1abe9e7ad424c400b338f3c11fe/data/v2/csv/versions.csv",
+      "sha256": "70083465865a6a69a9aad2be3fc3915078c6ff740f14a090b1367d8ec9cfc3cd",
+      "bytes": 907
+    }
+  },
+  "rights": {
+    "pokemonGo": "Official Pokémon GO localization preserved by PokeMiners. Text copyright belongs to The Pokémon Company/Niantic. Repository README specifies educational use; no independent permissive asset license is declared.",
+    "pokeapi": "PokeAPI database is BSD-3-Clause. Pokémon text copyright remains with the original rights holders.",
+    "editorial": "Local Portuguese translations prepared for MyOwnDex from the corresponding pinned English Pokémon Scarlet entries. These are editorial translations, not an official Brazilian localization."
+  },
+  "officialTextPolicy": "Both texts of each official pair have the same resource ID. Texts are preserved verbatim except outer whitespace/newline normalization. English proper-name substitutions must be applied by presentation code, not by rewriting these official source records.",
+  "notes": [
+    "Pokémon GO and Scarlet are different sources. Never show a PokeAPI Red/Blue original with an unrelated GO localized text.",
+    "Gimmighoul Chest Form uses the corresponding Scarlet original and a local translation. Roaming Form uses its paired official GO resource; the source switches with the form.",
+    "The GO resource for Maushold Family of Four is 2984, not 2983 (Family of Three).",
+    "Syrpent is kept in English in the Hydrapple editorial text."
+  ],
+  "output": {
+    "file": "pokedex-entries.json",
+    "bytes": 452089,
+    "sha256": "7c1e19faf64c000c93b4f3f0c5b33af8e4f7001f0ef00bb7438354a00f20e23f"
+  }
+}

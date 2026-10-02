@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import GameIcon from "../Shared/GameIcon.jsx";
+import RoomSelect from "../Shared/RoomSelect.jsx";
 import {
     accuracyStageMultiplier,
     applyStageChange,
@@ -296,11 +297,11 @@ function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
                     </label>
                     <label>
                         <span>Como rolar</span>
-                        <select value={mode} onChange={event => setMode(event.target.value)}>
+                        <RoomSelect aria-label="Como rolar" value={mode} onChange={event => setMode(event.target.value)}>
                             <option value="normal">Normal</option>
                             <option value="advantage">Vantagem</option>
                             <option value="disadvantage">Desvantagem</option>
-                        </select>
+                        </RoomSelect>
                     </label>
                 </div>
                 <button type="button" className="room-primary-button" disabled={busy} onClick={roll}>Rolar e compartilhar</button>
@@ -1324,7 +1325,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                             <>
                                 <label className="room-team-box">
                                     <span>Box</span>
-                                    <select
+                                    <RoomSelect
+                                        aria-label="Box"
                                         className="room-wide-select"
                                         value={selectedTeam?.id || ""}
                                         onChange={event => {
@@ -1334,21 +1336,24 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                         }}
                                     >
                                         {teams.map(team => <option key={team.id} value={team.id}>{team.name} · {team.pokemon.length} de 6</option>)}
-                                    </select>
+                                    </RoomSelect>
                                 </label>
                                 <label className="room-team-lead">
                                     <span>Quem entra em campo</span>
-                                    <select
+                                    <RoomSelect
+                                        aria-label="Quem entra em campo"
                                         className="room-wide-select"
                                         value={selectedTeamPokemon?.id || ""}
+                                        disabled={!selectedTeam?.pokemon.length}
                                         onChange={event => setSelectedTeamPokemonId(event.target.value)}
                                     >
+                                        {!selectedTeam?.pokemon.length && <option value="">Esta Box está vazia</option>}
                                         {selectedTeam?.pokemon.map(pokemon => (
                                             <option key={pokemon.id} value={pokemon.id}>
                                                 {pokemon.nickname || formatName(pokemon.species?.species?.name || pokemon.species?.name)}
                                             </option>
                                         ))}
-                                    </select>
+                                    </RoomSelect>
                                 </label>
                                 <div className="room-mini-team">
                                     {selectedTeam?.pokemon.map(pokemon => (
@@ -1374,7 +1379,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         ) : <p className="room-empty-copy">Crie uma Box no PC para trazê-la à aventura.</p>}
                     </section>
 
-                    <section className="room-section">
+                    <section className="room-section room-initiative">
                         <div className="room-section-heading">
                             <div>
                                 <h3>Iniciativa</h3>
@@ -1397,11 +1402,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     </li>
                                 );
                             })}
-                            {!snapshot.initiative.length && <li className="is-empty">Escolha os movimentos e role a iniciativa.</li>}
+                            {!snapshot.initiative.length && <li className="is-empty" id="room-initiative-help">{snapshot.tokens.length
+                                ? "Declare os movimentos e role a iniciativa."
+                                : "Leve Pokémon para o campo para começar a rodada."}</li>}
                         </ol>
                         {role === "narrator" && (
                             <div className="room-button-row">
-                                <button type="button" disabled={!snapshot.tokens.length} onClick={generateInitiative}>Rolar iniciativa</button>
+                                <button type="button" disabled={!snapshot.tokens.length} aria-describedby={!snapshot.initiative.length ? "room-initiative-help" : undefined} onClick={generateInitiative}>Rolar iniciativa</button>
                                 <button type="button" disabled={!snapshot.initiative.length} onClick={nextTurn}>
                                     {snapshot.initiative.length && snapshot.turnIndex >= snapshot.initiative.length - 1 ? "Encerrar rodada" : "Próximo turno"}
                                 </button>
@@ -1530,17 +1537,17 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                             </div>
                             <label>
                                 <span>Condição</span>
-                                <select value={selectedToken.status} disabled={role !== "narrator"} onChange={event => updateToken({ status: event.target.value })}>
+                                <RoomSelect aria-label="Condição" value={selectedToken.status} disabled={role !== "narrator"} onChange={event => updateToken({ status: event.target.value })}>
                                     {Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                                </select>
+                                </RoomSelect>
                             </label>
                             {role === "narrator" && selectedBenchToken && (
                                 <div className="token-switch-control">
                                     <label>
                                         <span>Trocar com o banco</span>
-                                        <select value={selectedBenchToken.id} onChange={event => setSelectedBenchTokenId(event.target.value)}>
+                                        <RoomSelect aria-label="Trocar com o banco" value={selectedBenchToken.id} onChange={event => setSelectedBenchTokenId(event.target.value)}>
                                             {selectedBenchTokens.map(token => <option key={token.id} value={token.id}>{token.name} • {token.currentHp} de {token.maxHp} HP</option>)}
-                                        </select>
+                                        </RoomSelect>
                                     </label>
                                     <button type="button" onClick={swapSelectedPokemon}>Fazer a troca</button>
                                     <small>HP, condição, PP, item consumido e proteção contra Hit Kill continuam vinculados ao próprio Pokémon.</small>
@@ -1614,24 +1621,24 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     )}
                                     <label>
                                         <span>Lado</span>
-                                        <select value={selectedToken.side} onChange={event => updateToken({ side: event.target.value })}>
+                                        <RoomSelect aria-label="Lado" value={selectedToken.side} onChange={event => updateToken({ side: event.target.value })}>
                                             <option value="ally">Treinadores</option>
                                             <option value="opponent">Oponentes</option>
                                             <option value="neutral">Sem lado</option>
-                                        </select>
+                                        </RoomSelect>
                                     </label>
                                     <label>
                                         <span>Quem controla</span>
-                                        <select value={selectedToken.ownerPlayerId} onChange={event => updateToken({ ownerPlayerId: event.target.value })}>
+                                        <RoomSelect aria-label="Quem controla" value={selectedToken.ownerPlayerId} onChange={event => updateToken({ ownerPlayerId: event.target.value })}>
                                             <option value="">Narrador</option>
                                             {players.map(player => <option key={player.id} value={player.id}>{player.displayName}</option>)}
-                                        </select>
+                                        </RoomSelect>
                                     </label>
                                     <label>
                                         <span>Ajustar prioridade</span>
-                                        <select value={selectedToken.priority || 0} onChange={event => updateToken({ priority: event.target.value })}>
+                                        <RoomSelect aria-label="Ajustar prioridade" value={selectedToken.priority || 0} onChange={event => updateToken({ priority: event.target.value })}>
                                             {[7,6,5,4,3,2,1,0,-1,-2,-3,-4,-5,-6,-7].map(value => <option key={value} value={value}>{value > 0 ? `+${value}` : value}</option>)}
-                                        </select>
+                                        </RoomSelect>
                                     </label>
                                     <button type="button" className="token-remove" onClick={removeToken}>Retirar da cena</button>
                                 </>

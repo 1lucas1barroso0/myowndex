@@ -44,7 +44,6 @@ export default function AppearanceControl() {
 
     return (
         <section className="appearance-control" aria-label="Aparência">
-            <span className="appearance-label">Aparência</span>
             <div className="appearance-options" role="radiogroup" aria-label="Escolha a aparência">
                 {THEMES.map((theme, index) => (
                     <button

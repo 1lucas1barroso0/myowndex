@@ -1,6 +1,6 @@
-# Validação da atualização 11.2
+# Validação da atualização 11.3
 
-Verificação em 2 de outubro de 2026 com Node.js 24.19.0, Next.js 16.2.12 e Chromium. Passaram 212 testes unitários, ESLint, TypeScript, build de produção e HTML servido. O navegador passou 99 checkpoints principais e 51 suplementares, sem erros JavaScript. A 11.2 ainda não foi publicada nesta execução; workflow e instalador repetem checks antes da publicação.
+Verificação em 2 de outubro de 2026, Node.js 24.19.0, Next.js 16.2.12 e Chromium. Build de produção, TypeScript, ESLint, HTML servido e 215 testes aprovados. A publicação 11.3 está pendente pelo instalador; produção pública conferida em 11.2.0.
 
 ```bash
 npm ci
@@ -10,17 +10,16 @@ npm run build
 npm run typecheck
 ```
 
-Execute build e tipos sequencialmente: Next.js gera tipos durante a build.
+Build/tipos são sequenciais, pois Next.js gera tipos durante a build.
 
 ## Navegador
 
-`tests/browser-responsive.mjs` verifica as quatro áreas em 320, 390, 768, 1280 e 1440 px, Claro/Escuro; ficha de Venusaur nas três abas; editor com nomes longos e painéis opcionais; Link Cable, prévia, importação, salvamento/reload; busca/dados do Guia; aventura local com três painéis; zoom de 200% e redução de movimento.
+- `tests/browser-responsive.mjs`: 99 checkpoints, quatro módulos em 320/390/768/1280/1440 px, Claro/Escuro, fichas/abas, editor aberto, Link Cable/importação/salvamento, Guia, aventura móvel, 200% zoom, redução de movimento e 80 Boxes/480 Pokémon persistidos.
+- `tests/browser-polish.mjs`: 51 checkpoints, Bulbasaur/Growl/Eevee, evoluções ramificadas, IVs/EVs com reload, proteção 3.4, dados/histórico e migração da preferência antiga.
+- `tests/browser-space.mjs`: 140 checkpoints. Aparência compacta e modos íntegros; original/PT e troca offline sem requisição; medidas oficiais; editor com 12 IV/EV persistidos; aventura vazia/povoada, reservas e nomes longos, escolhas reais de movimentos/situação/Poké Ball; formulários abertos e zoom de 200%. Mede glifos do valor selecionado dentro do campo, reserva da seta, igualdade com selectedOptions e toque/contraste. Não considera conteúdo de details fechado como visível.
+- Todos sem erros JavaScript, vazamento horizontal ou clipping nos cenários cobertos. Contextos isolados, sem dados locais do usuário.
 
-Exercita 80 Boxes/480 Pokémon, persistência após reload e rolagem limitada da lista. Exige ausência de erros, placeholders, controles fora da largura e rolagem horizontal da página/diálogos; somente o painel selecionado aparece na aventura móvel.
-
-`tests/browser-polish.mjs` adiciona 51 checkpoints em 320, 390, 768 e 1280 px, Claro/Escuro: registro/evolução de Bulbasaur, oito ramos de Eevee, Growl e regras abertas, seis atributos de treinamento, alteração dos 12 campos IV/EV e persistência, proteção 3.4 completa, dX Livre e oito rolagens com histórico. Range verifica palavras estáticas sem quebra no meio e títulos/rótulos sem clipping. Preferência antiga system migra para Escuro com SO escuro; Claro escolhido permanece após reload. Contextos isolados, sem acesso aos dados do usuário.
-
-Para reproduzir com Playwright usado apenas como ferramenta:
+Reprodução com Playwright opcional, fora do runtime:
 
 ```bash
 npm install --no-save --package-lock=false playwright
@@ -34,38 +33,33 @@ Em outro terminal:
 ```bash
 MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/browser-responsive.mjs
 MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/browser-polish.mjs
+MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/browser-space.mjs
 ```
 
-Com Chromium do sistema, defina `MYOWNDEX_BROWSER_EXECUTABLE=/usr/bin/chromium`. `MYOWNDEX_PLAYWRIGHT_MODULE` aceita instalação separada, evitando alterar dependências. Scripts documentam caminhos de relatórios/screenshots. Playwright não faz parte do runtime.
+`MYOWNDEX_BROWSER_EXECUTABLE=/usr/bin/chromium` usa Chromium instalado; `MYOWNDEX_PLAYWRIGHT_MODULE` aceita instalação separada de Playwright. Cada script documenta os relatórios/screenshots em /tmp. Na sessão, a verificação final usa a build de produção em 3001.
 
-## Catálogo e regras
+## Idiomas e catálogo
 
-Novos testes verificam nomes ingleses com pontuação/siglas/formas, tipos originais e IDs mecânicos preservados; proporções como porcentagens e aproximação quando necessária; multiplicadores decimais; objeto original do catálogo sem mutação; categoria/medidas oficiais com idioma/precisão apropriados.
+Os três testes novos verificam cobertura exata de 1.025 espécies, pares reais e diferentes EN/PT, proveniência/hash, nomes ingleses, ausência de mutação e frações, forma correta de Gimmighoul e fallback honesto para futuras espécies sem tradução. Corpus local: 1.007 pares oficiais de Pokémon GO e 18 de Scarlet com tradução editorial MyOwnDex; Gimmighoul Roaming adiciona um par oficial de forma. Fonte e direitos originais documentados em `POKEDEX-IDIOMAS.md` e JSON de proveniência. Regeração a partir dos commits fixados foi executada; não depende de tradução por IA.
 
-Regras preservadas: dano/cura positivos inteiros com mínimo 1, imunidade zero, conversão de atributos e modificadores direcionais com seus critérios. XP em passos de 0,5 e medidas oficiais como 0,7 m não são truncados. Apresentação não altera fórmulas/probabilidades.
+Os textos ingleses/portugueses de cada par são da mesma entrada. Mudança de idioma só altera descrição; nomes próprios, fatos, IDs e dados do jogador são preservados. Títulos explicam a origem, inclusive traduções editoriais. O dataset só é importado pelo módulo da ficha carregado sob demanda.
 
-## Salas e HTML
+Regras de arredondamento da 11.2 preservadas: dano/cura positivos inteiros, mínimo 1; imunidade zero; conversão RPG com limiar 0,56 e modificadores direcionais conforme regra. XP em passos de 0,5 e medidas oficiais como 0,7 m continuam precisos.
 
-HTML servido passou nesta build. Na 11.1, o smoke completo de salas passou em QA separado com SQLite real: criação, entrada, permissões, notas privadas, revisão, concorrência, idempotência, combate, RNG, eventos e sinalização. Duas páginas confirmaram sincronização/privacidade e a aventura foi removida. Esse smoke de API não foi repetido na 11.2, que preserva o funcionamento de servidor/banco/protocolo. Testes unitários de autorização/protocolo seguem passando.
+## Salas, armazenamento e entrega
 
-Com servidor e banco de QA configurados:
+HTML servido aprovado. Smoke HTTP/Hrana/SQLite real completo de salas e sincronização/privacidade em duas páginas foi aprovado na 11.1; não repetido agora. Alterações atuais preservam servidor/protocolo/banco; autorização e ações seguem cobertas pelos testes unitários. Com servidor e banco de QA:
 
 ```bash
 MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/room-api.smoke.mjs
 MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/rendered-html.test.mjs
 ```
 
-O smoke cria/remove aventura temporária; use banco de QA.
+Cache, quota, hidratação, salvamento agrupado/flush e Boxes permanecem testados. Chaves/esquemas iguais, sem expiração das Boxes. Edição simultânea em abas conserva última escrita; volume verificado de 480 parceiros não significa capacidade ilimitada. Áudio/chamadas reais dependem de permissões, CORS e TURN.
 
-## Armazenamento e instalador
-
-Testes verificam cache com recência/limites/concorrência/quota, preservação de Boxes, flush ao sair, recuperação de edição, offline sem respostas privadas e hidratação limitada sem perder edições. Chaves/esquemas e ausência de expiração iguais. 480 parceiros com catálogo real ocuparam 3,85 MiB UTF-16 no teste unitário, conservando movimentos, EVs, notas, sprites e stats.
-
-Na 11.1 a automação recebeu 34 verificações offline de Git, retomada, conflitos, concorrência em main, isolamento por digest e fonte já aplicada. Não são contabilizadas como repetidas agora. A 11.2 conserva esse fluxo e atualiza a base para d10c9482. A entrega atual passa 12 verificações de SHA-256, payload embutido, sintaxe/base, caminhos seguros, ausência de credenciais, equivalência ZIP/TAR, extração, idempotência, estados antigos, trava concorrente, corrupção/recuperação e determinismo. Reproduza sem autenticar ou publicar:
+Instalador operacional igual à 11.2, com base d8bb4096. Runner executa 12 verificações atuais: SHA/payload, sintaxe/base, caminhos/exclusões, equivalência ZIP/TAR, extração, reexecução, estados antigos, trava, corrupção/recuperação e determinismo. Os 34 testes de automação antigos não são contados como repetidos.
 
 ```bash
 python3 scripts/empacotar-linux.py
 python3 scripts/verificar-entrega-linux.py ../entrega
 ```
-
-Verificações cobrem cenários/volumes descritos, sem afirmar capacidade ilimitada do navegador. Edição simultânea das Boxes em duas abas conserva última escrita. Áudio/chamadas reais dependem de permissões, CORS e TURN; sinalização coberta pelo smoke anterior.

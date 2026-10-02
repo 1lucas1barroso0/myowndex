@@ -7,6 +7,7 @@ import { finiteNumber, finiteNumberOrNull, integerInRange, quantizeStepDown } fr
 import { randomChance, randomChoice, randomInt } from '../../core/random.js';
 import { RPG_STATUSES } from '../../core/team.js';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
+import RoomSelect from '../Shared/RoomSelect.jsx';
 
 const POKEMONDB_ITEMS = [
     "potion", "super-potion", "hyper-potion", "max-potion", "full-restore", "revive", "max-revive", 
@@ -366,9 +367,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     <span className="editor-species-name">{formatName(pk.species?.name || "")}</span>
                     {forms.length > 1 && <label className="editor-field form-switch">
                         <span className="editor-label">Forma</span>
-                        <select className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
+                        <RoomSelect aria-label="Forma" className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
                             {forms.map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}{entry.is_default ? " · padrão" : ""}</option>)}
-                        </select>
+                        </RoomSelect>
                     </label>}
                     {switchingForm && <span role="status">Consultando forma…</span>}
                     {formError && <span role="alert" className="editor-error">{formError}</span>}
@@ -393,9 +394,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="editor-field">
                     <label htmlFor={`${fieldId}-nature`} className="editor-label">Natureza</label>
                     <div className="editor-choice-control">
-                        <select id={`${fieldId}-nature`} value={pk.nature || "hardy"} onChange={event => { dismissKeyboard(); updatePk({ ...pk, nature: event.target.value }); }} className="editor-input">
+                        <RoomSelect id={`${fieldId}-nature`} value={pk.nature || "hardy"} onChange={event => { dismissKeyboard(); updatePk({ ...pk, nature: event.target.value }); }} className="editor-input">
                             {Object.keys(NATURES).map(nature => <option key={nature} value={nature}>{formatName(nature)} {NATURES[nature].up ? `(+${STAT_MAP[NATURES[nature].up]}, −${STAT_MAP[NATURES[nature].down]})` : ""}</option>)}
-                        </select>
+                        </RoomSelect>
                         <button type="button" aria-label="Sortear natureza" title="Sortear natureza" onClick={() => randomize("nature")} className="editor-random-button">⚄</button>
                     </div>
                 </div>
@@ -461,7 +462,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="editor-disclosure-body rpg-journey-body">
                     <div className="editor-field"><label htmlFor={`${fieldId}-hp`} className="editor-label">HP atual</label><div className="editor-choice-control"><input id={`${fieldId}-hp`} type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? displayedMaxHp} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" /><button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button">Recuperar</button></div></div>
                     <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: quantizeStepDown(event.target.value, 0.5, { minimum: 0, maximum: 999999, fallback: rpg.xp }) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">Meta: {formatNumberPtBr(nextLevelXp)} XP · nível {Math.min(isHackmon ? 200 : 100, integerInRange(pk.level, 1, isHackmon ? 200 : 100, 1) + 1)}</small><div className="editor-xp-actions"><button type="button" onClick={() => awardXp(0.5)}>+0,5</button><button type="button" onClick={() => awardXp(1)}>+1 XP</button></div></div>
-                    <label className="editor-field"><span className="editor-label">Condição</span><select value={rpg.status || ""} onChange={event => updateRpg({ status: event.target.value })} className="editor-input">{RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{RPG_STATUS_LABELS[status]}</option>)}</select></label>
+                    <label className="editor-field"><span className="editor-label">Condição</span><RoomSelect aria-label="Condição" value={rpg.status || ""} onChange={event => updateRpg({ status: event.target.value })} className="editor-input">{RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{RPG_STATUS_LABELS[status]}</option>)}</RoomSelect></label>
                     <label className="editor-field"><span className="editor-label">Poké Ball da captura</span><input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} className="editor-input" /></label>
                     <label className="editor-field editor-wide-field"><span className="editor-label">Treinador original</span><input type="text" value={rpg.originalTrainer || ""} onChange={event => updateRpg({ originalTrainer: event.target.value })} className="editor-input" /></label>
                     <label className="editor-field editor-wide-field"><span className="editor-label">Notas da jornada</span><textarea value={rpg.notes || ""} onChange={event => updateRpg({ notes: event.target.value })} rows={3} className="editor-input" /></label>
@@ -473,10 +474,10 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <summary>Características e transformações</summary>
                 <div className="editor-disclosure-body editor-basics-grid">
                     <label className="editor-field"><span className="editor-label">Amizade</span><input type="number" min="0" max="255" value={pk.friendship === "" ? "" : pk.friendship} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, friendship: event.target.value === "" ? "" : integerInRange(event.target.value, 0, 255, 0) })} className="editor-input" />{isTTRPG && <small>RPG: {convertToTTRPG(pk.friendship || 0)}</small>}</label>
-                    <label className="editor-field"><span className="editor-label">Tipo Tera</span><select value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</select></label>
+                    <label className="editor-field"><span className="editor-label">Tipo Tera</span><RoomSelect aria-label="Tipo Tera" value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
                     <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
                     <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Gigantamax</label><label><input type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} />Shiny</label></div>
-                    {isHackmon && [0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><select value={customT[index] || ""} onChange={event => { dismissKeyboard(); const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</select></label>)}
+                    {isHackmon && [0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><RoomSelect aria-label={`Tipo personalizado ${index + 1}`} value={customT[index] || ""} onChange={event => { dismissKeyboard(); const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>)}
                 </div>
             </details>
 

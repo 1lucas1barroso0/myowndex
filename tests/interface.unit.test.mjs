@@ -375,7 +375,7 @@ test("the adventure exposes every modifier and explains movement resolution", as
   assert.match(rules, /Os sete modificadores/);
   assert.match(rules, /Uma precisão numérica — inclusive 100%/);
   assert.match(rules, /erro crítico do defensor/);
-  assert.match(rules, /Sturdy, Focus Sash e efeitos equivalentes são proteções próprias e adicionais/);
+  assert.match(rules, /Sturdy, Focus Sash e efeitos equivalentes continuam sendo proteções próprias e adicionais/);
 });
 
 test("unique Pokémon and exceptional Moves expose state, narrative and automation level", async () => {

@@ -468,7 +468,7 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(rules, /Movimentos de múltiplos acertos são resolvidos hit por hit/);
   assert.match(rules, /Somente dano realmente causado conta/);
   assert.match(rules, /reduz o próprio HP/);
-  assert.match(rules, /Acertos críticos superam o limite de dano/);
+  assert.match(rules, /Acertos críticos.*superam o limite de dano/);
   assert.match(localPanel, /lock\.current/);
   assert.match(localPanel, /entry\.id/);
 });

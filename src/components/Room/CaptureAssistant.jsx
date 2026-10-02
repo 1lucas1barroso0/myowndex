@@ -68,7 +68,7 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
                     <label>Poké Ball<select value={ball} onChange={event => setBall(event.target.value)}>{Object.entries(CAPTURE_BALLS).map(([key, info]) => <option key={key} value={key}>{info.label}</option>)}</select></label>
                     <label className="capture-confirmation"><input type="checkbox" checked={wildConfirmed} onChange={event => setWild(event.target.checked)} required /> O alvo é selvagem e a captura é permitida.</label>
                 </fieldset>
-                {calculation && <p>Chance: <strong>{calculation.chance}%</strong> · Taxa {calculation.captureRate}/255 · HP {calculation.currentHp}/{calculation.maxHp} · Ball ×{formatNumberPtBr(calculation.ballBonus)} · Condição ×{formatNumberPtBr(calculation.statusBonus)}</p>}
+                {calculation && <p>Chance: <strong>{calculation.chance}%</strong> · Taxa {calculation.captureRate} de 255 · HP {calculation.currentHp} de {calculation.maxHp} · Ball ×{formatNumberPtBr(calculation.ballBonus)} · Condição ×{formatNumberPtBr(calculation.statusBonus)}</p>}
                 <p>Adaptação d100 do RPG. A tentativa usa a intervenção da rodada; ajuste a Ball no inventário.</p>
                 <button type="submit" className="room-primary-button" disabled={busy || !calculation || !trainerTokenId || !wildConfirmed}>{busy ? "Resolvendo…" : "Lançar Poké Ball"}</button>
             </form>}

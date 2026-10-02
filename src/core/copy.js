@@ -66,12 +66,12 @@ export const formatCanonicalItemName = value => {
 
 export const RPG_STATUS_LABELS = Object.freeze({
     "": "Sem condição",
-    burn: "Queimado",
-    freeze: "Congelado",
-    paralysis: "Paralisado",
-    poison: "Envenenado",
-    "bad-poison": "Gravemente envenenado",
-    sleep: "Dormindo",
+    burn: "Burn",
+    freeze: "Freeze",
+    paralysis: "Paralysis",
+    poison: "Poison",
+    "bad-poison": "Badly Poisoned",
+    sleep: "Sleep",
 });
 
 export const formatCount = (value, singular, plural = `${singular}s`) => {

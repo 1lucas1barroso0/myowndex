@@ -7,6 +7,14 @@ const DEFAULTS = { kind:"attribute", mode:"normal", attribute:0, opposition:"", 
 const preferenceKey = "myowndex_local_dice_preferences_v1";
 const percentage = value => new Intl.NumberFormat("pt-BR",{style:"percent",maximumFractionDigits:2}).format(value);
 const kindLabel = spec => spec.kind === "percent" ? "d100" : spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.mode === "normal" ? "2d6" : "3d6 · manter 2";
+const rollLabel = spec => spec.kind === "free" || spec.mode === "normal" ? kindLabel(spec) : `${kindLabel(spec)} · ${LOCAL_ROLL_MODES[spec.mode]}`;
+const rollTime = new Intl.DateTimeFormat("pt-BR", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+const rollOutcome = record => record.fumble ? "Erro crítico" : record.critical ? "Crítico potencial" : record.success == null ? "" : record.success ? "Sucesso" : "Falha";
+
+function RollTimestamp({ value }) {
+    const date = new Date(value);
+    return value > 0 && Number.isFinite(date.getTime()) ? <time dateTime={date.toISOString()}>{rollTime.format(date)}</time> : <span>Sem data</span>;
+}
 
 function Faces({ record }) {
     const remaining=[...record.kept];
@@ -66,10 +74,6 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
             if(alive.current) unlockTimer.current=setTimeout(()=>{lock.current=false;setBusy(false);},350);
         }
     };
-    const copy=async()=>{
-        try { await navigator.clipboard.writeText(localRollText(result)); setFeedback("Resultado copiado."); }
-        catch { setFeedback("Não foi possível copiar. Use Baixar histórico para guardar o resultado."); }
-    };
     const download=()=>{
         try {
             const text="MyOwnDex · Histórico de rolagens locais\nEstes registros pertencem ao dispositivo; não são comprovantes de rolagens do servidor.\n\n"+history.map(localRollText).join("\n\n────────────────\n\n");
@@ -89,7 +93,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
         <header className="local-dice-heading"><div><h3>Dados locais</h3></div></header>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
             <fieldset disabled={busy}><legend className="sr-only">Configurar rolagem local</legend>
-                <div className="local-dice-tabs" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste"],["percent","d100","Chance"],["free","dX","Livres"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
+                <div className="local-dice-tabs" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste"],["percent","d100","Chance"],["free","dX","Livre"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
                 <div className="local-dice-fields">
                     {draft.kind!=="free" && <label>Modo<select value={draft.mode} onChange={e=>update("mode",e.target.value)}>{Object.entries(LOCAL_ROLL_MODES).map(([mode,label])=><option key={mode} value={mode}>{label}</option>)}</select></label>}
                     {draft.kind==="attribute" && <label>Atributo<input type="number" step="1" min="-99999" max="99999" value={draft.attribute} required onChange={e=>update("attribute",e.target.value)} /></label>}
@@ -107,11 +111,11 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
                 {configuration.error && <p className="local-dice-feedback is-error" role="alert">{configuration.error}</p>}
                 <div className="local-dice-submit"><button type="submit" className="room-primary-button" disabled={!ready || Boolean(configuration.error)} aria-busy={busy} onClick={event=>{if(event.detail>1) event.preventDefault();}}>{busy ? "Registrando…" : `Rolar ${configuration.spec ? kindLabel(configuration.spec) : "dados"}`}</button></div>
                 {!configuration.error && <details className="local-dice-probability">
-                    <summary>Probabilidades e leitura</summary>
+                    <summary>Probabilidades</summary>
                     <div className="local-dice-odds" aria-live="polite">
                         {draft.kind==="attribute" && <><span>{configuration.odds.success!==null ? `Superar dificuldade: ${percentage(configuration.odds.success)}. ` : "2d6 + atributo. "}Crítico: {percentage(configuration.odds.critical)} · erro crítico: {percentage(configuration.odds.fumble)}.</span><small>{draft.mode==="normal" ? "Dois dados de seis faces." : draft.mode==="advantage" ? "Três dados; mantêm-se os dois maiores." : "Três dados; mantêm-se os dois menores."} É preciso superar a dificuldade; empates falham.</small></>}
                         {draft.kind==="percent" && <><span>Chance efetiva de sucesso: <b>{percentage(configuration.odds.success)}</b></span><small>{draft.mode==="normal" ? "Rola de 1 a 100." : draft.mode==="advantage" ? "Vantagem · menor de dois d100." : "Desvantagem · maior de dois d100."} Sucesso quando o resultado é menor ou igual à chance base.</small></>}
-                        {draft.kind==="free" && <span>Resultados possíveis: {configuration.odds.minimum} a {configuration.odds.maximum}. Cada dado é independente.</span>}
+                        {draft.kind==="free" && <span>Resultados possíveis: <b>{configuration.odds.minimum} a {configuration.odds.maximum}</b>.</span>}
                     </div>
                 </details>}
             </fieldset>
@@ -119,18 +123,17 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
         {error && <p className="local-dice-feedback is-error" role="alert">{error}</p>}
         {feedback && <p className="local-dice-feedback" role="status">{feedback}</p>}
         {result && !result.legacy && <article className="local-dice-result" key={result.id} aria-live="polite" aria-atomic="true">
-            <header><div><small>{kindLabel(result.spec)} · {LOCAL_ROLL_MODES[result.spec.mode]}</small><h4>{result.spec.label || "Rolagem local"}</h4></div><strong className="local-dice-total">{result.total}</strong></header>
+            <header><div><small>{rollLabel(result.spec)}</small><h4>{result.spec.label || "Resultado"}</h4></div><strong className="local-dice-total">{result.total}</strong></header>
             <Faces record={result} />
             <p className="local-dice-equation">{result.kept.join(" + ")}{(result.spec.attribute ?? result.spec.modifier ?? 0)!==0 && ` ${(result.spec.attribute ?? result.spec.modifier)<0 ? "−" : "+"} ${Math.abs(result.spec.attribute ?? result.spec.modifier)}`} = <b>{result.total}</b></p>
             <div className="local-dice-verdict">{result.critical && <b>Crítico potencial</b>}{result.fumble && <b>Erro crítico</b>}{result.success!==null && <strong className={result.success ? "is-success" : "is-failure"}>{result.success ? "Sucesso" : "Falha"}<small>{result.spec.kind==="percent" ? `Chance base ${result.spec.chance}%` : `Dificuldade ${result.spec.opposition}${result.margin===0 ? " · empate" : ""}`}</small></strong>}</div>
             {result.suggestion && <p>Sugestão para o erro crítico: {result.suggestion}</p>}
-            {changed && <small className="local-dice-config-note">Os controles mudaram. Este resultado mantém os parâmetros da rolagem registrada.</small>}
-            <div className="local-dice-result-actions"><button type="button" onClick={copy}>Copiar</button>{changed && <button type="button" disabled={busy} onClick={()=>setDraft({...DEFAULTS,...result.spec})}>Reutilizar</button>}</div>
+            {changed && <><small className="local-dice-config-note">Resultado anterior. Os ajustes atuais valem para a próxima rolagem.</small><div className="local-dice-result-actions"><button type="button" disabled={busy} onClick={()=>setDraft({...DEFAULTS,...result.spec})}>Reutilizar ajustes</button></div></>}
         </article>}
-        <details className="local-dice-history"><summary><span>Histórico<small>Neste dispositivo</small></span><b>{history.length}/100</b></summary><div>
-            <p>As últimas 100 rolagens locais ficam disponíveis aqui. Registros anteriores do Guia também são preservados.</p>
-            <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar .txt</button><button type="button" className="is-clear" disabled={!history.length} onClick={()=>setClearPending(true)}>Apagar histórico</button></div>
-            {history.length ? <ol>{history.map(entry=><li key={entry.id}><button type="button" disabled={Boolean(entry.legacy)} onClick={()=>{setResult(entry);setFeedback("");}}><span>{entry.spec.label || kindLabel(entry.spec)} <small>{entry.context} · {new Date(entry.createdAt).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</small></span><b>{entry.total}</b></button><small>{entry.values.join(" • ")}{entry.legacy ? " · registro anterior" : ` · ${LOCAL_ROLL_MODES[entry.spec.mode]}`}</small></li>)}</ol> : <p>A primeira rolagem aparecerá aqui.</p>}
+        <details className="local-dice-history"><summary><span>Histórico</span><b>{history.length} {history.length===1 ? "rolagem" : "rolagens"}</b></summary><div>
+            <p>{history.length ? "Até 100 resultados salvos. Selecione uma rolagem para consultar os dados e os ajustes usados." : "Role os dados para começar seu histórico."}</p>
+            <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar histórico</button><button type="button" className="is-clear" disabled={!history.length} onClick={()=>setClearPending(true)}>Apagar histórico</button></div>
+            {history.length>0 && <ol>{history.map(entry=><li key={entry.id}><button type="button" disabled={Boolean(entry.legacy)} aria-pressed={!entry.legacy && result?.id===entry.id} onClick={()=>{setResult(entry);setFeedback("");}}><span>{entry.spec.label || kindLabel(entry.spec)} <small>{entry.context==="aventura" ? "Aventura" : "Guia"} · <RollTimestamp value={entry.createdAt} /></small></span><b>{entry.total}</b></button><div className="local-dice-history-meta"><small>Dados: {entry.values.join(" · ")}{entry.legacy ? " · registro anterior" : entry.spec.mode!=="normal" ? ` · ${LOCAL_ROLL_MODES[entry.spec.mode]}` : ""}</small>{!entry.legacy && rollOutcome(entry) && <small className={`local-dice-history-outcome ${entry.fumble || entry.success===false ? "is-failure" : "is-success"}`}>{rollOutcome(entry)}</small>}</div></li>)}</ol>}
         </div></details>
         <ConfirmDialog
             open={clearPending}

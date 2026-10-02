@@ -162,7 +162,7 @@ export const RPG_RULE_SECTIONS = [
                     "Se o primeiro dano deixar 1 HP ou mais naturalmente, a proteção geral não age e não preserva uma chance adicional para Sturdy, Focus Sash ou efeitos equivalentes.",
                     "Movimentos de múltiplos acertos são resolvidos hit por hit. Um hit pode consumir a proteção geral, o próximo pode acionar uma proteção própria ainda elegível e outro pode derrotar normalmente.",
                     "Dano residual, clima, terreno, condições e outras fontes indiretas são resolvidos uma a uma. Uma fonte que cause dano pode ativar ou romper a proteção geral; efeitos próprios como Sturdy e Focus Sash só agem quando suas próprias regras permitirem.",
-                    "Substitutos e efeitos especiais recebem primeiro o tratamento próprio; a proteção só é verificada no dano que realmente alcança o Pokémon.",
+                    "Substitute e efeitos especiais recebem primeiro o tratamento próprio; a proteção só é verificada no dano que realmente alcança o Pokémon.",
                 ]
             },
             {
@@ -271,18 +271,18 @@ export const RPG_RULE_SECTIONS = [
                 title: "Condições principais",
                 body: "Marque apenas uma condição principal. O RPG usa as referências modernas abaixo, respeitando imunidades, habilidades e cura. A verificação ocorre uma vez antes da ação, não uma vez por alvo nem por hit. Se a condição impedir a ação, o turno é gasto, mas não há gasto de PP.",
                 bullets: [
-                    "Queimadura: metade do dano físico, salvo Guts ou Facade; perde 1/16 do HP máximo ao fim da rodada, respeitando o piso de dano positivo.",
+                    "Queimadura: metade do dano físico, salvo Guts ou Facade; perde 6,25% do HP máximo ao fim da rodada, respeitando o piso de dano positivo.",
                     "Paralisia: metade da Velocidade, salvo Quick Feet; antes de agir, 25% de chance de perder a ação. A condição não se cura sozinha.",
                     "Sono: dura de 1 a 3 oportunidades de agir, sorteadas uma vez. Depois disso, acorda antes da próxima ação. Trocar preserva a contagem. Early Bird reduz a duração; Snore e Sleep Talk mantêm a permissão de agir dormindo.",
-                    "Congelamento: antes da ação, 20% de chance de descongelar e agir. Movimentos que descongelam o próprio usuário dispensam esse teste. Dano de Fogo e movimentos com efeito próprio de descongelar também removem a condição.",
-                    "Veneno: perde 1/8 do HP máximo ao fim da rodada. Envenenamento grave: começa em 1/16 e aumenta em 1/16 por rodada, até 15/16; trocar reinicia o contador, não cura a condição.",
+                    "Congelamento: antes da ação, 20% de chance de descongelar e agir. Movimentos que descongelam o próprio usuário dispensam esse teste. Dano de Fire e movimentos com efeito próprio de descongelar também removem a condição.",
+                    "Veneno: perde 12,5% do HP máximo ao fim da rodada. Envenenamento grave: começa em 6,25% e aumenta em 6,25% por rodada, até 93,75%; trocar reinicia o contador, não cura a condição.",
                     "Confusão e hesitação são efeitos voláteis, separados da condição principal. Confusão afeta de 1 a 4 oportunidades de agir (Axe Kick: 2 a 4); em cada uma, há 33% de chance de perder a ação e causar a si mesmo 2 HP de dano, a adaptação do poder 40 ÷20 do RPG, sem STAB, tipo, crítico ou disputa. Hesitação impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra ambas."
                 ]
             },
             {
                 id: "6.2",
                 title: "Dano contínuo e indireto",
-                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente e fonte por fonte. Dano positivo pode ativar ou romper a proteção contra hit kill; custo próprio de HP a torna indisponível naquele combate. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia; também avança Bocejo, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song, registrando cada mudança no Diário."
+                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente e fonte por fonte. Dano positivo pode ativar ou romper a proteção contra hit kill; custo próprio de HP a torna indisponível naquele combate. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia; também avança Yawn, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song, registrando cada mudança no Diário."
             },
             {
                 id: "6.3",

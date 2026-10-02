@@ -41,7 +41,7 @@ export const viewport: Viewport = {
   themeColor: "#da3041",
 };
 
-const themeBootScript = `try{const saved=JSON.parse(localStorage.getItem("myowndex_appearance_v1")||'"system"');const preference=["normal","night","system"].includes(saved)?saved:"system";const resolved=preference==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"night":"normal"):preference;document.documentElement.dataset.theme=resolved;document.documentElement.dataset.themePreference=preference;document.documentElement.style.colorScheme=resolved==="night"?"dark":"light"}catch{}`;
+const themeBootScript = `try{const saved=JSON.parse(localStorage.getItem("myowndex_appearance_v1")||'"normal"');const resolved=saved==="night"?"night":saved==="system"&&matchMedia("(prefers-color-scheme: dark)").matches?"night":"normal";document.documentElement.dataset.theme=resolved;document.documentElement.dataset.themePreference=resolved;document.documentElement.style.colorScheme=resolved==="night"?"dark":"light"}catch{}`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

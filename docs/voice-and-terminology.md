@@ -13,16 +13,18 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Aventura, Pokédex, PC e Guia são os rótulos curtos da navegação.
 - “aventura”, em minúsculas, nomeia cada jornada criada; Narrador e Jogador
   nomeiam os papéis.
-- RPG, Como nos jogos e Criação livre são os três estilos de jogo.
+- RPG, Jogos e Livre são os três estilos de jogo na interface.
 - Pokémon é invariável no plural.
 - movimento, habilidade, natureza, tipo, condição, equipe e parceiro usam
   minúsculas no meio de frases.
 - HP, PP, XP, EVs, IVs e STAB permanecem em maiúsculas.
-- tipo Tera e Terastalizar seguem essa grafia.
-- Poké Bola é escrita em duas palavras.
+- Pokémon, movimentos, habilidades, itens, tipos, naturezas, formas e demais
+  nomes próprios do catálogo usam sempre o nome original em inglês. Exemplos:
+  Recover, Swords Dance, Sturdy, Focus Sash, Leftovers e Poké Ball. Nunca
+  substitua esses nomes por traduções, mesmo em uma explicação em português.
 - Dispositivo é o termo para computador, celular ou tablet. Use “neste
-  dispositivo” para dados salvos localmente e “como o dispositivo” para
-  preferências herdadas.
+  dispositivo” quando a localização dos dados realmente precisar ser
+  informada. As opções de aparência são apenas Claro e Escuro.
 
 ## Padrões de texto
 
@@ -40,11 +42,19 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Quando o catálogo só oferece texto em outro idioma, a interface informa o
   idioma com clareza e mantém uma explicação funcional em português à vista.
 - Contagens respeitam singular e plural; “Pokémon” não recebe “s”.
+- Proporções aparecem como porcentagens ou multiplicadores decimais, nunca
+  como frações. HP, dano e atributos mostram o resultado inteiro do cálculo,
+  obedecendo ao arredondamento da regra correspondente; não arredonde antes de
+  aplicar todos os modificadores. XP admite passos de 0,5 pela regra 2.5, e
+  medidas oficiais como 0,7 m conservam sua precisão.
 - Botões começam com verbos diretos: “Criar”, “Entrar”, “Rolar”, “Adicionar”,
   “Compartilhar” e “Continuar”.
 - Títulos identificam a área; avisos aparecem somente quando há informação
   útil ou uma ação disponível. Evite slogans, confirmações permanentes de
   prontidão e a repetição de uma instrução em todos os cartões.
+- Mantenha palavras inteiras e títulos legíveis. O espaço disponível deve
+  reorganizar a composição antes de cortar letras, sobrepor campos ou quebrar
+  palavras.
 - As instruções de instalação pertencem ao navegador ou ao dispositivo;
   não crie um botão de instalação dentro da navegação do MyOwnDex.
 

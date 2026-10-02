@@ -2,6 +2,7 @@ import {
     convertToTTRPG,
     formatDamageClass,
     formatName,
+    formatNumberPtBr,
     formatType,
     preferredLocalizedEntry,
 } from "./mechanics.js";
@@ -16,11 +17,29 @@ import {
 const asArray = value => Array.isArray(value) ? value : [];
 const asSlug = value => String(value || "").trim().toLowerCase().replace(/[\s_]+/g, "-");
 
-export const cleanDescription = (value, effectChance = "") => String(value || "")
+const proportion = (numerator, denominator) => {
+    const value = Number(numerator) / Number(denominator) * 100;
+    if (!Number.isFinite(value) || Number(denominator) <= 0) return `${numerator}/${denominator}`;
+    const approximate = Math.abs(value * 100 - Math.round(value * 100)) > 1e-8;
+    return `${approximate ? "≈ " : ""}${formatNumberPtBr(value)}%`;
+};
+
+export const formatCatalogProportions = value => String(value || "")
+    .replace(/\b(\d+)\s*\/\s*(\d+)\b/g, (original, numerator, denominator) => Number(numerator) <= Number(denominator) ? proportion(numerator, denominator) : original)
+    .replace(/[½⅓⅔¼¾⅛⅜⅝⅞]/g, glyph => ({ "½": "50%", "⅓": "≈ 33,33%", "⅔": "≈ 66,67%", "¼": "25%", "¾": "75%", "⅛": "12,5%", "⅜": "37,5%", "⅝": "62,5%", "⅞": "87,5%" })[glyph])
+    .replace(/\b(?:one[ -]third|a third|one[ -]quarter|a quarter|one[ -]eighth|one[ -]sixteenth)\b/gi, words => {
+        const normalized = words.toLowerCase().replace(/-/g, " ");
+        if (normalized.endsWith("third")) return "≈ 33,33%";
+        if (normalized.endsWith("quarter")) return "25%";
+        return normalized.endsWith("sixteenth") ? "6,25%" : "12,5%";
+    });
+
+export const cleanDescription = (value, effectChance = "") => formatCatalogProportions(String(value || "")
     .replace(/\$effect_chance/g, effectChance === "" || effectChance == null ? "a chance indicada" : String(effectChance))
     .replace(/[\n\f]+/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .replace(/\bPOK[ÉE]MON\b/gi, "Pokémon")
+    .trim());
 
 const languageMeta = entry => {
     const code = String(entry?.language?.name || "").toLowerCase();
@@ -55,17 +74,17 @@ const TARGET_COPY = Object.freeze({
 });
 
 const AILMENT_COPY = Object.freeze({
-    burn: "queimadura",
-    freeze: "congelamento",
-    paralysis: "paralisia",
-    poison: "envenenamento",
-    sleep: "sono",
-    confusion: "confusão",
-    infatuation: "atração",
+    burn: "Burn",
+    freeze: "Freeze",
+    paralysis: "Paralysis",
+    poison: "Poison",
+    sleep: "Sleep",
+    confusion: "Confusion",
+    infatuation: "Infatuation",
     trap: "aprisionamento",
     torment: "tormento",
     disable: "bloqueio de movimento",
-    yawn: "sonolência por Bocejo",
+    yawn: "sonolência por Yawn",
 });
 
 const STAT_COPY = Object.freeze({
@@ -190,29 +209,19 @@ export const describeTrait = (kind, id, detail) => {
 };
 
 const HABITAT_COPY = Object.freeze({
-    cave: "cavernas",
-    forest: "florestas",
-    grassland: "campos e pradarias",
-    mountain: "montanhas",
-    rare: "locais raros ou especiais",
-    "rough-terrain": "terrenos acidentados",
-    sea: "mares",
-    urban: "áreas urbanas",
-    "waters-edge": "margens de rios, lagos e mares",
+    cave: "Cave", forest: "Forest", grassland: "Grassland", mountain: "Mountain",
+    rare: "Rare", "rough-terrain": "Rough Terrain", sea: "Sea", urban: "Urban",
+    "waters-edge": "Water’s Edge",
 });
 
 const GROWTH_COPY = Object.freeze({
-    slow: "lento",
-    medium: "médio",
-    fast: "rápido",
-    "medium-slow": "médio-lento",
-    "slow-then-very-fast": "lento no início e muito rápido depois",
-    "fast-then-very-slow": "rápido no início e muito lento depois",
+    slow: "Slow", medium: "Medium Fast", fast: "Fast",
+    "medium-slow": "Medium Slow", "slow-then-very-fast": "Erratic", "fast-then-very-slow": "Fluctuating",
 });
 
 export const describeSpecies = (species, pokemon) => {
     const flavor = catalogDescription(species?.flavor_text_entries, ["flavor_text"]);
-    const genus = catalogDescription(species?.genera, ["genus"]);
+    const genus = catalogDescription(asArray(species?.genera).filter(entry => entry.language?.name === "en"), ["genus"]);
     const facts = [];
     if (genus.text) facts.push(genus.text);
     const habitat = asSlug(species?.habitat?.name);

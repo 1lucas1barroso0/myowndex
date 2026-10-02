@@ -1,7 +1,7 @@
 {
   "name": "myowndex",
-  "version": "11.1.0",
-  "description": "Pok\u00e9dex, PC do Bill, Guia do Treinador e Central da Aventura para RPG de Pok\u00e9mon.",
+  "version": "11.2.0",
+  "description": "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para RPG de Pokémon.",
   "private": true,
   "homepage": "https://myowndex.vercel.app",
   "repository": {

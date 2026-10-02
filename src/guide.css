@@ -49,18 +49,44 @@ html .app-root.game-edition.handheld-edition .guide-damage-limit-card { margin: 
 html .app-root.game-edition.handheld-edition .guide-damage-limit-value { display: flex !important; align-items: center !important; justify-content: space-between !important; flex-wrap: wrap !important; gap: .6rem !important; color: var(--ui-ink) !important; font-size: .95rem !important; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-value strong { font-family: inherit !important; font-size: 1.5rem !important; line-height: 1.2 !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-card p { margin: .75rem 0 !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.7 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-card { margin-top: 1rem !important; padding: 0 !important; border: 0 !important; border-top: 1px solid var(--ui-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-card > summary { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; min-height: 48px !important; padding: .65rem 0 !important; font-size: .95rem !important; font-weight: 650 !important; line-height: 1.5 !important; list-style: none !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-content { display: grid !important; gap: 1rem !important; padding: .5rem 0 0 !important; font-size: .95rem !important; line-height: 1.7 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-card { margin-top: 1.25rem !important; padding: 0 !important; border: 1px solid var(--ui-line) !important; border-left: 4px solid var(--ui-blue) !important; border-radius: 3px !important; background: var(--ui-selected) !important; box-shadow: none !important; color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-card > summary { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; min-height: 56px !important; padding: .85rem 1rem !important; font-size: 1rem !important; font-weight: 750 !important; line-height: 1.5 !important; list-style: none !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-content { display: grid !important; gap: 1rem !important; padding: .2rem 1rem 1rem !important; font-size: .95rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-content p { margin: 0 !important; color: inherit !important; font-size: inherit !important; line-height: inherit !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-flow { display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: .55rem !important; margin: 0 !important; padding: 0 0 0 1.4rem !important; list-style: decimal !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li { padding-left: .3rem !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-overview { container: hit-kill-overview / inline-size !important; display: grid !important; min-width: 0 !important; gap: 1.1rem !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-heading { display: flex !important; align-items: center !important; gap: .8rem !important; min-width: 0 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-emblem { flex: 0 0 2.5rem !important; width: 2.5rem !important; height: 2.5rem !important; color: var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-heading > div { display: grid !important; min-width: 0 !important; gap: .2rem !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-heading strong { color: var(--ui-ink) !important; font-size: 1.05rem !important; font-weight: 750 !important; line-height: 1.4 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-heading span { color: var(--ui-muted) !important; font-size: .9rem !important; line-height: 1.5 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-flow { display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: .65rem !important; margin: 0 !important; padding: 0 !important; list-style: none !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li { display: flex !important; align-items: start !important; gap: .8rem !important; min-width: 0 !important; padding: .8rem !important; border: 1px solid var(--ui-line) !important; background: var(--ui-panel) !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-step { display: grid !important; place-items: center !important; flex: 0 0 1.8rem !important; width: 1.8rem !important; height: 1.8rem !important; border-radius: 50% !important; color: var(--ui-panel) !important; background: var(--ui-blue) !important; font-weight: 800 !important; font-variant-numeric: tabular-nums !important; line-height: 1 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li > div { display: grid !important; min-width: 0 !important; gap: .2rem !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li strong { color: var(--ui-ink) !important; font-size: .95rem !important; font-weight: 750 !important; line-height: 1.5 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li > div > span { color: var(--ui-muted) !important; font-size: .85rem !important; line-height: 1.5 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li.guide-hit-kill-outcome { border-color: var(--journey-teal) !important; background: color-mix(in srgb,var(--journey-teal) 12%,var(--ui-panel)) !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-outcome .guide-hit-kill-step { background: var(--journey-teal) !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-outcome b { color: var(--journey-teal) !important; font-size: 1.2rem !important; font-weight: 850 !important; white-space: nowrap !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-example { margin: 0 !important; padding: .8rem 0 0 !important; border-top: 1px solid var(--ui-line) !important; color: var(--ui-muted) !important; font-size: .9rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-facts { display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: 1rem !important; margin: 0 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-facts > div { display: grid !important; gap: .2rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-facts dt { color: var(--ui-ink) !important; font-size: .95rem !important; font-weight: 700 !important; letter-spacing: 0 !important; text-transform: none !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-facts > div { display: grid !important; min-width: 0 !important; gap: .25rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-facts dt { color: var(--ui-ink) !important; font-size: .95rem !important; font-weight: 750 !important; letter-spacing: 0 !important; text-transform: none !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-facts dd { margin: 0 !important; color: var(--ui-muted) !important; font-size: .95rem !important; font-weight: 400 !important; line-height: 1.7 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-own-protection { padding-top: 1rem !important; border-top: 1px solid var(--ui-line) !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-limit-note { color: var(--ui-muted) !important; font-size: .85rem !important; line-height: 1.6 !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-protection > summary { color: var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-protection > .guide-rule-body { max-width: none !important; padding: 1rem clamp(.75rem,2vw,1.25rem) 1.25rem !important; background: var(--ui-selected) !important; border-left: 4px solid var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule { margin-top: 1.25rem !important; border-top: 1px solid var(--ui-line) !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > summary { display: flex !important; align-items: baseline !important; justify-content: space-between !important; gap: .75rem !important; min-height: 48px !important; padding: .8rem 0 !important; list-style: none !important; font-size: .95rem !important; font-weight: 700 !important; line-height: 1.5 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > ul { padding-top: .6rem !important; }
 html .app-root.game-edition.handheld-edition .guide-mode-note p { max-width: 68ch !important; margin: 0 !important; padding: .4rem 0 1.25rem !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-empty { padding: .5rem 0 1rem !important; color: var(--ui-muted) !important; font-size: 1rem !important; line-height: 1.7 !important; }
 @container trainer-guide (min-width: 60rem) {
   html .app-root.game-edition.handheld-edition .guide-layout { grid-template-columns: minmax(0,1.7fr) minmax(18rem,1fr) !important; }
+}
+
+@container hit-kill-overview (min-width: 34rem) {
+  html .app-root.game-edition.handheld-edition .guide-hit-kill-flow { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li { flex-direction: column !important; gap: .65rem !important; }
 }

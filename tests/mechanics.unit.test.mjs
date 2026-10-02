@@ -48,8 +48,8 @@ test("uses the MyOwnDex tabletop half-down rounding rule", () => {
 
 test("formats calculated values and type labels for Brazilian Portuguese", () => {
   assert.equal(formatNumberPtBr(5.5), "5,5");
-  assert.equal(formatType("electric"), "Elétrico");
-  assert.equal(formatType("fairy"), "Fada");
+  assert.equal(formatType("electric"), "Electric");
+  assert.equal(formatType("fairy"), "Fairy");
   assert.equal(preferredLocalizedEntry([
     { language: { name: "en" }, effect: "English" },
     { language: { name: "pt-br" }, effect: "Português" },

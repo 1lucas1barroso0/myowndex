@@ -86,15 +86,37 @@ html .app-root .rpg-journey-body { display:grid; grid-template-columns:repeat(au
 html .app-root .rpg-journey-hp { font-size:.85rem; color:var(--ui-muted); }
 html .app-root .editor-progress-goal { font-size:.85rem; color:var(--ui-muted); }
 html .app-root .editor-xp-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; }
-html .app-root .pokemon-training-panel { background:transparent; border:0; padding:0; }
-html .app-root .pokemon-stat-row { display:grid; grid-template-columns:minmax(100px,1fr) minmax(0,2fr); gap:1rem; padding:1rem 0; border-bottom:1px solid var(--ui-line); }
-html .app-root .pokemon-stat-controls { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; }
-html .app-root .pokemon-stat-controls > label { display:grid; gap:.3rem; flex:1 1 70px; min-width:0; font-size:.85rem; }
-html .app-root .pokemon-stat-controls input { width:100%; }
-html .app-root .pokemon-stat-controls > .pokemon-stat-ev { flex:2 1 180px; }
-html .app-root .pokemon-stat-ev > div { display:flex; gap:.6rem; align-items:center; min-width:0; }
-html .app-root .pokemon-stat-ev input[type=range] { min-width:0; flex:1; }
-html .app-root .pokemon-stat-ev input[type=number] { width:80px; }
+html .app-root .pokemon-training-panel { background:transparent; border:0; border-top:1px solid var(--ui-line); padding:0; container-type:inline-size; }
+html .app-root .pokemon-training-panel > summary { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:.75rem; list-style:none; padding:1rem 0; }
+html .app-root .pokemon-training-panel > summary::-webkit-details-marker { display:none; }
+html .app-root .pokemon-training-panel > summary::after { content:"+"; font-size:1.3rem; color:var(--ui-blue); width:1.25rem; text-align:center; }
+html .app-root .pokemon-training-panel[open] > summary::after { content:"−"; }
+html .app-root .pokemon-training-heading { min-width:0; display:grid; gap:.2rem; }
+html .app-root .pokemon-training-heading strong { font-size:1.1rem; font-weight:800; }
+html .app-root :is(.pokemon-training-heading small,.pokemon-ev-budget small) { font-size:.85rem; color:var(--ui-muted); font-weight:500; }
+html .app-root .pokemon-ev-budget { display:grid; gap:.15rem; padding:.5rem .75rem; background:var(--ui-selected); border-left:3px solid var(--ui-blue); border-radius:.2rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
+html .app-root .pokemon-ev-budget strong { font-size:.95rem; color:var(--ui-blue); }
+html .app-root .pokemon-ev-budget.is-over-limit { border-left-color:var(--ui-accent); }
+html .app-root .pokemon-ev-budget.is-over-limit strong { color:var(--ui-accent); }
+html .app-root .pokemon-training-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem 1.5rem; margin-bottom:.75rem; }
+html .app-root .pokemon-training-toolbar p { flex:1 1 200px; color:var(--ui-muted); font-size:.85rem; }
+html .app-root .editor-training-random { min-height:44px; padding:.65rem .85rem; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; font-size:.9rem; font-weight:700; }
+html .app-root .pokemon-stat-list { display:grid; }
+html .app-root .pokemon-stat-row { display:grid; grid-template-columns:minmax(100px,1fr) minmax(0,3fr); align-items:center; gap:1rem; padding:1.25rem 0; border-bottom:1px solid var(--ui-line); }
+html .app-root .pokemon-stat-row h4 { font-size:1rem; font-weight:750; }
+html .app-root .pokemon-stat-controls { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(180px,2.5fr); align-items:end; gap:.75rem; min-width:0; }
+html .app-root .pokemon-stat-controls > :is(label,div) { display:grid; gap:.4rem; min-width:0; font-size:.85rem; color:var(--ui-muted); }
+html .app-root .pokemon-stat-controls :is(input,output) { width:100%; font-variant-numeric:tabular-nums; }
+html .app-root .pokemon-stat-controls output { display:flex; min-height:44px; align-items:center; padding:.65rem .75rem; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); border-radius:.25rem; font-size:1rem; font-weight:750; }
+html .app-root .pokemon-stat-ev > div { display:grid; grid-template-columns:minmax(0,1fr) 80px; gap:.75rem; align-items:center; min-width:0; }
+html .app-root .pokemon-stat-ev input[type=range] { min-width:0; width:100%; min-height:44px; appearance:none; background:transparent; padding:0; accent-color:var(--ui-blue); }
+html .app-root .pokemon-stat-ev input[type=range]::-webkit-slider-runnable-track { height:6px; background:var(--ui-selected); border-radius:.25rem; }
+html .app-root .pokemon-stat-ev input[type=range]::-webkit-slider-thumb { appearance:none; width:16px; height:16px; margin-top:-5px; border:2px solid var(--ui-panel); background:var(--ui-blue); border-radius:50%; }
+html .app-root .pokemon-stat-ev input[type=range]::-moz-range-track { height:6px; background:var(--ui-selected); border-radius:.25rem; }
+html .app-root .pokemon-stat-ev input[type=range]::-moz-range-progress { height:6px; background:var(--ui-blue); }
+html .app-root .pokemon-stat-ev input[type=range]::-moz-range-thumb { width:16px; height:16px; border:2px solid var(--ui-panel); background:var(--ui-blue); border-radius:50%; }
+@container (max-width:34rem) { html .app-root .pokemon-stat-row { grid-template-columns:minmax(0,1fr); gap:.75rem; } html .app-root .pokemon-stat-controls { grid-template-columns:repeat(2,minmax(0,1fr)); } html .app-root .pokemon-stat-ev { grid-column:1/-1; } }
+@container (max-width:26rem) { html .app-root .pokemon-training-panel > summary { grid-template-columns:minmax(0,1fr) auto; } html .app-root .pokemon-training-panel > summary::after { grid-column:2; grid-row:1; } html .app-root .pokemon-ev-budget { grid-column:1/-1; width:fit-content; } }
 html .app-root .pokemon-remove-button { margin-top:2rem; color:var(--ui-accent); }
 html .app-root .editor-species-name { color:var(--ui-muted); font-size:.9rem; }
 html .app-root .editor-stat-summary { padding:1.5rem 0; }

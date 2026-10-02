@@ -13,6 +13,37 @@ import {
 const ruleCount = RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0);
 const normalizeSearch = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
+function HitKillOverview({ showFacts = false }) {
+    return (
+        <div className="guide-hit-kill-overview">
+            <div className="guide-hit-kill-heading">
+                <svg className="guide-hit-kill-emblem" aria-hidden="true" viewBox="0 0 32 32" fill="none">
+                    <path d="M16 3 27 7v8c0 7-6 11-11 14C11 26 5 22 5 15V7L16 3Z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
+                    <path d="M9 16h4l2-5 3 10 2-5h3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div><strong>Uma chance de continuar</strong><span>Uma vez por Pokémon, em cada batalha.</span></div>
+            </div>
+            <ol className="guide-hit-kill-flow" aria-label="Condições para a proteção agir">
+                <li><span className="guide-hit-kill-step" aria-hidden="true">1</span><div><strong>HP cheio</strong><span>Antes de receber o dano.</span></div></li>
+                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>Dano fatal abaixo de 3× o HP máximo</strong><span>A proteção precisa estar disponível.</span></div></li>
+                <li className="guide-hit-kill-outcome"><span className="guide-hit-kill-step" aria-hidden="true">3</span><div><strong>Permanece com <b>1 HP</b></strong><span>A proteção é consumida.</span></div></li>
+            </ol>
+            <p className="guide-hit-kill-example"><strong>Por exemplo:</strong> com 20 HP máximos e cheios, um acerto sem crítico cujo dano final seja 30 deixa 1 HP se a proteção estiver disponível. Um dano de 60 ou mais atravessa a proteção.</p>
+            {showFacts && (
+                <>
+                    <dl className="guide-hit-kill-facts">
+                        <div><dt>Quando verificar</dt><dd>Cada hit e cada fonte de dano indireto, separadamente.</dd></div>
+                        <div><dt>Sem dano, sem consumo</dt><dd>Erro, imunidade, bloqueio e dano absorvido pelo Substitute não afetam a proteção.</dd></div>
+                        <div><dt>O que a remove</dt><dd>Usá-la, pagar HP, sofrer recuo ou causar dano a si próprio. Cura e troca não a restauram.</dd></div>
+                        <div><dt>O que a atravessa</dt><dd>Crítico do atacante, erro crítico do defensor e movimentos de nocaute direto.</dd></div>
+                    </dl>
+                    <p className="guide-hit-kill-own-protection"><strong>Sturdy e Focus Sash mantêm suas próprias regras.</strong> Quando a proteção geral age primeiro, não os consome e preserva sua elegibilidade até o próximo dano que alcançar o Pokémon.</p>
+                </>
+            )}
+        </div>
+    );
+}
+
 export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
     const [scaleValue, setScaleValue] = useState(100);
@@ -66,14 +97,22 @@ export default function TrainerGuide({ experienceMode }) {
                                 </header>
                                 <div className="guide-rule-content">
                                     {section.rules.map(rule => (
-                                        <details key={rule.id} className="guide-rule-card" data-rule-id={rule.id} open={searching}>
+                                        <details key={rule.id} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
                                             <summary>
                                                 <span className="guide-rule-id">{rule.id}</span>
                                                 <strong>{rule.title}</strong>
                                             </summary>
                                             <div className="guide-rule-body">
                                                 {rule.body && <p>{rule.body}</p>}
-                                                {rule.bullets && <ul>{rule.bullets.map(item => <li key={item}>{item}</li>)}</ul>}
+                                                {rule.id === "3.4" ? (
+                                                    <>
+                                                        <HitKillOverview />
+                                                        <details className="guide-hit-kill-full-rule" open={searching}>
+                                                            <summary>Situações especiais e exceções</summary>
+                                                            <ul>{rule.bullets.map(item => <li key={item}>{item}</li>)}</ul>
+                                                        </details>
+                                                    </>
+                                                ) : rule.bullets && <ul>{rule.bullets.map(item => <li key={item}>{item}</li>)}</ul>}
                                             </div>
                                         </details>
                                     ))}
@@ -111,19 +150,8 @@ export default function TrainerGuide({ experienceMode }) {
                             <details className="guide-hit-kill-card" data-rule-id="3.4">
                                 <summary>Proteção contra hit kill</summary>
                                 <div className="guide-hit-kill-content">
-                                    <p><strong>Uma vez por batalha.</strong> Esta proteção é separada do limite comum de dano.</p>
-                                    <ol className="guide-hit-kill-flow" aria-label="Condições para a proteção agir">
-                                        <li>HP máximo</li>
-                                        <li>Dano fatal menor que 3× o HP máximo</li>
-                                        <li>Permanece com 1 HP</li>
-                                    </ol>
-                                    <dl className="guide-hit-kill-facts">
-                                        <div><dt>Conta</dt><dd>Cada hit e cada dano indireto que realmente cause HP.</dd></div>
-                                        <div><dt>Não conta</dt><dd>Erro, imunidade, bloqueio ou dano absorvido pelo Substitute.</dd></div>
-                                        <div><dt>Encerra</dt><dd>Uso da proteção, pagamento de HP, recuo ou autolesão; cura e troca não devolvem.</dd></div>
-                                        <div><dt>Atravessa</dt><dd>Crítico do atacante, erro crítico do defensor e nocaute direto.</dd></div>
-                                    </dl>
-                                    <p><strong>Sturdy, Focus Sash e afins continuam separados:</strong> a proteção geral não os consome e pode preservar uma chance adicional para o próximo dano real.</p>
+                                    <HitKillOverview showFacts />
+                                    <p className="guide-hit-kill-limit-note">Esta proteção é separada do limite comum de dano. A regra 3.4 reúne as situações especiais e exceções.</p>
                                 </div>
                             </details>
                         </div>

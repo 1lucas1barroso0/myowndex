@@ -428,7 +428,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             </details>}
 
             <section className="editor-moves" aria-labelledby={`${fieldId}-moves-heading`}>
-                <header className="editor-section-heading"><h3 id={`${fieldId}-moves-heading`}>Movimentos</h3><span>{pk.moves?.filter(Boolean).length || 0}/4</span></header>
+                <header className="editor-section-heading"><h3 id={`${fieldId}-moves-heading`}>Movimentos</h3><span>{pk.moves?.filter(Boolean).length || 0} de 4</span></header>
                 <div className="editor-moves-grid">
                     {[0, 1, 2, 3].map(index => {
                         const moveName = pk.moves?.[index] || "";
@@ -457,7 +457,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             </section>
 
             <details className="editor-disclosure rpg-journey-panel">
-                <summary><span>Progresso da jornada</span><span className="rpg-journey-hp">HP {rpg.currentHp ?? displayedMaxHp}/{displayedMaxHp}</span></summary>
+                <summary><span>Progresso da jornada</span><span className="rpg-journey-hp">HP {rpg.currentHp ?? displayedMaxHp} de {displayedMaxHp}</span></summary>
                 <div className="editor-disclosure-body rpg-journey-body">
                     <div className="editor-field"><label htmlFor={`${fieldId}-hp`} className="editor-label">HP atual</label><div className="editor-choice-control"><input id={`${fieldId}-hp`} type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? displayedMaxHp} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" /><button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button">Recuperar</button></div></div>
                     <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: quantizeStepDown(event.target.value, 0.5, { minimum: 0, maximum: 999999, fallback: rpg.xp }) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">Meta: {formatNumberPtBr(nextLevelXp)} XP · nível {Math.min(isHackmon ? 200 : 100, integerInRange(pk.level, 1, isHackmon ? 200 : 100, 1) + 1)}</small><div className="editor-xp-actions"><button type="button" onClick={() => awardXp(0.5)}>+0,5</button><button type="button" onClick={() => awardXp(1)}>+1 XP</button></div></div>
@@ -490,9 +490,15 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 })}</dl>
             </section>
             <details className="editor-disclosure pokemon-training-panel">
-                <summary><span>Treinamento · EVs e IVs</span><span className={`pokemon-ev-budget ${evTotal > 508 ? "is-over-limit" : ""}`}>EVs: {evTotal}/510</span></summary>
+                <summary>
+                    <span className="pokemon-training-heading"><strong>Treinamento</strong><small>IVs e EVs</small></span>
+                    <span className={`pokemon-ev-budget ${evTotal > 508 ? "is-over-limit" : ""}`}><strong>{evTotal} EVs</strong><small>Limite: 510</small></span>
+                </summary>
                 <div className="editor-disclosure-body">
-                    <button type="button" onClick={() => randomize("ivs")} className="editor-training-random">⚄ Sortear todos os IVs</button>
+                    <div className="pokemon-training-toolbar">
+                        <p>IVs de 0 a 31 · EVs até 252 por atributo</p>
+                        <button type="button" onClick={() => randomize("ivs")} className="editor-training-random">⚄ Sortear IVs</button>
+                    </div>
                     <div className="pokemon-stat-list">{pk.species?.stats?.map(stat => {
                         const name = stat.stat?.name; if (!name) return null;
                         const base = isHackmon && pk.customStats?.[name] !== undefined ? pk.customStats[name] : stat.base_stat || 0;
@@ -500,9 +506,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         return <div key={name} className="pokemon-stat-row">
                             <h4>{STAT_MAP[name] || name}</h4>
                             <div className="pokemon-stat-controls">
-                                <label><span>Base</span>{isHackmon ? <input type="number" min="1" max="255" value={base} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, customStats: { ...(pk.customStats || {}), [name]: event.target.value === "" ? "" : integerInRange(event.target.value, 1, 255, 1) } })} className="editor-input" /> : <output>{base}</output>}</label>
-                                <label className="pokemon-stat-ev"><span>EVs</span><div><input type="range" aria-label={`Ajustar EVs de ${STAT_MAP[name] || name}`} min="0" max="252" step="4" value={ev === "" ? 0 : ev} onChange={event => handleChange("evs", name, event.target.value)} /><input type="number" aria-label={`EVs de ${STAT_MAP[name] || name}`} min="0" max="252" value={ev} onKeyDown={handleEnter} onChange={event => handleChange("evs", name, event.target.value)} className="editor-input" /></div></label>
+                                <label><span>Base</span>{isHackmon ? <input type="number" aria-label={`Base de ${STAT_MAP[name] || name}`} min="1" max="255" value={base} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, customStats: { ...(pk.customStats || {}), [name]: event.target.value === "" ? "" : integerInRange(event.target.value, 1, 255, 1) } })} className="editor-input" /> : <output aria-label={`Base de ${STAT_MAP[name] || name}`}>{base}</output>}</label>
                                 <label><span>IVs</span><input type="number" aria-label={`IVs de ${STAT_MAP[name] || name}`} min="0" max="31" value={iv} onKeyDown={handleEnter} onChange={event => handleChange("ivs", name, event.target.value)} className="editor-input" /></label>
+                                <div className="pokemon-stat-ev"><span>EVs</span><div><input type="range" aria-label={`Ajustar EVs de ${STAT_MAP[name] || name}`} min="0" max="252" step="4" value={ev === "" ? 0 : ev} onChange={event => handleChange("evs", name, event.target.value)} /><input type="number" aria-label={`EVs de ${STAT_MAP[name] || name}`} min="0" max="252" value={ev} onKeyDown={handleEnter} onChange={event => handleChange("evs", name, event.target.value)} className="editor-input" /></div></div>
                             </div>
                         </div>;
                     })}</div>

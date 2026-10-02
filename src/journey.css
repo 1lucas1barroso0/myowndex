@@ -54,8 +54,9 @@ html .app-root.game-edition.handheld-edition {
 }
 html .app-root.game-edition.handheld-edition.view-teambuilder { --module-color: var(--ui-blue); }
 html .app-root.game-edition.handheld-edition.view-guide { --module-color: var(--journey-teal); }
-html .app-root.game-edition.handheld-edition :is(h1,h2,h3,h4) { font-family: inherit !important; line-height: 1.15 !important; letter-spacing: -.025em !important; text-shadow: none !important; overflow-wrap: anywhere !important; }
-html .app-root.game-edition.handheld-edition :is(p,span,small,strong,label,summary,button,dt,dd) { overflow-wrap: anywhere !important; }
+html .app-root.game-edition.handheld-edition :is(h1,h2,h3,h4) { font-family: inherit !important; line-height: 1.2 !important; letter-spacing: -.025em !important; text-shadow: none !important; overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: balance; }
+html .app-root.game-edition.handheld-edition :is(p,span,small,strong,label,summary,button,dt,dd) { overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; }
+html .app-root.game-edition.handheld-edition :is(.pc-partner-name,.pc-box-button-heading > span:first-child,.link-cable-partners strong,.link-cable-preview-list b,.room-player strong,.room-title h2,.token-inspector-identity strong,.audio-now strong,.audio-library strong,.call-member strong) { overflow:visible !important; white-space:normal !important; text-overflow:clip !important; overflow-wrap:anywhere !important; }
 html .app-root.game-edition.handheld-edition :is(section,article,aside,main,fieldset,label) { min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition :is(button,summary) { cursor: pointer !important; touch-action: manipulation !important; }
 html .app-root.game-edition.handheld-edition button { white-space: normal !important; line-height: 1.3 !important; transition: background .15s, border-color .15s, transform .15s !important; }

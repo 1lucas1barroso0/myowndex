@@ -1,41 +1,51 @@
-# Estado da atualização 11.1 CLEAN
+# Estado da atualização 11.2
 
-Retomada em 1 de outubro de 2026 após auditar status, diffs, componentes, decisões e implementação parcial. Trabalho válido preservado, inclusive alterações ainda não commitadas. Não executar reset, checkout destrutivo ou substituir o diretório por uma versão anterior.
+Retomada em 2 de outubro de 2026 após auditar status, diffs, componentes e decisões. Toda implementação válida da 11.1 foi preservada, inclusive alterações ainda sem commit no Git exportado. Não executar reset, checkout destrutivo ou substituir o diretório por uma versão anterior.
 
-## Base e destino
+## Base e publicação
 
-- Base desta atualização no GitHub: `f428b70ea9a3f948d1c9c0eda17e5d2deaf165f8`, versão 11 publicada em `1lucas1barroso0/myowndex`.
-- A base exportada do Git local é `9f3450c`; ela é anterior ao estado remoto e não é a base de publicação.
-- Destino: https://myowndex.vercel.app. Produção verificada antes do envio em 11.0.0, deployment READY ligado ao commit `f428b70`. A conexão MCP GitHub e a alternativa autenticada do GitHub CLI recusaram escrita com HTTP 403 (“Resource not accessible by integration”). A versão 11.1 não foi publicada nesta execução. O instalador Linux conclui o envio usando o login do usuário no dispositivo. Conferir o commit de `main`, o deployment READY e o rodapé 11.1.0 antes de declarar publicação concluída.
-- Turso Production e Preview já configurados. Reutilizar as variáveis existentes; não criar bancos, substituir tokens ou migrar salas antigas. Protocolo das salas 3 e armazenamento das Boxes 4 preservados.
+- Base remota: `d10c9482cb562a84b09c9cc6a1df2168426f72d4`, atualização 11.1 publicada em `1lucas1barroso0/myowndex` pelo usuário. Árvore: `4e6926c28c1ae946ae7ab7e51b98b4a39f3b624a`.
+- O HEAD local exportado é `9f3450c`, anterior ao remoto. Para comparar, use índice Git temporário baseado no commit remoto e inclua arquivos novos; o diff comum não inclui arquivos ainda não rastreados.
+- Destino: https://myowndex.vercel.app. O HTML público conferido nesta execução contém 11.1.0. A 11.2 foi construída/verificada localmente; sua publicação ainda precisa ocorrer pelo instalador.
+- Na execução anterior, conexão GitHub e CLI autenticado recusaram escrita com HTTP 403, “Resource not accessible by integration”. O instalador usa os logins do usuário. Conferir `main`, deployment READY e rodapé 11.2.0 antes de declarar publicação concluída.
+- Turso Production/Preview já configurados. Reutilizar bancos e variáveis; não criar banco, trocar tokens ou migrar salas antigas. Protocolo das salas 3 e armazenamento das Boxes 4 preservados.
 
-## Implementação
+## Implementação preservada
 
-- Macrodesign Sword/Shield e detalhes HGSS/BW/B2W2: navegação forte, seleção contrastante, sprite nas listas/campo e artwork no foco individual.
-- `src/journey.css`: tokens comuns, navegação, Pokédex e aventura. Removidas centenas de regras legadas ou concorrentes de `src/index.css`, preservando a geometria funcional do campo.
-- Modos RPG/Jogos/Livre e aparência Claro/Escuro/Dispositivo em grupos independentes, visíveis e capazes de quebrar linha.
-- `src/pokedex-record.css`: ficha com rolagem única, fechamento no fluxo, abas claras e conteúdo em uma coluna no celular.
-- `src/pc-retro.css`: lista de Boxes limitada por altura, parceiros reais, editor com campos essenciais e detalhes opcionais, Link Cable e prévia de importação responsivos.
-- `src/guide.css`: 39 regras preservadas em detalhes individuais pesquisáveis; coluna de leitura confortável. Referência Fate consultada no código e navegador: `docs/CLEAN-REFERENCIAS.md`.
-- Aventura com painéis Equipe/Campo/Ações no celular, campo e ferramentas reorganizados por espaço disponível. Notas privadas e sincronização preservadas.
-- Sem placeholders, instalação guiada, aviso permanente de prontidão ou novos serviços de IA. O runtime continua Next.js/React/Turso; Netlify não faz parte do código.
-- Cache público com LRU de 256 respostas, assets regeneráveis limitados a 500 e shell offline separado. Hidratação compartilha quatro tarefas simultâneas. Salvamento agrupado com flush ao sair; Boxes não expiram.
-- Catálogo salvo junto ao parceiro mantém os sprites usados, artwork, animação Black/White e atributos offline; remove URLs redundantes de gerações não utilizadas, preservando os campos do jogador.
-- Hidratação tardia só atualiza o mesmo ID e a mesma forma; não substitui parceiros novos, formas alteradas ou edições locais recentes.
-- Versão 11.1.0 em package, interface e service worker. Sem alteração de dependências da versão 11.
+- Macrodesign Sword/Shield e detalhes HGSS/BW/B2W2: navegação forte, contraste, sprites nas listas/campo e artwork no foco individual.
+- Tokens comuns em `journey.css`, geometria funcional do campo, modos RPG/Jogos/Livre separados da aparência.
+- Ficha com rolagem única; Boxes com lista limitada por altura; editor, Link Cable e importação responsivos.
+- 39 regras pesquisáveis/expansíveis; referência Fate registrada em `docs/CLEAN-REFERENCIAS.md`.
+- Aventura com Equipe/Campo/Ações no celular, notas privadas e sincronização preservadas.
+- Sem placeholders, instalação guiada, aviso permanente de prontidão ou dependência de GPT/IA. Runtime Next.js/React/Turso; Netlify fora da fonte.
+- Cache público LRU de 256 respostas, assets regeneráveis limitados a 500, shell offline separado e hidratação limitada a quatro tarefas. Salvamento agrupado com flush ao sair; Boxes não expiram.
+- Catálogo conserva sprites usados, artwork, animação Black/White e atributos offline. Hidratação tardia verifica ID, forma e edição recente antes de atualizar.
+
+## Ajustes da 11.2
+
+- Apenas Claro/Escuro. Preferência antiga `system` é resolvida pela aparência atual do dispositivo uma vez e torna-se escolha explícita persistida. Tema não altera modo de jogo.
+- Entrada e PC com texto revisado; títulos/rótulos mantêm palavras inteiras. Conteúdo livre e nomes longos quebram linha sem ocultar letras.
+- Registro com cor do tipo, descrição destacada, idioma e fatos sem duplicar altura/peso. Evoluções conectadas, com ramos e estágio atual. Ícones distintos para Tipos/Movimentos.
+- Movimentos com método de aprendizado, tipo, categoria e dados de batalha separados. Detalhes completos carregados ao abrir, com deduplicação.
+- Treinamento separa título, IVs/EVs e orçamento. Seis atributos reorganizam Base, IVs, EVs e slider pela largura disponível; limites, balanceamento e salvamento preservados.
+- dX mostra Livre. Removidos Copiar e a redundância nas probabilidades. Histórico com resultado, contexto e data; exportação e limite de 100 preservados.
+- Proteção contra hit kill com escudo, três etapas coloridas, 1 HP e exemplo. Regras, exceções, Sturdy e Focus Sash completas.
+- `src/core/names.js` centraliza nomes ingleses, pontuação, siglas e formas regionais/Mega. Tipos, habilidades, itens, naturezas, movimentos e demais nomes próprios não são traduzidos; explicações/controles seguem em português.
+- Proporções como porcentagem/multiplicador, contagens com “de”, sem notação de fração. Cálculos preservados: HP positivo usa piso/mínimo 1, imunidade é zero, conversão RPG sobe a partir de 0,56 e modificadores direcionais usam teto/piso conforme a regra. XP segue em passos de 0,5; medidas oficiais conservam precisão.
+- Versão 11.2.0 em package, rodapé e service worker; dependências iguais.
 
 ## Verificação e retomada
 
-Dependências reais instaladas por `npm ci`; Next.js, ESLint, TypeScript e Chromium disponíveis nesta sessão. Passaram 209 testes, lint, tipos, build e 99 verificações de responsividade, incluindo 80 Boxes e 480 Pokémon. A inspeção automatizada em navegador está em `tests/browser-responsive.mjs`; os resultados finais são descritos em `docs/VALIDACAO.md`.
+Passaram 212 testes, lint, tipos, build, HTML servido e 99 checkpoints de responsividade contra a build de produção, incluindo zoom de 200%, 80 Boxes e 480 Pokémon. Mais 51 checkpoints de `tests/browser-polish.mjs` cobriram os novos painéis abertos em Claro/Escuro, quatro larguras, geometria de palavras, migração da aparência e edição/persistência dos 12 valores IV/EV. Nenhum erro JavaScript. Comandos e limites em `docs/VALIDACAO.md`.
 
-O smoke completo das salas passou contra um transporte HTTP Hrana de QA com SQLite real em memória: criação, entrada, autorização, nota privada, revisão, ações concorrentes, combate, eventos, RNG e chamadas. A sala foi apagada ao terminar. Duas páginas reais também confirmaram sincronização da descrição e privacidade da nota; a sala foi encerrada pelo narrador. Nenhum desses testes usou ou alterou o banco de produção.
+Na 11.1, smoke das salas passou em QA com HTTP Hrana/SQLite real: criação, entrada, autorização, nota privada, revisão, concorrência, combate, eventos, RNG e chamadas. Duas páginas também verificaram sincronização/privacidade. Esse smoke de API não foi repetido na 11.2; não houve alteração funcional do servidor/protocolo em relação à base publicada. Produção não usada para ensaios.
 
-Os logs e screenshots temporários da sessão estão em `/tmp/myowndex-clean-*.log` e `/tmp/myowndex-clean-*.png`; não fazem parte da entrega. Não depender desses arquivos em outra máquina. Os comandos reproduzíveis e as limitações estão em `docs/VALIDACAO.md`.
+Logs/screenshots em `/tmp/myowndex-polish-*` e `/tmp/myowndex-clean-*` não fazem parte da entrega e podem não sobreviver ao reinício. Reproduza usando os scripts do projeto. O checkpoint local usa `codex/myowndex-v11-polish-checkpoint-20261002`, sem substituir HEAD/index original; o status externo da entrega registra seu commit.
 
-Se houver interrupção durante publicação, consultar o PR e o deployment antes de enviar novamente. O instalador usa pasta própria por digest, protege alterações em `main`, valida o SHA antes de integrar e preserva a pasta de trabalho quando falha. Se a fonte já estiver em main, confirma o CI e segue sem criar PR vazio. Passou 34 verificações offline de automação.
+Se a publicação for interrompida, consulte PR/deployment antes de reenviar. Instalador usa estado por digest, preserva alterações, valida SHA antes da integração e mantém checkout/log em falha. Fonte já aplicada não gera PR vazio. As 34 verificações offline da automação realizadas na 11.1 não são contadas como repetidas nesta execução.
 
 ## Entrega
 
-Gerar com `python3 scripts/empacotar-linux.py`. Saídas em `../entrega`: `myowndex-v11.1-linux.sh`, ZIP, TAR.GZ, comando, instruções e SHA-256. O script inclui o projeto inteiro, reaproveita logins/bancos existentes e repete os checks antes de publicar. Não inclui `.env`, `.vercel`, `.git`, builds ou dependências instaladas.
+Gerar com `python3 scripts/empacotar-linux.py`: `../entrega/myowndex-v11.2-linux.sh`, ZIP, TAR.GZ, comando, instruções e SHA-256. Script inclui projeto inteiro, reaproveita logins/bancos e repete checks antes de publicar. Exclui .env, .vercel, .git, builds e dependências instaladas.
 
-A GitHub App Netlify é uma configuração externa da conta. Retirar somente o acesso a este repositório quando houver permissão administrativa, conforme `docs/AUTOMACAO.md`; não suspender a integração global nem afetar outros projetos.
+Netlify GitHub App é configuração externa: se ainda vinculada, retirar somente este repositório conforme `docs/AUTOMACAO.md`, sem afetar outros projetos.

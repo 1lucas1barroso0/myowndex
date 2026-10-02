@@ -433,7 +433,7 @@ export default function App() {
                     ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} />}
                 </div>
             </main>
-            <footer className="device-footer"><span>MyOwnDex <b>11.1.0</b></span><span>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
+            <footer className="device-footer"><span>MyOwnDex <b>11.2.0</b></span><span>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
         </div>
     );

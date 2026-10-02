@@ -6,14 +6,14 @@ const APPEARANCE_KEY = "myowndex_appearance_v1";
 const THEMES = [
     { id: "normal", label: "Claro", icon: "sun" },
     { id: "night", label: "Escuro", icon: "moon" },
-    { id: "system", label: "Dispositivo", icon: "theme" },
 ];
 
-const validTheme = value => THEMES.some(theme => theme.id === value) ? value : "system";
+const validTheme = value => THEMES.some(theme => theme.id === value) ? value
+    : value === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "normal";
 const movementKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
 export default function AppearanceControl() {
-    const [preference, setPreference] = useState("system");
+    const [preference, setPreference] = useState("normal");
     const [ready, setReady] = useState(false);
     const optionRefs = useRef([]);
 
@@ -28,24 +28,18 @@ export default function AppearanceControl() {
     };
 
     useEffect(() => {
-        setPreference(validTheme(readStorage(APPEARANCE_KEY, "system")));
+        setPreference(validTheme(readStorage(APPEARANCE_KEY, "normal")));
         setReady(true);
     }, []);
 
     useEffect(() => {
-        if (!ready) return undefined;
-        const media = window.matchMedia("(prefers-color-scheme: dark)");
-        const apply = () => {
-            const resolved = preference === "system" ? (media.matches ? "night" : "normal") : preference;
-            document.documentElement.dataset.theme = resolved;
-            document.documentElement.dataset.themePreference = preference;
-            document.documentElement.style.colorScheme = resolved === "night" ? "dark" : "light";
-            document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "night" ? "#17283e" : "#da3041");
-        };
-        apply();
+        if (!ready) return;
+        const resolved = preference;
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.dataset.themePreference = preference;
+        document.documentElement.style.colorScheme = resolved === "night" ? "dark" : "light";
+        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "night" ? "#17283e" : "#da3041");
         writeStorage(APPEARANCE_KEY, preference);
-        media.addEventListener?.("change", apply);
-        return () => media.removeEventListener?.("change", apply);
     }, [preference, ready]);
 
     return (
@@ -59,7 +53,7 @@ export default function AppearanceControl() {
                         type="button"
                         role="radio"
                         aria-checked={preference === theme.id}
-                        aria-label={theme.id === "system" ? "Acompanhar a aparência do dispositivo" : theme.label}
+                        aria-label={theme.label}
                         tabIndex={preference === theme.id ? 0 : -1}
                         className={preference === theme.id ? "is-selected" : ""}
                         data-appearance={theme.id}

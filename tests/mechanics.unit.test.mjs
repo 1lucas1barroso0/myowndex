@@ -46,6 +46,15 @@ test("uses the MyOwnDex scale by 10 with half-up rounding", () => {
   assert.equal(convertToTTRPG(1, true), 1);
 });
 
+test("ordinary level-five Pokémon keep more than one RPG HP while Shedinja stays fixed at one", () => {
+  for (const [name, baseHp] of [["charmander", 39], ["squirtle", 44], ["bulbasaur", 45]]) {
+    const rawHp = calculateStat(baseHp, 0, 31, 5, 1, true, name);
+    assert.ok(convertToTTRPG(rawHp, true) >= 2, name);
+  }
+  const shedinjaHp = calculateStat(1, 0, 31, 50, 1, true, "shedinja");
+  assert.equal(convertToTTRPG(shedinjaHp, true), 1);
+});
+
 test("formats calculated values and type labels for Brazilian Portuguese", () => {
   assert.equal(formatNumberPtBr(5.5), "5,5");
   assert.equal(formatType("electric"), "Electric");

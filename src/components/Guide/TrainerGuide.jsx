@@ -146,7 +146,7 @@ export default function TrainerGuide({ experienceMode }) {
                                     <span>Limite comum de dano</span>
                                     <strong>{formatNumberPtBr(getDamageCeiling(level))}</strong>
                                 </div>
-                                <p>No nível {formatNumberPtBr(level)}, este é o máximo comum por hit. Aumentos temporários elevam o limite proporcionalmente; críticos e danos de regra própria usam suas exceções.</p>
+                                <p>No nível {formatNumberPtBr(level)}, este é o teto-base por hit. Super efetividade e aumentos temporários elevam o limite proporcionalmente; críticos e danos de regra própria usam suas exceções.</p>
                             </article>
                             <details className="guide-hit-kill-card" data-rule-id="3.4">
                                 <summary>Proteção contra hit kill</summary>

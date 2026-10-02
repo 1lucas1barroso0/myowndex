@@ -1652,7 +1652,7 @@ export const eventSummary = event => {
         const fainted = payload.fainted ? " O alvo não pode mais batalhar." : "";
         const fumble = payload.fumble ? " O erro crítico pede uma consequência escolhida para esta cena." : "";
         const defenderFumble = payload.defenderFumble
-            ? " O erro crítico do defensor permitiu que um dano fatal ignorasse a proteção contra Hit Kill."
+            ? " O erro crítico do defensor também pede uma consequência coerente com a cena; a proteção contra Hit Kill permanece independente."
             : "";
         const special = payload.specialNarrative ? ` ${payload.specialNarrative}` : "";
         return `${event.author}: ${payload.attackerName || "Pokémon"} ${moveDescription} e ${result}.${protection}${fainted}${fumble}${defenderFumble}${special}`;

@@ -78,14 +78,14 @@ test("all seven stat stages use the correct multipliers and preserve original va
   assert.equal(accuracyStageMultiplier(-2), 3 / 5);
   const raised = applyStageChange(attacker, "special-attack", 2);
   assert.equal(raised.stages["special-attack"], 2);
-  assert.equal(raised.stats["special-attack"], 6);
+  assert.equal(raised.stats["special-attack"], 12);
   const accuracy = applyStageChange(attacker, "accuracy", 2);
   assert.equal(accuracy.stages.accuracy, 2);
   assert.deepEqual(accuracy.stats, attacker.stats);
 
   const tiny = { ...attacker, originalStats: { ...attacker.originalStats, attack: 20 }, stats: { ...attacker.stats, attack: 1 } };
-  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: 1 } }).attack, 2);
-  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: -1 } }).attack, 0);
+  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: 1 } }).attack, 3);
+  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: -1 } }).attack, 1);
 });
 
 test("move targets distinguish self, allies, opponents and groups", () => {

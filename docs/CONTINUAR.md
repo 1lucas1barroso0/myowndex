@@ -1,40 +1,41 @@
-# Estado da atualização 11
+# Estado da atualização 11.1 CLEAN
 
-Retomada em 1 de outubro de 2026, após auditar git status, os diffs, as alterações parciais e os componentes existentes. Trabalho válido anterior preservado; não houve reset, reversão ou recomeço. As alterações continuam no diretório de trabalho, sem commit.
+Retomada em 1 de outubro de 2026 após auditar status, diffs, componentes, decisões e implementação parcial. Trabalho válido preservado, inclusive alterações ainda não commitadas. Não executar reset, checkout destrutivo ou substituir o diretório por uma versão anterior.
 
-## Bases e produção
+## Base e destino
 
-- Base real no GitHub: da34b383019aa46aa6a4e73d187ede1daf620bbe.
-- Base local exportada: commit 9f3450c; não confundir com o SHA remoto.
-- Produção existente: https://myowndex.vercel.app, versão 10. Esta sessão não publicou a versão 11.
-- Turso Production e Preview já estão configurados. Não criar bancos novamente nem migrar salas antigas. Protocolos de sala e chaves de armazenamento local preservados.
+- Base desta atualização no GitHub: `f428b70ea9a3f948d1c9c0eda17e5d2deaf165f8`, versão 11 publicada em `1lucas1barroso0/myowndex`.
+- A base exportada do Git local é `9f3450c`; ela é anterior ao estado remoto e não é a base de publicação.
+- Destino: https://myowndex.vercel.app. Produção verificada antes do envio em 11.0.0, deployment READY ligado ao commit `f428b70`. A conexão MCP GitHub e a alternativa autenticada do GitHub CLI recusaram escrita com HTTP 403 (“Resource not accessible by integration”). A versão 11.1 não foi publicada nesta execução. O instalador Linux conclui o envio usando o login do usuário no dispositivo. Conferir o commit de `main`, o deployment READY e o rodapé 11.1.0 antes de declarar publicação concluída.
+- Turso Production e Preview já configurados. Reutilizar as variáveis existentes; não criar bancos, substituir tokens ou migrar salas antigas. Protocolo das salas 3 e armazenamento das Boxes 4 preservados.
 
-## Implementação concluída
+## Implementação
 
-- Macrodesign inspirado no print de Sword/Shield, microdesign inspirado em HGSS/BW/B2W2: navegação por ícones com seleção escura, grandes áreas de cor, texto moderno e detalhes 2D.
-- Apresentação consolidada em src/journey.css. Removidos game-edition.css e handheld.css concorrentes; index.css mantém geometria do campo e recebeu limpeza de 64 regras mortas. PC/record/local-dice mantêm seus layouts específicos com tokens comuns.
-- Sprites nas listas, Boxes e campo; artwork oficial no foco individual. Temas claro/escuro, contraste, redução de movimento e foco preservados.
-- Campos e ajudas no fluxo, fichas com quebra de linha, modais com rolagem, teclado e foco. Corrigidas respostas assíncronas tardias de edição/importação para preservar dados recentes.
-- Retirados instalação guiada, prontidão permanente, slogans, repetições, entradas Vite, imagens sem referências, schemas Drizzle não usados e 87 dependências. Runtime Turso permanece em server/rooms.ts e server/runtime.ts.
-- Versão 11.0.0 e cache do service worker atualizado. Manifest e metadados alinhados à nova paleta; instalação pelos recursos do navegador preservada.
-- Novo empacotador determinístico e instalador independente e retomável em scripts/atualizar-v11.template.sh. Scripts antigos preparar/publicar removidos. O instalador valida código e CI antes de integrar e publicar, reutilizando bancos e logins existentes.
+- Macrodesign Sword/Shield e detalhes HGSS/BW/B2W2: navegação forte, seleção contrastante, sprite nas listas/campo e artwork no foco individual.
+- `src/journey.css`: tokens comuns, navegação, Pokédex e aventura. Removidas centenas de regras legadas ou concorrentes de `src/index.css`, preservando a geometria funcional do campo.
+- Modos RPG/Jogos/Livre e aparência Claro/Escuro/Dispositivo em grupos independentes, visíveis e capazes de quebrar linha.
+- `src/pokedex-record.css`: ficha com rolagem única, fechamento no fluxo, abas claras e conteúdo em uma coluna no celular.
+- `src/pc-retro.css`: lista de Boxes limitada por altura, parceiros reais, editor com campos essenciais e detalhes opcionais, Link Cable e prévia de importação responsivos.
+- `src/guide.css`: 39 regras preservadas em detalhes individuais pesquisáveis; coluna de leitura confortável. Referência Fate consultada no código e navegador: `docs/CLEAN-REFERENCIAS.md`.
+- Aventura com painéis Equipe/Campo/Ações no celular, campo e ferramentas reorganizados por espaço disponível. Notas privadas e sincronização preservadas.
+- Sem placeholders, instalação guiada, aviso permanente de prontidão ou novos serviços de IA. O runtime continua Next.js/React/Turso; Netlify não faz parte do código.
+- Cache público com LRU de 256 respostas, assets regeneráveis limitados a 500 e shell offline separado. Hidratação compartilha quatro tarefas simultâneas. Salvamento agrupado com flush ao sair; Boxes não expiram.
+- Catálogo salvo junto ao parceiro mantém os sprites usados, artwork, animação Black/White e atributos offline; remove URLs redundantes de gerações não utilizadas, preservando os campos do jogador.
+- Hidratação tardia só atualiza o mesmo ID e a mesma forma; não substitui parceiros novos, formas alteradas ou edições locais recentes.
+- Versão 11.1.0 em package, interface e service worker. Sem alteração de dependências da versão 11.
 
-## Verificação observada
+## Verificação e retomada
 
-- npm test: 21 arquivos passaram. Execução detalhada: 194 testes individuais, sem falhas, incluindo gzip real de importação/exportação.
-- Fontes oficiais já presentes de fflate 0.8.3 compiladas temporariamente em node_modules para os testes; nenhum mock e nenhuma alteração de dependências/lockfile. npm ci no ambiente completo substitui essa instalação temporária.
-- Parser Babel: 85 arquivos de código sem erro de sintaxe. Referências relativas de módulos conferidas, sem alvos ausentes; chaves CSS balanceadas.
-- Contraste WCAG AA dos pares reais claro/escuro e botões principais aprovado. git diff --check limpo.
-- Instalador: 29 verificações offline com Git real e CLIs simuladas, incluindo falhas, conflitos, retomada, concorrência, mudanças em main e limpeza da sala de teste. bash -n e extração do arquivo final aprovados.
+Dependências reais instaladas por `npm ci`; Next.js, ESLint, TypeScript e Chromium disponíveis nesta sessão. Passaram 209 testes, lint, tipos, build e 99 verificações de responsividade, incluindo 80 Boxes e 480 Pokémon. A inspeção automatizada em navegador está em `tests/browser-responsive.mjs`; os resultados finais são descritos em `docs/VALIDACAO.md`.
 
-## Pendências concretas
+O smoke completo das salas passou contra um transporte HTTP Hrana de QA com SQLite real em memória: criação, entrada, autorização, nota privada, revisão, ações concorrentes, combate, eventos, RNG e chamadas. A sala foi apagada ao terminar. Duas páginas reais também confirmaram sincronização da descrição e privacidade da nota; a sala foi encerrada pelo narrador. Nenhum desses testes usou ou alterou o banco de produção.
 
-Next.js, ESLint e TypeScript não foram instalados: npm ci offline encontrou pacote sem cache; pedidos de rede foram interrompidos. npm run build, lint e typecheck foram tentados e retornaram ferramenta ausente. O parser não substitui esses checks. Chromium também não iniciou dentro do sandbox; não houve validação visual real no navegador. O instalador exige checks completos no Linux antes da publicação, e o CI os repete.
+Os logs e screenshots temporários da sessão estão em `/tmp/myowndex-clean-*.log` e `/tmp/myowndex-clean-*.png`; não fazem parte da entrega. Não depender desses arquivos em outra máquina. Os comandos reproduzíveis e as limitações estão em `docs/VALIDACAO.md`.
 
-Próxima execução com dependências: npm ci; npm test; npm run lint; npm run typecheck; npm run build. Corrigir qualquer regressão e verificar as quatro áreas, fichas, Boxes/import-export, aventura local e compartilhada, ambos os temas, 320/390/768/1280 px e zoom de 200%. Não declarar a inspeção visual concluída antes de fazê-la.
-
-A integração Netlify externa via GitHub App ainda exige retirar apenas myowndex em https://github.com/settings/installations (Netlify > Configure > Repository access). Este ambiente não tem permissão administrativa para alterá-la; não remover/suspender a instalação global nem afetar outros repositórios. Código atual não depende de Netlify ou GPT.
+Se houver interrupção durante publicação, consultar o PR e o deployment antes de enviar novamente. O instalador usa pasta própria por digest, protege alterações em `main`, valida o SHA antes de integrar e preserva a pasta de trabalho quando falha. Se a fonte já estiver em main, confirma o CI e segue sem criar PR vazio. Passou 34 verificações offline de automação.
 
 ## Entrega
 
-/workspace/entrega/myowndex-v11-linux.sh inclui todo o projeto; COMANDO-V11.txt encontra o arquivo baixado e executa. Arquivos alternativos: myowndex-v11.zip, myowndex-v11-linux.tar.gz e SHA256-V11.txt. Para regenerar: python scripts/empacotar-linux.py. Não usar os instaladores v10 antigos. Logs locais: /tmp/myowndex-v11-final-tests.log, /tmp/myowndex-v11-all-tests.log e /tmp/myowndex-v11-syntax-check.log.
+Gerar com `python3 scripts/empacotar-linux.py`. Saídas em `../entrega`: `myowndex-v11.1-linux.sh`, ZIP, TAR.GZ, comando, instruções e SHA-256. O script inclui o projeto inteiro, reaproveita logins/bancos existentes e repete os checks antes de publicar. Não inclui `.env`, `.vercel`, `.git`, builds ou dependências instaladas.
+
+A GitHub App Netlify é uma configuração externa da conta. Retirar somente o acesso a este repositório quando houver permissão administrativa, conforme `docs/AUTOMACAO.md`; não suspender a integração global nem afetar outros projetos.

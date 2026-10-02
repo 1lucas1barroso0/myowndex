@@ -173,7 +173,7 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   ]);
   assert.match(guide, /<LocalDicePanel/);
   assert.doesNotMatch(panel, /Seguro e offline|Resultado registrado|Detalhes e segurança|>Mantido</);
-  assert.match(panel, /Atacar com Fire Blast/);
+  assert.doesNotMatch(panel, /placeholder=/, "dice fields use persistent labels instead of examples inside inputs");
   assert.match(panel, /LOCAL_ROLL_MODES\[result\.spec\.mode\]/);
   assert.match(panel, /Vantagem · menor de dois d100/);
   assert.match(panel, /Desvantagem · maior de dois d100/);
@@ -202,8 +202,8 @@ test("game style and adventure phase use compact tabs with complete help on dema
   assert.match(styleControl, /role="radiogroup"/);
   assert.match(styleControl, /aria-checked=\{selected\}/);
   assert.match(styleControl, /ArrowRight/);
-  assert.match(styleControl, /choice-help-popover/);
-  assert.match(styleControl, /selectedMode\.description/);
+  assert.match(styleControl, /mode\.description/);
+  assert.match(styleControl, /data-mode=\{mode\.id\}/);
   assert.doesNotMatch(styleControl, /GB|GBA|3DS|consoleLabel/);
   assert.doesNotMatch(rules, /consoleLabel/);
   assert.match(room, /<AdventurePhaseControl/);
@@ -219,16 +219,17 @@ test("game style and adventure phase use compact tabs with complete help on dema
   assert.match(css, /\.room-phase-help-content/);
   assert.match(css, /\.choice-help-popover/);
   assert.match(css, /min-height:\s*44px/);
-  assert.match(css, /max-width:\s*420px/);
+  assert.match(css, /\.room-phase-help-content[^{]*\{[^}]*display:\s*block/);
 });
 
 test("the common presentation preserves critical rules without hiding content", async () => {
-  const [app, guide, room, combat, css, documentation] = await Promise.all([
+  const [app, guide, room, combat, css, guideCss, documentation] = await Promise.all([
     read("src/App.jsx"),
     read("src/components/Guide/TrainerGuide.jsx"),
     read("src/components/Room/RpgRoom.jsx"),
     read("src/components/Room/CombatAssistant.jsx"),
     read("src/journey.css"),
+    read("src/guide.css"),
     read("docs/icon-visual-system.md"),
   ]);
   assert.doesNotMatch(guide, /<span className="guide-pill">/);
@@ -262,36 +263,38 @@ test("the common presentation preserves critical rules without hiding content", 
   assert.match(css, /safe-area-inset-top/);
   assert.match(css, /overflow-wrap:\s*anywhere/);
   assert.match(css, /white-space:\s*normal/);
-  assert.match(css, /\.guide-damage-limit-card/);
-  assert.match(css, /\.guide-hit-kill-card/);
+  assert.match(guideCss, /\.guide-damage-limit-card/);
+  assert.match(guideCss, /\.guide-hit-kill-card/);
   assert.match(documentation, /Sword\/Shield/);
   assert.match(documentation, /HeartGold\/SoulSilver/);
   assert.match(documentation, /não deve desaparecer para caber/);
 });
 
 test("all module surfaces share tokens while preserving distinct selected states", async () => {
-  const css = await read("src/journey.css");
+  const [css, guideCss, recordCss, pcCss] = await Promise.all([
+    read("src/journey.css"), read("src/guide.css"), read("src/pokedex-record.css"), read("src/pc-retro.css"),
+  ]);
   for (const token of ["--ui-panel", "--ui-ink", "--ui-muted", "--ui-line", "--ui-blue", "--ui-selected"]) {
     assert.ok(css.includes(token), `missing shared presentation token ${token}`);
   }
-  for (const selector of [".game-panel", ".room-section", ".guide-calculator", ".record-shell", ".pc-workspace.pc-retro"]) {
-    assert.ok(css.includes(selector), `missing presentation for ${selector}`);
+  for (const [source, selector] of [[css, ".game-panel"], [css, ".room-section"], [guideCss, ".guide-calculator"], [recordCss, ".record-shell"], [pcCss, ".pc-workspace.pc-retro"]]) {
+    assert.ok(source.includes(selector), `missing presentation for ${selector}`);
   }
   assert.match(css, /:focus-visible[^{]*\{[^}]*outline:\s*3px/);
   assert.match(css, /\.nav-capsule\.is-active[^{]*\{[^}]*background:\s*#222b30/);
-  assert.match(css, /\.record-tabs button\[aria-selected="true"\][^{]*\{[^}]*background:\s*#222b30/);
+  assert.match(recordCss, /\.record-tabs button\[aria-selected=(?:"true"|true)\][^{]*\{[^}]*background:\s*#222b30/);
 });
 
 test("PC controls use the shared presentation after geometry and retain local saving copy", async () => {
   const [room, css, globals] = await Promise.all([
     read("src/components/Room/RpgRoom.jsx"),
-    read("src/journey.css"),
+    read("src/pc-retro.css"),
     read("app/globals.css"),
   ]);
-  assert.match(room, /Suas Boxes ficam salvas neste dispositivo/);
-  assert.match(room, /sincronizam as ações do grupo/);
-  assert.match(css, /--pc-ink:\s*var\(--ui-ink\)/);
-  assert.match(css, /--pc-paper:\s*var\(--ui-panel\)/);
+  assert.match(room, /writeStorage\(LOCAL_ROOM_STORAGE_KEY/);
+  assert.match(room, /saveRoomSession/);
+  assert.match(css, /\.pc-workspace\.pc-retro[^{]*\{[^}]*color:\s*var\(--ui-ink\)/);
+  assert.match(css, /\.pc-main-panel[^{]*\{[^}]*background:\s*var\(--ui-panel\)/);
   assert.match(css, /\.pc-partner-card\.is-selected/);
   assert.match(css, /\.pc-action-button/);
   assert.ok(globals.indexOf("../src/journey.css") > globals.indexOf("../src/index.css"));

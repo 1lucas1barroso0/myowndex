@@ -6,7 +6,7 @@ umask 077
 
 DEX_STAGE="preparação da atualização"
 DEX_REPO="1lucas1barroso0/myowndex"
-DEX_BASE="da34b383019aa46aa6a4e73d187ede1daf620bbe"
+DEX_BASE="f428b70ea9a3f948d1c9c0eda17e5d2deaf165f8"
 DEX_SCOPE="1lucas1barroso0s-projects"
 DEX_PRODUCTION="https://myowndex.vercel.app"
 DEX_ARCHIVE_SHA="__ARCHIVE_SHA256__"
@@ -104,17 +104,32 @@ DEX_CI_GUARD
 
 case "$DEX_ACTION" in
   publicar|verificar|extrair) ;;
-  *) dex_fail "Uso: bash myowndex-v11-linux.sh [publicar|verificar|extrair]" ;;
+  *) dex_fail "Uso: bash myowndex-v11.1-linux.sh [publicar|verificar|extrair]" ;;
 esac
 [[ "$DEX_ARCHIVE_SHA" =~ ^[0-9a-f]{64}$ ]] || dex_fail "Este arquivo ainda é um modelo sem o pacote final. Baixe o instalador publicado."
 for DEX_TOOL in mktemp base64 sha256sum tar tee flock; do
   command -v "$DEX_TOOL" >/dev/null || dex_fail "Falta $DEX_TOOL; instale coreutils, tar e util-linux pelo gerenciador da sua distribuição."
 done
 DEX_RELEASE="${MYOWNDEX_V11_STATE_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/myowndex/releases/v11-${DEX_ARCHIVE_SHA:0:16}}"
+if [[ -n "${MYOWNDEX_V11_STATE_DIR:-}" ]]; then
+  DEX_SAVED_ARCHIVE_SHA=""
+  if [[ -s "$DEX_RELEASE/package-sha256" ]]; then read -r DEX_SAVED_ARCHIVE_SHA < "$DEX_RELEASE/package-sha256"; fi
+  if { [[ -n "$DEX_SAVED_ARCHIVE_SHA" && "$DEX_SAVED_ARCHIVE_SHA" != "$DEX_ARCHIVE_SHA" ]]; } \
+    || { [[ -z "$DEX_SAVED_ARCHIVE_SHA" ]] && { [[ -e "$DEX_RELEASE/branch" || -e "$DEX_RELEASE/pr-number" || -e "$DEX_RELEASE/patch-ready" ]]; }; }; then
+    DEX_RELEASE="${DEX_RELEASE%/}/v11-${DEX_ARCHIVE_SHA:0:16}"
+  fi
+fi
 mkdir -p -- "$DEX_RELEASE/source"
 exec 9> "$DEX_RELEASE/atualizacao.lock"
 flock --nonblock 9 || dex_fail "Esta atualização já está em execução em outro terminal. Aguarde a primeira execução terminar."
 DEX_LOCKED=1
+if [[ -s "$DEX_RELEASE/package-sha256" ]]; then
+  read -r DEX_SAVED_ARCHIVE_SHA < "$DEX_RELEASE/package-sha256"
+  [[ "$DEX_SAVED_ARCHIVE_SHA" == "$DEX_ARCHIVE_SHA" ]] || dex_fail "A pasta de estado pertence a outro pacote; os arquivos foram preservados."
+else
+  printf '%s\n' "$DEX_ARCHIVE_SHA" > "$DEX_RELEASE/package-sha256.tmp"
+  mv -- "$DEX_RELEASE/package-sha256.tmp" "$DEX_RELEASE/package-sha256"
+fi
 DEX_LOG="$DEX_RELEASE/verificacoes.log"
 DEX_CHECKOUT="$DEX_RELEASE/repo"
 DEX_STAGE="extração e integridade do pacote"
@@ -129,7 +144,7 @@ tar -xzf "$DEX_RELEASE/projeto.tar.gz" -C "$DEX_RELEASE/source"
 rm -- "$DEX_RELEASE/projeto.tar.gz"
 DEX_SOURCE="$DEX_RELEASE/source/myowndex"
 [[ -f "$DEX_SOURCE/package.json" && -f "$DEX_SOURCE/vercel.json" ]] || dex_fail "O pacote não contém o projeto completo."
-printf '\nMyOwnDex 11: código extraído em %s\n' "$DEX_SOURCE"
+printf '\nMyOwnDex 11.1: código extraído em %s\n' "$DEX_SOURCE"
 if [[ "$DEX_ACTION" == "extrair" ]]; then exit 0; fi
 
 DEX_MISSING=()
@@ -200,6 +215,7 @@ else
   if [[ ! -s "$DEX_RELEASE/branch" ]]; then
     DEX_STAGE="preparação do código atualizado"
     git cat-file -e "$DEX_BASE^{commit}" || dex_fail "A versão base desta entrega não foi encontrada; confira o histórico atual."
+    git merge-base --is-ancestor "$DEX_BASE" origin/main || dex_fail "Main não contém a versão base desta entrega; o histórico e o checkout foram preservados."
     DEX_BRANCH="codex/myowndex-v11-$(date -u +%Y%m%d-%H%M%S)-$RANDOM"
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
     printf '%s\n' "$DEX_BRANCH" > "$DEX_RELEASE/branch"
@@ -244,7 +260,9 @@ else
       fi
     elif [[ -s "$DEX_RELEASE/atualizacao.patch" ]]; then
       printf 'iniciado\n' > "$DEX_RELEASE/patch-started"
-      if ! git apply --3way --index "$DEX_RELEASE/atualizacao.patch"; then
+      if git apply --reverse --check --index "$DEX_RELEASE/atualizacao.patch" >/dev/null 2>&1; then
+        echo "O patch completo desta entrega já está aplicado; as mudanças existentes foram preservadas."
+      elif ! git apply --3way --index "$DEX_RELEASE/atualizacao.patch"; then
         if [[ -n "$(git diff --name-only --diff-filter=U)" ]]; then
           printf 'conflito\n' > "$DEX_RELEASE/patch-conflicted"
           dex_fail "A atualização encontrou mudanças incompatíveis. O conflito está preservado no checkout; resolva os arquivos do git status antes de retomar."
@@ -257,7 +275,7 @@ else
   read -r DEX_BRANCH_BASE < "$DEX_RELEASE/branch-base"
   if [[ "$(git rev-parse origin/main)" != "$DEX_BRANCH_BASE" ]]; then
     DEX_STAGE="integração de mudanças recentes de main"
-    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11: aplica revisão de interface"; fi
+    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.1: aplica interface CLEAN"; fi
     git merge --no-edit origin/main
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
   fi
@@ -276,6 +294,17 @@ if [[ "$DEX_ACTION" == "verificar" ]]; then
   printf '\nMyOwnDex validado. Para publicar, execute este arquivo sem argumentos.\nCheckout: %s\n' "$DEX_CHECKOUT"
   exit 0
 fi
+if [[ "$DEX_MERGED" != "true" && -z "$DEX_PR" && "$(git write-tree)" == "$(git rev-parse 'origin/main^{tree}')" ]]; then
+  # A entrega pode ter sido integrada por outra execução ou pela publicação automática.
+  # O GitHub não aceita um PR sem mudanças; confirme o código já integrado e continue.
+  DEX_MERGE_SHA="$(git rev-parse origin/main)"
+  dex_wait_checks "$DEX_MERGE_SHA"
+  git fetch origin main
+  [[ "$(git rev-parse origin/main)" == "$DEX_MERGE_SHA" ]] || dex_fail "Main mudou durante as verificações. Execute este mesmo arquivo novamente para validar o código atual."
+  git switch --detach "$DEX_MERGE_SHA"
+  DEX_MERGED="true"
+  echo "Esta atualização já está em main; o código validado segue para publicação."
+fi
 DEX_STAGE="acesso e vinculação à Vercel"
 if ! dex_vercel whoami >/dev/null 2>&1; then dex_vercel login; fi
 dex_vercel link --yes --project myowndex --scope "$DEX_SCOPE"
@@ -291,7 +320,7 @@ DEX_VERCEL_GUARD
 if [[ "$DEX_MERGED" != "true" ]]; then
   if ! git diff --cached --quiet; then
     DEX_STAGE="registro do código validado"
-    git commit -m "MyOwnDex 11: harmoniza interface e remove integrações antigas"
+    git commit -m "MyOwnDex 11.1: limpa interface e melhora responsividade"
   fi
   DEX_HEAD="$(git rev-parse HEAD)"
   printf '%s\n' "$DEX_HEAD" > "$DEX_RELEASE/head"
@@ -312,9 +341,9 @@ DEX_FIND_PR
       node --input-type=module - "$DEX_BRANCH" "$DEX_RELEASE/new-pr.json" <<'DEX_NEW_PR'
 import { writeFileSync } from "node:fs";
 writeFileSync(process.argv[3], JSON.stringify({
-  title: "MyOwnDex 11: interface harmonizada e publicação simplificada",
+  title: "MyOwnDex 11.1: interface CLEAN e espaços responsivos",
   head: process.argv[2], base: "main", draft: false,
-  body: "MyOwnDex passa a usar uma identidade visual única, com navegação compacta, textos consistentes e controles adaptados ao espaço disponível. Remove o guia de instalação, estados decorativos e configurações de hospedagem antigas. A interface mantém os sprites e a linguagem dos jogos de Pokémon.\n\nValidação local: testes, ESLint, tipos e build. GitHub Actions repete os mesmos checks; o instalador aguarda os resultados e valida o Preview antes de integrar.\n\nOs bancos e as variáveis existentes de Preview e Production permanecem configurados. Esta atualização não cria bancos nem depende de GPT."
+  body: "Campos e controles ganham espaço para respirar, com menos ornamentos e sem placeholders. Os modos RPG/Jogo/Hackmon e os temas claro/escuro voltam a ficar legíveis; o registro de Pokémon, as Boxes e os editores reorganizam o conteúdo conforme a tela. O Guia apresenta cada regra individualmente, com leitura confortável inspirada no Fate Gameplay Toolkit e na clareza de Pokémon Sword/Shield.\n\nO cache público fica limitado a 256 respostas de catálogo e 500 imagens/arquivos regeneráveis. Hidratação e salvamento reduzem o trabalho simultâneo; Boxes e aventuras continuam preservadas.\n\nValidação local: testes, ESLint, tipos e build. GitHub Actions repete os mesmos checks; o instalador aguarda os resultados e valida o Preview antes de integrar. Reutiliza os bancos e as variáveis existentes de Preview e Production."
 }), { mode: 0o600 });
 DEX_NEW_PR
       gh api --method POST "repos/$DEX_REPO/pulls" --input "$DEX_RELEASE/new-pr.json" > "$DEX_RELEASE/pr.json"

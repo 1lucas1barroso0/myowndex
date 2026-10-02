@@ -119,8 +119,8 @@ const isPlayerPresent = player => {
 const errorMessage = error => error instanceof Error ? error.message : "Algo impediu esta ação. Tente novamente.";
 
 function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onLocal, onResume }) {
-    const [title, setTitle] = useState("Minha aventura Pokémon");
-    const [narratorName, setNarratorName] = useState("Narrador");
+    const [title, setTitle] = useState("");
+    const [narratorName, setNarratorName] = useState("");
     const [invite, setInvite] = useState(defaultInvite ? buildRoomInviteToken(defaultInvite) : "");
     const [displayName, setDisplayName] = useState("");
     const parsedInvite = useMemo(() => parseRoomInviteValue(invite), [invite]);
@@ -131,10 +131,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
             <section className="room-lobby-hero adventure-intro">
                 <div>
                     <h2>Aventuras</h2>
-                    <p>Crie uma sala como Narrador ou entre com o convite do seu grupo.</p>
-                </div>
-                <div className="adventure-starters" aria-label="Bulbasaur, Charmander e Squirtle">
-                    {[1, 4, 7].map(id => <PokemonSprite key={id} pokemonId={id} alt="" loading="eager" className="pixelated" />)}
+                    <p>Jogue com seu grupo ou comece neste dispositivo.</p>
                 </div>
             </section>
 
@@ -154,25 +151,26 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     className="room-lobby-card is-narrator"
                     onSubmit={event => {
                         event.preventDefault();
-                        onCreate({ title, narratorName });
+                        if (!title.trim() || !narratorName.trim()) return;
+                        onCreate({ title: title.trim(), narratorName: narratorName.trim() });
                     }}
                 >
                     <header>
                         <span className="room-role-mark"><GameIcon name="adventure" /></span>
                         <div>
-                            <h3>Sou o Narrador</h3>
+                            <h3>Narrador</h3>
                         </div>
                     </header>
                     <label>
                         <span>Nome da aventura</span>
-                        <input value={title} maxLength={80} required onChange={event => setTitle(event.target.value)} />
+                        <input value={title} maxLength={80} required pattern={".*\\S.*"} onChange={event => setTitle(event.target.value)} />
                     </label>
                     <label>
                         <span>Seu nome na aventura</span>
-                        <input value={narratorName} maxLength={32} required onChange={event => setNarratorName(event.target.value)} />
+                        <input value={narratorName} maxLength={32} required pattern={".*\\S.*"} onChange={event => setNarratorName(event.target.value)} />
                     </label>
                     <details className="room-role-help">
-                        <summary>O que você pode fazer como Narrador</summary>
+                        <summary>Controles do Narrador</summary>
                         <ul>
                             <li>Organiza o campo, as rodadas, o HP e a iniciativa.</li>
                             <li>Leva equipes para a cena e acompanha cada resultado.</li>
@@ -188,13 +186,14 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     className="room-lobby-card is-player"
                     onSubmit={event => {
                         event.preventDefault();
-                        onJoin({ invite, displayName });
+                        if (!invite.trim() || !displayName.trim()) return;
+                        onJoin({ invite: invite.trim(), displayName: displayName.trim() });
                     }}
                 >
                     <header>
                         <span className="room-role-mark"><GameIcon name="dex" /></span>
                         <div>
-                            <h3>Sou um Jogador</h3>
+                            <h3>Jogador</h3>
                         </div>
                     </header>
                     <label>
@@ -205,19 +204,16 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                             required
                             autoCapitalize="none"
                             autoCorrect="off"
-                            placeholder="Cole aqui o link enviado pelo Narrador"
                             onChange={event => setInvite(event.target.value)}
                         />
-                        <small className={`room-invite-detection ${parsedInvite ? "is-valid" : ""}`}>
-                            {parsedInvite ? `Aventura ${parsedInvite.code} encontrada` : "Use o link ou convite curto enviado pelo Narrador."}
-                        </small>
+                        {parsedInvite && <small className="room-invite-detection is-valid">Aventura {parsedInvite.code} encontrada</small>}
                     </label>
                     <label>
                         <span>Seu nome na aventura</span>
-                        <input value={displayName} maxLength={32} required autoFocus={Boolean(defaultInvite)} onChange={event => setDisplayName(event.target.value)} />
+                        <input value={displayName} maxLength={32} required pattern={".*\\S.*"} autoFocus={Boolean(defaultInvite)} onChange={event => setDisplayName(event.target.value)} />
                     </label>
                     <details className="room-role-help">
-                        <summary>O que você pode fazer como Jogador</summary>
+                        <summary>Controles do Jogador</summary>
                         <ul>
                             <li>Acompanha o campo e o progresso conforme a aventura acontece.</li>
                             <li>Rola dados, conversa e apresenta sua equipe ao Narrador.</li>
@@ -236,12 +232,10 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                 onClick={() => onLocal({ title, narratorName })}
             >
                 <span>
-                    <small>Sem conexão com outros jogadores</small>
                     <strong>Começar uma aventura local</strong>
                 </span>
                 <b>Neste dispositivo</b>
             </button>
-            <p className="room-lobby-footnote">Suas Boxes ficam salvas neste dispositivo. As salas compartilhadas sincronizam as ações do grupo.</p>
         </div>
     );
 }
@@ -280,7 +274,6 @@ function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
         <details className="room-tool" open>
             <summary>
                 <span>
-                    <small>Rolagens da aventura</small>
                     <strong>Rolagem rápida</strong>
                 </span>
                 <span className="room-tool-badge">Ao vivo</span>
@@ -549,28 +542,30 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     };
 
     const createLocal = input => {
+        const localTitle = String(input.title || "").trim() || "Aventura local";
+        const localName = String(input.narratorName || "").trim() || "Narrador";
         const nextSession = {
             code: "LOCAL",
             key: "local",
             role: "narrator",
             playerId: null,
-            displayName: input.narratorName || "Narrador",
+            displayName: localName,
             inviteCode: "",
             local: true,
         };
         const localRoom = {
             code: "LOCAL",
-            title: input.title,
+            title: localTitle,
             revision: 0,
             updatedAt: new Date().toISOString(),
-            snapshot: createRoomSnapshot(input.title),
+            snapshot: createRoomSnapshot(localTitle),
             players: [],
             events: [{
                 id: Date.now(),
                 playerId: null,
-                author: input.narratorName || "Narrador",
+                author: localName,
                 type: "system",
-                payload: { text: `A aventura “${input.title}” começou neste dispositivo.` },
+                payload: { text: `A aventura “${localTitle}” começou neste dispositivo.` },
                 createdAt: new Date().toISOString(),
             }],
             media: [],
@@ -1255,11 +1250,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             </header>
 
             {role === "narrator" && !session.local && (
-                <details className="room-invite-panel" open>
+                <details className="room-invite-panel">
                     <summary>
                         <span>
                             <strong>Convidar jogadores</strong>
-                            <small>Link pronto • {players.length ? `${players.length} ${players.length === 1 ? "jogador conectado" : "jogadores conectados"}` : "aguardando jogadores"}</small>
+                            <small>{players.length ? `${players.length} ${players.length === 1 ? "jogador conectado" : "jogadores conectados"}` : "Aguardando jogadores"}</small>
                         </span>
                         <b>Código {session.code}</b>
                     </summary>
@@ -1298,7 +1293,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <div className="room-player-list">
                             <div className="room-player is-narrator">
                                 <i />
-                                <span><strong>Narrador</strong><small>Conduz a aventura</small></span>
+                                <span><strong>{session.role === "narrator" ? session.displayName : "Narrador"}</strong></span>
                             </div>
                             {players.map(player => {
                                 const present = isPlayerPresent(player);
@@ -1321,7 +1316,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     <section className="room-section">
                         <div className="room-section-heading">
                             <div>
-                                <span className="room-kicker">PC do Bill</span>
                                 <h3>Equipe para a cena</h3>
                             </div>
                             <span>{teams.length}</span>
@@ -1383,7 +1377,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     <section className="room-section">
                         <div className="room-section-heading">
                             <div>
-                                <span className="room-kicker">Ordem da rodada</span>
                                 <h3>Iniciativa</h3>
                             </div>
                             <span>R{snapshot.round}</span>
@@ -1697,10 +1690,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         onError={showError}
                     />
 
-                    <details className="room-tool" open>
+                    <details className="room-tool">
                         <summary>
                             <span>
-                                <small>O que aconteceu</small>
                                 <strong>Diário da aventura</strong>
                             </span>
                             <span className="room-tool-badge">{events.length}</span>
@@ -1732,7 +1724,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     void sendEvent("message", { text: text.slice(0, 500) });
                                 }}
                             >
-                                <input name="message" maxLength={500} placeholder="Compartilhe uma mensagem…" aria-label="Mensagem da aventura" />
+                                <label className="room-message-field"><span>Mensagem</span><input name="message" maxLength={500} /></label>
                                 <button type="submit">Enviar</button>
                             </form>
                         </div>
@@ -1742,7 +1734,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <details className="room-tool">
                             <summary>
                                 <span>
-                                    <small>Visão do campo</small>
                                     <strong>Preferências da cena</strong>
                                 </span>
                             </summary>

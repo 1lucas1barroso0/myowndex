@@ -351,378 +351,164 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const awardXp = amount => applyXpProgression(finiteNumber(rpg.xp, 0) + finiteNumber(amount, 0));
     return (
-        <div className="game-panel pokemon-editor p-4 sm:p-6 lg:p-8 mt-6 animate-fade-in relative">
-            <datalist id={itemListId}>{validItems.map(v => <option key={"item-" + v} value={v}></option>)}</datalist>
-            <datalist id={abilityListId}>{validAbs.map(a => { const v = typeof a === "string" ? a : (a?.name || ""); return v ? <option key={"ab-" + v} value={v}></option> : null; })}</datalist>
-            <datalist id={moveListId}>{validMoves.map(m => { const v = typeof m === "string" ? m : (m?.name || ""); return v ? <option key={"mv-" + v} value={v}></option> : null; })}</datalist>
-            
-            <div className="flex flex-col xl:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b-2 border-slate-200 pb-5 sm:pb-6">
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center w-full min-w-0">
-                    <div className="w-20 h-20 sm:w-28 sm:h-28 bg-slate-50 rounded-2xl border-4 border-slate-200 flex justify-center items-center flex-shrink-0 relative shadow-inner">
-                        {pk.canGMax && <div className="absolute inset-0 bg-red-500/10 rounded-xl animate-pulse"></div>}
-                        <PokemonSprite
-                            src={sprite}
-                            pokemonId={pk.species?.id}
-                            shiny={pk.shiny}
-                            alt={`${formatName(pk.species?.name)}${pk.shiny ? " shiny" : ""}`}
-                            className="w-full h-full p-2 object-contain drop-shadow-md relative z-10"
-                            fallbackClassName="pokemon-sprite-fallback relative z-10"
-                        />
-                    </div>
-                    
-                    <div className="flex flex-col gap-2 sm:gap-3 w-full min-w-0">
-                        <div className="flex flex-col w-full min-w-0">
-                            <input 
-                                type="text" 
-                                aria-label="Apelido do Pokémon"
-                                value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} 
-                                onKeyDown={handleEnter}
-                                onChange={e => updatePk({...pk, nickname: e.target.value})} 
-                                className="editor-nickname bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-2 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-0.5 capitalize placeholder-slate-300"
-                                placeholder={formatName(pk.species?.name || "")}
-                                title="Editar apelido"
-                            />
-                            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
-                                <span className="editor-species-name text-[9px] font-bold uppercase tracking-widest text-slate-400 sm:text-[10px]">
-                                    {formatName(pk.species?.name || "")}
-                                </span>
-                                {forms.length > 1 && (
-                                    <label className="form-switch">
-                                        <span className="sr-only">Forma do Pokémon</span>
-                                        <select
-                                            value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""}
-                                            disabled={switchingForm}
-                                            onChange={event => void changeForm(event.target.value)}
-                                        >
-                                            {forms.map(entry => (
-                                                <option key={entry.pokemon?.name} value={entry.pokemon?.url}>
-                                                    {formatName(entry.pokemon?.name)}{entry.is_default ? " • padrão" : ""}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                )}
-                                {switchingForm && <span className="text-[8px] font-black uppercase tracking-widest text-blue-500">Abrindo esta forma…</span>}
-                                {formError && <span role="alert" className="text-[8px] font-black text-red-500">{formError}</span>}
-                            </div>
-                        </div>
+        <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatName(pk.species?.name)}`}>
+            <datalist id={itemListId}>{validItems.map(value => <option key={value} value={value} />)}</datalist>
+            <datalist id={abilityListId}>{validAbs.map(ability => { const value = typeof ability === "string" ? ability : ability?.name; return value ? <option key={value} value={value} /> : null; })}</datalist>
+            <datalist id={moveListId}>{validMoves.map(move => { const value = typeof move === "string" ? move : move?.name; return value ? <option key={value} value={value} /> : null; })}</datalist>
 
-                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                            <label className="flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 shadow-sm">
-                                <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Nível</span>
-                                <input type="number" min="1" max={isHackmon?200:100} value={pk.level===""? "":pk.level} onKeyDown={handleEnter} onChange={e => updatePk({...pk, level: e.target.value === "" ? "" : integerInRange(e.target.value, 1, isHackmon ? 200 : 100, 1)})} className="w-10 sm:w-12 bg-transparent text-slate-800 text-xs sm:text-sm font-black focus:outline-none text-center" />
-                            </label>
-                            <label className="flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 shadow-sm">
-                                <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Amizade</span>
-                                <input type="number" min="0" max="255" value={pk.friendship===""? "":pk.friendship} onKeyDown={handleEnter} onChange={e => updatePk({...pk, friendship: e.target.value === "" ? "" : integerInRange(e.target.value, 0, 255, 0)})} className="w-10 sm:w-12 bg-transparent text-slate-800 text-xs sm:text-sm font-black focus:outline-none text-center" />
-                                {isTTRPG && <span className="text-[10px] sm:text-xs font-black text-red-500 border-l-2 border-slate-200 pl-2 sm:pl-3 ml-0.5 sm:ml-1">{convertToTTRPG(pk.friendship || 0)}</span>}
-                            </label>
-                            <label className={"flex items-center gap-2 bg-slate-50 px-2 sm:px-3 py-1.5 rounded-xl border-2 border-slate-200 transition-colors shadow-sm " + (isNativeGMax ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-red-400")}>
-                                <div className={"w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md border-2 flex items-center justify-center " + (pk.canGMax ? "bg-red-500 border-red-500" : "bg-white border-slate-300")}>{pk.canGMax && <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>}</div>
-                                <span className={"text-[9px] sm:text-[10px] font-black uppercase tracking-widest " + (pk.canGMax ? "text-red-500" : "text-slate-500")}>Gigantamax</span>
-                                <input type="checkbox" className="sr-only" checked={pk.canGMax||false} disabled={isNativeGMax} onChange={e => { dismissKeyboard(); updatePk({...pk, canGMax: e.target.checked}); }} />
-                            </label>
-                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-1.5 shadow-sm transition-colors hover:border-amber-300">
-                                <input type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} className="accent-amber-500" />
-                                <span className={"text-[9px] sm:text-[10px] font-black uppercase tracking-widest " + (pk.shiny ? "text-amber-600" : "text-slate-500")}>Shiny</span>
-                            </label>
-                            <label className="flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-1.5 shadow-sm">
-                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">Nível Dynamax</span>
-                                <input type="number" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="w-9 bg-transparent text-center text-xs font-black text-slate-800 outline-none" />
-                            </label>
-                            {isHackmon && (
-                                <div className="flex gap-1.5 ml-1">
-                                    {[0, 1].map(idx => <select key={idx} aria-label={`Tipo personalizado ${idx + 1}`} value={customT[idx] || ""} onChange={e => { dismissKeyboard(); const nT = [...customT]; nT[idx] = e.target.value; updatePk({...pk, customTypes: nT.filter(Boolean)}); }} className="bg-purple-50 border-2 border-purple-200 rounded-lg text-[10px] text-purple-600 uppercase font-black px-2 py-1 outline-none shadow-sm"><option value="">Sem tipo</option>{TYPES.map(t => <option key={t} value={t}>{formatType(t)}</option>)}</select>)}
-                                </div>
-                            )}
-                        </div>
+            <header className="editor-header">
+                <PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" />
+                <div className="editor-identity">
+                    <label className="editor-field">
+                        <span className="editor-label">Apelido</span>
+                        <input type="text" value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, nickname: event.target.value })} className="editor-input editor-nickname" />
+                    </label>
+                    <span className="editor-species-name">{formatName(pk.species?.name || "")}</span>
+                    {forms.length > 1 && <label className="editor-field form-switch">
+                        <span className="editor-label">Forma</span>
+                        <select className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
+                            {forms.map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}{entry.is_default ? " · padrão" : ""}</option>)}
+                        </select>
+                    </label>}
+                    {switchingForm && <span role="status">Consultando forma…</span>}
+                    {formError && <span role="alert" className="editor-error">{formError}</span>}
+                </div>
+                <label className="editor-field editor-level">
+                    <span className="editor-label">Nível</span>
+                    <input type="number" min="1" max={isHackmon ? 200 : 100} value={pk.level === "" ? "" : pk.level} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, level: event.target.value === "" ? "" : integerInRange(event.target.value, 1, isHackmon ? 200 : 100, 1) })} className="editor-input" />
+                </label>
+            </header>
+            {exceptionCount > 0 && <p className="editor-exception-note" role="status">{`${exceptionCount} ${exceptionCount === 1 ? "escolha fora do jogo de referência" : "escolhas fora do jogo de referência"}.`}</p>}
+
+            <div className="editor-basics-grid">
+                <label className="editor-field"><span className="editor-label">Item segurado</span><input list={itemListId} value={pk.item || ""} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, item: (event.target.value || "").toLowerCase() })} className="editor-input" /></label>
+                <div className="editor-field">
+                    <label htmlFor={`${fieldId}-ability`} className="editor-label">Habilidade</label>
+                    <div className="editor-choice-control">
+                        <input id={`${fieldId}-ability`} list={abilityListId} value={pk.ability || ""} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, ability: (event.target.value || "").toLowerCase() })} className="editor-input" />
+                        <button type="button" aria-label="Sortear habilidade" title="Sortear habilidade" onClick={() => randomize("ability")} className="editor-random-button">⚄</button>
+                    </div>
+                    {abilityException && <span className="editor-field-note">Escolha livre mantida</span>}
+                </div>
+                <div className="editor-field">
+                    <label htmlFor={`${fieldId}-nature`} className="editor-label">Natureza</label>
+                    <div className="editor-choice-control">
+                        <select id={`${fieldId}-nature`} value={pk.nature || "hardy"} onChange={event => { dismissKeyboard(); updatePk({ ...pk, nature: event.target.value }); }} className="editor-input">
+                            {Object.keys(NATURES).map(nature => <option key={nature} value={nature}>{formatName(nature)} {NATURES[nature].up ? `(+${STAT_MAP[NATURES[nature].up]}, −${STAT_MAP[NATURES[nature].down]})` : ""}</option>)}
+                        </select>
+                        <button type="button" aria-label="Sortear natureza" title="Sortear natureza" onClick={() => randomize("nature")} className="editor-random-button">⚄</button>
                     </div>
                 </div>
-
-                <button type="button" onClick={() => { dismissKeyboard(); onRemove(); }} className="pokemon-remove-button w-full xl:w-auto flex items-center justify-center gap-2 self-stretch xl:self-start px-4 py-3 xl:py-2.5 mt-2 xl:mt-0 border-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm outline-none shrink-0">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    Remover parceiro
-                </button>
-            </div>
-
-            {exceptionCount > 0 && <p className="editor-exception-note" role="status">
-                {`${exceptionCount} ${exceptionCount === 1 ? "escolha fora do jogo de referência" : "escolhas fora do jogo de referência"}.`}
-            </p>}
-
-            <div className="pokemon-editor-grid grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-10">
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <label className="editor-field"><span className="editor-label">Item segurado</span><input list={itemListId} value={pk.item||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, item:(e.target.value||"").toLowerCase()})} className="editor-input" /></label>
-                        <div>
-                            <label htmlFor={`${fieldId}-tera`} className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 pl-1">Tipo Tera</label>
-                            <select id={`${fieldId}-tera`} value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 text-blue-800 text-sm font-black focus:border-blue-500 outline-none shadow-inner">
-                                {!pk.teraType && <option value="">Usar o tipo principal</option>}
-                                {teraException && <option value={pk.teraType}>{formatName(pk.teraType)} • escolha livre</option>}
-                                {TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="editor-ability-nature grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="editor-field">
-                            <label htmlFor={`${fieldId}-ability`} className="editor-label">Habilidade</label>
-                            <div className="editor-choice-control">
-                                <input id={`${fieldId}-ability`} list={abilityListId} value={pk.ability||""} onKeyDown={handleEnter} onChange={e=>updatePk({...pk, ability:(e.target.value||"").toLowerCase()})} className="editor-input" />
-                                <button type="button" aria-label="Sortear habilidade" title="Sortear habilidade" onClick={()=>randomize("ability")} className="editor-random-button">🎲</button>
-                            </div>
-                            {abilityException && <span className="mt-1 block text-[8px] font-black uppercase tracking-wider text-amber-600">Escolha livre mantida</span>}
-                        </div>
-                        <div className="editor-field">
-                            <label htmlFor={`${fieldId}-nature`} className="editor-label">Natureza</label>
-                            <div className="editor-choice-control">
-                            <select id={`${fieldId}-nature`} value={pk.nature||"hardy"} onChange={e=> { dismissKeyboard(); updatePk({...pk, nature:e.target.value}); }} className="editor-input">
-                                {Object.keys(NATURES).map(n => <option key={n} value={n}>{n} {NATURES[n].up ? "(+" + STAT_MAP[NATURES[n].up] + ", -" + STAT_MAP[NATURES[n].down] + ")" : ""}</option>)}
-                            </select>
-                            <button type="button" aria-label="Sortear natureza" title="Sortear natureza" onClick={()=>randomize("nature")} className="editor-random-button">🎲</button>
-                            </div>
-                        </div>
-                    </div>
-                    {(pk.ability || pk.item) && (
-                        <details className="editor-trait-reference">
-                            <summary>Habilidade e item na aventura</summary>
-                            <div>
-                                {[
-                                    pk.ability ? { kind: "ability", id: pk.ability, detail: traitDetails.ability } : null,
-                                    pk.item ? { kind: "item", id: pk.item, detail: traitDetails.item } : null,
-                                ].filter(Boolean).map(trait => ({ ...trait, explanation: describeTrait(trait.kind, trait.id, trait.detail) })).map(trait => (
-                                    <article key={`${trait.kind}-${trait.id}`} className={`is-${trait.kind}`}>
-                                        <header><small>{trait.kind === "ability" ? "Habilidade" : "Item"}</small></header>
-                                        <strong>{formatName(trait.id)}</strong>
-                                        <p>{trait.explanation.summary}</p>
-                                        <p>{trait.explanation.trigger}</p>
-                                        <p>{trait.explanation.handling}</p>
-                                        {trait.explanation.catalog.text ? (
-                                            <details><summary>{trait.explanation.catalog.label}</summary><p lang={trait.explanation.catalog.code}>{trait.explanation.catalog.text}</p></details>
-                                        ) : null}
-                                    </article>
-                                ))}
-                            </div>
-                        </details>
-                    )}
-                    
-                    <div>
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Gênero</label>
-                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 p-2 shadow-inner">
-                            <div className="flex flex-wrap gap-2">
-                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "M", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseMale} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "M" ? "bg-blue-500 text-white shadow-[0_3px_0_#0EA5E9]" : "text-slate-600 disabled:opacity-30 hover:bg-blue-100")}>
-                                    <span className="text-sm sm:text-base">♂</span><span>Macho</span>
-                                </button>
-                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "F", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseFemale} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "F" ? "bg-pink-500 text-white shadow-[0_3px_0_#7F1D1D]" : "text-slate-600 disabled:opacity-30 hover:bg-pink-100")}>
-                                    <span className="text-sm sm:text-base">♀</span><span>Fêmea</span>
-                                </button>
-                                <button type="button" onClick={() => { dismissKeyboard(); updatePk({...pk, gender: "N", genderRate: currentGenderRate, genderLocked: true}); }} disabled={!canUseNeutral} className={"flex items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-black transition-all " + (pk.gender === "N" ? "bg-slate-500 text-white shadow-[0_3px_0_#075985]" : "text-slate-600 disabled:opacity-30 hover:bg-slate-200")}>
-                                    <span className="text-sm sm:text-base">⚲</span><span>Sem gênero</span>
-                                </button>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} className={"rounded-xl px-2 py-2 text-xs font-black transition-all outline-none " + (pk.genderLocked ? "bg-slate-700 text-white" : "text-slate-500 hover:bg-slate-200")} aria-label={pk.genderLocked ? "Permitir novo sorteio de gênero" : "Manter o gênero escolhido"} title={pk.genderLocked ? "Permitir novo sorteio" : "Manter esta escolha"}>{pk.genderLocked ? "🔒" : "🔓"}</button>
-                                <button type="button" disabled={pk.genderLocked || currentGenderRate === -1} onClick={() => randomize("gender")} className="rounded-xl px-3 py-2 text-sm font-black text-slate-500 transition-all hover:bg-blue-100 hover:text-blue-600 outline-none disabled:cursor-not-allowed disabled:opacity-30" aria-label="Sortear gênero pela proporção da espécie" title="Sortear pela proporção da espécie">🎲</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1 flex justify-between"><span>Movimentos</span><span className="bg-slate-200 px-2 py-0.5 rounded text-slate-600">{pk.moves?.filter(Boolean).length||0}/4</span></label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {[0,1,2,3].map(index => {
-                                const moveName = pk.moves?.[index] || "";
-                                const normalizedName = moveName.trim().toLowerCase().replace(/\s+/g, "-");
-                                const detail = moveDetails[normalizedName];
-                                const moveExplanation = detail ? describeMove(detail, { isTTRPG }) : null;
-                                const isException = Boolean(moveName) && !isHackmon && !validMoveNames.has(normalizedName);
-                                const currentPp = rpg.pp?.[index];
-                                return (
-                                    <div key={index} className={`rounded-xl border-2 p-2 shadow-inner ${isException ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50"}`}>
-                                        <input
-                                            list={moveListId}
-                                            value={moveName}
-                                            aria-label={`Movimento ${index + 1}`}
-                                            onKeyDown={handleEnter}
-                                            onChange={event => {
-                                                const moves = [...(pk.moves || [])];
-                                                moves[index] = (event.target.value || "").toLowerCase();
-                                                const pp = [...(rpg.pp || [null, null, null, null])];
-                                                pp[index] = null;
-                                                updatePk({ ...pk, moves, rpg: { ...rpg, pp } });
-                                            }}
-                                            className="w-full bg-transparent px-2 py-1.5 text-sm font-black capitalize text-slate-800 outline-none"
-                                        />
-                                        {(moveName || detail) && (
-                                            <div className="mt-1 flex flex-wrap items-center gap-1 border-t border-slate-200/80 px-2 pt-2">
-                                                {detail?.power != null && <span className="move-chip">Poder {isTTRPG ? convertToTTRPG(detail.power) : detail.power}</span>}
-                                                <span className="move-chip">Precisão {detail?.accuracy == null ? "sem teste próprio" : `${detail.accuracy}%`}</span>
-                                                <span className="move-chip">PP {currentPp ?? detail?.pp ?? "a confirmar"}/{detail?.pp ?? "regra própria"}</span>
-                                                {detail?.priority !== 0 && detail?.priority != null && <span className="move-chip">Prioridade {detail.priority > 0 ? "+" : ""}{detail.priority}</span>}
-                                                {isException && <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[8px] font-black uppercase text-amber-800">{experienceMode === "game" ? "Não disponível neste jogo" : "Escolha livre"}</span>}
-                                                {isTTRPG && moveName && (
-                                                    <label className="editor-pp-label ml-auto flex items-center gap-2 text-[8px] font-black uppercase text-slate-400">
-                                                        PP atual
-                                                        <input
-                                                            type="number"
-                                                            aria-label={`PP atual de ${formatName(moveName)}`}
-                                                            min="0"
-                                                            max={detail?.pp || 99}
-                                                            value={currentPp ?? ""}
-                                                            placeholder={String(detail?.pp ?? "")}
-                                                            onChange={event => {
-                                                                const pp = [...(rpg.pp || [null, null, null, null])];
-                                                                pp[index] = event.target.value === "" ? null : integerInRange(event.target.value, 0, integerInRange(detail?.pp, 0, 99, 99), 0);
-                                                                updateRpg({ pp });
-                                                            }}
-                                                            className="editor-pp-control rounded-md border border-slate-200 bg-white p-1 text-center text-[9px] text-slate-700 outline-none"
-                                                        />
-                                                    </label>
-                                                )}
-                                            </div>
-                                        )}
-                                        {moveExplanation && (
-                                            <details className="editor-move-description">
-                                                <summary>Entender este movimento</summary>
-                                                <p>{moveExplanation.summary}</p>
-                                                <ul>{moveExplanation.facts.map((fact, factIndex) => <li key={`${normalizedName}-${factIndex}`}>{fact}</li>)}</ul>
-                                                {moveExplanation.catalog.text && <p lang={moveExplanation.catalog.code}><strong>{moveExplanation.catalog.label}:</strong> {moveExplanation.catalog.text}</p>}
-                                            </details>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <p className="mt-2 text-[9px] font-bold text-slate-400">{isHackmon ? "Na Criação livre, todas as opções estão à sua disposição." : "A Pokédex sugere os movimentos disponíveis neste jogo. Você também pode escrever uma escolha própria."}</p>
-                    </div>
-
-                    <details className="rpg-journey-panel rounded-2xl border-2">
-                        <summary className="cursor-pointer list-none p-4">
-                            <span className="flex items-center justify-between gap-3">
-                                <span className="rpg-journey-summary-copy">
-                                    <strong className="block text-[10px] font-black uppercase tracking-widest">Progresso da jornada</strong>
-                                    <small className="mt-1 block text-[9px] font-bold text-slate-500">Acompanhe HP, XP, condição e tudo o que torna este Pokémon único.</small>
-                                </span>
-                                <span className="rpg-journey-hp shrink-0 rounded-full px-3 py-1 text-[9px] font-black shadow-sm">
-                                    HP {rpg.currentHp ?? "—"}/{displayedMaxHp}
-                                </span>
-                            </span>
-                        </summary>
-                        <div className="rpg-journey-body grid gap-4 border-t-2 p-4 sm:grid-cols-2">
-                            <div className="editor-field">
-                                <span className="editor-label">HP atual</span>
-                                <div className="editor-choice-control">
-                                    <input type="number" aria-label="HP atual" min="0" max={displayedMaxHp} value={rpg.currentHp ?? ""} placeholder={String(displayedMaxHp)} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" />
-                                    <button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button rounded-xl border-2 px-3 text-[9px] font-black uppercase">Recuperar HP</button>
-                                </div>
-                            </div>
-                            <div className="editor-field">
-                                <label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label>
-                                <input id={`${fieldId}-xp`} type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: quantizeStepDown(event.target.value, 0.5, { minimum: 0, maximum: 999999, fallback: rpg.xp }) })} onBlur={() => applyXpProgression()} className="editor-input" />
-                                <small className="editor-progress-goal">Meta: {formatNumberPtBr(nextLevelXp)} XP · nível {Math.min(isHackmon ? 200 : 100, integerInRange(pk.level, 1, isHackmon ? 200 : 100, 1) + 1)}</small>
-                                    <div className="editor-xp-actions">
-                                        <button type="button" onClick={() => awardXp(0.5)}>+0,5</button>
-                                        <button type="button" onClick={() => awardXp(1)}>+1 XP</button>
-                                    </div>
-                            </div>
-                            <label>
-                                <span className="editor-label">Condição</span>
-                                <select value={rpg.status || ""} onChange={event => updateRpg({ status: event.target.value })} className="editor-input">
-                                    {RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{RPG_STATUS_LABELS[status]}</option>)}
-                                </select>
-                            </label>
-                            <label>
-                                <span className="editor-label">Poké Ball da captura</span>
-                                <input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} placeholder="Ex.: Luxury Ball" className="editor-input" />
-                            </label>
-                            <label className="sm:col-span-2">
-                                <span className="editor-label">Treinador original</span>
-                                <input type="text" value={rpg.originalTrainer || ""} onChange={event => updateRpg({ originalTrainer: event.target.value })} placeholder="Nome do treinador" className="editor-input" />
-                            </label>
-                            <label className="sm:col-span-2">
-                                <span className="editor-label">Notas da jornada</span>
-                                <textarea value={rpg.notes || ""} onChange={event => updateRpg({ notes: event.target.value })} placeholder="Personalidade, vínculos, evolução, conquistas…" rows="3" className="editor-input resize-y" />
-                            </label>
-                            <label className="sm:col-span-2">
-                                <span className="editor-label text-purple-600">Possibilidades da aventura</span>
-                                <textarea value={rpg.animeNotes || ""} onChange={event => updateRpg({ animeNotes: event.target.value })} placeholder="Técnicas próprias, combinações criativas e descobertas especiais…" rows="3" className="editor-input resize-y border-purple-200 bg-purple-50/60 focus:border-purple-400" />
-                            </label>
-                        </div>
-                    </details>
-                </div>
-
-                <div className="pokemon-training-panel bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 shadow-sm mt-2 sm:mt-0">
-                    <div className="flex justify-between items-center mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-slate-200">
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-[10px] sm:text-[11px] font-black text-slate-500 uppercase tracking-widest">Treinamento</h3>
-                            <button type="button" aria-label="Sortear todos os IVs" onClick={() => randomize("ivs")} className="sm:hidden flex items-center gap-1 text-[9px] font-black text-slate-500 hover:text-blue-500 transition-colors outline-none bg-white px-2 py-1 rounded-md border-2 border-slate-200 shadow-sm active:translate-y-px">
-                                IVs 🎲
-                            </button>
-                        </div>
-                        <div className={`pokemon-ev-budget text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border-2 border-slate-200 shadow-sm ${evTotal > 508 ? "is-over-limit" : ""}`} aria-live="polite">
-                            EVs restantes: <span>{510 - evTotal}</span>/510
-                        </div>
-                    </div>
-                    
-                    <div className="w-full">
-                        <div className="pokemon-stat-heading hidden sm:flex items-center gap-2 mb-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-2">
-                            <div className="w-12 text-left">Atributo</div>
-                            <div className="w-10">Base</div>
-                            <div className="flex-1 text-left">Esforço (EVs)</div>
-                            <button type="button" aria-label="Sortear todos os IVs" className="w-12 cursor-pointer hover:text-blue-500 flex items-center justify-center gap-1 transition-colors" onClick={() => randomize("ivs")}>IVs 🎲</button>
-                            <div className={"w-12 text-right " + (isTTRPG ? "text-red-500" : "text-slate-800")}>Total</div>
-                        </div>
-                        
-                        <div className="flex flex-col gap-2.5">
-                            {pk.species?.stats?.map(s => {
-                                const sN = s.stat?.name;
-                                if (!sN) return null;
-                                const base = isHackmon && pk.customStats?.[sN] !== undefined ? pk.customStats[sN] : (s.base_stat || 0);
-                                const ev = pk.evs?.[sN] ?? 0; const iv = pk.ivs?.[sN] ?? 31; const multi = getMulti(sN);
-                                const rawVal = calculateStat(base, ev, iv, pk.level, multi, sN === "hp", pk.species?.name);
-                                const finalVal = isTTRPG ? convertToTTRPG(rawVal, sN === "hp") : rawVal;
-                                
-                                let cCol = "text-slate-800";
-                                if (isTTRPG) cCol = "text-red-600";
-                                else if (multi > 1) cCol = "text-emerald-600";
-                                else if (multi < 1) cCol = "text-red-500";
-                                
-                                return (
-                                    <div key={sN} className="pokemon-stat-row flex flex-col sm:flex-row items-center gap-2 sm:gap-3 bg-white p-3 sm:p-2.5 rounded-xl border-2 border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
-                                        <div className="flex justify-between items-center w-full sm:w-12 shrink-0">
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[sN] || sN}</span>
-                                            <div className={"sm:hidden text-sm font-black flex items-center gap-1 " + cCol}>
-                                                {!isTTRPG && multi > 1 && <span className="text-emerald-500">↑</span>}
-                                                {!isTTRPG && multi < 1 && <span className="text-red-500">↓</span>}
-                                                {finalVal}
-                                            </div>
-                                        </div>
-                                        <div className="pokemon-stat-controls flex items-center justify-between gap-2 w-full sm:flex-1">
-                                            <div className="w-10 flex justify-center shrink-0">
-                                                {isHackmon ? (
-                                                    <input type="number" aria-label={`Base de ${STAT_MAP[sN] || sN}`} min="1" max="255" value={base === "" ? "" : base} onKeyDown={handleEnter} onChange={e => updatePk({...pk, customStats: {...(pk.customStats || {}), [sN]: e.target.value === "" ? "" : integerInRange(e.target.value, 1, 255, 1)}})} className="w-full bg-purple-50 border-2 border-purple-200 rounded p-1 text-purple-700 text-[10px] font-black text-center outline-none focus:border-purple-500" />
-                                                ) : (
-                                                    <div className="text-[11px] font-black text-slate-700">{base}</div>
-                                                )}
-                                            </div>
-                                            <div className="pokemon-stat-ev flex-1 flex items-center gap-2 min-w-0">
-                                                <input type="range" aria-label={`Ajustar EVs de ${STAT_MAP[sN] || sN}`} min="0" max="252" step="4" value={ev === "" ? 0 : ev} onChange={e => handleChange("evs", sN, e.target.value)} className="w-full min-w-0 accent-red-500" />
-                                                <input type="number" aria-label={`EVs de ${STAT_MAP[sN] || sN}`} min="0" max="252" value={ev === "" ? "" : ev} onKeyDown={handleEnter} onChange={e => handleChange("evs", sN, e.target.value)} className="w-11 shrink-0 bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
-                                            </div>
-                                            <div className="w-10 sm:w-12 flex justify-center shrink-0">
-                                                <input type="number" aria-label={`IVs de ${STAT_MAP[sN] || sN}`} min="0" max="31" value={iv === "" ? "" : iv} onKeyDown={handleEnter} onChange={e => handleChange("ivs", sN, e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 rounded-lg p-1 text-slate-800 text-[10px] text-center outline-none font-black focus:border-blue-400" />
-                                            </div>
-                                        </div>
-                                        <div className={"hidden sm:flex w-12 justify-end items-center gap-1 text-sm font-black shrink-0 " + cCol}>
-                                            {!isTTRPG && multi > 1 && <span className="text-emerald-500">↑</span>}
-                                            {!isTTRPG && multi < 1 && <span className="text-red-500">↓</span>}
-                                            {finalVal}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                <div className="editor-field">
+                    <span className="editor-label" id={`${fieldId}-gender-label`}>Gênero</span>
+                    <div className="editor-gender-controls" role="group" aria-labelledby={`${fieldId}-gender-label`}>
+                        {[
+                            { value: "M", label: "Macho", symbol: "♂", enabled: canUseMale },
+                            { value: "F", label: "Fêmea", symbol: "♀", enabled: canUseFemale },
+                            { value: "N", label: "Sem gênero", symbol: "⚲", enabled: canUseNeutral },
+                        ].filter(choice => choice.enabled).map(choice => <button key={choice.value} type="button" aria-pressed={pk.gender === choice.value} onClick={() => { dismissKeyboard(); updatePk({ ...pk, gender: choice.value, genderRate: currentGenderRate, genderLocked: true }); }}>{choice.symbol} {choice.label}</button>)}
+                        <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} aria-pressed={Boolean(pk.genderLocked)} aria-label={pk.genderLocked ? "Permitir novo sorteio de gênero" : "Manter o gênero escolhido"} title={pk.genderLocked ? "Permitir novo sorteio" : "Manter esta escolha"}>{pk.genderLocked ? "🔒" : "🔓"}</button>
+                        <button type="button" disabled={pk.genderLocked || currentGenderRate === -1} onClick={() => randomize("gender")} aria-label="Sortear gênero pela proporção da espécie" title="Sortear gênero">⚄</button>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {(pk.ability || pk.item) && <details className="editor-disclosure editor-trait-reference">
+                <summary>Consultar habilidade e item</summary>
+                <div className="editor-disclosure-body">
+                    {[
+                        pk.ability ? { kind: "ability", id: pk.ability, detail: traitDetails.ability } : null,
+                        pk.item ? { kind: "item", id: pk.item, detail: traitDetails.item } : null,
+                    ].filter(Boolean).map(trait => ({ ...trait, explanation: describeTrait(trait.kind, trait.id, trait.detail) })).map(trait => <article key={`${trait.kind}-${trait.id}`}>
+                        <h4>{formatName(trait.id)}</h4>
+                        {trait.explanation.catalog.text && <p lang={trait.explanation.catalog.code}>{trait.explanation.catalog.text}</p>}
+                        <p>{trait.explanation.summary}</p><p>{trait.explanation.trigger}</p><p>{trait.explanation.handling}</p>
+                    </article>)}
+                </div>
+            </details>}
+
+            <section className="editor-moves" aria-labelledby={`${fieldId}-moves-heading`}>
+                <header className="editor-section-heading"><h3 id={`${fieldId}-moves-heading`}>Movimentos</h3><span>{pk.moves?.filter(Boolean).length || 0}/4</span></header>
+                <div className="editor-moves-grid">
+                    {[0, 1, 2, 3].map(index => {
+                        const moveName = pk.moves?.[index] || "";
+                        const normalizedName = moveName.trim().toLowerCase().replace(/\s+/g, "-");
+                        const detail = moveDetails[normalizedName];
+                        const moveExplanation = detail ? describeMove(detail, { isTTRPG }) : null;
+                        const isException = Boolean(moveName) && !isHackmon && !validMoveNames.has(normalizedName);
+                        const currentPp = rpg.pp?.[index];
+                        return <div key={index} className={`editor-move-field ${isException ? "is-exception" : ""}`}>
+                            <label className="editor-field"><span className="editor-label">Movimento {index + 1}</span><input list={moveListId} value={moveName} onKeyDown={handleEnter} onChange={event => {
+                                const moves = [...(pk.moves || [])]; moves[index] = (event.target.value || "").toLowerCase();
+                                const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = null;
+                                updatePk({ ...pk, moves, rpg: { ...rpg, pp } });
+                            }} className="editor-input" /></label>
+                            {isException && <span className="editor-field-note">{experienceMode === "game" ? "Não disponível neste jogo" : "Escolha livre"}</span>}
+                            {isTTRPG && moveName && <label className="editor-pp-label">PP atual<input type="number" min="0" max={detail?.pp || 99} value={currentPp ?? detail?.pp ?? ""} onChange={event => { const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = event.target.value === "" ? null : integerInRange(event.target.value, 0, integerInRange(detail?.pp, 0, 99, 99), 0); updateRpg({ pp }); }} className="editor-input editor-pp-control" /></label>}
+                            {moveExplanation && <details className="editor-move-description">
+                                <summary>Detalhes do movimento</summary>
+                                <dl className="editor-move-facts"><div><dt>Poder</dt><dd>{detail.power == null ? "—" : isTTRPG ? convertToTTRPG(detail.power) : detail.power}</dd></div><div><dt>Precisão</dt><dd>{detail.accuracy == null ? "Sem teste próprio" : `${detail.accuracy}%`}</dd></div><div><dt>PP máximo</dt><dd>{detail.pp ?? "—"}</dd></div>{Boolean(detail.priority) && <div><dt>Prioridade</dt><dd>{detail.priority > 0 ? "+" : ""}{detail.priority}</dd></div>}</dl>
+                                {moveExplanation.catalog.text && <p lang={moveExplanation.catalog.code}>{moveExplanation.catalog.text}</p>}
+                                <p>{moveExplanation.summary}</p><ul>{moveExplanation.facts.map((fact, factIndex) => <li key={`${normalizedName}-${factIndex}`}>{fact}</li>)}</ul>
+                            </details>}
+                        </div>;
+                    })}
+                </div>
+            </section>
+
+            <details className="editor-disclosure rpg-journey-panel">
+                <summary><span>Progresso da jornada</span><span className="rpg-journey-hp">HP {rpg.currentHp ?? displayedMaxHp}/{displayedMaxHp}</span></summary>
+                <div className="editor-disclosure-body rpg-journey-body">
+                    <div className="editor-field"><label htmlFor={`${fieldId}-hp`} className="editor-label">HP atual</label><div className="editor-choice-control"><input id={`${fieldId}-hp`} type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? displayedMaxHp} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" /><button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button">Recuperar</button></div></div>
+                    <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: quantizeStepDown(event.target.value, 0.5, { minimum: 0, maximum: 999999, fallback: rpg.xp }) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">Meta: {formatNumberPtBr(nextLevelXp)} XP · nível {Math.min(isHackmon ? 200 : 100, integerInRange(pk.level, 1, isHackmon ? 200 : 100, 1) + 1)}</small><div className="editor-xp-actions"><button type="button" onClick={() => awardXp(0.5)}>+0,5</button><button type="button" onClick={() => awardXp(1)}>+1 XP</button></div></div>
+                    <label className="editor-field"><span className="editor-label">Condição</span><select value={rpg.status || ""} onChange={event => updateRpg({ status: event.target.value })} className="editor-input">{RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{RPG_STATUS_LABELS[status]}</option>)}</select></label>
+                    <label className="editor-field"><span className="editor-label">Poké Ball da captura</span><input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} className="editor-input" /></label>
+                    <label className="editor-field editor-wide-field"><span className="editor-label">Treinador original</span><input type="text" value={rpg.originalTrainer || ""} onChange={event => updateRpg({ originalTrainer: event.target.value })} className="editor-input" /></label>
+                    <label className="editor-field editor-wide-field"><span className="editor-label">Notas da jornada</span><textarea value={rpg.notes || ""} onChange={event => updateRpg({ notes: event.target.value })} rows={3} className="editor-input" /></label>
+                    <label className="editor-field editor-wide-field"><span className="editor-label">Possibilidades da aventura</span><textarea value={rpg.animeNotes || ""} onChange={event => updateRpg({ animeNotes: event.target.value })} rows={3} className="editor-input" /></label>
+                </div>
+            </details>
+
+            <details className="editor-disclosure editor-characteristics">
+                <summary>Características e transformações</summary>
+                <div className="editor-disclosure-body editor-basics-grid">
+                    <label className="editor-field"><span className="editor-label">Amizade</span><input type="number" min="0" max="255" value={pk.friendship === "" ? "" : pk.friendship} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, friendship: event.target.value === "" ? "" : integerInRange(event.target.value, 0, 255, 0) })} className="editor-input" />{isTTRPG && <small>RPG: {convertToTTRPG(pk.friendship || 0)}</small>}</label>
+                    <label className="editor-field"><span className="editor-label">Tipo Tera</span><select value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</select></label>
+                    <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
+                    <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Gigantamax</label><label><input type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} />Shiny</label></div>
+                    {isHackmon && [0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><select value={customT[index] || ""} onChange={event => { dismissKeyboard(); const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</select></label>)}
+                </div>
+            </details>
+
+            <section className="editor-stat-summary" aria-labelledby={`${fieldId}-stats-heading`}>
+                <h3 id={`${fieldId}-stats-heading`}>{isTTRPG ? "Atributos do RPG" : "Atributos"}</h3>
+                <dl>{pk.species?.stats?.map(stat => {
+                    const name = stat.stat?.name; if (!name) return null;
+                    const base = isHackmon && pk.customStats?.[name] !== undefined ? pk.customStats[name] : stat.base_stat || 0;
+                    const value = calculateStat(base, pk.evs?.[name] ?? 0, pk.ivs?.[name] ?? 31, pk.level, getMulti(name), name === "hp", pk.species?.name);
+                    return <div key={name}><dt>{STAT_MAP[name] || name}</dt><dd>{isTTRPG ? convertToTTRPG(value, name === "hp") : value}</dd></div>;
+                })}</dl>
+            </section>
+            <details className="editor-disclosure pokemon-training-panel">
+                <summary><span>Treinamento · EVs e IVs</span><span className={`pokemon-ev-budget ${evTotal > 508 ? "is-over-limit" : ""}`}>EVs: {evTotal}/510</span></summary>
+                <div className="editor-disclosure-body">
+                    <button type="button" onClick={() => randomize("ivs")} className="editor-training-random">⚄ Sortear todos os IVs</button>
+                    <div className="pokemon-stat-list">{pk.species?.stats?.map(stat => {
+                        const name = stat.stat?.name; if (!name) return null;
+                        const base = isHackmon && pk.customStats?.[name] !== undefined ? pk.customStats[name] : stat.base_stat || 0;
+                        const ev = pk.evs?.[name] ?? 0; const iv = pk.ivs?.[name] ?? 31;
+                        return <div key={name} className="pokemon-stat-row">
+                            <h4>{STAT_MAP[name] || name}</h4>
+                            <div className="pokemon-stat-controls">
+                                <label><span>Base</span>{isHackmon ? <input type="number" min="1" max="255" value={base} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, customStats: { ...(pk.customStats || {}), [name]: event.target.value === "" ? "" : integerInRange(event.target.value, 1, 255, 1) } })} className="editor-input" /> : <output>{base}</output>}</label>
+                                <label className="pokemon-stat-ev"><span>EVs</span><div><input type="range" aria-label={`Ajustar EVs de ${STAT_MAP[name] || name}`} min="0" max="252" step="4" value={ev === "" ? 0 : ev} onChange={event => handleChange("evs", name, event.target.value)} /><input type="number" aria-label={`EVs de ${STAT_MAP[name] || name}`} min="0" max="252" value={ev} onKeyDown={handleEnter} onChange={event => handleChange("evs", name, event.target.value)} className="editor-input" /></div></label>
+                                <label><span>IVs</span><input type="number" aria-label={`IVs de ${STAT_MAP[name] || name}`} min="0" max="31" value={iv} onKeyDown={handleEnter} onChange={event => handleChange("ivs", name, event.target.value)} className="editor-input" /></label>
+                            </div>
+                        </div>;
+                    })}</div>
+                </div>
+            </details>
+            <footer className="editor-footer"><button type="button" onClick={() => { dismissKeyboard(); onRemove(); }} className="pokemon-remove-button">Remover Pokémon da Box</button></footer>
+        </section>
     );
 }

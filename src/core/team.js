@@ -102,14 +102,15 @@ export const normalizePokemon = input => {
     const customStats = customStatEntries.length ? Object.fromEntries(customStatEntries) : null;
 
     const normalizedRpg = normalizeRpgData(source.rpg);
-    let rpg = { ...normalizedRpg, scaleVersion: RPG_SCALE_VERSION };
-    if (normalizedRpg.currentHp != null && normalizedRpg.scaleVersion < RPG_SCALE_VERSION) {
-        const hpBase = customStats?.hp ?? integerInRange(
-            species?.stats?.find(entry => entry?.stat?.name === "hp")?.base_stat,
-            1,
-            255,
-            1,
-        );
+    const speciesHpBase = finiteNumberOrNull(species?.stats?.find(entry => entry?.stat?.name === "hp")?.base_stat);
+    const knownHpBase = customStats?.hp ?? speciesHpBase;
+    let rpg = normalizedRpg.currentHp == null || normalizedRpg.scaleVersion >= RPG_SCALE_VERSION
+        ? { ...normalizedRpg, scaleVersion: RPG_SCALE_VERSION }
+        : { ...normalizedRpg };
+    if (normalizedRpg.currentHp != null
+        && normalizedRpg.scaleVersion < RPG_SCALE_VERSION
+        && knownHpBase != null) {
+        const hpBase = integerInRange(knownHpBase, 1, 255, 1);
         const speciesName = species?.species?.name || species?.name || "";
         const rawMaxHp = calculateStat(
             hpBase,

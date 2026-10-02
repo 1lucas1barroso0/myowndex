@@ -143,7 +143,7 @@ export const RPG_RULE_SECTIONS = [
                     "Para causar dano, o atacante precisa superar o defensor. Um empate ou resultado menor impede o dano, mas não apaga efeitos secundários se o movimento alcançou o alvo.",
                     "O alvo original do movimento determina quem recebe cura, condição e modificadores; efeitos sobre o usuário não são transferidos ao adversário.",
                     "O dano final combina a força original, STAB, tipo e demais multiplicadores antes de arredondar uma única vez.",
-                    "O limite comum por hit é um número inteiro igual ao nível do atacante; no nível 1, vale 1. Aumentos temporários elevam esse limite proporcionalmente."
+                    "O limite comum por hit é um número inteiro igual ao nível do atacante; no nível 1, vale 1. Super efetividade e aumentos temporários elevam esse limite proporcionalmente, para que vantagens de tipo não sejam achatadas pelo teto."
                 ]
             },
             {

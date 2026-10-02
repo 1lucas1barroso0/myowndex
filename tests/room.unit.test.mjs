@@ -57,12 +57,12 @@ test("the experience is named RPG without the old compound label", () => {
   assert.notEqual(EXPERIENCE_MODES.rpg.label, "RPG Anime");
 });
 
-test("RPG division uses the written 0.55 and 0.56 boundary exactly", () => {
-  assert.equal(convertToTTRPG(11), 0);
-  assert.equal(convertToTTRPG(12), 1);
-  assert.equal(convertToTTRPG(51), 2);
-  assert.equal(convertToTTRPG(52), 3);
-  assert.equal(convertToTTRPG(11, true), 1);
+test("RPG division uses scale by 10 and the half-up boundary", () => {
+  assert.equal(convertToTTRPG(9), 1);
+  assert.equal(convertToTTRPG(14), 1);
+  assert.equal(convertToTTRPG(15), 2);
+  assert.equal(convertToTTRPG(24), 2);
+  assert.equal(convertToTTRPG(1, true), 1);
 });
 
 test("room snapshots normalize phases, scenes and unsafe token positions", () => {
@@ -469,10 +469,10 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     random: sequence([0.8, 0.8, 0, 0]),
   });
   assert.equal(success.hit, true);
-  assert.equal(success.baseDamage, 2);
+  assert.equal(success.baseDamage, 4);
   assert.equal(success.stab, 1.5);
   assert.equal(success.effectiveness, 2);
-  assert.equal(success.damage, 5);
+  assert.equal(success.damage, 10);
 
   const tie = calculateMoveResolution({
     attacker: { ...attacker, stats: { ...attacker.stats, "special-attack": 0 } },
@@ -504,8 +504,8 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     move: { ...move, power: 100 },
     random: sequence([0.8, 0.8, 0, 0]),
   });
-  assert.equal(fractionalCeiling.ceiling, 5);
-  assert.equal(fractionalCeiling.damage, 5);
+  assert.equal(fractionalCeiling.ceiling, 11);
+  assert.equal(fractionalCeiling.damage, 11);
 
   const firstLevelMinimum = calculateMoveResolution({
     attacker: { ...attacker, level: 1 },
@@ -562,8 +562,31 @@ test("damage applies multipliers before one final rounding and keeps weak and st
   });
 
   assert.equal(resolvePower(1).damage, 1, "a real weak hit must not vanish");
-  assert.equal(resolvePower(31).damage, 2, "STAB is applied before the single final rounding");
-  assert.equal(resolvePower(120).damage, 9, "the 1 HP floor must not flatten stronger attacks");
+  assert.equal(resolvePower(31).damage, 5, "STAB is applied before the single final rounding");
+  assert.equal(resolvePower(120).damage, 18, "the 1 HP floor must not flatten stronger attacks");
+});
+
+test("type effectiveness remains visibly ordered on the wider RPG scale", () => {
+  const attacker = { id: "type-attacker", level: 20, types: ["fire"], stats: { "special-attack": 4 } };
+  const move = {
+    name: "ember",
+    power: 40,
+    accuracy: null,
+    type: { name: "fire" },
+    damage_class: { name: "special" },
+    target: { name: "selected-pokemon" },
+  };
+  const resolveAgainst = types => calculateMoveResolution({
+    attacker,
+    defender: { id: types.join("-"), types, stats: { "special-defense": 0 } },
+    move,
+    random: sequence([0.8, 0.8, 0, 0]),
+  }).damage;
+  const resisted = resolveAgainst(["water"]);
+  const neutral = resolveAgainst(["normal"]);
+  const superEffective = resolveAgainst(["grass"]);
+  assert.ok(resisted < neutral);
+  assert.ok(neutral < superEffective);
 });
 
 test("status, declaration and always-hit moves follow distinct resolution paths", () => {

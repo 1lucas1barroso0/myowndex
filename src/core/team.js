@@ -1,11 +1,12 @@
-import { fetchCached } from "./mechanics.js";
+import { calculateStat, convertToTTRPG, fetchCached } from "./mechanics.js";
 import { clampFinite, finiteNumberOrNull, integerInRange, quantizeStepDown } from "./math.js";
 import { secureRandomId } from "./random.js";
 import { readStorage, removeStorage, writeStorage } from "./storage.js";
 
 export const TEAM_STORAGE_KEY = "myowndex_rotom_v4";
 export const LEGACY_TEAM_STORAGE_KEY = "myowndex_rotom_v3";
-export const TEAM_SCHEMA_VERSION = 4;
+export const TEAM_SCHEMA_VERSION = 5;
+export const RPG_SCALE_VERSION = 2;
 export const STAT_KEYS = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"];
 export const RPG_STATUSES = ["", "burn", "freeze", "paralysis", "poison", "bad-poison", "sleep"];
 
@@ -39,12 +40,23 @@ const normalizeOptionalNumber = (value, minimum, maximum, step = null) => {
     return quantizeStepDown(parsed, step, { minimum, maximum, fallback: minimum });
 };
 
+const legacyScale20 = (value, isHp = false) => {
+    const numeric = finiteNumberOrNull(value);
+    if (numeric == null || numeric <= 0) return isHp ? 1 : 0;
+    const scaled = numeric / 20;
+    const whole = Math.floor(scaled);
+    const fraction = scaled - whole;
+    const rounded = fraction + Number.EPSILON * 16 >= 0.56 ? Math.ceil(scaled) : whole;
+    return isHp ? Math.max(1, rounded) : rounded;
+};
+
 export const normalizeRpgData = (value = {}) => {
     const source = value && typeof value === "object" ? value : {};
     const status = asText(source.status);
     const pp = asArray(source.pp).slice(0, 4).map(entry => normalizeOptionalNumber(entry, 0, 99, 1));
     while (pp.length < 4) pp.push(null);
     return {
+        scaleVersion: clampInteger(source.scaleVersion, 1, RPG_SCALE_VERSION, source.currentHp == null ? RPG_SCALE_VERSION : 1),
         xp: normalizeOptionalNumber(source.xp, 0, 999999, 0.5) ?? 0,
         currentHp: normalizeOptionalNumber(source.currentHp, 0, 99999, 1),
         status: RPG_STATUSES.includes(status) ? status : "",
@@ -89,6 +101,36 @@ export const normalizePokemon = input => {
         : [];
     const customStats = customStatEntries.length ? Object.fromEntries(customStatEntries) : null;
 
+    const normalizedRpg = normalizeRpgData(source.rpg);
+    let rpg = { ...normalizedRpg, scaleVersion: RPG_SCALE_VERSION };
+    if (normalizedRpg.currentHp != null && normalizedRpg.scaleVersion < RPG_SCALE_VERSION) {
+        const hpBase = customStats?.hp ?? integerInRange(
+            species?.stats?.find(entry => entry?.stat?.name === "hp")?.base_stat,
+            1,
+            255,
+            1,
+        );
+        const speciesName = species?.species?.name || species?.name || "";
+        const rawMaxHp = calculateStat(
+            hpBase,
+            source.evs?.hp,
+            source.ivs?.hp,
+            source.level,
+            1,
+            true,
+            speciesName,
+        );
+        const oldMaxHp = legacyScale20(rawMaxHp, true);
+        const newMaxHp = convertToTTRPG(rawMaxHp, true);
+        const oldCurrentHp = clampInteger(normalizedRpg.currentHp, 0, oldMaxHp, oldMaxHp);
+        const currentHp = oldCurrentHp <= 0
+            ? 0
+            : oldCurrentHp >= oldMaxHp
+                ? newMaxHp
+                : Math.max(1, Math.min(newMaxHp, Math.round((oldCurrentHp / oldMaxHp) * newMaxHp)));
+        rpg = { ...normalizedRpg, currentHp, scaleVersion: RPG_SCALE_VERSION };
+    }
+
     return {
         id: asText(source.id) || createId("partner"),
         species,
@@ -110,7 +152,7 @@ export const normalizePokemon = input => {
         genderLocked: Boolean(source.genderLocked),
         customStats,
         customTypes: asArray(source.customTypes).filter(Boolean).slice(0, 2).map(value => asText(value).toLowerCase()),
-        rpg: normalizeRpgData(source.rpg)
+        rpg
     };
 };
 
@@ -224,7 +266,7 @@ export const touchTeam = team => ({
 
 export const loadTeams = () => {
     const current = readStorage(TEAM_STORAGE_KEY, null);
-    if (current?.schema === TEAM_SCHEMA_VERSION && Array.isArray(current.teams)) {
+    if ([4, TEAM_SCHEMA_VERSION].includes(current?.schema) && Array.isArray(current.teams)) {
         return dedupeTeams(current.teams);
     }
     const legacy = readStorage(LEGACY_TEAM_STORAGE_KEY, []);

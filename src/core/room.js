@@ -3,6 +3,7 @@ import {
     calculateStat,
     convertToTTRPG,
     formatName,
+    RPG_SCALE_DIVISOR,
     NATURES,
     STAT_MAP,
 } from "./mechanics.js";
@@ -72,7 +73,7 @@ import {
     traitSlug,
 } from "./traitMechanics.js";
 
-export const ROOM_SCHEMA_VERSION = 7;
+export const ROOM_SCHEMA_VERSION = 8;
 export const ROOM_SESSION_STORAGE_KEY = "myowndex_live_room_v1";
 export const LOCAL_ROOM_STORAGE_KEY = "myowndex_local_room_v1";
 
@@ -167,9 +168,9 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     },
 });
 
-export const normalizeRoomToken = value => {
+export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
     const source = value && typeof value === "object" ? value : {};
-    const maxHp = integerInRange(source.maxHp, 1, 99999, 1);
+    const storedMaxHp = integerInRange(source.maxHp, 1, 99999, 1);
     const moves = asArray(source.moves).slice(0, 4).map(move => normalizeSlug(move));
     while (moves.length < 4) moves.push("");
     // Forest's Curse e Trick-or-Treat podem acrescentar um terceiro tipo durante a cena.
@@ -183,8 +184,24 @@ export const normalizeRoomToken = value => {
     ]));
     const originalStats = Object.fromEntries(Object.keys(STAT_MAP).map(stat => [
         stat,
-        integerInRange(source.originalStats?.[stat], 0, 99999, stats[stat] * 20),
+        integerInRange(
+            source.originalStats?.[stat],
+            0,
+            99999,
+            stats[stat] * (legacyScale ? 20 : RPG_SCALE_DIVISOR),
+        ),
     ]));
+    const maxHp = legacyScale
+        ? convertToTTRPG(originalStats.hp || storedMaxHp * 20, true)
+        : storedMaxHp;
+    const storedCurrentHp = integerInRange(source.currentHp, 0, storedMaxHp, storedMaxHp);
+    const currentHp = legacyScale
+        ? storedCurrentHp <= 0
+            ? 0
+            : storedCurrentHp >= storedMaxHp
+                ? maxHp
+                : Math.max(1, Math.min(maxHp, Math.round((storedCurrentHp / storedMaxHp) * maxHp)))
+        : integerInRange(source.currentHp, 0, maxHp, maxHp);
     const stages = normalizeStageMap(source.stages);
     const token = {
         id: asText(source.id) || createId("token"),
@@ -201,7 +218,7 @@ export const normalizeRoomToken = value => {
         x: numberInRange(source.x, 4, 96, 50),
         y: numberInRange(source.y, 8, 92, 55),
         maxHp,
-        currentHp: integerInRange(source.currentHp, 0, maxHp, maxHp),
+        currentHp,
         status: Object.prototype.hasOwnProperty.call(STATUS_LABELS, source.status) ? source.status : "",
         sleepTurns: source.status === "sleep" && source.sleepTurns != null ? integerInRange(source.sleepTurns, 0, 3, 0) : null,
         lastActionRound: integerInRange(source.lastActionRound, 0, 9999, 0),
@@ -238,8 +255,11 @@ export const normalizeRoomToken = value => {
 export const normalizeRoomSnapshot = value => {
     const source = value && typeof value === "object" ? value : {};
     const fallback = createRoomSnapshot(source.title);
-    const tokens = asArray(source.tokens).slice(0, 40).map(normalizeRoomToken);
-    const benchTokens = asArray(source.benchTokens).slice(0, 40).map(normalizeRoomToken);
+    const legacyScale = Number.isFinite(Number(source.schema))
+        && Number(source.schema) > 0
+        && Number(source.schema) < ROOM_SCHEMA_VERSION;
+    const tokens = asArray(source.tokens).slice(0, 40).map(token => normalizeRoomToken(token, { legacyScale }));
+    const benchTokens = asArray(source.benchTokens).slice(0, 40).map(token => normalizeRoomToken(token, { legacyScale }));
     const neutralizingGasActive = tokens.some(token => token.currentHp > 0
         && traitSlug(token.ability) === "neutralizing-gas"
         && !normalizeTraitState(token.traitState, token.item, token.ability).ability.suppressed);
@@ -1525,7 +1545,7 @@ export const calculateMoveResolution = ({
         flashFireMultiplier,
         traitModifiers.multiplier,
     ], { minimum: 0, maximum: MAX_SAFE_GAME_INTEGER, fallback: 0 });
-    const calculatedDamagePerHit = roundRpgScaledValue(safeDivide(multipliedPower, 20, 0), {
+    const calculatedDamagePerHit = roundRpgScaledValue(safeDivide(multipliedPower, RPG_SCALE_DIVISOR, 0), {
         minimumWhenPositive: multipliedPower > 0 ? 1 : 0,
         maximum: MAX_SAFE_GAME_INTEGER,
     });

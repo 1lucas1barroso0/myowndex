@@ -1,3 +1,4 @@
+import { formatEnglishName } from "./names.js";
 import { isAbilityActive, isHeldItemActive, traitSlug } from "./traitMechanics.js";
 import { clampFinite as clamp, finiteNumber as asNumber, integerInRange, safeDivide } from "./math.js";
 import { rollD100 } from "./random.js";
@@ -357,27 +358,27 @@ export const getBattleDisplayIdentity = token => {
     };
 };
 
-const speciesProfile = (id, title, summary, trigger, automation = "guided") => ({ id, title, summary, trigger, automation });
+const speciesProfile = (id, summary, trigger, automation = "guided") => ({ id, title: formatEnglishName(id), summary, trigger, automation });
 
 const SPECIES_PROFILES = Object.freeze({
-    ditto: speciesProfile("ditto", "Corpo imitador", "Transform preserva HP, nível, item e progresso próprios, mas copia a identidade útil de batalha do alvo.", "Transform ou Imposter", "automatic"),
-    smeargle: speciesProfile("smeargle", "Memória de artista", "Sketch substitui o próprio espaço pelo último movimento observado e grava a mudança na ficha vinculada.", "Sketch", "automatic"),
-    zorua: speciesProfile("illusion", "Ilusão", "Pode entrar usando a aparência de um aliado; a ficha verdadeira continua intacta e pode ser revelada a qualquer momento.", "Entrada em cena ou dano", "guided"),
-    zoroark: speciesProfile("illusion", "Ilusão", "Pode entrar usando a aparência de um aliado; a ficha verdadeira continua intacta e pode ser revelada a qualquer momento.", "Entrada em cena ou dano", "guided"),
-    aegislash: speciesProfile("stance-change", "Mudança de postura", "Movimentos ofensivos e King's Shield alternam entre Blade Forme e Shield Forme; confirme a forma antes do cálculo.", "Movimento escolhido", "guided"),
-    wishiwashi: speciesProfile("schooling", "Schooling", "A forma de cardume depende do nível e do HP; o painel mantém o gatilho visível para o Narrador.", "HP e nível", "guided"),
-    minior: speciesProfile("shields-down", "Shields Down", "A carapaça e o núcleo mudam quando o HP cruza a metade, alterando forma e proteção contra condições.", "HP atual", "guided"),
-    mimikyu: speciesProfile("disguise", "Disguise", "O disfarce absorve o primeiro golpe, rompe o marcador visual e cobra 1/8 do HP máximo.", "Primeiro golpe recebido", "automatic"),
-    eiscue: speciesProfile("ice-face", "Ice Face", "A cabeça de gelo bloqueia o primeiro golpe físico e é restaurada pela neve.", "Golpe físico ou clima", "automatic"),
-    palafin: speciesProfile("zero-to-hero", "Zero to Hero", "Depois de sair e voltar à cena, Palafin assume Hero Form; a troca deve permanecer explícita no diário.", "Retorno à cena", "narrated"),
-    morpeko: speciesProfile("hunger-switch", "Hunger Switch", "Alterna Full Belly e Hangry a cada rodada, mudando o tipo de Aura Wheel.", "Fim da rodada", "guided"),
-    cramorant: speciesProfile("gulp-missile", "Gulp Missile", "Surf ou Dive prepara a presa; o próximo dano recebido dispara o efeito correspondente.", "Surf, Dive e dano", "guided"),
-    darmanitan: speciesProfile("zen-mode", "Zen Mode", "A forma muda conforme o HP e a habilidade; confirme a forma antes de usar tipos e atributos.", "HP atual", "guided"),
-    zygarde: speciesProfile("power-construct", "Power Construct", "Ao cair para metade do HP, pode assumir Complete Forme mantendo o HP proporcional.", "HP atual", "guided"),
-    shedinja: speciesProfile("wonder-guard", "HP singular e Wonder Guard", "Shedinja mantém 1 HP; golpes que não são super efetivos são barrados por Wonder Guard salvo quando uma habilidade ignora o bloqueio.", "Dano recebido", "automatic"),
-    castform: speciesProfile("forecast", "Forecast", "O clima determina forma e tipo enquanto a habilidade estiver ativa.", "Mudança de clima", "guided"),
-    cherrim: speciesProfile("flower-gift", "Flower Gift", "Sol forte revela Sunshine Form e fortalece aliados conforme a habilidade.", "Sol forte", "guided"),
-    meloetta: speciesProfile("relic-song", "Relic Song", "Relic Song alterna Aria e Pirouette Forme após o movimento acertar.", "Relic Song", "guided"),
+    ditto: speciesProfile("ditto", "Transform preserva HP, nível, item e progresso próprios, mas copia a identidade útil de batalha do alvo.", "Transform ou Imposter", "automatic"),
+    smeargle: speciesProfile("smeargle", "Sketch substitui o próprio espaço pelo último movimento observado e grava a mudança na ficha vinculada.", "Sketch", "automatic"),
+    zorua: speciesProfile("illusion", "Pode entrar usando a aparência de um aliado; a ficha verdadeira continua intacta e pode ser revelada a qualquer momento.", "Entrada em cena ou dano", "guided"),
+    zoroark: speciesProfile("illusion", "Pode entrar usando a aparência de um aliado; a ficha verdadeira continua intacta e pode ser revelada a qualquer momento.", "Entrada em cena ou dano", "guided"),
+    aegislash: speciesProfile("stance-change", "Movimentos ofensivos e King's Shield alternam entre Blade Forme e Shield Forme; confirme a forma antes do cálculo.", "Movimento escolhido", "guided"),
+    wishiwashi: speciesProfile("schooling", "A forma de cardume depende do nível e do HP; o painel mantém o gatilho visível para o Narrador.", "HP e nível", "guided"),
+    minior: speciesProfile("shields-down", "A carapaça e o núcleo mudam quando o HP cruza a metade, alterando forma e proteção contra condições.", "HP atual", "guided"),
+    mimikyu: speciesProfile("disguise", "O disfarce absorve o primeiro golpe, rompe o marcador visual e cobra 12,5% do HP máximo.", "Primeiro golpe recebido", "automatic"),
+    eiscue: speciesProfile("ice-face", "A cabeça de gelo bloqueia o primeiro golpe físico e é restaurada pela neve.", "Golpe físico ou clima", "automatic"),
+    palafin: speciesProfile("zero-to-hero", "Depois de sair e voltar à cena, Palafin assume Hero Form; a troca deve permanecer explícita no diário.", "Retorno à cena", "narrated"),
+    morpeko: speciesProfile("hunger-switch", "Alterna Full Belly e Hangry a cada rodada, mudando o tipo de Aura Wheel.", "Fim da rodada", "guided"),
+    cramorant: speciesProfile("gulp-missile", "Surf ou Dive prepara a presa; o próximo dano recebido dispara o efeito correspondente.", "Surf, Dive e dano", "guided"),
+    darmanitan: speciesProfile("zen-mode", "A forma muda conforme o HP e a habilidade; confirme a forma antes de usar tipos e atributos.", "HP atual", "guided"),
+    zygarde: speciesProfile("power-construct", "Ao cair para metade do HP, pode assumir Complete Forme mantendo o HP proporcional.", "HP atual", "guided"),
+    shedinja: speciesProfile("wonder-guard", "Shedinja mantém 1 HP; golpes que não são super efetivos são barrados por Wonder Guard salvo quando uma habilidade ignora o bloqueio.", "Dano recebido", "automatic"),
+    castform: speciesProfile("forecast", "O clima determina forma e tipo enquanto a habilidade estiver ativa.", "Mudança de clima", "guided"),
+    cherrim: speciesProfile("flower-gift", "Sol forte revela Sunshine Form e fortalece aliados conforme a habilidade.", "Sol forte", "guided"),
+    meloetta: speciesProfile("relic-song", "Relic Song alterna Aria e Pirouette Forme após o movimento acertar.", "Relic Song", "guided"),
 });
 
 const ABILITY_PROFILE_ALIASES = Object.freeze({

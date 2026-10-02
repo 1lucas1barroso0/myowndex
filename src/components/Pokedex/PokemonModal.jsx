@@ -5,14 +5,34 @@ import { formatCount } from '../../core/copy.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
+import GameIcon from '../Shared/GameIcon.jsx';
 import '../../pokedex-record.css';
 
 const RECORD_TABS = [
-    { id: 'stats', label: 'Perfil', icon: '▤' },
-    { id: 'defenses', label: 'Tipos', icon: '◆' },
-    { id: 'moves', label: 'Movimentos', icon: '✦' },
+    { id: 'stats', label: 'Perfil', icon: 'dex' },
+    { id: 'defenses', label: 'Tipos', icon: 'types' },
+    { id: 'moves', label: 'Movimentos', icon: 'move' },
 ];
 const FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+
+// Keep the catalog's facts intact, with measurements shown only once below.
+const organizeSpeciesFacts = facts => facts
+    .filter(fact => !fact.startsWith('A forma consultada mede '))
+    .map(fact => {
+        const labels = [
+            ['Habitat associado: ', 'Habitat'],
+            ['Ritmo de crescimento: ', 'Crescimento'],
+            ['Taxa de captura dos jogos: ', 'Captura'],
+            ['Amizade inicial de referência: ', 'Amizade inicial'],
+        ];
+        const match = labels.find(([prefix]) => fact.startsWith(prefix));
+        if (!match) return { label: 'Categoria', value: fact };
+        const [value, note] = fact.slice(match[0].length).replace(/\.$/, '').split('; ');
+        const catalogScale = value.match(/^(\d+) em (\d+)$/);
+        return catalogScale
+            ? { label: match[1], value: catalogScale[1], note: `Escala dos jogos: 0 a ${catalogScale[2]}. ${note ? note.charAt(0).toUpperCase() + note.slice(1) : ''}`.trim() }
+            : { label: match[1], value, note };
+    });
 
 export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam }) {
     const [baseInfo, setBaseInfo] = useState(null);
@@ -182,6 +202,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const primaryColor = TYPE_COLORS[formData?.types?.[0]?.type?.name] || "#0EA5E9";
     const sprite = formData?.sprites?.other?.["official-artwork"]?.front_default || formData?.sprites?.front_default;
     const speciesDescription = phase === "ready" ? describeSpecies(baseInfo, formData) : null;
+    const speciesFacts = speciesDescription ? organizeSpeciesFacts(speciesDescription.facts) : [];
 
     return (
         <div className="pokemon-modal-backdrop record-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
@@ -264,7 +285,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     <div className="pokemon-modal-tabs record-tabs" role="tablist" aria-label="Páginas da ficha" onKeyDown={handleTabKeyDown}>
                         {RECORD_TABS.map(item => (
                             <button key={item.id} type="button" role="tab" id={`${recordId}-tab-${item.id}`} aria-selected={tab === item.id} aria-controls={panelId} tabIndex={tab === item.id ? 0 : -1} onClick={() => setTab(item.id)}>
-                                <span aria-hidden="true">{item.icon}</span>{item.label}
+                                <GameIcon name={item.icon} />{item.label}
                             </button>
                         ))}
                     </div>
@@ -272,14 +293,19 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         {tab === "stats" && (
                             <div className="animate-fade-in space-y-8">
                                 <section className="species-description" aria-labelledby={`${recordId}-description-title`}>
-                                    <h3 id={`${recordId}-description-title`}>Registro da Pokédex</h3>
+                                    <header className="record-entry-heading">
+                                        <h3 id={`${recordId}-description-title`}>Registro da Pokédex</h3>
+                                        {speciesDescription.flavor.text && speciesDescription.flavor.code === "en" && <span className="record-catalog-language">EN <span className="sr-only">Texto original em inglês</span></span>}
+                                    </header>
                                     <p lang={speciesDescription.flavor.text ? speciesDescription.flavor.code : "pt-BR"}>{speciesDescription.summary}</p>
-                                    {speciesDescription.flavor.text && speciesDescription.flavor.code === "en" && <small>Texto original em inglês.</small>}
-                                    <ul>
-                                        {speciesDescription.facts.map((fact, index) => <li key={`species-fact-${index}`}>{fact}</li>)}
-                                    </ul>
                                 </section>
-                                <dl className="record-measurements">
+                                <dl className="record-species-facts">
+                                    {speciesFacts.map((fact, index) => <div key={`species-fact-${index}`}>
+                                        <dt>{fact.label}</dt>
+                                        <dd>{fact.value}{fact.note && <small>{fact.note}</small>}</dd>
+                                    </div>)}
+                                </dl>
+                                <dl className="record-measurements" aria-label="Medidas desta forma">
                                     <div><dt>Altura</dt><dd>{formatNumberPtBr((formData.height || 0) / 10)} m</dd></div>
                                     <div><dt>Peso</dt><dd>{formatNumberPtBr((formData.weight || 0) / 10)} kg</dd></div>
                                 </dl>
@@ -316,27 +342,23 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 
                                 <div>
                                     <h3 className="record-section-title">Linha evolutiva</h3>
-                                    <p className="record-section-note">Cada evolução tem suas próprias condições.</p>
-                                    <div className="record-evolution-list bg-white p-6 rounded-2xl border-2 border-slate-200 flex flex-col gap-6 shadow-sm">
+                                    <div className="record-evolution-list">
                                         {evolutionStatus === "loading" ? <p role="status" className="record-section-note">Consultando a linha evolutiva...</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">A linha evolutiva não chegou desta vez. As outras páginas da ficha continuam disponíveis.</p> : evoChain.length > 0 ? evoChain.map((path, idx) => (
-                                            <div key={idx} className="record-evolution-path">
+                                            <ol key={idx} className="record-evolution-path" aria-label={evoChain.length > 1 ? `Caminho evolutivo ${idx + 1}` : "Caminho evolutivo"} style={{ "--evolution-stages": path.length }}>
                                                 {path.map((node, i) => (
-                                                    <React.Fragment key={node.name + i}>
-                                                        <div className="record-evolution-node group">
-                                                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-4 border-slate-200 shadow-inner group-hover:border-red-400 transition-colors">
+                                                        <li key={node.name + i} className={`record-evolution-node ${String(node.id) === String(baseInfo.id) ? "is-current" : ""}`} aria-current={String(node.id) === String(baseInfo.id) ? "step" : undefined}>
+                                                            <div className="record-evolution-stage">
                                                                 <PokemonSprite
                                                                     pokemonId={node.id}
-                                                                    className="record-evolution-sprite w-16 h-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
+                                                                    className="record-evolution-sprite"
                                                                     alt={formatName(node.name)}
                                                                 />
                                                             </div>
-                                                            <span className="pokemon-evolution-name mt-3 w-full text-center text-[10px] font-black uppercase text-slate-600 transition-colors group-hover:text-red-600">{formatName(node.name)}</span>
-                                                        </div>
-                                                        {i < path.length - 1 && <svg aria-hidden="true" className="w-8 h-8 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"></path></svg>}
-                                                    </React.Fragment>
+                                                            <span className="record-evolution-name">{formatName(node.name)}</span>
+                                                        </li>
                                                 ))}
-                                            </div>
-                                        )) : <span className="text-xs font-black text-slate-400 text-center w-full block py-4">Nenhuma evolução conhecida foi registrada para este Pokémon.</span>}
+                                            </ol>
+                                        )) : <p className="record-section-note">Nenhuma evolução conhecida foi registrada para este Pokémon.</p>}
                                     </div>
                                 </div>
                             </div>
@@ -368,9 +390,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                     <h3 className="record-section-title">Movimentos</h3>
                                     <span className="record-move-version">{formatCount(legalMoves.length, "movimento")} · {VERSION_LABELS[moveVersion] || "Mais recente"}</span>
                                 </div>
-                                <div className="flex flex-col gap-2">
+                                <div className="record-moves-list">
                                     {legalMoves.map(move => <MoveAccordion key={move.move?.name} moveData={move} isTTRPG={isTTRPG} />)}
-                                    {!legalMoves.length && <p className="rounded-xl border-2 border-slate-200 bg-white p-5 text-center text-xs font-bold text-slate-500">A Pokédex ainda não tem movimentos registrados para esta forma.</p>}
+                                    {!legalMoves.length && <p className="record-section-note">A Pokédex ainda não tem movimentos registrados para esta forma.</p>}
                                 </div>
                             </div>
                         )}

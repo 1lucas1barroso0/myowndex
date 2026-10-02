@@ -1,3 +1,4 @@
+import { formatEnglishName } from "./names.js";
 import {
     clampFinite,
     finiteNumberOrNull,
@@ -227,7 +228,7 @@ export const calculateStat = (base, ev, iv, level, natureMulti, isHp, speciesNam
     return Math.floor((Math.floor(((2 * b + i + Math.floor(e / 4)) * l) / 100) + 5) * nature);
 };
 
-export const formatName = str => str ? String(str).replace(/-/g, " ").replace(/\b\w/g, letter => letter.toUpperCase()) : "Sem registro";
+export const formatName = formatEnglishName;
 const PT_BR_NUMBER_FORMAT = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
 export const formatNumberPtBr = value => {
     const numericValue = finiteNumberOrNull(value);
@@ -353,10 +354,10 @@ export const NATURES = {
 };
 export const TYPES = ["normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy", "stellar"];
 export const TYPE_LABELS = {
-    normal: "Normal", fire: "Fogo", water: "Água", electric: "Elétrico", grass: "Planta", ice: "Gelo",
-    fighting: "Lutador", poison: "Venenoso", ground: "Terrestre", flying: "Voador", psychic: "Psíquico",
-    bug: "Inseto", rock: "Pedra", ghost: "Fantasma", dragon: "Dragão", dark: "Sombrio", steel: "Aço",
-    fairy: "Fada", stellar: "Estelar"
+    normal: "Normal", fire: "Fire", water: "Water", electric: "Electric", grass: "Grass", ice: "Ice",
+    fighting: "Fighting", poison: "Poison", ground: "Ground", flying: "Flying", psychic: "Psychic",
+    bug: "Bug", rock: "Rock", ghost: "Ghost", dragon: "Dragon", dark: "Dark", steel: "Steel",
+    fairy: "Fairy", stellar: "Stellar"
 };
 export const DAMAGE_CLASS_LABELS = { physical: "Físico", special: "Especial", status: "Status" };
 export const formatType = type => TYPE_LABELS[type] || formatName(type);

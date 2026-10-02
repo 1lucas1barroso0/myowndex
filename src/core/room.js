@@ -872,7 +872,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                             damage: 0,
                             remainingHp: currentHp,
                             fainted: false,
-                            sources: [`Bocejo não causou sono: ${blocked}`],
+                            sources: [`Yawn não causou sono: ${blocked}`],
                         });
                         return;
                     }

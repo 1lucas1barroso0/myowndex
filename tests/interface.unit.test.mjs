@@ -58,7 +58,7 @@ test("the editorial glossary keeps names, agreement and Pokémon plurals consist
   assert.equal(MYOWNDEX_TERMS.pokeBall, "Poké Ball");
   assert.equal(formatCanonicalItemName("luxury-ball"), "Luxury Ball");
   assert.equal(formatCanonicalItemName("poke-ball"), "Poké Ball");
-  assert.equal(RPG_STATUS_LABELS.paralysis, "Paralisado");
+  assert.equal(RPG_STATUS_LABELS.paralysis, "Paralysis");
   assert.equal(formatCount(1, "Box", "Boxes"), "1 Box");
   assert.equal(formatCount(2, "Box", "Boxes"), "2 Boxes");
   assert.equal(formatPokemonCount(1), "1 Pokémon encontrado");
@@ -174,17 +174,17 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   assert.match(guide, /<LocalDicePanel/);
   assert.doesNotMatch(panel, /Seguro e offline|Resultado registrado|Detalhes e segurança|>Mantido</);
   assert.doesNotMatch(panel, /placeholder=/, "dice fields use persistent labels instead of examples inside inputs");
-  assert.match(panel, /LOCAL_ROLL_MODES\[result\.spec\.mode\]/);
+  assert.match(panel, /rollLabel\(result/);
   assert.match(panel, /Vantagem · menor de dois d100/);
   assert.match(panel, /Desvantagem · maior de dois d100/);
-  assert.match(panel, /Histórico<small>Neste dispositivo/);
+  assert.match(panel, /Histórico/);
   assert.match(rolls, /myowndex_guide_roll_history_v1/);
-  assert.match(panel, /últimas 100 rolagens locais/);
+  assert.match(panel, /Até 100 resultados salvos/);
   assert.match(panel, /Apagar histórico/);
   assert.match(rolls, /clearLocalRolls/);
   assert.match(panel, /if\(lock\.current \|\| !ready/);
   assert.match(panel, /event\.repeat/);
-  assert.match(panel, /Baixar \.txt/);
+  assert.match(panel, /Baixar histórico/);
 });
 
 test("game style and adventure phase use compact tabs with complete help on demand", async () => {

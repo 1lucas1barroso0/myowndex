@@ -1,3 +1,4 @@
+import { formatEnglishName } from "./names.js";
 import {
     clampFinite as clamp,
     finiteNumber as asNumber,
@@ -171,84 +172,84 @@ export const isHeldItemActive = token => {
     return !itemSuppressed && !klutzActive;
 };
 
-const profile = (id, title, summary, trigger, automation = "contextual") => ({ id, title, summary, trigger, automation });
+const profile = (id, summary, trigger, automation = "contextual") => ({ id, title: formatEnglishName(id), summary, trigger, automation });
 
 const ABILITY_PROFILES = Object.freeze({
-    adaptability: profile("adaptability", "STAB adaptável", "Eleva o bônus de golpes dos próprios tipos e acompanha a Terastalização.", "Ao calcular dano de um tipo compatível", "automatic"),
-    aftermath: profile("aftermath", "Último impacto", "Fere quem nocauteia o usuário com contato direto.", "Ao desmaiar por contato", "automatic"),
-    analytic: profile("analytic", "Análise tardia", "Fortalece o golpe quando o usuário age depois do alvo.", "Ordem de turno", "guided"),
-    blaze: profile("blaze", "Chama crítica", "Fortalece golpes de Fogo quando resta até um terço do HP.", "HP crítico + golpe de Fogo", "automatic"),
-    chlorophyll: profile("chlorophyll", "Clorofila", "Dobra a Velocidade sob sol forte.", "Iniciativa sob sol", "automatic"),
-    "compound-eyes": profile("compound-eyes", "Olhos compostos", "Aumenta a precisão dos movimentos.", "Teste de precisão", "automatic"),
-    "dry-skin": profile("dry-skin", "Pele seca", "Absorve Água, recupera HP na chuva e sofre com sol e Fogo.", "Água, clima ou Fogo", "automatic"),
-    guts: profile("guts", "Coragem", "Fortalece golpes físicos enquanto há uma condição principal.", "Condição + golpe físico", "automatic"),
-    "huge-power": profile("huge-power", "Força colossal", "Dobra a pressão ofensiva de golpes físicos.", "Golpe físico", "automatic"),
-    intimidate: profile("intimidate", "Presença intimidadora", "Reduz o Ataque dos oponentes ao entrar em cena.", "Entrada em campo", "automatic"),
-    "iron-barbs": profile("iron-barbs", "Espinhos de ferro", "Fere quem acerta o usuário por contato.", "Dano por contato", "automatic"),
-    "ice-scales": profile("ice-scales", "Escamas de gelo", "Reduz pela metade o dano especial recebido.", "Dano especial", "automatic"),
-    "iron-fist": profile("iron-fist", "Punho de ferro", "Fortalece movimentos de soco.", "Movimento de soco", "automatic"),
-    "magic-guard": profile("magic-guard", "Guarda mágica", "Impede dano indireto sem apagar cura, estados ou efeitos narrativos.", "Dano residual ou de item", "automatic"),
-    "mold-breaker": profile("mold-breaker", "Quebra-molde", "Ignora habilidades defensivas que normalmente impediriam o golpe.", "Resolução contra habilidade defensiva", "automatic"),
-    moxie: profile("moxie", "Arrojo", "Aumenta o Ataque depois de nocautear um alvo.", "Nocaute causado", "automatic"),
-    multiscale: profile("multiscale", "Multiescamas", "Reduz pela metade o dano recebido com HP cheio.", "Golpe recebido com HP cheio", "automatic"),
-    "neutralizing-gas": profile("neutralizing-gas", "Gás neutralizante", "Suprime as demais habilidades em cena; Ability Shield preserva a habilidade de seu portador.", "Enquanto o usuário está consciente em cena", "automatic"),
-    "no-guard": profile("no-guard", "Sem guarda", "Dispensa o teste de precisão dos movimentos que envolvem o usuário.", "Movimento declarado", "automatic"),
-    overcoat: profile("overcoat", "Sobretudo", "Protege contra dano de clima e efeitos de pó.", "Clima ou movimento de pó", "automatic"),
-    overgrow: profile("overgrow", "Supercrescimento", "Fortalece golpes de Grama quando resta até um terço do HP.", "HP crítico + golpe de Grama", "automatic"),
-    "poison-heal": profile("poison-heal", "Cura venenosa", "Converte o dano de veneno em recuperação.", "Fim da rodada envenenado", "automatic"),
-    "pure-power": profile("pure-power", "Força pura", "Dobra a pressão ofensiva de golpes físicos.", "Golpe físico", "automatic"),
-    "rain-dish": profile("rain-dish", "Prato de chuva", "Recupera HP no fim da rodada sob chuva.", "Fim da rodada na chuva", "automatic"),
-    "rough-skin": profile("rough-skin", "Pele áspera", "Fere quem acerta o usuário por contato.", "Dano por contato", "automatic"),
-    "sand-rush": profile("sand-rush", "Ímpeto de areia", "Dobra a Velocidade durante tempestade de areia.", "Iniciativa na areia", "automatic"),
-    "shadow-shield": profile("shadow-shield", "Escudo espectral", "Reduz pela metade o dano recebido com HP cheio.", "Golpe recebido com HP cheio", "automatic"),
-    "shed-skin": profile("shed-skin", "Troca de pele", "Pode remover a condição principal no fim da rodada.", "Fim da rodada", "automatic"),
-    "sheer-force": profile("sheer-force", "Força bruta", "Fortalece golpes com efeitos secundários e remove esses efeitos.", "Golpe com efeito secundário", "automatic"),
-    "skill-link": profile("skill-link", "Ligação habilidosa", "Faz movimentos de múltiplos golpes alcançarem o máximo.", "Movimento de múltiplos golpes", "automatic"),
-    "slush-rush": profile("slush-rush", "Ímpeto de neve", "Dobra a Velocidade sob neve.", "Iniciativa na neve", "automatic"),
-    "solar-power": profile("solar-power", "Poder solar", "Fortalece golpes especiais no sol e cobra HP no fim da rodada.", "Golpe especial ou fim da rodada sob sol", "automatic"),
-    "speed-boost": profile("speed-boost", "Impulso", "Aumenta a Velocidade ao fim de cada rodada ativa.", "Fim da rodada", "automatic"),
-    "strong-jaw": profile("strong-jaw", "Mandíbula forte", "Fortalece movimentos de mordida.", "Movimento de mordida", "automatic"),
-    sturdy: profile("sturdy", "Robustez", "Impede um nocaute de um único golpe quando o HP está cheio.", "Golpe fatal com HP cheio", "automatic"),
-    swarm: profile("swarm", "Enxame", "Fortalece golpes de Inseto quando resta até um terço do HP.", "HP crítico + golpe de Inseto", "automatic"),
-    "swift-swim": profile("swift-swim", "Nado rápido", "Dobra a Velocidade sob chuva.", "Iniciativa na chuva", "automatic"),
-    technician: profile("technician", "Técnico", "Fortalece golpes de baixo poder.", "Movimento de até 60 de poder", "automatic"),
-    "thick-fat": profile("thick-fat", "Gordura espessa", "Reduz pela metade dano de Fogo e Gelo.", "Golpe de Fogo ou Gelo", "automatic"),
-    "tinted-lens": profile("tinted-lens", "Lentes coloridas", "Compensa a resistência do alvo a golpes pouco efetivos.", "Golpe resistido", "automatic"),
-    torrent: profile("torrent", "Torrente", "Fortalece golpes de Água quando resta até um terço do HP.", "HP crítico + golpe de Água", "automatic"),
-    unaware: profile("unaware", "Inconsciente", "Ignora modificadores ofensivos ou defensivos pertinentes ao confronto.", "Disputa de dano", "automatic"),
-    unburden: profile("unburden", "Desimpedido", "Dobra a Velocidade depois que o item do usuário é consumido ou perdido.", "Iniciativa sem o item original", "automatic"),
-    "water-bubble": profile("water-bubble", "Bolha d'água", "Fortalece Água, reduz Fogo e impede queimadura.", "Golpe de Água/Fogo ou queimadura", "automatic"),
-    "air-lock": profile("air-lock", "Trava do ar", "Mantém o clima visível, mas neutraliza seus efeitos mecânicos.", "Enquanto o usuário está consciente em cena", "automatic"),
-    "cloud-nine": profile("cloud-nine", "Nono céu", "Mantém o clima visível, mas neutraliza seus efeitos mecânicos.", "Enquanto o usuário está consciente em cena", "automatic"),
+    adaptability: profile("adaptability", "Eleva o bônus de golpes dos próprios tipos e acompanha a Terastalização.", "Ao calcular dano de um tipo compatível", "automatic"),
+    aftermath: profile("aftermath", "Fere quem nocauteia o usuário com contato direto.", "Ao desmaiar por contato", "automatic"),
+    analytic: profile("analytic", "Fortalece o golpe quando o usuário age depois do alvo.", "Ordem de turno", "guided"),
+    blaze: profile("blaze", "Fortalece golpes de Fire quando resta até um terço do HP.", "HP crítico + golpe de Fire", "automatic"),
+    chlorophyll: profile("chlorophyll", "Dobra a Velocidade sob sol forte.", "Iniciativa sob sol", "automatic"),
+    "compound-eyes": profile("compound-eyes", "Aumenta a precisão dos movimentos.", "Teste de precisão", "automatic"),
+    "dry-skin": profile("dry-skin", "Absorve Water, recupera HP na chuva e sofre com sol e Fire.", "Water, clima ou Fire", "automatic"),
+    guts: profile("guts", "Fortalece golpes físicos enquanto há uma condição principal.", "Condição + golpe físico", "automatic"),
+    "huge-power": profile("huge-power", "Dobra a pressão ofensiva de golpes físicos.", "Golpe físico", "automatic"),
+    intimidate: profile("intimidate", "Reduz o Ataque dos oponentes ao entrar em cena.", "Entrada em campo", "automatic"),
+    "iron-barbs": profile("iron-barbs", "Fere quem acerta o usuário por contato.", "Dano por contato", "automatic"),
+    "ice-scales": profile("ice-scales", "Reduz pela metade o dano especial recebido.", "Dano especial", "automatic"),
+    "iron-fist": profile("iron-fist", "Fortalece movimentos de soco.", "Movimento de soco", "automatic"),
+    "magic-guard": profile("magic-guard", "Impede dano indireto sem apagar cura, estados ou efeitos narrativos.", "Dano residual ou de item", "automatic"),
+    "mold-breaker": profile("mold-breaker", "Ignora habilidades defensivas que normalmente impediriam o golpe.", "Resolução contra habilidade defensiva", "automatic"),
+    moxie: profile("moxie", "Aumenta o Ataque depois de nocautear um alvo.", "Nocaute causado", "automatic"),
+    multiscale: profile("multiscale", "Reduz pela metade o dano recebido com HP cheio.", "Golpe recebido com HP cheio", "automatic"),
+    "neutralizing-gas": profile("neutralizing-gas", "Suprime as demais habilidades em cena; Ability Shield preserva a habilidade de seu portador.", "Enquanto o usuário está consciente em cena", "automatic"),
+    "no-guard": profile("no-guard", "Dispensa o teste de precisão dos movimentos que envolvem o usuário.", "Movimento declarado", "automatic"),
+    overcoat: profile("overcoat", "Protege contra dano de clima e efeitos de pó.", "Clima ou movimento de pó", "automatic"),
+    overgrow: profile("overgrow", "Fortalece golpes de Grass quando resta até um terço do HP.", "HP crítico + golpe de Grass", "automatic"),
+    "poison-heal": profile("poison-heal", "Converte o dano de veneno em recuperação.", "Fim da rodada envenenado", "automatic"),
+    "pure-power": profile("pure-power", "Dobra a pressão ofensiva de golpes físicos.", "Golpe físico", "automatic"),
+    "rain-dish": profile("rain-dish", "Recupera HP no fim da rodada sob chuva.", "Fim da rodada na chuva", "automatic"),
+    "rough-skin": profile("rough-skin", "Fere quem acerta o usuário por contato.", "Dano por contato", "automatic"),
+    "sand-rush": profile("sand-rush", "Dobra a Velocidade durante tempestade de areia.", "Iniciativa na areia", "automatic"),
+    "shadow-shield": profile("shadow-shield", "Reduz pela metade o dano recebido com HP cheio.", "Golpe recebido com HP cheio", "automatic"),
+    "shed-skin": profile("shed-skin", "Pode remover a condição principal no fim da rodada.", "Fim da rodada", "automatic"),
+    "sheer-force": profile("sheer-force", "Fortalece golpes com efeitos secundários e remove esses efeitos.", "Golpe com efeito secundário", "automatic"),
+    "skill-link": profile("skill-link", "Faz movimentos de múltiplos golpes alcançarem o máximo.", "Movimento de múltiplos golpes", "automatic"),
+    "slush-rush": profile("slush-rush", "Dobra a Velocidade sob neve.", "Iniciativa na neve", "automatic"),
+    "solar-power": profile("solar-power", "Fortalece golpes especiais no sol e cobra HP no fim da rodada.", "Golpe especial ou fim da rodada sob sol", "automatic"),
+    "speed-boost": profile("speed-boost", "Aumenta a Velocidade ao fim de cada rodada ativa.", "Fim da rodada", "automatic"),
+    "strong-jaw": profile("strong-jaw", "Fortalece movimentos de mordida.", "Movimento de mordida", "automatic"),
+    sturdy: profile("sturdy", "Impede um nocaute de um único golpe quando o HP está cheio.", "Golpe fatal com HP cheio", "automatic"),
+    swarm: profile("swarm", "Fortalece golpes de Bug quando resta até um terço do HP.", "HP crítico + golpe de Bug", "automatic"),
+    "swift-swim": profile("swift-swim", "Dobra a Velocidade sob chuva.", "Iniciativa na chuva", "automatic"),
+    technician: profile("technician", "Fortalece golpes de baixo poder.", "Movimento de até 60 de poder", "automatic"),
+    "thick-fat": profile("thick-fat", "Reduz pela metade dano de Fire e Ice.", "Golpe de Fire ou Ice", "automatic"),
+    "tinted-lens": profile("tinted-lens", "Compensa a resistência do alvo a golpes pouco efetivos.", "Golpe resistido", "automatic"),
+    torrent: profile("torrent", "Fortalece golpes de Water quando resta até um terço do HP.", "HP crítico + golpe de Water", "automatic"),
+    unaware: profile("unaware", "Ignora modificadores ofensivos ou defensivos pertinentes ao confronto.", "Disputa de dano", "automatic"),
+    unburden: profile("unburden", "Dobra a Velocidade depois que o item do usuário é consumido ou perdido.", "Iniciativa sem o item original", "automatic"),
+    "water-bubble": profile("water-bubble", "Fortalece Water, reduz Fire e impede queimadura.", "Golpe de Water/Fire ou queimadura", "automatic"),
+    "air-lock": profile("air-lock", "Mantém o clima visível, mas neutraliza seus efeitos mecânicos.", "Enquanto o usuário está consciente em cena", "automatic"),
+    "cloud-nine": profile("cloud-nine", "Mantém o clima visível, mas neutraliza seus efeitos mecânicos.", "Enquanto o usuário está consciente em cena", "automatic"),
 });
 
 const ITEM_PROFILES = Object.freeze({
-    "ability-shield": profile("ability-shield", "Escudo de habilidade", "Protege a habilidade contra supressão, troca, substituição e ignorância externa.", "Tentativa de alterar ou ignorar a habilidade", "automatic"),
-    "air-balloon": profile("air-balloon", "Balão de ar", "Concede imunidade a golpes de Terra até estourar ao sofrer dano.", "Golpe de Terra ou dano recebido", "automatic"),
-    "assault-vest": profile("assault-vest", "Colete ofensivo", "Reduz dano especial, mas impede movimentos de estado.", "Golpe especial recebido ou movimento de estado", "automatic"),
-    "black-sludge": profile("black-sludge", "Lodo preto", "Recupera Pokémon Venenosos e fere os demais no fim da rodada.", "Fim da rodada", "automatic"),
-    "choice-band": profile("choice-band", "Faixa da escolha", "Fortalece golpes físicos e registra o primeiro movimento para o bloqueio de escolha.", "Primeiro movimento ofensivo", "contextual"),
-    "choice-scarf": profile("choice-scarf", "Lenço da escolha", "Aumenta a Velocidade e registra o primeiro movimento para o bloqueio de escolha.", "Iniciativa e primeiro movimento", "contextual"),
-    "choice-specs": profile("choice-specs", "Óculos da escolha", "Fortalece golpes especiais e registra o primeiro movimento para o bloqueio de escolha.", "Primeiro movimento ofensivo", "contextual"),
-    "covert-cloak": profile("covert-cloak", "Manto furtivo", "Impede efeitos secundários de golpes recebidos.", "Efeito secundário recebido", "automatic"),
-    "expert-belt": profile("expert-belt", "Cinto de perícia", "Fortalece golpes super efetivos.", "Golpe super efetivo", "automatic"),
-    "flame-orb": profile("flame-orb", "Orbe de chamas", "Queima o portador no fim da rodada se isso for permitido.", "Fim da rodada", "automatic"),
-    "focus-sash": profile("focus-sash", "Faixa de foco", "É consumida para impedir um nocaute de um único golpe com HP cheio.", "Golpe fatal com HP cheio", "automatic"),
-    "leftovers": profile("leftovers", "Restos", "Recupera uma fração do HP no fim da rodada.", "Fim da rodada", "automatic"),
-    "life-orb": profile("life-orb", "Orbe da vida", "Fortalece golpes e cobra HP depois de causar dano direto.", "Golpe que causa dano", "automatic"),
-    "loaded-dice": profile("loaded-dice", "Dados viciados", "Faz movimentos de 2–5 golpes atingirem pelo menos quatro vezes.", "Movimento de múltiplos golpes", "automatic"),
-    "lum-berry": profile("lum-berry", "Fruta Lum", "Cura qualquer condição principal e é consumida.", "Condição principal", "automatic"),
-    "muscle-band": profile("muscle-band", "Faixa muscular", "Fortalece golpes físicos.", "Golpe físico", "automatic"),
-    "oran-berry": profile("oran-berry", "Fruta Oran", "Recupera HP ao atingir metade da vida e é consumida.", "HP em 50% ou menos", "automatic"),
-    "punching-glove": profile("punching-glove", "Luva de soco", "Fortalece socos e evita contato direto nesses movimentos.", "Movimento de soco", "automatic"),
-    "rocky-helmet": profile("rocky-helmet", "Capacete áspero", "Fere quem acerta o portador por contato.", "Dano por contato", "automatic"),
-    "shell-bell": profile("shell-bell", "Sino concha", "Recupera HP proporcional ao dano causado.", "Dano direto causado", "automatic"),
-    "sitrus-berry": profile("sitrus-berry", "Fruta Sitrus", "Recupera um quarto do HP ao atingir metade da vida e é consumida.", "HP em 50% ou menos", "automatic"),
-    "toxic-orb": profile("toxic-orb", "Orbe tóxico", "Envenena gravemente o portador no fim da rodada se isso for permitido.", "Fim da rodada", "automatic"),
-    "weakness-policy": profile("weakness-policy", "Seguro fraqueza", "É consumido após dano super efetivo para elevar os dois ataques.", "Dano super efetivo", "automatic"),
-    "white-herb": profile("white-herb", "Erva branca", "É consumida para neutralizar modificadores negativos.", "Modificador negativo", "automatic"),
-    "wide-lens": profile("wide-lens", "Lente ampla", "Aumenta a precisão dos movimentos.", "Teste de precisão", "automatic"),
-    "wise-glasses": profile("wise-glasses", "Óculos especiais", "Fortalece golpes especiais.", "Golpe especial", "automatic"),
+    "ability-shield": profile("ability-shield", "Protege a habilidade contra supressão, troca, substituição e ignorância externa.", "Tentativa de alterar ou ignorar a habilidade", "automatic"),
+    "air-balloon": profile("air-balloon", "Concede imunidade a golpes de Ground até estourar ao sofrer dano.", "Golpe de Ground ou dano recebido", "automatic"),
+    "assault-vest": profile("assault-vest", "Reduz dano especial, mas impede movimentos de estado.", "Golpe especial recebido ou movimento de estado", "automatic"),
+    "black-sludge": profile("black-sludge", "Recupera Pokémon Venenosos e fere os demais no fim da rodada.", "Fim da rodada", "automatic"),
+    "choice-band": profile("choice-band", "Fortalece golpes físicos e registra o primeiro movimento para o bloqueio de escolha.", "Primeiro movimento ofensivo", "contextual"),
+    "choice-scarf": profile("choice-scarf", "Aumenta a Velocidade e registra o primeiro movimento para o bloqueio de escolha.", "Iniciativa e primeiro movimento", "contextual"),
+    "choice-specs": profile("choice-specs", "Fortalece golpes especiais e registra o primeiro movimento para o bloqueio de escolha.", "Primeiro movimento ofensivo", "contextual"),
+    "covert-cloak": profile("covert-cloak", "Impede efeitos secundários de golpes recebidos.", "Efeito secundário recebido", "automatic"),
+    "expert-belt": profile("expert-belt", "Fortalece golpes super efetivos.", "Golpe super efetivo", "automatic"),
+    "flame-orb": profile("flame-orb", "Queima o portador no fim da rodada se isso for permitido.", "Fim da rodada", "automatic"),
+    "focus-sash": profile("focus-sash", "É consumida para impedir um nocaute de um único golpe com HP cheio.", "Golpe fatal com HP cheio", "automatic"),
+    "leftovers": profile("leftovers", "Recupera uma fração do HP no fim da rodada.", "Fim da rodada", "automatic"),
+    "life-orb": profile("life-orb", "Fortalece golpes e cobra HP depois de causar dano direto.", "Golpe que causa dano", "automatic"),
+    "loaded-dice": profile("loaded-dice", "Faz movimentos de 2–5 golpes atingirem pelo menos quatro vezes.", "Movimento de múltiplos golpes", "automatic"),
+    "lum-berry": profile("lum-berry", "Cura qualquer condição principal e é consumida.", "Condição principal", "automatic"),
+    "muscle-band": profile("muscle-band", "Fortalece golpes físicos.", "Golpe físico", "automatic"),
+    "oran-berry": profile("oran-berry", "Recupera HP ao atingir metade da vida e é consumida.", "HP em 50% ou menos", "automatic"),
+    "punching-glove": profile("punching-glove", "Fortalece socos e evita contato direto nesses movimentos.", "Movimento de soco", "automatic"),
+    "rocky-helmet": profile("rocky-helmet", "Fere quem acerta o portador por contato.", "Dano por contato", "automatic"),
+    "shell-bell": profile("shell-bell", "Recupera HP proporcional ao dano causado.", "Dano direto causado", "automatic"),
+    "sitrus-berry": profile("sitrus-berry", "Recupera um quarto do HP ao atingir metade da vida e é consumida.", "HP em 50% ou menos", "automatic"),
+    "toxic-orb": profile("toxic-orb", "Envenena gravemente o portador no fim da rodada se isso for permitido.", "Fim da rodada", "automatic"),
+    "weakness-policy": profile("weakness-policy", "É consumido após dano super efetivo para elevar os dois ataques.", "Dano super efetivo", "automatic"),
+    "white-herb": profile("white-herb", "É consumida para neutralizar modificadores negativos.", "Modificador negativo", "automatic"),
+    "wide-lens": profile("wide-lens", "Aumenta a precisão dos movimentos.", "Teste de precisão", "automatic"),
+    "wise-glasses": profile("wise-glasses", "Fortalece golpes especiais.", "Golpe especial", "automatic"),
 });
 
 export const getAbilityProfile = ability => {
@@ -256,7 +257,6 @@ export const getAbilityProfile = ability => {
     if (!id) return null;
     return ABILITY_PROFILES[id] || profile(
         id,
-        "Habilidade presente na cena",
         "A descrição oficial permanece visível. Quando o efeito depende de alvo, ordem, troca ou escolha, o MyOwnDex mostra o momento certo e deixa a decisão com o grupo.",
         "Conforme a descrição oficial",
         "guided",
@@ -269,7 +269,6 @@ export const getItemProfile = item => {
     const berry = id.endsWith("-berry");
     return ITEM_PROFILES[id] || profile(
         id,
-        berry ? "Fruta presente na cena" : "Item presente na cena",
         berry
             ? "O consumo, o estado e a restauração ficam registrados; efeitos muito específicos são resolvidos com a descrição oficial à vista."
             : "A descrição oficial permanece visível, e o Narrador pode registrar ativação, consumo ou troca quando a cena exigir uma escolha.",
@@ -316,7 +315,7 @@ export const getTraitMoveBlock = ({ attacker, defender, move } = {}) => {
         return { kind: "item", sourceId: attackerItem, reason: "Assault Vest impede movimentos de estado", absorbed: false, attackerBlocked: true };
     }
     if (item === "air-balloon" && moveType === "ground" && damageClass !== "status") {
-        return { kind: "item", sourceId: item, reason: "Air Balloon manteve o alvo fora do alcance do golpe de Terra", absorbed: true };
+        return { kind: "item", sourceId: item, reason: "Air Balloon manteve o alvo fora do alcance do golpe de Ground", absorbed: true };
     }
     if (ability === "bulletproof" && BALL_BOMB_MOVES.has(moveName)) {
         return { kind: "ability", sourceId: ability, reason: "Bulletproof bloqueou o movimento de esfera ou bomba", absorbed: true };
@@ -377,20 +376,20 @@ export const getDamageTraitModifiers = ({ attacker, defender, move, effectivenes
     if (ability === "tinted-lens" && effectiveness > 0 && effectiveness < 1) addModifier(entries, "ability", ability, 2, "Resistência compensada");
     if (ability === "neuroforce" && effectiveness > 1) addModifier(entries, "ability", ability, 1.25, "Fraqueza explorada");
     if (ability === "sniper" && critical) addModifier(entries, "ability", ability, 1.5, "Acerto crítico ampliado");
-    if (ability === "water-bubble" && moveType === "water") addModifier(entries, "ability", ability, 2, "Bolha d'água fortaleceu Água");
+    if (ability === "water-bubble" && moveType === "water") addModifier(entries, "ability", ability, 2, "Water Bubble fortaleceu Water");
     const criticalTypeAbility = { blaze: "fire", torrent: "water", overgrow: "grass", swarm: "bug" }[ability];
     if (criticalTypeAbility === moveType && hpRatio <= 1 / 3) addModifier(entries, "ability", ability, 1.5, "HP crítico ativou a habilidade");
     const fixedTypeAbility = { "dragons-maw": "dragon", steelworker: "steel", "rocky-payload": "rock", transistor: "electric" }[ability];
     if (fixedTypeAbility === moveType) addModifier(entries, "ability", ability, 1.5, "Tipo favorecido pela habilidade");
     if (ability === "solar-power" && weather === "sol" && damageClass === "special") addModifier(entries, "ability", ability, 1.5, "Sol ativou Solar Power");
 
-    if (item === "life-orb") addModifier(entries, "item", item, 1.3, "Orbe da Vida fortaleceu o golpe");
+    if (item === "life-orb") addModifier(entries, "item", item, 1.3, "Life Orb fortaleceu o golpe");
     if (item === "expert-belt" && effectiveness > 1) addModifier(entries, "item", item, 1.2, "Golpe super efetivo");
     if (item === "muscle-band" && damageClass === "physical") addModifier(entries, "item", item, 1.1, "Golpe físico fortalecido");
     if (item === "wise-glasses" && damageClass === "special") addModifier(entries, "item", item, 1.1, "Golpe especial fortalecido");
     if (item === "choice-band" && damageClass === "physical") addModifier(entries, "item", item, 1.5, "Choice Band fortaleceu o golpe físico");
     if (item === "choice-specs" && damageClass === "special") addModifier(entries, "item", item, 1.5, "Choice Specs fortaleceu o golpe especial");
-    if (item === "punching-glove" && moveHasTrait(move, "punch")) addModifier(entries, "item", item, 1.1, "Luva fortaleceu o soco");
+    if (item === "punching-glove" && moveHasTrait(move, "punch")) addModifier(entries, "item", item, 1.1, "Punching Glove fortaleceu o soco");
     if (TYPE_BOOST_ITEMS[item] === moveType) {
         addModifier(entries, "item", item, 1.2, "Item fortaleceu o tipo do movimento");
     }
@@ -402,23 +401,23 @@ export const getDamageTraitModifiers = ({ attacker, defender, move, effectivenes
     if (defenderAbility === "thick-fat" && ["fire", "ice"].includes(moveType)) addModifier(entries, "ability", defenderAbility, 0.5, "Tipo amortecido");
     if (defenderAbility === "ice-scales" && damageClass === "special") addModifier(entries, "ability", defenderAbility, 0.5, "Dano especial reduzido");
     if (defenderAbility === "fur-coat" && damageClass === "physical") addModifier(entries, "ability", defenderAbility, 0.5, "Dano físico reduzido");
-    if (defenderAbility === "water-bubble" && moveType === "fire") addModifier(entries, "ability", defenderAbility, 0.5, "Fogo amortecido pela bolha");
-    if (defenderAbility === "dry-skin" && moveType === "fire") addModifier(entries, "ability", defenderAbility, 1.25, "Pele seca agravou Fogo");
+    if (defenderAbility === "water-bubble" && moveType === "fire") addModifier(entries, "ability", defenderAbility, 0.5, "Water Bubble amortizou Fire");
+    if (defenderAbility === "dry-skin" && moveType === "fire") addModifier(entries, "ability", defenderAbility, 1.25, "Dry Skin agravou Fire");
     if (defenderAbility === "fluffy") {
-        if (moveType === "fire") addModifier(entries, "ability", defenderAbility, 2, "Fluffy agravou Fogo");
+        if (moveType === "fire") addModifier(entries, "ability", defenderAbility, 2, "Fluffy agravou Fire");
         if (moveHasTrait(move, "contact")) addModifier(entries, "ability", defenderAbility, 0.5, "Contato amortecido por Fluffy");
     }
     if (defenderAbility === "punk-rock" && moveHasTrait(move, "sound")) addModifier(entries, "ability", defenderAbility, 0.5, "Som amortecido por Punk Rock");
-    if (defenderItem === "assault-vest" && damageClass === "special") addModifier(entries, "item", defenderItem, 2 / 3, "Colete reduziu o dano especial");
+    if (defenderItem === "assault-vest" && damageClass === "special") addModifier(entries, "item", defenderItem, 2 / 3, "Assault Vest reduziu o dano especial");
 
-    if (weather === "chuva" && moveType === "water") addModifier(entries, "environment", "chuva", 1.5, "Chuva fortaleceu Água");
-    if (weather === "chuva" && moveType === "fire") addModifier(entries, "environment", "chuva", 0.5, "Chuva enfraqueceu Fogo");
-    if (weather === "sol" && moveType === "fire") addModifier(entries, "environment", "sol", 1.5, "Sol fortaleceu Fogo");
-    if (weather === "sol" && moveType === "water") addModifier(entries, "environment", "sol", 0.5, "Sol enfraqueceu Água");
-    if (terrain === "eletrico" && moveType === "electric") addModifier(entries, "environment", "terreno-eletrico", 1.3, "Terreno fortaleceu Elétrico");
-    if (terrain === "gramado" && moveType === "grass") addModifier(entries, "environment", "terreno-gramado", 1.3, "Terreno fortaleceu Grama");
-    if (terrain === "psiquico" && moveType === "psychic") addModifier(entries, "environment", "terreno-psiquico", 1.3, "Terreno fortaleceu Psíquico");
-    if (terrain === "nevoa" && moveType === "dragon") addModifier(entries, "environment", "terreno-nevoa", 0.5, "Névoa amortizou Dragão");
+    if (weather === "chuva" && moveType === "water") addModifier(entries, "environment", "chuva", 1.5, "Chuva fortaleceu Water");
+    if (weather === "chuva" && moveType === "fire") addModifier(entries, "environment", "chuva", 0.5, "Chuva enfraqueceu Fire");
+    if (weather === "sol" && moveType === "fire") addModifier(entries, "environment", "sol", 1.5, "Sol fortaleceu Fire");
+    if (weather === "sol" && moveType === "water") addModifier(entries, "environment", "sol", 0.5, "Sol enfraqueceu Water");
+    if (terrain === "eletrico" && moveType === "electric") addModifier(entries, "environment", "terreno-eletrico", 1.3, "Terreno fortaleceu Electric");
+    if (terrain === "gramado" && moveType === "grass") addModifier(entries, "environment", "terreno-gramado", 1.3, "Terreno fortaleceu Grass");
+    if (terrain === "psiquico" && moveType === "psychic") addModifier(entries, "environment", "terreno-psiquico", 1.3, "Terreno fortaleceu Psychic");
+    if (terrain === "nevoa" && moveType === "dragon") addModifier(entries, "environment", "terreno-nevoa", 0.5, "Névoa amortizou Dragon");
 
     return {
         stab: adjustedStab,

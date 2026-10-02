@@ -343,7 +343,7 @@ export default function CombatAssistant({
                     <div className="combat-automation" aria-live="polite">
                         <span>{formatType(resolvedMoveData.type?.name)}</span>
                         <span>{formatDamageClass(resolvedMoveData.damage_class?.name)}</span>
-                        <span>PP {formatNumberPtBr(ppState.remaining ?? moveData.pp ?? 0)}/{formatNumberPtBr(ppState.maximum ?? moveData.pp ?? 0)}</span>
+                        <span>PP {formatNumberPtBr(ppState.remaining ?? moveData.pp ?? 0)} de {formatNumberPtBr(ppState.maximum ?? moveData.pp ?? 0)}</span>
                         {needsCalledMove && calledMoveData && <span>Chamado por {formatName(moveData.name)}</span>}
                         {automationTags.map(tag => <span key={tag}>{tag}</span>)}
                         {declaring && <span className="is-syncing">Preparando a prioridade…</span>}
@@ -373,7 +373,7 @@ export default function CombatAssistant({
                         </div>
                         <div className="combat-result-metric is-ceiling">
                             <small>Limite comum</small>
-                            <strong className="combat-damage-limit">{resultCeilings.length ? resultCeilings.join(" / ") : "Não se aplica"}</strong>
+                            <strong className="combat-damage-limit">{resultCeilings.length ? resultCeilings.join(" · ") : "Não se aplica"}</strong>
                         </div>
                         <div className="combat-result-metric is-calculated">
                             <small>Dano calculado</small>
@@ -397,7 +397,7 @@ export default function CombatAssistant({
                                         <span>
                                             {resolution.accuracyTest.automatic
                                                 ? "Sem teste de precisão."
-                                                : `Precisão ${resolution.accuracyTest.result}/${resolution.accuracyTest.chance}${resolution.accuracyTest.rolls.length > 1 ? " com dois d100" : ""}.`}
+                                                : `Precisão ${resolution.accuracyTest.result} · chance ${resolution.accuracyTest.chance}%${resolution.accuracyTest.rolls.length > 1 ? " com dois d100" : ""}.`}
                                             {resolution.accuracyState.baseAccuracy != null && resolution.accuracyState.baseAccuracy !== resolution.adjustedAccuracy
                                                 ? ` Base ${resolution.accuracyState.baseAccuracy}%, ajustada por Precisão/Evasão.`
                                                 : ""}
@@ -458,7 +458,7 @@ export default function CombatAssistant({
                                 {result.consequences.appliedStatuses.map((status, index) => <li key={`${status}-${index}`}>Condição: {STATUS_LABELS[status] || formatName(status)}.</li>)}
                                 {result.consequences.traitStatuses.map((entry, index) => <li key={`trait-status-${entry.tokenId}-${index}`}>{formatName(entry.sourceId)} aplicou {STATUS_LABELS[entry.status] || formatName(entry.status)}.</li>)}
                                 {result.consequences.blockedStatuses.map((reason, index) => <li key={`${reason}-${index}`}>Condição impedida: {reason}.</li>)}
-                                {result.consequences.trackedEffects.includes("yawn") && <li>Bocejo marcado: o sono será verificado no encerramento da próxima rodada.</li>}
+                                {result.consequences.trackedEffects.includes("yawn") && <li>Yawn marcado: o sono será verificado no encerramento da próxima rodada.</li>}
                                 {result.consequences.trackedEffects.filter(effect => effect !== "yawn").map(effect => (
                                     <li key={effect}>{formatName(effect)} registrado até o fim da rodada.</li>
                                 ))}

@@ -18,7 +18,7 @@ output.mkdir(parents=True, exist_ok=True)
 version = json.loads((root / "package.json").read_text())["version"]
 major = version.split(".")[0]
 release = ".".join(version.split(".")[:2])
-if major != "11" or version != "11.1.0":
+if major != "11" or version != "11.2.0":
     raise SystemExit("Review the updater base and release metadata before packaging a different version.")
 stem = f"myowndex-v{release}"
 excluded = {".git", "node_modules", ".next", ".npm-cache", ".sites-runtime", ".wrangler", ".vercel", "outputs", "work", "coverage", "dist", "dist-static", "dist-gateway", "__pycache__"}
@@ -81,7 +81,7 @@ exit 1
     "3. Aguarde os testes, Preview, integração no GitHub, publicação e teste das salas.\n"
     "   Se um login expirou, conclua a autenticação indicada. O banco já existente é reutilizado.\n"
     "   Se houver falha, os arquivos e o log ficam preservados; execute o mesmo comando para retomar.\n\n"
-    "Validação desta atualização: 209 testes, ESLint, verificação de tipos e build aprovados.\n"
+    "Validação desta atualização: testes, ESLint, verificação de tipos e build.\n"
     "O instalador repete os checks no Linux antes de publicar.\n\n"
     "Netlify: a fonte não depende mais dela. O GitHub App externo exige retirar somente o repositório\n"
     "myowndex em https://github.com/settings/installations, Netlify > Configure > Repository access.\n"

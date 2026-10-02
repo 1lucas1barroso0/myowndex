@@ -5,12 +5,12 @@ Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para Pokémon RPG.
 ## Recursos
 
 - Interface inspirada na clareza de Pokémon Sword/Shield e nos detalhes 2D de HGSS/BW/B2W2: espaço para respirar, cores por função, sprites e artwork no foco individual.
-- Modos RPG/Jogos/Livre visíveis, separados das opções Claro/Escuro/Dispositivo, e campos com rótulos persistentes. Registros, Boxes e edição reorganizam o conteúdo no celular, tablet e computador.
+- Modos RPG/Jogos/Livre visíveis, separados das opções Claro/Escuro, e campos com rótulos persistentes. Registros, Boxes e edição reorganizam o conteúdo no celular, tablet e computador.
 - Catálogo nacional de 1.025 espécies incluído; 152 sprites locais (Kanto e Rotom). A abertura da Pokédex não precisa esperar pela rede.
 - Busca por nome/número, favoritos e filtro por geração de estreia. Detalhes, formas, habilidades e movimentos usam a PokéAPI, com cache.
 - Boxes com até seis Pokémon, lista rolável e parceiros sem espaços vazios decorativos. Importação, compartilhamento, duplicação, exclusão e desfazer preservados.
-- Registro da Pokédex acessível por teclado, abas com setas, retorno do foco e rolagem contínua no celular. Movimento respeita a preferência de redução de animações.
-- Guia com regras individuais expansíveis, busca e texto confortável de ler, seguindo os padrões responsivos do Fate Gameplay Toolkit.
+- Registro da Pokédex, linha evolutiva e movimentos com cores por função, hierarquia de leitura e símbolos distintos. A ficha mantém navegação por teclado, abas com setas, retorno do foco e rolagem contínua no celular. Movimento respeita a preferência de redução de animações.
+- Guia com regras individuais expansíveis, busca e destaque para a proteção contra hit kill. Pokémon, itens, movimentos e habilidades mantêm seus nomes originais em inglês; valores calculados seguem os arredondamentos das regras. A leitura segue os padrões responsivos do Fate Gameplay Toolkit.
 - Telas grandes carregadas sob demanda; service worker nunca guarda APIs privadas nem respostas RSC.
 - Cache público limitado a 256 respostas de catálogo e 500 assets regeneráveis, hidratação com quatro tarefas simultâneas e salvamento agrupado. Boxes mantêm seus dados e formato de armazenamento.
 - A Vercel executa páginas e APIs diretamente. Salas usam banco Turso sob seu controle; áudio compartilhado usa armazenamento S3/R2 sob seu controle, com upload direto assinado.
@@ -30,22 +30,22 @@ Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configur
 
 ## Atualizar pelo Linux
 
-Baixe `myowndex-v11.1-linux.sh`, abra o terminal na pasta do download e execute:
+Baixe `myowndex-v11.2-linux.sh`, abra o terminal na pasta do download e execute:
 
 ```bash
-bash myowndex-v11.1-linux.sh
+bash myowndex-v11.2-linux.sh
 ```
 
 O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da Vercel e os bancos já configurados. Você não precisa criar outra conta Turso, copiar tokens, extrair um arquivo ZIP ou migrar salas.
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A entrega 11.1 parte da versão 11 já publicada e mantém os dados de produção. Testes, ESLint, verificação de tipos e build foram aprovados; o instalador repete os checks antes da publicação.
+A entrega 11.2 parte da versão 11.1 já publicada e mantém os dados de produção. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
 
 ## Arquitetura e fontes
 
 - `app/`: aplicação Next.js e APIs de sala; `server/`: persistência, autorização e regras autoritativas.
-- `src/core/`: regras RPG, cálculos, captura e armazenamento local. Os estilos RPG/Jogo/Hackmon continuam distintos; regras próprias do RPG não são apresentadas como regras oficiais de cartucho.
+- `src/core/`: regras RPG, cálculos, captura e armazenamento local. Os modos RPG/Jogos/Livre continuam distintos; regras próprias do RPG não são apresentadas como regras oficiais de cartucho.
 - `src/components/`: Pokédex, PC, aventura e Guia.
 - [PokéAPI](https://pokeapi.co/), [dados das espécies](https://github.com/PokeAPI/pokeapi/blob/master/data/v2/csv/pokemon_species.csv) e [sprites](https://github.com/PokeAPI/sprites) são as fontes do catálogo e das imagens.
 - Fonte [VT323](https://github.com/google/fonts/tree/main/ofl/vt323), sob SIL Open Font License; licença incluída em `public/fonts/OFL.txt`.

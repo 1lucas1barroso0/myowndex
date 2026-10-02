@@ -387,7 +387,7 @@ export default function Teambuilder({ envProps }) {
                     >
                         <span className="pc-box-button-heading">
                             <span><span className="pc-box-cursor" aria-hidden="true">{activeTeamId === team.id ? "▶" : "▸"}</span>{team.name}</span>
-                            <span className="pc-box-capacity">{team.pokemon?.length || 0}/6</span>
+                            <span className="pc-box-capacity">{team.pokemon?.length || 0} de 6</span>
                         </span>
 
                     </button>
@@ -406,8 +406,8 @@ export default function Teambuilder({ envProps }) {
             <section className="pc-content">
                 {!active && <div className="pc-empty-state">
                     <div className="pc-welcome-partners" aria-hidden="true">{[133, 25].map(id => <PokemonSprite key={id} pokemonId={id} alt="" className="pixelated" />)}</div>
-                    <h2>Seu PC de Pokémon</h2>
-                    <p>Crie uma Box ou importe uma equipe.</p>
+                    <h2>Seus parceiros, suas equipes</h2>
+                    <p>Organize seus Pokémon em Boxes e leve sua equipe para a aventura.</p>
                     <button type="button" onClick={createTeam} className="room-primary-button">Abrir primeira Box</button>
                 </div>}
                 {active && (
@@ -441,7 +441,7 @@ export default function Teambuilder({ envProps }) {
 
                         <header className="pc-grid-heading">
                             <h3>Equipe</h3>
-                            <span>{occupiedSlots}/{PARTY_SIZE} Pokémon</span>
+                            <span>{occupiedSlots} de {PARTY_SIZE} Pokémon</span>
                             {freeSlots > 0 && <button type="button" onClick={onSearchClick} className="pc-add-button">+ Adicionar Pokémon</button>}
                         </header>
 
@@ -555,7 +555,7 @@ export default function Teambuilder({ envProps }) {
                                 )}
 
                                 <div className="link-cable-footer">
-                                    <span>{shareScope === "team" ? `${active.pokemon.length}/6 Pokémon na Box` : selectedShareIds.length === 1 ? "1 Pokémon escolhido" : `${selectedShareIds.length} Pokémon escolhidos`}</span>
+                                    <span>{shareScope === "team" ? `${active.pokemon.length} de 6 Pokémon na Box` : selectedShareIds.length === 1 ? "1 Pokémon escolhido" : `${selectedShareIds.length} Pokémon escolhidos`}</span>
                                     <button type="button" className="link-cable-primary" onClick={generateLinkCode} disabled={isProcessing || (shareScope === "pokemon" && !selectedShareIds.length)}>
                                         {isProcessing ? "Preparando…" : "Gerar código"}
                                     </button>

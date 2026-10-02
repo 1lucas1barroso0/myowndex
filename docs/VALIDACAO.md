@@ -1,22 +1,26 @@
-# Validação da atualização 11.1 CLEAN
+# Validação da atualização 11.2
 
-Verificação em 1 de outubro de 2026 com dependências reais instaladas por `npm ci`, Node.js 24.19.0, Next.js 16.2.12 e Chromium. Passaram 209 testes unitários, ESLint, TypeScript e build de produção. O navegador passou 99 verificações de responsividade, sem erros JavaScript. O workflow `.github/workflows/quality.yml` e o instalador repetem os checks antes da publicação.
+Verificação em 2 de outubro de 2026 com Node.js 24.19.0, Next.js 16.2.12 e Chromium. Passaram 212 testes unitários, ESLint, TypeScript, build de produção e HTML servido. O navegador passou 99 checkpoints principais e 51 suplementares, sem erros JavaScript. A 11.2 ainda não foi publicada nesta execução; workflow e instalador repetem checks antes da publicação.
 
 ```bash
 npm ci
 npm test
 npm run lint
-npm run typecheck
 npm run build
+npm run typecheck
 ```
+
+Execute build e tipos sequencialmente: Next.js gera tipos durante a build.
 
 ## Navegador
 
-`tests/browser-responsive.mjs` verifica as quatro áreas nas larguras 320, 390, 768, 1280 e 1440 px, em Claro e Escuro; ficha de Venusaur nas três abas; edição com nomes longos e painéis opcionais abertos; compartilhamento, prévia, importação e salvamento após recarregar; busca e dados do Guia; aventura local com navegação dos três painéis; zoom de 200%; aparência do dispositivo e redução de movimento.
+`tests/browser-responsive.mjs` verifica as quatro áreas em 320, 390, 768, 1280 e 1440 px, Claro/Escuro; ficha de Venusaur nas três abas; editor com nomes longos e painéis opcionais; Link Cable, prévia, importação, salvamento/reload; busca/dados do Guia; aventura local com três painéis; zoom de 200% e redução de movimento.
 
-O teste também exercita 80 Boxes com 480 Pokémon, persistência após recarregar e lista de Boxes com rolagem própria. Ele exige ausência de erros JavaScript, placeholders e controles fora da largura disponível, verifica ausência de rolagem horizontal da página e dos diálogos e confirma que somente o painel selecionado aparece na aventura móvel. A execução usa um contexto novo de navegador, sem acesso aos seus dados locais.
+Exercita 80 Boxes/480 Pokémon, persistência após reload e rolagem limitada da lista. Exige ausência de erros, placeholders, controles fora da largura e rolagem horizontal da página/diálogos; somente o painel selecionado aparece na aventura móvel.
 
-Para reproduzir, instale Playwright apenas como ferramenta de verificação e inicie a aplicação:
+`tests/browser-polish.mjs` adiciona 51 checkpoints em 320, 390, 768 e 1280 px, Claro/Escuro: registro/evolução de Bulbasaur, oito ramos de Eevee, Growl e regras abertas, seis atributos de treinamento, alteração dos 12 campos IV/EV e persistência, proteção 3.4 completa, dX Livre e oito rolagens com histórico. Range verifica palavras estáticas sem quebra no meio e títulos/rótulos sem clipping. Preferência antiga system migra para Escuro com SO escuro; Claro escolhido permanece após reload. Contextos isolados, sem acesso aos dados do usuário.
+
+Para reproduzir com Playwright usado apenas como ferramenta:
 
 ```bash
 npm install --no-save --package-lock=false playwright
@@ -29,27 +33,39 @@ Em outro terminal:
 
 ```bash
 MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/browser-responsive.mjs
+MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/browser-polish.mjs
 ```
 
-Se houver Chromium instalado no sistema, `MYOWNDEX_BROWSER_EXECUTABLE=/usr/bin/chromium` pode ser usado. `MYOWNDEX_PLAYWRIGHT_MODULE` aceita o caminho de uma instalação separada de Playwright. O relatório vai para `/tmp/myowndex-browser-report.json`, ou para o caminho indicado por `MYOWNDEX_BROWSER_REPORT`. Playwright não é uma dependência do runtime.
+Com Chromium do sistema, defina `MYOWNDEX_BROWSER_EXECUTABLE=/usr/bin/chromium`. `MYOWNDEX_PLAYWRIGHT_MODULE` aceita instalação separada, evitando alterar dependências. Scripts documentam caminhos de relatórios/screenshots. Playwright não faz parte do runtime.
+
+## Catálogo e regras
+
+Novos testes verificam nomes ingleses com pontuação/siglas/formas, tipos originais e IDs mecânicos preservados; proporções como porcentagens e aproximação quando necessária; multiplicadores decimais; objeto original do catálogo sem mutação; categoria/medidas oficiais com idioma/precisão apropriados.
+
+Regras preservadas: dano/cura positivos inteiros com mínimo 1, imunidade zero, conversão de atributos e modificadores direcionais com seus critérios. XP em passos de 0,5 e medidas oficiais como 0,7 m não são truncados. Apresentação não altera fórmulas/probabilidades.
 
 ## Salas e HTML
 
-O smoke completo das salas passou em um banco de QA separado: criação, entrada, permissões, notas privadas, revisão, concorrência e idempotência, combate, RNG autoritativo, eventos e sinalização de chamadas. Os testes usam SQLite real. Duas páginas reais confirmaram a sincronização da descrição e a restrição da nota privada ao narrador. A aventura de QA foi encerrada e removida. O teste de HTML servido também passou.
+HTML servido passou nesta build. Na 11.1, o smoke completo de salas passou em QA separado com SQLite real: criação, entrada, permissões, notas privadas, revisão, concorrência, idempotência, combate, RNG, eventos e sinalização. Duas páginas confirmaram sincronização/privacidade e a aventura foi removida. Esse smoke de API não foi repetido na 11.2, que preserva o funcionamento de servidor/banco/protocolo. Testes unitários de autorização/protocolo seguem passando.
 
-Com o servidor e um banco de testes configurados:
+Com servidor e banco de QA configurados:
 
 ```bash
 MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/room-api.smoke.mjs
 MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/rendered-html.test.mjs
 ```
 
-Não usar um banco de produção para ensaios de carga. O teste de salas cria e remove uma aventura temporária.
+O smoke cria/remove aventura temporária; use banco de QA.
 
 ## Armazenamento e instalador
 
-Os testes verificam cache com recência, limite, concorrência, falha de quota e preservação de Boxes; flush do salvamento ao sair e recuperação de edição pendente; cache offline sem respostas privadas; hidratação com limite de tarefas e preservação de edições. Boxes mantêm sua chave e esquema e não recebem prazo de validade. A redução do catálogo redundante preserva sprites usados, stats offline, movimentos, EVs, notas e demais campos do jogador; 480 parceiros com catálogo real ocuparam 3,85 MiB UTF-16 no teste unitário.
+Testes verificam cache com recência/limites/concorrência/quota, preservação de Boxes, flush ao sair, recuperação de edição, offline sem respostas privadas e hidratação limitada sem perder edições. Chaves/esquemas e ausência de expiração iguais. 480 parceiros com catálogo real ocuparam 3,85 MiB UTF-16 no teste unitário, conservando movimentos, EVs, notas, sprites e stats.
 
-O instalador recebeu 34 verificações offline, incluindo Git real, retomada, falha de CLI, conflitos, mudanças concorrentes em `main`, isolamento de versões por digest e limpeza da sala temporária e atualização já presente em main. Sintaxe Bash, integridade e extração do pacote são conferidas na geração da entrega.
+Na 11.1 a automação recebeu 34 verificações offline de Git, retomada, conflitos, concorrência em main, isolamento por digest e fonte já aplicada. Não são contabilizadas como repetidas agora. A 11.2 conserva esse fluxo e atualiza a base para d10c9482. A entrega atual passa 12 verificações de SHA-256, payload embutido, sintaxe/base, caminhos seguros, ausência de credenciais, equivalência ZIP/TAR, extração, idempotência, estados antigos, trava concorrente, corrupção/recuperação e determinismo. Reproduza sem autenticar ou publicar:
 
-Os ensaios confirmam os cenários e volumes descritos, sem prometer capacidade ilimitada do armazenamento do navegador. Edição simultânea das Boxes em duas abas conserva a política anterior de última escrita. Upload de áudio e chamadas com dispositivos reais dependem das permissões, CORS e TURN do ambiente; sinalização das chamadas foi coberta pelo smoke da API.
+```bash
+python3 scripts/empacotar-linux.py
+python3 scripts/verificar-entrega-linux.py ../entrega
+```
+
+Verificações cobrem cenários/volumes descritos, sem afirmar capacidade ilimitada do navegador. Edição simultânea das Boxes em duas abas conserva última escrita. Áudio/chamadas reais dependem de permissões, CORS e TURN; sinalização coberta pelo smoke anterior.

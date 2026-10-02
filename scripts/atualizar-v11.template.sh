@@ -6,7 +6,7 @@ umask 077
 
 DEX_STAGE="preparação da atualização"
 DEX_REPO="1lucas1barroso0/myowndex"
-DEX_BASE="f428b70ea9a3f948d1c9c0eda17e5d2deaf165f8"
+DEX_BASE="d10c9482cb562a84b09c9cc6a1df2168426f72d4"
 DEX_SCOPE="1lucas1barroso0s-projects"
 DEX_PRODUCTION="https://myowndex.vercel.app"
 DEX_ARCHIVE_SHA="__ARCHIVE_SHA256__"
@@ -104,7 +104,7 @@ DEX_CI_GUARD
 
 case "$DEX_ACTION" in
   publicar|verificar|extrair) ;;
-  *) dex_fail "Uso: bash myowndex-v11.1-linux.sh [publicar|verificar|extrair]" ;;
+  *) dex_fail "Uso: bash myowndex-v11.2-linux.sh [publicar|verificar|extrair]" ;;
 esac
 [[ "$DEX_ARCHIVE_SHA" =~ ^[0-9a-f]{64}$ ]] || dex_fail "Este arquivo ainda é um modelo sem o pacote final. Baixe o instalador publicado."
 for DEX_TOOL in mktemp base64 sha256sum tar tee flock; do
@@ -144,7 +144,7 @@ tar -xzf "$DEX_RELEASE/projeto.tar.gz" -C "$DEX_RELEASE/source"
 rm -- "$DEX_RELEASE/projeto.tar.gz"
 DEX_SOURCE="$DEX_RELEASE/source/myowndex"
 [[ -f "$DEX_SOURCE/package.json" && -f "$DEX_SOURCE/vercel.json" ]] || dex_fail "O pacote não contém o projeto completo."
-printf '\nMyOwnDex 11.1: código extraído em %s\n' "$DEX_SOURCE"
+printf '\nMyOwnDex 11.2: código extraído em %s\n' "$DEX_SOURCE"
 if [[ "$DEX_ACTION" == "extrair" ]]; then exit 0; fi
 
 DEX_MISSING=()
@@ -275,7 +275,7 @@ else
   read -r DEX_BRANCH_BASE < "$DEX_RELEASE/branch-base"
   if [[ "$(git rev-parse origin/main)" != "$DEX_BRANCH_BASE" ]]; then
     DEX_STAGE="integração de mudanças recentes de main"
-    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.1: aplica interface CLEAN"; fi
+    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.2: aprimora ficha, movimentos e leitura"; fi
     git merge --no-edit origin/main
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
   fi
@@ -320,7 +320,7 @@ DEX_VERCEL_GUARD
 if [[ "$DEX_MERGED" != "true" ]]; then
   if ! git diff --cached --quiet; then
     DEX_STAGE="registro do código validado"
-    git commit -m "MyOwnDex 11.1: limpa interface e melhora responsividade"
+    git commit -m "MyOwnDex 11.2: harmoniza ficha, movimentos e controles"
   fi
   DEX_HEAD="$(git rev-parse HEAD)"
   printf '%s\n' "$DEX_HEAD" > "$DEX_RELEASE/head"
@@ -341,9 +341,9 @@ DEX_FIND_PR
       node --input-type=module - "$DEX_BRANCH" "$DEX_RELEASE/new-pr.json" <<'DEX_NEW_PR'
 import { writeFileSync } from "node:fs";
 writeFileSync(process.argv[3], JSON.stringify({
-  title: "MyOwnDex 11.1: interface CLEAN e espaços responsivos",
+  title: "MyOwnDex 11.2: ficha, movimentos e controles mais claros",
   head: process.argv[2], base: "main", draft: false,
-  body: "Campos e controles ganham espaço para respirar, com menos ornamentos e sem placeholders. Os modos RPG/Jogo/Hackmon e os temas claro/escuro voltam a ficar legíveis; o registro de Pokémon, as Boxes e os editores reorganizam o conteúdo conforme a tela. O Guia apresenta cada regra individualmente, com leitura confortável inspirada no Fate Gameplay Toolkit e na clareza de Pokémon Sword/Shield.\n\nO cache público fica limitado a 256 respostas de catálogo e 500 imagens/arquivos regeneráveis. Hidratação e salvamento reduzem o trabalho simultâneo; Boxes e aventuras continuam preservadas.\n\nValidação local: testes, ESLint, tipos e build. GitHub Actions repete os mesmos checks; o instalador aguarda os resultados e valida o Preview antes de integrar. Reutiliza os bancos e as variáveis existentes de Preview e Production."
+  body: "O registro da Pokédex, a linha evolutiva e os movimentos ganham hierarquia e cores coerentes com o restante da interface. Tipos e movimentos têm símbolos distintos, os títulos de treinamento se ajustam à tela e as opções de aparência ficam restritas a Claro e Escuro. As instruções de aventuras, Boxes e rolagens ficam mais diretas.\n\nAs regras preservam nomes originais de Pokémon, itens, movimentos e habilidades. O Guia destaca a proteção contra hit kill; a apresentação de números segue os arredondamentos das regras. Dados, Boxes, importação/exportação, salvamento e aventuras compartilhadas continuam preservados.\n\nValidação local: testes, ESLint, tipos e build. GitHub Actions repete os mesmos checks; o instalador aguarda os resultados e valida o Preview antes de integrar. Reutiliza os bancos e as variáveis existentes de Preview e Production."
 }), { mode: 0o600 });
 DEX_NEW_PR
       gh api --method POST "repos/$DEX_REPO/pulls" --input "$DEX_RELEASE/new-pr.json" > "$DEX_RELEASE/pr.json"

@@ -80,7 +80,7 @@ const roleLabel = role => role === "narrator" ? "Narrador" : "Jogador";
 const volatileEffectLabel = effect => {
     const turns = effect.turns != null ? ` • ${formatCount(effect.turns, "rodada")}` : "";
     const amount = effect.amount != null ? ` • ${formatNumberPtBr(effect.amount)} HP` : "";
-    if (effect.id === "yawn") return `Sonolento por Bocejo${turns}`;
+    if (effect.id === "yawn") return `Sonolento por Yawn${turns}`;
     if (effect.id === "wish") return `Wish preparado${turns}${amount}`;
     if (["future-sight", "doom-desire"].includes(effect.id)) return `${formatName(effect.id)} preparado${turns}${amount}`;
     if (effect.id === "perish-song") return `Contagem de Perish Song${turns}`;
@@ -131,7 +131,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
             <section className="room-lobby-hero adventure-intro">
                 <div>
                     <h2>Aventuras</h2>
-                    <p>Jogue com seu grupo ou comece neste dispositivo.</p>
+                    <p>Crie uma aventura ou entre com o convite do seu grupo.</p>
                 </div>
             </section>
 
@@ -1333,7 +1333,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                             setSelectedTeamPokemonId(nextTeam?.pokemon[0]?.id || "");
                                         }}
                                     >
-                                        {teams.map(team => <option key={team.id} value={team.id}>{team.name} • {team.pokemon.length}/6</option>)}
+                                        {teams.map(team => <option key={team.id} value={team.id}>{team.name} · {team.pokemon.length} de 6</option>)}
                                     </select>
                                 </label>
                                 <label className="room-team-lead">
@@ -1446,7 +1446,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <span>
                                         <small>Nível {selectedToken.level}</small>
                                         <strong>{selectedDisplayIdentity?.name || selectedToken.name}</strong>
-                                        <em>{(selectedDisplayIdentity?.types || selectedToken.types).map(formatType).join(" / ") || "Tipo personalizado"}</em>
+                                        <em>{(selectedDisplayIdentity?.types || selectedToken.types).map(formatType).join(" · ") || "Tipo personalizado"}</em>
                                         {role === "narrator" && selectedDisplayIdentity?.disguised && <small>Identidade real: {selectedToken.name}</small>}
                                         {selectedToken.declaredMove && <small>{formatName(selectedToken.declaredMove)} • prioridade {selectedToken.priority > 0 ? `+${selectedToken.priority}` : selectedToken.priority}</small>}
                                     </span>
@@ -1463,7 +1463,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                         aria-label="Registrar 1 ponto de dano recebido"
                                         title="Dano recebido"
                                     >−</button>
-                                    <strong>{selectedToken.currentHp}/{selectedToken.maxHp}</strong>
+                                    <strong>{selectedToken.currentHp} de {selectedToken.maxHp}</strong>
                                     <button
                                         type="button"
                                         disabled={role !== "narrator"}
@@ -1520,7 +1520,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     onChange={event => updateToken({ xp: event.target.value })}
                                     onBlur={() => applySelectedExperience(selectedToken.xp)}
                                 />
-                                <small className="token-xp-next-level">/ {formatNumberPtBr(getNextLevelXp(selectedToken.level))}</small>
+                                <small className="token-xp-next-level">Meta: {formatNumberPtBr(getNextLevelXp(selectedToken.level))}</small>
                                 {role === "narrator" && (
                                     <span className="token-xp-actions">
                                         <button type="button" disabled={selectedToken.level >= 200} onClick={() => awardSelectedExperience(0.5)}>+0,5</button>
@@ -1539,7 +1539,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     <label>
                                         <span>Trocar com o banco</span>
                                         <select value={selectedBenchToken.id} onChange={event => setSelectedBenchTokenId(event.target.value)}>
-                                            {selectedBenchTokens.map(token => <option key={token.id} value={token.id}>{token.name} • {token.currentHp}/{token.maxHp} HP</option>)}
+                                            {selectedBenchTokens.map(token => <option key={token.id} value={token.id}>{token.name} • {token.currentHp} de {token.maxHp} HP</option>)}
                                         </select>
                                     </label>
                                     <button type="button" onClick={swapSelectedPokemon}>Fazer a troca</button>

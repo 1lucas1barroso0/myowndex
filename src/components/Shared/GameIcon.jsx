@@ -8,7 +8,8 @@ const paths = {
     star: <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z" />,
     sun: <><path d="M9 9h6v6H9zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></>,
     moon: <path d="M11 3H7v3H4v12h3v3h10v-3h3v-4h-6v-3h-3Z" />,
-    theme: <><rect x="4" y="4" width="16" height="16" /><path d="M12 4v16M12 8h4M12 12h4M12 16h4" /></>,
+    types: <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9Z" /><path d="m12 8 4 2.5v5L12 18l-4-2.5v-5ZM12 3v5M20 16.5l-4-1M4 16.5l4-1" /></>,
+    move: <><path d="m14 3-8 10h6l-2 8 9-11h-6Z" /><path d="M3 6h4M2 10h3M18 18h3" /></>,
 };
 
 export default function GameIcon({ name, className = "" }) {

@@ -12,6 +12,8 @@ html .app-root.game-edition.handheld-edition .local-dice-heading { margin-bottom
 html .app-root.game-edition.handheld-edition .local-dice-panel h3 { font-size: 1.3rem !important; font-weight: 800 !important; line-height: 1.3 !important; letter-spacing: -.02em !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel h4 { font-size: 1rem !important; font-weight: 750 !important; line-height: 1.45 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel small { font-size: .85rem !important; line-height: 1.55 !important; color: var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition .local-dice-panel :is(h3,p,small,label,summary,button) { overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; }
+html .app-root.game-edition.handheld-edition .local-dice-panel h4 { overflow-wrap: break-word !important; }
 html .app-root.game-edition.handheld-edition .local-dice-controls { border: 0 !important; padding: 0 !important; background: transparent !important; }
 html .app-root.game-edition.handheld-edition .local-dice-controls fieldset { padding: 0 !important; margin: 0 !important; border: 0 !important; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel button:not(.room-primary-button) { min-height: 44px !important; height: auto !important; padding: .65rem .75rem !important; border: 1px solid var(--ui-line) !important; border-radius: .3rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; font-weight: 650 !important; font-size: .9rem !important; line-height: 1.45 !important; white-space: normal !important; box-shadow: none !important; }
@@ -46,29 +48,35 @@ html .app-root.game-edition.handheld-edition .local-dice-result { margin-top: 1.
 html .app-root.game-edition.handheld-edition .local-dice-result::before { display: none !important; }
 html .app-root.game-edition.handheld-edition .local-dice-result > header { display: flex !important; align-items: center !important; justify-content: space-between !important; flex-wrap: wrap !important; gap: .75rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-result > header > div { flex: 1 1 8rem !important; min-width: 0 !important; }
-html .app-root.game-edition.handheld-edition .local-dice-total { color: var(--ui-blue) !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; font-size: 2.3rem !important; line-height: 1.1 !important; font-weight: 850 !important; font-variant-numeric: tabular-nums; }
+html .app-root.game-edition.handheld-edition .local-dice-total { color: var(--ui-blue) !important; background: var(--ui-selected) !important; border: 0 !important; border-radius: .3rem !important; box-shadow: inset 0 -3px var(--ui-blue) !important; padding: .65rem .8rem !important; min-width: 4rem !important; max-width: 100% !important; text-align: center !important; font-size: 2.3rem !important; line-height: 1.1 !important; font-weight: 850 !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .local-dice-faces { display: flex !important; flex-wrap: wrap !important; gap: .6rem !important; padding: 1rem 0 .75rem !important; list-style: none !important; }
 html .app-root.game-edition.handheld-edition .local-dice-faces li { display: grid !important; justify-items: center !important; gap: .2rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-faces b { display: grid !important; place-items: center !important; min-width: 2.7rem !important; min-height: 2.7rem !important; padding: .3rem .4rem !important; border: 1px solid var(--ui-blue) !important; border-radius: .35rem !important; background: var(--ui-selected) !important; box-shadow: none !important; color: var(--ui-ink) !important; font-size: 1.25rem !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .local-dice-faces small { font-size: .75rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-faces .is-discarded b { border: 1px dashed var(--ui-muted) !important; color: var(--ui-muted) !important; background: transparent !important; text-decoration: line-through; }
-html .app-root.game-edition.handheld-edition .local-dice-panel .local-dice-equation { margin-bottom: .75rem !important; font-size: .9rem !important; color: var(--ui-muted) !important; font-variant-numeric: tabular-nums; }
+html .app-root.game-edition.handheld-edition .local-dice-panel .local-dice-equation { margin-bottom: .75rem !important; font-size: .9rem !important; color: var(--ui-muted) !important; font-variant-numeric: tabular-nums; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-verdict { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: .6rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-verdict > b { padding: .3rem .5rem !important; border: 1px solid var(--ui-line) !important; border-radius: .3rem !important; font-size: .85rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-verdict > strong { display: grid !important; gap: .2rem !important; padding: .5rem .7rem !important; border-left: 3px solid var(--ui-blue) !important; background: var(--ui-raised) !important; font-size: 1rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-verdict > strong.is-failure { border-color: var(--ui-accent) !important; }
 html .app-root.game-edition.handheld-edition .local-dice-config-note { display: block !important; margin-top: .75rem !important; }
 html .app-root.game-edition.handheld-edition :is(.local-dice-result-actions,.local-dice-history-actions) { display: flex !important; flex-wrap: wrap !important; gap: .6rem !important; margin-top: .9rem !important; }
-html .app-root.game-edition.handheld-edition .local-dice-history > summary > span { display: grid !important; flex: 1 !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history > summary > span { flex: 1 1 auto !important; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history > summary > span small { font-weight: 400 !important; }
-html .app-root.game-edition.handheld-edition .local-dice-history > summary > b { color: var(--ui-muted) !important; font-size: .8rem !important; font-weight: 500 !important; font-variant-numeric: tabular-nums; }
+html .app-root.game-edition.handheld-edition .local-dice-history > summary > b { flex: 0 0 auto !important; color: var(--ui-muted) !important; font-size: .8rem !important; font-weight: 500 !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .local-dice-history > div > p { padding: .3rem 0 !important; color: var(--ui-muted) !important; font-size: .9rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history-actions .is-clear { color: var(--ui-accent) !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history ol { list-style: none !important; padding: 0 !important; margin-top: 1rem !important; max-height: min(24rem,65dvh) !important; overflow-y: auto !important; overscroll-behavior: contain; }
 html .app-root.game-edition.handheld-edition .local-dice-history li { padding: .65rem 0 !important; border-top: 1px solid var(--ui-line) !important; }
-html .app-root.game-edition.handheld-edition .local-dice-history li button { display: flex !important; align-items: start !important; justify-content: space-between !important; gap: .75rem !important; width: 100% !important; text-align: left !important; }
-html .app-root.game-edition.handheld-edition .local-dice-history li button span { min-width: 0 !important; }
-html .app-root.game-edition.handheld-edition .local-dice-history li button b { font-size: 1.1rem !important; font-variant-numeric: tabular-nums; }
+html .app-root.game-edition.handheld-edition .local-dice-history li button { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; width: 100% !important; text-align: left !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history li button > span { flex: 1 1 auto !important; min-width: 0 !important; overflow-wrap: break-word !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history li button b { flex: 0 0 auto !important; color: var(--ui-blue) !important; font-size: 1.1rem !important; font-variant-numeric: tabular-nums; }
+html .app-root.game-edition.handheld-edition .local-dice-history li button[aria-pressed="true"] { border-color: var(--ui-blue) !important; background: var(--ui-selected) !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history li small { display: block !important; font-weight: 400 !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history-meta { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: .4rem .65rem !important; padding: .45rem .75rem 0 !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history-meta > small:first-child { flex: 1 1 8rem !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history .local-dice-history-outcome { padding: .2rem .4rem !important; background: var(--ui-raised) !important; border-radius: .2rem !important; font-weight: 650 !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history .local-dice-history-outcome.is-success { color: var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history .local-dice-history-outcome.is-failure { color: var(--ui-accent) !important; }
 @keyframes local-result-enter { from { opacity: .3; transform: translateY(.2rem); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { html .app-root.game-edition.handheld-edition .local-dice-result { animation: none; } }

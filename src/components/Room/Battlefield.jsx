@@ -102,7 +102,7 @@ const Token = ({
                     <span className={`room-token-hp is-${hpTone}`}>
                         <span style={{ width: `${hpPercentage}%` }} />
                     </span>
-                    <small>{token.currentHp}/{token.maxHp}</small>
+                    <small>{token.currentHp} de {token.maxHp}</small>
                 </span>
             )}
         </span>}

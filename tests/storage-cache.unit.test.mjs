@@ -426,7 +426,7 @@ async function serviceWorker(fetcher) {
 
 test("offline asset LRU is bounded across concurrent tabs, pins the shell, and ignores private traffic", async () => {
   const worker = await serviceWorker();
-  const pinned = await worker.caches.open("myowndex-shell-v11.1.0");
+  const pinned = await worker.caches.open("myowndex-shell-v11.2.0");
   await pinned.put("/", new Response("offline shell"));
   await pinned.put("/fonts/VT323-Regular.ttf", new Response("pinned font"));
   const unrelated = await worker.caches.open("private-upload-cache");
@@ -454,11 +454,11 @@ test("offline asset LRU is bounded across concurrent tabs, pins the shell, and i
 
 test("worker activation removes only obsolete MyOwnDex shell and asset caches", async () => {
   const worker = await serviceWorker();
-  for (const name of ["myowndex-shell-v10.0.0", "myowndex-shell-v11.1.0", "myowndex-assets-v0", "myowndex-assets-v1", "myowndex-api-v5", "another-app-cache"]) await worker.caches.open(name);
+  for (const name of ["myowndex-shell-v10.0.0", "myowndex-shell-v11.2.0", "myowndex-assets-v0", "myowndex-assets-v1", "myowndex-api-v5", "another-app-cache"]) await worker.caches.open(name);
   let activation;
   worker.callbacks.get("activate")({ waitUntil: task => { activation = task; } });
   await activation;
-  assert.deepEqual(await worker.caches.keys(), ["myowndex-shell-v11.1.0", "myowndex-assets-v1", "myowndex-api-v5", "another-app-cache"]);
+  assert.deepEqual(await worker.caches.keys(), ["myowndex-shell-v11.2.0", "myowndex-assets-v1", "myowndex-api-v5", "another-app-cache"]);
 });
 
 test("public sprites use credential-free CORS and opaque fallbacks never consume offline quota", async () => {

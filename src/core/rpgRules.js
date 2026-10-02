@@ -68,9 +68,9 @@ export const RPG_RULE_SECTIONS = [
                 title: "Acertos e erros críticos",
                 bullets: [
                     "Dois 6 nos dados mantidos indicam um crítico potencial. Ele só se torna um acerto crítico se o ataque superar a defesa e alcançar o alvo; não transforma empate, erro ou imunidade em sucesso.",
-                    "Acertos críticos superam o limite de dano por nível e a proteção contra hit kill.",
+                    "Acertos críticos usam multiplicador de 1,5× e superam o limite comum de dano por nível. A proteção contra hit kill ainda pode agir se seus requisitos forem atendidos.",
                     "Erro crítico: obtenha 1 e 1 nos dados mantidos; o MyOwnDex sugere uma consequência, e Narrador e jogadores escolhem a que respeita melhor a cena.",
-                    "Quando o defensor obtém um erro crítico em uma disputa vencida pelo atacante, o dano também pode atravessar a proteção contra hit kill.",
+                    "Um erro crítico do defensor pode gerar uma consequência adicional coerente com a cena, mas não ignora por si só a proteção contra hit kill.",
                     ...FUMBLE_SUGGESTIONS,
                 ]
             },
@@ -85,7 +85,7 @@ export const RPG_RULE_SECTIONS = [
         id: "matematica",
         number: 2,
         title: "Cálculos da aventura",
-        summary: "Atributos, escala por 20, estágios, XP e valores mínimos.",
+        summary: "Atributos, escala por 10, estágios, XP e valores mínimos.",
         rules: [
             {
                 id: "2.1",
@@ -94,13 +94,13 @@ export const RPG_RULE_SECTIONS = [
             },
             {
                 id: "2.2",
-                title: "Divisão por 20",
-                body: "Atributos, dano base dos movimentos e Amizade são divididos por 20. Partes decimais de 0,55 ou menos são arredondadas para baixo; partes de 0,56 ou mais, para cima."
+                title: "Divisão por 10",
+                body: "Atributos, dano base dos movimentos e Amizade são divididos por 10. Frações menores que 0,5 são arredondadas para baixo; frações iguais ou maiores que 0,5, para cima."
             },
             {
                 id: "2.3",
                 title: "Estágios de atributos",
-                body: "Ataque, Defesa, Ataque Especial, Defesa Especial e Velocidade usam estágios de −6 a +6 sobre o valor original; só depois o resultado é dividido por 20. Precisão e Evasão também usam estágios de −6 a +6. Dentro dos pisos e limites da regra, um estágio válido sempre altera o valor final na direção correta."
+                body: "Ataque, Defesa, Ataque Especial, Defesa Especial e Velocidade usam estágios de −6 a +6 sobre o valor original; só depois o resultado é dividido por 10. Precisão e Evasão também usam estágios de −6 a +6. Dentro dos pisos e limites da regra, um estágio válido sempre altera o valor final na direção correta."
             },
             {
                 id: "2.4",
@@ -143,7 +143,7 @@ export const RPG_RULE_SECTIONS = [
                     "Para causar dano, o atacante precisa superar o defensor. Um empate ou resultado menor impede o dano, mas não apaga efeitos secundários se o movimento alcançou o alvo.",
                     "O alvo original do movimento determina quem recebe cura, condição e modificadores; efeitos sobre o usuário não são transferidos ao adversário.",
                     "O dano final combina a força original, STAB, tipo e demais multiplicadores antes de arredondar uma única vez.",
-                    "O limite comum por hit é um número inteiro: metade do nível do atacante, arredondada para baixo; no nível 1, vale 1. Aumentos temporários elevam esse limite proporcionalmente."
+                    "O limite comum por hit é um número inteiro igual ao nível do atacante; no nível 1, vale 1. Aumentos temporários elevam esse limite proporcionalmente."
                 ]
             },
             {
@@ -156,8 +156,8 @@ export const RPG_RULE_SECTIONS = [
                     "Dano recebido abaixo do HP máximo não ativa a proteção. Dano não fatal também não consome o uso; se o Pokémon voltar ao HP máximo sem ter usado ou perdido a proteção, ela continua disponível.",
                     "Quando o próprio Pokémon paga HP, sofre recuo ou reduz o próprio HP por movimento, habilidade ou item, perde a proteção geral até o fim daquela batalha. Cura, troca e retorno ao campo não revertem essa perda.",
                     "Ao entrar em uma nova fase de Batalha, o MyOwnDex limpa automaticamente o registro da batalha anterior. Durante a batalha, o uso acompanha o próprio Pokémon mesmo que ele saia e volte à cena.",
-                    "Acertos críticos do atacante, erros críticos do defensor e movimentos que declaram nocaute direto ignoram essa proteção geral.",
-                    "Sturdy, Focus Sash e efeitos equivalentes são proteções próprias e adicionais. Quando a proteção geral age primeiro, ela não ativa nem consome esses efeitos; o MyOwnDex preserva a elegibilidade que eles possuíam antes do golpe.",
+                    "Movimentos que declaram nocaute direto ignoram essa proteção geral. Acertos críticos e erros críticos não a atravessam por si sós; um crítico ainda pode superá-la se o dano chegar a três vezes o HP máximo ou mais.",
+                    "Pokémon cujo HP máximo de 1 é uma regra própria da espécie ou forma, como Shedinja, não recebem a proteção geral. Sturdy, Focus Sash e efeitos equivalentes continuam sendo proteções próprias e adicionais. Quando a proteção geral age primeiro, ela não ativa nem consome esses efeitos; o MyOwnDex preserva a elegibilidade que eles possuíam antes do golpe.",
                     "Essa elegibilidade preservada vale até o próximo dano que realmente alcançar o Pokémon. Nesse dano, um efeito apto pode manter 1 HP; aplicado ou não, qualquer dano posterior encerra a preservação. Cura, troca e retorno à cena não recriam a proteção geral já consumida.",
                     "Se o primeiro dano deixar 1 HP ou mais naturalmente, a proteção geral não age e não preserva uma chance adicional para Sturdy, Focus Sash ou efeitos equivalentes.",
                     "Movimentos de múltiplos acertos são resolvidos hit por hit. Um hit pode consumir a proteção geral, o próximo pode acionar uma proteção própria ainda elegível e outro pode derrotar normalmente.",
@@ -276,7 +276,7 @@ export const RPG_RULE_SECTIONS = [
                     "Sono: dura de 1 a 3 oportunidades de agir, sorteadas uma vez. Depois disso, acorda antes da próxima ação. Trocar preserva a contagem. Early Bird reduz a duração; Snore e Sleep Talk mantêm a permissão de agir dormindo.",
                     "Congelamento: antes da ação, 20% de chance de descongelar e agir. Movimentos que descongelam o próprio usuário dispensam esse teste. Dano de Fire e movimentos com efeito próprio de descongelar também removem a condição.",
                     "Veneno: perde 12,5% do HP máximo ao fim da rodada. Envenenamento grave: começa em 6,25% e aumenta em 6,25% por rodada, até 93,75%; trocar reinicia o contador, não cura a condição.",
-                    "Confusão e hesitação são efeitos voláteis, separados da condição principal. Confusão afeta de 1 a 4 oportunidades de agir (Axe Kick: 2 a 4); em cada uma, há 33% de chance de perder a ação e causar a si mesmo 2 HP de dano, a adaptação do poder 40 ÷20 do RPG, sem STAB, tipo, crítico ou disputa. Hesitação impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra ambas."
+                    "Confusão e hesitação são efeitos voláteis, separados da condição principal. Confusão afeta de 1 a 4 oportunidades de agir (Axe Kick: 2 a 4); em cada uma, há 33% de chance de perder a ação e perder 25% do HP máximo, arredondado para cima e com mínimo de 1 HP. Esse autocusto não usa STAB, tipo, crítico ou disputa. Hesitação impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra ambas."
                 ]
             },
             {
@@ -292,7 +292,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.4",
                 title: "Empoderamentos e enfraquecimentos",
-                body: "Os sete modificadores — Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão — usam estágios de −6 a +6. Os cinco atributos numéricos são recalculados a partir do original antes da divisão por 20; Precisão e Evasão ajustam o d100. Habilidades como Unaware ignoram exatamente os estágios determinados por sua descrição."
+                body: "Os sete modificadores — Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão — usam estágios de −6 a +6. Os cinco atributos numéricos são recalculados a partir do original antes da divisão por 10; Precisão e Evasão ajustam o d100. Habilidades como Unaware ignoram exatamente os estágios determinados por sua descrição."
             }
         ]
     },
@@ -436,4 +436,4 @@ export const getRpgScale = (value, isHp = false) => convertToTTRPG(value, isHp);
 
 export const getNextLevelXp = level => (integerInRange(level, 1, 200, 1) + 1) / 2;
 
-export const getDamageCeiling = level => Math.max(1, Math.floor(integerInRange(level, 1, 200, 1) / 2));
+export const getDamageCeiling = level => Math.max(1, integerInRange(level, 1, 200, 1));

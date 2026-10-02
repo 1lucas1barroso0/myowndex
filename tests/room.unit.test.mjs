@@ -589,7 +589,7 @@ test("damage applies multipliers before one final rounding and keeps weak and st
 });
 
 test("type effectiveness remains visibly ordered on the wider RPG scale", () => {
-  const attacker = { id: "type-attacker", level: 20, types: ["fire"], stats: { "special-attack": 4 } };
+  const attacker = { id: "type-attacker", level: 5, types: ["fire"], stats: { "special-attack": 4 } };
   const move = {
     name: "ember",
     power: 40,

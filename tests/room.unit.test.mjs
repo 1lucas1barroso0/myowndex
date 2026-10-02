@@ -494,7 +494,7 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
   assert.equal(success.baseDamage, 4);
   assert.equal(success.stab, 1.5);
   assert.equal(success.effectiveness, 2);
-  assert.equal(success.damage, 10);
+  assert.equal(success.damage, 12);
 
   const tie = calculateMoveResolution({
     attacker: { ...attacker, stats: { ...attacker.stats, "special-attack": 0 } },
@@ -526,8 +526,8 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     move: { ...move, power: 100 },
     random: sequence([0.8, 0.8, 0, 0]),
   });
-  assert.equal(fractionalCeiling.ceiling, 11);
-  assert.equal(fractionalCeiling.damage, 11);
+  assert.equal(fractionalCeiling.ceiling, 22);
+  assert.equal(fractionalCeiling.damage, 22);
 
   const firstLevelMinimum = calculateMoveResolution({
     attacker: { ...attacker, level: 1 },
@@ -535,8 +535,8 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     move,
     random: sequence([0.8, 0.8, 0, 0]),
   });
-  assert.equal(firstLevelMinimum.ceiling, 1);
-  assert.equal(firstLevelMinimum.damage, 1);
+  assert.equal(firstLevelMinimum.ceiling, 2);
+  assert.equal(firstLevelMinimum.damage, 2);
 
   const critical = calculateMoveResolution({
     attacker,

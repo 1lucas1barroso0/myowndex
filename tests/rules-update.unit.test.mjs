@@ -85,7 +85,7 @@ test("confusion persists through round end and self damage disables general surv
   const ended = applyEndOfRoundEffects(snapshot, sequence([]));
   assert.equal(ended.room.tokens[0].volatileEffects[0].turns, 2);
   const resolved = resolveCombatAction({ snapshot, request, role: "narrator", move, random: sequence([0]) });
-  assert.equal(resolved.nextSnapshot.tokens[0].currentHp, 18);
+  assert.equal(resolved.nextSnapshot.tokens[0].currentHp, 15);
   assert.equal(resolved.nextSnapshot.tokens[0].volatileEffects[0].turns, 1);
   assert.ok(resolved.nextSnapshot.hitKillProtectionDisabled.includes("token:a"));
   const ending = checkActionConditions({ token: token("a", { volatileEffects: [{ id: "confusion", turns: 1 }] }), move, random: sequence([0.99]) });

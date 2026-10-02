@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { CAPTURE_BALLS, calculateCaptureChance } from "../../core/capture.js";
 import { fetchCached, formatNumberPtBr } from "../../core/mechanics.js";
 import { resolveCaptureAction } from "../../../server/authoritativeActions.js";
+import RoomSelect from "../Shared/RoomSelect.jsx";
 
 export default function CaptureAssistant({ role, snapshot, remote, onAuthoritativeAction, onSnapshotChange, onEvent, onError }) {
     const [trainerTokenId, setTrainer] = useState("");
@@ -13,6 +14,8 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
     const [result, setResult] = useState(null);
     const lock = useRef(false);
     const target = snapshot.tokens.find(token => token.id === targetId);
+    const trainers = snapshot.tokens.filter(token => token.side === "ally" && !token.hidden && !token.captured);
+    const targets = snapshot.tokens.filter(token => token.id !== trainerTokenId && token.side !== "ally" && !token.hidden && !token.captured && !token.ownerPlayerId && token.currentHp > 0);
     const speciesName = target?.speciesName || target?.speciesId;
     useEffect(() => {
         let active = true;
@@ -57,19 +60,24 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
             {role !== "narrator" ? <p>Combine a tentativa com o Narrador. O resultado aparecerá no Diário.</p> : <form onSubmit={capture}>
                 <fieldset className="combat-grid capture-fields" disabled={busy}>
                     <legend className="sr-only">Preparar captura</legend>
-                    <label>Equipe em campo<select value={trainerTokenId} onChange={event => setTrainer(event.target.value)} required>
-                        <option value="">Escolha seu Pokémon</option>
-                        {snapshot.tokens.filter(token => token.side === "ally" && !token.hidden && !token.captured).map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
-                    </select></label>
-                    <label>Alvo selvagem<select value={targetId} onChange={event => { setTarget(event.target.value); setWild(false); }} required>
-                        <option value="">Escolha o alvo</option>
-                        {snapshot.tokens.filter(token => token.id !== trainerTokenId && token.side !== "ally" && !token.hidden && !token.captured && !token.ownerPlayerId && token.currentHp > 0).map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
-                    </select></label>
-                    <label>Poké Ball<select value={ball} onChange={event => setBall(event.target.value)}>{Object.entries(CAPTURE_BALLS).map(([key, info]) => <option key={key} value={key}>{info.label}</option>)}</select></label>
-                    <label className="capture-confirmation"><input type="checkbox" checked={wildConfirmed} onChange={event => setWild(event.target.checked)} required /> O alvo é selvagem e a captura é permitida.</label>
+                    <label><span>Equipe em campo</span><RoomSelect aria-label="Equipe em campo" value={trainerTokenId} disabled={!trainers.length} onChange={event => setTrainer(event.target.value)} required>
+                        <option value="">{trainers.length ? "Escolha um Pokémon" : "Sem Pokémon em campo"}</option>
+                        {trainers.map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
+                    </RoomSelect></label>
+                    <label><span>Alvo selvagem</span><RoomSelect aria-label="Alvo selvagem" value={targetId} disabled={!targets.length} onChange={event => { setTarget(event.target.value); setWild(false); }} required>
+                        <option value="">{targets.length ? "Escolha um alvo" : "Sem alvo selvagem"}</option>
+                        {targets.map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
+                    </RoomSelect></label>
+                    <label><span>Poké Ball</span><RoomSelect aria-label="Poké Ball" value={ball} onChange={event => setBall(event.target.value)}>{Object.entries(CAPTURE_BALLS).map(([key, info]) => <option key={key} value={key}>{info.label}</option>)}</RoomSelect></label>
+                    <label className="capture-confirmation"><input type="checkbox" checked={wildConfirmed} onChange={event => setWild(event.target.checked)} required /><span>O alvo é selvagem e a captura é permitida.</span></label>
                 </fieldset>
-                {calculation && <p>Chance: <strong>{calculation.chance}%</strong> · Taxa {calculation.captureRate} de 255 · HP {calculation.currentHp} de {calculation.maxHp} · Ball ×{formatNumberPtBr(calculation.ballBonus)} · Condição ×{formatNumberPtBr(calculation.statusBonus)}</p>}
-                <p>Adaptação d100 do RPG. A tentativa usa a intervenção da rodada; ajuste a Ball no inventário.</p>
+                {calculation && <dl className="capture-metrics">
+                    <div><dt>Chance · d100</dt><dd>{calculation.chance}%</dd></div>
+                    <div><dt>Taxa de captura</dt><dd>{calculation.captureRate} de 255</dd></div>
+                    <div><dt>HP do alvo</dt><dd>{calculation.currentHp} de {calculation.maxHp}</dd></div>
+                    <div><dt>Bônus</dt><dd>Poké Ball ×{formatNumberPtBr(calculation.ballBonus)}<br />Condição ×{formatNumberPtBr(calculation.statusBonus)}</dd></div>
+                </dl>}
+                <p className="capture-note">A captura usa d100 e a intervenção da rodada. Registre a Poké Ball usada no inventário.</p>
                 <button type="submit" className="room-primary-button" disabled={busy || !calculation || !trainerTokenId || !wildConfirmed}>{busy ? "Resolvendo…" : "Lançar Poké Ball"}</button>
             </form>}
             {result && <p role="status">{result.detail}{result.success ? " Registre o novo parceiro no PC." : ""}</p>}

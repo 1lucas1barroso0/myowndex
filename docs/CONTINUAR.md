@@ -1,51 +1,35 @@
-# Estado da atualização 11.2
+# Estado da atualização 11.3
 
-Retomada em 2 de outubro de 2026 após auditar status, diffs, componentes e decisões. Toda implementação válida da 11.1 foi preservada, inclusive alterações ainda sem commit no Git exportado. Não executar reset, checkout destrutivo ou substituir o diretório por uma versão anterior.
+Retomada em 2 de outubro de 2026, preservando a 11.2 inteira e os ajustes parciais da 11.3. Não executar reset, checkout destrutivo ou substituir a fonte por uma versão anterior. O HEAD/index exportados continuam na base antiga; alterações válidas permanecem no diretório de trabalho.
 
-## Base e publicação
+## Base e destino
 
-- Base remota: `d10c9482cb562a84b09c9cc6a1df2168426f72d4`, atualização 11.1 publicada em `1lucas1barroso0/myowndex` pelo usuário. Árvore: `4e6926c28c1ae946ae7ab7e51b98b4a39f3b624a`.
-- O HEAD local exportado é `9f3450c`, anterior ao remoto. Para comparar, use índice Git temporário baseado no commit remoto e inclua arquivos novos; o diff comum não inclui arquivos ainda não rastreados.
-- Destino: https://myowndex.vercel.app. O HTML público conferido nesta execução contém 11.1.0. A 11.2 foi construída/verificada localmente; sua publicação ainda precisa ocorrer pelo instalador.
-- Na execução anterior, conexão GitHub e CLI autenticado recusaram escrita com HTTP 403, “Resource not accessible by integration”. O instalador usa os logins do usuário. Conferir `main`, deployment READY e rodapé 11.2.0 antes de declarar publicação concluída.
-- Turso Production/Preview já configurados. Reutilizar bancos e variáveis; não criar banco, trocar tokens ou migrar salas antigas. Protocolo das salas 3 e armazenamento das Boxes 4 preservados.
+- Base remota publicada: `d8bb4096702786625f8acdb20ac63d26186d71ba`, MyOwnDex 11.2 (#18), repositório `1lucas1barroso0/myowndex`. A árvore coincide com o checkpoint local anterior `711b6d1e30ccc4bcf558667e6819beb478ef99cf`.
+- HEAD exportado local: `9f3450c`, anterior ao remoto. Compare usando índice temporário baseado no commit remoto e incluindo arquivos novos; não use reset para “alinhar” este diretório.
+- Produção: https://myowndex.vercel.app, HTML público conferido em 11.2.0. A 11.3 está preparada localmente; publicação pendente pelo instalador. A conexão GitHub recusou escrita com HTTP 403 nas execuções anteriores; o instalador usa os logins do usuário.
+- Reutilizar Turso Production/Preview já configurados. Não criar banco, substituir tokens ou migrar salas antigas. Salas protocolo 3, Boxes esquema 4 e demais chaves de armazenamento preservados.
 
-## Implementação preservada
+## Trabalho concluído
 
-- Macrodesign Sword/Shield e detalhes HGSS/BW/B2W2: navegação forte, contraste, sprites nas listas/campo e artwork no foco individual.
-- Tokens comuns em `journey.css`, geometria funcional do campo, modos RPG/Jogos/Livre separados da aparência.
-- Ficha com rolagem única; Boxes com lista limitada por altura; editor, Link Cable e importação responsivos.
-- 39 regras pesquisáveis/expansíveis; referência Fate registrada em `docs/CLEAN-REFERENCIAS.md`.
-- Aventura com Equipe/Campo/Ações no celular, notas privadas e sincronização preservadas.
-- Sem placeholders, instalação guiada, aviso permanente de prontidão ou dependência de GPT/IA. Runtime Next.js/React/Turso; Netlify fora da fonte.
-- Cache público LRU de 256 respostas, assets regeneráveis limitados a 500, shell offline separado e hidratação limitada a quatro tarefas. Salvamento agrupado com flush ao sair; Boxes não expiram.
-- Catálogo conserva sprites usados, artwork, animação Black/White e atributos offline. Hidratação tardia verifica ID, forma e edição recente antes de atualizar.
+- Campos com `Shared/RoomSelect.jsx`: mantém o select nativo, teclado, toque, validação e callbacks; o valor selecionado aparece inteiro e quebra linha dentro do campo. Fragment e optgroup são percorridos. Labels visíveis e nomes acessíveis explícitos, sem duplicar texto visível.
+- `src/room-controls.css`, importado globalmente após journey.css: formulários respondem à largura do painel. Combate/captura ficam em uma coluna na lateral estreita; duas só com espaço. Estados vazios informam ausência de Pokémon/movimento/alvo. Iniciativa, ficha rápida, HP, XP, trocas e modificadores têm linhas/controles confortáveis; botões desabilitados mantêm texto legível.
+- Claro/Escuro no canto, duas colunas intrínsecas; modos RPG/Jogos/Livre continuam independentes. Removidos títulos visuais redundantes, mantendo nomes acessíveis, teclado e toque mínimo de 44 px.
+- PC/editor preservam todas as ações e ganham margens internas e espaçamento; escolhas longas de forma/natureza/condição/tipos/destino usam o mesmo controle.
+- Registro da Pokédex: EN/PT alterna original/português localmente. 1.025 espécies cobertas; nomes próprios ingleses conservados. O idioma volta ao original ao abrir outra espécie; alternar forma conserva o idioma escolhido.
+- Corpus `src/data/pokedex-entries.json`: 1.007 pares oficiais Pokémon GO + 18 pares de Pokémon Scarlet com tradução editorial local; um par oficial adicional para Gimmighoul Roaming Form. Chest Form usa seu próprio original/português de Scarlet. Nunca parear inglês Red/Blue com português de outro texto.
+- Fonte identificada discretamente na descrição; traduções editoriais identificadas como MyOwnDex. Proveniência/hash/fontes fixadas em `docs/pokedex-entries-provenance.json`, explicação em `docs/POKEDEX-IDIOMAS.md`. Regeração opcional por `scripts/atualizar-descricoes-pokedex.py`; runtime não chama tradutor, GPT ou IA.
+- Categoria, habitat/crescimento e medidas agrupados; captura/amizade em referências próprias, com interpretação expansível completa. Habilidades, formas, evoluções e movimentos preservados.
+- Todas as funcionalidades da 11.2 mantidas: salvamento/import-export/Link Cable, sincronização/notas privadas, 39 regras, cache LRU e offline limitado, hidratação com quatro tarefas e proteção de edições recentes. Boxes não expiram.
+- Versão 11.3.0 em package, rodapé e service worker. Dependências inalteradas.
 
-## Ajustes da 11.2
+## Verificação e entrega
 
-- Apenas Claro/Escuro. Preferência antiga `system` é resolvida pela aparência atual do dispositivo uma vez e torna-se escolha explícita persistida. Tema não altera modo de jogo.
-- Entrada e PC com texto revisado; títulos/rótulos mantêm palavras inteiras. Conteúdo livre e nomes longos quebram linha sem ocultar letras.
-- Registro com cor do tipo, descrição destacada, idioma e fatos sem duplicar altura/peso. Evoluções conectadas, com ramos e estágio atual. Ícones distintos para Tipos/Movimentos.
-- Movimentos com método de aprendizado, tipo, categoria e dados de batalha separados. Detalhes completos carregados ao abrir, com deduplicação.
-- Treinamento separa título, IVs/EVs e orçamento. Seis atributos reorganizam Base, IVs, EVs e slider pela largura disponível; limites, balanceamento e salvamento preservados.
-- dX mostra Livre. Removidos Copiar e a redundância nas probabilidades. Histórico com resultado, contexto e data; exportação e limite de 100 preservados.
-- Proteção contra hit kill com escudo, três etapas coloridas, 1 HP e exemplo. Regras, exceções, Sturdy e Focus Sash completas.
-- `src/core/names.js` centraliza nomes ingleses, pontuação, siglas e formas regionais/Mega. Tipos, habilidades, itens, naturezas, movimentos e demais nomes próprios não são traduzidos; explicações/controles seguem em português.
-- Proporções como porcentagem/multiplicador, contagens com “de”, sem notação de fração. Cálculos preservados: HP positivo usa piso/mínimo 1, imunidade é zero, conversão RPG sobe a partir de 0,56 e modificadores direcionais usam teto/piso conforme a regra. XP segue em passos de 0,5; medidas oficiais conservam precisão.
-- Versão 11.2.0 em package, rodapé e service worker; dependências iguais.
+Build, tipos, lint, HTML servido e 215 testes passaram. Navegador: 99 checkpoints gerais, 51 de acabamento e 140 de campos/espaçamento, nos dois temas, cinco larguras, zoom 200%, 80 Boxes/480 Pokémon, persistência de IVs/EVs e alternância de idioma offline sem requisição. O teste novo mede o texto selecionado contra a opção nativa e seus retângulos dentro do campo. Detalhes/comandos em `docs/VALIDACAO.md`.
 
-## Verificação e retomada
+Smoke completo de salas em banco SQLite/Hrana de QA foi aprovado na 11.1; não repetido nesta atualização visual. Servidor/protocolo e funcionamento do banco preservados; testes unitários de autorização/ações continuam aprovados. Não usar produção para ensaios.
 
-Passaram 212 testes, lint, tipos, build, HTML servido e 99 checkpoints de responsividade contra a build de produção, incluindo zoom de 200%, 80 Boxes e 480 Pokémon. Mais 51 checkpoints de `tests/browser-polish.mjs` cobriram os novos painéis abertos em Claro/Escuro, quatro larguras, geometria de palavras, migração da aparência e edição/persistência dos 12 valores IV/EV. Nenhum erro JavaScript. Comandos e limites em `docs/VALIDACAO.md`.
+Logs/screenshots em /tmp são temporários e não fazem parte da entrega. Scripts e decisões estão na fonte. Checkpoint final: `codex/myowndex-v11-space-checkpoint-20261002`, sem trocar HEAD/index original; commit registrado no STATUS externo.
 
-Na 11.1, smoke das salas passou em QA com HTTP Hrana/SQLite real: criação, entrada, autorização, nota privada, revisão, concorrência, combate, eventos, RNG e chamadas. Duas páginas também verificaram sincronização/privacidade. Esse smoke de API não foi repetido na 11.2; não houve alteração funcional do servidor/protocolo em relação à base publicada. Produção não usada para ensaios.
+Gerar `python3 scripts/empacotar-linux.py` e verificar `python3 scripts/verificar-entrega-linux.py ../entrega`. Saídas: myowndex-v11.3-linux.sh, ZIP, TAR.GZ, COMANDO/LEIA/SHA256-V11.3.txt. Entregas anteriores preservadas; exclusão de segredos, .git, .vercel, builds e dependências instaladas.
 
-Logs/screenshots em `/tmp/myowndex-polish-*` e `/tmp/myowndex-clean-*` não fazem parte da entrega e podem não sobreviver ao reinício. Reproduza usando os scripts do projeto. O checkpoint local usa `codex/myowndex-v11-polish-checkpoint-20261002`, sem substituir HEAD/index original; o status externo da entrega registra seu commit.
-
-Se a publicação for interrompida, consulte PR/deployment antes de reenviar. Instalador usa estado por digest, preserva alterações, valida SHA antes da integração e mantém checkout/log em falha. Fonte já aplicada não gera PR vazio. As 34 verificações offline da automação realizadas na 11.1 não são contadas como repetidas nesta execução.
-
-## Entrega
-
-Gerar com `python3 scripts/empacotar-linux.py`: `../entrega/myowndex-v11.2-linux.sh`, ZIP, TAR.GZ, comando, instruções e SHA-256. Script inclui projeto inteiro, reaproveita logins/bancos e repete checks antes de publicar. Exclui .env, .vercel, .git, builds e dependências instaladas.
-
-Netlify GitHub App é configuração externa: se ainda vinculada, retirar somente este repositório conforme `docs/AUTOMACAO.md`, sem afetar outros projetos.
+Instalador conserva a lógica validada da 11.2 e os estados por digest. Repete checks e usa CI/Preview antes da integração e produção; preserva checkout/log em falha. Se interrompido, consultar PR/deployment antes de reenviar. 12 verificações atuais de pacote/extração/retomada/determinismo; 34 verificações antigas da automação não são contadas como repetidas.

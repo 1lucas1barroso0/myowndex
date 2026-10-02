@@ -24,6 +24,7 @@ import {
     SPECIAL_AUTOMATION_LABELS,
 } from "../../core/specialMechanics.js";
 import { getTraitMoveBlock } from "../../core/traitMechanics.js";
+import RoomSelect from "../Shared/RoomSelect.jsx";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
@@ -226,7 +227,11 @@ export default function CombatAssistant({
         }
     };
 
-    const targetDescription = needsCalledMove && !calledMoveData
+    const targetDescription = !attacker
+        ? "Leve um Pokémon para o campo para escolher seu movimento."
+        : !moveName
+            ? "Escolha um movimento para conferir seus alvos."
+            : needsCalledMove && !calledMoveData
         ? "Confirme qual movimento foi chamado para revelar alvo, precisão e forma de resolução."
         : resolutionProfile
         ? resolutionProfile.target.requiresSelection
@@ -264,29 +269,31 @@ export default function CombatAssistant({
                 <div className="combat-grid">
                     <label>
                         <span>Usuário</span>
-                        <select value={attackerId} onChange={event => { setAttackerId(event.target.value); setResult(null); }}>
-                            {tokens.map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
-                        </select>
+                            <RoomSelect aria-label="Usuário" value={attackerId} disabled={!tokens.length} onChange={event => { setAttackerId(event.target.value); setResult(null); }}>
+                                <option value="">{tokens.length ? "Escolha um Pokémon" : "Sem Pokémon em campo"}</option>
+                                {tokens.map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
+                            </RoomSelect>
                     </label>
                     {resolutionProfile?.target.requiresSelection && (
                         <label>
                             <span>Alvo</span>
-                            <select value={defenderId} onChange={event => { setDefenderId(event.target.value); setResult(null); }}>
+                            <RoomSelect aria-label="Alvo" value={defenderId} disabled={!selectableTargets.length} onChange={event => { setDefenderId(event.target.value); setResult(null); }}>
                                 {!selectableTargets.length && <option value="">Nenhum alvo válido</option>}
                                 {selectableTargets.map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
-                            </select>
+                            </RoomSelect>
                         </label>
                     )}
                     <label>
                         <span>Movimento</span>
-                        <select value={moveName} onChange={event => void selectMove(event.target.value)}>
-                            {!moves.length && <option value="">Nenhum movimento</option>}
+                        <RoomSelect aria-label="Movimento" value={moveName} disabled={!moves.length} onChange={event => void selectMove(event.target.value)}>
+                            <option value="">{moves.length ? "Escolha um movimento" : "Sem movimentos na ficha"}</option>
                             {moves.map(move => <option key={move} value={move}>{formatName(move)}</option>)}
-                        </select>
+                        </RoomSelect>
                     </label>
                     <label>
                         <span>Situação da disputa</span>
-                        <select
+                        <RoomSelect
+                            aria-label="Situação da disputa"
                             value={resolutionProfile?.requiresDamageContest ? mode : "normal"}
                             disabled={Boolean(resolutionProfile && !resolutionProfile.requiresDamageContest)}
                             onChange={event => setMode(event.target.value)}
@@ -298,7 +305,7 @@ export default function CombatAssistant({
                                     <option value="advantage">Vantagem</option>
                                     <option value="disadvantage">Desvantagem</option>
                                 </>}
-                        </select>
+                        </RoomSelect>
                     </label>
                 </div>
 

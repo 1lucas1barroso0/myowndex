@@ -5,6 +5,7 @@ import { createTeam as makeTeam, createId, hydrateTeam, insertImportedPokemon, m
 import { decodeShare, encodePokemonBundle, encodeTeam } from "../../core/teamShare.js";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
+import RoomSelect from "../Shared/RoomSelect.jsx";
 import PokemonEditor from "./PokemonEditor.jsx";
 import "../../pc-retro.css";
 
@@ -418,9 +419,9 @@ export default function Teambuilder({ envProps }) {
                                 <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name" />
                                 <label className="pc-version-field">
                                     Jogo de referência
-                                    <select value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="pc-version-select">
+                                    <RoomSelect aria-label="Jogo de referência" value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="pc-version-select">
                                         {VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}
-                                    </select>
+                                    </RoomSelect>
                                 </label>
                             </div>
 
@@ -635,14 +636,14 @@ export default function Teambuilder({ envProps }) {
                                 {(importPreview.kind === "pokemon" || importStrategy === "add") && (
                                     <label className="link-cable-destination">
                                         <span>Box de destino</span>
-                                        <select value={importTargetId} onChange={event => { setImportTargetId(event.target.value); setImportError(""); }}>
+                                        <RoomSelect aria-label="Box de destino" value={importTargetId} onChange={event => { setImportTargetId(event.target.value); setImportError(""); }}>
                                             {teams.map(team => {
                                                 const free = Math.max(0, 6 - team.pokemon.length);
                                                 const fits = free >= importPreview.pokemon.length;
                                                 return <option key={team.id} value={team.id} disabled={!fits}>{team.name} • {free} {free === 1 ? "espaço" : "espaços"}{fits ? "" : " (não cabe)"}</option>;
                                             })}
                                             <option value="__new__">Criar nova Box para este envio</option>
-                                        </select>
+                                        </RoomSelect>
                                         <small>{importTargetId === "__new__" ? "Cria uma Box para os Pokémon recebidos." : "Os Pokémon ocuparão os espaços livres."}</small>
                                     </label>
                                 )}

@@ -27,7 +27,7 @@ html .app-root .pc-grid-heading h3 { font-size:1.25rem; font-weight:800; }
 html .app-root .pc-grid-heading > span { font-size:.85rem; color:var(--ui-muted); }
 html .app-root :is(.pc-add-button,.pc-editor-heading button) { min-height:44px; padding:.7rem .85rem; color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; background:var(--ui-panel); font-weight:700; }
 html .app-root .pc-partner-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:1rem; }
-html .app-root .pc-partner-card { display:grid; grid-template-columns:64px minmax(0,1fr); position:relative; align-items:center; gap:1rem; width:100%; text-align:left; padding:1.1rem; min-height:128px; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); border-left:4px solid var(--pc-partner-type,var(--ui-line)); border-radius:.3rem; }
+html .app-root .pc-partner-card { display:grid; grid-template-columns:64px minmax(0,1fr); position:relative; align-items:center; gap:1rem; width:100%; text-align:left; padding:1.25rem; min-height:136px; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); border-left:4px solid var(--pc-partner-type,var(--ui-line)); border-radius:.3rem; }
 html .app-root .pc-partner-card.is-selected { background:var(--ui-selected); outline:2px solid var(--ui-blue); outline-offset:1px; }
 html .app-root .pc-card-position { position:absolute; right:.6rem; top:.5rem; font-family:'Dex Pixel',monospace; color:var(--ui-muted); }
 html .app-root .pc-partner-sprite { position:relative; width:64px; height:64px; }
@@ -36,7 +36,7 @@ html .app-root .pc-shiny-mark { position:absolute; right:0; top:0; color:var(--u
 html .app-root .pc-partner-info { display:grid; gap:.45rem; min-width:0; }
 html .app-root .pc-partner-heading { display:flex; flex-wrap:wrap; gap:.5rem; align-items:baseline; padding-right:.75rem; }
 html .app-root .pc-partner-name { font-weight:800; font-size:1rem; overflow-wrap:anywhere; }
-html .app-root .pc-partner-meta { color:var(--ui-muted); font-size:.85rem; }
+html .app-root .pc-partner-meta { color:var(--ui-muted); font-size:.85rem; line-height:1.6; }
 html .app-root .pc-partner-types { display:flex; flex-wrap:wrap; gap:.35rem; }
 html .app-root .pc-partner-types > span { padding:.2rem .45rem; border-radius:.2rem; font-size:.75rem; font-weight:700; }
 html .app-root .pc-box-empty { padding:2rem 0; color:var(--ui-muted); }
@@ -48,18 +48,19 @@ html .app-root .pc-empty-state h2 { font-size:2rem; font-weight:800; }
 html .app-root .pc-welcome-partners { display:flex; }
 html .app-root .pc-welcome-partners img { width:80px; height:80px; object-fit:contain; }
 /* The essentials stay visible; secondary configuration is opened on demand. */
-html .app-root .pokemon-editor { border:0 !important; padding:0 !important; box-shadow:none !important; }
-html .app-root .editor-header { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin-bottom:1.75rem; }
+html .app-root.game-edition.handheld-edition .pokemon-editor { border:0 !important; padding:0 !important; box-shadow:none !important; background:transparent !important; }
+html .app-root .editor-header { display:flex; flex-wrap:wrap; align-items:center; gap:1.25rem 1.5rem; margin-bottom:2rem; }
 html .app-root .editor-portrait { width:96px; height:96px; object-fit:contain; flex:0 0 auto; }
-html .app-root .editor-identity { flex:1 1 200px; display:grid; gap:.5rem; min-width:0; }
+html .app-root .editor-identity { flex:1 1 220px; display:grid; gap:.75rem; min-width:0; }
 html .app-root .editor-header > .editor-field { flex:0 1 130px; }
-html .app-root .editor-field { display:grid; gap:.4rem; min-width:0; align-content:start; }
+html .app-root .editor-field { display:grid; gap:.6rem; min-width:0; align-content:start; }
 html .app-root .editor-label { color:var(--ui-muted); font-size:.85rem; font-weight:700; text-transform:none; letter-spacing:0; }
 html .app-root .editor-nickname { font-size:1.35rem !important; font-weight:800; width:100%; }
 html .app-root .editor-basics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:1.5rem; }
 html .app-root .editor-field :is(input,select,textarea) { width:100%; }
-html .app-root .editor-choice-control { display:flex; gap:.5rem; min-width:0; }
+html .app-root .editor-choice-control { display:flex; align-items:start; gap:.5rem; min-width:0; }
 html .app-root .editor-choice-control > :is(input,select) { flex:1 1 0; width:0; min-width:0; }
+html .app-root .editor-choice-control > .room-select { flex:1 1 0; width:0; min-width:0; }
 html .app-root .editor-random-button { min-width:44px; min-height:44px; flex:0 0 auto; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; }
 html .app-root .editor-gender-controls { display:flex; flex-wrap:wrap; gap:.4rem; }
 html .app-root :is(.editor-gender-controls button,.editor-xp-actions button,.rpg-recover-button,.editor-randomize-button,.pokemon-remove-button,.form-switch select) { min-height:44px; padding:.65rem .8rem; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; }
@@ -70,12 +71,12 @@ html .app-root .editor-section-heading { display:flex; flex-wrap:wrap; align-ite
 html .app-root .editor-section-heading h3 { font-size:1.25rem; font-weight:800; }
 html .app-root .editor-moves { margin-top:2rem; }
 html .app-root .editor-moves-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:1.25rem; }
-html .app-root .editor-move-field { min-width:0; display:grid; align-content:start; gap:.6rem; padding:1rem; background:var(--ui-raised); border:1px solid var(--ui-line); border-radius:.25rem; }
+html .app-root .editor-move-field { min-width:0; display:grid; align-content:start; gap:.8rem; padding:1.25rem; background:var(--ui-raised); border:1px solid var(--ui-line); border-radius:.25rem; }
 html .app-root .editor-pp-label { display:flex; align-items:center; justify-content:space-between; gap:.75rem; font-size:.85rem; }
 html .app-root .editor-pp-control { width:90px; }
-html .app-root :is(.editor-disclosure,.editor-move-description) { margin-top:1.25rem; border-top:1px solid var(--ui-line); }
+html .app-root :is(.editor-disclosure,.editor-move-description) { margin-top:1.75rem; border-top:1px solid var(--ui-line); }
 html .app-root :is(.editor-disclosure,.editor-move-description) > summary { min-height:48px; padding:.9rem 0; font-weight:750; line-height:1.5; color:var(--ui-ink); }
-html .app-root .editor-disclosure-body { padding:1rem 0; }
+html .app-root .editor-disclosure-body { padding:1.25rem 0 1.5rem; }
 html .app-root .editor-trait-reference .editor-disclosure-body { display:grid; gap:1.5rem; }
 html .app-root .editor-disclosure-body p { font-size:1rem; line-height:1.7; max-width:68ch; }
 html .app-root .editor-move-facts { display:flex; flex-wrap:wrap; gap:.75rem; margin:1rem 0; }
@@ -84,6 +85,10 @@ html .app-root .editor-move-facts dd { font-weight:750; }
 html .app-root .editor-wide-field { grid-column:1/-1; }
 html .app-root .rpg-journey-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:1.5rem; background:transparent; border:0; }
 html .app-root .rpg-journey-hp { font-size:.85rem; color:var(--ui-muted); }
+html .app-root .rpg-journey-panel > summary { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem 1rem; list-style:none; }
+html .app-root .rpg-journey-panel > summary::-webkit-details-marker { display:none; }
+html .app-root .rpg-journey-panel > summary::after { content:"+"; margin-left:auto; color:var(--ui-blue); font-size:1.3rem; }
+html .app-root .rpg-journey-panel[open] > summary::after { content:"−"; }
 html .app-root .editor-progress-goal { font-size:.85rem; color:var(--ui-muted); }
 html .app-root .editor-xp-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; }
 html .app-root .pokemon-training-panel { background:transparent; border:0; border-top:1px solid var(--ui-line); padding:0; container-type:inline-size; }
@@ -159,4 +164,4 @@ html .app-root .link-cable-result > div:not(.link-cable-code-field) { display:fl
 html .app-root .link-cable-error { padding:1rem; margin:1rem 0; border-left:3px solid var(--ui-accent); color:var(--ui-ink); }
 html .app-root .link-cable-preview { margin:1rem 0; }
 @media (max-width:1000px) { html .app-root .pc-workspace.pc-retro { grid-template-columns:minmax(0,1fr); } html .app-root .pc-box-list { grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); max-height:240px; } }
-@media (max-width:540px) { html .app-root .pc-sidebar,html .app-root .pc-main-panel { padding:1rem; } html .app-root .pc-partner-card { padding:1rem; } html .app-root .pokemon-stat-row { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:540px) { html .app-root .pc-sidebar,html .app-root .pc-main-panel { padding:1.25rem; } html .app-root .pokemon-stat-row { grid-template-columns:minmax(0,1fr); } }

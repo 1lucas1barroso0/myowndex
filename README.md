@@ -6,10 +6,12 @@ Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para Pokémon RPG.
 
 - Interface inspirada na clareza de Pokémon Sword/Shield e nos detalhes 2D de HGSS/BW/B2W2: espaço para respirar, cores por função, sprites e artwork no foco individual.
 - Modos RPG/Jogos/Livre visíveis, separados das opções Claro/Escuro, e campos com rótulos persistentes. Registros, Boxes e edição reorganizam o conteúdo no celular, tablet e computador.
+- Escolhas com nomes longos mantêm o texto legível. Formulários e iniciativa se organizam pela largura do painel; os controles de aparência ocupam um canto compacto do cabeçalho.
 - Catálogo nacional de 1.025 espécies incluído; 152 sprites locais (Kanto e Rotom). A abertura da Pokédex não precisa esperar pela rede.
 - Busca por nome/número, favoritos e filtro por geração de estreia. Detalhes, formas, habilidades e movimentos usam a PokéAPI, com cache.
 - Boxes com até seis Pokémon, lista rolável e parceiros sem espaços vazios decorativos. Importação, compartilhamento, duplicação, exclusão e desfazer preservados.
 - Registro da Pokédex, linha evolutiva e movimentos com cores por função, hierarquia de leitura e símbolos distintos. A ficha mantém navegação por teclado, abas com setas, retorno do foco e rolagem contínua no celular. Movimento respeita a preferência de redução de animações.
+- Alternância EN/PT no registro com textos incluídos no projeto, sem tradução por IA. Nomes próprios permanecem no original; fontes e cobertura dos textos em português estão em [docs/VALIDACAO.md](docs/VALIDACAO.md).
 - Guia com regras individuais expansíveis, busca e destaque para a proteção contra hit kill. Pokémon, itens, movimentos e habilidades mantêm seus nomes originais em inglês; valores calculados seguem os arredondamentos das regras. A leitura segue os padrões responsivos do Fate Gameplay Toolkit.
 - Telas grandes carregadas sob demanda; service worker nunca guarda APIs privadas nem respostas RSC.
 - Cache público limitado a 256 respostas de catálogo e 500 assets regeneráveis, hidratação com quatro tarefas simultâneas e salvamento agrupado. Boxes mantêm seus dados e formato de armazenamento.
@@ -30,17 +32,17 @@ Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configur
 
 ## Atualizar pelo Linux
 
-Baixe `myowndex-v11.2-linux.sh`, abra o terminal na pasta do download e execute:
+Baixe `myowndex-v11.3-linux.sh`, abra o terminal na pasta do download e execute:
 
 ```bash
-bash myowndex-v11.2-linux.sh
+bash myowndex-v11.3-linux.sh
 ```
 
 O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da Vercel e os bancos já configurados. Você não precisa criar outra conta Turso, copiar tokens, extrair um arquivo ZIP ou migrar salas.
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A entrega 11.2 parte da versão 11.1 já publicada e mantém os dados de produção. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
+A entrega 11.3 parte da versão 11.2 já publicada e mantém os dados de produção. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
 
 ## Arquitetura e fontes
 

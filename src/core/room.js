@@ -1565,7 +1565,7 @@ export const calculateMoveResolution = ({
                     : calculatedDamagePerHit
         : 0;
     const offensiveStage = attackerStagesIgnored ? 0 : normalizeStageMap(offensiveToken?.stages)[attackKey];
-    const ceilingMultiplier = Math.max(1, stageMultiplier(offensiveStage));
+    const ceilingMultiplier = Math.max(1, stageMultiplier(offensiveStage)) * Math.max(1, effectiveness);
     const baseCeiling = getDamageCeiling(attacker?.level);
     const ceiling = applyDirectionalIntegerModifier(baseCeiling, ceilingMultiplier, { minimum: baseCeiling, maximum: 99999 });
     const damagePerHit = attackTest?.critical || directKnockout || fixedDamage != null || manualDamage

@@ -504,9 +504,9 @@ export default function VoiceCall({ session, role }) {
                 : "Preparando a chamada…";
 
     return (
-        <details className="room-tool call-tool" open>
+        <details className="room-tool call-tool" open={active || undefined}>
             <summary>
-                <span><small>Conversa da mesa</small><strong>Chamada de voz</strong></span>
+                <span><strong>Chamada de voz</strong></span>
                 <span className={`room-tool-badge call-badge is-${active ? phase : "idle"}`}>
                     {active ? members.length || "•" : "Entrar"}
                 </span>

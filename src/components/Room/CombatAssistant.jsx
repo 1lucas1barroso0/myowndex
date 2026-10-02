@@ -257,7 +257,6 @@ export default function CombatAssistant({
         <details className="room-tool">
             <summary>
                 <span>
-                    <small>Assistente Rotom</small>
                     <strong>Resolver um movimento</strong>
                 </span>
             </summary>
@@ -328,7 +327,6 @@ export default function CombatAssistant({
                                             event.preventDefault();
                                             void loadCalledMove();
                                         }}
-                                        placeholder="Ex.: flamethrower"
                                         autoCapitalize="none"
                                         autoCorrect="off"
                                     />

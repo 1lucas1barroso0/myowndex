@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { readStorage, writeStorage } from "../../core/storage.js";
 import GameIcon from "./GameIcon.jsx";
 
@@ -10,12 +10,22 @@ const THEMES = [
 ];
 
 const validTheme = value => THEMES.some(theme => theme.id === value) ? value : "system";
+const movementKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
 export default function AppearanceControl() {
     const [preference, setPreference] = useState("system");
     const [ready, setReady] = useState(false);
-    const current = THEMES.find(theme => theme.id === preference) || THEMES[2];
-    const next = THEMES[(THEMES.findIndex(theme => theme.id === preference) + 1) % THEMES.length];
+    const optionRefs = useRef([]);
+
+    const moveSelection = (event, index) => {
+        if (!movementKeys.has(event.key)) return;
+        event.preventDefault();
+        const nextIndex = event.key === "Home" ? 0 : event.key === "End" ? THEMES.length - 1
+            : ["ArrowRight", "ArrowDown"].includes(event.key) ? (index + 1) % THEMES.length
+                : (index - 1 + THEMES.length) % THEMES.length;
+        setPreference(THEMES[nextIndex].id);
+        optionRefs.current[nextIndex]?.focus();
+    };
 
     useEffect(() => {
         setPreference(validTheme(readStorage(APPEARANCE_KEY, "system")));
@@ -39,15 +49,28 @@ export default function AppearanceControl() {
     }, [preference, ready]);
 
     return (
-        <button
-            type="button"
-            className="appearance-control"
-            title={`Aparência atual: ${current.label}. Usar ${next.label}.`}
-            aria-label={`A aparência está em ${current.label}. Alterar para ${next.label}.`}
-            onClick={() => setPreference(next.id)}
-        >
-            <GameIcon name={current.icon} />
-            <small>{current.label}</small>
-        </button>
+        <section className="appearance-control" aria-label="Aparência">
+            <span className="appearance-label">Aparência</span>
+            <div className="appearance-options" role="radiogroup" aria-label="Escolha a aparência">
+                {THEMES.map((theme, index) => (
+                    <button
+                        key={theme.id}
+                        ref={node => { optionRefs.current[index] = node; }}
+                        type="button"
+                        role="radio"
+                        aria-checked={preference === theme.id}
+                        aria-label={theme.id === "system" ? "Acompanhar a aparência do dispositivo" : theme.label}
+                        tabIndex={preference === theme.id ? 0 : -1}
+                        className={preference === theme.id ? "is-selected" : ""}
+                        data-appearance={theme.id}
+                        onClick={() => setPreference(theme.id)}
+                        onKeyDown={event => moveSelection(event, index)}
+                    >
+                        <GameIcon name={theme.icon} />
+                        <span>{theme.label}</span>
+                    </button>
+                ))}
+            </div>
+        </section>
     );
 }

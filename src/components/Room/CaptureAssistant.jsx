@@ -52,7 +52,7 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
         finally { lock.current = false; setBusy(false); }
     };
     return <details className="room-tool">
-        <summary><span><small>Um novo parceiro</small><strong>Captura</strong></span></summary>
+        <summary><span><strong>Captura</strong></span></summary>
         <div className="room-tool-body">
             {role !== "narrator" ? <p>Combine a tentativa com o Narrador. O resultado aparecerá no Diário.</p> : <form onSubmit={capture}>
                 <fieldset className="combat-grid capture-fields" disabled={busy}>

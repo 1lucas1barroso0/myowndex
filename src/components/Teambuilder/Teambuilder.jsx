@@ -25,18 +25,6 @@ const getPartnerSprite = partner => partner?.shiny
     ? partner.species?.sprites?.front_shiny
     : partner?.species?.sprites?.front_default;
 
-function BoxPortraits({ pokemon = [] }) {
-    return (
-        <span className="pc-box-portraits" aria-hidden="true">
-            {Array.from({ length: PARTY_SIZE }, (_, index) => (
-                <span key={index} className={`pc-box-portrait ${pokemon[index] ? "is-occupied" : ""}`}>
-                    {pokemon[index] ? <PokemonSprite src={getPartnerSprite(pokemon[index])} pokemonId={pokemon[index].species?.id} shiny={pokemon[index].shiny} alt="" /> : <span className="pc-mini-ball" />}
-                </span>
-            ))}
-        </span>
-    );
-}
-
 const dismissKeyboard = () => {
     if (document.activeElement?.blur) document.activeElement.blur();
 };
@@ -89,7 +77,7 @@ export default function Teambuilder({ envProps }) {
     const [copied, setCopied] = useState(false);
     const [pendingDelete, setPendingDelete] = useState(null);
     const [pendingPartnerDelete, setPendingPartnerDelete] = useState(null);
-    const partySlotRefs = useRef([]);
+    const partnerButtonRefs = useRef([]);
     const linkCableRef = useRef(null);
     const importRequestRef = useRef(0);
     const active = useMemo(() => teams.find(team => team.id === activeTeamId), [teams, activeTeamId]);
@@ -376,15 +364,12 @@ export default function Teambuilder({ envProps }) {
 
 
     return (
-        <div className="pc-workspace pc-retro flex flex-col xl:flex-row gap-5 animate-fade-in w-full">
-            <aside className="pc-sidebar w-full xl:w-1/4 xl:sticky xl:top-24 self-start game-panel p-4 sm:p-5 flex flex-col gap-3 h-full xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-6" aria-label="Boxes do PC">
-                <div className="pc-sidebar-heading mb-2 flex items-center justify-between gap-3 px-1">
-                    <div>
-                        <span className="pc-eyebrow"><span className="pc-status-light" aria-hidden="true" /> Sistema de armazenamento</span>
-                        <h3 className="text-base font-black text-slate-800">PC do Bill</h3>
-                    </div>
-                    <span className="pc-box-count rounded-full bg-blue-100 px-2.5 py-1.5 text-xs font-black text-blue-700">{formatCount(teams.length, "Box", "Boxes")}</span>
-                </div>
+        <div className="pc-workspace pc-retro animate-fade-in">
+            <aside className="pc-sidebar" aria-label="Boxes do PC">
+                <header className="pc-sidebar-heading">
+                    <h2>Boxes</h2>
+                    <span className="pc-box-count">{teams.length}</span>
+                </header>
                 <div className="pc-box-list">
                 {teams.map(team => (
                     <button
@@ -398,114 +383,86 @@ export default function Teambuilder({ envProps }) {
                             setEditingSlot(null);
                             setShareCode("");
                         }}
-                        className={`pc-box-button w-full p-3.5 rounded-xl text-left font-black text-sm border transition-all outline-none shadow-sm break-words ${activeTeamId === team.id ? "is-selected bg-blue-600 border-blue-700 text-white shadow-[0_3px_0_#0EA5E9] translate-y-[-1px]" : "bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-white"}`}
+                        className={`pc-box-button ${activeTeamId === team.id ? "is-selected" : ""}`}
                     >
-                        <span className="pc-box-button-heading flex justify-between gap-3">
+                        <span className="pc-box-button-heading">
                             <span><span className="pc-box-cursor" aria-hidden="true">{activeTeamId === team.id ? "▶" : "▸"}</span>{team.name}</span>
                             <span className="pc-box-capacity">{team.pokemon?.length || 0}/6</span>
                         </span>
-                        <BoxPortraits pokemon={team.pokemon} />
+
                     </button>
                 ))}
                 </div>
-                <button type="button" onClick={createTeam} className="pc-create-box-button w-full p-3.5 mt-1 text-xs font-black border-2 border-dashed rounded-xl transition-all outline-none">+ Criar nova Box</button>
+                <button type="button" onClick={createTeam} className="pc-create-box-button">+ Criar nova Box</button>
 
-                <div className="mt-3 pt-4 border-t border-slate-200">
-                    <button type="button" onClick={() => setImporting(true)} className="pc-import-button w-full p-3.5 text-xs font-black border rounded-xl transition-all outline-none shadow-sm">
+                <div className="pc-import-region">
+                    <button type="button" onClick={() => setImporting(true)} className="pc-import-button">
                         <span aria-hidden="true">⇩</span>
                         <span>Importar Pokémon ou Box</span>
                     </button>
                 </div>
             </aside>
 
-            <section className="w-full xl:w-3/4 min-w-0 flex-1">
+            <section className="pc-content">
                 {!active && <div className="pc-empty-state">
                     <div className="pc-welcome-partners" aria-hidden="true">{[133, 25].map(id => <PokemonSprite key={id} pokemonId={id} alt="" className="pixelated" />)}</div>
                     <h2>Seu PC de Pokémon</h2>
-                    <p>Abra uma Box para até seis parceiros ou receba uma equipe pelo Link Cable.</p>
+                    <p>Crie uma Box ou importe uma equipe.</p>
                     <button type="button" onClick={createTeam} className="room-primary-button">Abrir primeira Box</button>
                 </div>}
                 {active && (
-                    <div className="game-panel pc-main-panel p-4 sm:p-6 md:p-8">
-                        <div className="pc-screen-topline">
-                            <span><span className="pc-mini-ball" aria-hidden="true" /> Organização de Pokémon</span>
-                            <span className="pc-storage-status">{occupiedSlots === PARTY_SIZE ? "Equipe completa!" : `${freeSlots} ${freeSlots === 1 ? "espaço livre" : "espaços livres"}`}</span>
-                        </div>
+                    <div className="pc-main-panel">
                         <div className="pc-toolbar">
                             <div className="pc-toolbar-fields">
-                                <label htmlFor="active-box-name" className="sr-only">Nome da Box</label>
-                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name bg-transparent text-2xl sm:text-3xl font-black text-slate-800 focus:outline-none w-full min-w-0 tracking-tight border-b-4 border-transparent hover:border-slate-200 focus:border-blue-400 transition-colors pb-1" placeholder="Nome da Box" />
+                                <label htmlFor="active-box-name" className="editor-label">Nome da Box</label>
+                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name" />
                                 <label className="pc-version-field">
                                     Jogo de referência
-                                    <select value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="min-w-0 flex-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-[10px] text-slate-700 outline-none focus:border-blue-400">
+                                    <select value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="pc-version-select">
                                         {VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}
                                     </select>
                                 </label>
                             </div>
 
                             <div className="pc-toolbar-actions">
-                                <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="pc-action-button is-share flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 border shadow-sm rounded-xl outline-none disabled:opacity-50">
-                                    <span aria-hidden="true">↗</span><span className="text-xs font-black">Compartilhar</span>
+                                <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="pc-action-button is-share">
+                                    <span aria-hidden="true">↗</span><span className="pc-action-label">Compartilhar</span>
                                 </button>
-                                <button type="button" onClick={cloneTeam} title="Duplicar Box" className="pc-action-button is-duplicate flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 border shadow-sm rounded-xl outline-none"><span aria-hidden="true">⧉</span><span className="text-xs font-black">Duplicar</span></button>
-                                <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="pc-action-button is-delete flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 border shadow-sm rounded-xl outline-none"><span aria-hidden="true">⌫</span><span className="text-xs font-black">Apagar</span></button>
+                                <button type="button" onClick={cloneTeam} title="Duplicar Box" className="pc-action-button is-duplicate"><span aria-hidden="true">⧉</span><span className="pc-action-label">Duplicar</span></button>
+                                <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="pc-action-button is-delete"><span aria-hidden="true">⌫</span><span className="pc-action-label">Apagar</span></button>
                             </div>
                         </div>
 
                         {(envLoading || envError) && (
-                            <div className="mb-6 rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-bold text-slate-500">
-                                {envLoading ? "Rotom está preparando movimentos, habilidades e itens…" : envError}
+                            <div className="pc-catalog-status" role="status">
+                                {envLoading ? "Carregando catálogo…" : envError}
                             </div>
                         )}
 
-                        <div className="pc-party-ribbon" aria-label="Acesso rápido aos seis espaços da Box">
-                            {Array.from({ length: PARTY_SIZE }, (_, index) => {
-                                const partner = active.pokemon?.[index];
-                                return (
-                                    <button
-                                        key={partner?.id || `slot-${index}`}
-                                        type="button"
-                                        className={`pc-party-slot ${partner ? "is-occupied" : "is-empty"} ${partner && editingSlot === index ? "is-selected" : ""}`}
-                                        onClick={() => partner ? selectPartner(index) : onSearchClick()}
-                                        aria-pressed={Boolean(partner && editingSlot === index)}
-                                        ref={element => { partySlotRefs.current[index] = element; }}
-                                        aria-label={partner ? `Abrir ficha de ${partner.nickname || formatName(partner.species?.name)}, espaço ${index + 1}` : `Espaço ${index + 1} livre: buscar um Pokémon`}
-                                        title={partner ? partner.nickname || formatName(partner.species?.name) : "Um lugar para o próximo parceiro"}
-                                    >
-                                        <span className="pc-party-slot-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                                        {partner
-                                            ? <PokemonSprite src={getPartnerSprite(partner)} pokemonId={partner.species?.id} shiny={partner.shiny} alt="" className="pixelated" />
-                                            : <span className="pc-empty-ball" aria-hidden="true" />}
-                                        <span className="pc-party-slot-label">{partner ? `Nv. ${partner.level || 1}` : "+"}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <header className="pc-grid-heading">
+                            <h3>Equipe</h3>
+                            <span>{occupiedSlots}/{PARTY_SIZE} Pokémon</span>
+                            {freeSlots > 0 && <button type="button" onClick={onSearchClick} className="pc-add-button">+ Adicionar Pokémon</button>}
+                        </header>
 
-                        <div className={`pc-grid-heading ${occupiedSlots ? "" : "is-empty"}`}>
-                            {!occupiedSlots && <span className="pc-box-guide-sprite" aria-hidden="true"><PokemonSprite pokemonId={133} alt="" className="pixelated" /></span>}
-                            <h3>{occupiedSlots ? "Equipe" : "Uma Box para sua equipe"}</h3>
-                            {!occupiedSlots && <p>Escolha um espaço para buscar um Pokémon.</p>}
-                        </div>
-
-                        <div className="pc-partner-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 w-full">
+                        <div className="pc-partner-grid">
                             {active.pokemon?.map((partner, index) => {
                                 const sprite = getPartnerSprite(partner);
                                 const types = (partner.species?.types || []).map(entry => entry.type?.name).filter(Boolean);
                                 return (
-                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => selectPartner(index)} aria-pressed={editingSlot === index} style={{ "--pc-partner-type": TYPE_COLORS[types[0]] || "var(--ui-line)" }} className={`pc-partner-card p-3 sm:p-4 rounded-2xl border-2 cursor-pointer flex gap-3 sm:gap-4 items-center transition-all relative group shadow-sm text-left ${editingSlot === index ? "is-selected bg-blue-50 border-blue-400 shadow-[0_4px_0_#38BDF8] translate-y-[-2px]" : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-white"}`}>
-                                        {partner.canGMax && <span className="absolute -bottom-4 -right-4 text-red-500/10 text-[80px] font-black rotate-12 pointer-events-none">X</span>}
+                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => selectPartner(index)} aria-pressed={editingSlot === index} style={{ "--pc-partner-type": TYPE_COLORS[types[0]] || "var(--ui-line)" }} className={`pc-partner-card ${editingSlot === index ? "is-selected" : ""}`} ref={element => { partnerButtonRefs.current[index] = element; }}>
+
                                         <span className="pc-card-position" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                                        <span className="pc-partner-sprite w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl border-2 border-slate-100 flex items-center justify-center shadow-inner relative z-10 flex-shrink-0">
-                                            <PokemonSprite src={sprite} pokemonId={partner.species?.id} shiny={partner.shiny} className="w-10 h-10 sm:w-14 sm:h-14 pixelated drop-shadow-md group-hover:scale-110 transition-transform" alt="" />
+                                        <span className="pc-partner-sprite">
+                                            <PokemonSprite src={sprite} pokemonId={partner.species?.id} shiny={partner.shiny} className="pixelated" alt="" />
                                             {partner.shiny && <span className="pc-shiny-mark" role="img" aria-label="Shiny">✦</span>}
                                         </span>
-                                        <span className="relative z-10 min-w-0 flex-1">
-                                            <span className="flex items-center justify-between gap-1 sm:gap-2 mb-0.5">
-                                                <span className="pc-partner-name font-black text-xs sm:text-sm text-slate-800 capitalize">{partner.nickname || formatName(partner.species?.name)}</span>
-                                                <span aria-label={partner.gender === "M" ? "Macho" : partner.gender === "F" ? "Fêmea" : "Sem gênero definido"} className={`pc-partner-gender text-[9px] sm:text-xs font-black px-1.5 py-0.5 rounded border shrink-0 ${partner.gender === "M" ? "text-blue-500 bg-blue-50 border-blue-200" : partner.gender === "F" ? "text-pink-500 bg-pink-50 border-pink-200" : "text-slate-400 bg-slate-100 border-slate-200"}`}>{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
+                                        <span className="pc-partner-info">
+                                            <span className="pc-partner-heading">
+                                                <span className="pc-partner-name">{partner.nickname || formatName(partner.species?.name)}</span>
+                                                <span aria-label={partner.gender === "M" ? "Macho" : partner.gender === "F" ? "Fêmea" : "Sem gênero definido"} className="pc-partner-gender">{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
                                             </span>
-                                            <span className="pc-partner-meta block text-[9px] sm:text-[10px] font-bold text-slate-400">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span>
+                                            <span className="pc-partner-meta">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span>
                                             <span className="pc-partner-types">
                                                 {types.map(type => <span key={type} style={{ backgroundColor: TYPE_COLORS[type], color: TYPE_TEXT_COLORS[type] }}>{formatType(type)}</span>)}
                                             </span>
@@ -513,20 +470,16 @@ export default function Teambuilder({ envProps }) {
                                     </button>
                                 );
                             })}
-                            {Array.from({ length: Math.max(0, freeSlots) }, (_, index) => (
-                                <button key={`empty-${index}`} type="button" onClick={onSearchClick} className="pc-add-partner p-3 sm:p-4 rounded-2xl border-2 border-dashed flex justify-center items-center text-[10px] font-black transition-all min-h-[80px] sm:min-h-[96px] outline-none">
-                                    <span className="pc-empty-ball" aria-hidden="true" />
-                                    <span><strong>Buscar Pokémon</strong><small>Espaço {occupiedSlots + index + 1}</small></span>
-                                    <span className="pc-add-plus" aria-hidden="true">+</span>
-                                </button>
-                            ))}
+
                         </div>
 
+                        {!occupiedSlots && <p className="pc-box-empty">Nenhum Pokémon nesta Box.</p>}
+
                         {editingSlot !== null && active.pokemon?.[editingSlot] && (
-                            <div className="pc-editor-region mt-4 sm:mt-6">
+                            <div className="pc-editor-region">
                                 <div className="pc-editor-heading">
-                                    <span><span aria-hidden="true">▶</span> Ficha de {active.pokemon[editingSlot].nickname || formatName(active.pokemon[editingSlot].species?.name)}</span>
-                                    <button type="button" onClick={() => { partySlotRefs.current[editingSlot]?.focus(); setEditingSlot(null); }}>Fechar ficha <span aria-hidden="true">×</span></button>
+                                    <span>Ficha de {active.pokemon[editingSlot].nickname || formatName(active.pokemon[editingSlot].species?.name)}</span>
+                                    <button type="button" onClick={() => { partnerButtonRefs.current[editingSlot]?.focus(); setEditingSlot(null); }}>Fechar ficha <span aria-hidden="true">×</span></button>
                                 </div>
                                 <PokemonEditor
                                     key={active.pokemon[editingSlot].id}
@@ -613,10 +566,10 @@ export default function Teambuilder({ envProps }) {
                                 <span className="link-cable-success" aria-hidden="true">✓</span>
                                 <strong>Envio pronto</strong>
                                 <p>Copie o código e envie para outro treinador.</p>
-                                <label>
-                                    <span className="sr-only">Código de compartilhamento</span>
-                                    <textarea readOnly value={shareCode} rows={5} onFocus={event => event.currentTarget.select()} />
-                                </label>
+                                <div className="link-cable-code-field">
+                                    <label htmlFor="link-cable-share-code">Código de compartilhamento</label>
+                                    <textarea id="link-cable-share-code" readOnly value={shareCode} rows={5} onFocus={event => event.currentTarget.select()} />
+                                </div>
                                 <div>
                                     <button type="button" className="link-cable-primary" onClick={copyToClipboard}>{copied ? "Código copiado!" : "Copiar código"}</button>
                                     <button type="button" className="link-cable-secondary" onClick={() => setShareCode("")}>Mudar seleção</button>
@@ -639,7 +592,7 @@ export default function Teambuilder({ envProps }) {
                             <>
                                 <label className="link-cable-code-field" htmlFor="link-cable-code">
                                     <span>Código compartilhado</span>
-                                    <textarea id="link-cable-code" disabled={isProcessing} value={importData} onChange={event => { setImportData(event.target.value); setImportError(""); }} rows={7} placeholder="Cole aqui o código da Box ou dos Pokémon…" autoFocus />
+                                    <textarea id="link-cable-code" disabled={isProcessing} value={importData} onChange={event => { setImportData(event.target.value); setImportError(""); }} rows={7} autoFocus />
                                 </label>
                                 {importError && <div role="alert" className="link-cable-error">{importError}</div>}
                                 <div className="link-cable-footer">

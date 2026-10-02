@@ -89,23 +89,31 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
         <header className="local-dice-heading"><div><h3>Dados locais</h3></div></header>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
             <fieldset disabled={busy}><legend className="sr-only">Configurar rolagem local</legend>
-                <span className="local-dice-group-label">Escolha os dados</span>
                 <div className="local-dice-tabs" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste"],["percent","d100","Chance"],["free","dX","Livres"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
-                {draft.kind!=="free" && <><span className="local-dice-group-label">Modo</span><div className="local-dice-modes" aria-label="Modo da rolagem">{Object.entries(LOCAL_ROLL_MODES).map(([mode,label])=><button type="button" key={mode} aria-pressed={draft.mode===mode} onClick={()=>update("mode",mode)}>{label}</button>)}</div></>}
                 <div className="local-dice-fields">
-                    {draft.kind==="attribute" && <><label>Atributo<input type="number" step="1" min="-99999" max="99999" value={draft.attribute} required onChange={e=>update("attribute",e.target.value)} /></label><label>Dificuldade <small>opcional</small><input type="number" step="1" min="-99999" max="99999" value={draft.opposition ?? ""} placeholder="Sem oposição" onChange={e=>update("opposition",e.target.value)} /></label></>}
+                    {draft.kind!=="free" && <label>Modo<select value={draft.mode} onChange={e=>update("mode",e.target.value)}>{Object.entries(LOCAL_ROLL_MODES).map(([mode,label])=><option key={mode} value={mode}>{label}</option>)}</select></label>}
+                    {draft.kind==="attribute" && <label>Atributo<input type="number" step="1" min="-99999" max="99999" value={draft.attribute} required onChange={e=>update("attribute",e.target.value)} /></label>}
                     {draft.kind==="percent" && <label className="local-dice-chance">Chance base (%)<input type="number" step="1" min="0" max="100" value={draft.chance} required onChange={e=>update("chance",e.target.value)} /><input aria-label="Ajustar chance percentual" type="range" min="0" max="100" value={draft.chance || 0} onChange={e=>update("chance",e.target.value)} /></label>}
                     {draft.kind==="free" && <><label>Quantidade<input type="number" step="1" min="1" max="20" value={draft.quantity} required onChange={e=>update("quantity",e.target.value)} /></label><label>Dado<select value={draft.sides} onChange={e=>update("sides",e.target.value)}>{LOCAL_DICE_SIDES.map(sides=><option key={sides} value={sides}>d{sides}</option>)}</select></label><label>Modificador<input type="number" step="1" min="-99999" max="99999" value={draft.modifier} required onChange={e=>update("modifier",e.target.value)} /></label></>}
-                    <label className="local-dice-label">Nome da ação <small>opcional</small><input maxLength={80} value={draft.label} placeholder="Atacar com Fire Blast" onChange={e=>update("label",e.target.value)} /></label>
                 </div>
-                <div className="local-dice-odds" aria-live="polite"><i aria-hidden="true">%</i><div>
-                    {configuration.error ? configuration.error : <>
+                <details className="local-dice-options" open={Boolean(draft.opposition !== "" || draft.label || vibrate)}>
+                    <summary>Ajustes opcionais</summary>
+                    <div className="local-dice-fields">
+                        {draft.kind==="attribute" && <label>Dificuldade<input type="number" step="1" min="-99999" max="99999" value={draft.opposition ?? ""} onChange={e=>update("opposition",e.target.value)} /><small>Sem valor, o teste não tem oposição.</small></label>}
+                        <label className="local-dice-label">Nome da ação<input maxLength={80} value={draft.label} onChange={e=>update("label",e.target.value)} /></label>
+                        <label className="local-dice-vibration"><input type="checkbox" checked={vibrate} onChange={e=>setVibrate(e.target.checked)} />Vibração</label>
+                    </div>
+                </details>
+                {configuration.error && <p className="local-dice-feedback is-error" role="alert">{configuration.error}</p>}
+                <div className="local-dice-submit"><button type="submit" className="room-primary-button" disabled={!ready || Boolean(configuration.error)} aria-busy={busy} onClick={event=>{if(event.detail>1) event.preventDefault();}}>{busy ? "Registrando…" : `Rolar ${configuration.spec ? kindLabel(configuration.spec) : "dados"}`}</button></div>
+                {!configuration.error && <details className="local-dice-probability">
+                    <summary>Probabilidades e leitura</summary>
+                    <div className="local-dice-odds" aria-live="polite">
                         {draft.kind==="attribute" && <><span>{configuration.odds.success!==null ? `Superar dificuldade: ${percentage(configuration.odds.success)}. ` : "2d6 + atributo. "}Crítico: {percentage(configuration.odds.critical)} · erro crítico: {percentage(configuration.odds.fumble)}.</span><small>{draft.mode==="normal" ? "Dois dados de seis faces." : draft.mode==="advantage" ? "Três dados; mantêm-se os dois maiores." : "Três dados; mantêm-se os dois menores."} É preciso superar a dificuldade; empates falham.</small></>}
                         {draft.kind==="percent" && <><span>Chance efetiva de sucesso: <b>{percentage(configuration.odds.success)}</b></span><small>{draft.mode==="normal" ? "Rola de 1 a 100." : draft.mode==="advantage" ? "Vantagem · menor de dois d100." : "Desvantagem · maior de dois d100."} Sucesso quando o resultado é menor ou igual à chance base.</small></>}
                         {draft.kind==="free" && <span>Resultados possíveis: {configuration.odds.minimum} a {configuration.odds.maximum}. Cada dado é independente.</span>}
-                    </>}
-                </div></div>
-                <div className="local-dice-submit"><button type="submit" className="room-primary-button" disabled={!ready || Boolean(configuration.error)} aria-busy={busy} onClick={event=>{if(event.detail>1) event.preventDefault();}}>{busy ? "Registrando…" : `Rolar ${configuration.spec ? kindLabel(configuration.spec) : "dados"}`}</button><label><input type="checkbox" checked={vibrate} onChange={e=>setVibrate(e.target.checked)} />Vibração</label></div>
+                    </div>
+                </details>}
             </fieldset>
         </form>
         {error && <p className="local-dice-feedback is-error" role="alert">{error}</p>}

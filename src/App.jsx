@@ -8,6 +8,7 @@ import { createTeam, hydrateTeams, loadTeams, mergeHydratedTeams, normalizePokem
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
 import { randomChance } from "./core/random.js";
 import { readStorage, writeStorage } from "./core/storage.js";
+import { createScheduledSave } from "./core/scheduledSave.js";
 import AppearanceControl from "./components/Shared/AppearanceControl.jsx";
 import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
@@ -79,6 +80,12 @@ export default function App() {
     const [teamsBooted, setTeamsBooted] = useState(false);
     const [activeTeamId, setActiveTeamId] = useState(null);
     const [storageError, setStorageError] = useState(false);
+    const teamSave = useMemo(() => createScheduledSave({
+        save: saveTeams,
+        onResult: saved => setStorageError(!saved),
+        delayMs: 300,
+        maxWaitMs: 900,
+    }), []);
     const [env, setEnv] = useState({ items: [], moves: [], abilities: [] });
     const [envLoading, setEnvLoading] = useState(false);
     const [envLoaded, setEnvLoaded] = useState(false);
@@ -133,8 +140,23 @@ export default function App() {
 
     useEffect(() => {
         if (!teamsBooted) return;
-        setStorageError(!saveTeams(teams));
-    }, [teams, teamsBooted]);
+        teamSave.schedule(teams);
+    }, [teamSave, teams, teamsBooted]);
+
+    useEffect(() => {
+        const flush = () => teamSave.flush();
+        const onVisibilityChange = () => {
+            if (document.visibilityState === "hidden") flush();
+        };
+        window.addEventListener("pagehide", flush);
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        return () => {
+            flush();
+            teamSave.cancel();
+            window.removeEventListener("pagehide", flush);
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+        };
+    }, [teamSave]);
 
     useEffect(() => {
         setOnline(navigator.onLine);
@@ -386,7 +408,7 @@ export default function App() {
                                     <span className="dex-count" role="status">{formatPokemonCount(filteredSpecies.length)}</span>
                                 </header>
                                 <div className="dex-toolbar">
-                                    <label className="dex-search"><span className="sr-only">Buscar Pokémon por nome ou número</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} placeholder="Nome ou número" onChange={handleSearchInputChange} /></label>
+                                    <label className="dex-search"><span className="dex-search-label">Nome ou número</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} /></label>
                                     <button type="button" className={`dex-filter ${onlyFavorites ? "is-active" : ""}`} aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setLimit(60); }}><GameIcon name="star" />Favoritos <span>{favorites.length}</span></button>
                                     <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(60); }}><option value="number">Número crescente</option><option value="reverse">Número decrescente</option><option value="name">Nome de A a Z</option></select></label>
                                 </div>
@@ -408,10 +430,10 @@ export default function App() {
                                     </button>
                                 )}
                             </>
-                    ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} onModeChange={setExperienceMode} />}
+                    ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} />}
                 </div>
             </main>
-            <footer className="device-footer"><span>MyOwnDex <b>11.0.0</b></span><span>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
+            <footer className="device-footer"><span>MyOwnDex <b>11.1.0</b></span><span>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
         </div>
     );

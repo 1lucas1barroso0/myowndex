@@ -113,7 +113,7 @@ export default function SpecialMechanicsPanel({
                         <button type="button" disabled={!transformTargetId} onClick={applyImposter}>Ativar Imposter</button>
                     </div>
                 ) : mechanics.some(mechanic => mechanic.id === "ditto") ? (
-                    <p className="token-special-hint">Escolha Transform no Assistente Rotom: ele consumirá PP, validará o alvo e copiará a identidade de batalha.</p>
+                    <p className="token-special-hint">Escolha Transform em “Resolver um movimento” para consumir PP, validar o alvo e copiar a identidade de batalha.</p>
                 ) : null}
 
                 {hasIllusionMechanic && (

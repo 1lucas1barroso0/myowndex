@@ -8,6 +8,7 @@ import {
 } from "./math.js";
 
 export const apiCache = new Map();
+export const API_CACHE_LIMIT = 256;
 
 const apiRequests = new Map();
 const apiFailures = new Map();
@@ -17,10 +18,58 @@ const DEFAULT_TIMEOUT = 12000;
 const FAILURE_COOLDOWN = 15 * 1000;
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const canUseCacheStorage = () => typeof window !== "undefined" && typeof window.caches !== "undefined";
+let cacheGeneration = 0;
+let persistentCacheQueue = Promise.resolve();
+
+const rememberMemory = (key, entry) => {
+    apiCache.delete(key);
+    apiCache.set(key, entry);
+    while (apiCache.size > API_CACHE_LIMIT) apiCache.delete(apiCache.keys().next().value);
+};
+
+// Only the public catalogue belongs in this optional, regenerable disk cache.
+// Room sessions, credentials and Boxes retain their separate storage policies.
+const isCatalogueUrl = url => {
+    try {
+        const parsed = new URL(url);
+        return parsed.protocol === "https:" && parsed.hostname === "pokeapi.co"
+            && parsed.pathname.startsWith("/api/v2/") && !parsed.username && !parsed.password;
+    } catch { return false; }
+};
+
+const queuePersistentCache = (operation, generation = cacheGeneration) => {
+    const task = persistentCacheQueue.then(async () => {
+        if (generation !== cacheGeneration || !canUseCacheStorage()) return;
+        await operation(await window.caches.open(API_CACHE_NAME));
+    }).catch(() => {
+        // Storage denial or a full disk never interrupts a catalogue request.
+    });
+    persistentCacheQueue = task;
+    return task;
+};
+
+const trimPersistentCache = async cache => {
+    const keys = await cache.keys();
+    for (const key of keys.slice(0, Math.max(0, keys.length - API_CACHE_LIMIT))) await cache.delete(key);
+};
+
+const touchPersistentCache = (url, generation) => {
+    if (!isCatalogueUrl(url)) return Promise.resolve();
+    return queuePersistentCache(async cache => {
+        // Read again inside the queue so a touch cannot restore an older response
+        // over a refresh that completed while the original read was in flight.
+        const response = await cache.match(url);
+        if (!response) return;
+        await cache.delete(url);
+        await cache.put(url, response);
+        await trimPersistentCache(cache);
+    }, generation);
+};
 
 const readPersistentApiCache = async (url) => {
-    if (!canUseCacheStorage()) return null;
+    if (!canUseCacheStorage() || !isCatalogueUrl(url)) return null;
     try {
+        await persistentCacheQueue;
         const response = await (await window.caches.open(API_CACHE_NAME)).match(url);
         if (!response) return null;
         return {
@@ -32,19 +81,19 @@ const readPersistentApiCache = async (url) => {
     }
 };
 
-const writePersistentApiCache = async (url, data) => {
-    if (!canUseCacheStorage() || data == null) return;
-    try {
-        const cache = await window.caches.open(API_CACHE_NAME);
+const writePersistentApiCache = (url, data, generation) => {
+    if (!canUseCacheStorage() || !isCatalogueUrl(url) || data == null) return Promise.resolve();
+    const cachedAt = Date.now();
+    return queuePersistentCache(async cache => {
+        await cache.delete(url);
         await cache.put(url, new Response(JSON.stringify(data), {
             headers: {
                 "content-type": "application/json; charset=utf-8",
-                "x-myowndex-cached-at": String(Date.now())
+                "x-myowndex-cached-at": String(cachedAt)
             }
         }));
-    } catch {
-        // Cache Storage is optional and must never interrupt the app.
-    }
+        await trimPersistentCache(cache);
+    }, generation);
 };
 
 const retryDelay = (response, attempt) => {
@@ -92,29 +141,44 @@ export const fetchCached = async (url, options = {}) => {
     const key = String(url);
     const now = Date.now();
     const memory = apiCache.get(key);
-    if (!forceRefresh && memory && now - memory.cachedAt <= maxAgeMs) return memory.data;
+    const generation = cacheGeneration;
+    if (!forceRefresh && memory && now - memory.cachedAt <= maxAgeMs) {
+        rememberMemory(key, memory);
+        void touchPersistentCache(key, generation);
+        return memory.data;
+    }
     if (apiRequests.has(key)) return apiRequests.get(key);
 
     const request = (async () => {
         const persisted = await readPersistentApiCache(key);
         const stale = memory || persisted;
         if (!forceRefresh && persisted && now - persisted.cachedAt <= maxAgeMs) {
-            apiCache.set(key, persisted);
+            if (generation === cacheGeneration) {
+                rememberMemory(key, persisted);
+                void touchPersistentCache(key, generation);
+            }
             return persisted.data;
         }
         const failedAt = apiFailures.get(key) || 0;
         if (!forceRefresh && Date.now() - failedAt < FAILURE_COOLDOWN) return stale?.data ?? null;
+        apiFailures.delete(key);
         try {
             const data = await fetchJsonWithRetry(key, timeoutMs);
             const entry = { data, cachedAt: Date.now() };
-            apiCache.set(key, entry);
-            apiFailures.delete(key);
-            void writePersistentApiCache(key, data);
+            if (generation === cacheGeneration) {
+                rememberMemory(key, entry);
+                apiFailures.delete(key);
+                void writePersistentApiCache(key, data, generation);
+            }
             return data;
         } catch {
-            apiFailures.set(key, Date.now());
+            if (generation === cacheGeneration) {
+                apiFailures.delete(key);
+                apiFailures.set(key, Date.now());
+                while (apiFailures.size > API_CACHE_LIMIT) apiFailures.delete(apiFailures.keys().next().value);
+            }
             if (stale?.data != null) {
-                apiCache.set(key, stale);
+                if (generation === cacheGeneration) rememberMemory(key, stale);
                 return stale.data;
             }
             return null;
@@ -125,20 +189,23 @@ export const fetchCached = async (url, options = {}) => {
     try {
         return await request;
     } finally {
-        apiRequests.delete(key);
+        // A clear may have started a newer request for this same URL.
+        if (apiRequests.get(key) === request) apiRequests.delete(key);
     }
 };
 
 export const clearApiCache = async () => {
+    cacheGeneration += 1;
     apiCache.clear();
     apiRequests.clear();
     apiFailures.clear();
-    if (!canUseCacheStorage()) return;
-    try {
-        await window.caches.delete(API_CACHE_NAME);
-    } catch {
-        // Cache deletion is best effort.
-    }
+    // Serialize deletion with older writes so they cannot recreate the cache
+    // after clearing. In-flight callers still receive their own response.
+    const task = persistentCacheQueue.then(async () => {
+        if (canUseCacheStorage()) await window.caches.delete(API_CACHE_NAME);
+    }).catch(() => {});
+    persistentCacheQueue = task;
+    await task;
 };
 
 export const convertToTTRPG = (value, isHp = false) => {

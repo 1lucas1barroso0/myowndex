@@ -23,7 +23,7 @@ export default function GameStyleControl({ value, onChange }) {
 
     return (
         <section className="game-style-control" aria-label="Estilo de jogo">
-            <span className="game-style-label">Estilo de jogo</span>
+            <span className="game-style-label">Modo</span>
             <div className="game-style-options" role="radiogroup" aria-label="Escolha como o MyOwnDex aplica as regras">
                 {modes.map((mode, index) => {
                     const selected = mode.id === selectedMode.id;
@@ -38,6 +38,7 @@ export default function GameStyleControl({ value, onChange }) {
                             aria-label={`${mode.label}. ${mode.description}`}
                             className={selected ? "is-selected" : ""}
                             data-mode={mode.id}
+                            title={mode.description}
                             onClick={() => onChange(mode.id)}
                             onKeyDown={event => moveSelection(event, index)}
                         >
@@ -46,13 +47,6 @@ export default function GameStyleControl({ value, onChange }) {
                     );
                 })}
             </div>
-            <details className="choice-help game-style-help">
-                <summary aria-label="Entender os estilos de jogo" title="Sobre os estilos de jogo">?</summary>
-                <div className="choice-help-popover" role="note">
-                    <strong>{selectedMode.label}</strong>
-                    <p>{selectedMode.description}</p>
-                </div>
-            </details>
         </section>
     );
 }

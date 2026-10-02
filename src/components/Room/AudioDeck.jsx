@@ -200,7 +200,6 @@ export default function AudioDeck({
         <details className="room-tool audio-tool">
             <summary>
                 <span>
-                    <small>Rádio Rotom</small>
                     <strong>Trilha da aventura</strong>
                 </span>
                 <span className={`audio-indicator ${enabled ? "is-on" : ""}`} aria-hidden="true" />

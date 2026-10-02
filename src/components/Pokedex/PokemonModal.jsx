@@ -186,9 +186,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     return (
         <div className="pokemon-modal-backdrop record-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
             <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={phase === "loading"} tabIndex={-1} className={`pokemon-modal-shell record-shell ${phase !== "ready" ? "record-state-shell" : ""}`} style={{ "--record-type": primaryColor }}>
-                <button ref={closeRef} type="button" aria-label="Fechar registro da Pokédex" onClick={onClose} className="record-close">
-                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
+                <header className="record-topbar"><button ref={closeRef} type="button" aria-label="Fechar registro da Pokédex" onClick={onClose} className="record-close">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg> Fechar
+                </button></header>
                 {phase !== "ready" ? (
                     <div className="record-state">
                         <span className={`record-pokeball ${phase === "loading" ? "is-reading" : ""}`} aria-hidden="true" />

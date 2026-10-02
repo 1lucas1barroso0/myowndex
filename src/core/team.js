@@ -116,6 +116,27 @@ export const normalizePokemon = input => {
 
 const compactSpecies = species => {
     if (!species || typeof species !== "object") return {};
+    // Keep the catalogue fields used offline; other generations can be fetched again.
+    // In particular, the full sprites catalogue can exceed localStorage quota for large PCs.
+    const spriteKeys = [
+        "front_default", "front_shiny", "front_female", "front_shiny_female",
+        "back_default", "back_shiny", "back_female", "back_shiny_female"
+    ];
+    const pickSprites = (source, keys) => Object.fromEntries(keys
+        .filter(key => Object.prototype.hasOwnProperty.call(source, key))
+        .map(key => [key, source[key]]));
+    let sprites = species.sprites;
+    if (sprites && typeof sprites === "object") {
+        const artwork = sprites.other?.["official-artwork"];
+        const animated = sprites.versions?.["generation-v"]?.["black-white"]?.animated;
+        sprites = pickSprites(sprites, spriteKeys);
+        if (artwork && typeof artwork === "object") {
+            sprites.other = { "official-artwork": pickSprites(artwork, ["front_default", "front_shiny"]) };
+        }
+        if (animated && typeof animated === "object") {
+            sprites.versions = { "generation-v": { "black-white": { animated: pickSprites(animated, spriteKeys) } } };
+        }
+    }
     return {
         id: species.id,
         name: species.name,
@@ -124,7 +145,7 @@ const compactSpecies = species => {
             url: species.species.url
         } : undefined,
         abilities: species.abilities,
-        sprites: species.sprites,
+        sprites,
         stats: species.stats,
         types: species.types,
         height: species.height,
@@ -221,7 +242,22 @@ export const saveTeams = teams => {
     return saved;
 };
 
-export const hydratePokemon = async pokemon => {
+export const TEAM_HYDRATION_CONCURRENCY = 4;
+const hydrationQueue = [];
+let activeHydrations = 0;
+
+const drainHydrations = () => {
+    while (activeHydrations < TEAM_HYDRATION_CONCURRENCY && hydrationQueue.length) {
+        const task = hydrationQueue.shift();
+        activeHydrations += 1;
+        Promise.resolve().then(task.run).then(task.resolve, task.reject).finally(() => {
+            activeHydrations -= 1;
+            drainHydrations();
+        });
+    }
+};
+
+const hydratePokemonData = async pokemon => {
     const stored = normalizePokemon(pokemon);
     const formName = stored.species?.name;
     if (!formName) return stored;
@@ -240,6 +276,13 @@ export const hydratePokemon = async pokemon => {
         genderRate: genderRate == null ? stored.genderRate : integerInRange(genderRate, -1, 8, stored.genderRate)
     });
 };
+
+// Every Box shares this queue, including simultaneous hydrateTeam calls. The
+// stored partner stays usable while its optional catalogue details refresh.
+export const hydratePokemon = pokemon => new Promise((resolve, reject) => {
+    hydrationQueue.push({ run: () => hydratePokemonData(pokemon), resolve, reject });
+    drainHydrations();
+});
 
 export const hydrateTeam = async team => {
     const normalized = normalizeTeam(team);
@@ -260,10 +303,11 @@ export const mergeHydratedTeams = (currentTeams, hydratedTeams) => {
         if (!hydrated) return currentTeam;
         return {
             ...currentTeam,
-            pokemon: asArray(currentTeam.pokemon).map((partner, index) => {
-                const hydratedPartner = hydrated.pokemon?.find(candidate => candidate.id === partner.id)
-                    || hydrated.pokemon?.[index];
-                if (!hydratedPartner?.species?.name) return partner;
+            pokemon: asArray(currentTeam.pokemon).map(partner => {
+                const hydratedPartner = hydrated.pokemon?.find(candidate => candidate.id === partner.id);
+                // A pending catalogue request belongs to this partner and this form only.
+                // Deleting, replacing or transforming a partner must not revive stale data.
+                if (!hydratedPartner?.species?.name || hydratedPartner.species.name !== partner.species?.name) return partner;
                 return {
                     ...partner,
                     species: hydratedPartner.species,

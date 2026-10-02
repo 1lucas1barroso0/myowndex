@@ -203,6 +203,12 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
                 : Math.max(1, Math.min(maxHp, Math.round((storedCurrentHp / storedMaxHp) * maxHp)))
         : integerInRange(source.currentHp, 0, maxHp, maxHp);
     const stages = normalizeStageMap(source.stages);
+    const volatileEffects = normalizeVolatileEffects(source.volatileEffects).map(effect => {
+        if (!legacyScale || effect.amount == null) return effect;
+        if (effect.id === "substitute") return { ...effect, amount: Math.max(1, Math.floor(maxHp / 4)) };
+        if (effect.id === "wish") return { ...effect, amount: Math.max(1, Math.floor(maxHp / 2)) };
+        return { ...effect, amount: integerInRange(effect.amount * 2, 0, 99999, 0) };
+    });
     const token = {
         id: asText(source.id) || createId("token"),
         pokemonId: asText(source.pokemonId),
@@ -244,7 +250,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         stages,
         moves,
         pp: normalizePpSlots(source.pp),
-        volatileEffects: normalizeVolatileEffects(source.volatileEffects),
+        volatileEffects,
         specialState: normalizeSpecialState(source.specialState),
         traitState: normalizeTraitState(source.traitState, source.item, source.ability),
         hidden: Boolean(source.hidden),

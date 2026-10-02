@@ -15,6 +15,7 @@ import {
   getSelectableMoveTargets,
   getMoveStab,
   normalizePpSlots,
+  resolveKnockoutProtection,
   STAGE_STAT_KEYS,
   stageMultiplier,
 } from "../src/core/automation.js";

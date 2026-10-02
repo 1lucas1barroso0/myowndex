@@ -202,18 +202,26 @@ test("sequential reactive damage sources use the centralized hit kill state one 
   assert.match(result.consequences.specialNarratives.join(" "), /Proteção contra Hit Kill manteve/);
 });
 
-test("attacker criticals, defender critical failures and declared knockout moves bypass hit kill protection", () => {
+test("critical results keep the general protection while declared knockout moves bypass it", () => {
   const critical = applyHitKillProtection({ damage: 10, currentHp: 10, critical: true });
   const defenderFumble = applyHitKillProtection({ damage: 10, currentHp: 10, defenderFumble: true });
   const direct = applyHitKillProtection({ damage: 10, currentHp: 10, directKnockout: true });
-  assert.equal(critical.protectedFromKnockout, false);
-  assert.equal(defenderFumble.protectedFromKnockout, false);
+  assert.equal(critical.protectedFromKnockout, true);
+  assert.equal(defenderFumble.protectedFromKnockout, true);
   assert.equal(direct.protectedFromKnockout, false);
-  assert.equal(critical.remainingHp, 0);
-  assert.equal(defenderFumble.remainingHp, 0);
+  assert.equal(critical.remainingHp, 1);
+  assert.equal(defenderFumble.remainingHp, 1);
   assert.equal(direct.remainingHp, 0);
 });
 
+test("Shedinja keeps its intrinsic one-HP identity without the general protection", () => {
+  const result = resolveKnockoutProtection({
+    token: { ...defender, speciesName: "shedinja", maxHp: 1, currentHp: 1, ability: "", item: "" },
+    damage: 1,
+  });
+  assert.equal(result.protectedFromKnockout, false);
+  assert.equal(result.remainingHp, 0);
+});
 test("general hit kill protection resolves before Sturdy and preserves exactly one later chance", () => {
   const move = { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} };
   const sturdyDefender = {

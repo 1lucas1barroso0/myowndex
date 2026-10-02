@@ -348,7 +348,7 @@ test("nonfatal first damage neither spends general protection nor preserves a su
   assert.equal(second.consequences.traitProtected, false);
 });
 
-test("critical bypasses only the general rule while an independent survival trait can still act", () => {
+test("defender fumble no longer skips the general protection before Sturdy", () => {
   const sturdyDefender = { ...defender, ability: "sturdy" };
   const result = applyMoveConsequences({
     tokens: [attacker, sturdyDefender],
@@ -363,14 +363,13 @@ test("critical bypasses only the general rule while an independent survival trai
       defenseTest: { fumble: true },
     },
   });
-  assert.equal(result.consequences.hitKillProtected, false);
-  assert.equal(result.consequences.hitKillBypassedByDefenderFumble, true);
-  assert.equal(result.consequences.traitProtected, true);
+  assert.equal(result.consequences.hitKillProtected, true);
+  assert.equal(result.consequences.hitKillBypassedByDefenderFumble, false);
+  assert.equal(result.consequences.traitProtected, false);
   assert.equal(result.tokens.find(token => token.id === sturdyDefender.id).currentHp, 1);
-  assert.deepEqual(result.hitKillProtectionUsed, []);
-  assert.deepEqual(result.hitKillSurvivalGrace, []);
+  assert.deepEqual(result.hitKillProtectionUsed, [getHitKillProtectionKey(sturdyDefender)]);
+  assert.equal(hasHitKillSurvivalGrace(result.hitKillSurvivalGrace, sturdyDefender), true);
 });
-
 test("multi-hit damage resolves each real hit and can break the general protection in the same move", () => {
   const result = applyMoveConsequences({
     tokens: [attacker, defender],

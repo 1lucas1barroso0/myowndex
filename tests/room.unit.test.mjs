@@ -76,12 +76,15 @@ test("legacy room scale preserves HP proportion during schema migration", () => 
       currentHp: 2,
       stats: { hp: 3, attack: 2, defense: 2, "special-attack": 2, "special-defense": 2, speed: 2 },
       originalStats: { hp: 60, attack: 40, defense: 40, "special-attack": 40, "special-defense": 40, speed: 40 },
+      volatileEffects: [{ id: "substitute", amount: 1 }, { id: "wish", amount: 1 }],
     }],
   });
   assert.equal(migrated.schema, 8);
   assert.equal(migrated.tokens[0].maxHp, 6);
   assert.equal(migrated.tokens[0].currentHp, 4);
   assert.equal(migrated.tokens[0].stats.attack, 4);
+  assert.equal(migrated.tokens[0].volatileEffects.find(effect => effect.id === "substitute").amount, 1);
+  assert.equal(migrated.tokens[0].volatileEffects.find(effect => effect.id === "wish").amount, 3);
 });
 
 test("room snapshots normalize phases, scenes and unsafe token positions", () => {

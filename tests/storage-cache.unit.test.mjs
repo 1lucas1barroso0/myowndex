@@ -152,7 +152,7 @@ test("480 partners fit below a four-MiB UTF-16 localStorage budget without dropp
   assert.equal(saveTeams(teams), true);
   const persisted = storage.getItem(TEAM_STORAGE_KEY);
   const payload = JSON.parse(persisted);
-  assert.equal(payload.schema, 4);
+  assert.equal(payload.schema, 5);
   assert.equal(typeof payload.savedAt, "number");
   assert.equal(payload.teams.length, 80);
   assert.equal(payload.teams.reduce((sum, box) => sum + box.pokemon.length, 0), 480);

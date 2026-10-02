@@ -97,16 +97,15 @@ export const finiteProduct = (values, {
 };
 
 /**
- * MyOwnDex's explicit tabletop rounding rule: fractional parts up to 0.55 go
- * down; from 0.56 onward they go up. Values in the unspecified gap keep the
- * global fallback and go down.
+ * MyOwnDex's tabletop rounding rule uses the ordinary half-up boundary:
+ * fractional parts below 0.5 go down; 0.5 or more go up.
  */
 export const roundRpgScaledValue = (value, { minimumWhenPositive = 0, maximum = MAX_SAFE_GAME_INTEGER } = {}) => {
     const normalized = clampFinite(value, 0, maximum, 0);
     if (normalized <= 0) return 0;
     const whole = Math.floor(normalized);
     const fraction = normalized - whole;
-    const rounded = fraction + Number.EPSILON * 16 >= 0.56 ? Math.ceil(normalized) : whole;
+    const rounded = fraction + Number.EPSILON * 16 >= 0.5 ? Math.ceil(normalized) : whole;
     return Math.min(maximum, Math.max(minimumWhenPositive, rounded));
 };
 

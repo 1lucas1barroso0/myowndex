@@ -28,14 +28,15 @@ function HitKillOverview({ showFacts = false }) {
                 <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>Dano fatal abaixo de 3× o HP máximo</strong><span>A proteção precisa estar disponível.</span></div></li>
                 <li className="guide-hit-kill-outcome"><span className="guide-hit-kill-step" aria-hidden="true">3</span><div><strong>Permanece com <b>1 HP</b></strong><span>A proteção é consumida.</span></div></li>
             </ol>
-            <p className="guide-hit-kill-example"><strong>Por exemplo:</strong> com 20 HP máximos e cheios, um acerto sem crítico cujo dano final seja 30 deixa 1 HP se a proteção estiver disponível. Um dano de 60 ou mais atravessa a proteção.</p>
+            <p className="guide-hit-kill-example"><strong>Por exemplo:</strong> com 20 HP máximos e cheios, um dano final de 30 deixa 1 HP se a proteção estiver disponível. Um dano de 60 ou mais atravessa a proteção, crítico ou não.</p>
             {showFacts && (
                 <>
                     <dl className="guide-hit-kill-facts">
                         <div><dt>Quando verificar</dt><dd>Cada hit e cada fonte de dano indireto, separadamente.</dd></div>
                         <div><dt>Sem dano, sem consumo</dt><dd>Erro, imunidade, bloqueio e dano absorvido pelo Substitute não afetam a proteção.</dd></div>
                         <div><dt>O que a remove</dt><dd>Usá-la, pagar HP, sofrer recuo ou causar dano a si próprio. Cura e troca não a restauram.</dd></div>
-                        <div><dt>O que a atravessa</dt><dd>Crítico do atacante, erro crítico do defensor e movimentos de nocaute direto.</dd></div>
+                        <div><dt>O que a atravessa</dt><dd>Dano igual ou superior a 3× o HP máximo e movimentos de nocaute direto.</dd></div>
+                        <div><dt>Exceção de 1 HP</dt><dd>HP fixado em 1 por regra própria da espécie ou forma, como Shedinja, não recebe a proteção geral.</dd></div>
                     </dl>
                     <p className="guide-hit-kill-own-protection"><strong>Sturdy e Focus Sash mantêm suas próprias regras.</strong> Quando a proteção geral age primeiro, não os consome e preserva sua elegibilidade até o próximo dano que alcançar o Pokémon.</p>
                 </>
@@ -145,7 +146,7 @@ export default function TrainerGuide({ experienceMode }) {
                                     <span>Limite comum de dano</span>
                                     <strong>{formatNumberPtBr(getDamageCeiling(level))}</strong>
                                 </div>
-                                <p>No nível {formatNumberPtBr(level)}, este é o máximo comum por hit. Aumentos temporários elevam o limite proporcionalmente; críticos e danos de regra própria usam suas exceções.</p>
+                                <p>No nível {formatNumberPtBr(level)}, este é o teto-base por hit. Super efetividade e aumentos temporários elevam o limite proporcionalmente; críticos e danos de regra própria usam suas exceções.</p>
                             </article>
                             <details className="guide-hit-kill-card" data-rule-id="3.4">
                                 <summary>Proteção contra hit kill</summary>

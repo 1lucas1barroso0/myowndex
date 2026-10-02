@@ -15,6 +15,7 @@ import {
   getSelectableMoveTargets,
   getMoveStab,
   normalizePpSlots,
+  resolveKnockoutProtection,
   STAGE_STAT_KEYS,
   stageMultiplier,
 } from "../src/core/automation.js";
@@ -34,7 +35,7 @@ const attacker = {
   moves: ["ember", "", "", ""],
   pp: [null, null, null, null],
   stages: {},
-  stats: { attack: 3, defense: 3, "special-attack": 3, "special-defense": 3, speed: 4 },
+  stats: { attack: 6, defense: 6, "special-attack": 6, "special-defense": 6, speed: 8 },
   originalStats: { attack: 60, defense: 60, "special-attack": 60, "special-defense": 60, speed: 80 },
 };
 
@@ -77,14 +78,14 @@ test("all seven stat stages use the correct multipliers and preserve original va
   assert.equal(accuracyStageMultiplier(-2), 3 / 5);
   const raised = applyStageChange(attacker, "special-attack", 2);
   assert.equal(raised.stages["special-attack"], 2);
-  assert.equal(raised.stats["special-attack"], 6);
+  assert.equal(raised.stats["special-attack"], 12);
   const accuracy = applyStageChange(attacker, "accuracy", 2);
   assert.equal(accuracy.stages.accuracy, 2);
   assert.deepEqual(accuracy.stats, attacker.stats);
 
   const tiny = { ...attacker, originalStats: { ...attacker.originalStats, attack: 20 }, stats: { ...attacker.stats, attack: 1 } };
-  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: 1 } }).attack, 2);
-  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: -1 } }).attack, 0);
+  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: 1 } }).attack, 3);
+  assert.equal(calculateStagedStats({ ...tiny, stages: { attack: -1 } }).attack, 1);
 });
 
 test("move targets distinguish self, allies, opponents and groups", () => {
@@ -201,18 +202,26 @@ test("sequential reactive damage sources use the centralized hit kill state one 
   assert.match(result.consequences.specialNarratives.join(" "), /Proteção contra Hit Kill manteve/);
 });
 
-test("attacker criticals, defender critical failures and declared knockout moves bypass hit kill protection", () => {
+test("critical results keep the general protection while declared knockout moves bypass it", () => {
   const critical = applyHitKillProtection({ damage: 10, currentHp: 10, critical: true });
   const defenderFumble = applyHitKillProtection({ damage: 10, currentHp: 10, defenderFumble: true });
   const direct = applyHitKillProtection({ damage: 10, currentHp: 10, directKnockout: true });
-  assert.equal(critical.protectedFromKnockout, false);
-  assert.equal(defenderFumble.protectedFromKnockout, false);
+  assert.equal(critical.protectedFromKnockout, true);
+  assert.equal(defenderFumble.protectedFromKnockout, true);
   assert.equal(direct.protectedFromKnockout, false);
-  assert.equal(critical.remainingHp, 0);
-  assert.equal(defenderFumble.remainingHp, 0);
+  assert.equal(critical.remainingHp, 1);
+  assert.equal(defenderFumble.remainingHp, 1);
   assert.equal(direct.remainingHp, 0);
 });
 
+test("Shedinja keeps its intrinsic one-HP identity without the general protection", () => {
+  const result = resolveKnockoutProtection({
+    token: { ...defender, speciesName: "shedinja", maxHp: 1, currentHp: 1, ability: "", item: "" },
+    damage: 1,
+  });
+  assert.equal(result.protectedFromKnockout, false);
+  assert.equal(result.remainingHp, 0);
+});
 test("general hit kill protection resolves before Sturdy and preserves exactly one later chance", () => {
   const move = { name: "tackle", pp: 35, damage_class: { name: "physical" }, meta: {} };
   const sturdyDefender = {
@@ -339,7 +348,7 @@ test("nonfatal first damage neither spends general protection nor preserves a su
   assert.equal(second.consequences.traitProtected, false);
 });
 
-test("critical bypasses only the general rule while an independent survival trait can still act", () => {
+test("defender fumble no longer skips the general protection before Sturdy", () => {
   const sturdyDefender = { ...defender, ability: "sturdy" };
   const result = applyMoveConsequences({
     tokens: [attacker, sturdyDefender],
@@ -354,14 +363,13 @@ test("critical bypasses only the general rule while an independent survival trai
       defenseTest: { fumble: true },
     },
   });
-  assert.equal(result.consequences.hitKillProtected, false);
-  assert.equal(result.consequences.hitKillBypassedByDefenderFumble, true);
-  assert.equal(result.consequences.traitProtected, true);
+  assert.equal(result.consequences.hitKillProtected, true);
+  assert.equal(result.consequences.hitKillBypassedByDefenderFumble, false);
+  assert.equal(result.consequences.traitProtected, false);
   assert.equal(result.tokens.find(token => token.id === sturdyDefender.id).currentHp, 1);
-  assert.deepEqual(result.hitKillProtectionUsed, []);
-  assert.deepEqual(result.hitKillSurvivalGrace, []);
+  assert.deepEqual(result.hitKillProtectionUsed, [getHitKillProtectionKey(sturdyDefender)]);
+  assert.equal(hasHitKillSurvivalGrace(result.hitKillSurvivalGrace, sturdyDefender), true);
 });
-
 test("multi-hit damage resolves each real hit and can break the general protection in the same move", () => {
   const result = applyMoveConsequences({
     tokens: [attacker, defender],

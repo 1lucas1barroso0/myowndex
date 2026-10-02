@@ -57,12 +57,34 @@ test("the experience is named RPG without the old compound label", () => {
   assert.notEqual(EXPERIENCE_MODES.rpg.label, "RPG Anime");
 });
 
-test("RPG division uses the written 0.55 and 0.56 boundary exactly", () => {
-  assert.equal(convertToTTRPG(11), 0);
-  assert.equal(convertToTTRPG(12), 1);
-  assert.equal(convertToTTRPG(51), 2);
-  assert.equal(convertToTTRPG(52), 3);
-  assert.equal(convertToTTRPG(11, true), 1);
+test("RPG division uses scale by 10 and the half-up boundary", () => {
+  assert.equal(convertToTTRPG(9), 1);
+  assert.equal(convertToTTRPG(14), 1);
+  assert.equal(convertToTTRPG(15), 2);
+  assert.equal(convertToTTRPG(24), 2);
+  assert.equal(convertToTTRPG(1, true), 1);
+});
+
+test("legacy room scale preserves HP proportion during schema migration", () => {
+  const migrated = normalizeRoomSnapshot({
+    schema: 7,
+    title: "Legacy",
+    tokens: [{
+      id: "legacy",
+      name: "Legacy",
+      maxHp: 3,
+      currentHp: 2,
+      stats: { hp: 3, attack: 2, defense: 2, "special-attack": 2, "special-defense": 2, speed: 2 },
+      originalStats: { hp: 60, attack: 40, defense: 40, "special-attack": 40, "special-defense": 40, speed: 40 },
+      volatileEffects: [{ id: "substitute", amount: 1 }, { id: "wish", amount: 1 }],
+    }],
+  });
+  assert.equal(migrated.schema, 8);
+  assert.equal(migrated.tokens[0].maxHp, 6);
+  assert.equal(migrated.tokens[0].currentHp, 4);
+  assert.equal(migrated.tokens[0].stats.attack, 4);
+  assert.equal(migrated.tokens[0].volatileEffects.find(effect => effect.id === "substitute").amount, 1);
+  assert.equal(migrated.tokens[0].volatileEffects.find(effect => effect.id === "wish").amount, 3);
 });
 
 test("room snapshots normalize phases, scenes and unsafe token positions", () => {
@@ -469,10 +491,10 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     random: sequence([0.8, 0.8, 0, 0]),
   });
   assert.equal(success.hit, true);
-  assert.equal(success.baseDamage, 2);
+  assert.equal(success.baseDamage, 4);
   assert.equal(success.stab, 1.5);
   assert.equal(success.effectiveness, 2);
-  assert.equal(success.damage, 5);
+  assert.equal(success.damage, 12);
 
   const tie = calculateMoveResolution({
     attacker: { ...attacker, stats: { ...attacker.stats, "special-attack": 0 } },
@@ -504,8 +526,8 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     move: { ...move, power: 100 },
     random: sequence([0.8, 0.8, 0, 0]),
   });
-  assert.equal(fractionalCeiling.ceiling, 5);
-  assert.equal(fractionalCeiling.damage, 5);
+  assert.equal(fractionalCeiling.ceiling, 22);
+  assert.equal(fractionalCeiling.damage, 22);
 
   const firstLevelMinimum = calculateMoveResolution({
     attacker: { ...attacker, level: 1 },
@@ -513,8 +535,8 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     move,
     random: sequence([0.8, 0.8, 0, 0]),
   });
-  assert.equal(firstLevelMinimum.ceiling, 1);
-  assert.equal(firstLevelMinimum.damage, 1);
+  assert.equal(firstLevelMinimum.ceiling, 2);
+  assert.equal(firstLevelMinimum.damage, 2);
 
   const critical = calculateMoveResolution({
     attacker,
@@ -562,8 +584,31 @@ test("damage applies multipliers before one final rounding and keeps weak and st
   });
 
   assert.equal(resolvePower(1).damage, 1, "a real weak hit must not vanish");
-  assert.equal(resolvePower(31).damage, 2, "STAB is applied before the single final rounding");
-  assert.equal(resolvePower(120).damage, 9, "the 1 HP floor must not flatten stronger attacks");
+  assert.equal(resolvePower(31).damage, 5, "STAB is applied before the single final rounding");
+  assert.equal(resolvePower(120).damage, 18, "the 1 HP floor must not flatten stronger attacks");
+});
+
+test("type effectiveness remains visibly ordered on the wider RPG scale", () => {
+  const attacker = { id: "type-attacker", level: 5, types: ["fire"], stats: { "special-attack": 4 } };
+  const move = {
+    name: "ember",
+    power: 40,
+    accuracy: null,
+    type: { name: "fire" },
+    damage_class: { name: "special" },
+    target: { name: "selected-pokemon" },
+  };
+  const resolveAgainst = types => calculateMoveResolution({
+    attacker,
+    defender: { id: types.join("-"), types, stats: { "special-defense": 0 } },
+    move,
+    random: sequence([0.8, 0.8, 0, 0]),
+  }).damage;
+  const resisted = resolveAgainst(["water"]);
+  const neutral = resolveAgainst(["normal"]);
+  const superEffective = resolveAgainst(["grass"]);
+  assert.ok(resisted < neutral);
+  assert.ok(neutral < superEffective);
 });
 
 test("status, declaration and always-hit moves follow distinct resolution paths", () => {

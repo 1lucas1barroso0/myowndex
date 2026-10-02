@@ -85,7 +85,7 @@ test("confusion persists through round end and self damage disables general surv
   const ended = applyEndOfRoundEffects(snapshot, sequence([]));
   assert.equal(ended.room.tokens[0].volatileEffects[0].turns, 2);
   const resolved = resolveCombatAction({ snapshot, request, role: "narrator", move, random: sequence([0]) });
-  assert.equal(resolved.nextSnapshot.tokens[0].currentHp, 18);
+  assert.equal(resolved.nextSnapshot.tokens[0].currentHp, 15);
   assert.equal(resolved.nextSnapshot.tokens[0].volatileEffects[0].turns, 1);
   assert.ok(resolved.nextSnapshot.hitKillProtectionDisabled.includes("token:a"));
   const ending = checkActionConditions({ token: token("a", { volatileEffects: [{ id: "confusion", turns: 1 }] }), move, random: sequence([0.99]) });
@@ -120,6 +120,14 @@ test("capture adaptation shows exact factors and rejects unsupported balls and i
   assert.equal(rollCapture({ target: token("b"), captureRate: 0, ball: "master-ball" }, sequence([])).success, true);
   assert.throws(() => calculateCaptureChance({ target: token("b"), captureRate: NaN }), /taxa/);
   assert.throws(() => calculateCaptureChance({ target: token("b"), captureRate: 45, ball: "net-ball" }), /guiada/);
+});
+
+test("low-level capture gains a real weakened-but-conscious state on the wider HP scale", () => {
+  const full = calculateCaptureChance({ target: token("b", { maxHp: 2, currentHp: 2 }), captureRate: 45 });
+  const weakened = calculateCaptureChance({ target: token("b", { maxHp: 2, currentHp: 1 }), captureRate: 45 });
+  assert.equal(full.chance, 5);
+  assert.equal(weakened.chance, 11);
+  assert.ok(weakened.chance > full.chance);
 });
 
 test("capture accepts intent only, uses canonical HP and consumes one intervention on failure", () => {

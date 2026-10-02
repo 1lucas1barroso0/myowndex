@@ -52,7 +52,7 @@ export const checkActionConditions = ({ token, move, ability = "", random } = {}
             const remainingTurns = turns - 1;
             if (remainingTurns > 0) next.volatileEffects.push({ ...confusion, turns: remainingTurns });
             if (percent("confusion", 33)) {
-                const damage = Math.min(next.currentHp, 2); // 40 / 20, no STAB, crit, contest or type.
+                const damage = Math.min(next.currentHp, Math.max(1, Math.ceil(integerInRange(next.maxHp, 1, 99999, 1) / 4))); // Stable self-damage: 25% max HP, no STAB, type, crit or contest.
                 next.currentHp -= damage;
                 notes.push(`A confusão impediu a ação e causou ${damage} HP de dano ao próprio Pokémon.`);
                 return finish(false, damage);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { insertImportedPokemon, mergeHydratedTeams, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt } from "../src/core/team.js";
+import { insertImportedPokemon, mergeHydratedTeams, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, RPG_SCALE_VERSION } from "../src/core/team.js";
 import { decodeShare, decodeTeam, encodePokemonBundle, encodeTeam, LEGACY_SHARE_PREFIX } from "../src/core/teamShare.js";
 
 const completeTeam = normalizeTeam({
@@ -31,6 +31,7 @@ const completeTeam = normalizeTeam({
     customStats: { hp: 50, attack: 51, defense: 52, "special-attack": 53, "special-defense": 54, speed: 55 },
     customTypes: ["electric", "fairy"],
     rpg: {
+      scaleVersion: RPG_SCALE_VERSION,
       xp: 22.5,
       currentHp: 7,
       status: "paralysis",
@@ -41,6 +42,61 @@ const completeTeam = normalizeTeam({
       pp: [10, 15, 20, 5],
     },
   }],
+});
+
+test("legacy HP migration waits for species stats instead of guessing", () => {
+  const deferred = normalizeTeam({
+    id: "deferred-scale",
+    pokemon: [{ speciesName: "bulbasaur", level: 5, rpg: { currentHp: 1 } }],
+  }).pokemon[0];
+  assert.equal(deferred.rpg.scaleVersion, 1);
+  assert.equal(deferred.rpg.currentHp, 1);
+
+  const hydrated = normalizeTeam({
+    id: "hydrated-scale",
+    pokemon: [{
+      ...deferred,
+      species: {
+        ...deferred.species,
+        stats: [
+          { base_stat: 45, stat: { name: "hp" } },
+          { base_stat: 49, stat: { name: "attack" } },
+          { base_stat: 49, stat: { name: "defense" } },
+          { base_stat: 65, stat: { name: "special-attack" } },
+          { base_stat: 65, stat: { name: "special-defense" } },
+          { base_stat: 45, stat: { name: "speed" } },
+        ],
+      },
+    }],
+  }).pokemon[0];
+  assert.equal(hydrated.rpg.scaleVersion, RPG_SCALE_VERSION);
+  assert.equal(hydrated.rpg.currentHp, 2);
+});
+
+test("legacy scale preserves HP proportion when a saved partner migrates", () => {
+  const migrated = normalizeTeam({
+    id: "legacy-scale",
+    pokemon: [{
+      species: {
+        name: "bulbasaur",
+        species: { name: "bulbasaur", url: "" },
+        stats: [
+          { base_stat: 45, stat: { name: "hp" } },
+          { base_stat: 49, stat: { name: "attack" } },
+          { base_stat: 49, stat: { name: "defense" } },
+          { base_stat: 65, stat: { name: "special-attack" } },
+          { base_stat: 65, stat: { name: "special-defense" } },
+          { base_stat: 45, stat: { name: "speed" } },
+        ],
+      },
+      level: 5,
+      ivs: { hp: 31 },
+      evs: { hp: 0 },
+      rpg: { currentHp: 1 },
+    }],
+  }).pokemon[0];
+  assert.equal(migrated.rpg.scaleVersion, RPG_SCALE_VERSION);
+  assert.equal(migrated.rpg.currentHp, 2, "a legacy 1/1 partner must become 2/2, not 1/2");
 });
 
 test("V4 share code round-trips Unicode and every editable factor", async () => {

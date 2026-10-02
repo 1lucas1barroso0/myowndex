@@ -588,7 +588,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             status: consequences.appliedStatuses[0] || "",
             ppAfter: consequences.ppAfter,
             fumble: targetResults.some(entry => entry.resolution.attackTest?.fumble),
-            defenderFumble: consequences.hitKillBypassedByDefenderFumble,
+            defenderFumble: targetResults.some(entry => entry.resolution.defenseTest?.fumble),
             specialNarrative: [...conditionCheck.notes, ...consequences.specialNarratives].join(" "),
         }
         : {

@@ -34,10 +34,10 @@ test("division and products never emit NaN or Infinity", () => {
   assert.equal(finiteProduct([4, "bad", 2], { fallback: 0 }), 0);
 });
 
-test("RPG rounding keeps its explicit boundary and floors the unspecified fallback", () => {
-  assert.equal(roundRpgScaledValue(1.55), 1);
-  assert.equal(roundRpgScaledValue(1.559), 1);
-  assert.equal(roundRpgScaledValue(1.56), 2);
+test("RPG rounding uses the ordinary half-up boundary", () => {
+  assert.equal(roundRpgScaledValue(1.49), 1);
+  assert.equal(roundRpgScaledValue(1.5), 2);
+  assert.equal(roundRpgScaledValue(1.99), 2);
   assert.equal(roundRpgScaledValue(0.4), 0);
   assert.equal(roundRpgScaledValue(0.4, { minimumWhenPositive: 1 }), 1);
 });

@@ -44,7 +44,7 @@ Os três testes novos verificam cobertura exata de 1.025 espécies, pares reais 
 
 Os textos ingleses/portugueses de cada par são da mesma entrada. Mudança de idioma só altera descrição; nomes próprios, fatos, IDs e dados do jogador são preservados. Títulos explicam a origem, inclusive traduções editoriais. O dataset só é importado pelo módulo da ficha carregado sob demanda.
 
-Regras de arredondamento da 11.2 preservadas: dano/cura positivos inteiros, mínimo 1; imunidade zero; conversão RPG com limiar 0,56 e modificadores direcionais conforme regra. XP em passos de 0,5 e medidas oficiais como 0,7 m continuam precisos.
+Escala RPG atualizada para divisão por 10, com arredondamento convencional a partir de 0,5; dano/cura positivos continuam inteiros, com mínimo 1, e imunidade continua zero. Modificadores direcionais preservam mudanças legítimas de estágio. XP em passos de 0,5 e medidas oficiais como 0,7 m continuam precisos.
 
 ## Salas, armazenamento e entrega
 

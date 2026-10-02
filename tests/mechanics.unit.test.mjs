@@ -38,12 +38,21 @@ test("filters moves to one exact version group without old fallbacks", () => {
   assert.equal(result[0].version_group, "champions");
 });
 
-test("uses the MyOwnDex tabletop half-down rounding rule", () => {
-  assert.equal(convertToTTRPG(50), 2);
-  assert.equal(convertToTTRPG(51), 2);
-  assert.equal(convertToTTRPG(52), 3);
-  assert.equal(convertToTTRPG(49), 2);
+test("uses the MyOwnDex scale by 10 with half-up rounding", () => {
+  assert.equal(convertToTTRPG(50), 5);
+  assert.equal(convertToTTRPG(49), 5);
+  assert.equal(convertToTTRPG(15), 2);
+  assert.equal(convertToTTRPG(14), 1);
   assert.equal(convertToTTRPG(1, true), 1);
+});
+
+test("ordinary level-five Pokémon keep more than one RPG HP while Shedinja stays fixed at one", () => {
+  for (const [name, baseHp] of [["charmander", 39], ["squirtle", 44], ["bulbasaur", 45]]) {
+    const rawHp = calculateStat(baseHp, 0, 31, 5, 1, true, name);
+    assert.ok(convertToTTRPG(rawHp, true) >= 2, name);
+  }
+  const shedinjaHp = calculateStat(1, 0, 31, 50, 1, true, "shedinja");
+  assert.equal(convertToTTRPG(shedinjaHp, true), 1);
 });
 
 test("formats calculated values and type labels for Brazilian Portuguese", () => {

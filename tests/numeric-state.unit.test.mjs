@@ -27,7 +27,7 @@ test("malformed Pokémon and Box numbers normalize to finite capped state", () =
     genderRate: null,
     ivs: { hp: Infinity, attack: -5 },
     evs: { hp: "", attack: "999999999999999999999" },
-    rpg: { xp: 4.99, currentHp: 7.8, pp: [Infinity, -2, 4.8] },
+    rpg: { scaleVersion: 2, xp: 4.99, currentHp: 7.8, pp: [Infinity, -2, 4.8] },
   });
   assert.equal(pokemon.level, 5);
   assert.equal(pokemon.friendship, 70);

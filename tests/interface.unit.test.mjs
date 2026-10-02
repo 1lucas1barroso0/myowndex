@@ -374,7 +374,7 @@ test("the adventure exposes every modifier and explains movement resolution", as
   assert.match(await read("server/authoritativeActions.js"), /hitKillSurvivalGrace/);
   assert.match(rules, /Os sete modificadores/);
   assert.match(rules, /Uma precisão numérica — inclusive 100%/);
-  assert.match(rules, /erros críticos do defensor/);
+  assert.match(rules, /erro crítico do defensor/);
   assert.match(rules, /Sturdy, Focus Sash e efeitos equivalentes são proteções próprias e adicionais/);
 });
 
@@ -468,7 +468,7 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(rules, /Movimentos de múltiplos acertos são resolvidos hit por hit/);
   assert.match(rules, /Somente dano realmente causado conta/);
   assert.match(rules, /reduz o próprio HP/);
-  assert.match(rules, /Acertos críticos.*superam o limite de dano/);
+  assert.match(rules, /Acertos críticos.*superam o limite comum de dano/);
   assert.match(localPanel, /lock\.current/);
   assert.match(localPanel, /entry\.id/);
 });

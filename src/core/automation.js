@@ -1,4 +1,4 @@
-import { convertToTTRPG, formatName } from "./mechanics.js";
+import { convertToTTRPG, formatName, RPG_SCALE_DIVISOR } from "./mechanics.js";
 import {
     applyDirectionalIntegerModifier,
     clampFinite as clamp,
@@ -164,13 +164,13 @@ export const calculateStagedStats = token => {
         : {};
     const result = { ...current };
     COMBAT_STAT_STAGE_KEYS.forEach(stat => {
-        const originalValue = asNumber(original[stat], Math.max(0, asNumber(current[stat])) * 20);
+        const originalValue = asNumber(original[stat], Math.max(0, asNumber(current[stat])) * RPG_SCALE_DIVISOR);
         const baseline = convertToTTRPG(originalValue);
         const stage = stages[stat];
         const rawScaled = safeDivide(finiteProduct(
             [Math.max(0, originalValue), stageMultiplier(stage)],
-            { minimum: 0, maximum: 99999 * 20, fallback: 0 },
-        ), 20, 0);
+            { minimum: 0, maximum: 99999 * RPG_SCALE_DIVISOR, fallback: 0 },
+        ), RPG_SCALE_DIVISOR, 0);
         let staged = roundRpgScaledValue(rawScaled, { maximum: 99999 });
         if (stage > 0 && staged <= baseline && baseline < 99999) staged = baseline + 1;
         if (stage < 0 && staged >= baseline && baseline > 0) staged = baseline - 1;
@@ -515,7 +515,7 @@ export const applyHitKillProtection = ({
     const threshold = maximumHp * 3;
     const wouldKnockOut = hpBefore > 0 && calculatedDamage >= hpBefore;
     const atMaximumHp = hpBefore === maximumHp;
-    const bypassed = Boolean(critical || defenderFumble || directKnockout);
+    const bypassed = Boolean(directKnockout);
     const protectedFromKnockout = wouldKnockOut
         && atMaximumHp
         && !protectionUsed
@@ -555,11 +555,12 @@ export const resolveKnockoutProtection = ({
     defenderFumble = false,
     directKnockout = false,
 } = {}) => {
+    const generalProtectionEligible = normalizeSlug(token?.speciesName) !== "shedinja";
     const base = applyHitKillProtection({
         damage,
         currentHp: token?.currentHp,
         maxHp: token?.maxHp,
-        protectionUsed,
+        protectionUsed: protectionUsed || !generalProtectionEligible,
         critical,
         defenderFumble,
         directKnockout,

@@ -418,9 +418,9 @@ export default function CombatAssistant({
                                                 )}
                                             </span>
                                         )}
-                                        {resolution.criticalHit && <span className="combat-damage-exception">Acerto crítico: o limite comum e a proteção contra Hit Kill não se aplicam.</span>}
+                                        {resolution.criticalHit && <span className="combat-damage-exception">Acerto crítico: o limite comum não se aplica; a proteção contra Hit Kill ainda pode agir conforme seus requisitos.</span>}
                                         {resolution.attackTest?.critical && !resolution.criticalHit && <span>Dois 6: crítico potencial, mas sem acerto com dano.</span>}
-                                        {resolution.damageHit && resolution.defenseTest?.fumble && <span className="combat-damage-exception">Erro crítico do defensor: a proteção contra Hit Kill não se aplica.</span>}
+                                        {resolution.damageHit && resolution.defenseTest?.fumble && <span>Erro crítico do defensor: resolva também uma consequência coerente com a cena; isso não remove a proteção contra Hit Kill por si só.</span>}
                                         {resolution.directKnockout && <span className="combat-damage-exception">Nocaute direto: ignora o limite comum e a proteção geral contra Hit Kill; efeitos próprios, como Sturdy ou Focus Sash, são resolvidos separadamente.</span>}
                                         {resolution.fixedDamage != null && <span className="combat-damage-exception">Dano fixo: usa o valor próprio do movimento em vez do limite comum.</span>}
                                         {resolution.dynamicPower && <span>Poder situacional {formatNumberPtBr(resolution.power)}: {resolution.dynamicPower.explanation}.</span>}

@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 11.6.0.**
+**Versão atual: 11.6.1.**
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 

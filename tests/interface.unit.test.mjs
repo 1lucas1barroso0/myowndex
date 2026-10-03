@@ -183,7 +183,7 @@ test("local rolls keep exact modes, a clean result and manageable local history"
     read("src/components/Shared/LocalDicePanel.jsx"),
     read("src/core/localRolls.js"),
   ]);
-  assert.match(guide, /<LocalDicePanel/);
+  assert.doesNotMatch(guide, /LocalDicePanel/, "Dados has one home instead of a second copy inside the Guide");
   assert.doesNotMatch(panel, /Seguro e offline|Resultado registrado|Detalhes e segurança|>Mantido</);
   assert.doesNotMatch(panel, /\bplaceholder\s*=/i);
   assert.match(panel, /rollLabel\(result/);
@@ -198,6 +198,28 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   assert.match(panel, /if\(lock\.current \|\| applyingAccount\.current \|\| !ready/, "rolls stay locked during an account merge as well as during a pending receipt");
   assert.match(panel, /event\.repeat/);
   assert.match(panel, /Baixar histórico/);
+});
+
+test("Dados has one visible home and becomes contextual inside an adventure", async () => {
+  const [app, guide, room, dialog, panel] = await Promise.all([
+    read("src/App.jsx"),
+    read("src/components/Guide/TrainerGuide.jsx"),
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/components/Shared/LocalDiceDialog.jsx"),
+    read("src/components/Shared/LocalDicePanel.jsx"),
+  ]);
+  assert.match(app, /aria-label="Abrir Dados"/);
+  assert.match(app, /context=\{diceRoomContext \? "aventura" : "central"\}/);
+  assert.doesNotMatch(guide, /LocalDicePanel/);
+  assert.doesNotMatch(room, /LocalDicePanel|QuickRoller|Rolagem rápida/);
+  assert.match(room, />Ações<\/button>/);
+  assert.doesNotMatch(room, />Dados e ações<\/button>/);
+  assert.match(dialog, /context=\{context\}/);
+  assert.match(panel, /const inAdventure=context==="aventura"/);
+  assert.match(panel, /!inAdventure && <div className="local-dice-pages"/);
+  assert.match(panel, /!inAdventure && <details className="local-dice-history"/);
+  assert.match(panel, /action:"quick-free"/);
+  assert.match(app, /Projeto de fãs · Fonte/);
 });
 
 test("game style and adventure phase use compact tabs with complete help on demand", async () => {

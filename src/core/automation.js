@@ -416,7 +416,7 @@ const SELF_HP_COST_MOVES = Object.freeze({
     "shed-tail": 1 / 2,
 });
 
-const MISS_CRASH_MOVES = new Set(["high-jump-kick", "jump-kick"]);
+const MISS_CRASH_MOVES = new Set(["axe-kick", "high-jump-kick", "jump-kick", "supercell-slam"]);
 
 const stageChangesTargetUser = move => {
     const profile = getMoveTargetProfile(move);
@@ -1417,7 +1417,7 @@ export const applyMoveConsequences = ({
         }
     }
 
-    if (!moveConnected && MISS_CRASH_MOVES.has(moveName) && !resolution.traitBlock?.attackerBlocked) {
+    if (!moveConnected && MISS_CRASH_MOVES.has(moveName) && !resolution.traitBlock?.attackerBlocked && !(isAbilityActive(attacker) && normalizeSlug(attacker.ability) === "magic-guard")) {
         const amount = Math.min(asNumber(attacker.currentHp), Math.max(1, Math.floor(asNumber(attacker.maxHp, 1) / 2)));
         replaceEntity(attacker.id, { ...attacker, currentHp: Math.max(0, asNumber(attacker.currentHp) - amount) });
         disableProtectionAfterSelfDamage(attacker, amount);

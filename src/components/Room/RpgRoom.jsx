@@ -1075,7 +1075,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 text: `Ordem da rodada: ${generated.results.map(result => {
                     const name = snapshot.tokens.find(token => token.id === result.tokenId)?.name;
                     const traits = result.traitState.entries.map(entry => formatName(entry.sourceId)).join(" + ");
-                    return `${name} (${result.total}${traits ? `; ${traits}` : ""})`;
+                    return `${name}${traits ? ` (${traits})` : ""}`;
                 }).join(", ")}.`,
             });
         } catch (error) {

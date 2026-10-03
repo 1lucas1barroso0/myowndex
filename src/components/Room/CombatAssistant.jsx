@@ -400,8 +400,8 @@ export default function CombatAssistant({
                                         <strong>{targetName}</strong>
                                         {resolution.attackTest && resolution.defenseTest && (
                                             <span>
-                                                Disputa {resolution.attackTest.total} × {resolution.defenseTest.total}: {resolution.contestSuccess ? "ataque venceu" : "defesa venceu"}.
-                                                {resolution.contestAttributes && <> Dados {resolution.attackTest.diceTotal} × atributo {resolution.contestAttributes.attacker} contra {resolution.defenseTest.diceTotal} × atributo {resolution.contestAttributes.defender}.</>}
+                                                {resolution.contestSuccess ? "Ataque venceu a disputa." : "Defesa venceu a disputa."}
+                                                {" "}Dados: ataque {resolution.attackTest.diceTotal} · defesa {resolution.defenseTest.diceTotal}. Atributos e modificadores foram aplicados automaticamente.
                                             </span>
                                         )}
                                         <span>

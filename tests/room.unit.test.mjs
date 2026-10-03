@@ -583,6 +583,39 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
   assert.equal(multiHit.damage, multiHit.damagePerHit * 5);
 });
 
+test("one combat resolution rolls both sides of the opposed test automatically", () => {
+  const move = {
+    name: "tackle",
+    power: 40,
+    accuracy: null,
+    type: { name: "normal" },
+    damage_class: { name: "physical" },
+  };
+  let draws = 0;
+  const values = [0.5, 0.5, 0.5, 0.5];
+  const resolution = calculateMoveResolution({
+    attacker: {
+      id: "auto-attacker",
+      level: 20,
+      types: ["normal"],
+      stats: { attack: 5 },
+      originalStats: { attack: 50 },
+    },
+    defender: {
+      id: "auto-defender",
+      types: ["normal"],
+      stats: { defense: 5 },
+      originalStats: { defense: 50 },
+    },
+    move,
+    random: () => values[draws++] ?? 0,
+  });
+  assert.equal(draws, 4, "one command should roll 2d6 for the user and 2d6 for the opposition");
+  assert.equal(resolution.attackTest.dice.length, 2);
+  assert.equal(resolution.defenseTest.dice.length, 2);
+  assert.equal(typeof resolution.contestSuccess, "boolean");
+});
+
 test("proportional contests keep the same dice relevance when absolute stats scale up", () => {
   const move = {
     name: "tackle",

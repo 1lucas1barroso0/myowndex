@@ -453,10 +453,11 @@ test("Abilities and held items expose official context, lifecycle, narrative and
 });
 
 test("the internal Guide is the canonical source and explains hit kill protection", async () => {
-  const [guide, rules, localPanel] = await Promise.all([
+  const [guide, rules, localPanel, combat] = await Promise.all([
     read("src/components/Guide/TrainerGuide.jsx"),
     read("src/core/rpgRules.js"),
     read("src/components/Shared/LocalDicePanel.jsx"),
+    read("src/components/Room/CombatAssistant.jsx"),
   ]);
   assert.doesNotMatch(guide, /target="_blank"/);
   assert.match(guide, /RPG_RULE_SECTIONS\.map/);
@@ -474,4 +475,11 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(rules, /25% de chance de descongelar/);
   assert.match(localPanel, /lock\.current/);
   assert.match(localPanel, /entry\.id/);
+  assert.match(rules, /rola também a oposição/);
+  assert.match(rules, /ninguém precisa multiplicar ou trabalhar com totais grandes/);
+  assert.match(localPanel, /Teste simples/);
+  assert.match(localPanel, /Combate e iniciativa resolvem a oposição automaticamente/);
+  assert.match(combat, /Atributos e modificadores foram aplicados automaticamente/);
+  assert.doesNotMatch(combat, /attackTest\.total/);
+  assert.doesNotMatch(combat, /contestAttributes\.attacker/);
 });

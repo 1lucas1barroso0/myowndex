@@ -248,7 +248,7 @@ const addConsequences = (summary, current) => ({
 
 const resolutionRollLabel = resolution => {
     if (resolution.attackTest && resolution.defenseTest) {
-        return `${resolution.attackTest.total} × ${resolution.defenseTest.total}`;
+        return `${resolution.contestSuccess ? "ataque venceu" : "defesa venceu"} · dados ${resolution.attackTest.diceTotal} × ${resolution.defenseTest.diceTotal}`;
     }
     if (!resolution.accuracyTest.automatic) {
         return `${resolution.accuracyTest.result}/${resolution.accuracyTest.chance}`;
@@ -345,7 +345,7 @@ const initiative = (snapshot, random) => {
     const order = generated.results.map(entry => {
         const token = room.tokens.find(candidate => candidate.id === entry.tokenId);
         const traits = entry.traitState.entries.map(item => formatName(item.sourceId)).join(" + ");
-        return `${token?.name || "Pokémon"} (${entry.total}${traits ? `; ${traits}` : ""})`;
+        return `${token?.name || "Pokémon"}${traits ? ` (${traits})` : ""}`;
     }).join(", ");
     return {
         result: { results: generated.results },

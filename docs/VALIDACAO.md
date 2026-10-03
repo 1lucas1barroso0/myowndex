@@ -70,3 +70,6 @@ Instalador operacional igual à 11.2, com base d8bb4096. Runner executa 12 verif
 python3 scripts/empacotar-linux.py
 python3 scripts/verificar-entrega-linux.py ../entrega
 ```
+
+A matemática proporcional de disputas e iniciativa é interna: a interface mostra dados, ordem, sucesso/falha e consequências, nunca exige que o jogador multiplique atributos ou compare totais ponderados. Quando a Central conhece os dois lados de uma disputa, ela rola usuário e oposição no mesmo comando.
+

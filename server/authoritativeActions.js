@@ -33,9 +33,9 @@ const FREE_DICE_SIDES = new Set([4, 6, 8, 10, 12, 20, 100]);
 const STATE_ACTIONS = new Set(["initiative", "advance-turn", "combat", "capture"]);
 const COMMON_KEYS = new Set(["requestId", "action"]);
 const ACTION_KEYS = Object.freeze({
-    "quick-attribute": new Set(["mode", "attribute"]),
-    "quick-percent": new Set(["mode", "chance"]),
-    "quick-free": new Set(["quantity", "sides", "modifier"]),
+    "quick-attribute": new Set(["mode", "attribute", "opposition", "label"]),
+    "quick-percent": new Set(["mode", "chance", "label"]),
+    "quick-free": new Set(["quantity", "sides", "modifier", "label"]),
     initiative: new Set(["expectedRevision"]),
     "advance-turn": new Set(["expectedRevision"]),
     combat: new Set(["expectedRevision", "attackerId", "defenderId", "moveName", "calledMoveName", "mode"]),
@@ -112,6 +112,8 @@ export const normalizeAuthoritativeRequest = input => {
             action,
             mode: requiredMode(input.mode),
             attribute: exactInteger(input.attribute ?? 0, -99999, 99999, "O modificador"),
+            opposition: input.opposition === "" || input.opposition == null ? null : exactInteger(input.opposition, -99999, 99999, "A dificuldade"),
+            label: text(input.label, 80),
         };
     }
     if (action === "quick-percent") {
@@ -120,6 +122,7 @@ export const normalizeAuthoritativeRequest = input => {
             action,
             mode: requiredMode(input.mode),
             chance: exactInteger(input.chance ?? 50, 0, 100, "A chance"),
+            label: text(input.label, 80),
         };
     }
     if (action === "quick-free") {
@@ -131,6 +134,7 @@ export const normalizeAuthoritativeRequest = input => {
             quantity: exactInteger(input.quantity ?? 1, 1, 20, "A quantidade"),
             sides,
             modifier: exactInteger(input.modifier ?? 0, -99999, 99999, "O modificador"),
+            label: text(input.label, 80),
         };
     }
 
@@ -282,7 +286,7 @@ const roundEffectSummary = effect => {
 };
 
 const quickAttribute = (request, random) => {
-    const test = rollAttributeTest({ mode: request.mode, attribute: request.attribute, random });
+    const test = rollAttributeTest({ mode: request.mode, attribute: request.attribute, opposition: request.opposition, random });
     const suggestion = test.fumble ? getFumbleSuggestion(random) : "";
     return {
         result: {
@@ -295,7 +299,7 @@ const quickAttribute = (request, random) => {
             mode: test.mode,
             rawDice: test.dice,
             keptDice: test.kept,
-            modifiers: { modifier: test.attribute },
+            modifiers: { modifier: test.attribute, opposition: request.opposition },
             result: test.total,
             success: test.success,
             critical: test.critical,
@@ -304,7 +308,7 @@ const quickAttribute = (request, random) => {
         },
         eventType: "roll",
         eventPayload: {
-            label: request.mode === "advantage" ? "teste simples com vantagem" : request.mode === "disadvantage" ? "teste simples com desvantagem" : "teste simples",
+            label: request.label || (request.mode === "advantage" ? "teste simples com vantagem" : request.mode === "disadvantage" ? "teste simples com desvantagem" : "teste simples"),
             mode: test.mode,
             result: test.total,
             dice: test.dice,
@@ -338,11 +342,11 @@ const quickPercent = (request, random) => {
         },
         eventType: "roll",
         eventPayload: {
-            label: test.advantage
+            label: request.label || (test.advantage
                 ? "teste percentual com vantagem"
                 : test.disadvantage
                     ? "teste percentual com desvantagem"
-                    : "teste percentual",
+                    : "teste percentual"),
             mode: test.mode,
             result: test.result,
             rolls: test.rolls,
@@ -378,7 +382,7 @@ const quickFree = (request, random) => {
         },
         eventType: "roll",
         eventPayload: {
-            label: `${request.quantity}d${request.sides}`,
+            label: request.label || `${request.quantity}d${request.sides}`,
             mode: "normal",
             result: total,
             dice,

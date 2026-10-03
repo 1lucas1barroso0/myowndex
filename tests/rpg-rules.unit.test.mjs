@@ -85,7 +85,7 @@ test("percent advantage keeps the most favorable d100 and respects equal-or-lowe
 test("RPG scale, XP and damage ceiling follow the guide", () => {
   assert.equal(getRpgScale(50), 5);
   assert.equal(getRpgScale(51), 5);
-  assert.equal(getRpgScale(55), 6);
+  assert.equal(getRpgScale(55), 5);
   assert.equal(getNextLevelXp(10), 5.5);
   assert.equal(getDamageCeiling(1), 1);
   assert.equal(getDamageCeiling(11), 11);

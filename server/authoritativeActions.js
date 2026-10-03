@@ -437,18 +437,37 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     if (traitBlock?.attackerBlocked) throw new AuthoritativeActionError(`Item ativo: ${traitBlock.reason}.`, 409);
 
     const conditionCheck = checkActionConditions({ token: attacker, move, ability: isAbilityActive(attacker) ? attacker.ability : "", random });
+    let conditionToken = { ...conditionCheck.token, lastActionRound: room.round };
+    let conditionNotes = [...conditionCheck.notes];
+    let conditionSelfDamage = null;
+    let conditionProtectionDisabled = room.hitKillProtectionDisabled;
+    let conditionSurvivalGrace = room.hitKillSurvivalGrace;
+    if (conditionCheck.selfDamage > 0) {
+        conditionProtectionDisabled = disableHitKillProtection(conditionProtectionDisabled, attacker);
+        conditionSurvivalGrace = clearHitKillSurvivalGrace(conditionSurvivalGrace, attacker);
+        conditionSelfDamage = resolveDamageSequence({
+            token: conditionToken,
+            damage: conditionCheck.selfDamage,
+            round: room.round,
+            protectionDisabled: true,
+            allowSurvivalTrait: true,
+        });
+        conditionToken = conditionSelfDamage.token || conditionToken;
+        conditionNotes.push(`Sofreu ${conditionSelfDamage.appliedDamage} HP de dano ao próprio Pokémon.`);
+        if (conditionSelfDamage.traitNarrative) conditionNotes.push(conditionSelfDamage.traitNarrative);
+    }
     room = {
         ...room,
-        tokens: room.tokens.map(token => token.id === attacker.id ? { ...conditionCheck.token, lastActionRound: room.round } : token),
-        hitKillProtectionDisabled: conditionCheck.selfDamage > 0 ? disableHitKillProtection(room.hitKillProtectionDisabled, attacker) : room.hitKillProtectionDisabled,
-        hitKillSurvivalGrace: conditionCheck.selfDamage > 0 ? clearHitKillSurvivalGrace(room.hitKillSurvivalGrace, attacker) : room.hitKillSurvivalGrace,
+        tokens: room.tokens.map(token => token.id === attacker.id ? conditionToken : token),
+        hitKillProtectionDisabled: conditionProtectionDisabled,
+        hitKillSurvivalGrace: conditionSurvivalGrace,
     };
     if (!conditionCheck.canAct) {
-        const detail = `${attacker.name}: ${conditionCheck.notes.join(" ")}`;
+        const detail = `${attacker.name}: ${conditionNotes.join(" ")}`;
         return {
-            result: { targetResults: [], conditionNotes: conditionCheck.notes, blockedByCondition: true, resolutionLabel: "Ação impedida", damage: 0, damageHit: false, moveConnected: false, consequences: role === "narrator" ? emptyConsequences() : null },
+            result: { targetResults: [], conditionNotes, blockedByCondition: true, resolutionLabel: "Ação impedida", damage: 0, damageHit: false, moveConnected: false, consequences: role === "narrator" ? emptyConsequences() : null },
             nextSnapshot: role === "narrator" ? room : null,
-            audit: { type: "combat", mode: request.mode, rawDice: conditionCheck.rolls, conditionCheck: { canAct: conditionCheck.canAct, notes: conditionCheck.notes, rolls: conditionCheck.rolls, selfDamage: conditionCheck.selfDamage }, success: false, critical: false, fumble: false, result: detail },
+            audit: { type: "combat", mode: request.mode, rawDice: conditionCheck.rolls, conditionCheck: { canAct: conditionCheck.canAct, notes: conditionNotes, rolls: conditionCheck.rolls, selfDamage: conditionCheck.selfDamage, appliedSelfDamage: conditionSelfDamage?.appliedDamage ?? 0 }, success: false, critical: false, fumble: false, result: detail },
             eventType: role === "narrator" ? "system" : "roll",
             eventPayload: role === "narrator" ? { text: detail } : { label: "simulação de condição", result: detail },
             sfxPayload: null,

@@ -13,7 +13,7 @@ import {
 import { RPG_STATUS_LABELS } from "./copy.js";
 import { rollPercentTest } from "./rpgRules.js";
 import { randomInt } from "./random.js";
-import { sleepDuration, THAW_TARGET_MOVES } from "./battleConditions.js";
+import { confusionDuration, sleepDuration, THAW_TARGET_MOVES } from "./battleConditions.js";
 import {
     copyObservedMove,
     getMoveSpecialProfile,
@@ -1005,7 +1005,7 @@ export const applyMoveConsequences = ({
         if (isConfusion && ability !== "own-tempo" && !effects.some(effect => effect.id === "confusion") && !(resolution.terrain === "nevoa" && !target.types?.includes("flying") && ability !== "levitate")) {
             const chance = moveEffectChance(move, "ailment_chance", move?.damage_class?.name === "status");
             if (chanceResult(chance, random, effectAdvantage).success) {
-                effects.push({ id: "confusion", sourceMove: moveName, turns: moveName === "axe-kick" ? 2 + randomInt(3, random) : 1 + randomInt(4, random) });
+                effects.push({ id: "confusion", sourceMove: moveName, turns: confusionDuration(random) });
                 trackedEffect = "confusion";
             }
         }

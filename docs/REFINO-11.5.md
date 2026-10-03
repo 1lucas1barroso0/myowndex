@@ -1,3 +1,5 @@
+> **Registro histórico.** Este arquivo documenta a rodada 11.5 e não descreve o estado vigente. Para o estado atual, use `package.json`, `README.md`, `CONTINUAR.md` e o CI da `main`.
+
 # Refino de apresentação11.5
 
 A atualização parte da11.4 publicada em `4f1be7ad640e93831b38045cc7a7057be2fd7e16` (PR#29). Conserva o código válido e não reinicia a direção artística. A estrutura continua com a clareza de Sword/Shield e detalhes da linguagem2D.

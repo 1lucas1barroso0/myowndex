@@ -11,6 +11,7 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - MyOwnDex, Pokédex, PC do Bill, Box e Boxes.
 - Central da Aventura e Guia do Treinador são os nomes completos das áreas.
 - Aventura, Pokédex, PC e Guia são os rótulos curtos da navegação.
+- Dados é o nome da área de rolagens e ferramentas de jogo. “Dados locais” fica restrito a documentação técnica quando a distinção de armazenamento for necessária.
 - “aventura”, em minúsculas, nomeia cada jornada criada; Narrador e Jogador
   nomeiam os papéis.
 - RPG, Jogos e Livre são os três estilos de jogo na interface.
@@ -52,6 +53,15 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Títulos identificam a área; avisos aparecem somente quando há informação
   útil ou uma ação disponível. Evite slogans, confirmações permanentes de
   prontidão e a repetição de uma instrução em todos os cartões.
+- Nunca use `placeholder` para ensinar, exemplificar ou decorar um campo. Toda
+  entrada tem rótulo próprio; ajuda necessária aparece fora do campo e continua
+  legível antes, durante e depois da edição.
+- Nenhuma tela pode regredir para aparência de formulário genérico, dashboard,
+  painel administrativo ou ferramenta técnica. Controles existem dentro da
+  linguagem visual do jogo e preservam sua função sem lixo visual ou textual.
+- Informação apresentada como atual precisa vir do estado vigente do código ou
+  de uma fonte verificada. Versões, contagens, estados de publicação e fontes
+  históricas não são reutilizados como estado atual.
 - Mantenha palavras inteiras e títulos legíveis. O espaço disponível deve
   reorganizar a composição antes de cortar letras, sobrepor campos ou quebrar
   palavras.

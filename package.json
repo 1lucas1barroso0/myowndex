@@ -1,6 +1,6 @@
 {
   "name": "myowndex",
-  "version": "11.6.0",
+  "version": "11.6.1",
   "description": "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para RPG de Pokémon.",
   "private": true,
   "homepage": "https://myowndex.vercel.app",
@@ -20,7 +20,8 @@
     "start": "next start --hostname 0.0.0.0",
     "test": "node --test tests/*.unit.test.mjs",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit --incremental false"
+    "typecheck": "tsc --noEmit --incremental false",
+    "freshness": "node scripts/verificar-fontes-atuais.mjs"
   },
   "dependencies": {
     "fflate": "0.8.3",

@@ -26,6 +26,10 @@ jobs:
           cache: npm
       - name: Instalar dependências verificadas
         run: npm ci
+      - name: Confirmar fontes externas atuais
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run freshness
       - name: Testar regras e integrações
         run: npm test
       - name: Revisar o código

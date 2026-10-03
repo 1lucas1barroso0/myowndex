@@ -77,7 +77,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "1.4",
                 title: "Probabilidades e efeitos secundários",
-                body: "Para uma chance percentual inteira, role 1d100: o teste tem sucesso quando o resultado é igual ou menor que a chance. Quando a regra oficial mais recente usa uma fração exata que o d100 não representa sem arredondar, use o dado equivalente, como 1 em 8 ou 1 em 3. Com vantagem, role dois testes independentes e mantenha o melhor; com desvantagem, mantenha o pior. Se o teste do movimento superar a oposição por mais de 1, ele concede a vantagem prevista aqui."
+                body: "Para uma chance percentual inteira, role 1d100: o teste tem sucesso quando o resultado é igual ou menor que a chance. Quando a regra oficial mais recente usa uma fração exata que o d100 não representa sem arredondar, o MyOwnDex resolve essa fração diretamente, sem aproximá-la. Com vantagem, role dois testes independentes e mantenha o melhor; com desvantagem, mantenha o pior. Se o teste do movimento superar a oposição por mais de 1, ele concede a vantagem prevista aqui."
             }
         ]
     },

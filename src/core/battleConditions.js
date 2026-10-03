@@ -11,7 +11,7 @@ export const sleepDuration = (random, ability = "", rest = false) => {
     return ability === "early-bird" ? Math.floor(turns / 2) : turns;
 };
 
-export const confusionDuration = random => 2 + randomInt(3, random);
+export const confusionDuration = random => 2 + randomInt(4, random);
 
 const stageMultiplier = stage => {
     const normalized = integerInRange(stage, -6, 6, 0);

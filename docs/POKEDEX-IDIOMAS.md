@@ -31,3 +31,7 @@ Os scripts usam Python padrão e downloads dos commits fixados. Não rodam duran
 Os arquivos locais são carregados sob demanda. O cache de referência tem limites independentes de oito entradas e oito MiB estimados de texto; evicta somente dados públicos descartáveis. Ele não compartilha armazenamento com Boxes, credenciais de salas ou contas. As consultas têm timeout, deduplicação e rejeição de respostas malformadas ou maiores que o limite. Nenhum catálogo inteiro é embutido no JavaScript inicial.
 
 Uma espécie futura ausente do corpus conserva seu original do catálogo. Não inventa português nem mostra uma alternância que não pode funcionar. O corpus precisa ser ampliado e validado ao adicionar novas espécies.
+## Frescor das fontes
+
+O projeto compara diariamente os arquivos upstream relevantes com os commits fixados por proveniência. Se algum blob usado pelo MyOwnDex mudar no branch principal da fonte, a verificação falha até que a mudança seja revisada, os dados sejam regenerados quando necessário e os testes passem novamente. Um pin continua sendo chamado de atual somente enquanto o conteúdo relevante permanecer idêntico ao upstream.
+

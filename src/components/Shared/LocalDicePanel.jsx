@@ -32,7 +32,7 @@ function Faces({ record }) {
     </ol>;
 }
 
-export default function LocalDicePanel({ context="guia", onRoll, compact=false, showHeading=true, ...pokemonProps }) {
+export default function LocalDicePanel({ context="central", onRoll, compact=false, showHeading=true, ...pokemonProps }) {
     const [page,setPage]=useState("simple");
     const [draft,setDraft]=useState(DEFAULTS);
     const [history,setHistory]=useState([]);

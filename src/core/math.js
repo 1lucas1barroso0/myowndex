@@ -97,15 +97,23 @@ export const finiteProduct = (values, {
 };
 
 /**
- * MyOwnDex's tabletop rounding rule uses the ordinary half-up boundary:
- * fractional parts below 0.5 go down; 0.5 or more go up.
+ * Tabletop scaling rounds to the nearest integer. Exact halves go down by
+ * default; HP can opt into the opposite tie-break without changing the rule
+ * used by damage, stages or other values.
  */
-export const roundRpgScaledValue = (value, { minimumWhenPositive = 0, maximum = MAX_SAFE_GAME_INTEGER } = {}) => {
+export const roundRpgScaledValue = (value, {
+    minimumWhenPositive = 0,
+    maximum = MAX_SAFE_GAME_INTEGER,
+    halfUp = false,
+} = {}) => {
     const normalized = clampFinite(value, 0, maximum, 0);
     if (normalized <= 0) return 0;
     const whole = Math.floor(normalized);
     const fraction = normalized - whole;
-    const rounded = fraction + Number.EPSILON * 16 >= 0.5 ? Math.ceil(normalized) : whole;
+    const epsilon = Number.EPSILON * 16;
+    const rounded = fraction > 0.5 + epsilon || (halfUp && fraction + epsilon >= 0.5)
+        ? Math.ceil(normalized)
+        : whole;
     return Math.min(maximum, Math.max(minimumWhenPositive, rounded));
 };
 

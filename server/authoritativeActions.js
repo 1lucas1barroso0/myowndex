@@ -12,7 +12,7 @@ import {
 } from "../src/core/automation.js";
 import { formatName } from "../src/core/mechanics.js";
 import { finiteNumberOrNull, integerInRange, MAX_SAFE_GAME_INTEGER } from "../src/core/math.js";
-import { createSecureUint32Source } from "../src/core/random.js";
+import { createSecureUint32Source, rollDie } from "../src/core/random.js";
 import {
     advanceInitiative,
     applyEndOfRoundEffects,
@@ -27,13 +27,15 @@ import { checkActionConditions } from "../src/core/battleConditions.js";
 import { CAPTURE_BALLS, captureTrainerKey, rollCapture } from "../src/core/capture.js";
 import { getCurrentMoveReference } from "../src/core/championsMoves.js";
 
-const ACTIONS = new Set(["quick-attribute", "quick-percent", "initiative", "advance-turn", "combat", "capture"]);
+const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
+const FREE_DICE_SIDES = new Set([4, 6, 8, 10, 12, 20, 100]);
 const STATE_ACTIONS = new Set(["initiative", "advance-turn", "combat", "capture"]);
 const COMMON_KEYS = new Set(["requestId", "action"]);
 const ACTION_KEYS = Object.freeze({
-    "quick-attribute": new Set(["mode", "attribute"]),
-    "quick-percent": new Set(["mode", "chance"]),
+    "quick-attribute": new Set(["mode", "attribute", "opposition", "label"]),
+    "quick-percent": new Set(["mode", "chance", "label"]),
+    "quick-free": new Set(["quantity", "sides", "modifier", "label"]),
     initiative: new Set(["expectedRevision"]),
     "advance-turn": new Set(["expectedRevision"]),
     combat: new Set(["expectedRevision", "attackerId", "defenderId", "moveName", "calledMoveName", "mode"]),
@@ -105,19 +107,38 @@ export const normalizeAuthoritativeRequest = input => {
     }
 
     if (action === "quick-attribute") {
+        const opposition = input.opposition === "" || input.opposition == null ? null : exactInteger(input.opposition, -99999, 99999, "A dificuldade");
+        const label = text(input.label, 80);
         return {
             requestId,
             action,
             mode: requiredMode(input.mode),
             attribute: exactInteger(input.attribute ?? 0, -99999, 99999, "O modificador"),
+            ...(opposition == null ? {} : { opposition }),
+            ...(label ? { label } : {}),
         };
     }
     if (action === "quick-percent") {
+        const label = text(input.label, 80);
         return {
             requestId,
             action,
             mode: requiredMode(input.mode),
             chance: exactInteger(input.chance ?? 50, 0, 100, "A chance"),
+            ...(label ? { label } : {}),
+        };
+    }
+    if (action === "quick-free") {
+        const sides = exactInteger(input.sides ?? 6, 4, 100, "O dado");
+        if (!FREE_DICE_SIDES.has(sides)) throw new AuthoritativeActionError("Escolha d4, d6, d8, d10, d12, d20 ou d100.");
+        const label = text(input.label, 80);
+        return {
+            requestId,
+            action,
+            quantity: exactInteger(input.quantity ?? 1, 1, 20, "A quantidade"),
+            sides,
+            modifier: exactInteger(input.modifier ?? 0, -99999, 99999, "O modificador"),
+            ...(label ? { label } : {}),
         };
     }
 
@@ -269,12 +290,18 @@ const roundEffectSummary = effect => {
 };
 
 const quickAttribute = (request, random) => {
-    const test = rollAttributeTest({ mode: request.mode, attribute: request.attribute, random });
+    const test = rollAttributeTest({ mode: request.mode, attribute: request.attribute, opposition: request.opposition, random });
     const suggestion = test.fumble ? getFumbleSuggestion(random) : "";
     return {
         result: {
-            title: test.critical ? "Crítico potencial" : test.fumble ? "Erro crítico" : `Total ${test.total}`,
-            detail: suggestion || `${test.dice.join(" • ")}${test.attribute ? ` + ${test.attribute}` : ""}`,
+            title: test.critical
+                ? "Crítico potencial"
+                : test.fumble
+                    ? "Erro crítico"
+                    : test.success == null
+                        ? `Total ${test.total}`
+                        : `${test.success ? "Sucesso" : "Falha"} · ${test.total}`,
+            detail: suggestion || `${test.dice.join(" • ")}${test.attribute ? ` + ${test.attribute}` : ""}${request.opposition == null ? "" : ` · dificuldade ${request.opposition}`}`,
         },
         nextSnapshot: null,
         audit: {
@@ -282,7 +309,7 @@ const quickAttribute = (request, random) => {
             mode: test.mode,
             rawDice: test.dice,
             keptDice: test.kept,
-            modifiers: { modifier: test.attribute },
+            modifiers: { modifier: test.attribute, opposition: request.opposition },
             result: test.total,
             success: test.success,
             critical: test.critical,
@@ -291,7 +318,7 @@ const quickAttribute = (request, random) => {
         },
         eventType: "roll",
         eventPayload: {
-            label: request.mode === "advantage" ? "teste simples com vantagem" : request.mode === "disadvantage" ? "teste simples com desvantagem" : "teste simples",
+            label: request.label || (request.mode === "advantage" ? "teste simples com vantagem" : request.mode === "disadvantage" ? "teste simples com desvantagem" : "teste simples"),
             mode: test.mode,
             result: test.total,
             dice: test.dice,
@@ -325,16 +352,51 @@ const quickPercent = (request, random) => {
         },
         eventType: "roll",
         eventPayload: {
-            label: test.advantage
+            label: request.label || (test.advantage
                 ? "teste percentual com vantagem"
                 : test.disadvantage
                     ? "teste percentual com desvantagem"
-                    : "teste percentual",
+                    : "teste percentual"),
             mode: test.mode,
             result: test.result,
             rolls: test.rolls,
             chance: test.chance,
             success: test.success,
+        },
+        sfxPayload: null,
+    };
+};
+
+const quickFree = (request, random) => {
+    const dice = Array.from({ length: request.quantity }, () => rollDie(request.sides, random));
+    const total = dice.reduce((sum, value) => sum + value, 0) + request.modifier;
+    const modifier = request.modifier
+        ? ` ${request.modifier > 0 ? "+" : "−"} ${Math.abs(request.modifier)}`
+        : "";
+    return {
+        result: {
+            title: `Total ${total}`,
+            detail: `${dice.join(" • ")}${modifier}`,
+        },
+        nextSnapshot: null,
+        audit: {
+            type: "free",
+            mode: "normal",
+            rawDice: dice,
+            keptDice: dice,
+            modifiers: { modifier: request.modifier },
+            result: total,
+            success: null,
+            critical: false,
+            fumble: false,
+        },
+        eventType: "roll",
+        eventPayload: {
+            label: request.label || `${request.quantity}d${request.sides}`,
+            mode: "normal",
+            result: total,
+            dice,
+            modifier: request.modifier,
         },
         sfxPayload: null,
     };
@@ -711,6 +773,7 @@ export const resolveCaptureAction = ({ request, snapshot, role, species, random 
 export const resolveAuthoritativeAction = ({ request, snapshot, role, move = null, calledMove = null, species = null, random }) => {
     if (request.action === "quick-attribute") return quickAttribute(request, random);
     if (request.action === "quick-percent") return quickPercent(request, random);
+    if (request.action === "quick-free") return quickFree(request, random);
     if (request.action === "capture") return resolveCaptureAction({ request, snapshot, role, species, random });
     if (request.action === "initiative") {
         if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode formar a iniciativa.", 403);

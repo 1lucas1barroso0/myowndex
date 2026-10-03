@@ -167,7 +167,7 @@ test("history retains the newest hundred and exports full original parameters an
   const event=localRollEvent(records[0]);assert.deepEqual(event.rolls,[70,30]);assert.equal(event.result,30);
 });
 
-test("global dice retain their context in the same bounded history as Guide and Adventure rolls", () => {
+test("current dice contexts stay central or Adventure while legacy Guide receipts remain readable", () => {
   const storage = new MemoryStorage();
   for (const [index, context] of ["guia", "aventura", "central"].entries()) {
     const record = performLocalRoll({ label: context }, { ...options, id: `context-${index}`, context, createdAt: options.createdAt + index, random: faces([3, 4]) });
@@ -176,6 +176,7 @@ test("global dice retain their context in the same bounded history as Guide and 
   }
   const records = readLocalRolls(storage);
   assert.deepEqual(records.map(record => record.context), ["central", "aventura", "guia"]);
+  assert.equal(performLocalRoll({}, { ...options, id: "default-context", random: faces([3, 4]) }).context, "central");
   assert.match(localRollText(records[0]), /central · Rolagem local/);
   assert.deepEqual(records.map(record => record.total), [7, 7, 7]);
 });

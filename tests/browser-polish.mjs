@@ -269,7 +269,9 @@ try {
     assert.match(await protection.innerText(), /Focus Sash/);
     assert.match(await protection.innerText(), /Substitute/);
     assert.match(await protection.innerText(), /Shedinja/);
-    const dice = page.locator('.local-dice-panel');
+    await page.getByRole('button', { name: 'Abrir Dados', exact: true }).click();
+    const diceDialog = page.getByRole('dialog', { name: 'Dados', exact: true });
+    const dice = diceDialog.locator('.local-dice-panel');
     const free = dice.locator('.local-dice-tabs button').filter({ hasText: 'dX' });
     await free.click();
     assert.equal(await free.locator('small').innerText(), 'Livre');

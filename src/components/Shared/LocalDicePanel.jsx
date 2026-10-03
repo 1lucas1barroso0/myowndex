@@ -32,11 +32,12 @@ function Faces({ record }) {
     </ol>;
 }
 
-export default function LocalDicePanel({ context="guia", onRoll, compact=false, showHeading=true, ...pokemonProps }) {
+export default function LocalDicePanel({ context="central", onRoll, compact=false, showHeading=true, ...pokemonProps }) {
     const [page,setPage]=useState("simple");
     const [draft,setDraft]=useState(DEFAULTS);
     const [history,setHistory]=useState([]);
     const [result,setResult]=useState(null);
+    const [remoteResult,setRemoteResult]=useState(null);
     const [busy,setBusy]=useState(false);
     const [ready,setReady]=useState(false);
     const [error,setError]=useState("");
@@ -46,17 +47,19 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
     const [accountApplying,setAccountApplying]=useState(false);
     const applyingAccount=useRef(false);
     const lock=useRef(false), unlockTimer=useRef(null), alive=useRef(true);
+    const inAdventure=context==="aventura";
+    const remoteAdventure=inAdventure && Boolean(pokemonProps.remote) && typeof pokemonProps.onAuthoritativeAction==="function";
     useEffect(()=>{
         alive.current=true;
         const saved=readStorage(preferenceKey,null);
         if(saved) { try { setDraft({...DEFAULTS,...localRollSpec(saved)}); } catch { /* Invalid drafts cannot silently change a roll. */ } }
-        const records=readLocalRolls(); setHistory(records); setResult(records.find(r=>!r.legacy) || null);
-        void readLocalRollHistoryDurable().then(next=>{if(alive.current){setHistory(next);setResult(next.find(r=>!r.legacy)||null);setReady(true);}});
+        const records=readLocalRolls(); setHistory(records); setResult(inAdventure ? null : records.find(r=>!r.legacy) || null);
+        void readLocalRollHistoryDurable().then(next=>{if(alive.current){setHistory(next);setResult(inAdventure ? null : next.find(r=>!r.legacy)||null);setReady(true);}});
         const refresh=()=>{
             void readLocalRollHistoryDurable().then(next=>{
                 if(!alive.current)return;
                 setHistory(next);
-                setResult(current=>current && next.some(entry=>entry.id===current.id) ? current : next.find(entry=>!entry.legacy) || null);
+                if(!inAdventure) setResult(current=>current && next.some(entry=>entry.id===current.id) ? current : next.find(entry=>!entry.legacy) || null);
             });
         };
         const sync=event=>{
@@ -92,15 +95,30 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
     const roll=async event=>{
         event.preventDefault();
         if(lock.current || applyingAccount.current || !ready || configuration.error) return;
-        lock.current=true; setBusy(true); setError(""); setFeedback("");
+        lock.current=true; setBusy(true); setError(""); setFeedback(""); setRemoteResult(null);
         let receipt;
         try {
+            const spec=configuration.spec;
+            if(remoteAdventure) {
+                const request=spec.kind==="attribute"
+                    ? {action:"quick-attribute",mode:spec.mode,attribute:spec.attribute,opposition:spec.opposition,label:spec.label}
+                    : spec.kind==="percent"
+                        ? {action:"quick-percent",mode:spec.mode,chance:spec.chance,label:spec.label}
+                        : {action:"quick-free",quantity:spec.quantity,sides:spec.sides,modifier:spec.modifier,label:spec.label};
+                const authoritative=await pokemonProps.onAuthoritativeAction(request);
+                if(alive.current){setResult(null);setRemoteResult({...authoritative,spec});}
+                return;
+            }
             receipt=performLocalRoll(draft,{context});
-            // Result and history use this same receipt. Effects never generate dice.
-            const persisted=await saveLocalRollDurable(receipt);
-            setResult(receipt); setHistory(current=>mergeLocalRolls([receipt],current,readLocalRolls()));
-            if(!persisted) setFeedback("O resultado continua na tela, mas não entrou no histórico.");
-            if(onRoll) await onRoll(localRollEvent(receipt));
+            setResult(receipt);
+            if(inAdventure) {
+                if(typeof pokemonProps.onEvent==="function") await pokemonProps.onEvent("roll",localRollEvent(receipt));
+            } else {
+                const persisted=await saveLocalRollDurable(receipt);
+                setHistory(current=>mergeLocalRolls([receipt],current,readLocalRolls()));
+                if(!persisted) setFeedback("O resultado continua na tela, mas não entrou no histórico.");
+                if(onRoll) await onRoll(localRollEvent(receipt));
+            }
         } catch(e) {
             if(alive.current) setError(receipt ? "O resultado continua na tela, mas não entrou na aventura. Nenhuma nova rolagem foi feita." : e instanceof Error ? e.message : "Não foi possível concluir a rolagem. Nenhum resultado novo foi gerado.");
         } finally {
@@ -137,8 +155,8 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
     const changed=result && !result.legacy && configuration.spec && JSON.stringify(result.spec)!==JSON.stringify(configuration.spec);
     return <section className={`local-dice-panel ${compact ? "is-compact" : "game-panel"}`} aria-label="Dados">
         {showHeading && <header className="local-dice-heading"><div><h3>Dados</h3></div></header>}
-        <div className="local-dice-pages" aria-label="Escolher tipo de jogada"><button type="button" aria-pressed={page==="simple"} onClick={()=>setPage("simple")}>Rolagens</button><button type="button" aria-pressed={page==="pokemon"} onClick={()=>setPage("pokemon")}>Pokémon</button></div>
-        <div hidden={page!=="simple"}>
+        {!inAdventure && <div className="local-dice-pages" aria-label="Escolher tipo de jogada"><button type="button" aria-pressed={page==="simple"} onClick={()=>setPage("simple")}>Rolagens</button><button type="button" aria-pressed={page==="pokemon"} onClick={()=>setPage("pokemon")}>Campo</button></div>}
+        <div hidden={!inAdventure && page!=="simple"}>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
             <fieldset disabled={busy || accountApplying}><legend className="sr-only">Configurar rolagem</legend>
                 <div className="local-dice-tabs" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste"],["percent","d100","Chance"],["free","dX","Livre"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
@@ -161,8 +179,9 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
         </form>
         {error && <p className="local-dice-feedback is-error" role="alert">{error}</p>}
         </div>
-        <div hidden={page!=="pokemon"}><LocalPokemonDice {...pokemonProps} accountApplying={accountApplying} isAccountApplying={()=>applyingAccount.current} context={context} onReceipt={record=>{setResult(record);setHistory(current=>mergeLocalRolls([record],current,readLocalRolls()));}} /></div>
+        {!inAdventure && <div hidden={page!=="pokemon"}><LocalPokemonDice {...pokemonProps} accountApplying={accountApplying} isAccountApplying={()=>applyingAccount.current} context={context} onReceipt={record=>{setResult(record);setRemoteResult(null);setHistory(current=>mergeLocalRolls([record],current,readLocalRolls()));}} /></div>}
         {feedback && <p className="local-dice-feedback" role="status">{feedback}</p>}
+        {remoteResult && <article className="local-dice-result is-shared" aria-live="polite" aria-atomic="true"><header><div><small>{remoteResult.spec.label || rollLabel(remoteResult.spec)}</small><h4>{remoteResult.title}</h4></div></header><p>{remoteResult.detail}</p></article>}
         {result?.version===3 && <article className="local-dice-result local-pokemon-receipt" aria-live="polite"><header><h4>{result.spec.label}</h4><RollTimestamp value={result.createdAt} /></header><p>{result.detail}</p>{result.groups.map((group,index)=><p key={index}><strong>{group.label}</strong> · {group.values.join(" · ")}</p>)}{result.success!=null && <strong className={result.success?"is-success":"is-failure"}>{result.success?"Sucesso":"Falha"}</strong>}</article>}
         {result?.version===2 && !result.legacy && <article className="local-dice-result" key={result.id} aria-live="polite" aria-atomic="true">
             <header><div><small>{rollLabel(result.spec)}</small><h4>{result.spec.label || "Resultado"}</h4></div><strong className="local-dice-total">{result.total}</strong></header>
@@ -171,19 +190,19 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
             {result.suggestion && <p>Sugestão para o erro crítico: {result.suggestion}</p>}
             {changed && <><small className="local-dice-config-note">Os ajustes mudaram desde esta rolagem.</small><div className="local-dice-result-actions"><button type="button" disabled={busy} onClick={()=>setDraft({...DEFAULTS,...result.spec})}>Usar de novo</button></div></>}
         </article>}
-        <details className="local-dice-history"><summary><span>Histórico</span><b>{history.length} {history.length===1 ? "rolagem" : "rolagens"}</b></summary><div>
+        {!inAdventure && <details className="local-dice-history"><summary><span>Histórico</span><b>{history.length} {history.length===1 ? "rolagem" : "rolagens"}</b></summary><div>
             <p>{history.length ? "Escolha uma rolagem para vê-la novamente." : "Suas rolagens aparecem aqui."}</p>
             <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar histórico</button><button type="button" className="is-clear" disabled={!history.length || busy || accountApplying} onClick={()=>setClearPending(true)}>Apagar histórico</button></div>
             {history.length>0 && <ol>{history.map(entry=><li key={entry.id}><div className="local-dice-history-entry"><button type="button" disabled={Boolean(entry.legacy)} aria-pressed={!entry.legacy && result?.id===entry.id} onClick={()=>{setResult(entry);setFeedback("");}}><span>{entry.spec.label || kindLabel(entry.spec)} <small>{entry.context==="aventura" ? "Aventura" : entry.context==="central" ? "Dados" : "Guia"} · <RollTimestamp value={entry.createdAt} /></small></span><span className="local-dice-history-result">{entry.version!==3 && <b>{entry.total}</b>}{!entry.legacy && rollOutcome(entry) && <small className={`local-dice-history-outcome ${entry.fumble || entry.success===false ? "is-failure" : "is-success"}`}>{rollOutcome(entry)}</small>}</span></button><button type="button" className="local-dice-delete-receipt" disabled={busy || accountApplying} onClick={()=>setDeletePending(entry)} aria-label={`Apagar rolagem de ${entry.spec.label || kindLabel(entry.spec)}`} title="Apagar rolagem"><span aria-hidden="true">⌫</span></button></div></li>)}</ol>}
-        </div></details>
-        <ConfirmDialog
+        </div></details>}
+        {!inAdventure && <ConfirmDialog
             open={clearPending}
             title="Apagar histórico de rolagens?"
             description="As rolagens salvas serão apagadas. O Diário das aventuras continua como está."
             confirmLabel="Apagar histórico"
             onConfirm={clearHistory}
             onCancel={()=>setClearPending(false)}
-        />
-        <ConfirmDialog open={Boolean(deletePending)} title="Apagar esta rolagem?" description="Só esta rolagem sai do histórico. O restante do jogo continua como está." confirmLabel="Apagar rolagem" onConfirm={()=>void deleteReceipt()} onCancel={()=>setDeletePending(null)} />
+        />}
+        {!inAdventure && <ConfirmDialog open={Boolean(deletePending)} title="Apagar esta rolagem?" description="Só esta rolagem sai do histórico. O restante do jogo continua como está." confirmLabel="Apagar rolagem" onConfirm={()=>void deleteReceipt()} onCancel={()=>setDeletePending(null)} />}
     </section>;
 }

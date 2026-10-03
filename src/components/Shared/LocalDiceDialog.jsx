@@ -4,7 +4,7 @@ import PokemonCompanion from "./PokemonCompanion.jsx";
 
 /** Native modal keeps keyboard focus inside, makes the background inert and
  * remains in the app's theme inheritance even when presented in the top layer. */
-export default function LocalDiceDialog({ open, onClose, ...diceProps }) {
+export default function LocalDiceDialog({ open, onClose, context = "central", ...diceProps }) {
     const dialogRef = useRef(null);
     const closeRef = useRef(null);
     const onCloseRef = useRef(onClose);
@@ -50,7 +50,7 @@ export default function LocalDiceDialog({ open, onClose, ...diceProps }) {
                 <PokemonCompanion place="dice" className="companion-compact" eager />
                 <button ref={closeRef} type="button" className="local-dice-dialog-close" aria-label="Fechar dados" onClick={() => onCloseRef.current?.()}>×</button>
             </header>
-            <div className="local-dice-dialog-content"><LocalDicePanel {...diceProps} context="central" compact showHeading={false} /></div>
+            <div className="local-dice-dialog-content"><LocalDicePanel {...diceProps} context={context} compact showHeading={false} /></div>
         </>}
     </dialog>;
 }

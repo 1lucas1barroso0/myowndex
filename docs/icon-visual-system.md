@@ -12,6 +12,7 @@ O MyOwnDex combina a organização ampla dos menus de Pokémon Sword/Shield com 
 - Toda superfície continua reconhecível como parte de um jogo Pokémon, inclusive contas, Dados, importação, configurações, erros e estados vazios. Nenhuma função vira dashboard, formulário genérico ou painel administrativo para economizar espaço.
 - Não há placeholders. Rótulos, ajuda e exemplos necessários pertencem à composição da tela, não desaparecem quando a pessoa começa a digitar.
 - Conteúdo atual não convive com cópias ou referências obsoletas apresentadas como vigentes; histórico deve ser claramente histórico.
+- Uma função principal tem um único lar visível. Dados permanece no acesso global e se adapta ao contexto; a Aventura não repete rolagens, histórico ou ferramentas Pokémon que já existem em outro lugar.
 
 ## Conteúdo e tamanho
 

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import { formatNumberPtBr } from "../../core/mechanics.js";
-import LocalDicePanel from "../Shared/LocalDicePanel.jsx";
 import {
     EXPERIENCE_MODES,
     getDamageCeiling,
@@ -54,7 +53,7 @@ function HitKillOverview({ showFacts = false }) {
     );
 }
 
-export default function TrainerGuide({ experienceMode, teams = [], setTeams }) {
+export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
@@ -135,7 +134,6 @@ export default function TrainerGuide({ experienceMode, teams = [], setTeams }) {
                 </article>
 
                 <aside className="guide-tools" aria-label="Ferramentas do guia">
-                    <LocalDicePanel teams={teams} setTeams={setTeams} experienceMode={experienceMode} />
                     <details className="game-panel guide-calculator">
                         <summary>Conversão para o RPG</summary>
                         <div className="guide-calculator-content">

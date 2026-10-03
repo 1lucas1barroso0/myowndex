@@ -34,9 +34,9 @@ const pass=name=>console.log(`PASS ${name}`);
 const openDetails=async locator=>{if(!await locator.evaluate(element=>element.open))await locator.locator(":scope > summary").click();};
 try {
     await page.goto(process.env.MYOWNDEX_SMOKE_URL || "http://localhost:3000");
-    await page.getByRole("button",{name:"Abrir dados locais",exact:true}).filter({visible:true}).first().click();
-    let dialog=page.getByRole("dialog",{name:"Dados locais",exact:true});
-    await dialog.getByRole("button",{name:"Pokémon",exact:true}).click();
+    await page.getByRole("button",{name:"Abrir Dados",exact:true}).filter({visible:true}).first().click();
+    let dialog=page.getByRole("dialog",{name:"Dados",exact:true});
+    await dialog.getByRole("button",{name:"Campo",exact:true}).click();
     await dialog.getByRole("combobox",{name:"Pokémon da Box",exact:true}).selectOption("dice-box:dice-bulba");
     await dialog.getByRole("button",{name:"Trazer para o campo",exact:true}).click();
     await dialog.locator(".local-pokemon-roster button").first().waitFor();
@@ -87,11 +87,11 @@ try {
 
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3"))?.some(record=>record.spec.action==="capture"));
     const count=await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3")).length);
-    await dialog.getByRole("button",{name:"Fechar dados locais",exact:true}).click();
+    await dialog.getByRole("button",{name:"Fechar dados",exact:true}).click();
     await page.reload();
-    await page.getByRole("button",{name:"Abrir dados locais",exact:true}).filter({visible:true}).first().click();
-    dialog=page.getByRole("dialog",{name:"Dados locais",exact:true});
-    await dialog.getByRole("button",{name:"Pokémon",exact:true}).click();
+    await page.getByRole("button",{name:"Abrir Dados",exact:true}).filter({visible:true}).first().click();
+    dialog=page.getByRole("dialog",{name:"Dados",exact:true});
+    await dialog.getByRole("button",{name:"Campo",exact:true}).click();
     await page.waitForFunction(()=>document.querySelectorAll(".local-dice-dialog .local-pokemon-roster button").length===2);
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3")).length),count,"opening and rendering never create new rolls");
     pass("reload-preserves-field-and-history-without-rerolling");
@@ -106,9 +106,9 @@ try {
 
     const tab2=await context.newPage();
     await tab2.goto(process.env.MYOWNDEX_SMOKE_URL || "http://localhost:3000");
-    await tab2.getByRole("button",{name:"Abrir dados locais",exact:true}).filter({visible:true}).first().click();
-    const secondDialog=tab2.getByRole("dialog",{name:"Dados locais",exact:true});
-    await dialog.getByRole("button",{name:"Simples",exact:true}).click();
+    await tab2.getByRole("button",{name:"Abrir Dados",exact:true}).filter({visible:true}).first().click();
+    const secondDialog=tab2.getByRole("dialog",{name:"Dados",exact:true});
+    await dialog.getByRole("button",{name:"Rolagens",exact:true}).click();
     const beforeConcurrent=await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3")).length);
     await Promise.all([dialog.getByRole("button",{name:"Rolar 2d6",exact:true}).click(),secondDialog.getByRole("button",{name:"Rolar 2d6",exact:true}).click()]);
     await page.waitForFunction(count=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3"))?.length===count+2,beforeConcurrent);
@@ -122,12 +122,12 @@ try {
     await tab2.waitForFunction(()=>document.querySelector(".local-dice-dialog .local-dice-history summary b")?.textContent==="0 rolagens");
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3")).length),0);
     pass("cross-tab-history-clear-does-not-resurrect-old-receipts");
-    await dialog.getByRole("button",{name:"Pokémon",exact:true}).click();
+    await dialog.getByRole("button",{name:"Campo",exact:true}).click();
     await dialog.locator(".local-pokemon-roster button").filter({hasText:"Buba"}).click();
     const sharedConditions=dialog.locator(".room-tool").filter({has:page.getByText("Condições do campo",{exact:true})});
     await openDetails(sharedConditions);
     await sharedConditions.getByLabel("HP atual",{exact:true}).fill("4");
-    await secondDialog.getByRole("button",{name:"Pokémon",exact:true}).click();
+    await secondDialog.getByRole("button",{name:"Campo",exact:true}).click();
     await secondDialog.locator(".local-pokemon-roster button").filter({hasText:"Buba"}).click();
     const tab2Conditions=secondDialog.locator(".room-tool").filter({has:tab2.getByText("Condições do campo",{exact:true})});
     await openDetails(tab2Conditions);
@@ -136,7 +136,7 @@ try {
     pass("practice-field-refreshes-in-another-open-panel-without-changing-boxes");
     await tab2.close();
 
-    await dialog.getByRole("button",{name:"Fechar dados locais",exact:true}).click();
+    await dialog.getByRole("button",{name:"Fechar dados",exact:true}).click();
     await page.getByRole("button",{name:"Abrir a Central da Aventura",exact:true}).click();
     await page.getByRole("button",{name:"Começar uma aventura local",exact:false}).click();
     await page.getByRole("combobox",{name:"Box",exact:true}).selectOption("dice-box");
@@ -145,25 +145,20 @@ try {
     await page.getByRole("button",{name:"Entrar como aliado",exact:true}).click();
     await page.waitForFunction(()=>document.querySelectorAll(".room-token").length===2);
     const practiceBefore=await page.evaluate(()=>JSON.stringify(JSON.parse(localStorage.getItem("myowndex_local_dice_room_v1")).tokens));
-    await page.getByRole("button",{name:"Abrir dados locais",exact:true}).filter({visible:true}).first().click();
-    dialog=page.getByRole("dialog",{name:"Dados locais",exact:true});
-    await dialog.getByRole("button",{name:"Pokémon",exact:true}).click();
-    await dialog.getByText("Campo da aventura · rodada 1",{exact:true}).waitFor();
-    assert.equal(await dialog.getByRole("button",{name:"Trazer para o campo",exact:true}).count(),0,"active adventure uses its real tokens instead of adding unrelated practice partners");
-    assert.equal(await dialog.getByRole("button",{name:"Registrar progresso nas Boxes",exact:true}).count(),0,"scene progress follows the existing adventure flow");
-    const sceneInitiative=dialog.locator(".local-pokemon-initiative");
-    await openDetails(sceneInitiative);
-    await sceneInitiative.getByRole("button",{name:"Rolar iniciativa",exact:true}).click();
-    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1"))?.snapshot.initiative.length===2);
-    await sceneInitiative.getByRole("button",{name:"Próximo turno",exact:true}).click();
-    await sceneInitiative.getByRole("button",{name:"Encerrar rodada",exact:true}).click();
-    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1"))?.snapshot.round===2);
-    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3"))?.length===3);
+    const historyBeforeAdventure=await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3"))?.length || 0);
+    await page.getByRole("button",{name:"Abrir Dados",exact:true}).filter({visible:true}).first().click();
+    dialog=page.getByRole("dialog",{name:"Dados",exact:true});
+    assert.equal(await dialog.getByRole("button",{name:"Campo",exact:true}).count(),0,"Adventure hides the standalone practice field");
+    assert.equal(await dialog.locator(".local-pokemon-roster").count(),0,"Adventure does not duplicate its Pokémon tools inside Dados");
+    assert.equal(await dialog.locator(".local-dice-history").count(),0,"Adventure uses its own Diary instead of a second roll history");
+    await dialog.getByRole("button",{name:"Rolar 2d6",exact:true}).click();
+    await dialog.locator(".local-dice-result").waitFor();
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1"))?.events?.some(event=>event.type==="roll"));
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3"))?.length || 0),historyBeforeAdventure,"adventure rolls do not duplicate receipts in standalone history");
     assert.equal(await page.evaluate(()=>JSON.stringify(JSON.parse(localStorage.getItem("myowndex_local_dice_room_v1")).tokens)),practiceBefore,"adventure rolls preserve the independent practice field");
-    await dialog.getByRole("button",{name:"Fechar dados locais",exact:true}).click();
-    await page.waitForFunction(()=>document.querySelector(".room-tools .local-dice-history > summary b")?.textContent==="3 rolagens");
-    assert.equal(await page.locator(".room-tools .local-dice-history > summary b").innerText(),"3 rolagens","global and adventure panels share the same receipts");
-    pass("global-pokemon-dice-use-live-adventure-context-and-preserve-practice-field");
+    await dialog.getByRole("button",{name:"Fechar dados",exact:true}).click();
+    assert.equal(await page.locator(".room-tools .local-dice-panel").count(),0,"Adventure tools no longer embed another Dados panel");
+    pass("adventure-dice-is-contextual-without-duplicating-field-or-history");
     assert.deepEqual(errors,[]);
     console.log("PASS no-runtime-errors");
 } finally {await browser.close();}

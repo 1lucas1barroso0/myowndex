@@ -28,15 +28,18 @@ test("old cached clients cannot post official rolls, moves or patch mechanical t
   assert.match(roomServer, /upgradeRequired: true/);
 });
 
-test("remote Quick Roller and combat return before any local mechanical RNG", async () => {
-  const [room, combat] = await Promise.all([
-    read("src/components/Room/RpgRoom.jsx"),
+test("remote Dados and combat return before any local mechanical RNG", async () => {
+  const [dice, combat] = await Promise.all([
+    read("src/components/Shared/LocalDicePanel.jsx"),
     read("src/components/Room/CombatAssistant.jsx"),
   ]);
-  const quick = room.slice(room.indexOf("function QuickRoller"), room.indexOf("function NoteField"));
-  assert.match(quick, /if \(local\) return <LocalDicePanel context="aventura"/);
-  assert.match(quick, /await onAuthoritativeAction\(/);
-  assert.doesNotMatch(quick, /rollAttributeTest|rollPercentTest|performLocalRoll/);
+  const remoteStart = dice.indexOf("if(remoteAdventure)");
+  const localStart = dice.indexOf("receipt=performLocalRoll", remoteStart);
+  const remoteBranch = dice.slice(remoteStart, localStart);
+  assert.ok(remoteStart >= 0 && localStart > remoteStart);
+  assert.match(remoteBranch, /await pokemonProps\.onAuthoritativeAction\(request\)/);
+  assert.match(remoteBranch, /action:"quick-free"/);
+  assert.doesNotMatch(remoteBranch, /performLocalRoll|rollAttributeTest|rollPercentTest/);
   const resolve = combat.slice(combat.indexOf("const resolve = async"), combat.indexOf("const targetDescription"));
   const localCall = resolve.indexOf("resolveCombatAction({");
   assert.ok(localCall > resolve.indexOf("if (remote)"));

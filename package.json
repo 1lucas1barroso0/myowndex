@@ -20,7 +20,8 @@
     "start": "next start --hostname 0.0.0.0",
     "test": "node --test tests/*.unit.test.mjs",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit --incremental false"
+    "typecheck": "tsc --noEmit --incremental false",
+    "freshness": "node scripts/verificar-fontes-atuais.mjs"
   },
   "dependencies": {
     "fflate": "0.8.3",

@@ -74,16 +74,16 @@ html .app-root.game-edition.handheld-edition .room-tool[open] > summary {
   border-bottom: 1px solid var(--ui-line);
   padding-bottom: .75rem;
 }
-html .app-root.game-edition.handheld-edition :is(.combat-grid, .quick-roll-controls) {
+html .app-root.game-edition.handheld-edition .combat-grid {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 1.25rem;
   margin: 0 0 1.25rem;
 }
-html .app-root.game-edition.handheld-edition :is(.combat-grid, .quick-roll-controls) label {
+html .app-root.game-edition.handheld-edition .combat-grid label {
   gap: .5rem;
 }
-html .app-root.game-edition.handheld-edition :is(.combat-grid, .quick-roll-controls) label > span:not(.room-select) {
+html .app-root.game-edition.handheld-edition .combat-grid label > span:not(.room-select) {
   color: var(--ui-muted);
   font-size: .85rem;
   font-weight: 750;
@@ -151,7 +151,7 @@ html .app-root.game-edition.handheld-edition .capture-metrics dd {
   font-weight: 750;
 }
 @container room-tool (min-width: 33rem) {
-  html .app-root.game-edition.handheld-edition :is(.combat-grid, .quick-roll-controls, .capture-metrics) {
+  html .app-root.game-edition.handheld-edition :is(.combat-grid, .capture-metrics) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

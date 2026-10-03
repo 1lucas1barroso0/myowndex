@@ -102,7 +102,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
             if(!persisted) setFeedback("O resultado continua na tela, mas não entrou no histórico.");
             if(onRoll) await onRoll(localRollEvent(receipt));
         } catch(e) {
-            if(alive.current) setError(receipt ? "O resultado foi preservado, mas não pôde ser registrado na cena. Não houve uma nova rolagem." : e instanceof Error ? e.message : "Não foi possível concluir a rolagem. Nenhum resultado novo foi gerado.");
+            if(alive.current) setError(receipt ? "O resultado continua na tela, mas não entrou na aventura. Nenhuma nova rolagem foi feita." : e instanceof Error ? e.message : "Não foi possível concluir a rolagem. Nenhum resultado novo foi gerado.");
         } finally {
             if(alive.current) unlockTimer.current=setTimeout(()=>{lock.current=false;setBusy(false);},350);
         }
@@ -132,7 +132,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
         if(!alive.current)return;
         setHistory(next);
         setResult(current=>current?.id===id ? next.find(entry=>!entry.legacy)||null : current);
-        setFeedback("Registro apagado.");
+        setFeedback("Rolagem apagada.");
     };
     const changed=result && !result.legacy && configuration.spec && JSON.stringify(result.spec)!==JSON.stringify(configuration.spec);
     return <section className={`local-dice-panel ${compact ? "is-compact" : "game-panel"}`} aria-label="Dados">

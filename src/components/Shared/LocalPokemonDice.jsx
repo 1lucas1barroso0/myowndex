@@ -145,7 +145,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
     };
 
     const runAction = request=>trackWork(async()=>{
-        if(isAccountApplying?.())throw new Error("Aguarde a sincronização da conta.");
+        if(isAccountApplying?.())throw new Error("Aguarde a conta terminar de atualizar.");
         if(actionLock.current) throw new Error("Aguarde a jogada em andamento.");
         actionLock.current=true;setBusy(true);setNotice("");
         try {

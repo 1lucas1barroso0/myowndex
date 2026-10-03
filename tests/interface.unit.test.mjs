@@ -192,7 +192,7 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   assert.doesNotMatch(panel, /Probabilidades|Resultados possíveis|Superar dificuldade:|local-dice-equation/);
   assert.match(panel, /Histórico/);
   assert.match(rolls, /myowndex_guide_roll_history_v1/);
-  assert.match(panel, /Suas rolagens aparecem aqui/);
+  assert.match(panel, /Nenhuma rolagem ainda/);
   assert.match(panel, /Apagar histórico/);
   assert.match(rolls, /clearLocalRolls/);
   assert.match(panel, /if\(lock\.current \|\| applyingAccount\.current \|\| !ready/, "rolls stay locked during an account merge as well as during a pending receipt");

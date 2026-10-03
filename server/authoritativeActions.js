@@ -318,7 +318,7 @@ const quickAttribute = (request, random) => {
         },
         eventType: "roll",
         eventPayload: {
-            label: request.label || (request.mode === "advantage" ? "teste simples com vantagem" : request.mode === "disadvantage" ? "teste simples com desvantagem" : "teste simples"),
+            label: request.label || (request.mode === "advantage" ? "teste com vantagem" : request.mode === "disadvantage" ? "teste com desvantagem" : "teste"),
             mode: test.mode,
             result: test.total,
             dice: test.dice,

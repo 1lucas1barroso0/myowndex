@@ -1,5 +1,5 @@
-/* Local rolls share the application's palette. Fields reflow by available space,
-   so the Guide and the Adventure sidebar use the same compact controls. */
+/* One dice surface, sharing the game's palette. Controls reflow by available
+   space without adding a second panel to the Guide or Adventure. */
 html .app-root.game-edition.handheld-edition .local-dice-panel {
   container: local-dice / inline-size;
   min-width: 0 !important;
@@ -20,7 +20,7 @@ html .app-root.game-edition.handheld-edition .local-dice-panel h3 { font-size: 1
 html .app-root.game-edition.handheld-edition .local-dice-panel h4 { font-size: 1rem !important; font-weight: 750 !important; line-height: 1.45 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel small { font-size: .85rem !important; line-height: 1.55 !important; color: var(--ui-muted) !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel :is(h3,p,small,label,summary,button) { overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; }
-html .app-root.game-edition.handheld-edition .local-dice-panel h4 { overflow-wrap: break-word !important; }
+html .app-root.game-edition.handheld-edition .local-dice-panel h4 { overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: pretty; }
 html .app-root.game-edition.handheld-edition .local-dice-controls { border: 0 !important; padding: 0 !important; background: transparent !important; }
 html .app-root.game-edition.handheld-edition .local-dice-controls fieldset { padding: 0 !important; margin: 0 !important; border: 0 !important; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel button:not(.room-primary-button) { min-height: 44px !important; height: auto !important; padding: .65rem .75rem !important; border: 1px solid var(--ui-line) !important; border-radius: .3rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; font-weight: 650 !important; font-size: .9rem !important; line-height: 1.45 !important; white-space: normal !important; box-shadow: none !important; }
@@ -75,7 +75,7 @@ html .app-root.game-edition.handheld-edition .local-dice-history li { padding: .
 html .app-root.game-edition.handheld-edition .local-dice-history-entry { display: grid; grid-template-columns: minmax(0,1fr) 44px; align-items: start; gap: .5rem; }
 html .app-root.game-edition.handheld-edition .local-dice-history .local-dice-delete-receipt { justify-content: center !important; width: 44px !important; padding: .65rem .3rem !important; color: var(--ui-accent) !important; background: transparent !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history li button { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; width: 100% !important; text-align: left !important; }
-html .app-root.game-edition.handheld-edition .local-dice-history li button > span { flex: 1 1 auto !important; min-width: 0 !important; overflow-wrap: break-word !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history li button > span { flex: 1 1 auto !important; min-width: 0 !important; overflow-wrap: normal !important; text-wrap: pretty; }
 html .app-root.game-edition.handheld-edition .local-dice-history li button b { flex: 0 0 auto !important; color: var(--ui-blue) !important; font-size: 1.1rem !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .local-dice-history-result { display: grid !important; flex: 0 0 auto !important; justify-items: end !important; gap: .1rem !important; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history li button[aria-pressed="true"] { border-color: var(--ui-blue) !important; background: var(--ui-selected) !important; }
@@ -264,7 +264,8 @@ html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-primary-b
   html .app-root.game-edition.handheld-edition .local-dice-tabs { gap: .35rem !important; }
   html .app-root.game-edition.handheld-edition .local-dice-tabs button { padding-inline: .35rem !important; }
   html .app-root.game-edition.handheld-edition .local-dice-history-entry { grid-template-columns: minmax(0,1fr) 44px; }
-  html .app-root.game-edition.handheld-edition .local-dice-history li button { align-items: center !important; }
+  html .app-root.game-edition.handheld-edition .local-dice-history li button:not(.local-dice-delete-receipt) { flex-direction: column !important; align-items: stretch !important; gap: .5rem !important; }
+  html .app-root.game-edition.handheld-edition .local-dice-history-result { display: flex !important; flex-wrap: wrap; align-items: center; gap: .5rem !important; }
 }
 @container local-dice (min-width: 33rem) {
   html .app-root.game-edition.handheld-edition .local-pokemon-setup .local-dice-fields {

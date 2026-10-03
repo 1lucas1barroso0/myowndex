@@ -8,6 +8,7 @@ Na fonte final:
 
 ```bash
 npm ci
+npm audit --omit=dev --audit-level=moderate
 npm test
 npm run lint
 npm run typecheck
@@ -15,6 +16,12 @@ npm run build
 ```
 
 A suíte cobre regras, persistência, contas, migrações, importação/exportação, Dados, gerador, referências por jogo, aventuras locais e compartilhadas, segurança das APIs e contratos de interface. Alterações que afetem um fluxo de navegador devem executar também o roteiro correspondente em `tests/browser-*.mjs`.
+
+Para Dados, `browser-shared-dice.mjs` verifica a apresentação da resposta real do servidor e a ausência de histórico duplicado; usa exclusivamente servidor e banco locais. `browser-local-pokemon-dice.mjs` cobre Campo livre, iniciativa, disputa, combate, captura e sincronização entre abas. `browser-personal-deletions.mjs` verifica remoções e cancelamentos sem apagar Boxes.
+
+## Dependências
+
+O CI impede publicar dependências de produção com alertas moderados ou mais graves. Revise também `npm audit` completo: ferramentas de desenvolvimento podem ter alertas que não chegam ao aplicativo publicado. A cadeia `eslint-config-next → fast-glob → micromatch → braces` possui um alerta de negação de serviço em padrões profundamente aninhados, sem versão corrigida de `braces` disponível nesta revisão. Ela recebe os padrões fixos do lint do repositório, não conteúdo dos jogadores. Não rebaixe Next.js nem desative o lint para ocultar o alerta; revise novamente quando houver correção upstream.
 
 ## Interface
 

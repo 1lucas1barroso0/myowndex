@@ -108,6 +108,21 @@ export function normalizeLocalRollReceipt(value) {
 const validReceipt = normalizeLocalRollReceipt;
 export const normalizeLocalRollHistory = values => mergeLocalRolls((Array.isArray(values) ? values : []).map(normalizeLocalRollReceipt).filter(Boolean));
 
+/** Read a server receipt without consuming entropy or saving a second history.
+ * The shared-room response keeps presentation under result and draws under audit. */
+export function authoritativeLocalRollReceipt(response, input) {
+    const audit = response?.audit;
+    if (!response?.serverAuthoritative || !audit || !["attribute", "percent", "free"].includes(audit.type)) return null;
+    let spec;
+    try { spec = localRollSpec(input); } catch { return null; }
+    if (spec.kind !== audit.type) return null;
+    const stamp = response.createdAt;
+    const createdAt = typeof stamp === "number" ? stamp : Date.parse(typeof stamp === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(stamp) ? stamp.replace(" ", "T")+"Z" : stamp);
+    return normalizeLocalRollReceipt({ version:2, id:response.id, createdAt, context:"aventura", spec,
+        values:audit.rawDice, kept:audit.keptDice, total:audit.result, success:audit.success, critical:Boolean(audit.critical), fumble:Boolean(audit.fumble), suggestion:audit.fumbleSuggestion,
+    });
+}
+
 export const createPokemonRollReceipt = ({ action, label, detail, groups = [], success = null, critical = false, fumble = false, mode = "normal" }, options = {}) => {
     const receipt = normalizeLocalRollReceipt({ version:3, id:options.id || secureRandomId("local-pokemon"), createdAt:options.createdAt ?? Date.now(), context:options.context, spec:{ kind:"pokemon", action, mode, label }, detail, groups, success, critical, fumble });
     if (!receipt) throw new RangeError("Não foi possível registrar essa jogada.");

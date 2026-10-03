@@ -26,6 +26,8 @@ jobs:
           cache: npm
       - name: Instalar dependências verificadas
         run: npm ci
+      - name: Verificar segurança das dependências de produção
+        run: npm audit --omit=dev --audit-level=moderate
       - name: Confirmar fontes externas atuais
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

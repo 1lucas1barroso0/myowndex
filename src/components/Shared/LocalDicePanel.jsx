@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { getStorageScope, readStorage, resolveStorageKey, writeStorage } from "../../core/storage.js";
-import { clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRollDurable } from "../../core/localRolls.js";
+import { authoritativeLocalRollReceipt, clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRollDurable } from "../../core/localRolls.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import LocalPokemonDice from "./LocalPokemonDice.jsx";
+import RoomSelect from "./RoomSelect.jsx";
 
 const DEFAULTS = { kind:"attribute", mode:"normal", attribute:0, opposition:"", chance:50, quantity:1, sides:6, modifier:0, label:"" };
 const preferenceKey = "myowndex_local_dice_preferences_v1";
-const kindLabel = spec => spec.kind === "percent" ? "d100" : spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.mode === "normal" ? "2d6" : "3d6 · manter 2";
+const kindLabel = spec => spec.kind === "pokemon" ? "Jogada Pokémon" : spec.kind === "percent" ? "d100" : spec.kind === "free" ? Number.isInteger(spec.quantity) && Number.isInteger(spec.sides) ? `${spec.quantity}d${spec.sides}` : "dX" : !spec.mode || spec.mode === "normal" ? "2d6" : "3d6 · manter 2";
 const rollLabel = spec => spec.kind === "free" || spec.mode === "normal" ? kindLabel(spec) : `${kindLabel(spec)} · ${LOCAL_ROLL_MODES[spec.mode]}`;
 const modeHelp = spec => {
     if (!spec || spec.mode === "normal") return "";
@@ -48,6 +49,7 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
     const applyingAccount=useRef(false);
     const lock=useRef(false), unlockTimer=useRef(null), alive=useRef(true);
     const inAdventure=context==="aventura";
+    const modeHintId=useId(), difficultyHintId=useId();
     const remoteAdventure=inAdventure && Boolean(pokemonProps.remote) && typeof pokemonProps.onAuthoritativeAction==="function";
     useEffect(()=>{
         alive.current=true;
@@ -88,7 +90,7 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         window.addEventListener("myowndex:account-apply-start",accountApplyChanged);
         window.addEventListener("myowndex:account-apply-end",accountApplyChanged);
         return ()=>{ alive.current=false; clearTimeout(unlockTimer.current); window.removeEventListener("storage",sync); window.removeEventListener("myowndex:storage",syncHere);window.removeEventListener("myowndex:account-document",accountDocumentChanged);window.removeEventListener("myowndex:account-apply-start",accountApplyChanged);window.removeEventListener("myowndex:account-apply-end",accountApplyChanged); };
-    },[]);
+    },[inAdventure]);
     const configuration=useMemo(()=>{ try { return {spec:localRollSpec(draft)}; } catch(e) { return {error:e.message}; } },[draft]);
     useEffect(()=>{ if(ready && configuration.spec) writeStorage(preferenceKey,configuration.spec); },[configuration,ready]);
     const update=(key,value)=>setDraft(current=>({...current,[key]:value}));
@@ -106,7 +108,11 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
                         ? {action:"quick-percent",mode:spec.mode,chance:spec.chance,label:spec.label}
                         : {action:"quick-free",quantity:spec.quantity,sides:spec.sides,modifier:spec.modifier,label:spec.label};
                 const authoritative=await pokemonProps.onAuthoritativeAction(request);
-                if(alive.current){setResult(null);setRemoteResult({...authoritative,spec});}
+                if(alive.current){
+                    const receipt=authoritativeLocalRollReceipt(authoritative,spec);
+                    setResult(receipt);
+                    setRemoteResult(receipt ? null : {...(authoritative.result || authoritative),spec});
+                }
                 return;
             }
             receipt=performLocalRoll(draft,{context});
@@ -161,15 +167,15 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
             <fieldset disabled={busy || accountApplying}><legend className="sr-only">Configurar rolagem</legend>
                 <div className="local-dice-tabs" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste"],["percent","d100","Chance"],["free","dX","Livre"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
                 <div className="local-dice-fields">
-                    {draft.kind!=="free" && <label>Modo<select value={draft.mode} onChange={e=>update("mode",e.target.value)}>{Object.entries(LOCAL_ROLL_MODES).map(([mode,label])=><option key={mode} value={mode}>{label}</option>)}</select>{modeHelp(configuration.spec) && <small className="local-dice-mode-help">{modeHelp(configuration.spec)}</small>}</label>}
+                    {draft.kind!=="free" && <label>Modo<RoomSelect aria-label="Modo" aria-describedby={modeHelp(configuration.spec) ? modeHintId : undefined} value={draft.mode} onChange={e=>update("mode",e.target.value)}>{Object.entries(LOCAL_ROLL_MODES).map(([mode,label])=><option key={mode} value={mode}>{label}</option>)}</RoomSelect>{modeHelp(configuration.spec) && <small id={modeHintId} className="local-dice-mode-help">{modeHelp(configuration.spec)}</small>}</label>}
                     {draft.kind==="attribute" && <label>Modificador<input type="number" step="1" min="-99999" max="99999" value={draft.attribute} required onChange={e=>update("attribute",e.target.value)} /></label>}
                     {draft.kind==="percent" && <label className="local-dice-chance">Chance base (%)<input type="number" step="1" min="0" max="100" value={draft.chance} required onChange={e=>update("chance",e.target.value)} /><input aria-label="Ajustar chance percentual" type="range" min="0" max="100" value={draft.chance || 0} onChange={e=>update("chance",e.target.value)} /></label>}
-                    {draft.kind==="free" && <><label>Quantidade<input type="number" step="1" min="1" max="20" value={draft.quantity} required onChange={e=>update("quantity",e.target.value)} /></label><label>Dado<select value={draft.sides} onChange={e=>update("sides",e.target.value)}>{LOCAL_DICE_SIDES.map(sides=><option key={sides} value={sides}>d{sides}</option>)}</select></label><label>Modificador<input type="number" step="1" min="-99999" max="99999" value={draft.modifier} required onChange={e=>update("modifier",e.target.value)} /></label></>}
+                    {draft.kind==="free" && <><label>Quantidade<input type="number" step="1" min="1" max="20" value={draft.quantity} required onChange={e=>update("quantity",e.target.value)} /></label><label>Dado<RoomSelect value={draft.sides} onChange={e=>update("sides",e.target.value)}>{LOCAL_DICE_SIDES.map(sides=><option key={sides} value={sides}>d{sides}</option>)}</RoomSelect></label><label>Modificador<input type="number" step="1" min="-99999" max="99999" value={draft.modifier} required onChange={e=>update("modifier",e.target.value)} /></label></>}
                 </div>
-                <details className="local-dice-options" open={Boolean(draft.opposition !== "" || draft.label)}>
+                <details className="local-dice-options" open={Boolean((draft.kind==="attribute" && draft.opposition!=null && draft.opposition!=="") || draft.label)}>
                     <summary>Mais opções</summary>
                     <div className="local-dice-fields">
-                        {draft.kind==="attribute" && <label>Dificuldade<input type="number" step="1" min="-99999" max="99999" value={draft.opposition ?? ""} onChange={e=>update("opposition",e.target.value)} /><small>Opcional. Empates favorecem a oposição.</small></label>}
+                        {draft.kind==="attribute" && <label>Dificuldade<input aria-label="Dificuldade" aria-describedby={difficultyHintId} type="number" step="1" min="-99999" max="99999" value={draft.opposition ?? ""} onChange={e=>update("opposition",e.target.value)} /><small id={difficultyHintId}>Opcional. Empates favorecem a oposição.</small></label>}
                         <label className="local-dice-label">Nome da ação<input maxLength={80} value={draft.label} onChange={e=>update("label",e.target.value)} /></label>
                     </div>
                 </details>
@@ -191,8 +197,8 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
             {changed && <><small className="local-dice-config-note">Os ajustes mudaram desde esta rolagem.</small><div className="local-dice-result-actions"><button type="button" disabled={busy} onClick={()=>setDraft({...DEFAULTS,...result.spec})}>Usar de novo</button></div></>}
         </article>}
         {!inAdventure && <details className="local-dice-history"><summary><span>Histórico</span><b>{history.length} {history.length===1 ? "rolagem" : "rolagens"}</b></summary><div>
-            <p>{history.length ? "Escolha uma rolagem para vê-la novamente." : "Suas rolagens aparecem aqui."}</p>
-            <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar histórico</button><button type="button" className="is-clear" disabled={!history.length || busy || accountApplying} onClick={()=>setClearPending(true)}>Apagar histórico</button></div>
+            {!history.length && <p>Nenhuma rolagem ainda.</p>}
+            {history.length>0 && <div className="local-dice-history-actions"><button type="button" onClick={download}>Baixar histórico</button><button type="button" className="is-clear" disabled={busy || accountApplying} onClick={()=>setClearPending(true)}>Apagar histórico</button></div>}
             {history.length>0 && <ol>{history.map(entry=><li key={entry.id}><div className="local-dice-history-entry"><button type="button" disabled={Boolean(entry.legacy)} aria-pressed={!entry.legacy && result?.id===entry.id} onClick={()=>{setResult(entry);setFeedback("");}}><span>{entry.spec.label || kindLabel(entry.spec)} <small>{entry.context==="aventura" ? "Aventura" : entry.context==="central" ? "Dados" : "Guia"} · <RollTimestamp value={entry.createdAt} /></small></span><span className="local-dice-history-result">{entry.version!==3 && <b>{entry.total}</b>}{!entry.legacy && rollOutcome(entry) && <small className={`local-dice-history-outcome ${entry.fumble || entry.success===false ? "is-failure" : "is-success"}`}>{rollOutcome(entry)}</small>}</span></button><button type="button" className="local-dice-delete-receipt" disabled={busy || accountApplying} onClick={()=>setDeletePending(entry)} aria-label={`Apagar rolagem de ${entry.spec.label || kindLabel(entry.spec)}`} title="Apagar rolagem"><span aria-hidden="true">⌫</span></button></div></li>)}</ol>}
         </div></details>}
         {!inAdventure && <ConfirmDialog

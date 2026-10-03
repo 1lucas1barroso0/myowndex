@@ -313,7 +313,7 @@ try {
     assert.equal(await second.page.getByRole('radio', { name: 'Escuro', exact: true }).getAttribute('aria-checked'), 'true');
     passed('favorites-modes-and-appearance-cross-device');
 
-    await first.page.getByRole('button', { name: 'Abrir dados locais', exact: true }).click();
+    await first.page.getByRole('button', { name: 'Abrir Dados', exact: true }).click();
     const firstDice = first.page.locator('.local-dice-dialog');
     await firstDice.getByRole('button', { name: 'dX Livre', exact: true }).click();
     await firstDice.getByLabel('Quantidade', { exact: true }).fill('3');
@@ -324,14 +324,14 @@ try {
     await firstDice.getByLabel('Nome da ação', { exact: true }).fill('Rolagem que acompanha a conta');
     await firstDice.getByRole('button', { name: 'Rolar 3d12', exact: true }).click();
     await firstDice.locator('.local-dice-result h4').filter({ hasText: 'Rolagem que acompanha a conta' }).waitFor();
-    await firstDice.getByRole('button', { name: 'Fechar dados locais', exact: true }).click();
+    await firstDice.getByRole('button', { name: 'Fechar dados', exact: true }).click();
     const diceCloud = await eventually(async () => {
         const data = (await cloud(first.page)).document;
         return data?.localTools?.rollHistory?.some(entry => entry.spec.label === 'Rolagem que acompanha a conta') ? data : false;
     }, 'local receipt and preferences synchronized');
     const originalReceipt = diceCloud.localTools.rollHistory.find(entry => entry.spec.label === 'Rolagem que acompanha a conta');
     await sync(second.page);
-    await second.page.getByRole('button', { name: 'Abrir dados locais', exact: true }).click();
+    await second.page.getByRole('button', { name: 'Abrir Dados', exact: true }).click();
     const secondDice = second.page.locator('.local-dice-dialog');
     assert.equal(await secondDice.getByLabel('Quantidade', { exact: true }).inputValue(), '3');
     assert.equal(await secondDice.getByRole('combobox', { name: 'Dado', exact: true }).inputValue(), '12');
@@ -344,7 +344,7 @@ try {
     await second.page.getByRole('alertdialog').getByRole('button', { name: 'Apagar histórico', exact: true }).click();
     await eventually(async () => await secondDice.locator('.local-dice-history > summary').innerText().then(text => text.includes('0 rolagens')),
         'local history cleared');
-    await secondDice.getByRole('button', { name: 'Fechar dados locais', exact: true }).click();
+    await secondDice.getByRole('button', { name: 'Fechar dados', exact: true }).click();
     await eventually(async () => (await cloud(second.page)).document?.localTools?.rollHistory?.length === 0, 'cleared history synchronized');
     await sync(first.page);
     assert.equal((await cloud(first.page)).document.localTools.rollHistory.length, 0);
@@ -353,9 +353,9 @@ try {
     // The Pokémon workbench is account data too. Its field remains separate
     // from the PC until the user explicitly registers the progress there.
     const boxBeforePractice = (await cloud(first.page)).document.boxes[0].pokemon[0];
-    await first.page.getByRole('button', { name: 'Abrir dados locais', exact: true }).click();
+    await first.page.getByRole('button', { name: 'Abrir Dados', exact: true }).click();
     const practice = first.page.locator('.local-dice-dialog');
-    await practice.getByRole('button', { name: 'Pokémon', exact: true }).click();
+    await practice.getByRole('button', { name: 'Campo', exact: true }).click();
     await practice.getByRole('combobox', { name: 'Pokémon da Box', exact: true })
         .selectOption({ label: 'Parceiro da conta · Box convidada' });
     await practice.getByRole('button', { name: 'Trazer para o campo', exact: true }).click();
@@ -369,7 +369,7 @@ try {
     await initiative.locator(':scope > summary').click();
     await initiative.getByRole('button', { name: 'Rolar iniciativa', exact: true }).click();
     await initiative.locator('li').first().waitFor();
-    await practice.getByRole('button', { name: 'Fechar dados locais', exact: true }).click();
+    await practice.getByRole('button', { name: 'Fechar dados', exact: true }).click();
     const practiceCloud = await eventually(async () => {
         const data = (await cloud(first.page)).document;
         const token = data?.localTools?.diceRoom?.tokens?.[0];
@@ -381,9 +381,9 @@ try {
         'testing a local field must not apply its status or progress to the Box');
     const initiativeReceipt = practiceCloud.localTools.rollHistory.find(entry => entry.spec.action === 'initiative');
     await sync(second.page);
-    await second.page.getByRole('button', { name: 'Abrir dados locais', exact: true }).click();
+    await second.page.getByRole('button', { name: 'Abrir Dados', exact: true }).click();
     const resumedPractice = second.page.locator('.local-dice-dialog');
-    await resumedPractice.getByRole('button', { name: 'Pokémon', exact: true }).click();
+    await resumedPractice.getByRole('button', { name: 'Campo', exact: true }).click();
     await resumedPractice.locator('.local-pokemon-roster button').first().waitFor();
     const restoredPractice = (await cloud(second.page)).document;
     assert.deepEqual(restoredPractice.localTools.diceRoom, practiceCloud.localTools.diceRoom);
@@ -393,13 +393,13 @@ try {
     const secondConditions = resumedPractice.locator('.room-tool').filter({ has: second.page.getByText('Condições do campo', { exact: true }) });
     await secondConditions.locator(':scope > summary').click();
     await second.context.setOffline(true);
-    await first.page.getByRole('button', { name: 'Abrir dados locais', exact: true }).click();
+    await first.page.getByRole('button', { name: 'Abrir Dados', exact: true }).click();
     const updatingPractice = first.page.locator('.local-dice-dialog');
-    await updatingPractice.getByRole('button', { name: 'Pokémon', exact: true }).click();
+    await updatingPractice.getByRole('button', { name: 'Campo', exact: true }).click();
     const updatingConditions = updatingPractice.locator('.room-tool').filter({ has: first.page.getByText('Condições do campo', { exact: true }) });
     await updatingConditions.locator(':scope > summary').click();
     await updatingConditions.getByRole('combobox', { name: 'Clima', exact: true }).selectOption('sol');
-    await updatingPractice.getByRole('button', { name: 'Fechar dados locais', exact: true }).click();
+    await updatingPractice.getByRole('button', { name: 'Fechar dados', exact: true }).click();
     await eventually(async () => (await cloud(first.page)).document.localTools.diceRoom.weather === 'sol', 'new field change uploaded');
     await second.context.setOffline(false);
     await eventually(async () => await resumedPractice.isVisible()
@@ -407,9 +407,9 @@ try {
     'remote field update applied without closing or resetting the open Pokémon workbench');
     await eventually(async () => !await resumedPractice.locator('.local-pokemon-workbench').evaluate(element => element.disabled),
         'local Pokémon controls enabled again after the complete account application');
-    assert.equal(await resumedPractice.getByRole('button', { name: 'Pokémon', exact: true }).getAttribute('aria-pressed'), 'true');
+    assert.equal(await resumedPractice.getByRole('button', { name: 'Campo', exact: true }).getAttribute('aria-pressed'), 'true');
     assert.deepEqual((await cloud(second.page)).document.localTools.rollHistory.find(entry => entry.id === initiativeReceipt.id), initiativeReceipt);
-    await resumedPractice.getByRole('button', { name: 'Fechar dados locais', exact: true }).click();
+    await resumedPractice.getByRole('button', { name: 'Fechar dados', exact: true }).click();
     passed('pokemon-local-field-conditions-and-initiative-cross-device-preserve-boxes-and-dice');
     passed('remote-account-merge-keeps-open-pokemon-workbench-and-selected-mode');
 

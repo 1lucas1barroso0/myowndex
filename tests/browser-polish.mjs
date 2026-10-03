@@ -278,7 +278,7 @@ try {
     await dice.getByLabel('Quantidade', { exact: true }).fill('3');
     await dice.getByRole('combobox', { name: /^Dado\b/ }).selectOption('12');
     await dice.getByLabel('Modificador', { exact: true }).fill('2');
-    await openDetails(dice.locator('.local-dice-history'));
+    await diceDialog.getByRole('button', { name: 'Fechar dados', exact: true }).click();
     for (const theme of themes) {
         await appearance(theme);
         for (const width of widths) {
@@ -287,6 +287,8 @@ try {
             assert.doesNotMatch(await protection.innerText(), fractionPattern);
             await check(`${theme}-${width}-hit-kill-complete-rule`);
             if (theme === 'Claro' && width === 390) await screenshot('/tmp/polish-guide-hit-kill-light-390.png', '.guide-rule-card[data-rule-id="3.4"]');
+            await page.getByRole('button', { name: 'Abrir Dados', exact: true }).click();
+            await openDetails(dice.locator('.local-dice-history'));
             await dice.getByRole('button', { name: 'Rolar 3d12', exact: true }).click();
             await dice.locator('.local-dice-result').waitFor();
             const total = Number(await dice.locator('.local-dice-total').innerText());
@@ -299,8 +301,11 @@ try {
             await dice.locator('.local-dice-history').scrollIntoViewIfNeeded();
             await check(`${theme}-${width}-free-dice-result-and-history`);
             if (theme === 'Escuro' && width === 390) await screenshot('/tmp/polish-dice-dark-390.png', '.local-dice-result');
+            await diceDialog.getByRole('button', { name: 'Fechar dados', exact: true }).click();
         }
     }
+    await page.getByRole('button', { name: 'Abrir Dados', exact: true }).click();
+    await openDetails(dice.locator('.local-dice-history'));
     assert.equal(await dice.locator('.local-dice-history > div > ol > li').count(), 8);
     assert.deepEqual(errors, []);
     const output = process.env.MYOWNDEX_POLISH_REPORT || '/tmp/myowndex-polish-browser-report.json';

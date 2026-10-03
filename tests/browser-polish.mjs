@@ -246,7 +246,9 @@ try {
 
     await nav('Abrir o Guia do Treinador');
     await page.locator('.guide-rule-count').waitFor();
-    assert.equal(await page.locator('.guide-rule-card').count(), 39, 'the complete rule catalog must remain available');
+    assert.equal(await page.locator('.guide-rule-card').count(), 40, 'the complete rule catalog must contain all 40 rules');
+    assert.equal((await page.locator('.guide-rule-count').textContent()).trim(), '40 regras');
+    assert.equal(await page.locator('.guide-rule-card[data-rule-id="6.5"]').count(), 1);
     const calculator = page.locator('.guide-calculator');
     await openDetails(calculator);
     await calculator.getByRole('spinbutton', { name: /^Valor original/ }).fill('55');

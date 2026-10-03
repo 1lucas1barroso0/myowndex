@@ -1,4 +1,10 @@
-# Estado do refino 11.5
+# Estado do refino 11.6
+
+A versão 11.6 foi concluída sobre o checkpoint 11.5, com 40 regras reais, referências EN/PT naturais e remoção segura de todo conteúdo criado pelo usuário. O fechamento técnico está em [FINAL-11.6.md](FINAL-11.6.md). Antes de publicar, conferir o PR, CI, Preview e a confirmação da produção; não reutilizar os avisos históricos abaixo como estado atual.
+
+O pacote `../entrega/myowndex-v11.6-linux.sh` foi gerado e verificado. A fonte ainda deve ser publicada somente depois da criação do commit imutável sobre `83462f453e0f67317aa40a20f71c7d4b827bf005`.
+
+## Registro histórico
 
 A versão11.4 foi publicada pelo PR#29 e conferida em produção. A entrega11.5 parte de `4f1be7ad640e93831b38045cc7a7057be2fd7e16`, com aprimoramentos de apresentação e organização. Os motores, APIs, dados e regras permanecem preservados. Não substituir o trabalho local nem mexer no HEAD/índice original.
 

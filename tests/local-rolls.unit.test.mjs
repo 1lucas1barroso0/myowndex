@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { clearLocalRolls, clearLocalRollsDurable, flushLocalRollHistoryWrites, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_LIMIT, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRoll, saveLocalRollDurable } from "../src/core/localRolls.js";
+import { clearLocalRolls, clearLocalRollsDurable, deleteLocalRollDurable, flushLocalRollHistoryWrites, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_LIMIT, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRoll, saveLocalRollDurable } from "../src/core/localRolls.js";
 import { rollAttributeTest } from "../src/core/rpgRules.js";
 import { getStorageScope, resolveStorageKey, setStorageScope } from "../src/core/storage.js";
 
@@ -236,4 +236,24 @@ test("queued history writes capture account scope and clearing never resurrects 
   assert.equal(await clearLocalRollsDurable({scope:"trainer-a"}),true);
   assert.deepEqual(await readLocalRollHistoryDurable({scope:"trainer-a"}),[]);
   assert.ok(storage.getItem(legacyKey),"a committed empty aggregate supersedes legacy keys without affecting other storage");
+});
+
+test("individual durable removal preserves another concurrent receipt, captured account scope and legacy deletion",async t=>{
+  const {storage}=await durableStorage(t);
+  const first=performLocalRoll({kind:"percent"},{...options,id:"remove-me",random:faces([12],100)});
+  const retained=performLocalRoll({kind:"percent"},{...options,id:"retain-me",random:faces([88],100)});
+  setStorageScope("trainer-a");
+  assert.equal(await saveLocalRollDurable(first),true);
+  const remove=deleteLocalRollDurable(first.id);
+  const save=saveLocalRollDurable(retained);
+  setStorageScope("trainer-b");
+  assert.deepEqual(await Promise.all([remove,save]),[true,true]);
+  assert.deepEqual(await readLocalRollHistoryDurable(),[]);
+  assert.deepEqual((await readLocalRollHistoryDurable({scope:"trainer-a"})).map(receipt=>[receipt.id,receipt.total]),[[retained.id,88]]);
+  storage.setItem("myowndex_guide_roll_history_v1",JSON.stringify([{id:"rolagem antiga #1",values:[3,4],result:7,label:"Anterior",createdAt:1,detail:"3 + 4"}]));
+  assert.equal(await deleteLocalRollDurable("rolagem antiga #1",{scope:null}),true);
+  assert.deepEqual(await readLocalRollHistoryDurable({scope:null}),[],"the empty aggregate must supersede legacy keys after an individual delete");
+  assert.equal(await deleteLocalRollDurable("rolagem antiga #1",{scope:null}),true,"repeated removal is idempotent");
+  assert.equal(await deleteLocalRollDurable("__proto__"),false);
+  assert.equal(await deleteLocalRollDurable(""),false);
 });

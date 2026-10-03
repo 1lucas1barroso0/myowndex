@@ -225,7 +225,18 @@ export const clearLocalRollsDurable = (options = {}) => {
     const captured = { scope:getStorageScope(), ...options };
     return mutateHistory(captured,()=>writeDurableStorage(LOCAL_ROLL_HISTORY_KEY,[],captured));
 };
+export const deleteLocalRollDurable = (id, options = {}) => {
+    if (typeof id !== "string" || !id.trim() || id !== id.trim() || id.length > 120 || ["__proto__", "constructor", "prototype"].includes(id)) return Promise.resolve(false);
+    const captured = { scope:getStorageScope(), ...options };
+    return mutateHistory(captured,async () => {
+        const history = await readHistoryUnlocked(captured);
+        // Commit the complete remaining history, including legacy migration.
+        // Account capture records the removed identity as a tombstone. Removing
+        // a receipt changes no Pokémon, game state or immutable dice outcome.
+        return writeDurableStorage(LOCAL_ROLL_HISTORY_KEY,history.filter(record=>record.id!==id),captured);
+    });
+};
 export function localRollEvent(record) {
     const {spec}=record;
-    return { rollId:record.id, rolledAt:record.createdAt, label:spec.label || (spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.kind === "percent" ? "teste percentual" : "teste simples"), mode:spec.mode, result:record.total, ...(spec.kind === "percent" ? {rolls:record.values,chance:spec.chance} : {dice:record.values,kept:record.kept,attribute:spec.attribute ?? spec.modifier ?? 0}), success:record.success, critical:Boolean(record.critical), fumble:Boolean(record.fumble) };
+    return { rollId:record.id, rolledAt:record.createdAt, label:spec.label || (spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.kind === "percent" ? "teste percentual" : "teste"), mode:spec.mode, result:record.total, ...(spec.kind === "percent" ? {rolls:record.values,chance:spec.chance} : {dice:record.values,kept:record.kept,attribute:spec.attribute ?? spec.modifier ?? 0}), success:record.success, critical:Boolean(record.critical), fumble:Boolean(record.fumble) };
 }

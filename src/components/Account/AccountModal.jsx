@@ -21,6 +21,8 @@ export default function AccountModal({ open, onClose, client }) {
     const [codesAccountId, setCodesAccountId] = useState("");
     const [importDevice, setImportDevice] = useState(false);
     const [passwordForm, setPasswordForm] = useState(false);
+    const [eraseChoice, setEraseChoice] = useState("");
+    const [removeDeviceCopy, setRemoveDeviceCopy] = useState(false);
     const dialogRef = useRef(null);
     const closeRef = useRef(null);
     const onCloseRef = useRef(onClose);
@@ -30,6 +32,10 @@ export default function AccountModal({ open, onClose, client }) {
 
     useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
     useEffect(() => { busyRef.current = busy; }, [busy]);
+    const refreshDeviceCopies = client.refreshDeviceCopies;
+    useEffect(() => {
+        if (open) void refreshDeviceCopies().catch(() => {});
+    }, [open, refreshDeviceCopies]);
     useEffect(() => {
         if (!open) return undefined;
         const previous = document.activeElement;
@@ -86,6 +92,26 @@ export default function AccountModal({ open, onClose, client }) {
             setMessage(page === "recover" ? "Senha redefinida. Seus novos códigos estão abaixo." : "Seu MyOwnDex está conectado.");
         });
     };
+    const eraseOptions = {
+        previous: {
+            label: "Cópias anteriores",
+            description: "Apaga a versão anterior da nuvem e as cópias recuperadas neste dispositivo. Os dados atuais da conta continuam salvos.",
+            action: client.clearPreviousCopies,
+            message: "Cópias anteriores apagadas. Seus dados atuais continuam salvos.",
+        },
+        guest: {
+            label: "Dados usados sem conta",
+            description: "Apaga as Boxes, favoritos, aventura e rolagens usados sem conta neste dispositivo. Os dados da conta continuam salvos.",
+            action: client.clearGuestCopy,
+            message: "Dados usados sem conta apagados deste dispositivo.",
+        },
+        inactive: {
+            label: "Cópias de contas desconectadas",
+            description: "Apaga as cópias locais das contas que já saíram deste dispositivo. Os dados dessas contas na nuvem continuam salvos.",
+            action: client.clearInactiveCopies,
+            message: "Cópias de contas desconectadas apagadas deste dispositivo.",
+        },
+    };
 
     if (!open || typeof document === "undefined") return null;
     return createPortal(<div className="account-overlay" onMouseDown={event => { if (!busy && event.target === event.currentTarget) onClose(); }}>
@@ -122,8 +148,8 @@ export default function AccountModal({ open, onClose, client }) {
                             <button type="submit" disabled={busy}>Salvar nova senha</button>
                         </form>
                     </details>
-                    <div className="account-signout"><p>Ao sair, os dados sem conta voltam à tela. A cópia desta conta fica separada neste dispositivo.</p><button type="button" disabled={busy} onClick={() => void run(async () => { await client.logout(); setCodes([]); setMessage("Você saiu da conta."); })}>Sair da conta</button></div>
-                    <details className="account-disclosure is-danger"><summary>Remover conta</summary><p>Apaga cadastro e dados da nuvem. Suas aventuras compartilhadas e cópias nos dispositivos continuam separadas. Baixe uma cópia antes de remover.</p><form onSubmit={event => { event.preventDefault(); const fields = new FormData(event.currentTarget); void run(async () => { await client.deleteAccount(String(fields.get("password") || "")); setCodes([]); setMessage("Conta removida da nuvem."); }); }}><label>Confirme sua senha<input name="password" type="password" autoComplete="current-password" maxLength={128} required /></label><label className="account-checkbox"><input type="checkbox" required />Quero remover esta conta da nuvem.</label><button type="submit" disabled={busy}>Remover minha conta</button></form></details>
+                    <div className="account-signout"><p>Ao sair, os dados sem conta voltam à tela.</p><label className="account-checkbox"><input type="checkbox" checked={removeDeviceCopy} onChange={event => setRemoveDeviceCopy(event.target.checked)} disabled={busy} />Apagar também a cópia desta conta neste dispositivo.</label>{removeDeviceCopy && <p>Alterações que ainda não chegaram à nuvem também serão apagadas. Baixe uma cópia antes de sair.</p>}<button type="button" disabled={busy} onClick={() => void run(async () => { await client.logout({ removeCopy: removeDeviceCopy }); setCodes([]); setRemoveDeviceCopy(false); setMessage("Você saiu da conta."); })}>Sair da conta</button></div>
+                    <details className="account-disclosure is-danger"><summary>Remover conta</summary><p>Apaga cadastro e dados da nuvem. Aventuras compartilhadas e cópias em outros dispositivos continuam separadas. Baixe uma cópia antes de remover.</p><form onSubmit={event => { event.preventDefault(); const fields = new FormData(event.currentTarget); void run(async () => { await client.deleteAccount(String(fields.get("password") || ""), { removeCopy: fields.has("removeCopy") }); setCodes([]); setMessage("Conta removida da nuvem."); }); }}><label>Confirme sua senha<input name="password" type="password" autoComplete="current-password" maxLength={128} required /></label><label className="account-checkbox"><input type="checkbox" name="removeCopy" />Apagar também a cópia desta conta neste dispositivo.</label><label className="account-checkbox"><input type="checkbox" required />Quero remover esta conta da nuvem.</label><button type="submit" disabled={busy}>Remover minha conta</button></form></details>
                 </> : <>
                     <p className="account-intro">Leve seu PC e sua aventura para outro dispositivo. Seus dados sem conta continuam aqui.</p>
                     <div className="account-pages" role="group" aria-label="Acesso à conta">{[["login", "Entrar"], ["signup", "Criar conta"], ["recover", "Recuperar acesso"]].map(([id, label]) => <button type="button" key={id} aria-pressed={page === id} onClick={() => { setPage(id); setImportDevice(id === "signup"); setFormError(""); setMessage(""); }} disabled={busy}>{label}</button>)}</div>
@@ -136,6 +162,20 @@ export default function AccountModal({ open, onClose, client }) {
                         <button type="submit" className="account-primary" disabled={busy}>{busy ? "Aguarde…" : page === "login" ? "Entrar na conta" : page === "signup" ? "Criar minha conta" : "Redefinir senha"}</button>
                     </form>
                 </>}
+                {(client.account || client.deviceCopyCount > 0) && <details className="account-disclosure is-danger account-copy-management"><summary>Cópias e dados</summary>
+                    {!eraseChoice ? <div className="account-copy-options">
+                        {client.account && <button type="button" disabled={busy} onClick={() => setEraseChoice("previous")}>Apagar cópias anteriores</button>}
+                        {client.account && client.guestAvailable && <button type="button" disabled={busy} onClick={() => setEraseChoice("guest")}>Apagar dados usados sem conta</button>}
+                        {client.deviceCopyCount > 0 && <button type="button" disabled={busy} onClick={() => setEraseChoice("inactive")}>Apagar cópias de contas desconectadas</button>}
+                    </div> : <form key={eraseChoice} onSubmit={event => {
+                        event.preventDefault(); const choice = eraseOptions[eraseChoice];
+                        void run(async () => { await choice.action(); setEraseChoice(""); setMessage(choice.message); });
+                    }}>
+                        <p>{eraseOptions[eraseChoice].description}</p>
+                        <label className="account-checkbox"><input type="checkbox" required disabled={busy} />Quero apagar {eraseOptions[eraseChoice].label.toLowerCase()}.</label>
+                        <div className="account-actions"><button type="submit" disabled={busy}>Apagar</button><button type="button" disabled={busy} onClick={() => setEraseChoice("")}>Cancelar</button></div>
+                    </form>}
+                </details>}
                 {codes.length > 0 && client.account?.id === codesAccountId && <aside className="account-recovery-codes"><h3>Guarde seus códigos de recuperação</h3><p>Cada código pode recuperar seu acesso uma vez. Os códigos ficam visíveis só nesta sessão.</p><ol>{codes.map(code => <li key={code}><code>{code}</code></li>)}</ol><button type="button" onClick={() => download(`MyOwnDex — códigos de recuperação\nConta: ${codesOwner}\n\n${codes.join("\n")}\n\nGuarde em um lugar privado. Cada código pode ser usado uma vez.\n`, `myowndex-recuperacao-${codesOwner}.txt`, "text/plain")}>Baixar códigos</button><button type="button" onClick={() => setCodes([])}>Já guardei os códigos</button></aside>}
             </div>
         </section>

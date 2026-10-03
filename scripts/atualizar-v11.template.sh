@@ -6,7 +6,7 @@ umask 077
 
 DEX_STAGE="preparação da atualização"
 DEX_REPO="1lucas1barroso0/myowndex"
-DEX_BASE="4f1be7ad640e93831b38045cc7a7057be2fd7e16"
+DEX_BASE="83462f453e0f67317aa40a20f71c7d4b827bf005"
 DEX_SCOPE="1lucas1barroso0s-projects"
 DEX_PRODUCTION="https://myowndex.vercel.app"
 DEX_ARCHIVE_SHA="__ARCHIVE_SHA256__"
@@ -108,7 +108,7 @@ DEX_CI_GUARD
 
 case "$DEX_ACTION" in
   publicar|verificar|extrair) ;;
-  *) dex_fail "Uso: bash myowndex-v11.5-linux.sh [publicar|verificar|extrair]" ;;
+  *) dex_fail "Uso: bash myowndex-v11.6-linux.sh [publicar|verificar|extrair]" ;;
 esac
 [[ "$DEX_ARCHIVE_SHA" =~ ^[0-9a-f]{64}$ ]] || dex_fail "Este arquivo ainda é um modelo sem o pacote final. Baixe o instalador publicado."
 for DEX_TOOL in mktemp base64 sha256sum tar tee flock; do
@@ -148,7 +148,7 @@ tar -xzf "$DEX_RELEASE/projeto.tar.gz" -C "$DEX_RELEASE/source"
 rm -- "$DEX_RELEASE/projeto.tar.gz"
 DEX_SOURCE="$DEX_RELEASE/source/myowndex"
 [[ -f "$DEX_SOURCE/package.json" && -f "$DEX_SOURCE/vercel.json" ]] || dex_fail "O pacote não contém o projeto completo."
-printf '\nMyOwnDex 11.5: código extraído em %s\n' "$DEX_SOURCE"
+printf '\nMyOwnDex 11.6: código extraído em %s\n' "$DEX_SOURCE"
 if [[ "$DEX_ACTION" == "extrair" ]]; then exit 0; fi
 
 DEX_MISSING=()
@@ -279,7 +279,7 @@ else
   read -r DEX_BRANCH_BASE < "$DEX_RELEASE/branch-base"
   if [[ "$(git rev-parse origin/main)" != "$DEX_BRANCH_BASE" ]]; then
     DEX_STAGE="integração de mudanças recentes de main"
-    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.5: clareza, harmonia e acabamento visual"; fi
+    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.6: 40 regras, idiomas naturais e remoções seguras"; fi
     git merge --no-edit origin/main
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
   fi
@@ -324,7 +324,7 @@ DEX_VERCEL_GUARD
 if [[ "$DEX_MERGED" != "true" ]]; then
   if ! git diff --cached --quiet; then
     DEX_STAGE="registro do código validado"
-    git commit -m "MyOwnDex 11.5: clareza, harmonia e acabamento visual"
+    git commit -m "MyOwnDex 11.6: 40 regras, idiomas naturais e remoções seguras"
   fi
   DEX_HEAD="$(git rev-parse HEAD)"
   printf '%s\n' "$DEX_HEAD" > "$DEX_RELEASE/head"
@@ -345,9 +345,9 @@ DEX_FIND_PR
       node --input-type=module - "$DEX_BRANCH" "$DEX_RELEASE/new-pr.json" <<'DEX_NEW_PR'
 import { writeFileSync } from "node:fs";
 writeFileSync(process.argv[3], JSON.stringify({
-  title: "MyOwnDex 11.5: interface mais clara, organizada e acolhedora",
+  title: "MyOwnDex 11.6: 40 regras, referências bilíngues e remoções seguras",
   head: process.argv[2], base: "main", draft: false,
-  body: "A interface separa navegação, ferramentas e preferências, dá destaque claro aos dados locais e organiza as fichas e as ações do PC. Nomes dos movimentos ficam em primeiro plano; habilidades, itens, evolução e atributos ganham hierarquia e espaço de leitura.\n\nPreserva contas, sincronização, Boxes, idiomas, referências por jogo, importação/exportação e todos os motores e regras dos PRs #20–#28.\n\nO instalador verifica testes, lint, tipos e build, aguarda CI e Preview e confirma versão e APIs em produção. A configuração existente de Turso e Vercel é reaproveitada.",
+  body: "O Guia apresenta 40 regras reais, reorganizando efeitos já existentes sem alterar suas mecânicas. Referências em português ganham revisão editorial, com nomes originais preservados e alternância EN/PT natural. Prévia do gerador, registros individuais, Diário e cópias recebem opções seguras de remoção, sem reaplicar ações nem restaurar dados apagados.\n\nPreserva contas, sincronização, Boxes, idiomas, referências por jogo, importação/exportação e todos os motores e regras dos PRs #20–#28.\n\nO instalador verifica testes, lint, tipos e build, aguarda CI e Preview e confirma versão e APIs em produção. A configuração existente de Turso e Vercel é reaproveitada.",
 }), { mode: 0o600 });
 DEX_NEW_PR
       gh api --method POST "repos/$DEX_REPO/pulls" --input "$DEX_RELEASE/new-pr.json" > "$DEX_RELEASE/pr.json"

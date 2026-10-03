@@ -7,7 +7,7 @@ import {
     normalizeAccountDocument, recordAccountChanges,
 } from "../../core/accountDocument.js";
 import {
-    getStorageScope, readDurableStorage, readStorage, setStorageScope,
+    clearStorageScope, getStorageScope, listStoredAccountScopes, readDurableStorage, readStorage, setStorageScope, storageScopeForClearedCopy,
     writeDurableStorage, writeStorage,
 } from "../../core/storage.js";
 import { loadTeamsDurable, TEAM_SCHEMA_VERSION } from "../../core/team.js";
@@ -17,6 +17,7 @@ import { flushLocalPokemonDiceWrites } from "../../core/localPokemonRolls.js";
 const IDENTITY_KEY = "myowndex_account_identity_v1";
 const NOTICE_KEY = "myowndex_account_notice_v1";
 const PENDING_LOGOUT_KEY = "myowndex_account_signout_v1";
+const RECOVERY_CLEAR_KEY = "myowndex_account_recovery_clear_v1";
 const RESOURCE_KEYS = new Set(Object.values(ACCOUNT_RESOURCE_KEYS));
 const emptyRecord = () => ({ document: normalizeAccountDocument(), base: null, revision: 0, updatedAt: null, recoveries: [] });
 const hasGuestData = value => Boolean(value.boxes.length || value.dex.favorites.length || value.localAdventure
@@ -94,6 +95,7 @@ export default function useAccountSync({ onBeforeSwitch = async () => {}, onDocu
     const [updatedAt, setUpdatedAt] = useState(null);
     const [guestAvailable, setGuestAvailable] = useState(false);
     const [recoveryCount, setRecoveryCount] = useState(0);
+    const [deviceCopyCount, setDeviceCopyCount] = useState(0);
     const callbacks = useRef({ onBeforeSwitch, onDocument });
     const identity = useRef(null);
     const record = useRef(emptyRecord());
@@ -114,6 +116,9 @@ export default function useAccountSync({ onBeforeSwitch = async () => {}, onDocu
 
     const saveRecord = useCallback(async (value, scope, generation) => {
         if (generation !== transition.current) return false;
+        const clearedAt = await readDurableStorage(RECOVERY_CLEAR_KEY, 0, { scope });
+        if (generation !== transition.current) return false;
+        value = { ...value, recoveries: value.recoveries.filter(copy => !clearedAt || copy.recoveredAt > clearedAt) };
         const saved = await writeDurableStorage(ACCOUNT_SYNC_KEY, { schema: 1, ...value }, { scope });
         if (generation !== transition.current) return false;
         if (!saved) throw new Error("O dispositivo não permitiu salvar a cópia local. Seus dados anteriores foram preservados.");
@@ -168,9 +173,11 @@ export default function useAccountSync({ onBeforeSwitch = async () => {}, onDocu
         }
     }, [saveRecord]);
 
-    const leaveAccount = useCallback(async () => {
-        await callbacks.current.onBeforeSwitch();
-        await queueCapture();
+    const leaveAccount = useCallback(async ({ preserve = true } = {}) => {
+        if (preserve) {
+            await callbacks.current.onBeforeSwitch();
+            await queueCapture();
+        }
         const generation = ++transition.current;
         switching.current = true;
         flushSync(() => setReady(false));
@@ -360,6 +367,13 @@ export default function useAccountSync({ onBeforeSwitch = async () => {}, onDocu
 
     useEffect(() => {
         const notice = event => {
+            const clearedScope = storageScopeForClearedCopy(event.key);
+            if (clearedScope !== undefined && event.newValue && clearedScope === (identity.current?.id || null)) {
+                // The explicit erase is already committed by another tab. Flushes
+                // from this old workspace must never reconstruct its device copy.
+                void leaveAccount({ preserve: false });
+                return;
+            }
             if (event.key !== NOTICE_KEY || !event.newValue) return;
             let value;
             try { value = JSON.parse(event.newValue); } catch { return; }
@@ -373,8 +387,26 @@ export default function useAccountSync({ onBeforeSwitch = async () => {}, onDocu
                 } catch { setError("A sessão mudou em outra aba. Entre novamente para acessar sua conta."); }
             })();
         };
+        const recoveryCleared = event => {
+            if (event.detail?.scope !== identity.current?.id || event.detail?.key !== RECOVERY_CLEAR_KEY) return;
+            const clearedAt = Number(event.detail.value) || 0;
+            record.current.recoveries = record.current.recoveries.filter(copy => copy.recoveredAt > clearedAt);
+            setRecoveryCount(record.current.recoveries.length);
+        };
+        const otherRecoveryCleared = event => {
+            const scope = identity.current?.id;
+            if (scope && event.key === `myowndex_account:${encodeURIComponent(scope)}:${RECOVERY_CLEAR_KEY}`) {
+                recoveryCleared({ detail: { scope, key: RECOVERY_CLEAR_KEY, value: Number(event.newValue) || 0 } });
+            }
+        };
         window.addEventListener("storage", notice);
-        return () => window.removeEventListener("storage", notice);
+        window.addEventListener("storage", otherRecoveryCleared);
+        window.addEventListener("myowndex:storage", recoveryCleared);
+        return () => {
+            window.removeEventListener("storage", notice);
+            window.removeEventListener("storage", otherRecoveryCleared);
+            window.removeEventListener("myowndex:storage", recoveryCleared);
+        };
     }, [enterAccount, leaveAccount]);
 
     useEffect(() => {
@@ -421,7 +453,14 @@ export default function useAccountSync({ onBeforeSwitch = async () => {}, onDocu
         } finally { switching.current = false; setReady(true); }
     }), [announce, enterAccount, queueCapture]);
 
-    const logout = useCallback(async () => withSessionLock(async () => {
+    const refreshDeviceCopies = useCallback(async () => {
+        const active = identity.current?.id || validIdentity(readStorage(IDENTITY_KEY, null))?.id;
+        const copies = (await listStoredAccountScopes()).filter(scope => scope !== active);
+        setDeviceCopyCount(copies.length);
+        return copies;
+    }, []);
+
+    const logout = useCallback(async ({ removeCopy = false } = {}) => withSessionLock(async () => {
         const scope = identity.current?.id;
         if (!scope) return;
         await callbacks.current.onBeforeSwitch();
@@ -431,10 +470,12 @@ export default function useAccountSync({ onBeforeSwitch = async () => {}, onDocu
         writeStorage(PENDING_LOGOUT_KEY, scope);
         await leaveAccount();
         announce("logout");
+        if (removeCopy) await clearStorageScope(scope);
+        await refreshDeviceCopies();
         if (browserOnline()) {
             await finishPendingLogout(scope);
         }
-    }), [announce, leaveAccount, queueCapture, syncNow]);
+    }), [announce, leaveAccount, queueCapture, refreshDeviceCopies, syncNow]);
 
     useEffect(() => {
         const finish = () => {
@@ -476,19 +517,50 @@ export default function useAccountSync({ onBeforeSwitch = async () => {}, onDocu
         return { schema: 1, exportedAt: new Date().toISOString(), account: identity.current?.username || "", document: record.current.document, recoveredAdventures: record.current.recoveries };
     }, [queueCapture]);
 
-    const deleteAccount = useCallback(async password => withSessionLock(async () => {
+    const clearPreviousCopies = useCallback(async () => {
+        const scope = identity.current?.id;
+        const generation = transition.current;
+        if (!scope) throw new Error("Entre na conta antes de apagar as cópias anteriores.");
+        if (!await syncNow() || generation !== transition.current) throw new Error("Atualize a conta antes de apagar as cópias anteriores.");
+        await accountRequest("data", { method: "DELETE", accountId: scope, body: { expectedRevision: record.current.revision } });
+        if (generation !== transition.current) return false;
+        if (!await writeDurableStorage(RECOVERY_CLEAR_KEY, Date.now() + 1, { scope })) {
+            throw new Error("A cópia anterior da nuvem foi apagada, mas o dispositivo não permitiu apagar as cópias recuperadas. Tente novamente.");
+        }
+        await saveRecord({ ...record.current, recoveries: [] }, scope, generation);
+        return true;
+    }, [saveRecord, syncNow]);
+
+    const clearGuestCopy = useCallback(async () => {
+        if (!identity.current?.id) throw new Error("Entre em uma conta antes de apagar a cópia usada sem conta.");
+        await clearStorageScope(null);
+        setGuestAvailable(false);
+        return true;
+    }, []);
+
+    const clearInactiveCopies = useCallback(async () => withSessionLock(async () => {
+        const copies = await refreshDeviceCopies();
+        for (const scope of copies) await clearStorageScope(scope);
+        await refreshDeviceCopies();
+        return true;
+    }), [refreshDeviceCopies]);
+
+    const deleteAccount = useCallback(async (password, { removeCopy = false } = {}) => withSessionLock(async () => {
         const scope = identity.current?.id;
         if (!scope) throw new Error("Entre na conta antes de removê-la.");
         await callbacks.current.onBeforeSwitch();
         await queueCapture();
         await accountRequest("delete", { method: "POST", body: { password }, accountId: scope });
-        await leaveAccount();
+        await leaveAccount({ preserve: false });
         announce("logout");
-    }), [announce, leaveAccount, queueCapture]);
+        if (removeCopy) await clearStorageScope(scope);
+        await refreshDeviceCopies();
+    }), [announce, leaveAccount, queueCapture, refreshDeviceCopies]);
 
     return {
-        account, ready, scope: account?.id || null, status, error, updatedAt, guestAvailable, recoveryCount,
+        account, ready, scope: account?.id || null, status, error, updatedAt, guestAvailable, recoveryCount, deviceCopyCount,
         signup: input => authenticate("signup", input), login: input => authenticate("login", input),
         recover: input => authenticate("recover", input), changePassword, logout, importGuest, syncNow, exportAccount, deleteAccount,
+        refreshDeviceCopies, clearPreviousCopies, clearGuestCopy, clearInactiveCopies,
     };
 }

@@ -46,6 +46,7 @@ import {
     createRoomActionRequestId,
     createRemoteRoom,
     deleteRemoteRoom,
+    deleteRoomJournal,
     fetchRemoteRoom,
     joinRemoteRoom,
     loadRoomSession,
@@ -365,6 +366,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
     const [selectedBenchTokenId, setSelectedBenchTokenId] = useState("");
     const [mobilePane, setMobilePane] = useState("field");
     const [ending, setEnding] = useState(false);
+    const [deletingJournal, setDeletingJournal] = useState(null);
+    const [journalBusy, setJournalBusy] = useState(false);
     const [accountRooms, setAccountRooms] = useState([]);
     const [unlinking, setUnlinking] = useState(null);
     const [renewingInvite, setRenewingInvite] = useState(false);
@@ -860,6 +863,33 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
         } finally {
             setBusy(false);
             setEnding(false);
+        }
+    };
+
+    const deleteJournal = async () => {
+        if (!session || !deletingJournal || journalBusy) return;
+        const selection = deletingJournal;
+        setJournalBusy(true);
+        try {
+            if (session.local) {
+                setRoom(current => {
+                    if (!current) return current;
+                    const next = { ...current, events: (current.events || []).filter(event =>
+                        selection.all ? event.id > selection.through.events : event.id !== selection.id) };
+                    writeStorage(LOCAL_ROOM_STORAGE_KEY, next, { scope: storageScope });
+                    return next;
+                });
+            } else {
+                await deleteRoomJournal(session, selection);
+                channelRef.current?.postMessage({ type: "invalidate" });
+                await refresh(session);
+            }
+            setDeletingJournal(null);
+            setNotice?.({ tone: "blue", text: selection.all ? "Diário limpo." : "Registro apagado." });
+        } catch (value) {
+            showError(value);
+        } finally {
+            setJournalBusy(false);
         }
     };
 
@@ -1822,11 +1852,25 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                             <span className="room-tool-badge">{events.length}</span>
                         </summary>
                         <div className="room-tool-body">
+                            {events.some(event => role === "narrator" || event.playerId === session.playerId) && <details className="journal-options">
+                                <summary>Opções do Diário</summary>
+                                <button type="button" disabled={journalBusy} onClick={() => setDeletingJournal({ all: true, through: {
+                                    events: Math.max(0, ...events.filter(event => Number.isSafeInteger(event.id)).map(event => event.id)),
+                                    rolls: Math.max(0, ...events.filter(event => /^authority-\d+$/.test(String(event.id))).map(event => Number(String(event.id).slice(10)))),
+                                } })}>
+                                    {role === "narrator" ? "Limpar Diário" : "Apagar meus registros"}
+                                </button>
+                            </details>}
                             <div className="event-log" aria-live="polite">
                                 {events.slice(-40).reverse().map(event => (
                                     <article key={event.id} className={`event-${event.type}`}>
                                         <span>{timeLabel(event.createdAt)}</span>
                                         <p>{eventSummary(event)}</p>
+                                        {(role === "narrator" || event.playerId === session.playerId) && <details className="journal-entry-options">
+                                            <summary aria-label={`Opções do registro: ${eventSummary(event)}`}>···</summary>
+                                            <button type="button" disabled={journalBusy} onClick={() => setDeletingJournal({ id: event.id })}>Apagar registro</button>
+                                        </details>}
+
                                         {role === "narrator" && event.type === "team-offer" && !acceptedOfferIds.has(integerInRange(event.id, 0, Number.MAX_SAFE_INTEGER, 0)) && (
                                             <button type="button" onClick={() => acceptTeamOffer(event)}>Aceitar equipe</button>
                                         )}
@@ -1880,6 +1924,15 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                 </aside>
             </div>
 
+            <ConfirmDialog
+                open={Boolean(deletingJournal)}
+                title={deletingJournal?.all ? role === "narrator" ? "Limpar o Diário?" : "Apagar seus registros?" : "Apagar este registro?"}
+                description="Remove os registros do Diário. HP, PP, turnos e resultados já aplicados continuam como estão."
+                confirmLabel={journalBusy ? "Apagando…" : deletingJournal?.all ? role === "narrator" ? "Limpar Diário" : "Apagar meus registros" : "Apagar registro"}
+                cancelLabel="Manter registros"
+                onConfirm={() => void deleteJournal()}
+                onCancel={() => !journalBusy && setDeletingJournal(null)}
+            />
             <ConfirmDialog
                 open={renewingInvite}
                 title="Gerar outro convite?"

@@ -52,7 +52,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "1.1",
                 title: "Testes básicos",
-                body: "Role 2d6. Quando houver oposição entre Pokémon, o jogador só inicia o teste: o MyOwnDex rola também a oposição e aplica automaticamente atributos, IVs, EVs, Nature, nível, estágios, condições, habilidades e itens. A aventura e os dados locais usam a mesma resolução quando os Pokémon e o contexto estão definidos.\n\nA ponderação proporcional acontece apenas no motor; ninguém precisa multiplicar ou trabalhar com totais grandes. Diferenças proporcionais iguais se comportam de modo semelhante em qualquer nível, e o alvo que se defende vence os empates."
+                body: "Role 2d6. Quando houver oposição entre Pokémon, o jogador só inicia o teste: o MyOwnDex rola também a oposição e aplica automaticamente atributos, IVs, EVs, natureza, nível, estágios, condições, habilidades e itens. A aventura e os dados locais usam a mesma resolução quando os Pokémon e o contexto estão definidos.\n\nA ponderação proporcional acontece apenas no motor; ninguém precisa multiplicar ou trabalhar com totais grandes. Diferenças proporcionais iguais se comportam de modo semelhante em qualquer nível, e o alvo que se defende vence os empates."
             },
             {
                 id: "1.2",
@@ -276,8 +276,6 @@ export const RPG_RULE_SECTIONS = [
                     "Sono: pela referência atual, impede 1 ou 2 oportunidades de agir; há 1 em 3 de chance de acordar antes da segunda e, caso contrário, o despertar ocorre antes da terceira. Trocar preserva a contagem. Rest mantém sua duração própria; Early Bird reduz a duração; Snore e Sleep Talk mantêm a permissão de agir dormindo.",
                     "Congelamento: antes de agir, há 25% de chance de descongelar e agir; se isso não ocorrer nas duas primeiras oportunidades, o Pokémon descongela antes da terceira. Movimentos que descongelam o próprio usuário dispensam esse teste. Dano de Fire e movimentos com efeito próprio de descongelar também removem a condição.",
                     "Veneno: perde 12,5% do HP máximo ao fim da rodada. Envenenamento grave: começa em 6,25% e aumenta em 6,25% por rodada, até 93,75%; trocar reinicia o contador, não cura a condição.",
-                    "Confusão: é um efeito volátil, separado da condição principal. Dura de 2 a 5 oportunidades próprias; antes da última, o Pokémon se recupera. Enquanto estiver ativa, há 1 em 3 de chance de perder a ação e atingir a si mesmo com o equivalente a um ataque físico sem tipo de poder 40, usando seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. O dano próprio desativa a proteção geral contra hit kill, mas Sturdy, Focus Sash e proteções próprias continuam obedecendo às regras dos jogos. Trocar encerra a confusão.",
-                    "Hesitação: é um efeito volátil que impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra o efeito."
                 ]
             },
             {
@@ -294,6 +292,15 @@ export const RPG_RULE_SECTIONS = [
                 id: "6.4",
                 title: "Empoderamentos e enfraquecimentos",
                 body: "Os sete modificadores — Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão — usam estágios de −6 a +6. Os cinco atributos numéricos são recalculados a partir do original antes da divisão por 10; Precisão e Evasão ajustam o d100. Habilidades como Unaware ignoram exatamente os estágios determinados por sua descrição."
+            },
+            {
+                id: "6.5",
+                title: "Efeitos voláteis",
+                body: "Confusão e hesitação são efeitos voláteis, separados da condição principal. Podem coexistir com ela e seguem suas próprias durações.",
+                bullets: [
+                    "Confusão: é um efeito volátil, separado da condição principal. Dura de 2 a 5 oportunidades próprias; antes da última, o Pokémon se recupera. Enquanto estiver ativa, há 1 em 3 de chance de perder a ação e atingir a si mesmo com o equivalente a um ataque físico sem tipo de poder 40, usando seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. O dano próprio desativa a proteção geral contra hit kill, mas Sturdy, Focus Sash e proteções próprias continuam obedecendo às regras dos jogos. Trocar encerra a confusão.",
+                    "Hesitação: é um efeito volátil que impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra o efeito."
+                ]
             }
         ]
     },

@@ -111,6 +111,7 @@ export async function ensureRoomSchema() {
         status TEXT NOT NULL DEFAULT 'ready',
         claim_token TEXT NOT NULL DEFAULT '',
         server_authoritative INTEGER NOT NULL DEFAULT 1,
+        journal_hidden INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
       )`),
@@ -162,6 +163,15 @@ export async function ensureRoomSchema() {
       } catch (error) {
         const refreshed = await db.prepare("PRAGMA table_info(rooms)").all<{ name: string }>();
         if (!refreshed.results.some(column => column.name === "authority_claim")) throw error;
+      }
+    }
+    const rollColumns = await db.prepare("PRAGMA table_info(room_rolls)").all<{ name: string }>();
+    if (!rollColumns.results.some(column => column.name === "journal_hidden")) {
+      try {
+        await db.prepare("ALTER TABLE room_rolls ADD COLUMN journal_hidden INTEGER NOT NULL DEFAULT 0").run();
+      } catch (error) {
+        const refreshed = await db.prepare("PRAGMA table_info(room_rolls)").all<{ name: string }>();
+        if (!refreshed.results.some(column => column.name === "journal_hidden")) throw error;
       }
     }
   })().catch(error => {
@@ -321,7 +331,7 @@ export async function getRoomBundle(code: string, role: RoomRole) {
     `SELECT id, request_id, player_id, author, action_type, mode, request_json,
       result_json, event_type, event_payload_json, sfx_payload_json, created_at
      FROM room_rolls
-     WHERE room_code = ? AND status = 'ready' AND server_authoritative = 1
+     WHERE room_code = ? AND status = 'ready' AND server_authoritative = 1 AND journal_hidden = 0
      ORDER BY id DESC LIMIT 80`,
   ).bind(code).all<RoomRollRow>();
   const media = await db.prepare(

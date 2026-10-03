@@ -1,5 +1,11 @@
 import { cleanDescription } from './descriptions.js';
 
+// Proportion normalization uses the UI's Portuguese numbers. When reading the
+// English source, keep the English decimal separator without changing its prose.
+export const formatReferenceText = (text, language = 'pt-BR') => /^en(?:-|$)/i.test(language)
+    ? String(text || '').replace(/\b(\d{1,2}),(\d{1,2})%/g, '$1.$2%')
+    : String(text || '');
+
 // Descriptions are paired during development, never translated by a runtime service.
 const preserveCatalogNames = text => cleanDescription(text)
     .replace(/\bPoké\s?bolas\b/gi, 'Poké Balls')

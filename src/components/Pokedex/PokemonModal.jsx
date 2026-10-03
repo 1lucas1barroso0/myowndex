@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { describeSpecies } from '../../core/descriptions.js';
-import { getPokedexRecord } from '../../core/pokedexRecord.js';
+import { formatReferenceText, getPokedexRecord } from '../../core/pokedexRecord.js';
 import { getSpeciesRecordHistory, loadCatalogText } from '../../core/catalogText.js';
 import { getLearnsetGames, resolveLearnsetGame } from '../../core/referenceGames.js';
 import pokedexEntries from '../../data/pokedex-entries.json';
@@ -233,8 +233,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const referenceFacts = speciesFacts.filter(fact => fact.scale);
     const record = (recordVersion === 'auto' ? recordHistory[0] : recordHistory.find(entry => entry.id === recordVersion))
         || recordHistory[0] || getPokedexRecord(baseInfo?.id, pokedexEntries, speciesDescription?.flavor, activeForm?.name);
-    const recordText = recordLanguage === 'pt-BR' && record.portuguese ? record.portuguese : record.original;
     const recordTextLanguage = recordLanguage === 'pt-BR' && record.portuguese ? 'pt-BR' : record.originalLanguage;
+    const recordText = formatReferenceText(recordTextLanguage === 'pt-BR' && record.portuguese ? record.portuguese : record.original, recordTextLanguage);
+    const recordLanguageLabel = recordLanguage === 'pt-BR' ? 'Ver registro original em inglês' : 'Ver tradução do registro em português';
 
     return (
         <div className="pokemon-modal-backdrop record-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
@@ -327,7 +328,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 <section className="species-description" aria-labelledby={`${recordId}-description-title`}>
                                     <header className="record-entry-heading">
                                         <h3 id={`${recordId}-description-title`}>Registro da Pokédex</h3>
-                                        {record.portuguese && <button type="button" className="record-language-toggle" aria-pressed={recordLanguage === 'pt-BR'} aria-label={recordLanguage === 'pt-BR' ? 'Ver registro original em inglês' : 'Traduzir registro para português'} aria-controls={`${recordId}-description-text`} onClick={() => setRecordLanguage(language => language === 'en' ? 'pt-BR' : 'en')}>
+                                        {record.portuguese && <button type="button" className="record-language-toggle" aria-pressed={recordLanguage === 'pt-BR'} aria-label={recordLanguageLabel} title={recordLanguageLabel} aria-controls={`${recordId}-description-text`} onClick={() => setRecordLanguage(language => language === 'en' ? 'pt-BR' : 'en')}>
                                             {recordLanguage === 'pt-BR' ? 'PT' : 'EN'}
                                         </button>}
                                     </header>

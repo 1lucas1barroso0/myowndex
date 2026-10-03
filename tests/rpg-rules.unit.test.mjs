@@ -16,13 +16,36 @@ const sequence = values => {
   return () => values[index++] ?? values.at(-1) ?? 0;
 };
 
-test("trainer guide contains every canonical rule chapter", () => {
+test("trainer guide contains exactly 40 distinct rules across every canonical chapter", () => {
   assert.deepEqual(RPG_RULE_SECTIONS.map(section => section.number), [1, 2, 3, 4, 5, 6, 7, 8]);
-  const expectedIds = [4, 5, 7, 4, 4, 4, 6, 5].flatMap((count, chapter) =>
+  const expectedIds = [4, 5, 7, 4, 4, 5, 6, 5].flatMap((count, chapter) =>
     Array.from({ length: count }, (_, rule) => `${chapter + 1}.${rule + 1}`)
   );
-  assert.deepEqual(RPG_RULE_SECTIONS.flatMap(section => section.rules.map(rule => rule.id)), expectedIds);
+  const rules = RPG_RULE_SECTIONS.flatMap(section => section.rules);
+  assert.equal(rules.length, 40);
+  assert.equal(new Set(rules.map(rule => rule.id)).size, 40);
+  assert.equal(new Set(rules.map(rule => rule.title)).size, 40);
+  assert.deepEqual(rules.map(rule => rule.id), expectedIds);
+  for (const rule of rules) assert.ok(rule.body || rule.bullets?.length, `${rule.id} must contain its rule`);
   assert.equal(RPG_RULE_SECTIONS[2].rules.some(rule => rule.title === "Proteção contra hit kill"), true);
+});
+
+test("volatile effects have their own rule without changing the current condition mechanics", () => {
+  const conditions = RPG_RULE_SECTIONS.find(section => section.id === "condicoes");
+  const principal = conditions.rules.find(rule => rule.id === "6.1");
+  const volatile = conditions.rules.find(rule => rule.id === "6.5");
+  assert.equal(principal.bullets.length, 5);
+  assert.doesNotMatch(principal.bullets.join(" "), /Confusão:|Hesitação:/);
+  assert.equal(volatile.title, "Efeitos voláteis");
+  assert.equal(volatile.bullets.length, 2);
+  assert.match(volatile.body, /separados da condição principal/);
+  assert.match(volatile.bullets[0], /Dura de 2 a 5 oportunidades próprias/);
+  assert.match(volatile.bullets[0], /1 em 3 de chance/);
+  assert.match(volatile.bullets[0], /ataque físico sem tipo de poder 40/);
+  assert.match(volatile.bullets[0], /sem STAB, efetividade, crítico ou disputa adicional/);
+  assert.match(volatile.bullets[0], /Sturdy, Focus Sash/);
+  assert.match(volatile.bullets[1], /apenas a próxima ação da mesma rodada/);
+  assert.match(volatile.bullets[1], /Trocar encerra o efeito/);
 });
 
 test("proportional attribute tests preserve every point without a hard cap", () => {

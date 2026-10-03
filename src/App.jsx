@@ -19,7 +19,7 @@ import { DEX_GENERATIONS, debutGeneration, selectDexSpecies, urlForView, viewFro
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "11.6.0";
+const APP_VERSION = "11.6.2";
 function OpeningScreen() { return <div className="account-opening" role="status"><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });

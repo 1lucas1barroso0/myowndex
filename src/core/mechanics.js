@@ -216,6 +216,7 @@ export const convertToTTRPG = (value, isHp = false) => {
     if (numericValue == null || numericValue <= 0) return isHp ? 1 : 0;
     return roundRpgScaledValue(safeDivide(numericValue, RPG_SCALE_DIVISOR), {
         minimumWhenPositive: isHp ? 1 : 0,
+        halfUp: isHp,
     });
 };
 

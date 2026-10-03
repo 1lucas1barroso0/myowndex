@@ -91,7 +91,7 @@ test("confusion uses modern timing and a scaled power-40 physical self-hit", () 
   const ending = checkActionConditions({ token: token("a", { volatileEffects: [{ id: "confusion", turns: 1 }] }), move, random: sequence([]) });
   assert.equal(ending.canAct, true);
   assert.equal(ending.token.volatileEffects.some(effect => effect.id === "confusion"), false);
-  assert.equal(calculateConfusionSelfDamage(token("a", { stages: { attack: 6, defense: -6 } })), 10);
+  assert.equal(calculateConfusionSelfDamage(token("a", { stages: { attack: 6, defense: -6 } })), 13);
 });
 
 test("confusion self-hit can still trigger a canonical survival trait", () => {

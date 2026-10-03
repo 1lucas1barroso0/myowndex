@@ -281,7 +281,7 @@ const quickAttribute = (request, random) => {
             mode: test.mode,
             rawDice: test.dice,
             keptDice: test.kept,
-            modifiers: { attribute: test.attribute },
+            modifiers: { modifier: test.attribute },
             result: test.total,
             success: test.success,
             critical: test.critical,
@@ -290,7 +290,7 @@ const quickAttribute = (request, random) => {
         },
         eventType: "roll",
         eventPayload: {
-            label: request.mode === "advantage" ? "teste com vantagem" : request.mode === "disadvantage" ? "teste com desvantagem" : "teste de atributo",
+            label: request.mode === "advantage" ? "teste simples com vantagem" : request.mode === "disadvantage" ? "teste simples com desvantagem" : "teste simples",
             mode: test.mode,
             result: test.total,
             dice: test.dice,

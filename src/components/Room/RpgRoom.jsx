@@ -38,7 +38,6 @@ import {
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import { formatCount } from "../../core/copy.js";
 import { finiteNumber, integerInRange } from "../../core/math.js";
-import LocalDicePanel from "../Shared/LocalDicePanel.jsx";
 import {
     buildPlayerInvite,
     buildRoomInviteToken,
@@ -256,81 +255,6 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                 <b>Neste dispositivo</b>
             </button>
         </div>
-    );
-}
-
-function QuickRoller({ local, onAuthoritativeAction, onEvent, onError, pokemonContext }) {
-    const [kind, setKind] = useState("attribute");
-    const [mode, setMode] = useState("normal");
-    const [attribute, setAttribute] = useState(0);
-    const [chance, setChance] = useState(50);
-    const [result, setResult] = useState(null);
-    const [busy, setBusy] = useState(false);
-    const rollInFlight = useRef(false);
-
-    const roll = async () => {
-        if (rollInFlight.current) return;
-        rollInFlight.current = true;
-        setBusy(true);
-        try {
-            const authoritative = await onAuthoritativeAction({
-                action: kind === "attribute" ? "quick-attribute" : "quick-percent",
-                mode,
-                ...(kind === "attribute" ? { attribute } : { chance }),
-            });
-            setResult(authoritative.result);
-        } catch (error) {
-            onError(error);
-        } finally {
-            rollInFlight.current = false;
-            setBusy(false);
-        }
-    };
-
-    if (local) return <LocalDicePanel context="aventura" compact onRoll={payload => onEvent("roll", payload)} {...pokemonContext} />;
-
-    return (
-        <details className="room-tool" open>
-            <summary>
-                <span>
-                    <strong>Rolagem rápida</strong>
-                </span>
-                <span className="room-tool-badge">Ao vivo</span>
-            </summary>
-            <div className="room-tool-body">
-                <div className="quick-roll-kind">
-                    <button type="button" aria-pressed={kind === "attribute"} onClick={() => setKind("attribute")}>2d6</button>
-                    <button type="button" aria-pressed={kind === "percent"} onClick={() => setKind("percent")}>d100</button>
-                </div>
-                <div className="quick-roll-controls">
-                    <label>
-                        <span>{kind === "attribute" ? "Modificador" : "Chance"}</span>
-                        <input
-                            type="number"
-                            min={kind === "attribute" ? -99999 : 0}
-                            max={kind === "attribute" ? 99999 : 100}
-                            value={kind === "attribute" ? attribute : chance}
-                            onChange={event => kind === "attribute" ? setAttribute(event.target.value) : setChance(event.target.value)}
-                        />
-                    </label>
-                    <label>
-                        <span>Como rolar</span>
-                        <RoomSelect aria-label="Como rolar" value={mode} onChange={event => setMode(event.target.value)}>
-                            <option value="normal">Normal</option>
-                            <option value="advantage">Vantagem</option>
-                            <option value="disadvantage">Desvantagem</option>
-                        </RoomSelect>
-                    </label>
-                </div>
-                <button type="button" className="room-primary-button" disabled={busy} onClick={roll}>Rolar e compartilhar</button>
-                {result && (
-                    <div className="quick-roll-result" aria-live="polite">
-                        <strong>{result.title}</strong>
-                        <span>{result.detail}</span>
-                    </div>
-                )}
-            </div>
-        </details>
     );
 }
 
@@ -1425,7 +1349,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
             <nav className="room-mobile-nav" aria-label="Painéis da aventura">
                 <button type="button" aria-pressed={mobilePane === "roster"} onClick={() => setMobilePane("roster")}>Equipe</button>
                 <button type="button" aria-pressed={mobilePane === "field"} onClick={() => setMobilePane("field")}>Campo</button>
-                <button type="button" aria-pressed={mobilePane === "tools"} onClick={() => setMobilePane("tools")}>Dados e ações</button>
+                <button type="button" aria-pressed={mobilePane === "tools"} onClick={() => setMobilePane("tools")}>Ações</button>
             </nav>
 
             <div className="room-layout">
@@ -1812,13 +1736,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
 
                 <aside className="room-tools">
                     {!session.local && <VoiceCall session={session} role={role} />}
-                    <QuickRoller
-                        local={Boolean(session.local)}
-                        pokemonContext={dicePokemonContext}
-                        onAuthoritativeAction={requestAuthoritativeAction}
-                        onEvent={sendEvent}
-                        onError={showError}
-                    />
                     <CombatAssistant
                         role={role}
                         playerId={session.playerId}

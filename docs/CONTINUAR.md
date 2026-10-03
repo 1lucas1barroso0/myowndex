@@ -2,7 +2,7 @@
 
 A versão 11.6 foi concluída sobre o checkpoint 11.5, com 40 regras reais, referências EN/PT naturais e remoção segura de todo conteúdo criado pelo usuário. O fechamento técnico está em [FINAL-11.6.md](FINAL-11.6.md). Antes de publicar, conferir o PR, CI, Preview e a confirmação da produção; não reutilizar os avisos históricos abaixo como estado atual.
 
-O pacote `../entrega/myowndex-v11.6-linux.sh` foi gerado e verificado. A fonte ainda deve ser publicada somente depois da criação do commit imutável sobre `83462f453e0f67317aa40a20f71c7d4b827bf005`.
+O pacote `../entrega/myowndex-v11.6-linux.sh` foi gerado e verificado. A fonte foi integrada no PR #31; o commit de merge é `b899eb46cd96295e18b843de497a3a62570f649d` e a produção está em `https://myowndex.vercel.app`.
 
 ## Registro histórico
 

@@ -15,6 +15,11 @@ Esta rodada parte do checkpoint 11.5 publicado (`6b8d8dad6238c91a8606c45f3b80e73
 - Diário: Narrador pode apagar entradas; jogador pode apagar as próprias. Limpar usa um corte de sequência para não apagar mensagens novas em uma repetição. Recibos autoritativos ficam ocultos, mas continuam idempotentes para retries e nunca reaplicam a ação.
 - Conta: apagar cópias anteriores, cópias de contas desconectadas, a cópia local ao sair e a cópia local ao remover a conta. A remoção da cópia local usa época de invalidação para impedir que outra aba a recrie; o documento atual e os dados em outros dispositivos só são removidos quando a ação confirmada abrange esse destino.
 
+## Leitura e Gerador
+
+- Textos de interface, nomes, movimentos, Boxes e seletores respeitam palavras completas; códigos e campos de texto livre continuam podendo quebrar quando necessário para não vazar da tela.
+- O cabeçalho de cada parceiro do Gerador se reorganiza em telas estreitas, mantendo sprite, nome e ações acessíveis sem cortar o nome no meio. O fluxo completo continua disponível em 320, 390, 768, 1280 e 1440 px, nos dois temas.
+
 ## Validação
 
-`npm test` passou com 349 testes; lint, TypeScript e build de produção passaram. Os navegadores confirmaram 40 regras, referências EN/PT, contas e remoções, sem erros, em 320, 390, 768 e 1280 px nos dois temas. O pacote Linux foi verificado com 12 checagens determinísticas.
+`npm test` passou com 349 testes; lint, TypeScript e build de produção passaram. Os navegadores confirmaram 40 regras, referências EN/PT, contas e remoções, sem erros, em 320, 390, 768, 1280 e 1440 px nos dois temas; o Gerador passou 26 verificações de fluxo e responsividade. O pacote Linux foi verificado com 12 checagens determinísticas.

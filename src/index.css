@@ -3821,7 +3821,7 @@ html[data-theme="night"] .token-self-damage-action strong { color: var(--dex-led
   min-width: 0;
   font-size: .55rem;
   line-height: 1.25;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
 }
 
 .room-phase-options button[data-phase="exploracao"].is-selected { border-color: #4ADE80; background: #4ADE80; }
@@ -4082,7 +4082,7 @@ html {
 .combat-damage-limit {
   color: var(--dex-bezel) !important;
   font-weight: 950 !important;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
 }
 
 .combat-damage-exception {
@@ -4158,7 +4158,7 @@ html {
 }
 
 .token-hp-control button { width: 2.5rem; height: 2.5rem; }
-.token-hp-control strong { padding-inline: .25rem; overflow-wrap: anywhere; }
+.token-hp-control strong { padding-inline: .25rem; overflow-wrap: normal; }
 .token-modifiers { overflow: visible; }
 .token-modifier-grid { gap: .65rem; padding: .7rem; }
 .token-modifier { grid-template-columns: minmax(6.5rem, 1fr) 2.5rem minmax(2.8rem, auto) 2.5rem; gap: .45rem; padding: .55rem; }
@@ -4195,7 +4195,7 @@ html {
 /* Readable content is never sacrificed to decorative geometry. */
 :is(.room-title h2, .room-player strong, .initiative-list li > button, .initiative-list li > small, .room-token-name, .token-inspector-identity strong, .token-modifier > span strong, .token-modifier > span small, .trait-card > header strong, .call-member strong, .audio-now strong, .audio-library strong, .combat-target-results span, .combat-consequences li, .event-log article, button, label, p, li, dd, dt) {
   max-width: 100%;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   word-break: normal;
   text-overflow: clip;
   white-space: normal;

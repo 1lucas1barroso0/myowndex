@@ -24,17 +24,32 @@ async function verify(label) {
         const escaped = controls.filter(node => { const rect = node.getBoundingClientRect(); return rect.left < -1 || rect.right > innerWidth + 1; }).map(node => node.innerText || node.getAttribute('aria-label'));
         const undersized = controls.filter(node => ['BUTTON', 'SUMMARY'].includes(node.tagName) && node.getBoundingClientRect().height < 43.5).map(node => node.innerText);
         const truncated = controls.filter(node => !['INPUT', 'SELECT'].includes(node.tagName) && node.scrollWidth > node.clientWidth + 2 && ['hidden', 'clip'].includes(getComputedStyle(node).overflowX)).map(node => node.innerText);
+        const brokenWords = [];
+        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+        let textNode;
+        while ((textNode = walker.nextNode())) {
+            const parent = textNode.parentElement;
+            if (!parent || !visible(parent) || !parent.closest('.generator-partner-choice,.generator-moves,.generator-partner-facts,.generator-result-heading')) continue;
+            for (const match of textNode.textContent.matchAll(/\S+/g)) {
+                const range = document.createRange();
+                range.setStart(textNode, match.index);
+                range.setEnd(textNode, match.index + match[0].length);
+                const lines = new Set([...range.getClientRects()].filter(rect => rect.width > 0 && rect.height > 0).map(rect => Math.round(rect.top)));
+                if (lines.size > 1) brokenWords.push({ word: match[0], container: parent.className });
+            }
+        }
         const selects = [...element.querySelectorAll('.room-select')].filter(visible).map(field => {
             const select = field.querySelector('select');
             const full = select.selectedOptions[0]?.textContent.replace(/\s+/g, ' ').trim();
             const displayed = field.querySelector('.room-select-value').textContent.replace(/\s+/g, ' ').trim();
             return { full, displayed };
         });
-        return { escaped, undersized, truncated, selects, pageWidth: document.documentElement.scrollWidth, viewport: innerWidth };
+        return { escaped, undersized, truncated, brokenWords, selects, pageWidth: document.documentElement.scrollWidth, viewport: innerWidth };
     });
     assert.deepEqual(result.escaped, [], `${label}: elements escaped`);
     assert.deepEqual(result.undersized, [], `${label}: small targets`);
     assert.deepEqual(result.truncated, [], `${label}: clipped labels`);
+    assert.deepEqual(result.brokenWords, [], `${label}: words split across lines`);
     assert.ok(result.pageWidth <= result.viewport + 1, `${label}: horizontal overflow`);
     assert.ok(result.selects.every(select => select.full === select.displayed), `${label}: selected values cut`);
     report.push(label);

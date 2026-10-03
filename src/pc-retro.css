@@ -14,18 +14,21 @@ html .app-root .pc-box-cursor { font-size:.65rem; margin-right:.35rem; }
 html .app-root .pc-box-capacity { flex:0 0 auto; color:var(--ui-muted); font-size:.8rem; }
 html .app-root :is(.pc-create-box-button,.pc-import-button) { width:100%; }
 html .app-root .pc-import-region { margin-top:.75rem; }
-html .app-root .pc-main-panel { padding:clamp(1.25rem,3vw,2rem); background:var(--ui-panel); border:1px solid var(--ui-line); border-top:4px solid var(--ui-blue); border-radius:.35rem; }
-html .app-root .pc-toolbar { display:flex; flex-wrap:wrap; align-items:start; gap:1.5rem; padding-bottom:1.75rem; border-bottom:1px solid var(--ui-line); margin-bottom:1.75rem; }
-html .app-root .pc-toolbar-fields { display:grid; gap:.6rem; flex:1 1 280px; }
+html .app-root .pc-main-panel { padding:clamp(1.25rem,3vw,2rem); background:var(--ui-panel); border:1px solid var(--ui-line); border-top:4px solid var(--ui-blue); border-radius:.35rem; container-type:inline-size; }
+html .app-root .pc-toolbar { display:grid; gap:1.25rem; padding-bottom:1.75rem; border-bottom:1px solid var(--ui-line); margin-bottom:1.75rem; }
+html .app-root .pc-toolbar-fields { display:grid; grid-template-columns:minmax(0,1fr); gap:1.25rem; align-items:start; }
+html .app-root .pc-name-field { display:grid; gap:.4rem; min-width:0; }
 html .app-root .pc-box-name { width:100%; font-size:1.5rem !important; font-weight:800; }
 html .app-root .pc-version-field { display:grid; gap:.4rem; font-size:.85rem; color:var(--ui-muted); }
 html .app-root .pc-version-field select { width:100%; }
-html .app-root .pc-toolbar-actions { display:flex; flex-wrap:wrap; gap:.5rem; }
-html .app-root .pc-action-button { display:flex; align-items:center; justify-content:center; gap:.4rem; }
+html .app-root .pc-toolbar-actions { display:flex; flex-wrap:wrap; align-items:stretch; gap:.75rem; }
+html .app-root .pc-action-button { display:flex; flex:1 1 9rem; align-items:center; justify-content:center; gap:.6rem; min-height:48px; padding:.8rem 1rem; border:1px solid var(--ui-line); border-radius:.25rem; background:var(--ui-raised); color:var(--ui-ink); font-weight:700; }
+html .app-root .pc-action-button.is-share { color:var(--ui-blue); background:var(--ui-selected); border-color:var(--ui-blue); }
 html .app-root .pc-action-button.is-delete { color:var(--ui-accent) !important; }
 html .app-root .pc-grid-heading h3 { font-size:1.25rem; font-weight:800; }
 html .app-root .pc-grid-heading > span { font-size:.85rem; color:var(--ui-muted); }
-html .app-root :is(.pc-add-button,.pc-editor-heading button) { min-height:44px; padding:.7rem .85rem; color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; background:var(--ui-panel); font-weight:700; }
+html .app-root :is(.pc-add-button,.pc-editor-heading button,.pc-create-box-button,.pc-import-button) { min-height:48px; padding:.8rem 1rem; color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; background:var(--ui-panel); font-weight:700; }
+html .app-root .pc-import-button { display:flex; align-items:center; justify-content:center; gap:.6rem; }
 html .app-root .pc-partner-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:1rem; }
 html .app-root .pc-partner-card { display:grid; grid-template-columns:64px minmax(0,1fr); position:relative; align-items:center; gap:1rem; width:100%; text-align:left; padding:1.25rem; min-height:136px; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); border-left:4px solid var(--pc-partner-type,var(--ui-line)); border-radius:.3rem; }
 html .app-root .pc-partner-card.is-selected { background:var(--ui-selected); outline:2px solid var(--ui-blue); outline-offset:1px; }
@@ -42,7 +45,11 @@ html .app-root .pc-partner-types > span { padding:.2rem .45rem; border-radius:.2
 html .app-root .pc-box-empty { padding:2rem 0; color:var(--ui-muted); }
 html .app-root .pc-catalog-status { padding:1rem; margin-bottom:1rem; background:var(--ui-selected); }
 html .app-root .pc-editor-region { margin-top:2.25rem; border-top:2px solid var(--ui-blue); padding-top:1.5rem; }
-html .app-root .pc-editor-heading { color:var(--ui-muted); font-size:.95rem; }
+html .app-root .pc-editor-heading { color:var(--ui-ink); font-size:1rem; gap:1.25rem; margin-bottom:1.75rem; }
+html .app-root .pc-editor-heading h3 { flex:1 1 220px; font-size:1.2rem; font-weight:800; min-width:0; overflow-wrap:anywhere; }
+html .app-root .pc-editor-actions { display:flex; flex-wrap:wrap; align-items:stretch; justify-content:flex-end; gap:.75rem; }
+html .app-root .pc-editor-actions > button { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; }
+html .app-root .pc-editor-actions .pokemon-remove-button { margin:0; color:var(--ui-accent); }
 html .app-root .pc-empty-state { display:grid; gap:1rem; justify-items:start; padding:clamp(1.5rem,4vw,3rem); background:var(--ui-panel); min-height:320px; border:1px solid var(--ui-line); }
 html .app-root .pc-empty-state h2 { font-size:2rem; font-weight:800; }
 html .app-root .pc-welcome-partners { display:flex; }
@@ -58,12 +65,15 @@ html .app-root .editor-label { color:var(--ui-muted); font-size:.85rem; font-wei
 html .app-root .editor-nickname { font-size:1.35rem !important; font-weight:800; width:100%; }
 html .app-root .editor-basics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:1.5rem; }
 html .app-root .editor-field :is(input,select,textarea) { width:100%; }
-html .app-root .editor-choice-control { display:flex; align-items:start; gap:.5rem; min-width:0; }
+html .app-root .editor-choice-control { display:flex; align-items:stretch; gap:.75rem; min-width:0; }
 html .app-root .editor-choice-control > :is(input,select) { flex:1 1 0; width:0; min-width:0; }
 html .app-root .editor-choice-control > .room-select { flex:1 1 0; width:0; min-width:0; }
-html .app-root .editor-random-button { min-width:44px; min-height:44px; flex:0 0 auto; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; }
-html .app-root .editor-gender-controls { display:flex; flex-wrap:wrap; gap:.4rem; }
-html .app-root :is(.editor-gender-controls button,.editor-xp-actions button,.rpg-recover-button,.editor-randomize-button,.pokemon-remove-button,.form-switch select) { min-height:44px; padding:.65rem .8rem; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; }
+html .app-root .editor-random-button { min-width:48px; min-height:48px; flex:0 0 auto; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; font-size:1.35rem; }
+html .app-root .editor-gender-controls { display:grid; gap:.75rem; }
+html .app-root :is(.editor-gender-selection,.editor-gender-tools) { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; }
+html .app-root :is(.editor-gender-controls button,.editor-xp-actions button,.rpg-recover-button,.editor-randomize-button,.pokemon-remove-button,.form-switch select) { min-height:48px; padding:.75rem .9rem; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; }
+html .app-root .editor-gender-controls button { display:inline-flex; align-items:center; justify-content:center; gap:.45rem; }
+html .app-root .editor-gender-tools button { font-size:.85rem; }
 html .app-root .editor-gender-controls button[aria-pressed=true] { background:var(--ui-selected); border-color:var(--ui-blue); }
 html .app-root .editor-field-note { font-size:.8rem; color:var(--ui-accent); }
 html .app-root .editor-exception-note { margin:1rem 0; color:var(--ui-muted); }
@@ -77,7 +87,7 @@ html .app-root .editor-pp-control { width:90px; }
 html .app-root :is(.editor-disclosure,.editor-move-description) { margin-top:1.75rem; border-top:1px solid var(--ui-line); }
 html .app-root :is(.editor-disclosure,.editor-move-description) > summary { min-height:48px; padding:.9rem 0; font-weight:750; line-height:1.5; color:var(--ui-ink); }
 html .app-root .editor-disclosure-body { padding:1.25rem 0 1.5rem; }
-html .app-root .editor-trait-reference .editor-disclosure-body { display:grid; gap:1.5rem; }
+html .app-root .editor-trait-reference .editor-disclosure-body { display:grid; grid-template-columns:minmax(0,1fr); gap:1.5rem; }
 html .app-root .editor-disclosure-body p { font-size:1rem; line-height:1.7; max-width:68ch; }
 html .app-root .editor-move-facts { display:flex; flex-wrap:wrap; gap:.75rem; margin:1rem 0; }
 html .app-root .editor-move-facts dt { font-size:.8rem; color:var(--ui-muted); }
@@ -90,7 +100,7 @@ html .app-root .rpg-journey-panel > summary::-webkit-details-marker { display:no
 html .app-root .rpg-journey-panel > summary::after { content:"+"; margin-left:auto; color:var(--ui-blue); font-size:1.3rem; }
 html .app-root .rpg-journey-panel[open] > summary::after { content:"−"; }
 html .app-root .editor-progress-goal { font-size:.85rem; color:var(--ui-muted); }
-html .app-root .editor-xp-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; }
+html .app-root .editor-xp-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:.5rem; }
 html .app-root .pokemon-training-panel { background:transparent; border:0; border-top:1px solid var(--ui-line); padding:0; container-type:inline-size; }
 html .app-root .pokemon-training-panel > summary { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:.75rem; list-style:none; padding:1rem 0; }
 html .app-root .pokemon-training-panel > summary::-webkit-details-marker { display:none; }
@@ -122,7 +132,7 @@ html .app-root .pokemon-stat-ev input[type=range]::-moz-range-progress { height:
 html .app-root .pokemon-stat-ev input[type=range]::-moz-range-thumb { width:16px; height:16px; border:2px solid var(--ui-panel); background:var(--ui-blue); border-radius:50%; }
 @container (max-width:34rem) { html .app-root .pokemon-stat-row { grid-template-columns:minmax(0,1fr); gap:.75rem; } html .app-root .pokemon-stat-controls { grid-template-columns:repeat(2,minmax(0,1fr)); } html .app-root .pokemon-stat-ev { grid-column:1/-1; } }
 @container (max-width:26rem) { html .app-root .pokemon-training-panel > summary { grid-template-columns:minmax(0,1fr) auto; } html .app-root .pokemon-training-panel > summary::after { grid-column:2; grid-row:1; } html .app-root .pokemon-ev-budget { grid-column:1/-1; width:fit-content; } }
-html .app-root .pokemon-remove-button { margin-top:2rem; color:var(--ui-accent); }
+html .app-root .pokemon-remove-button { color:var(--ui-accent); }
 html .app-root .editor-species-name { color:var(--ui-muted); font-size:.9rem; }
 html .app-root .editor-stat-summary { padding:1.5rem 0; }
 html .app-root .editor-stat-summary h3 { font-weight:750; margin-bottom:1rem; }
@@ -164,4 +174,6 @@ html .app-root .link-cable-result > div:not(.link-cable-code-field) { display:fl
 html .app-root .link-cable-error { padding:1rem; margin:1rem 0; border-left:3px solid var(--ui-accent); color:var(--ui-ink); }
 html .app-root .link-cable-preview { margin:1rem 0; }
 @media (max-width:1000px) { html .app-root .pc-workspace.pc-retro { grid-template-columns:minmax(0,1fr); } html .app-root .pc-box-list { grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); max-height:240px; } }
+@container (min-width:42rem) { html .app-root .pc-toolbar-fields { grid-template-columns:repeat(2,minmax(0,1fr)); } html .app-root .editor-trait-reference .editor-disclosure-body { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@container (max-width:30rem) { html .app-root :is(.pc-toolbar-actions,.pc-editor-actions) { width:100%; } html .app-root :is(.pc-toolbar-actions,.pc-editor-actions) > button { flex:1 1 9rem; } }
 @media (max-width:540px) { html .app-root .pc-sidebar,html .app-root .pc-main-panel { padding:1.25rem; } html .app-root .pokemon-stat-row { grid-template-columns:minmax(0,1fr); } }

@@ -73,6 +73,6 @@ export default function ConfirmDialog({
                 </div>
             </section>
         </div>,
-        document.body
+        document.querySelector("dialog[open]") || document.body
     );
 }

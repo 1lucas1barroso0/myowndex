@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repository": "smogon/pokemon-showdown",
+    "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
+    "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/champions/moves.ts",
+    "sha256": "4471bcc8eb98f4697d040953008330d7951d0bcc70688f3c85e77099b28ea228",
+    "bytes": 18642
+  },
+  "moves": {
+    "growth": {
+      "type": "Grass"
+    },
+    "crabhammer": {
+      "accuracy": 95
+    },
+    "slash": {
+      "basePower": 80
+    },
+    "protect": {
+      "pp": 5
+    },
+    "bone-rush": {
+      "basePower": 30
+    },
+    "sandstorm": {
+      "pp": 5
+    },
+    "milk-drink": {
+      "target": "adjacentAllyOrSelf"
+    },
+    "wish": {
+      "pp": 5
+    },
+    "night-slash": {
+      "pp": 20
+    },
+    "night-daze": {
+      "basePower": 90
+    },
+    "gear-grind": {
+      "accuracy": 90,
+      "basePower": 60
+    },
+    "kings-shield": {
+      "pp": 5
+    },
+    "spiky-shield": {
+      "pp": 5
+    },
+    "first-impression": {
+      "basePower": 100
+    },
+    "baneful-bunker": {
+      "pp": 5
+    },
+    "spirit-shackle": {
+      "basePower": 90
+    },
+    "strength-sap": {
+      "pp": 5
+    },
+    "anchor-shot": {
+      "basePower": 90
+    },
+    "fire-lash": {
+      "basePower": 90
+    },
+    "purify": {
+      "pp": 5
+    },
+    "revelation-dance": {
+      "basePower": 100
+    },
+    "trop-kick": {
+      "basePower": 85
+    },
+    "beak-blast": {
+      "basePower": 120,
+      "pp": 5
+    },
+    "dragon-hammer": {
+      "basePower": 100
+    },
+    "shell-trap": {
+      "pp": 10
+    },
+    "snipe-shot": {
+      "basePower": 85
+    },
+    "bolt-beak": {
+      "basePower": 80
+    },
+    "fishious-rend": {
+      "basePower": 80
+    },
+    "clangorous-soul": {
+      "accuracy": true
+    },
+    "snap-trap": {
+      "type": "Steel"
+    },
+    "apple-acid": {
+      "basePower": 90
+    },
+    "grav-apple": {
+      "basePower": 90
+    },
+    "obstruct": {
+      "pp": 5
+    },
+    "meteor-assault": {
+      "basePower": 170
+    },
+    "astral-barrage": {
+      "basePower": 110
+    },
+    "psyshield-bash": {
+      "basePower": 90
+    },
+    "mountain-gale": {
+      "basePower": 120
+    },
+    "infernal-parade": {
+      "basePower": 65
+    },
+    "spin-out": {
+      "pp": 10
+    },
+    "triple-dive": {
+      "basePower": 35
+    },
+    "make-it-rain": {
+      "accuracy": 95
+    },
+    "snowscape": {
+      "pp": 5
+    },
+    "hyper-drill": {
+      "basePower": 120
+    },
+    "blood-moon": {
+      "basePower": 130
+    },
+    "syrup-bomb": {
+      "accuracy": 90
+    }
+  },
+  "statChanges": {
+    "make-it-rain": [
+      {
+        "stat": "special-attack",
+        "change": -2
+      }
+    ]
+  }
+}

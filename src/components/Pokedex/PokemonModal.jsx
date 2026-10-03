@@ -1,6 +1,8 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { describeSpecies } from '../../core/descriptions.js';
 import { getPokedexRecord } from '../../core/pokedexRecord.js';
+import { getSpeciesRecordHistory, loadCatalogText } from '../../core/catalogText.js';
+import { getLearnsetGames, resolveLearnsetGame } from '../../core/referenceGames.js';
 import pokedexEntries from '../../data/pokedex-entries.json';
 import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
@@ -8,6 +10,7 @@ import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
 import GameIcon from '../Shared/GameIcon.jsx';
+import RoomSelect from '../Shared/RoomSelect.jsx';
 import '../../pokedex-record.css';
 
 const RECORD_TABS = [
@@ -43,6 +46,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const [evoChain, setEvoChain] = useState([]);
     const [tab, setTab] = useState("stats");
     const [recordLanguage, setRecordLanguage] = useState('en');
+    const [recordVersion, setRecordVersion] = useState('auto');
+    const [learnsetVersion, setLearnsetVersion] = useState('auto');
+    const [recordHistory, setRecordHistory] = useState([]);
     const [loadError, setLoadError] = useState("");
     const [evolutionStatus, setEvolutionStatus] = useState("loading");
     const dialogRef = useRef(null);
@@ -65,6 +71,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         setEvolutionStatus("loading");
         setTab("stats");
         setRecordLanguage('en');
+        setRecordVersion('auto');
+        setLearnsetVersion('auto');
+        setRecordHistory([]);
         fetchCached(speciesUrl).then(async data => {
             if (!mounted) return;
             if (!data) {
@@ -100,6 +109,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     useEffect(() => {
         let mounted = true;
         if (activeForm?.url) {
+            setLearnsetVersion('auto');
+            setRecordVersion('auto');
             setFormData(null);
             setLoadError("");
             fetchCached(activeForm.url).then(async data => {
@@ -122,6 +133,15 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         }
         return () => mounted = false;
     }, [activeForm, baseInfo]);
+
+    useEffect(() => {
+        if (!baseInfo?.id) return;
+        let active = true;
+        loadCatalogText('species', baseInfo.id).then(() => {
+            if (active) setRecordHistory(getSpeciesRecordHistory(baseInfo.id, activeForm?.name));
+        }).catch(() => { if (active) setRecordHistory([]); });
+        return () => { active = false; };
+    }, [baseInfo?.id, activeForm?.name]);
 
     // Keep keyboard and assistive-technology navigation inside the open record.
     useEffect(() => {
@@ -186,8 +206,10 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         if (!dialogRef.current?.contains(document.activeElement)) closeRef.current?.focus({ preventScroll: true });
     }, [phase]);
 
-    const legalMoves = useMemo(() => filterMovesByLatestVersion(formData?.moves || []), [formData?.moves]);
-    const moveVersion = legalMoves[0]?.version_group;
+    const learnsetGames = useMemo(() => getLearnsetGames(formData?.moves || []), [formData?.moves]);
+    const moveVersion = resolveLearnsetGame(formData?.moves || [], learnsetVersion);
+    const legalMoves = useMemo(() => filterMovesByLatestVersion(formData?.moves || [], learnsetVersion), [formData?.moves, learnsetVersion]);
+    const selectedMoveGame = learnsetGames.find(game => game.value === moveVersion);
     const handleTabKeyDown = event => {
         const index = RECORD_TABS.findIndex(item => item.id === tab);
         let nextIndex;
@@ -209,7 +231,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const speciesFacts = speciesDescription ? organizeSpeciesFacts(speciesDescription.facts) : [];
     const profileFacts = speciesFacts.filter(fact => !fact.scale);
     const referenceFacts = speciesFacts.filter(fact => fact.scale);
-    const record = getPokedexRecord(baseInfo?.id, pokedexEntries, speciesDescription?.flavor, activeForm?.name);
+    const record = (recordVersion === 'auto' ? recordHistory[0] : recordHistory.find(entry => entry.id === recordVersion))
+        || recordHistory[0] || getPokedexRecord(baseInfo?.id, pokedexEntries, speciesDescription?.flavor, activeForm?.name);
     const recordText = recordLanguage === 'pt-BR' && record.portuguese ? record.portuguese : record.original;
     const recordTextLanguage = recordLanguage === 'pt-BR' && record.portuguese ? 'pt-BR' : record.originalLanguage;
 
@@ -308,8 +331,15 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                             {recordLanguage === 'pt-BR' ? 'PT' : 'EN'}
                                         </button>}
                                     </header>
+                                    {recordHistory.length > 1 && <div className="record-game-picker">
+                                        <label htmlFor={`${recordId}-record-game`}>Registro de</label>
+                                        <RoomSelect id={`${recordId}-record-game`} value={recordHistory.some(entry => entry.id === recordVersion) ? recordVersion : 'auto'} onChange={event => setRecordVersion(event.target.value)}>
+                                            <option value="auto">Mais recente · {recordHistory[0].label}</option>
+                                            {recordHistory.map(entry => <option key={entry.id} value={entry.id}>{entry.label}</option>)}
+                                        </RoomSelect>
+                                    </div>}
                                     <p id={`${recordId}-description-text`} lang={recordTextLanguage} aria-live="polite" aria-atomic="true">{recordText || speciesDescription.summary}</p>
-                                    {record.source && <small className="record-entry-source">{record.source === 'pokemon-go' ? 'Pokémon GO' : 'Pokémon Scarlet'}{recordTextLanguage === 'pt-BR' && record.sourceKind === 'editorial' ? ' · Tradução MyOwnDex' : ''}</small>}
+                                    {record.source && <small className="record-entry-source">{record.label || (record.source === 'pokemon-go' ? 'Pokémon GO' : record.source === 'pokemon-scarlet' ? 'Pokémon Scarlet' : record.source)}{recordTextLanguage === 'pt-BR' && record.sourceKind === 'editorial' ? ' · Tradução MyOwnDex' : ''}</small>}
                                 </section>
                                 <dl className="record-species-facts">
                                     {profileFacts.map((fact, index) => <div key={`species-fact-${index}`} className={fact.label === 'Categoria' ? 'record-species-category' : undefined}>
@@ -338,7 +368,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 
                                 <div>
                                     <h3 className="record-section-title">Habilidades</h3>
-                                    <div className="flex flex-col gap-3">{formData.abilities?.map((a, i) => <AbilityCard key={i} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
+                                    <div className="record-abilities-list">{formData.abilities?.map((a, i) => <AbilityCard key={a.ability?.name || i} name={a.ability?.name} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
                                 </div>
                                 
                                 {baseInfo.varieties?.length > 1 && (
@@ -414,10 +444,17 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                             <div className="animate-fade-in">
                                 <div className="record-moves-heading">
                                     <h3 className="record-section-title">Movimentos</h3>
-                                    <span className="record-move-version">{formatCount(legalMoves.length, "movimento")} · {VERSION_LABELS[moveVersion] || "Mais recente"}</span>
+                                    {learnsetGames.length > 0 && <div className="record-game-picker">
+                                        <label htmlFor={`${recordId}-move-game`}>Jogo</label>
+                                        <RoomSelect id={`${recordId}-move-game`} value={learnsetVersion === 'auto' || learnsetGames.some(game => game.value === learnsetVersion) ? learnsetVersion : 'auto'} onChange={event => setLearnsetVersion(event.target.value)}>
+                                            <option value="auto">Mais recente · {VERSION_LABELS[resolveLearnsetGame(formData.moves)] || selectedMoveGame?.label}</option>
+                                            {learnsetGames.map(game => <option key={game.value} value={game.value}>{game.label}</option>)}
+                                        </RoomSelect>
+                                    </div>}
+                                    <span className="record-move-version" aria-live="polite">{formatCount(legalMoves.length, "movimento")} · {VERSION_LABELS[moveVersion] || selectedMoveGame?.label || "Sem registro"}</span>
                                 </div>
                                 <div className="record-moves-list">
-                                    {legalMoves.map(move => <MoveAccordion key={move.move?.name} moveData={move} isTTRPG={isTTRPG} />)}
+                                    {legalMoves.map(move => <MoveAccordion key={`${moveVersion}-${move.move?.name}`} moveData={move} versionGroup={selectedMoveGame} isTTRPG={isTTRPG} />)}
                                     {!legalMoves.length && <p className="record-section-note">A Pokédex ainda não tem movimentos registrados para esta forma.</p>}
                                 </div>
                             </div>

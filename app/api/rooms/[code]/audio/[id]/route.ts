@@ -22,7 +22,7 @@ export async function GET(request: Request, context: RouteContext) {
     const params = await context.params;
     const code = safeRoomCode(params.code);
     const id = safeText(params.id, 80);
-    const auth = await authenticateRoom(code, readRoomKey(request));
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
     if (!auth) return noStoreJson({ error: "Não foi possível acessar o áudio desta aventura. Entre novamente e tente outra vez." }, { status: 401 });
     const { db, bucket } = getBindings();
     if (!bucket) throw new RuntimeConfigurationError("Para abrir trilhas compartilhadas, configure as variáveis MYOWNDEX_S3 na Vercel.");
@@ -50,7 +50,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     const params = await context.params;
     const code = safeRoomCode(params.code);
     const id = safeText(params.id, 80);
-    const auth = await authenticateRoom(code, readRoomKey(request));
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
     if (!auth || auth.role !== "narrator") {
       return noStoreJson({ error: "Só o Narrador pode remover trilhas da aventura." }, { status: 403 });
     }

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { clearLocalRolls, LOCAL_ROLL_LIMIT, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRolls, saveLocalRoll } from "../src/core/localRolls.js";
+import { clearLocalRolls, clearLocalRollsDurable, flushLocalRollHistoryWrites, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_LIMIT, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRoll, saveLocalRollDurable } from "../src/core/localRolls.js";
 import { rollAttributeTest } from "../src/core/rpgRules.js";
+import { getStorageScope, resolveStorageKey, setStorageScope } from "../src/core/storage.js";
 
 class MemoryStorage {
   data = new Map();
@@ -19,6 +20,29 @@ const faces = (values, sides=6) => {
     return (values[cursor++]-0.5)/sides;
   };
 };
+
+async function durableStorage(t) {
+  const previousWindow=globalThis.window;
+  const previousNavigator=Object.getOwnPropertyDescriptor(globalThis,"navigator");
+  const previousScope=getStorageScope();
+  const storage=new MemoryStorage();
+  const locks=[],queues=new Map();
+  globalThis.window={localStorage:storage};
+  Object.defineProperty(globalThis,"navigator",{configurable:true,value:{locks:{request(name,task){
+    locks.push(name);
+    const next=(queues.get(name) || Promise.resolve()).then(task);
+    queues.set(name,next.catch(()=>undefined));
+    return next;
+  }}}});
+  setStorageScope(null);
+  t.after(async()=>{
+    await flushLocalRollHistoryWrites();
+    setStorageScope(previousScope);
+    if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
+    if(previousNavigator)Object.defineProperty(globalThis,"navigator",previousNavigator);else delete globalThis.navigator;
+  });
+  return {storage,locks};
+}
 
 test("local receipts retain exact raw and kept dice, modifiers and strict target ties", () => {
   const input={kind:"attribute",mode:"advantage",attribute:3,opposition:15,label:"Investigar"};
@@ -143,6 +167,19 @@ test("history retains the newest hundred and exports full original parameters an
   const event=localRollEvent(records[0]);assert.deepEqual(event.rolls,[70,30]);assert.equal(event.result,30);
 });
 
+test("global dice retain their context in the same bounded history as Guide and Adventure rolls", () => {
+  const storage = new MemoryStorage();
+  for (const [index, context] of ["guia", "aventura", "central"].entries()) {
+    const record = performLocalRoll({ label: context }, { ...options, id: `context-${index}`, context, createdAt: options.createdAt + index, random: faces([3, 4]) });
+    assert.equal(record.context, context);
+    assert.equal(saveLocalRoll(record, storage), true);
+  }
+  const records = readLocalRolls(storage);
+  assert.deepEqual(records.map(record => record.context), ["central", "aventura", "guia"]);
+  assert.match(localRollText(records[0]), /central · Rolagem local/);
+  assert.deepEqual(records.map(record => record.total), [7, 7, 7]);
+});
+
 test("clearing local roll history removes current and legacy receipts while preserving unrelated preferences", () => {
   const storage=new MemoryStorage();
   const record=performLocalRoll({}, {...options,random:faces([2,5])});
@@ -153,4 +190,50 @@ test("clearing local roll history removes current and legacy receipts while pres
   assert.deepEqual(readLocalRolls(storage),[]);
   assert.equal(storage.getItem("myowndex_local_dice_preferences_v1"),"preferences");
   assert.equal(clearLocalRolls(null),false);
+});
+
+test("durable history serializes simultaneous writes and refuses changed dice under the same receipt identity",async t=>{
+  const {storage,locks}=await durableStorage(t);
+  const a=performLocalRoll({kind:"percent"},{...options,id:"durable-a",random:faces([50],100)});
+  const b=performLocalRoll({kind:"percent"},{...options,id:"durable-b",createdAt:options.createdAt+1,random:faces([80],100)});
+  assert.deepEqual(await Promise.all([saveLocalRollDurable(a),saveLocalRollDurable(b)]),[true,true]);
+  const changed=performLocalRoll({kind:"percent"},{...options,id:"durable-a",random:faces([99],100)});
+  assert.equal(await saveLocalRollDurable(changed),false);
+  assert.deepEqual((await readLocalRollHistoryDurable()).map(record=>[record.id,record.total]),[["durable-b",80],["durable-a",50]]);
+  assert.equal(JSON.parse(storage.getItem(LOCAL_ROLL_HISTORY_KEY)).length,2);
+  assert.ok(locks.length>=4 && locks.every(name=>name==="myowndex-local-roll-history:guest"));
+});
+
+test("durable legacy migration reads the requested guest scope while another account is active",async t=>{
+  const {storage,locks}=await durableStorage(t);
+  const guest=performLocalRoll({kind:"percent"},{...options,id:"guest-durable",random:faces([33],100)});
+  storage.setItem(LOCAL_ROLL_PREFIX+guest.id,JSON.stringify(guest));
+  storage.setItem("myowndex_guide_roll_history_v1",JSON.stringify([{id:"guest-legacy",values:[3,4],result:7,label:"Anterior",createdAt:1,detail:"3 + 4"}]));
+  setStorageScope("trainer-a");
+  const account=performLocalRoll({kind:"percent"},{...options,id:"account-durable",random:faces([66],100)});
+  assert.equal(await saveLocalRollDurable(account),true);
+  const oldGuest=await readLocalRollHistoryDurable({scope:null});
+  assert.deepEqual(oldGuest.map(record=>record.id),["guest-durable","guest-legacy"]);
+  assert.equal(oldGuest[1].legacy,true);
+  const nextGuest=performLocalRoll({kind:"percent"},{...options,id:"next-guest",createdAt:options.createdAt+1,random:faces([22],100)});
+  assert.equal(await saveLocalRollDurable(nextGuest,{scope:null}),true);
+  assert.deepEqual((await readLocalRollHistoryDurable()).map(record=>record.id),["account-durable"]);
+  assert.equal((await readLocalRollHistoryDurable({scope:null})).find(record=>record.id==="guest-legacy").legacy,true);
+  assert.ok(locks.includes("myowndex-local-roll-history:guest") && locks.includes("myowndex-local-roll-history:trainer-a"));
+});
+
+test("queued history writes capture account scope and clearing never resurrects legacy keys",async t=>{
+  const {storage}=await durableStorage(t);
+  const receipt=performLocalRoll({kind:"percent"},{...options,id:"captured-account",random:faces([12],100)});
+  setStorageScope("trainer-a");
+  const save=saveLocalRollDurable(receipt);
+  setStorageScope("trainer-b");
+  assert.equal(await save,true);
+  assert.deepEqual(await readLocalRollHistoryDurable(),[]);
+  assert.deepEqual((await readLocalRollHistoryDurable({scope:"trainer-a"})).map(record=>record.id),[receipt.id]);
+  const legacyKey=resolveStorageKey(LOCAL_ROLL_PREFIX+receipt.id,{scope:"trainer-a"});
+  storage.setItem(legacyKey,JSON.stringify(receipt));
+  assert.equal(await clearLocalRollsDurable({scope:"trainer-a"}),true);
+  assert.deepEqual(await readLocalRollHistoryDurable({scope:"trainer-a"}),[]);
+  assert.ok(storage.getItem(legacyKey),"a committed empty aggregate supersedes legacy keys without affecting other storage");
 });

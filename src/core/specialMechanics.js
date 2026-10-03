@@ -658,7 +658,9 @@ export const getSpecialMoveBlockReason = ({ move, attacker, defender, round } = 
     if (["snore", "sleep-talk"].includes(name) && attacker?.status !== "sleep") return "o usuário precisa estar dormindo";
     if (name === "rest" && asNumber(attacker?.currentHp) >= asNumber(attacker?.maxHp)) return "o HP já está cheio";
     if (["sucker-punch", "thunderclap", "upper-hand"].includes(name) && !defender?.declaredMove) return "o alvo ainda não declarou uma ação compatível";
-    if (["fake-out", "first-impression", "mat-block"].includes(name) && round && asNumber(attacker?.enteredRound, 1) < asNumber(round)) {
+    if (["fake-out", "first-impression"].includes(name) && move?.reference_ruleset === "champions" && attacker?.activeMoveActions != null) {
+        if (asNumber(attacker.activeMoveActions) > 0) return "só pode ser o primeiro movimento após entrar em campo";
+    } else if (["fake-out", "first-impression", "mat-block"].includes(name) && round && asNumber(attacker?.enteredRound, 1) < asNumber(round)) {
         return "só funciona na primeira rodada do usuário em cena";
     }
     if (name === "last-resort") {

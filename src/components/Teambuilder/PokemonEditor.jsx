@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useId, useMemo, useRef } from 'react';
 import { RPG_STATUS_LABELS } from '../../core/copy.js';
-import { describeMove, describeTrait } from '../../core/descriptions.js';
+import { describeMove } from '../../core/descriptions.js';
+import { getCatalogText, loadCatalogText } from '../../core/catalogText.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
-import { finiteNumber, finiteNumberOrNull, integerInRange, quantizeStepDown } from '../../core/math.js';
+import { finiteNumber, finiteNumberOrNull, integerInRange } from '../../core/math.js';
 import { randomChance, randomChoice, randomInt } from '../../core/random.js';
 import { RPG_STATUSES } from '../../core/team.js';
+import { getMoveReferenceForMode, resolveLearnsetGame } from '../../core/referenceGames.js';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
 import RoomSelect from '../Shared/RoomSelect.jsx';
+import ReferenceText from '../Shared/ReferenceText.jsx';
+import AbilityCard from '../Pokedex/AbilityCard.jsx';
+import ItemCard from '../Pokedex/ItemCard.jsx';
 
 const POKEMONDB_ITEMS = [
     "potion", "super-potion", "hyper-potion", "max-potion", "full-restore", "revive", "max-revive", 
@@ -61,10 +66,11 @@ const POKEMONDB_ITEMS = [
 ].sort();
 
 export default function PokemonEditor({ pk, updatePk, envProps }) {
-    const { allItems, allMoves, allAbilities, selectedVersionGroup, experienceMode, onRemove, isTTRPG, isHackmon } = envProps;
+    const { allItems, allMoves, allAbilities, selectedVersionGroup, experienceMode, isTTRPG, isHackmon } = envProps;
     const [baseForm, setBaseForm] = useState(null);
     const [speciesProfile, setSpeciesProfile] = useState(null);
     const [moveDetails, setMoveDetails] = useState({});
+    const [moveCatalogReady, setMoveCatalogReady] = useState(false);
     const [switchingForm, setSwitchingForm] = useState(false);
     const [formError, setFormError] = useState("");
     const [traitDetails, setTraitDetails] = useState({ ability: null, item: null });
@@ -81,6 +87,12 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     }, []);
 
     useEffect(() => { partnerRef.current = pk; }, [pk]);
+
+    useEffect(() => {
+        let active = true;
+        loadCatalogText('move').then(() => { if (active) setMoveCatalogReady(true); }).catch(() => { if (active) setMoveCatalogReady(true); });
+        return () => { active = false; };
+    }, []);
 
     const dismissKeyboard = () => {
         if (document.activeElement && document.activeElement.blur) {
@@ -128,6 +140,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         return processed.map(m => m.move);
     }, [isHackmon, allMoves, pk.species?.moves, selectedVersionGroup]);
     const validMoveNames = useMemo(() => new Set(validMoves.map(move => typeof move === "string" ? move : move?.name).filter(Boolean)), [validMoves]);
+    const referenceVersion = experienceMode === 'game'
+        ? resolveLearnsetGame(pk.species?.moves || [], selectedVersionGroup) || selectedVersionGroup
+        : 'champions';
 
     useEffect(() => {
         let mounted = true;
@@ -299,6 +314,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const rawMaxHp = calculateStat(hpBase, pk.evs?.hp ?? 0, pk.ivs?.hp ?? 31, pk.level, 1, true, pk.species?.name);
     const displayedMaxHp = isTTRPG ? convertToTTRPG(rawMaxHp, true) : rawMaxHp;
     const rpg = pk.rpg || {};
+    const xpLevelCap = isHackmon ? 200 : 100;
+    const atXpLevelCap = integerInRange(pk.level, 1, xpLevelCap, 1) >= xpLevelCap;
     const nextLevelXp = getNextLevelXp(pk.level);
     const updateRpg = patch => updatePk({ ...pk, rpg: { ...rpg, ...patch } });
     const abilityException = Boolean(pk.ability) && !isHackmon && !validAbilityNames.has(pk.ability);
@@ -317,10 +334,10 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     }, [displayedMaxHp, rpg.currentHp]);
 
     const applyXpProgression = (xpValue = rpg.xp) => {
-        const xp = quantizeStepDown(xpValue, 0.5, { minimum: 0, maximum: 999999, fallback: rpg.xp });
+        const xp = integerInRange(xpValue, 0, 999999, rpg.xp ?? 0);
         const levelCap = isHackmon ? 200 : 100;
         const currentLevel = integerInRange(pk.level, 1, levelCap, 1);
-        const currentXp = quantizeStepDown(rpg.xp, 0.5, { minimum: 0, maximum: 999999, fallback: 0 });
+        const currentXp = integerInRange(rpg.xp, 0, 999999, 0);
         if (xp < nextLevelXp || currentLevel >= levelCap) {
             if (xp !== currentXp) updateRpg({ xp });
             return;
@@ -403,13 +420,17 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="editor-field">
                     <span className="editor-label" id={`${fieldId}-gender-label`}>Gênero</span>
                     <div className="editor-gender-controls" role="group" aria-labelledby={`${fieldId}-gender-label`}>
+                        <div className="editor-gender-selection">
                         {[
                             { value: "M", label: "Macho", symbol: "♂", enabled: canUseMale },
                             { value: "F", label: "Fêmea", symbol: "♀", enabled: canUseFemale },
                             { value: "N", label: "Sem gênero", symbol: "⚲", enabled: canUseNeutral },
                         ].filter(choice => choice.enabled).map(choice => <button key={choice.value} type="button" aria-pressed={pk.gender === choice.value} onClick={() => { dismissKeyboard(); updatePk({ ...pk, gender: choice.value, genderRate: currentGenderRate, genderLocked: true }); }}>{choice.symbol} {choice.label}</button>)}
-                        <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} aria-pressed={Boolean(pk.genderLocked)} aria-label={pk.genderLocked ? "Permitir novo sorteio de gênero" : "Manter o gênero escolhido"} title={pk.genderLocked ? "Permitir novo sorteio" : "Manter esta escolha"}>{pk.genderLocked ? "🔒" : "🔓"}</button>
-                        <button type="button" disabled={pk.genderLocked || currentGenderRate === -1} onClick={() => randomize("gender")} aria-label="Sortear gênero pela proporção da espécie" title="Sortear gênero">⚄</button>
+                        </div>
+                        {currentGenderRate !== -1 && <div className="editor-gender-tools">
+                            <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} aria-pressed={Boolean(pk.genderLocked)} aria-label={pk.genderLocked ? "Permitir novo sorteio de gênero" : "Manter o gênero escolhido"} title={pk.genderLocked ? "Permitir novo sorteio" : "Manter esta escolha"}><span aria-hidden="true">{pk.genderLocked ? "🔒" : "🔓"}</span> Manter escolha</button>
+                            <button type="button" disabled={pk.genderLocked} onClick={() => randomize("gender")} aria-label="Sortear gênero pela proporção da espécie" title="Sortear gênero"><span aria-hidden="true">⚄</span> Sortear</button>
+                        </div>}
                     </div>
                 </div>
             </div>
@@ -417,14 +438,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             {(pk.ability || pk.item) && <details className="editor-disclosure editor-trait-reference">
                 <summary>Consultar habilidade e item</summary>
                 <div className="editor-disclosure-body">
-                    {[
-                        pk.ability ? { kind: "ability", id: pk.ability, detail: traitDetails.ability } : null,
-                        pk.item ? { kind: "item", id: pk.item, detail: traitDetails.item } : null,
-                    ].filter(Boolean).map(trait => ({ ...trait, explanation: describeTrait(trait.kind, trait.id, trait.detail) })).map(trait => <article key={`${trait.kind}-${trait.id}`}>
-                        <h4>{formatName(trait.id)}</h4>
-                        {trait.explanation.catalog.text && <p lang={trait.explanation.catalog.code}>{trait.explanation.catalog.text}</p>}
-                        <p>{trait.explanation.summary}</p><p>{trait.explanation.trigger}</p><p>{trait.explanation.handling}</p>
-                    </article>)}
+                    {pk.ability && <AbilityCard name={pk.ability} detail={traitDetails.ability} versionGroup={referenceVersion} compact />}
+                    {pk.item && <ItemCard name={pk.item} detail={traitDetails.item} versionGroup={referenceVersion} compact />}
                 </div>
             </details>}
 
@@ -434,8 +449,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     {[0, 1, 2, 3].map(index => {
                         const moveName = pk.moves?.[index] || "";
                         const normalizedName = moveName.trim().toLowerCase().replace(/\s+/g, "-");
-                        const detail = moveDetails[normalizedName];
-                        const moveExplanation = detail ? describeMove(detail, { isTTRPG }) : null;
+                        const rawDetail = moveDetails[normalizedName];
+                        const detail = rawDetail ? getMoveReferenceForMode(rawDetail, referenceVersion, experienceMode) : null;
+                        const historical = detail?.reference_generation < 9 || detail?.reference_metadata_verified === false;
+                        const moveExplanation = detail ? describeMove(detail, { isTTRPG, historical }) : null;
+                        const moveReference = detail && moveCatalogReady ? getCatalogText('move', normalizedName, detail, { versionGroup: referenceVersion }) : null;
                         const isException = Boolean(moveName) && !isHackmon && !validMoveNames.has(normalizedName);
                         const currentPp = rpg.pp?.[index];
                         return <div key={index} className={`editor-move-field ${isException ? "is-exception" : ""}`}>
@@ -449,7 +467,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             {moveExplanation && <details className="editor-move-description">
                                 <summary>Detalhes do movimento</summary>
                                 <dl className="editor-move-facts"><div><dt>Poder</dt><dd>{detail.power == null ? "—" : isTTRPG ? convertToTTRPG(detail.power) : detail.power}</dd></div><div><dt>Precisão</dt><dd>{detail.accuracy == null ? "Sem teste próprio" : `${detail.accuracy}%`}</dd></div><div><dt>PP máximo</dt><dd>{detail.pp ?? "—"}</dd></div>{Boolean(detail.priority) && <div><dt>Prioridade</dt><dd>{detail.priority > 0 ? "+" : ""}{detail.priority}</dd></div>}</dl>
-                                {moveExplanation.catalog.text && <p lang={moveExplanation.catalog.code}>{moveExplanation.catalog.text}</p>}
+                                {moveReference && <ReferenceText {...moveReference} label="Efeito do movimento" defaultLanguage="pt-BR" />}
                                 <p>{moveExplanation.summary}</p><ul>{moveExplanation.facts.map((fact, factIndex) => <li key={`${normalizedName}-${factIndex}`}>{fact}</li>)}</ul>
                             </details>}
                         </div>;
@@ -461,7 +479,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <summary><span>Progresso da jornada</span><span className="rpg-journey-hp">HP {rpg.currentHp ?? displayedMaxHp} de {displayedMaxHp}</span></summary>
                 <div className="editor-disclosure-body rpg-journey-body">
                     <div className="editor-field"><label htmlFor={`${fieldId}-hp`} className="editor-label">HP atual</label><div className="editor-choice-control"><input id={`${fieldId}-hp`} type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? displayedMaxHp} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" /><button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button">Recuperar</button></div></div>
-                    <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" min="0" step="0.5" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: quantizeStepDown(event.target.value, 0.5, { minimum: 0, maximum: 999999, fallback: rpg.xp }) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">Meta: {formatNumberPtBr(nextLevelXp)} XP · nível {Math.min(isHackmon ? 200 : 100, integerInRange(pk.level, 1, isHackmon ? 200 : 100, 1) + 1)}</small><div className="editor-xp-actions"><button type="button" onClick={() => awardXp(0.5)}>+0,5</button><button type="button" onClick={() => awardXp(1)}>+1 XP</button></div></div>
+                    <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" min="0" step="1" max="999999" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: integerInRange(event.target.value, 0, 999999, rpg.xp ?? 0) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">{atXpLevelCap ? `Nível máximo · ${xpLevelCap}` : `Meta: ${formatNumberPtBr(nextLevelXp)} XP · nível ${integerInRange(pk.level, 1, xpLevelCap, 1) + 1}`}</small><div className="editor-xp-actions"><button type="button" disabled={atXpLevelCap} onClick={() => awardXp(1)}>+1 XP</button></div></div>
                     <label className="editor-field"><span className="editor-label">Condição</span><RoomSelect aria-label="Condição" value={rpg.status || ""} onChange={event => updateRpg({ status: event.target.value })} className="editor-input">{RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{RPG_STATUS_LABELS[status]}</option>)}</RoomSelect></label>
                     <label className="editor-field"><span className="editor-label">Poké Ball da captura</span><input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} className="editor-input" /></label>
                     <label className="editor-field editor-wide-field"><span className="editor-label">Treinador original</span><input type="text" value={rpg.originalTrainer || ""} onChange={event => updateRpg({ originalTrainer: event.target.value })} className="editor-input" /></label>
@@ -515,7 +533,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     })}</div>
                 </div>
             </details>
-            <footer className="editor-footer"><button type="button" onClick={() => { dismissKeyboard(); onRemove(); }} className="pokemon-remove-button">Remover Pokémon da Box</button></footer>
         </section>
     );
 }

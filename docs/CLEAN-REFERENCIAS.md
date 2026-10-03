@@ -42,3 +42,11 @@ A hidratação das Boxes divide quatro tarefas simultâneas entre todos os chama
 `createScheduledSave` agrupa alterações rápidas, limita a espera e oferece flush síncrono. O dono do helper deve fazer flush em `pagehide`, ao ocultar a página e ao desmontar. Uma falha mantém a edição pendente em memória para nova tentativa e mantém o valor já persistido intacto.
 
 Limite existente: editar Boxes simultaneamente em duas abas ainda segue a política anterior de última escrita do valor local. Este trabalho não introduz outra promessa de sincronização local entre abas. As aventuras compartilhadas continuam usando seu protocolo no servidor.
+
+## Retomada 11.4: contas e encontros
+
+Em 2 de outubro de 2026 consultamos também o código atual do Fate, especialmente `components/account-provider.tsx`, `lib/workspace-storage.ts`, `lib/workspace-sync.ts`, `lib/server/account-workspace.ts` e `STORAGE.md`. Reaproveitamos princípios de isolamento por identidade, confirmação de salvamento antes da troca, revisão no servidor e preservação de versões conflitantes. O MyOwnDex usa seu Turso existente e autenticação própria; não depende do banco Neon ou do provedor de autenticação do Fate. Contas agora reúnem edições independentes e oferecem cópias de recuperação, conforme CONTAS-E-SINCRONIZACAO.md. O visitante local conserva as chaves anteriores.
+
+PokéroleDex foi consultado como inspiração para encontros rápidos, inspeção individual e envio dos parceiros ao armazenamento. Fontes e escolhas estão em GENERATOR-SOURCES.md. As regras de Pokérole não substituem as regras do MyOwnDex.
+
+Memória e disco têm limites separados em bytes e quantidade de entradas. Referências públicas e imagens são descartáveis; Boxes são protegidas e não expiram. IndexedDB recebe snapshots duráveis; localStorage fornece o espelho imediato. Uma cópia antiga menor não prevalece sobre uma escrita nova confirmada no banco local, mesmo quando a quota impede atualizar metadados. A Box aberta é a única hidratada com dados completos; Boxes fechadas conservam dados compactos e todas as edições.

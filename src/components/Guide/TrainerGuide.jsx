@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import PokemonSprite from "../Shared/PokemonSprite.jsx";
+import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import { formatNumberPtBr } from "../../core/mechanics.js";
 import LocalDicePanel from "../Shared/LocalDicePanel.jsx";
 import {
@@ -12,6 +12,15 @@ import {
 
 const ruleCount = RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0);
 const normalizeSearch = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const formatRuleForReading = text => text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
+
+function RuleBullet({ text }) {
+    const readable = formatRuleForReading(text);
+    const separator = readable.indexOf(":");
+    return separator > 0 && separator < 50 ? (
+        <><strong>{readable.slice(0, separator + 1)}</strong>{readable.slice(separator + 1)}</>
+    ) : readable;
+}
 
 function HitKillOverview({ showFacts = false }) {
     return (
@@ -45,7 +54,7 @@ function HitKillOverview({ showFacts = false }) {
     );
 }
 
-export default function TrainerGuide({ experienceMode }) {
+export default function TrainerGuide({ experienceMode, teams = [], setTeams }) {
     const [query, setQuery] = useState("");
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
@@ -59,9 +68,10 @@ export default function TrainerGuide({ experienceMode }) {
             const sectionMatches = normalizeSearch(`${section.number} ${section.title} ${section.summary}`).includes(normalized);
             return {
                 ...section,
-                rules: sectionMatches ? section.rules : section.rules.filter(rule =>
-                    normalizeSearch(`${rule.id} ${rule.title} ${rule.body || ""} ${(rule.bullets || []).join(" ")}`).includes(normalized)
-                ),
+                rules: sectionMatches ? section.rules : section.rules.filter(rule => {
+                    const text = [rule.id, rule.title, rule.body || "", ...(rule.bullets || [])].join(" ");
+                    return normalizeSearch(`${text} ${formatRuleForReading(text)}`).includes(normalized);
+                }),
             };
         }).filter(section => section.rules.length);
     }, [query]);
@@ -72,7 +82,7 @@ export default function TrainerGuide({ experienceMode }) {
         <div className="trainer-guide animate-fade-in">
             <header className="guide-hero">
                 <h2>Guia do Treinador</h2>
-                <PokemonSprite pokemonId={479} alt="" className="guide-companion pixelated" />
+                <PokemonCompanion place="guide" eager />
             </header>
 
             <div className="guide-layout">
@@ -104,16 +114,16 @@ export default function TrainerGuide({ experienceMode }) {
                                                 <strong>{rule.title}</strong>
                                             </summary>
                                             <div className="guide-rule-body">
-                                                {rule.body && <p>{rule.body}</p>}
+                                                {rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
                                                 {rule.id === "3.4" ? (
                                                     <>
                                                         <HitKillOverview />
                                                         <details className="guide-hit-kill-full-rule" open={searching}>
                                                             <summary>Situações especiais e exceções</summary>
-                                                            <ul>{rule.bullets.map(item => <li key={item}>{item}</li>)}</ul>
+                                                            <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>
                                                         </details>
                                                     </>
-                                                ) : rule.bullets && <ul>{rule.bullets.map(item => <li key={item}>{item}</li>)}</ul>}
+                                                ) : rule.bullets && <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>}
                                             </div>
                                         </details>
                                     ))}
@@ -125,7 +135,7 @@ export default function TrainerGuide({ experienceMode }) {
                 </article>
 
                 <aside className="guide-tools" aria-label="Ferramentas do guia">
-                    <LocalDicePanel />
+                    <LocalDicePanel teams={teams} setTeams={setTeams} experienceMode={experienceMode} />
                     <details className="game-panel guide-calculator">
                         <summary>Conversão para o RPG</summary>
                         <div className="guide-calculator-content">
@@ -133,12 +143,15 @@ export default function TrainerGuide({ experienceMode }) {
                                 <label className="guide-number-field">
                                     <span className="guide-field-label">Valor original</span>
                                     <input type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} />
-                                    <span className="guide-field-value">÷ 20 = <strong>{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
+                                    <span className="guide-scale-results" aria-live="polite">
+                                        <span>Atributo ÷ 10 <strong>{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
+                                        <span>HP ÷ 10 <strong>{formatNumberPtBr(getRpgScale(scaleValue, true))}</strong></span>
+                                    </span>
                                 </label>
                                 <label className="guide-number-field">
                                     <span className="guide-field-label">Nível atual</span>
                                     <input type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} />
-                                    <span className="guide-field-value">XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></span>
+                                    <span className="guide-field-value">{getDamageCeiling(level) >= 200 ? "Nível máximo" : <>XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></>}</span>
                                 </label>
                             </div>
                             <article className="guide-damage-limit-card" data-rule-id="3.3" aria-label={`Limite comum de dano: ${formatNumberPtBr(getDamageCeiling(level))}`}>
@@ -146,7 +159,7 @@ export default function TrainerGuide({ experienceMode }) {
                                     <span>Limite comum de dano</span>
                                     <strong>{formatNumberPtBr(getDamageCeiling(level))}</strong>
                                 </div>
-                                <p>No nível {formatNumberPtBr(level)}, este é o teto-base por hit. Super efetividade e aumentos temporários elevam o limite proporcionalmente; críticos e danos de regra própria usam suas exceções.</p>
+                                <p>No nível {formatNumberPtBr(getDamageCeiling(level))}, este é o teto-base por hit. Super efetividade e aumentos temporários elevam o limite proporcionalmente; críticos e danos de regra própria usam suas exceções.</p>
                             </article>
                             <details className="guide-hit-kill-card" data-rule-id="3.4">
                                 <summary>Proteção contra hit kill</summary>

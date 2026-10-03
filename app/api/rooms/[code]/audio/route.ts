@@ -20,7 +20,7 @@ export async function POST(request: Request, context: RouteContext) {
     await ensureRoomSchema();
     const params = await context.params;
     const code = safeRoomCode(params.code);
-    const auth = await authenticateRoom(code, readRoomKey(request));
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
     if (!auth || auth.role !== "narrator") {
       return noStoreJson({ error: "Só o Narrador pode adicionar trilhas à aventura." }, { status: 403 });
     }

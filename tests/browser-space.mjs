@@ -187,23 +187,23 @@ async function pane(name) {
     if (await button.isVisible()) await button.click();
 }
 
-const combat = page.locator('.room-tool').filter({ has: page.locator(':scope > summary strong', { hasText: /^Resolver um movimento$/ }) });
-const capture = page.locator('.room-tool').filter({ has: page.locator(':scope > summary strong', { hasText: /^Captura$/ }) });
+const combat = page.locator('.room-tools > .room-tool').filter({ has: page.locator(':scope > summary strong', { hasText: /^Resolver um movimento$/ }) });
+const capture = page.locator('.room-tools > .room-tool').filter({ has: page.locator(':scope > summary strong', { hasText: /^Captura$/ }) });
 
 async function roomWidths(prefix) {
     for (const theme of themes) {
         await appearance(theme);
         for (const width of widths) {
             await viewport(width);
-            for (const name of ['Equipe', 'Campo', 'Ações']) {
+            for (const name of ['Equipe', 'Campo', 'Dados e ações']) {
                 await pane(name);
                 await check(`${prefix}-${theme}-${width}-${name}`, '.room-app');
                 if (name === 'Equipe') {
                     const buttons = await page.locator('.room-initiative button').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
                     if (await page.locator('.room-roster').isVisible()) for (const height of buttons) assert.ok(height >= 43.5, 'initiative buttons need readable touch targets');
                 }
-                if (theme === 'Claro' && width === 1280 && name === 'Ações') await screenshot(`/tmp/myowndex-space-${prefix}-light-1280.png`, combat);
-                if (theme === 'Escuro' && width === 390 && name === 'Ações') await screenshot(`/tmp/myowndex-space-${prefix}-dark-390.png`, capture);
+                if (theme === 'Claro' && width === 1280 && name === 'Dados e ações') await screenshot(`/tmp/myowndex-space-${prefix}-light-1280.png`, combat);
+                if (theme === 'Escuro' && width === 390 && name === 'Dados e ações') await screenshot(`/tmp/myowndex-space-${prefix}-dark-390.png`, capture);
             }
         }
     }
@@ -320,7 +320,7 @@ try {
     await nav('Abrir a Central da Aventura');
     await page.getByRole('button', { name: 'Começar uma aventura local', exact: false }).click();
     await page.locator('.room-app').waitFor();
-    await pane('Ações');
+    await pane('Dados e ações');
     await openDetails(combat);
     await openDetails(capture);
     assert.equal(await combat.getByRole('combobox', { name: 'Usuário', exact: true }).isDisabled(), true);

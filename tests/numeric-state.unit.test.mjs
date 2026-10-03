@@ -3,6 +3,7 @@ import test from "node:test";
 import { formatCount, formatPokemonInScene, formatRemainingPp } from "../src/core/copy.js";
 import { normalizeRoomSnapshot } from "../src/core/room.js";
 import { normalizePokemon, normalizeTeam } from "../src/core/team.js";
+import { decodeTeam, encodeTeam } from "../src/core/teamShare.js";
 
 const assertFiniteTree = (value, path = "root") => {
   if (typeof value === "number") {
@@ -34,7 +35,7 @@ test("malformed Pokémon and Box numbers normalize to finite capped state", () =
   assert.equal(pokemon.ivs.hp, 31);
   assert.equal(pokemon.ivs.attack, 0);
   assert.equal(pokemon.evs.attack, 252);
-  assert.equal(pokemon.rpg.xp, 4.5);
+  assert.equal(pokemon.rpg.xp, 4);
   assert.equal(pokemon.rpg.currentHp, 7);
   assert.deepEqual(pokemon.rpg.pp.slice(0, 3), [null, 0, 4]);
   assertFiniteTree(normalizeTeam({ updatedAt: Infinity, pokemon: [pokemon] }));
@@ -63,10 +64,38 @@ test("malformed adventure snapshots cannot preserve fractional HP or non-finite 
   assert.equal(token.maxHp, 1);
   assert.equal(token.currentHp, 1);
   assert.equal(token.level, 5);
-  assert.equal(token.xp, 1.5);
+  assert.equal(token.xp, 1);
   assert.equal(token.priority, 7);
   assert.equal(Number.isInteger(token.currentHp), true);
   assertFiniteTree(snapshot);
+});
+
+test("legacy fractional XP migrates on Box import and adventure synchronization without changing notes or official measurements", async () => {
+  const original = {
+    id: "old-xp", shareId: "old-xp", name: "Box da jornada", updatedAt: 1,
+    pokemon: [{
+      id: "partner", level: 10,
+      species: { name: "bulbasaur", height: 7, weight: 69 },
+      rpg: { xp: 4.99, notes: "Uma conquista anterior", currentHp: 3 },
+    }],
+  };
+  const normalized = normalizeTeam(original);
+  const roundTrip = await decodeTeam(await encodeTeam(original));
+  assert.equal(normalized.pokemon[0].rpg.xp, 4);
+  assert.equal(roundTrip.pokemon[0].rpg.xp, 4);
+  assert.equal(original.pokemon[0].rpg.xp, 4.99, "migration does not mutate the imported object");
+  assert.equal(roundTrip.pokemon[0].rpg.notes, original.pokemon[0].rpg.notes);
+  assert.equal(normalized.pokemon[0].species.height, 7);
+  assert.equal(normalized.pokemon[0].species.weight, 69);
+  const snapshot = normalizeRoomSnapshot({
+    tokens: [{ id: "active", xp: 5.99 }],
+    benchTokens: [{ id: "reserve", xp: 8.5 }],
+  });
+  assert.equal(snapshot.tokens[0].xp, 5);
+  assert.equal(snapshot.benchTokens[0].xp, 8);
+  for (const [value, expected] of [[-2.5, 0], [0.99, 0], [999999.9, 999999], [Infinity, 0], ["3.99", 3]]) {
+    assert.equal(normalizePokemon({ rpg: { xp: value } }).rpg.xp, expected);
+  }
 });
 
 test("count formatters never expose technical numeric states", () => {

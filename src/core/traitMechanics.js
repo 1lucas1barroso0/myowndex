@@ -178,7 +178,7 @@ const ABILITY_PROFILES = Object.freeze({
     adaptability: profile("adaptability", "Eleva o bônus de golpes dos próprios tipos e acompanha a Terastalização.", "Ao calcular dano de um tipo compatível", "automatic"),
     aftermath: profile("aftermath", "Fere quem nocauteia o usuário com contato direto.", "Ao desmaiar por contato", "automatic"),
     analytic: profile("analytic", "Fortalece o golpe quando o usuário age depois do alvo.", "Ordem de turno", "guided"),
-    blaze: profile("blaze", "Fortalece golpes de Fire quando resta até um terço do HP.", "HP crítico + golpe de Fire", "automatic"),
+    blaze: profile("blaze", "Aumenta o dano de Fire em 50% quando resta até ≈ 33,33% do HP máximo.", "HP crítico + golpe de Fire", "automatic"),
     chlorophyll: profile("chlorophyll", "Dobra a Velocidade sob sol forte.", "Iniciativa sob sol", "automatic"),
     "compound-eyes": profile("compound-eyes", "Aumenta a precisão dos movimentos.", "Teste de precisão", "automatic"),
     "dry-skin": profile("dry-skin", "Absorve Water, recupera HP na chuva e sofre com sol e Fire.", "Water, clima ou Fire", "automatic"),
@@ -195,7 +195,7 @@ const ABILITY_PROFILES = Object.freeze({
     "neutralizing-gas": profile("neutralizing-gas", "Suprime as demais habilidades em cena; Ability Shield preserva a habilidade de seu portador.", "Enquanto o usuário está consciente em cena", "automatic"),
     "no-guard": profile("no-guard", "Dispensa o teste de precisão dos movimentos que envolvem o usuário.", "Movimento declarado", "automatic"),
     overcoat: profile("overcoat", "Protege contra dano de clima e efeitos de pó.", "Clima ou movimento de pó", "automatic"),
-    overgrow: profile("overgrow", "Fortalece golpes de Grass quando resta até um terço do HP.", "HP crítico + golpe de Grass", "automatic"),
+    overgrow: profile("overgrow", "Aumenta o dano de Grass em 50% quando resta até ≈ 33,33% do HP máximo.", "HP crítico + golpe de Grass", "automatic"),
     "poison-heal": profile("poison-heal", "Converte o dano de veneno em recuperação.", "Fim da rodada envenenado", "automatic"),
     "pure-power": profile("pure-power", "Dobra a pressão ofensiva de golpes físicos.", "Golpe físico", "automatic"),
     "rain-dish": profile("rain-dish", "Recupera HP no fim da rodada sob chuva.", "Fim da rodada na chuva", "automatic"),
@@ -210,12 +210,12 @@ const ABILITY_PROFILES = Object.freeze({
     "speed-boost": profile("speed-boost", "Aumenta a Velocidade ao fim de cada rodada ativa.", "Fim da rodada", "automatic"),
     "strong-jaw": profile("strong-jaw", "Fortalece movimentos de mordida.", "Movimento de mordida", "automatic"),
     sturdy: profile("sturdy", "Impede um nocaute de um único golpe quando o HP está cheio.", "Golpe fatal com HP cheio", "automatic"),
-    swarm: profile("swarm", "Fortalece golpes de Bug quando resta até um terço do HP.", "HP crítico + golpe de Bug", "automatic"),
+    swarm: profile("swarm", "Aumenta o dano de Bug em 50% quando resta até ≈ 33,33% do HP máximo.", "HP crítico + golpe de Bug", "automatic"),
     "swift-swim": profile("swift-swim", "Dobra a Velocidade sob chuva.", "Iniciativa na chuva", "automatic"),
     technician: profile("technician", "Fortalece golpes de baixo poder.", "Movimento de até 60 de poder", "automatic"),
     "thick-fat": profile("thick-fat", "Reduz pela metade dano de Fire e Ice.", "Golpe de Fire ou Ice", "automatic"),
     "tinted-lens": profile("tinted-lens", "Compensa a resistência do alvo a golpes pouco efetivos.", "Golpe resistido", "automatic"),
-    torrent: profile("torrent", "Fortalece golpes de Water quando resta até um terço do HP.", "HP crítico + golpe de Water", "automatic"),
+    torrent: profile("torrent", "Aumenta o dano de Water em 50% quando resta até ≈ 33,33% do HP máximo.", "HP crítico + golpe de Water", "automatic"),
     unaware: profile("unaware", "Ignora modificadores ofensivos ou defensivos pertinentes ao confronto.", "Disputa de dano", "automatic"),
     unburden: profile("unburden", "Dobra a Velocidade depois que o item do usuário é consumido ou perdido.", "Iniciativa sem o item original", "automatic"),
     "water-bubble": profile("water-bubble", "Fortalece Water, reduz Fire e impede queimadura.", "Golpe de Water/Fire ou queimadura", "automatic"),
@@ -227,7 +227,7 @@ const ITEM_PROFILES = Object.freeze({
     "ability-shield": profile("ability-shield", "Protege a habilidade contra supressão, troca, substituição e ignorância externa.", "Tentativa de alterar ou ignorar a habilidade", "automatic"),
     "air-balloon": profile("air-balloon", "Concede imunidade a golpes de Ground até estourar ao sofrer dano.", "Golpe de Ground ou dano recebido", "automatic"),
     "assault-vest": profile("assault-vest", "Reduz dano especial, mas impede movimentos de estado.", "Golpe especial recebido ou movimento de estado", "automatic"),
-    "black-sludge": profile("black-sludge", "Recupera Pokémon Venenosos e fere os demais no fim da rodada.", "Fim da rodada", "automatic"),
+    "black-sludge": profile("black-sludge", "Recupera Pokémon de Poison e fere os demais no fim da rodada.", "Fim da rodada", "automatic"),
     "choice-band": profile("choice-band", "Fortalece golpes físicos e registra o primeiro movimento para o bloqueio de escolha.", "Primeiro movimento ofensivo", "contextual"),
     "choice-scarf": profile("choice-scarf", "Aumenta a Velocidade e registra o primeiro movimento para o bloqueio de escolha.", "Iniciativa e primeiro movimento", "contextual"),
     "choice-specs": profile("choice-specs", "Fortalece golpes especiais e registra o primeiro movimento para o bloqueio de escolha.", "Primeiro movimento ofensivo", "contextual"),
@@ -235,7 +235,7 @@ const ITEM_PROFILES = Object.freeze({
     "expert-belt": profile("expert-belt", "Fortalece golpes super efetivos.", "Golpe super efetivo", "automatic"),
     "flame-orb": profile("flame-orb", "Queima o portador no fim da rodada se isso for permitido.", "Fim da rodada", "automatic"),
     "focus-sash": profile("focus-sash", "É consumida para impedir um nocaute de um único golpe com HP cheio.", "Golpe fatal com HP cheio", "automatic"),
-    "leftovers": profile("leftovers", "Recupera uma fração do HP no fim da rodada.", "Fim da rodada", "automatic"),
+    "leftovers": profile("leftovers", "Recupera 6,25% do HP máximo no fim da rodada, arredondado para baixo.", "Fim da rodada", "automatic"),
     "life-orb": profile("life-orb", "Fortalece golpes e cobra HP depois de causar dano direto.", "Golpe que causa dano", "automatic"),
     "loaded-dice": profile("loaded-dice", "Faz movimentos de 2–5 golpes atingirem pelo menos quatro vezes.", "Movimento de múltiplos golpes", "automatic"),
     "lum-berry": profile("lum-berry", "Cura qualquer condição principal e é consumida.", "Condição principal", "automatic"),
@@ -257,8 +257,8 @@ export const getAbilityProfile = ability => {
     if (!id) return null;
     return ABILITY_PROFILES[id] || profile(
         id,
-        "A descrição oficial permanece visível. Quando o efeito depende de alvo, ordem, troca ou escolha, o MyOwnDex mostra o momento certo e deixa a decisão com o grupo.",
-        "Conforme a descrição oficial",
+        "",
+        "",
         "guided",
     );
 };
@@ -266,13 +266,10 @@ export const getAbilityProfile = ability => {
 export const getItemProfile = item => {
     const id = traitSlug(item);
     if (!id) return null;
-    const berry = id.endsWith("-berry");
     return ITEM_PROFILES[id] || profile(
         id,
-        berry
-            ? "O consumo, o estado e a restauração ficam registrados; efeitos muito específicos são resolvidos com a descrição oficial à vista."
-            : "A descrição oficial permanece visível, e o Narrador pode registrar ativação, consumo ou troca quando a cena exigir uma escolha.",
-        berry ? "Quando sua condição de consumo é satisfeita" : "Conforme a descrição oficial",
+        "",
+        "",
         "guided",
     );
 };

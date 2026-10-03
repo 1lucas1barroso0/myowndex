@@ -7,11 +7,11 @@ import {
     preferredLocalizedEntry,
 } from "./mechanics.js";
 import { finiteNumber as asNumber, finiteNumberOrNull } from "./math.js";
+import { getCatalogText } from './catalogText.js';
 import {
     getAbilityProfile,
     getItemProfile,
     moveHasTrait,
-    TRAIT_AUTOMATION_LABELS,
 } from "./traitMechanics.js";
 
 const asArray = value => Array.isArray(value) ? value : [];
@@ -25,6 +25,8 @@ const proportion = (numerator, denominator) => {
 };
 
 export const formatCatalogProportions = value => String(value || "")
+    .replace(/\b(\d+)\s*\/\s*([A-Z])\b/g, (_, numerator, denominator) => `${Number(numerator) * 100}% ÷ ${denominator}`)
+    .replace(/\b(\d+)\s*\/\s*(\d+)\s*\/\s*(\d+)\b/g, (_, first, second, third) => `${first}, ${second} ou ${third}`)
     .replace(/\b(\d+)\s*\/\s*(\d+)\b/g, (original, numerator, denominator) => Number(numerator) <= Number(denominator) ? proportion(numerator, denominator) : original)
     .replace(/[½⅓⅔¼¾⅛⅜⅝⅞]/g, glyph => ({ "½": "50%", "⅓": "≈ 33,33%", "⅔": "≈ 66,67%", "¼": "25%", "¾": "75%", "⅛": "12,5%", "⅜": "37,5%", "⅝": "62,5%", "⅞": "87,5%" })[glyph])
     .replace(/\b(?:one[ -]third|a third|one[ -]quarter|a quarter|one[ -]eighth|one[ -]sixteenth)\b/gi, words => {
@@ -32,7 +34,14 @@ export const formatCatalogProportions = value => String(value || "")
         if (normalized.endsWith("third")) return "≈ 33,33%";
         if (normalized.endsWith("quarter")) return "25%";
         return normalized.endsWith("sixteenth") ? "6,25%" : "12,5%";
-    });
+    })
+    .replace(/\b(?:um terço|um quarto|um oitavo|um dezesseis avos)\b/gi, words => ({
+        'um terço': '≈ 33,33%', 'um quarto': '25%', 'um oitavo': '12,5%',
+        'um dezesseis avos': '6,25%',
+    })[words.toLowerCase()])
+    .replace(/\b(reduzid[oa]s?) pela metade\b/gi, '$1 em 50%')
+    .replace(/\b(reduz(?:em)?) pela metade\b/gi, '$1 em 50%')
+    .replace(/\bmetade (d[oa]s?)\b/gi, '50% $1');
 
 export const cleanDescription = (value, effectChance = "") => formatCatalogProportions(String(value || "")
     .replace(/\$effect_chance/g, effectChance === "" || effectChance == null ? "a chance indicada" : String(effectChance))
@@ -103,7 +112,7 @@ const chanceSentence = (chance, text) => {
     return value >= 100 ? `${text} sempre que o movimento produzir esse efeito.` : `${text} em ${value}% dos acertos.`;
 };
 
-export const describeMove = (move, { isTTRPG = false } = {}) => {
+export const describeMove = (move, { isTTRPG = false, historical = false } = {}) => {
     if (!move) {
         return {
             summary: "Os detalhes deste movimento ainda não chegaram. Nenhuma regra será presumida até que a Pokédex consiga consultá-los.",
@@ -119,6 +128,20 @@ export const describeMove = (move, { isTTRPG = false } = {}) => {
     const damaging = physical || special;
     const target = asSlug(move.target?.name) || "selected-pokemon";
     const facts = [];
+
+    if (historical) {
+        // Old-game secondary effects, contact and stat changes cannot be
+        // reconstructed from current PokéAPI metadata. The paired generation
+        // reference explains them fully; derive only a verified historical
+        // target and priority here, avoiding duplicate badges and wrong rules.
+        if (move.reference_metadata_verified && TARGET_COPY[target]) facts.push(TARGET_COPY[target]);
+        if (move.reference_metadata_verified && asNumber(move.priority) !== 0) {
+            const priority = asNumber(move.priority);
+            facts.push(`Prioridade ${priority > 0 ? '+' : ''}${priority}: age ${priority > 0 ? 'antes' : 'depois'} de movimentos sem prioridade.`);
+        }
+        return { summary: formatName(move.name), facts,
+            catalog: catalogDescription(move.effect_entries, ["effect", "short_effect"], move.effect_chance) };
+    }
 
     if (physical) {
         facts.push(`É um movimento físico do tipo ${moveType}: usa o Ataque de quem age contra a Defesa do alvo.`);
@@ -192,19 +215,29 @@ export const describeMove = (move, { isTTRPG = false } = {}) => {
     return { summary, facts, catalog };
 };
 
-export const describeTrait = (kind, id, detail) => {
+export const describeTrait = (kind, id, detail, { versionGroup = 'champions' } = {}) => {
     const profile = kind === "ability" ? getAbilityProfile(id) : getItemProfile(id);
     if (!profile) return null;
     const entries = asArray(detail?.effect_entries);
     const flavorEntries = asArray(detail?.flavor_text_entries);
     const catalog = catalogDescription(entries.length ? entries : flavorEntries, entries.length ? ["effect", "short_effect"] : ["flavor_text"]);
-    const subject = kind === "ability" ? "A habilidade" : "O item";
+    const localized = getCatalogText(kind, id, detail, { versionGroup });
+    const short = getCatalogText(kind, id, detail, { versionGroup, short: true });
+    const reference = localized.original ? localized : {
+        original: catalog.code === 'en' ? catalog.text : '',
+        portuguese: catalog.code === 'pt-BR' ? catalog.text : '',
+        originalLanguage: catalog.code,
+        source: 'pokeapi', sourceKind: catalog.code === 'pt-BR' ? 'official-localization' : null,
+    };
     return {
         profile,
         catalog,
-        summary: profile.summary,
-        trigger: `${subject} entra em jogo quando ocorre: ${profile.trigger.toLowerCase()}.`,
-        handling: `${TRAIT_AUTOMATION_LABELS[profile.automation]}. O efeito oficial continua visível para que nenhuma exceção seja escondida.`,
+        reference,
+        summary: short.portuguese || localized.portuguese || profile.summary || catalog.text,
+        trigger: profile.trigger || '',
+        // The reference itself explains the rule. A generic instruction to ask
+        // the narrator would neither explain it nor implement its resolution.
+        handling: '',
     };
 };
 

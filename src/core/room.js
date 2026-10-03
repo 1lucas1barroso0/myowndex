@@ -16,7 +16,6 @@ import {
     integerInRange,
     MAX_SAFE_GAME_INTEGER,
     quantizePositiveHpChange,
-    quantizeStepDown,
     roundRpgScaledValue,
     safeDivide,
 } from "./math.js";
@@ -41,9 +40,10 @@ import {
     resolveDamageSequence,
     stageMultiplier,
 } from "./automation.js";
-import { getDamageCeiling, rollAttributeTest, rollPercentTest, rollProportionalAttributeTest } from "./rpgRules.js";
+import { getDamageCeiling, rollPercentTest, rollProportionalAttributeTest } from "./rpgRules.js";
 import { randomChance, randomChoice, randomInt, randomUnit, rollD6, SecureRandomError } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
+import { getPokemonReferenceForMode } from "./referenceGames.js";
 import {
     applyBattleIllusion,
     calculateDynamicMovePower,
@@ -229,10 +229,12 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         sleepTurns: source.status === "sleep" && source.sleepTurns != null ? integerInRange(source.sleepTurns, 0, 2, 0) : null,
         freezeTurns: source.status === "freeze" && source.freezeTurns != null ? integerInRange(source.freezeTurns, 0, 2, 0) : null,
         lastActionRound: integerInRange(source.lastActionRound, 0, 9999, 0),
+        // Null retains the conservative first-round fallback for legacy rooms.
+        activeMoveActions: source.activeMoveActions == null ? null : integerInRange(source.activeMoveActions, 0, 99999, 0),
         captured: Boolean(source.captured),
         level: integerInRange(source.level, 1, 200, 5),
         enteredRound: integerInRange(source.enteredRound, 1, 9999, 1),
-        xp: quantizeStepDown(source.xp, 0.5, { minimum: 0, maximum: 999999, fallback: 0 }),
+        xp: integerInRange(source.xp, 0, 999999, 0),
         priority: integerInRange(source.priority, -7, 7, 0),
         declaredMove: normalizeSlug(source.declaredMove),
         types,
@@ -334,6 +336,8 @@ export const changeRoomPhase = (snapshot, nextPhase) => {
     return normalizeRoomSnapshot({
         ...room,
         phase,
+        tokens: phase === "batalha" ? room.tokens.map(token => ({ ...token, activeMoveActions: 0 })) : room.tokens,
+        benchTokens: phase === "batalha" ? room.benchTokens.map(token => ({ ...token, activeMoveActions: 0 })) : room.benchTokens,
         trainerInterventions: phase === "batalha" ? [] : room.trainerInterventions,
         hitKillProtectionUsed: phase === "batalha"
             ? []
@@ -446,7 +450,8 @@ const getBattlefieldPosition = (index = 0, side = "ally") => {
     };
 };
 
-export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") => {
+export const createTokenFromPokemon = (input, team, index = 0, side = "ally") => {
+    const pokemon = input?.species ? { ...input, species: getPokemonReferenceForMode(input.species, team?.versionGroup) } : input;
     const computed = calculatePokemonStats(pokemon);
     const maxHp = computed.hp.rpg;
     const currentHp = pokemon?.rpg?.currentHp == null
@@ -470,6 +475,7 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
         status: pokemon?.rpg?.status || "",
         sleepTurns: pokemon?.rpg?.sleepTurns ?? null,
         freezeTurns: pokemon?.rpg?.freezeTurns ?? null,
+        activeMoveActions: 0,
         level: pokemon?.level,
         xp: pokemon?.rpg?.xp || 0,
         types: pokemon?.customTypes?.length
@@ -628,6 +634,7 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
         side,
         ownerPlayerId: token.ownerPlayerId || asText(ownerPlayerId),
         enteredRound: room.round,
+        activeMoveActions: 0,
     }));
     const promotedIds = new Set(promotedTokens.map(token => token.id));
     const available = team.pokemon.filter(pokemon => !existingPokemon.has(pokemon.id));
@@ -684,6 +691,7 @@ const prepareTokenForSwitch = tokenInput => {
         ...token,
         declaredMove: "",
         priority: 0,
+        activeMoveActions: 0,
         volatileEffects: [],
         toxicCounter: token.status === "bad-poison" ? 1 : 0,
         stages,

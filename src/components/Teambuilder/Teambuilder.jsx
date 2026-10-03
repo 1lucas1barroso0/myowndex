@@ -5,6 +5,7 @@ import { createTeam as makeTeam, createId, hydrateTeam, insertImportedPokemon, m
 import { decodeShare, encodePokemonBundle, encodeTeam } from "../../core/teamShare.js";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
+import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import PokemonEditor from "./PokemonEditor.jsx";
 import "../../pc-retro.css";
@@ -368,8 +369,8 @@ export default function Teambuilder({ envProps }) {
         <div className="pc-workspace pc-retro animate-fade-in">
             <aside className="pc-sidebar" aria-label="Boxes do PC">
                 <header className="pc-sidebar-heading">
-                    <h2>Boxes</h2>
-                    <span className="pc-box-count">{teams.length}</span>
+                    <div className="pc-storage-title"><h2>Boxes</h2><span className="pc-box-count">{teams.length}</span></div>
+                    <PokemonCompanion place="pc" eager />
                 </header>
                 <div className="pc-box-list">
                 {teams.map(team => (
@@ -406,7 +407,6 @@ export default function Teambuilder({ envProps }) {
 
             <section className="pc-content">
                 {!active && <div className="pc-empty-state">
-                    <div className="pc-welcome-partners" aria-hidden="true">{[133, 25].map(id => <PokemonSprite key={id} pokemonId={id} alt="" className="pixelated" />)}</div>
                     <h2>Seus parceiros, suas equipes</h2>
                     <p>Organize seus Pokémon em Boxes e leve sua equipe para a aventura.</p>
                     <button type="button" onClick={createTeam} className="room-primary-button">Abrir primeira Box</button>
@@ -415,8 +415,10 @@ export default function Teambuilder({ envProps }) {
                     <div className="pc-main-panel">
                         <div className="pc-toolbar">
                             <div className="pc-toolbar-fields">
-                                <label htmlFor="active-box-name" className="editor-label">Nome da Box</label>
-                                <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name" />
+                                <label className="pc-name-field">
+                                    <span className="editor-label">Nome da Box</span>
+                                    <input id="active-box-name" type="text" value={active.name || ""} onKeyDown={event => event.key === "Enter" && event.currentTarget.blur()} onChange={event => updateActive(team => ({ ...team, name: event.target.value }))} className="pc-box-name" />
+                                </label>
                                 <label className="pc-version-field">
                                     Jogo de referência
                                     <RoomSelect aria-label="Jogo de referência" value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="pc-version-select">
@@ -425,7 +427,7 @@ export default function Teambuilder({ envProps }) {
                                 </label>
                             </div>
 
-                            <div className="pc-toolbar-actions">
+                            <div className="pc-toolbar-actions" role="group" aria-label="Ações da Box">
                                 <button type="button" onClick={openShare} disabled={isProcessing} title="Compartilhar Box ou Pokémon" className="pc-action-button is-share">
                                     <span aria-hidden="true">↗</span><span className="pc-action-label">Compartilhar</span>
                                 </button>
@@ -478,10 +480,13 @@ export default function Teambuilder({ envProps }) {
 
                         {editingSlot !== null && active.pokemon?.[editingSlot] && (
                             <div className="pc-editor-region">
-                                <div className="pc-editor-heading">
-                                    <span>Ficha de {active.pokemon[editingSlot].nickname || formatName(active.pokemon[editingSlot].species?.name)}</span>
-                                    <button type="button" onClick={() => { partnerButtonRefs.current[editingSlot]?.focus(); setEditingSlot(null); }}>Fechar ficha <span aria-hidden="true">×</span></button>
-                                </div>
+                                <header className="pc-editor-heading">
+                                    <h3>Ficha de {active.pokemon[editingSlot].nickname || formatName(active.pokemon[editingSlot].species?.name)}</h3>
+                                    <div className="pc-editor-actions" role="group" aria-label="Ações da ficha">
+                                        <button type="button" onClick={() => { partnerButtonRefs.current[editingSlot]?.focus(); setEditingSlot(null); }} className="pc-close-editor">Fechar ficha <span aria-hidden="true">×</span></button>
+                                        <button type="button" onClick={() => { dismissKeyboard(); setPendingPartnerDelete({ teamId: active.id, partner: active.pokemon[editingSlot], index: editingSlot }); }} className="pokemon-remove-button">Remover da Box</button>
+                                    </div>
+                                </header>
                                 <PokemonEditor
                                     key={active.pokemon[editingSlot].id}
                                     pk={active.pokemon[editingSlot]}
@@ -496,11 +501,6 @@ export default function Teambuilder({ envProps }) {
                                         allAbilities,
                                         selectedVersionGroup: active.versionGroup || "auto",
                                         experienceMode,
-                                        onRemove: () => setPendingPartnerDelete({
-                                            teamId: active.id,
-                                            partner: active.pokemon[editingSlot],
-                                            index: editingSlot,
-                                        }),
                                         isTTRPG,
                                         isHackmon
                                     }}

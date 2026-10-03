@@ -1,5 +1,7 @@
 import { secureRandomString } from "../src/core/random.js";
 import { getRuntimeBindings, RuntimeConfigurationError, RuntimeServiceError } from "./runtime";
+import { AccountError, accountRouteError } from "./accounts";
+import { authenticateAccountRoom } from "./accountsRooms";
 
 export type RoomRole = "narrator" | "player";
 
@@ -7,6 +9,7 @@ export type RoomAuth = {
   role: RoomRole;
   playerId: string | null;
   displayName: string;
+  accountId?: string;
 };
 
 type RoomRow = {
@@ -269,8 +272,9 @@ export function requireCurrentRoomProtocol(request: Request) {
   });
 }
 
-export async function authenticateRoom(code: string, key: string): Promise<RoomAuth | null> {
+export async function authenticateRoom(code: string, key: string, request?: Request): Promise<RoomAuth | null> {
   if (!code || !key) return null;
+  if (key.startsWith("account_")) return request ? authenticateAccountRoom(code, key, request) : null;
   await ensureRoomSchema();
   const { db } = getBindings();
   const tokenHash = await hashSecret(key);
@@ -444,6 +448,7 @@ export async function appendRoomEvent(input: {
 }
 
 export function routeError(error: unknown) {
+  if (error instanceof AccountError) return accountRouteError(error);
   const message = error instanceof Error ? error.message : "Algo impediu esta ação. Tente novamente.";
   const runtimeError = error instanceof RuntimeConfigurationError || error instanceof RuntimeServiceError;
   return noStoreJson({ error: message, ...(runtimeError ? { code: error.code, setupRequired: error instanceof RuntimeConfigurationError } : {}) }, { status: runtimeError ? error.status : 500 });

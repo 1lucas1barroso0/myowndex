@@ -1,5 +1,6 @@
-// Keep expensive normalization/serialization out of every input keystroke.
-// Saving remains synchronous so pagehide can commit before the page leaves.
+// Normalize and serialize once after a burst of edits. A synchronous save still
+// finishes inside pagehide; durable asynchronous saves keep their pending edit
+// until the database transaction reports success.
 export function createScheduledSave({ save, onResult = () => {}, delayMs = 300, maxWaitMs = 900 } = {}) {
     if (typeof save !== "function") throw new TypeError("A save function is required.");
     let pendingValue;
@@ -7,6 +8,7 @@ export function createScheduledSave({ save, onResult = () => {}, delayMs = 300, 
     let revision = 0;
     let delayTimer = null;
     let maximumTimer = null;
+    const inFlight = new Map();
 
     const cancel = () => {
         clearTimeout(delayTimer);
@@ -14,21 +16,28 @@ export function createScheduledSave({ save, onResult = () => {}, delayMs = 300, 
         delayTimer = null;
         maximumTimer = null;
     };
-
-    const flush = () => {
-        cancel();
-        if (!pending) return true;
-        const savingRevision = revision;
-        let saved = false;
-        try { saved = save(pendingValue) !== false; } catch { /* The last persisted snapshot remains intact. */ }
-        if (saved && revision === savingRevision) {
-            pending = false;
-            pendingValue = undefined;
+    const complete = (savingRevision, saved) => {
+        if (revision === savingRevision) {
+            if (saved) { pending = false; pendingValue = undefined; }
+            onResult(saved);
         }
-        onResult(saved);
         return saved;
     };
-
+    const flush = () => {
+        cancel();
+        if (!pending) return inFlight.size ? Promise.all(inFlight.values()).then(results => results.every(Boolean)) : true;
+        const savingRevision = revision;
+        if (inFlight.has(savingRevision)) return inFlight.get(savingRevision);
+        let result;
+        try { result = save(pendingValue); } catch { return complete(savingRevision, false); }
+        if (!result || typeof result.then !== "function") return complete(savingRevision, result !== false);
+        const task = Promise.resolve(result).then(
+            saved => complete(savingRevision, saved !== false),
+            () => complete(savingRevision, false),
+        ).finally(() => { inFlight.delete(savingRevision); });
+        inFlight.set(savingRevision, task);
+        return task;
+    };
     const schedule = value => {
         pendingValue = value;
         pending = true;
@@ -38,7 +47,6 @@ export function createScheduledSave({ save, onResult = () => {}, delayMs = 300, 
         if (maximumTimer === null) maximumTimer = setTimeout(flush, Math.max(0, maxWaitMs));
     };
 
-    // Cancel stops timers, but never discards a failed or not-yet-saved edit.
-    // Its owner calls flush on pagehide, visibilitychange and effect cleanup.
-    return { schedule, flush, cancel };
+    // Cancel stops timers without discarding a failed or not-yet-saved edit.
+    return { schedule, flush, cancel, hasPending: () => pending || inFlight.size > 0 };
 }

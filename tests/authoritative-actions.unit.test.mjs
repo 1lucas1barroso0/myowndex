@@ -262,6 +262,14 @@ test("players can simulate server-side combat but cannot mutate initiative or ro
 });
 
 test("invalid ranges, modes, stale shapes and unowned moves fail closed before a roll", () => {
+  for (const value of [true, false, [], [1], {}, "", " ", Infinity, NaN]) {
+    assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-attribute", attribute: value }), /modificador/);
+  }
+  for (const expectedRevision of [null, true, [], ""]) {
+    assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "initiative", expectedRevision }), /revisão/);
+  }
+  assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "initiative", expectedRevision: 0, role: "narrator" }), /não aceita/);
+  assert.equal(normalizeAuthoritativeRequest({ requestId, action: "quick-attribute", attribute: "150" }).attribute, 150);
   assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-percent", chance: 101 }), /entre 0 e 100/);
   assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-attribute", attribute: 0, mode: "lucky" }), /forma válida/);
   assert.throws(() => normalizeAuthoritativeRequest({ requestId: "short", action: "quick-attribute", attribute: 0 }), /identificador válido/);

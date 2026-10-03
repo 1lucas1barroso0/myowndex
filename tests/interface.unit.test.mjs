@@ -26,7 +26,7 @@ test("the interface keeps dedicated responsive layouts through phone widths", as
   }
   assert.match(room, /room-mobile-nav/);
   assert.match(room, /mobilePane === "field"/);
-  assert.match(room, /savedSession=\{loadRoomSession\(\)\}/);
+  assert.match(room, /savedSession=\{loadRoomSession\(\{ scope: storageScope \}\)\}/);
   assert.match(layout, /device-width/);
   assert.match(layout, /maximumScale:\s*5/);
   assert.match(css, /\.battlefield-board\s*\{[\s\S]*?width:\s*100%;[\s\S]*?min-width:\s*0;[\s\S]*?min-height:\s*0;/);
@@ -140,8 +140,8 @@ test("descriptions explain what happens without hiding missing or foreign catalo
   const trait = describeTrait("ability", "example-power", {
     effect_entries: [{ language: { name: "en" }, short_effect: "Works only in a specific situation." }],
   });
-  assert.match(trait.summary, /descrição oficial permanece visível/i);
-  assert.match(trait.handling, /regra à vista/i);
+  assert.equal(trait.summary, "Works only in a specific situation.");
+  assert.equal(trait.handling, "", "no generic explanation delegates an unknown rule to the player");
   assert.equal(trait.catalog.code, "en");
 
   const species = describeSpecies({ flavor_text_entries: [], capture_rate: 45 }, { height: 10, weight: 100 });
@@ -182,7 +182,7 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   assert.match(panel, /Até 100 resultados salvos/);
   assert.match(panel, /Apagar histórico/);
   assert.match(rolls, /clearLocalRolls/);
-  assert.match(panel, /if\(lock\.current \|\| !ready/);
+  assert.match(panel, /if\(lock\.current \|\| applyingAccount\.current \|\| !ready/, "rolls stay locked during an account merge as well as during a pending receipt");
   assert.match(panel, /event\.repeat/);
   assert.match(panel, /Baixar histórico/);
 });
@@ -255,7 +255,7 @@ test("the common presentation preserves critical rules without hiding content", 
   assert.match(room, /Trocar com o banco/);
   assert.match(room, /Fazer a troca/);
   assert.match(room, /Encerrada por autocusto/);
-  assert.match(guide, /className="guide-companion pixelated"/);
+  assert.match(guide, /<PokemonCompanion place="guide"/);
   assert.doesNotMatch(guide, /guide-hero-lens absolute -bottom/);
 
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
@@ -434,7 +434,9 @@ test("Abilities and held items expose official context, lifecycle, narrative and
     read("src/core/rpgRules.js"),
     read("src/core/descriptions.js"),
   ]);
-  assert.match(panel, /explanation\.catalog/);
+  assert.match(panel, /<AbilityCard/);
+  assert.match(panel, /<ItemCard/);
+  assert.doesNotMatch(panel, /Gatilho:.*Conforme|explanation\.catalog/);
   assert.match(descriptions, /Descrição do catálogo/);
   assert.match(panel, /Registrar ativação/);
   assert.match(panel, /Consumir ou remover/);
@@ -453,10 +455,11 @@ test("Abilities and held items expose official context, lifecycle, narrative and
 });
 
 test("the internal Guide is the canonical source and explains hit kill protection", async () => {
-  const [guide, rules, localPanel, combat] = await Promise.all([
+  const [guide, rules, localPanel, localPokemon, combat] = await Promise.all([
     read("src/components/Guide/TrainerGuide.jsx"),
     read("src/core/rpgRules.js"),
     read("src/components/Shared/LocalDicePanel.jsx"),
+    read("src/components/Shared/LocalPokemonDice.jsx"),
     read("src/components/Room/CombatAssistant.jsx"),
   ]);
   assert.doesNotMatch(guide, /target="_blank"/);
@@ -477,8 +480,15 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(localPanel, /entry\.id/);
   assert.match(rules, /rola também a oposição/);
   assert.match(rules, /ninguém precisa multiplicar ou trabalhar com totais grandes/);
-  assert.match(localPanel, /Teste simples/);
-  assert.match(localPanel, /Combate e iniciativa resolvem a oposição automaticamente/);
+  assert.match(localPanel, /\["attribute","2d6","Teste"\]/);
+  assert.doesNotMatch(localPanel, /Teste simples|Para testes simples/);
+  assert.match(localPanel, /<LocalPokemonDice/);
+  assert.match(localPokemon, /CombatAssistant/);
+  assert.match(localPokemon, /CaptureAssistant/);
+  assert.match(rules, /aventura e os dados locais usam a mesma resolução/);
+  assert.match(guide, /Atributo ÷ 10/);
+  assert.match(guide, /HP ÷ 10/);
+  assert.doesNotMatch(guide, /÷ 20/);
   assert.match(combat, /Atributos e modificadores foram aplicados automaticamente/);
   assert.doesNotMatch(combat, /attackTest\.total/);
   assert.doesNotMatch(combat, /contestAttributes\.attacker/);

@@ -1,35 +1,37 @@
-# Estado da atualização 11.3
+# Continuidade da edição 11.4
 
-Retomada em 2 de outubro de 2026, preservando a 11.2 inteira e os ajustes parciais da 11.3. Não executar reset, checkout destrutivo ou substituir a fonte por uma versão anterior. O HEAD/index exportados continuam na base antiga; alterações válidas permanecem no diretório de trabalho.
+Estado auditado em **3 de outubro de 2026**. A fonte passou nos testes, lint, tipos, build e verificações de navegador descritos em [VALIDACAO.md](VALIDACAO.md). A publicação da 11.4 ainda depende do PR, CI, Preview e confirmação em produção; o endereço público permanece na 11.3 até essa confirmação.
 
-## Base e destino
+## Preservação do trabalho
 
-- Base remota publicada: `d8bb4096702786625f8acdb20ac63d26186d71ba`, MyOwnDex 11.2 (#18), repositório `1lucas1barroso0/myowndex`. A árvore coincide com o checkpoint local anterior `711b6d1e30ccc4bcf558667e6819beb478ef99cf`.
-- HEAD exportado local: `9f3450c`, anterior ao remoto. Compare usando índice temporário baseado no commit remoto e incluindo arquivos novos; não use reset para “alinhar” este diretório.
-- Produção: https://myowndex.vercel.app, HTML público conferido em 11.2.0. A 11.3 está preparada localmente; publicação pendente pelo instalador. A conexão GitHub recusou escrita com HTTP 403 nas execuções anteriores; o instalador usa os logins do usuário.
-- Reutilizar Turso Production/Preview já configurados. Não criar banco, substituir tokens ou migrar salas antigas. Salas protocolo 3, Boxes esquema 4 e demais chaves de armazenamento preservados.
+Não executar `reset`, checkout destrutivo ou substituição do diretório pela fonte remota. O HEAD exportado `9f3450c71012c07f72e33d13bf4c72c79cbffbee` é anterior ao trabalho atual. Há alterações válidas e arquivos novos; `git diff` sozinho não mostra os arquivos ainda não rastreados. Auditar também `git status --short` e os arquivos de continuação.
 
-## Trabalho concluído
+| Referência | Estado |
+| --- | --- |
+| Base remota da entrega | `f76dec47303e394e81d18186742f664eee33663d` |
+| Merge do PR #28 | `b4a782ba0b5192d37b748d2c7357ad82cbc8ea68` |
+| Árvore comum aos dois commits | `37a8cd1d8658546384a8fb1878cd620ef05a9b4d` |
+| Checkpoint anterior à integração das regras | `edd78f9d00273ab7f35228e28e63a45a4004b4ec` |
+| Referência desse checkpoint | `codex/myowndex-v11.4-pre-rules-20261003` |
 
-- Campos com `Shared/RoomSelect.jsx`: mantém o select nativo, teclado, toque, validação e callbacks; o valor selecionado aparece inteiro e quebra linha dentro do campo. Fragment e optgroup são percorridos. Labels visíveis e nomes acessíveis explícitos, sem duplicar texto visível.
-- `src/room-controls.css`, importado globalmente após journey.css: formulários respondem à largura do painel. Combate/captura ficam em uma coluna na lateral estreita; duas só com espaço. Estados vazios informam ausência de Pokémon/movimento/alvo. Iniciativa, ficha rápida, HP, XP, trocas e modificadores têm linhas/controles confortáveis; botões desabilitados mantêm texto legível.
-- Claro/Escuro no canto, duas colunas intrínsecas; modos RPG/Jogos/Livre continuam independentes. Removidos títulos visuais redundantes, mantendo nomes acessíveis, teclado e toque mínimo de 44 px.
-- PC/editor preservam todas as ações e ganham margens internas e espaçamento; escolhas longas de forma/natureza/condição/tipos/destino usam o mesmo controle.
-- Registro da Pokédex: EN/PT alterna original/português localmente. 1.025 espécies cobertas; nomes próprios ingleses conservados. O idioma volta ao original ao abrir outra espécie; alternar forma conserva o idioma escolhido.
-- Corpus `src/data/pokedex-entries.json`: 1.007 pares oficiais Pokémon GO + 18 pares de Pokémon Scarlet com tradução editorial local; um par oficial adicional para Gimmighoul Roaming Form. Chest Form usa seu próprio original/português de Scarlet. Nunca parear inglês Red/Blue com português de outro texto.
-- Fonte identificada discretamente na descrição; traduções editoriais identificadas como MyOwnDex. Proveniência/hash/fontes fixadas em `docs/pokedex-entries-provenance.json`, explicação em `docs/POKEDEX-IDIOMAS.md`. Regeração opcional por `scripts/atualizar-descricoes-pokedex.py`; runtime não chama tradutor, GPT ou IA.
-- Categoria, habitat/crescimento e medidas agrupados; captura/amizade em referências próprias, com interpretação expansível completa. Habilidades, formas, evoluções e movimentos preservados.
-- Todas as funcionalidades da 11.2 mantidas: salvamento/import-export/Link Cable, sincronização/notas privadas, 39 regras, cache LRU e offline limitado, hidratação com quatro tarefas e proteção de edições recentes. Boxes não expiram.
-- Versão 11.3.0 em package, rodapé e service worker. Dependências inalteradas.
+O commit adicional de main não altera arquivos em relação ao merge #28. A integração foi feita por comparação de três versões, sem substituir o HEAD ou o índice original. Para o checkpoint final, usar um índice temporário e incluir os arquivos novos. A referência prevista é `codex/myowndex-v11.4-checkpoint-20261003`; confirmar sua existência e SHA antes de usá-la como fonte de recuperação.
 
-## Verificação e entrega
+## Implementação concluída
 
-Build, tipos, lint, HTML servido e 215 testes passaram. Navegador: 99 checkpoints gerais, 51 de acabamento e 140 de campos/espaçamento, nos dois temas, cinco larguras, zoom 200%, 80 Boxes/480 Pokémon, persistência de IVs/EVs e alternância de idioma offline sem requisição. O teste novo mede o texto selecionado contra a opção nativa e seus retângulos dentro do campo. Detalhes/comandos em `docs/VALIDACAO.md`.
+- **Interface:** navegação, modos e aparência preservados; áreas e campos adaptados a telas estreitas; fauna decorativa com sprites locais distintos por módulo e versão estática para redução de movimento. Dados locais usam o rótulo **Teste**, sem o parágrafo introdutório sempre exposto. Vibração foi removida. Explicações complementares ficam nas seções recolhíveis.
+- **Contas:** cadastro, login, recuperação por códigos e sincronização no mesmo Turso, com migração aditiva. Boxes, favoritos, preferências, aventura local, dados locais e prévia do gerador são separados por identidade. Receber mudanças da mesma conta preserva a tela, os diálogos e as edições em andamento. Ver [CONTAS-E-SINCRONIZACAO.md](CONTAS-E-SINCRONIZACAO.md).
+- **Dados e regras:** PRs #20–#28 integrados, combate e iniciativa automáticos, proteção e condições recentes, migrações idempotentes e XP inteira arredondada para baixo. Dados locais com Pokémon usam os motores das aventuras, preservam recibos e não modificam a Box sem uma ação explícita. Ver [PR-20-28.md](PR-20-28.md).
+- **Referência atual e histórica:** EN/PT, registros por jogo, movimentos por jogo, habilidades e itens com nomes originais. O catálogo contém 14 arquivos e 20.738 textos únicos. As 45 diferenças verificadas de movimentos Champions são compartilhadas pela interface, dados locais e servidor; consultar um jogo histórico não altera a referência atual do combate. Ver [POKEDEX-IDIOMAS.md](POKEDEX-IDIOMAS.md).
+- **Gerador:** até seis Pokémon, movimentos por nível e jogo, IVs, EVs, Nature, gênero e habilidades; exportação individual, envio a uma Box existente ou criação de outra Box. Prévia limitada e sincronizada sem inserção automática no PC. Ver [GENERATOR-SOURCES.md](GENERATOR-SOURCES.md).
+- **Armazenamento:** IndexedDB durável, espelho local, filas de gravação, orçamento de caches e compactação das Boxes fechadas. Dados do usuário não são apagados para liberar cache. As falhas de quota mantêm a cópia existente e permitem exportação; não há promessa de armazenamento infinito.
 
-Smoke completo de salas em banco SQLite/Hrana de QA foi aprovado na 11.1; não repetido nesta atualização visual. Servidor/protocolo e funcionamento do banco preservados; testes unitários de autorização/ações continuam aprovados. Não usar produção para ensaios.
+Não há GPT ou tradutor externo no runtime, build ou instalador. Não recriar banco, alterar plano ou substituir segredos para publicar essa atualização. O texto do chat “Análise das regras MyOwnDex no ChatGPT” não é acessível pelo repositório; os PRs e suas fontes verificáveis foram auditados.
 
-Logs/screenshots em /tmp são temporários e não fazem parte da entrega. Scripts e decisões estão na fonte. Checkpoint final: `codex/myowndex-v11-space-checkpoint-20261002`, sem trocar HEAD/index original; commit registrado no STATUS externo.
+## Fechamento da entrega
 
-Gerar `python3 scripts/empacotar-linux.py` e verificar `python3 scripts/verificar-entrega-linux.py ../entrega`. Saídas: myowndex-v11.3-linux.sh, ZIP, TAR.GZ, COMANDO/LEIA/SHA256-V11.3.txt. Entregas anteriores preservadas; exclusão de segredos, .git, .vercel, builds e dependências instaladas.
+1. Preservar este estado e conferir qualquer alteração feita após os logs finais em `/tmp/myowndex-final-*.log`. Repetir somente os checks afetados por mudanças posteriores.
+2. Gerar os arquivos com `python3 scripts/empacotar-linux.py` e verificar a distribuição com `python3 scripts/verificar-entrega-linux.py ../entrega`. Manter os artefatos anteriores preservados. Registrar o resultado real da verificação, o SHA final e a publicação em `../entrega/STATUS-V11.4.txt`.
+3. Criar ou reaproveitar o PR da 11.4 com a fonte final. Confirmar CI e Preview do SHA correspondente antes do merge. Conferir a interface, a versão e as APIs de conta/salas no Preview, mantendo ensaios completos de contas e migração no banco de teste.
+4. Depois do merge, confirmar a versão 11.4 no endereço de produção e os endpoints de sessão/salas. Um Preview pronto ou um build local aprovado não confirma publicação em produção.
 
-Instalador conserva a lógica validada da 11.2 e os estados por digest. Repete checks e usa CI/Preview antes da integração e produção; preserva checkout/log em falha. Se interrompido, consultar PR/deployment antes de reenviar. 12 verificações atuais de pacote/extração/retomada/determinismo; 34 verificações antigas da automação não são contadas como repetidas.
+O instalador 11.4 usa a base `f76dec47303e394e81d18186742f664eee33663d`, valida a fonte antes de enviar, preserva o diretório de retomada e aguarda CI/Preview. Se houver bloqueio de deploy, manter código, PR, logs e arquivos de entrega; registrar o erro real, sem ignorar checks ou declarar publicação concluída.

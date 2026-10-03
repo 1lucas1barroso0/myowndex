@@ -11,7 +11,7 @@ import {
     resolveDamageSequence,
 } from "../src/core/automation.js";
 import { formatName } from "../src/core/mechanics.js";
-import { integerInRange, MAX_SAFE_GAME_INTEGER } from "../src/core/math.js";
+import { finiteNumberOrNull, integerInRange, MAX_SAFE_GAME_INTEGER } from "../src/core/math.js";
 import { createSecureUint32Source } from "../src/core/random.js";
 import {
     advanceInitiative,
@@ -25,6 +25,7 @@ import { getMoveSpecialProfile, getSpecialMoveBlockReason } from "../src/core/sp
 import { getTraitMoveBlock, isWeatherSuppressed, isAbilityActive } from "../src/core/traitMechanics.js";
 import { checkActionConditions } from "../src/core/battleConditions.js";
 import { CAPTURE_BALLS, captureTrainerKey, rollCapture } from "../src/core/capture.js";
+import { getCurrentMoveReference } from "../src/core/championsMoves.js";
 
 const ACTIONS = new Set(["quick-attribute", "quick-percent", "initiative", "advance-turn", "combat", "capture"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
@@ -60,7 +61,7 @@ const requiredMode = value => {
 };
 
 const exactInteger = (value, minimum, maximum, label) => {
-    const number = Number(value);
+    const number = finiteNumberOrNull(value);
     if (!Number.isSafeInteger(number) || number < minimum || number > maximum) {
         throw new AuthoritativeActionError(`${label} precisa estar entre ${minimum} e ${maximum}.`);
     }
@@ -108,7 +109,7 @@ export const normalizeAuthoritativeRequest = input => {
             requestId,
             action,
             mode: requiredMode(input.mode),
-            attribute: exactInteger(input.attribute ?? 0, -20, 99, "O atributo"),
+            attribute: exactInteger(input.attribute ?? 0, -99999, 99999, "O modificador"),
         };
     }
     if (action === "quick-percent") {
@@ -251,7 +252,7 @@ const resolutionRollLabel = resolution => {
         return `${resolution.contestSuccess ? "ataque venceu" : "defesa venceu"} · dados ${resolution.attackTest.diceTotal} × ${resolution.defenseTest.diceTotal}`;
     }
     if (!resolution.accuracyTest.automatic) {
-        return `${resolution.accuracyTest.result}/${resolution.accuracyTest.chance}`;
+        return `d100 ${resolution.accuracyTest.result} contra ${resolution.accuracyTest.chance}%`;
     }
     return "declarado";
 };
@@ -408,6 +409,8 @@ const advanceTurn = (snapshot, random) => {
 };
 
 export const resolveCombatAction = ({ snapshot, role, request, move, calledMove = null, random = undefined }) => {
+    move = getCurrentMoveReference(move);
+    calledMove = getCurrentMoveReference(calledMove);
     let room = normalizeRoomSnapshot(snapshot);
     const attacker = room.tokens.find(token => token.id === request.attackerId);
     const defender = room.tokens.find(token => token.id === request.defenderId) || null;
@@ -438,6 +441,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
 
     const conditionCheck = checkActionConditions({ token: attacker, move, ability: isAbilityActive(attacker) ? attacker.ability : "", random });
     let conditionToken = { ...conditionCheck.token, lastActionRound: room.round };
+    const activeMoveActions = Math.min(99999, integerInRange(attacker.activeMoveActions, 0, 99999, 0) + 1);
     let conditionNotes = [...conditionCheck.notes];
     let conditionSelfDamage = null;
     let conditionProtectionDisabled = room.hitKillProtectionDisabled;
@@ -463,6 +467,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         hitKillSurvivalGrace: conditionSurvivalGrace,
     };
     if (!conditionCheck.canAct) {
+        room = { ...room, tokens: room.tokens.map(token => token.id === attacker.id ? { ...token, activeMoveActions } : token) };
         const detail = `${attacker.name}: ${conditionNotes.join(" ")}`;
         return {
             result: { targetResults: [], conditionNotes, blockedByCondition: true, resolutionLabel: "Ação impedida", damage: 0, damageHit: false, moveConnected: false, consequences: role === "narrator" ? emptyConsequences() : null },
@@ -551,6 +556,9 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         }
     }
 
+    // Consume this attempt once, after the resolver's own eligibility checks.
+    // A spread move resolves several targets but is still only one action.
+    workingTokens = workingTokens.map(token => token.id === attacker.id ? { ...token, activeMoveActions } : token);
     const connected = targetResults.some(entry => entry.resolution.moveConnected);
     const damageHit = targetResults.some(entry => entry.resolution.damageHit);
     const representative = targetResults[0].resolution;
@@ -688,7 +696,7 @@ export const resolveCaptureAction = ({ request, snapshot, role, species, random 
         turnIndex: initiative.length ? turnIndex : 0,
         tokens: room.tokens.map(token => token.id === target.id && result.success ? { ...token, captured: true, hidden: true } : token),
     };
-    const detail = `${target.name}: ${result.success ? "captura confirmada" : "escapou"} com ${CAPTURE_BALLS[result.ball].label}. ${result.automatic ? "Captura automática." : `d100 ${result.result} contra ${result.chance}%.`} Taxa ${result.captureRate}/255; HP ${result.currentHp}/${result.maxHp}; Ball ×${result.ballBonus}; condição ×${result.statusBonus}.`;
+    const detail = `${target.name}: ${result.success ? "captura confirmada" : "escapou"} com ${CAPTURE_BALLS[result.ball].label}. ${result.automatic ? "Captura automática." : `d100 ${result.result} contra ${result.chance}%.`} Taxa ${result.captureRate} de 255; HP ${result.currentHp} de ${result.maxHp}; Ball ×${result.ballBonus}; condição ×${result.statusBonus}.`;
     return {
         result: { ...result, targetName: target.name, detail }, nextSnapshot,
         audit: { type: "capture", mode: "normal", rawDice: result.rolls, modifiers: result, chance: result.chance, result: result.result, success: result.success, critical: false, fumble: false },

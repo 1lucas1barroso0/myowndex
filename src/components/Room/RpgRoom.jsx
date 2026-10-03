@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
+import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import GameIcon from "../Shared/GameIcon.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import {
@@ -36,7 +37,7 @@ import {
 } from "../../core/room.js";
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import { formatCount } from "../../core/copy.js";
-import { finiteNumber, integerInRange, quantizeStepDown } from "../../core/math.js";
+import { finiteNumber, integerInRange } from "../../core/math.js";
 import LocalDicePanel from "../Shared/LocalDicePanel.jsx";
 import {
     buildPlayerInvite,
@@ -48,6 +49,7 @@ import {
     fetchRemoteRoom,
     joinRemoteRoom,
     loadRoomSession,
+    loadRoomSessionDurable,
     parseRoomInvite,
     parseRoomInviteValue,
     postRoomEvent,
@@ -56,8 +58,10 @@ import {
     saveRoomSession,
 } from "../../core/roomClient.js";
 import { getNextLevelXp } from "../../core/rpgRules.js";
+import { accountRequest } from "../../core/accountClient.js";
+import { bindAccountRoom, listAccountRooms, unlinkAccountRoom } from "../../core/accountRooms.js";
 import { mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
-import { readStorage, removeStorage, writeStorage } from "../../core/storage.js";
+import { getStorageScope, readDurableStorage, removeStorage, writeStorage } from "../../core/storage.js";
 import { getBattleDisplayIdentity, normalizeSpecialState } from "../../core/specialMechanics.js";
 import AudioDeck from "./AudioDeck.jsx";
 import Battlefield from "./Battlefield.jsx";
@@ -119,7 +123,7 @@ const isPlayerPresent = player => {
 
 const errorMessage = error => error instanceof Error ? error.message : "Algo impediu esta ação. Tente novamente.";
 
-function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onLocal, onResume }) {
+function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, onCreate, onJoin, onLocal, onResume, onUnlink }) {
     const [title, setTitle] = useState("");
     const [narratorName, setNarratorName] = useState("");
     const [invite, setInvite] = useState(defaultInvite ? buildRoomInviteToken(defaultInvite) : "");
@@ -134,9 +138,22 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
                     <h2>Aventuras</h2>
                     <p>Crie uma aventura ou entre com o convite do seu grupo.</p>
                 </div>
+                <PokemonCompanion place="adventure" eager />
             </section>
 
             {error && <div className="room-error" role="alert">{error}</div>}
+            {accountRooms.length > 0 && <section className="room-account-adventures" aria-label="Aventuras da conta">
+                <h3>Suas aventuras</h3>
+                <div className="room-account-adventure-list">
+                    {accountRooms.map(adventure => <article key={adventure.code}>
+                        <button type="button" className="room-resume" disabled={busy} onClick={() => onResume(adventure)}>
+                            <span><small>{roleLabel(adventure.role)} · {adventure.code}</small><strong>{adventure.title}</strong></span>
+                            <b>Continuar</b>
+                        </button>
+                        <details><summary>Opções desta aventura</summary><button type="button" className="room-secondary-button" disabled={busy} onClick={() => onUnlink(adventure)}>Retirar da conta</button></details>
+                    </article>)}
+                </div>
+            </section>}
             {savedSession && (!defaultInvite || canResumeInvite) && (
                 <button type="button" className="room-resume" disabled={busy} onClick={() => onResume(savedSession)}>
                     <span>
@@ -241,7 +258,7 @@ function Lobby({ defaultInvite, savedSession, busy, error, onCreate, onJoin, onL
     );
 }
 
-function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
+function QuickRoller({ local, onAuthoritativeAction, onEvent, onError, pokemonContext }) {
     const [kind, setKind] = useState("attribute");
     const [mode, setMode] = useState("normal");
     const [attribute, setAttribute] = useState(0);
@@ -269,7 +286,7 @@ function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
         }
     };
 
-    if (local) return <LocalDicePanel context="aventura" compact onRoll={payload => onEvent("roll", payload)} />;
+    if (local) return <LocalDicePanel context="aventura" compact onRoll={payload => onEvent("roll", payload)} {...pokemonContext} />;
 
     return (
         <details className="room-tool" open>
@@ -289,8 +306,8 @@ function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
                         <span>{kind === "attribute" ? "Modificador" : "Chance"}</span>
                         <input
                             type="number"
-                            min={kind === "attribute" ? -20 : 0}
-                            max={kind === "attribute" ? 99 : 100}
+                            min={kind === "attribute" ? -99999 : 0}
+                            max={kind === "attribute" ? 99999 : 100}
                             value={kind === "attribute" ? attribute : chance}
                             onChange={event => kind === "attribute" ? setAttribute(event.target.value) : setChance(event.target.value)}
                         />
@@ -334,9 +351,9 @@ function NoteField({ label, value, privateNote, disabled, onCommit }) {
     );
 }
 
-export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
+export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, account, onDiceContext }) {
+    const storageScope = useMemo(() => getStorageScope(), []);
     const initialInvite = useMemo(() => parseRoomInvite(), []);
-    const initialSavedSession = useMemo(() => loadRoomSession(), []);
     const [session, setSession] = useState(null);
     const [room, setRoom] = useState(null);
     const [busy, setBusy] = useState(false);
@@ -348,6 +365,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const [selectedBenchTokenId, setSelectedBenchTokenId] = useState("");
     const [mobilePane, setMobilePane] = useState("field");
     const [ending, setEnding] = useState(false);
+    const [accountRooms, setAccountRooms] = useState([]);
+    const [unlinking, setUnlinking] = useState(null);
+    const [renewingInvite, setRenewingInvite] = useState(false);
     const revisionRef = useRef(0);
     const pendingSavesRef = useRef(0);
     const saveQueueRef = useRef(Promise.resolve());
@@ -355,6 +375,26 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     const authoritativeRequestsRef = useRef(new Map());
     const mountedRef = useRef(true);
     const snapshotRef = useRef(createRoomSnapshot());
+
+    const reloadAccountRooms = useCallback(async () => {
+        if (!account?.id) return;
+        const result = await listAccountRooms(account.id);
+        if (mountedRef.current) setAccountRooms(Array.isArray(result.rooms) ? result.rooms : []);
+    }, [account]);
+
+    useEffect(() => {
+        void reloadAccountRooms().catch(() => {});
+    }, [reloadAccountRooms]);
+
+    const linkRoomToAccount = useCallback(async target => {
+        if (!account?.id || target.local || target.key.startsWith("account_")) return;
+        try {
+            await bindAccountRoom(account.id, target);
+            if (mountedRef.current) await reloadAccountRooms();
+        } catch {
+            if (mountedRef.current) setNotice?.({ tone: "amber", text: "A aventura continua disponível aqui. Não foi possível vinculá-la à conta; abra novamente quando a conexão voltar." });
+        }
+    }, [account, reloadAccountRooms, setNotice]);
 
     const snapshot = useMemo(() => normalizeRoomSnapshot(room?.snapshot), [room?.snapshot]);
     const role = session?.role || "";
@@ -397,6 +437,19 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     useEffect(() => {
         snapshotRef.current = snapshot;
     }, [snapshot]);
+
+    useEffect(() => {
+        if (!session?.local) return undefined;
+        const receive = event => {
+            const incoming = event.detail?.document?.localAdventure;
+            if (event.detail?.scope !== storageScope || !incoming?.snapshot) return;
+            const next = normalizeRoomSnapshot(incoming.snapshot);
+            snapshotRef.current = next;
+            setRoom(current => current ? { ...incoming, snapshot: next } : current);
+        };
+        window.addEventListener("myowndex:account-document", receive);
+        return () => window.removeEventListener("myowndex:account-document", receive);
+    }, [session?.local, storageScope]);
 
     useEffect(() => {
         if (!room || !role) return;
@@ -460,7 +513,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         setError("");
         try {
             if (targetSession.local) {
-                const localRoom = readStorage(LOCAL_ROOM_STORAGE_KEY, null);
+                const localRoom = await readDurableStorage(LOCAL_ROOM_STORAGE_KEY, null, { scope: storageScope });
+                if (!mountedRef.current) return;
                 if (!localRoom?.snapshot) throw new Error("Não encontramos a aventura salva neste dispositivo.");
                 setSession(targetSession);
                 setRoom(localRoom);
@@ -468,20 +522,27 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 return;
             }
             const bundle = await fetchRemoteRoom(targetSession);
+            if (!mountedRef.current) return;
             setSession(targetSession);
-            saveRoomSession(targetSession);
+            saveRoomSession(targetSession, { scope: storageScope });
             applyBundle(bundle);
+            await linkRoomToAccount(targetSession);
         } catch (value) {
-            clearRoomSession();
-            showError(value);
+            clearRoomSession({ scope: storageScope });
+            if (mountedRef.current) showError(value);
         } finally {
-            setBusy(false);
+            if (mountedRef.current) setBusy(false);
         }
-    }, [applyBundle, showError]);
+    }, [applyBundle, linkRoomToAccount, showError, storageScope]);
 
     useEffect(() => {
-        if (!initialInvite && initialSavedSession) void resume(initialSavedSession);
-    }, [initialInvite, initialSavedSession, resume]);
+        if (initialInvite) return undefined;
+        let active = true;
+        void loadRoomSessionDurable({ scope: storageScope }).then(saved => {
+            if (active && saved) void resume(saved);
+        });
+        return () => { active = false; };
+    }, [initialInvite, resume, storageScope]);
 
     useEffect(() => {
         if (!session || session.local) return undefined;
@@ -530,10 +591,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 playerId: null,
                 displayName: input.narratorName,
             };
+            saveRoomSession(nextSession, { scope: storageScope });
+            if (!mountedRef.current) return;
             setSession(nextSession);
-            saveRoomSession(nextSession);
             const bundle = await fetchRemoteRoom(nextSession);
+            if (!mountedRef.current) return;
             applyBundle(bundle);
+            await linkRoomToAccount(nextSession);
             setNotice?.({ tone: "blue", text: `A aventura ${result.code} está pronta — e o convite para jogadores também.` });
         } catch (value) {
             showError(value);
@@ -574,8 +638,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         setSession(nextSession);
         setRoom(localRoom);
         setConnection("local");
-        saveRoomSession(nextSession);
-        writeStorage(LOCAL_ROOM_STORAGE_KEY, localRoom);
+        saveRoomSession(nextSession, { scope: storageScope });
+        writeStorage(LOCAL_ROOM_STORAGE_KEY, localRoom, { scope: storageScope });
     };
 
     const join = async input => {
@@ -592,9 +656,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 playerId: result.playerId,
                 displayName: input.displayName,
             };
+            saveRoomSession(nextSession, { scope: storageScope });
+            if (!mountedRef.current) return;
             setSession(nextSession);
-            saveRoomSession(nextSession);
             applyBundle({ ...result.room, role: "player", playerId: result.playerId });
+            await linkRoomToAccount(nextSession);
             if (window.location.hash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
         } catch (value) {
             showError(value);
@@ -616,7 +682,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     updatedAt: new Date().toISOString(),
                     snapshot: normalized,
                 };
-                writeStorage(LOCAL_ROOM_STORAGE_KEY, next);
+                writeStorage(LOCAL_ROOM_STORAGE_KEY, next, { scope: storageScope });
                 return next;
             });
             setConnection("local");
@@ -658,7 +724,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         };
 
         saveQueueRef.current = saveQueueRef.current.then(persist, persist);
-    }, [applyBundle, session, showError, snapshot]);
+    }, [applyBundle, session, showError, snapshot, storageScope]);
 
     const sendEvent = useCallback(async (type, payload) => {
         if (!session) return;
@@ -677,7 +743,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         createdAt: new Date().toISOString(),
                     }].slice(-180),
                 };
-                writeStorage(LOCAL_ROOM_STORAGE_KEY, next);
+                writeStorage(LOCAL_ROOM_STORAGE_KEY, next, { scope: storageScope });
                 return next;
             });
             return;
@@ -690,7 +756,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             showError(value);
             return null;
         }
-    }, [refresh, session, showError]);
+    }, [refresh, session, showError, storageScope]);
 
     const requestAuthoritativeAction = useCallback(async input => {
         if (!session || session.local) throw new Error("Esta ação autoritativa só existe em aventuras compartilhadas.");
@@ -767,7 +833,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const leave = async () => {
         const leavingSession = session;
-        clearRoomSession();
+        clearRoomSession({ scope: storageScope });
         setSession(null);
         setRoom(null);
         setError("");
@@ -785,7 +851,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         if (!session) return;
         setBusy(true);
         try {
-            if (session.local) removeStorage(LOCAL_ROOM_STORAGE_KEY);
+            if (session.local) removeStorage(LOCAL_ROOM_STORAGE_KEY, { scope: storageScope });
             else await deleteRemoteRoom(session);
             await leave();
             setNotice?.({ tone: "blue", text: "A aventura foi encerrada. Suas Boxes continuam no PC." });
@@ -839,11 +905,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             );
         }
         if (Object.hasOwn(normalizedPatch, "xp")) {
-            normalizedPatch.xp = quantizeStepDown(normalizedPatch.xp, 0.5, {
-                minimum: 0,
-                maximum: 999999,
-                fallback: selectedToken.xp,
-            });
+            normalizedPatch.xp = integerInRange(normalizedPatch.xp, 0, 999999, selectedToken.xp);
         }
         if (Object.hasOwn(normalizedPatch, "priority")) {
             normalizedPatch.priority = integerInRange(normalizedPatch.priority, -7, 7, selectedToken.priority);
@@ -994,11 +1056,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
 
     const applySelectedExperience = (nextXp, announce = true) => {
         if (!selectedToken || role !== "narrator") return;
-        const normalizedXp = quantizeStepDown(nextXp, 0.5, {
-            minimum: 0,
-            maximum: 999999,
-            fallback: selectedToken.xp,
-        });
+        const normalizedXp = integerInRange(nextXp, 0, 999999, selectedToken.xp);
         if (selectedToken.level >= 200) {
             updateToken({ xp: normalizedXp });
             return;
@@ -1155,6 +1213,25 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         });
     };
 
+    const diceHandlersRef = useRef({});
+    useEffect(() => {
+        diceHandlersRef.current = { commitSnapshot, declareMove, requestAuthoritativeAction, sendEvent, showError };
+    });
+    const diceHandlers = useMemo(() => ({
+        onSnapshotChange: (...args) => diceHandlersRef.current.commitSnapshot?.(...args),
+        onDeclareMove: (...args) => diceHandlersRef.current.declareMove?.(...args),
+        onAuthoritativeAction: (...args) => diceHandlersRef.current.requestAuthoritativeAction?.(...args),
+        onEvent: (...args) => diceHandlersRef.current.sendEvent?.(...args),
+        onError: (...args) => diceHandlersRef.current.showError?.(...args),
+    }), []);
+    const dicePokemonContext = useMemo(() => ({
+        ...diceHandlers, snapshot, role, playerId: session?.playerId || "", remote: Boolean(session && !session.local), teams, setTeams,
+    }), [diceHandlers, snapshot, role, session, teams, setTeams]);
+    useEffect(() => {
+        onDiceContext?.(session && room ? dicePokemonContext : null);
+        return () => { onDiceContext?.(null); };
+    }, [dicePokemonContext, onDiceContext, room, session]);
+
     const offerTeam = async () => {
         if (!selectedTeam) return;
         await sendEvent("team-offer", { team: compactTeamOffer(selectedTeam) });
@@ -1183,8 +1260,34 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
         await sendEvent("ready", { ready: !current?.ready });
     };
 
-    const inviteUrl = role === "narrator" && !session.local ? buildPlayerInvite(session) : "";
-    const inviteToken = role === "narrator" && !session.local ? buildRoomInviteToken(session) : "";
+    const inviteUrl = role === "narrator" && !session.local && session.inviteCode ? buildPlayerInvite(session) : "";
+    const inviteToken = role === "narrator" && !session.local && session.inviteCode ? buildRoomInviteToken(session) : "";
+    const renewInvite = async () => {
+        if (!account?.id || role !== "narrator" || session.local || busy) return;
+        setBusy(true);
+        try {
+            const result = await accountRequest("rooms/invite", { method: "POST", accountId: account.id, body: { code: session.code } });
+            if (!mountedRef.current) return;
+            const next = { ...session, inviteCode: result.inviteCode };
+            saveRoomSession(next, { scope: storageScope });
+            setSession(next);
+            setRenewingInvite(false);
+        } catch (value) { if (mountedRef.current) showError(value); }
+        finally { if (mountedRef.current) setBusy(false); }
+    };
+    const removeAccountLink = async () => {
+        if (!account?.id || !unlinking || busy) return;
+        setBusy(true);
+        try {
+            await unlinkAccountRoom(account.id, unlinking.code);
+            if (!mountedRef.current) return;
+            const saved = loadRoomSession({ scope: storageScope });
+            if (saved?.code === unlinking.code && saved.key.startsWith("account_")) clearRoomSession({ scope: storageScope });
+            await reloadAccountRooms();
+            setUnlinking(null);
+        } catch (value) { if (mountedRef.current) showError(value); }
+        finally { if (mountedRef.current) setBusy(false); }
+    };
     const players = room?.players || [];
     const events = room?.events || [];
     const acceptedOfferIds = new Set(
@@ -1214,18 +1317,29 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
     };
 
     if (!session || !room) {
-        return (
+        return (<>
             <Lobby
                 defaultInvite={initialInvite}
-                savedSession={loadRoomSession()}
+                savedSession={loadRoomSession({ scope: storageScope })}
+                accountRooms={accountRooms}
                 busy={busy}
                 error={error}
                 onCreate={create}
                 onJoin={join}
                 onLocal={createLocal}
                 onResume={resume}
+                onUnlink={setUnlinking}
             />
-        );
+            <ConfirmDialog
+                open={Boolean(unlinking)}
+                title="Retirar o acesso desta conta?"
+                description="A aventura e seus jogadores continuam. Este acesso sai de todos os seus dispositivos: para recuperá-lo, você precisará do acesso original ou de um novo convite de jogador."
+                confirmLabel={busy ? "Retirando…" : "Retirar da conta"}
+                cancelLabel="Manter acesso"
+                onConfirm={removeAccountLink}
+                onCancel={() => !busy && setUnlinking(null)}
+            />
+        </>);
     }
 
     return (
@@ -1241,7 +1355,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 <div className="room-header-actions">
                     <span className={`room-role-badge is-${role}`}>{roleLabel(role)}</span>
                     {role === "narrator" && !session.local && (
-                        <button type="button" onClick={() => copy(inviteUrl, "Convite dos jogadores")}>Convidar</button>
+                        <button type="button" disabled={busy} onClick={() => inviteUrl ? copy(inviteUrl, "Convite dos jogadores") : setRenewingInvite(true)}>{inviteUrl ? "Convidar" : "Gerar convite"}</button>
                     )}
                     <button type="button" onClick={onOpenGuide}>Guia</button>
                     <button type="button" className="room-leave" onClick={() => role === "narrator" ? setEnding(true) : void leave()}>
@@ -1260,6 +1374,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                         <b>Código {session.code}</b>
                     </summary>
                     <div>
+                        {inviteUrl ? <>
                         <p>Compartilhe o convite. Cada jogador informa seu nome ao entrar.</p>
                         <label>
                             <span className="sr-only">Link de convite dos jogadores</span>
@@ -1270,6 +1385,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                             <button type="button" onClick={() => copy(inviteUrl, "Link da aventura")}>Copiar link</button>
                             <button type="button" onClick={() => copy(inviteToken, "Convite curto")}>Copiar convite curto</button>
                         </div>
+                        </> : <><p>Você retomou esta aventura pela conta. Gere um convite para chamar novos jogadores.</p><button type="button" className="room-primary-button" disabled={busy} onClick={() => setRenewingInvite(true)}>Gerar convite</button></>}
                     </div>
                 </details>
             )}
@@ -1279,7 +1395,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
             <nav className="room-mobile-nav" aria-label="Painéis da aventura">
                 <button type="button" aria-pressed={mobilePane === "roster"} onClick={() => setMobilePane("roster")}>Equipe</button>
                 <button type="button" aria-pressed={mobilePane === "field"} onClick={() => setMobilePane("field")}>Campo</button>
-                <button type="button" aria-pressed={mobilePane === "tools"} onClick={() => setMobilePane("tools")}>Ações</button>
+                <button type="button" aria-pressed={mobilePane === "tools"} onClick={() => setMobilePane("tools")}>Dados e ações</button>
             </nav>
 
             <div className="room-layout">
@@ -1521,16 +1637,16 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                                     id="room-token-xp"
                                     type="number"
                                     min="0"
-                                    step="0.5"
+                                    step="1"
+                                    max="999999"
                                     value={selectedToken.xp}
                                     disabled={role !== "narrator"}
                                     onChange={event => updateToken({ xp: event.target.value })}
                                     onBlur={() => applySelectedExperience(selectedToken.xp)}
                                 />
-                                <small className="token-xp-next-level">Meta: {formatNumberPtBr(getNextLevelXp(selectedToken.level))}</small>
+                                <small className="token-xp-next-level">{selectedToken.level >= 200 ? "Nível máximo · 200" : `Meta: ${formatNumberPtBr(getNextLevelXp(selectedToken.level))} XP`}</small>
                                 {role === "narrator" && (
                                     <span className="token-xp-actions">
-                                        <button type="button" disabled={selectedToken.level >= 200} onClick={() => awardSelectedExperience(0.5)}>+0,5</button>
                                         <button type="button" disabled={selectedToken.level >= 200} onClick={() => awardSelectedExperience(1)}>+1 XP</button>
                                     </span>
                                 )}
@@ -1668,6 +1784,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                     {!session.local && <VoiceCall session={session} role={role} />}
                     <QuickRoller
                         local={Boolean(session.local)}
+                        pokemonContext={dicePokemonContext}
                         onAuthoritativeAction={requestAuthoritativeAction}
                         onEvent={sendEvent}
                         onError={showError}
@@ -1763,6 +1880,15 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice }) {
                 </aside>
             </div>
 
+            <ConfirmDialog
+                open={renewingInvite}
+                title="Gerar outro convite?"
+                description="Os convites anteriores deixam de funcionar. Quem já entrou continua na aventura."
+                confirmLabel={busy ? "Gerando…" : "Gerar convite"}
+                tone="info"
+                onConfirm={renewInvite}
+                onCancel={() => !busy && setRenewingInvite(false)}
+            />
             <ConfirmDialog
                 open={ending}
                 title="Encerrar esta aventura?"

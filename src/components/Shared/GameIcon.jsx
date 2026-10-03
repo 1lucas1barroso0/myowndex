@@ -1,6 +1,8 @@
 import React from "react";
 
 const paths = {
+    dice: <><rect x="4" y="4" width="16" height="16" rx="2" /><circle cx="8" cy="8" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="16" cy="16" r="1" /></>,
+    generator: <><path d="M12 4v16M4 12h16M6 6l12 12M18 6 6 18" /><path d="M12 2v2M22 12h-2M12 22v-2M2 12h2" /></>,
     adventure: <><path d="m12 3 8 5v8l-8 5-8-5V8Z" /><path d="m15.5 8.5-2 5-5 2 2-5Z" /></>,
     dex: <><rect x="5" y="3" width="14" height="18" /><path d="M5 8h14M9 12h6M9 16h3M8 5.5h2" /></>,
     pc: <><rect x="3" y="4" width="18" height="13" /><path d="M8 21h8M12 17v4M8 9h3v3H8zM14 9h2" /></>,

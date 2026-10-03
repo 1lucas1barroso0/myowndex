@@ -12,7 +12,6 @@ import {
 } from "./math.js";
 import { RPG_STATUS_LABELS } from "./copy.js";
 import { rollPercentTest } from "./rpgRules.js";
-import { randomInt } from "./random.js";
 import { confusionDuration, sleepDuration, THAW_TARGET_MOVES } from "./battleConditions.js";
 import {
     copyObservedMove,

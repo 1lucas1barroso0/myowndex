@@ -2,6 +2,23 @@ import { convertToTTRPG } from "./mechanics.js";
 import { finiteNumberOrNull, integerInRange } from "./math.js";
 import { randomChoice, roll2D6, rollD6, rollD100 } from "./random.js";
 
+export const MAX_OPPOSED_ATTRIBUTE_EDGE = 6;
+
+export const getOpposedAttributeEdge = (attackerAttribute, defenderAttribute) => {
+    const attacker = integerInRange(attackerAttribute, 0, 99999, 0);
+    const defender = integerInRange(defenderAttribute, 0, 99999, 0);
+    const rawDifference = attacker - defender;
+    const effectiveDifference = Math.max(-MAX_OPPOSED_ATTRIBUTE_EDGE, Math.min(MAX_OPPOSED_ATTRIBUTE_EDGE, rawDifference));
+    return {
+        attacker,
+        defender,
+        rawDifference,
+        effectiveDifference,
+        attackerModifier: Math.max(0, effectiveDifference),
+        defenderModifier: Math.max(0, -effectiveDifference),
+    };
+};
+
 export const FUMBLE_SUGGESTIONS = Object.freeze([
     "Perder uma posição favorável ou ficar exposto até a próxima ação.",
     "Atingir o cenário e criar uma complicação que mude a cena.",
@@ -52,7 +69,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "1.1",
                 title: "Testes básicos",
-                body: "Role 2d6 e some o atributo correspondente do Pokémon. Em uma disputa, o alvo que se defende vence os empates."
+                body: "Role 2d6. Em disputas entre atributos opostos, compare os valores reais e aplique ao dado apenas a diferença entre eles, limitada a 6 pontos para qualquer lado; isso preserva diferenças pequenas, torna uma superioridade grande quase decisiva sem transformar o dado em decoração e mantém os atributos completos para todas as demais regras. O alvo que se defende vence os empates."
             },
             {
                 id: "1.2",
@@ -356,6 +373,7 @@ export const RPG_RULE_SECTIONS = [
                 bullets: [
                     "Primeiro, use a implementação oficial mais recente disponível para aquela mecânica. Patch, correção ou revisão posterior prevalece sobre descrição ou comportamento anterior.",
                     "Se houver várias versões no catálogo, a opção automática do MyOwnDex prioriza a versão oficial mais recente disponível; versões antigas servem como referência histórica ou escolha explícita.",
+                    "Metagame, banlists, cláusulas, tiers, regras de torneio e ajustes cuja existência dependa de formato competitivo não fazem parte do modo RPG. O MyOwnDex adapta mecânicas centrais dos jogos, anime e narrativa, não um ambiente competitivo.",
                     "Depois, siga a ordem da regra 7.6: restrições e condições, alvo, disputa quando houver, precisão, imunidades, dano, limites e consequências, uma única vez.",
                     "Se ainda houver dúvida real, escolha a solução que preserva a intenção da regra atual, a clareza para todos e o movimento da aventura."
                 ]

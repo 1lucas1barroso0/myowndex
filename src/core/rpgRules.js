@@ -2,23 +2,6 @@ import { convertToTTRPG } from "./mechanics.js";
 import { finiteNumberOrNull, integerInRange } from "./math.js";
 import { randomChoice, roll2D6, rollD6, rollD100 } from "./random.js";
 
-export const MAX_OPPOSED_ATTRIBUTE_EDGE = 6;
-
-export const getOpposedAttributeEdge = (attackerAttribute, defenderAttribute) => {
-    const attacker = integerInRange(attackerAttribute, 0, 99999, 0);
-    const defender = integerInRange(defenderAttribute, 0, 99999, 0);
-    const rawDifference = attacker - defender;
-    const effectiveDifference = Math.max(-MAX_OPPOSED_ATTRIBUTE_EDGE, Math.min(MAX_OPPOSED_ATTRIBUTE_EDGE, rawDifference));
-    return {
-        attacker,
-        defender,
-        rawDifference,
-        effectiveDifference,
-        attackerModifier: Math.max(0, effectiveDifference),
-        defenderModifier: Math.max(0, -effectiveDifference),
-    };
-};
-
 export const FUMBLE_SUGGESTIONS = Object.freeze([
     "Perder uma posição favorável ou ficar exposto até a próxima ação.",
     "Atingir o cenário e criar uma complicação que mude a cena.",
@@ -69,7 +52,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "1.1",
                 title: "Testes básicos",
-                body: "Role 2d6. Em disputas entre atributos opostos, compare os valores reais e aplique ao dado apenas a diferença entre eles, limitada a 6 pontos para qualquer lado; isso preserva diferenças pequenas, torna uma superioridade grande quase decisiva sem transformar o dado em decoração e mantém os atributos completos para todas as demais regras. O alvo que se defende vence os empates."
+                body: "Role 2d6. Em disputas entre atributos opostos, o MyOwnDex pondera o resultado pela proporção real entre os atributos originais já afetados por estágios: resultado dos dados × atributo. Isso preserva integralmente IVs, EVs, Nature, nível, espécie e estágios sem impor teto artificial; crescer continua importando, mas diferenças proporcionais iguais se comportam de modo semelhante em qualquer nível. O alvo que se defende vence os empates."
             },
             {
                 id: "1.2",
@@ -420,6 +403,22 @@ export const rollAttributeTest = ({
         fumble: kept.every(value => value === 1),
         success: Number.isFinite(target) ? total > target : null,
         margin: Number.isFinite(target) ? total - target : null
+    };
+};
+
+export const rollProportionalAttributeTest = ({
+    mode = "normal",
+    attribute = 1,
+    random,
+} = {}) => {
+    const base = rollAttributeTest({ mode, attribute: 0, random });
+    const normalizedAttribute = integerInRange(attribute, 1, 99999, 1);
+    const score = base.diceTotal * normalizedAttribute;
+    return {
+        ...base,
+        attribute: normalizedAttribute,
+        total: score,
+        score,
     };
 };
 

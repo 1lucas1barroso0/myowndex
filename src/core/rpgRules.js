@@ -128,7 +128,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.1",
                 title: "Ordem dos turnos",
-                body: "No início de cada rodada, declare os movimentos e depois teste Velocidade com 2d6 ponderado pela Velocidade original já afetada por estágios, condições, habilidades e itens. Resolva primeiro a prioridade do movimento e depois o resultado proporcional de Velocidade. Empatados rolam 1d6; somente quem continuar empatado repete até definir a ordem. Nenhum identificador interno decide a vez."
+                body: "No início de cada rodada, declare os movimentos e use Rolar iniciativa. O MyOwnDex rola todos os participantes de uma vez, aplica automaticamente Velocidade, estágios, condições, habilidades, itens e prioridade, e entrega apenas a ordem. Empates reais são desempatados automaticamente com 1d6 até haver uma ordem; ninguém precisa calcular ou comparar totais ponderados."
             },
             {
                 id: "3.2",
@@ -330,7 +330,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.6",
                 title: "Ordem de resolução conectada",
-                body: "Verifique restrições, condições do usuário e alvo. Nos movimentos de dano, resolva a disputa para conhecer a margem; depois role a precisão com a vantagem cabível e aplique imunidades. Combine poder, STAB, tipo, clima, terreno, habilidade e item; trate sobrevivência, dano, efeitos secundários, contato, consumo, cura, nocaute e histórico. Um crítico potencial só se aplica se houver acerto. Shield Dust, Covert Cloak e Sheer Force só alteram efeitos secundários, sem apagar efeitos principais ou custos próprios."
+                body: "Ao resolver um movimento na Central da Aventura, o jogador escolhe a ação e o alvo; o MyOwnDex executa em sequência as restrições, condições, teste do usuário, oposição, precisão, imunidades, poder, STAB, tipo, clima, terreno, habilidades, itens, sobrevivência, dano, efeitos secundários, contato, consumo, cura, nocaute e histórico. O Narrador só intervém onde a própria regra exige decisão narrativa ou informação que o sistema não possui. Um crítico potencial só se aplica se houver acerto. Shield Dust, Covert Cloak e Sheer Force só alteram efeitos secundários, sem apagar efeitos principais ou custos próprios."
             }
         ]
     },

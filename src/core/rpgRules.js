@@ -128,7 +128,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.1",
                 title: "Ordem dos turnos",
-                body: "No início de cada rodada, declare os movimentos e depois teste Velocidade com 2d6. Resolva primeiro a prioridade do movimento e depois o total de Velocidade. Empatados rolam 1d6; somente quem continuar empatado repete até definir a ordem. Nenhum identificador interno decide a vez."
+                body: "No início de cada rodada, declare os movimentos e depois teste Velocidade com 2d6 ponderado pela Velocidade original já afetada por estágios, condições, habilidades e itens. Resolva primeiro a prioridade do movimento e depois o resultado proporcional de Velocidade. Empatados rolam 1d6; somente quem continuar empatado repete até definir a ordem. Nenhum identificador interno decide a vez."
             },
             {
                 id: "3.2",

@@ -113,7 +113,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
             const url=URL.createObjectURL(new Blob([text],{type:"text/plain;charset=utf-8"}));
             const a=document.createElement("a");a.href=url;a.download=`MyOwnDex-rolagens-${new Date().toISOString().slice(0,10)}.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
             setFeedback("Histórico pronto para baixar.");
-        } catch { setFeedback("O dispositivo não permitiu baixar o histórico agora."); }
+        } catch { setFeedback("O download não ficou pronto. Tente novamente."); }
     };
     const clearHistory=async ()=>{
         if(applyingAccount.current || lock.current)return;
@@ -140,7 +140,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
         <div className="local-dice-pages" aria-label="Escolher tipo de jogada"><button type="button" aria-pressed={page==="simple"} onClick={()=>setPage("simple")}>Rolagens</button><button type="button" aria-pressed={page==="pokemon"} onClick={()=>setPage("pokemon")}>Pokémon</button></div>
         <div hidden={page!=="simple"}>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
-            <fieldset disabled={busy || accountApplying}><legend className="sr-only">Configurar rolagem local</legend>
+            <fieldset disabled={busy || accountApplying}><legend className="sr-only">Configurar rolagem</legend>
                 <div className="local-dice-tabs" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste"],["percent","d100","Chance"],["free","dX","Livre"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
                 <div className="local-dice-fields">
                     {draft.kind!=="free" && <label>Modo<select value={draft.mode} onChange={e=>update("mode",e.target.value)}>{Object.entries(LOCAL_ROLL_MODES).map(([mode,label])=><option key={mode} value={mode}>{label}</option>)}</select>{modeHelp(configuration.spec) && <small className="local-dice-mode-help">{modeHelp(configuration.spec)}</small>}</label>}

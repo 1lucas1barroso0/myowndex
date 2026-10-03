@@ -534,15 +534,26 @@ test("a failed attempt changes nothing unless the move actually causes crash dam
   assert.deepEqual(missed.hitKillProtectionDisabled, []);
   assert.equal(missed.tokens.find(token => token.id === user.id).currentHp, user.currentHp);
 
-  const crashed = applyMoveConsequences({
-    tokens: [user, attacker],
+  for (const name of ["axe-kick", "high-jump-kick", "jump-kick", "supercell-slam"]) {
+    const crashed = applyMoveConsequences({
+      tokens: [user, attacker],
+      attackerId: user.id,
+      defenderId: attacker.id,
+      move: { name, pp: 10, damage_class: { name: "physical" }, meta: {} },
+      resolution: { moveConnected: false, damageHit: false, damage: 0 },
+    });
+    assert.equal(crashed.tokens.find(token => token.id === user.id).currentHp, 5, name);
+    assert.deepEqual(crashed.hitKillProtectionDisabled, [getHitKillProtectionKey(user)], name);
+  }
+
+  const guarded = applyMoveConsequences({
+    tokens: [{ ...user, ability: "magic-guard" }, attacker],
     attackerId: user.id,
     defenderId: attacker.id,
-    move: { name: "high-jump-kick", pp: 10, damage_class: { name: "physical" }, meta: {} },
+    move: { name: "axe-kick", pp: 10, damage_class: { name: "physical" }, meta: {} },
     resolution: { moveConnected: false, damageHit: false, damage: 0 },
   });
-  assert.equal(crashed.tokens.find(token => token.id === user.id).currentHp, 5);
-  assert.deepEqual(crashed.hitKillProtectionDisabled, [getHitKillProtectionKey(user)]);
+  assert.equal(guarded.tokens.find(token => token.id === user.id).currentHp, user.currentHp);
 });
 
 test("battle consequences consume hit kill protection once and healing cannot restore it", () => {

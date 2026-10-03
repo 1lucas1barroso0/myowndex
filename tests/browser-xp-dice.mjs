@@ -38,9 +38,9 @@ await context.addInitScript(() => {
 async function navigation(name) { await page.getByRole("button", { name, exact: true }).click(); }
 async function details(locator) { if (!await locator.evaluate(element => element.open)) await locator.locator(":scope > summary").click(); }
 async function dice() {
-    const trigger = page.getByRole("button", { name: "Abrir dados locais", exact: true }).filter({ visible: true }).first();
+    const trigger = page.getByRole("button", { name: "Abrir Dados", exact: true }).filter({ visible: true }).first();
     await trigger.click();
-    const dialog = page.getByRole("dialog", { name: "Dados locais", exact: true });
+    const dialog = page.getByRole("dialog", { name: "Dados", exact: true });
     await dialog.waitFor();
     return dialog;
 }
@@ -95,17 +95,20 @@ try {
 
     let dialog = await dice();
     assert.equal(await dialog.getByText("Vibração", { exact: true }).count(), 0);
+    assert.equal(await dialog.locator(".local-dice-pages").count(), 0, "adventure dice do not repeat the standalone Pokémon page");
+    assert.equal(await dialog.locator(".local-dice-history").count(), 0, "the Adventure Diary owns adventure roll history");
     await dialog.getByRole("button", { name: "Rolar 2d6", exact: true }).click();
     const total = await dialog.locator(".local-dice-total").innerText();
     assert.equal(Number.isInteger(Number(total)), true);
-    await page.waitForTimeout(400);
-    await dialog.locator(".local-dice-history > summary").click();
-    assert.match(await dialog.locator(".local-dice-history").innerText(), /Dados locais/);
-    await dialog.getByRole("button", { name: "Fechar dados locais", exact: true }).click();
-    assert.equal(await page.locator(".room-tools .local-dice-history > summary b").innerText(), "1 rolagem", "same-document room history refreshes immediately");
-    passed("global-roll-is-instantly-shared-with-local-room-history");
+    await dialog.getByRole("button", { name: "Fechar dados", exact: true }).click();
+    assert.equal(await page.locator(".room-tools .local-dice-panel").count(), 0);
+    assert.doesNotMatch(await page.locator(".room-tools").innerText(), /Rolagem rápida/);
+    passed("adventure-uses-one-contextual-dice-home");
 
+    await navigation(navLabels[2]);
     dialog = await dice();
+    await dialog.getByRole("button", { name: "Rolar 2d6", exact: true }).click();
+    await page.waitForTimeout(400);
     await dialog.locator(".local-dice-history > summary").click();
     await dialog.getByRole("button", { name: "Apagar histórico", exact: true }).click();
     const confirmation = page.getByRole("alertdialog", { name: "Apagar histórico de rolagens?", exact: true });
@@ -144,8 +147,8 @@ try {
                     if (target.height > 0) assert.ok(target.height >= 43.5, `${target.text}: target too small`);
                     assert.ok(target.left >= bounds.rect.left - 1 && target.right <= bounds.rect.right + 1);
                 }
-                await dialog.getByRole("button", { name: "Fechar dados locais", exact: true }).click();
-                assert.match(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") || ""), /Abrir dados locais/);
+                await dialog.getByRole("button", { name: "Fechar dados", exact: true }).click();
+                assert.match(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") || ""), /Abrir Dados/);
                 passed(`global-dice-${theme}-${width}-${sectionName}`);
             }
         }

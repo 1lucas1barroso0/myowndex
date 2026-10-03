@@ -2,7 +2,7 @@ import React, { useState, useEffect, useId, useMemo, useRef } from 'react';
 import { RPG_STATUS_LABELS } from '../../core/copy.js';
 import { describeMove } from '../../core/descriptions.js';
 import { getCatalogText, loadCatalogText } from '../../core/catalogText.js';
-import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, filterMovesByLatestVersion } from '../../core/mechanics.js';
+import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, TYPE_COLORS, TYPE_TEXT_COLORS, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
 import { finiteNumber, finiteNumberOrNull, integerInRange } from '../../core/math.js';
 import { randomChance, randomChoice, randomInt } from '../../core/random.js';
@@ -456,12 +456,12 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         const moveReference = detail && moveCatalogReady ? getCatalogText('move', normalizedName, detail, { versionGroup: referenceVersion }) : null;
                         const isException = Boolean(moveName) && !isHackmon && !validMoveNames.has(normalizedName);
                         const currentPp = rpg.pp?.[index];
-                        return <div key={index} className={`editor-move-field ${isException ? "is-exception" : ""}`}>
-                            <label className="editor-field"><span className="editor-label">Movimento {index + 1}</span><input list={moveListId} value={moveName} onKeyDown={handleEnter} onChange={event => {
+                        return <div key={index} className={`editor-move-field ${isException ? "is-exception" : ""}`} style={{ "--editor-move-type": TYPE_COLORS[detail?.type?.name] || "var(--ui-line)" }}>
+                            <div className="editor-field"><div className="editor-move-label"><label htmlFor={`${fieldId}-move-${index}`} className="editor-label">Movimento {index + 1}</label>{detail?.type?.name && <span className="editor-move-type" style={{ backgroundColor: TYPE_COLORS[detail.type.name], color: TYPE_TEXT_COLORS[detail.type.name] }}>{formatType(detail.type.name)}</span>}</div><input id={`${fieldId}-move-${index}`} list={moveListId} value={moveName} onKeyDown={handleEnter} onChange={event => {
                                 const moves = [...(pk.moves || [])]; moves[index] = (event.target.value || "").toLowerCase();
                                 const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = null;
                                 updatePk({ ...pk, moves, rpg: { ...rpg, pp } });
-                            }} className="editor-input" /></label>
+                            }} className="editor-input" /></div>
                             {isException && <span className="editor-field-note">{experienceMode === "game" ? "Não disponível neste jogo" : "Escolha livre"}</span>}
                             {isTTRPG && moveName && <label className="editor-pp-label">PP atual<input type="number" min="0" max={detail?.pp || 99} value={currentPp ?? detail?.pp ?? ""} onChange={event => { const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = event.target.value === "" ? null : integerInRange(event.target.value, 0, integerInRange(detail?.pp, 0, 99, 99), 0); updateRpg({ pp }); }} className="editor-input editor-pp-control" /></label>}
                             {moveExplanation && <details className="editor-move-description">

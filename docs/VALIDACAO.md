@@ -1,3 +1,5 @@
+> Rodada11.5: ver [REFINO-11.5.md](REFINO-11.5.md) e o registro externo `STATUS-V11.5.txt`. O relatório abaixo documenta a integração11.4 concluída pelo PR#29.
+
 # Validação da edição 11.4
 
 Em **3 de outubro de 2026**, a fonte final passou em **331 testes, sem falhas, cancelamentos ou testes ignorados**, além de lint, verificação de tipos e build de produção. Ambiente: Node.js 24.19, Next.js 16.2.12 e Chromium. Esses resultados validam a fonte; a publicação da 11.4 ainda precisa ser confirmada separadamente.

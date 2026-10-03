@@ -32,17 +32,17 @@ Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configur
 
 ## Atualizar pelo Linux
 
-Baixe `myowndex-v11.4-linux.sh`, abra o terminal na pasta do download e execute:
+Baixe `myowndex-v11.5-linux.sh`, abra o terminal na pasta do download e execute:
 
 ```bash
-bash myowndex-v11.4-linux.sh
+bash myowndex-v11.5-linux.sh
 ```
 
 O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da Vercel e os bancos já configurados. Você não precisa criar outra conta Turso, copiar tokens, extrair um arquivo ZIP ou migrar salas.
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A entrega 11.4 parte da versão 11.3 já publicada e mantém os dados de produção. Inclui contas sincronizadas, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira e dados completos acessíveis em todos os módulos. As regras dos PRs #20 a #28 estão preservadas, inclusive escala por 10 e resolução proporcional automática. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
+A entrega 11.5 refina a versão 11.4 já publicada, com navegação, ações e preferências organizadas e fichas mais legíveis. Mantém os dados de produção. Inclui contas sincronizadas, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira e dados completos acessíveis em todos os módulos. As regras dos PRs #20 a #28 estão preservadas, inclusive escala por 10 e resolução proporcional automática. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
 
 ## Arquitetura e fontes
 

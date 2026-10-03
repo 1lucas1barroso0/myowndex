@@ -19,7 +19,7 @@ import { DEX_GENERATIONS, debutGeneration, selectDexSpecies, urlForView, viewFro
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "11.4.0";
+const APP_VERSION = "11.5.0";
 function OpeningScreen() { return <div className="account-opening" role="status"><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
@@ -513,11 +513,15 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                         </div>
 
                         <div className="app-actions">
-                            <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
-                            <AppearanceControl />
-                            <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><GameIcon name="generator" />Gerar</button>
-                            <button type="button" className="global-dice-button" aria-label="Abrir dados locais" onClick={() => setDiceOpen(true)}><GameIcon name="dice" />Dados</button>
-                            <AccountButton client={client} onClick={onAccountOpen} />
+                            <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada">
+                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><GameIcon name="generator" />Gerar</button>
+                                <button type="button" className="global-dice-button" aria-label="Abrir dados locais" onClick={() => setDiceOpen(true)}><GameIcon name="dice" />Dados</button>
+                                <AccountButton client={client} onClick={onAccountOpen} />
+                            </div>
+                            <div className="app-preferences" role="group" aria-label="Preferências da jornada">
+                                <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
+                                <AppearanceControl />
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -68,8 +68,8 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
     return (
         <article className={`record-move-card ${isOpen ? "is-open" : ""}`} style={{ "--move-type": moveColor }}>
             <button type="button" onClick={handleOpen} aria-expanded={isOpen} aria-controls={panelId} className="record-move-toggle">
-                <span className="record-move-method">{methodLabel(details)}</span>
                 <span className="record-move-name">{formatName(moveData.move.name)}</span>
+                <span className="record-move-method">{methodLabel(details)}</span>
                 <span aria-hidden="true" className="record-move-chevron">{isOpen ? "−" : "+"}</span>
             </button>
 

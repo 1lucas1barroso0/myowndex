@@ -269,7 +269,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.1",
                 title: "Condições principais",
-                body: "Marque apenas uma condição principal. O RPG usa as referências modernas abaixo, respeitando imunidades, habilidades e cura. A verificação ocorre uma vez antes da ação, não uma vez por alvo nem por hit. Se a condição impedir a ação, o turno é gasto, mas não há gasto de PP.",
+                body: "Marque apenas uma condição principal. O RPG usa uma referência moderna e estável compartilhada pelos jogos principais, respeitando imunidades, habilidades e cura; variações exclusivas de um título não viram automaticamente regra universal da mesa. A verificação ocorre uma vez antes da ação, não uma vez por alvo nem por hit. Se a condição impedir a ação, o turno é gasto, mas não há gasto de PP.",
                 bullets: [
                     "Queimadura: metade do dano físico, salvo Guts ou Facade; perde 6,25% do HP máximo ao fim da rodada, respeitando o piso de dano positivo.",
                     "Paralisia: metade da Velocidade, salvo Quick Feet; antes de agir, 25% de chance de perder a ação. A condição não se cura sozinha.",

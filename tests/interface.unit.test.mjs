@@ -261,7 +261,7 @@ test("the common presentation preserves critical rules without hiding content", 
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /forced-colors:\s*active/);
   assert.match(css, /safe-area-inset-top/);
-  assert.match(css, /overflow-wrap:\s*anywhere/);
+  assert.match(css, /overflow-wrap:\s*normal/);
   assert.match(css, /white-space:\s*normal/);
   assert.match(guideCss, /\.guide-damage-limit-card/);
   assert.match(guideCss, /\.guide-hit-kill-card/);

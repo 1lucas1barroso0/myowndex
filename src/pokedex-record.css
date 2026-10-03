@@ -5,7 +5,7 @@ html .app-root .record-topbar { grid-column:1/-1; display:flex; justify-content:
 html .app-root .record-close { position:static; display:flex; align-items:center; justify-content:center; gap:.5rem; width:auto; min-height:44px; padding:.6rem .8rem; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); border-radius:.25rem; font-size:.85rem; }
 html .app-root .record-close svg { width:20px; height:20px; }
 html .app-root .record-overview { display:flex; flex-direction:column; gap:1.5rem; min-width:0; overflow:visible; padding:clamp(1.25rem,3vw,2rem); border-right:1px solid var(--ui-line); background:var(--ui-raised); }
-html .app-root .record-header h2 { font-size:clamp(1.8rem,4vw,2.7rem); font-weight:800; margin:.5rem 0; overflow-wrap:anywhere; }
+html .app-root .record-header h2 { font-size:clamp(1.8rem,4vw,2.7rem); font-weight:800; margin:.5rem 0; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:pretty; }
 html .app-root .record-cartridge-label { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; color:var(--ui-muted); font-size:.8rem; }
 html .app-root .record-cartridge-label small { font-size:inherit; }
 html .app-root .record-cartridge-label b { font-variant-numeric:tabular-nums; }
@@ -147,7 +147,7 @@ html .app-root .record-trait-card.is-compact { padding:1.25rem; }
 html .app-root .record-trait-heading { display:flex; flex-wrap:wrap; align-items:center; gap:.85rem; margin:0; min-width:0; }
 html .app-root .record-trait-heading > div { flex:1; min-width:min(140px,100%); }
 html .app-root .record-trait-heading small { display:block; margin-bottom:.35rem; font-size:.8rem; color:var(--ui-muted); }
-html .app-root .record-trait-heading h4 { margin:0; color:var(--ui-ink); font-size:1.15rem; line-height:1.4; font-weight:800; overflow-wrap:anywhere; }
+html .app-root .record-trait-heading h4 { margin:0; color:var(--ui-ink); font-size:1.15rem; line-height:1.4; font-weight:800; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:pretty; }
 html .app-root .record-trait-card .record-trait-heading { padding-bottom:1rem; border-bottom:1px solid color-mix(in srgb,var(--trait-accent) 35%,var(--ui-line)); }
 html .app-root .record-trait-card .record-ability-badge { align-self:flex-start; padding:.3rem .6rem; font-size:.8rem; line-height:1.5; font-weight:650; }
 html .app-root .record-item-sprite { flex:0 0 48px; width:48px; height:48px; object-fit:contain; image-rendering:pixelated; background:var(--ui-panel); border-radius:.15rem; }
@@ -156,7 +156,7 @@ html .app-root .reference-text-toolbar { display:flex; align-items:center; justi
 html .app-root .reference-text-toolbar > small { color:var(--ui-muted); font-size:.8rem; font-weight:700; line-height:1.5; }
 html .app-root .reference-language-toggle { display:grid; place-items:center; flex:0 0 48px; min-width:48px; min-height:44px; padding:.5rem .6rem; border:1px solid var(--ui-blue); border-radius:.2rem; background:var(--ui-panel); color:var(--ui-blue); font-size:.85rem; font-weight:800; }
 html .app-root .reference-language-toggle[aria-pressed=true] { background:var(--ui-selected); }
-html .app-root .reference-text > p { margin:0; color:var(--ui-ink); font-size:1rem; line-height:1.75; overflow-wrap:anywhere; }
+html .app-root .reference-text > p { margin:0; color:var(--ui-ink); font-size:1rem; line-height:1.75; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:pretty; }
 html .app-root .record-trait-card .reference-text-source { padding-top:.75rem; border-top:1px solid var(--ui-line); }
 html .app-root .reference-text-source { color:var(--ui-muted); font-size:.75rem; line-height:1.6; }
 html .app-root .record-move-methods { display:flex; flex-wrap:wrap; gap:.5rem; }

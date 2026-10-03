@@ -48,7 +48,7 @@
 .account-trainer-card { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.4rem; padding: 1.2rem; background: var(--ui-selected); border-left: 4px solid var(--ui-blue); }
 .account-trainer-card > svg { width: 64px; height: 64px; flex: none; color: var(--ui-blue); }
 .account-trainer-card > div { min-width: 0; }
-.account-trainer-card :is(h3,p) { overflow-wrap: anywhere; }
+.account-trainer-card :is(h3,p) { overflow-wrap: normal; word-break: normal; hyphens: none; text-wrap: pretty; }
 .account-trainer-card p { color: var(--ui-muted); margin: .25rem 0 .5rem; }
 .account-sync-label { display: inline-block; font-size: .85rem; color: var(--ui-blue); font-weight: 750; }
 .account-last-saved { color: var(--ui-muted); font-size: .85rem !important; margin-bottom: 1.2rem !important; }

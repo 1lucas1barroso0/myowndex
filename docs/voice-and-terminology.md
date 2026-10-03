@@ -12,6 +12,7 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Central da Aventura e Guia do Treinador são os nomes completos das áreas.
 - Aventura, Pokédex, PC e Guia são os rótulos curtos da navegação.
 - Dados é o nome da área de rolagens e ferramentas de jogo. “Dados locais” fica restrito a documentação técnica quando a distinção de armazenamento for necessária.
+- Dados tem um único acesso global. No contexto de uma aventura, esse mesmo acesso usa a mesa atual; o Guia e os painéis da Aventura não repetem uma segunda cópia da ferramenta.
 - “aventura”, em minúsculas, nomeia cada jornada criada; Narrador e Jogador
   nomeiam os papéis.
 - RPG, Jogos e Livre são os três estilos de jogo na interface.

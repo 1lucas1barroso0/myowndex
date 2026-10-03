@@ -9,6 +9,9 @@ O MyOwnDex combina a organização ampla dos menus de Pokémon Sword/Shield com 
 - Cores de tipos e estados preservadas sem criar uma paleta de interface diferente em cada tela.
 - Títulos, rótulos e textos de ajuda com uma hierarquia comum. Frases curtas explicam ações e resultados.
 - Movimento discreto para Pokémon e interações. Animações respeitam `prefers-reduced-motion`.
+- Toda superfície continua reconhecível como parte de um jogo Pokémon, inclusive contas, Dados, importação, configurações, erros e estados vazios. Nenhuma função vira dashboard, formulário genérico ou painel administrativo para economizar espaço.
+- Não há placeholders. Rótulos, ajuda e exemplos necessários pertencem à composição da tela, não desaparecem quando a pessoa começa a digitar.
+- Conteúdo atual não convive com cópias ou referências obsoletas apresentadas como vigentes; histórico deve ser claramente histórico.
 
 ## Conteúdo e tamanho
 

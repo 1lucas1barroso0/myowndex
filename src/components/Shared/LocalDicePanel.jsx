@@ -152,7 +152,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
                     <summary>Mais opções</summary>
                     <div className="local-dice-fields">
                         {draft.kind==="attribute" && <label>Dificuldade<input type="number" step="1" min="-99999" max="99999" value={draft.opposition ?? ""} onChange={e=>update("opposition",e.target.value)} /><small>Opcional. Empates favorecem a oposição.</small></label>}
-                        <label className="local-dice-label">Nome da ação<input maxLength={80} value={draft.label} placeholder="Atacar com Fire Blast" onChange={e=>update("label",e.target.value)} /></label>
+                        <label className="local-dice-label">Nome da ação<input maxLength={80} value={draft.label} onChange={e=>update("label",e.target.value)} /></label>
                     </div>
                 </details>
                 {configuration.error && <p className="local-dice-feedback is-error" role="alert">{configuration.error}</p>}

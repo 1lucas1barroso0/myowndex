@@ -65,6 +65,10 @@ export const checkActionConditions = ({ token, move, ability = "", random } = {}
         next.volatileEffects = next.volatileEffects.filter(effect => effect.id !== "flinch");
         if (ability !== "inner-focus") { notes.push("Hesitou e perdeu a ação."); return finish(false); }
     }
+    if (next.status === "paralysis" && percent("paralysis", 25)) {
+        notes.push("A paralisia impediu a ação.");
+        return finish(false);
+    }
     const confusion = next.volatileEffects.find(effect => effect.id === "confusion");
     if (confusion) {
         const turns = confusion.turns == null ? confusionDuration(random) : integerInRange(confusion.turns, 0, 4, 0);
@@ -77,10 +81,6 @@ export const checkActionConditions = ({ token, move, ability = "", random } = {}
                 return finish(false, damage);
             }
         } else notes.push("A confusão terminou antes da ação.");
-    }
-    if (next.status === "paralysis" && percent("paralysis", 25)) {
-        notes.push("A paralisia impediu a ação.");
-        return finish(false);
     }
     return finish(true);
 };

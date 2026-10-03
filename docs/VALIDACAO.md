@@ -44,7 +44,7 @@ Os três testes novos verificam cobertura exata de 1.025 espécies, pares reais 
 
 Os textos ingleses/portugueses de cada par são da mesma entrada. Mudança de idioma só altera descrição; nomes próprios, fatos, IDs e dados do jogador são preservados. Títulos explicam a origem, inclusive traduções editoriais. O dataset só é importado pelo módulo da ficha carregado sob demanda.
 
-Escala RPG atualizada para divisão por 10, com arredondamento convencional a partir de 0,5; dano/cura positivos continuam inteiros, com mínimo 1, e imunidade continua zero. Modificadores direcionais preservam mudanças legítimas de estágio. XP em passos de 0,5 e medidas oficiais como 0,7 m continuam precisos.
+Escala RPG usa divisão por 10 e arredondamento ao inteiro mais próximo: empates exatos em 0,5 descem por padrão e sobem apenas para HP escalado. Frações canônicas de HP preservam o arredondamento próprio dos jogos, normalmente para baixo com mínimo de 1 quando o efeito é positivo. Dano/cura continuam inteiros e imunidade continua zero. Modificadores direcionais preservam mudanças legítimas de estágio. XP em passos de 0,5 e medidas oficiais como 0,7 m continuam precisos.
 
 ## Salas, armazenamento e entrega
 

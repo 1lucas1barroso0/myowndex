@@ -1,4 +1,5 @@
-import { integerInRange } from "./math.js";
+import { finiteNumberOrNull, integerInRange, roundRpgScaledValue, safeDivide } from "./math.js";
+import { RPG_SCALE_DIVISOR } from "./mechanics.js";
 import { randomInt } from "./random.js";
 import { rollPercentTest } from "./rpgRules.js";
 
@@ -8,6 +9,26 @@ export const THAW_TARGET_MOVES = new Set(["scald", "steam-eruption", "scorching-
 export const sleepDuration = (random, ability = "", rest = false) => {
     const turns = rest ? 2 : 1 + randomInt(3, random);
     return ability === "early-bird" ? Math.floor(turns / 2) : turns;
+};
+
+export const confusionDuration = random => 2 + randomInt(3, random);
+
+const stageMultiplier = stage => {
+    const normalized = integerInRange(stage, -6, 6, 0);
+    return normalized >= 0 ? (2 + normalized) / 2 : 2 / (2 - normalized);
+};
+
+export const calculateConfusionSelfDamage = token => {
+    const level = integerInRange(token?.level, 1, 200, 1);
+    const currentAttack = Math.max(1, integerInRange(token?.stats?.attack, 0, 99999, 1));
+    const currentDefense = Math.max(1, integerInRange(token?.stats?.defense, 0, 99999, 1));
+    const originalAttack = finiteNumberOrNull(token?.originalStats?.attack) ?? currentAttack * RPG_SCALE_DIVISOR;
+    const originalDefense = finiteNumberOrNull(token?.originalStats?.defense) ?? currentDefense * RPG_SCALE_DIVISOR;
+    const attack = Math.max(1, Math.floor(originalAttack * stageMultiplier(token?.stages?.attack)));
+    const defense = Math.max(1, Math.floor(originalDefense * stageMultiplier(token?.stages?.defense)));
+    const levelFactor = Math.floor((2 * level) / 5) + 2;
+    const rawDamage = Math.floor(safeDivide(levelFactor * 40 * attack, defense * 50, 0)) + 2;
+    return roundRpgScaledValue(safeDivide(rawDamage, RPG_SCALE_DIVISOR, 0), { minimumWhenPositive: 1 });
 };
 
 export const checkActionConditions = ({ token, move, ability = "", random } = {}) => {
@@ -44,24 +65,22 @@ export const checkActionConditions = ({ token, move, ability = "", random } = {}
         next.volatileEffects = next.volatileEffects.filter(effect => effect.id !== "flinch");
         if (ability !== "inner-focus") { notes.push("Hesitou e perdeu a ação."); return finish(false); }
     }
-    const confusion = next.volatileEffects.find(effect => effect.id === "confusion");
-    if (confusion) {
-        const turns = confusion.turns == null ? 1 + randomInt(4, random) : integerInRange(confusion.turns, 0, 4, 0);
-        next.volatileEffects = next.volatileEffects.filter(effect => effect.id !== "confusion");
-        if (turns > 0 && ability !== "own-tempo") {
-            const remainingTurns = turns - 1;
-            if (remainingTurns > 0) next.volatileEffects.push({ ...confusion, turns: remainingTurns });
-            if (percent("confusion", 33)) {
-                const damage = Math.min(next.currentHp, Math.max(1, Math.ceil(integerInRange(next.maxHp, 1, 99999, 1) / 4))); // Stable self-damage: 25% max HP, no STAB, type, crit or contest.
-                next.currentHp -= damage;
-                notes.push(`A confusão impediu a ação e causou ${damage} HP de dano ao próprio Pokémon.`);
-                return finish(false, damage);
-            }
-        } else notes.push("A confusão terminou.");
-    }
     if (next.status === "paralysis" && percent("paralysis", 25)) {
         notes.push("A paralisia impediu a ação.");
         return finish(false);
+    }
+    const confusion = next.volatileEffects.find(effect => effect.id === "confusion");
+    if (confusion) {
+        const turns = confusion.turns == null ? confusionDuration(random) : integerInRange(confusion.turns, 0, 4, 0);
+        next.volatileEffects = next.volatileEffects.filter(effect => effect.id !== "confusion");
+        if (turns > 1 && ability !== "own-tempo") {
+            next.volatileEffects.push({ ...confusion, turns: turns - 1 });
+            if (percent("confusion", 33)) {
+                const damage = calculateConfusionSelfDamage(next);
+                notes.push("A confusão impediu a ação.");
+                return finish(false, damage);
+            }
+        } else notes.push("A confusão terminou antes da ação.");
     }
     return finish(true);
 };

@@ -13,7 +13,7 @@ import {
 import { RPG_STATUS_LABELS } from "./copy.js";
 import { rollPercentTest } from "./rpgRules.js";
 import { randomInt } from "./random.js";
-import { sleepDuration, THAW_TARGET_MOVES } from "./battleConditions.js";
+import { confusionDuration, sleepDuration, THAW_TARGET_MOVES } from "./battleConditions.js";
 import {
     copyObservedMove,
     getMoveSpecialProfile,
@@ -416,7 +416,7 @@ const SELF_HP_COST_MOVES = Object.freeze({
     "shed-tail": 1 / 2,
 });
 
-const MISS_CRASH_MOVES = new Set(["high-jump-kick", "jump-kick"]);
+const MISS_CRASH_MOVES = new Set(["axe-kick", "high-jump-kick", "jump-kick", "supercell-slam"]);
 
 const stageChangesTargetUser = move => {
     const profile = getMoveTargetProfile(move);
@@ -1005,7 +1005,7 @@ export const applyMoveConsequences = ({
         if (isConfusion && ability !== "own-tempo" && !effects.some(effect => effect.id === "confusion") && !(resolution.terrain === "nevoa" && !target.types?.includes("flying") && ability !== "levitate")) {
             const chance = moveEffectChance(move, "ailment_chance", move?.damage_class?.name === "status");
             if (chanceResult(chance, random, effectAdvantage).success) {
-                effects.push({ id: "confusion", sourceMove: moveName, turns: moveName === "axe-kick" ? 2 + randomInt(3, random) : 1 + randomInt(4, random) });
+                effects.push({ id: "confusion", sourceMove: moveName, turns: confusionDuration(random) });
                 trackedEffect = "confusion";
             }
         }
@@ -1417,7 +1417,7 @@ export const applyMoveConsequences = ({
         }
     }
 
-    if (!moveConnected && MISS_CRASH_MOVES.has(moveName) && !resolution.traitBlock?.attackerBlocked) {
+    if (!moveConnected && MISS_CRASH_MOVES.has(moveName) && !resolution.traitBlock?.attackerBlocked && !(isAbilityActive(attacker) && normalizeSlug(attacker.ability) === "magic-guard")) {
         const amount = Math.min(asNumber(attacker.currentHp), Math.max(1, Math.floor(asNumber(attacker.maxHp, 1) / 2)));
         replaceEntity(attacker.id, { ...attacker, currentHp: Math.max(0, asNumber(attacker.currentHp) - amount) });
         disableProtectionAfterSelfDamage(attacker, amount);

@@ -95,7 +95,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "2.2",
                 title: "Divisão por 10",
-                body: "Atributos, dano base dos movimentos e Amizade são divididos por 10. Frações menores que 0,5 são arredondadas para baixo; frações iguais ou maiores que 0,5, para cima."
+                body: "Atributos, dano base dos movimentos e Amizade são divididos por 10. O arredondamento vai ao inteiro mais próximo; em empate exato de 0,5, valores que não são HP arredondam para baixo. HP escalado desempata para cima. Efeitos que já definem frações de HP, como veneno ou Leftovers, mantêm o arredondamento próprio dos jogos."
             },
             {
                 id: "2.3",
@@ -269,20 +269,20 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.1",
                 title: "Condições principais",
-                body: "Marque apenas uma condição principal. O RPG usa as referências modernas abaixo, respeitando imunidades, habilidades e cura. A verificação ocorre uma vez antes da ação, não uma vez por alvo nem por hit. Se a condição impedir a ação, o turno é gasto, mas não há gasto de PP.",
+                body: "Marque apenas uma condição principal. O RPG usa uma referência moderna e estável compartilhada pelos jogos principais, respeitando imunidades, habilidades e cura; variações exclusivas de um título não viram automaticamente regra universal da mesa. A verificação ocorre uma vez antes da ação, não uma vez por alvo nem por hit. Se a condição impedir a ação, o turno é gasto, mas não há gasto de PP.",
                 bullets: [
                     "Queimadura: metade do dano físico, salvo Guts ou Facade; perde 6,25% do HP máximo ao fim da rodada, respeitando o piso de dano positivo.",
                     "Paralisia: metade da Velocidade, salvo Quick Feet; antes de agir, 25% de chance de perder a ação. A condição não se cura sozinha.",
                     "Sono: dura de 1 a 3 oportunidades de agir, sorteadas uma vez. Depois disso, acorda antes da próxima ação. Trocar preserva a contagem. Early Bird reduz a duração; Snore e Sleep Talk mantêm a permissão de agir dormindo.",
                     "Congelamento: antes da ação, 20% de chance de descongelar e agir. Movimentos que descongelam o próprio usuário dispensam esse teste. Dano de Fire e movimentos com efeito próprio de descongelar também removem a condição.",
                     "Veneno: perde 12,5% do HP máximo ao fim da rodada. Envenenamento grave: começa em 6,25% e aumenta em 6,25% por rodada, até 93,75%; trocar reinicia o contador, não cura a condição.",
-                    "Confusão e hesitação são efeitos voláteis, separados da condição principal. Confusão afeta de 1 a 4 oportunidades de agir (Axe Kick: 2 a 4); em cada uma, há 33% de chance de perder a ação e perder 25% do HP máximo, arredondado para cima e com mínimo de 1 HP. Esse autocusto não usa STAB, tipo, crítico ou disputa. Hesitação impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra ambas."
+                    "Confusão e hesitação são efeitos voláteis, separados da condição principal. Confusão dura de 2 a 4 oportunidades próprias; antes da última, o Pokémon se recupera. Enquanto estiver ativa, há 33% de chance de perder a ação e atingir a si mesmo com o equivalente a um ataque físico sem tipo de poder 40, usando seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. O dano próprio desativa a proteção geral contra hit kill, mas Sturdy, Focus Sash e proteções próprias continuam obedecendo às regras dos jogos. Hesitação impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra ambas."
                 ]
             },
             {
                 id: "6.2",
                 title: "Dano contínuo e indireto",
-                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente e fonte por fonte. Dano positivo pode ativar ou romper a proteção contra hit kill; custo próprio de HP a torna indisponível naquele combate. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia; também avança Yawn, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song, registrando cada mudança no Diário."
+                body: "Condições, clima, terreno, armadilhas, recuo e outros danos indiretos são resolvidos separadamente e fonte por fonte. As frações de HP seguem as referências modernas dos jogos e, quando a regra original arredonda para baixo, o MyOwnDex faz o mesmo, preservando o mínimo de 1 HP para um efeito positivo. Dano positivo pode ativar ou romper a proteção contra hit kill; custo próprio de HP a torna indisponível naquele combate. Ao encerrar a rodada, o MyOwnDex aplica queimadura, envenenamento, envenenamento grave e tempestade de areia; também avança Yawn, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song, registrando cada mudança no Diário."
             },
             {
                 id: "6.3",

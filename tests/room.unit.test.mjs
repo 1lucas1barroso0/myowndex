@@ -57,11 +57,12 @@ test("the experience is named RPG without the old compound label", () => {
   assert.notEqual(EXPERIENCE_MODES.rpg.label, "RPG Anime");
 });
 
-test("RPG division uses scale by 10 and the half-up boundary", () => {
+test("RPG division uses scale by 10 with HP-only half-up ties", () => {
   assert.equal(convertToTTRPG(9), 1);
   assert.equal(convertToTTRPG(14), 1);
-  assert.equal(convertToTTRPG(15), 2);
-  assert.equal(convertToTTRPG(24), 2);
+  assert.equal(convertToTTRPG(15), 1);
+  assert.equal(convertToTTRPG(16), 2);
+  assert.equal(convertToTTRPG(15, true), 2);
   assert.equal(convertToTTRPG(1, true), 1);
 });
 

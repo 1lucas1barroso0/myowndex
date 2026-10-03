@@ -34,10 +34,11 @@ test("division and products never emit NaN or Infinity", () => {
   assert.equal(finiteProduct([4, "bad", 2], { fallback: 0 }), 0);
 });
 
-test("RPG rounding uses the ordinary half-up boundary", () => {
+test("RPG rounding breaks exact halves down unless HP opts upward", () => {
   assert.equal(roundRpgScaledValue(1.49), 1);
-  assert.equal(roundRpgScaledValue(1.5), 2);
-  assert.equal(roundRpgScaledValue(1.99), 2);
+  assert.equal(roundRpgScaledValue(1.5), 1);
+  assert.equal(roundRpgScaledValue(1.5, { halfUp: true }), 2);
+  assert.equal(roundRpgScaledValue(1.51), 2);
   assert.equal(roundRpgScaledValue(0.4), 0);
   assert.equal(roundRpgScaledValue(0.4, { minimumWhenPositive: 1 }), 1);
 });

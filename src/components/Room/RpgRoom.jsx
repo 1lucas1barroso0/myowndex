@@ -286,7 +286,7 @@ function QuickRoller({ local, onAuthoritativeAction, onEvent, onError }) {
                 </div>
                 <div className="quick-roll-controls">
                     <label>
-                        <span>{kind === "attribute" ? "Atributo" : "Chance"}</span>
+                        <span>{kind === "attribute" ? "Modificador" : "Chance"}</span>
                         <input
                             type="number"
                             min={kind === "attribute" ? -20 : 0}

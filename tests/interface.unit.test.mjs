@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 import {
   formatCount,
@@ -14,6 +14,9 @@ import {
 import { describeMove, describeSpecies, describeTrait } from "../src/core/descriptions.js";
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const interfaceFiles = async root => (await readdir(new URL(`../${root}/`, import.meta.url), { recursive: true }))
+  .filter(path => /\.(?:jsx|tsx|css|html)$/i.test(path))
+  .map(path => `${root}/${path}`);
 
 test("the interface keeps dedicated responsive layouts through phone widths", async () => {
   const [css, room, layout] = await Promise.all([
@@ -68,6 +71,15 @@ test("the editorial glossary keeps names, agreement and Pokémon plurals consist
   assert.equal(formatRemainingPp(3), "Restam 3 PP.");
   assert.equal(formatPartnerArrival(1), "1 parceiro chegou com suas informações.");
   assert.equal(formatPartnerArrival(4), "4 parceiros chegaram com suas informações.");
+});
+
+test("the game interface never uses placeholders as instructions or decoration", async () => {
+  const paths = [...await interfaceFiles("src"), ...await interfaceFiles("app")];
+  for (const path of paths) {
+    const source = await read(path);
+    assert.doesNotMatch(source, /\bplaceholder\s*=/i, `${path} must use a visible game-facing label or help instead of a placeholder`);
+    assert.doesNotMatch(source, /::placeholder/i, `${path} must not carry placeholder-only styling`);
+  }
 });
 
 test("visible copy avoids robotic system language", async () => {
@@ -173,7 +185,7 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   ]);
   assert.match(guide, /<LocalDicePanel/);
   assert.doesNotMatch(panel, /Seguro e offline|Resultado registrado|Detalhes e segurança|>Mantido</);
-  assert.match(panel, /placeholder="Atacar com Fire Blast"/, "the optional action name may teach by example without replacing its visible label");
+  assert.doesNotMatch(panel, /\bplaceholder\s*=/i);
   assert.match(panel, /rollLabel\(result/);
   assert.match(panel, /Vale o menor d100/);
   assert.match(panel, /Vale o maior d100/);

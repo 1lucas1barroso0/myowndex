@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildInitiative, calculateMoveResolution, createRoomSnapshot, normalizeRoomSnapshot, applyEndOfRoundEffects, swapTeamPokemonInSnapshot } from "../src/core/room.js";
-import { calculateConfusionSelfDamage, checkActionConditions } from "../src/core/battleConditions.js";
+import { calculateConfusionSelfDamage, checkActionConditions, confusionDuration } from "../src/core/battleConditions.js";
 import { calculateCaptureChance, rollCapture } from "../src/core/capture.js";
 import { getDamageTraitModifiers, getInitiativeTraitState } from "../src/core/traitMechanics.js";
 import { normalizeAuthoritativeRequest, resolveCombatAction, resolveCaptureAction } from "../server/authoritativeActions.js";
@@ -78,6 +78,11 @@ test("a blocked combat action commits the condition but neither damage nor PP", 
   const simulated = resolveCombatAction({ snapshot, request, role: "player", move, random: sequence([0]) });
   assert.equal(simulated.nextSnapshot, null);
   assert.equal(snapshot.tokens[0].lastActionRound, 0);
+});
+
+test("confusion duration spans the canonical two-to-five opportunities", () => {
+  assert.equal(confusionDuration(sequence([0])), 2);
+  assert.equal(confusionDuration(sequence([0.999])), 5);
 });
 
 test("confusion uses modern timing and a scaled power-40 physical self-hit", () => {

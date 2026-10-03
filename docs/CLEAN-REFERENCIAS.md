@@ -1,4 +1,4 @@
-# Referências observadas para a atualização 11.1
+# Referências de apresentação e arquitetura
 
 ## Fate Gameplay Toolkit
 
@@ -43,7 +43,7 @@ A hidratação das Boxes divide quatro tarefas simultâneas entre todos os chama
 
 Limite existente: editar Boxes simultaneamente em duas abas ainda segue a política anterior de última escrita do valor local. Este trabalho não introduz outra promessa de sincronização local entre abas. As aventuras compartilhadas continuam usando seu protocolo no servidor.
 
-## Retomada 11.4: contas e encontros
+## Contas e encontros
 
 Em 2 de outubro de 2026 consultamos também o código atual do Fate, especialmente `components/account-provider.tsx`, `lib/workspace-storage.ts`, `lib/workspace-sync.ts`, `lib/server/account-workspace.ts` e `STORAGE.md`. Reaproveitamos princípios de isolamento por identidade, confirmação de salvamento antes da troca, revisão no servidor e preservação de versões conflitantes. O MyOwnDex usa seu Turso existente e autenticação própria; não depende do banco Neon ou do provedor de autenticação do Fate. Contas agora reúnem edições independentes e oferecem cópias de recuperação, conforme CONTAS-E-SINCRONIZACAO.md. O visitante local conserva as chaves anteriores.
 

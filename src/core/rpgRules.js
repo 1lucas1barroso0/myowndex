@@ -52,7 +52,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "1.1",
                 title: "Testes básicos",
-                body: "Role 2d6. Em disputas entre atributos opostos, o MyOwnDex pondera o resultado pela proporção real entre os atributos originais já afetados por estágios: resultado dos dados × atributo. Isso preserva integralmente IVs, EVs, Nature, nível, espécie e estágios sem impor teto artificial; crescer continua importando, mas diferenças proporcionais iguais se comportam de modo semelhante em qualquer nível. O alvo que se defende vence os empates."
+                body: "Role 2d6. Quando houver oposição entre Pokémon, o jogador só inicia o teste: o MyOwnDex rola também a oposição e aplica automaticamente atributos, IVs, EVs, Nature, nível, estágios, condições, habilidades e itens. A ponderação proporcional acontece apenas no motor; ninguém precisa multiplicar ou trabalhar com totais grandes. Diferenças proporcionais iguais se comportam de modo semelhante em qualquer nível, e o alvo que se defende vence os empates."
             },
             {
                 id: "1.2",

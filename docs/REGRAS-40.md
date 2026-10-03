@@ -1,3 +1,5 @@
+> **Registro histórico da auditoria das 40 regras.** Use o Guia e `src/core/rpgRules.js` como estado vigente; números e checkpoints abaixo documentam a rodada em que a auditoria foi feita.
+
 # As 40 regras do Guia do Treinador
 
 O Guia contém **40 regras distintas**, em oito capítulos. A contagem é calculada a partir do conteúdo, sem um número fixo usado apenas na interface. A busca e os detalhes recolhíveis apresentam as mesmas regras.

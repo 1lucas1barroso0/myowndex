@@ -1,3 +1,7 @@
+## Referência de regras
+
+O modo RPG usa como base principal a implementação oficial mais recente e corrigida disponível para cada mecânica. Atualizações, patches e correções posteriores prevalecem sobre versões antigas; o catálogo automático de movimentos prioriza a versão mais recente disponível. Em outubro de 2026, a referência de batalha mais recente é Pokémon Champions, incluindo seus ajustes de condições, movimentos e Habilidades.
+
 # Validação da atualização 11.3
 
 Verificação em 2 de outubro de 2026, Node.js 24.19.0, Next.js 16.2.12 e Chromium. Build de produção, TypeScript, ESLint, HTML servido e 215 testes aprovados. A publicação 11.3 está pendente pelo instalador; produção pública conferida em 11.2.0.

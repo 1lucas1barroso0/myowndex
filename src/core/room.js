@@ -226,7 +226,8 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         maxHp,
         currentHp,
         status: Object.prototype.hasOwnProperty.call(STATUS_LABELS, source.status) ? source.status : "",
-        sleepTurns: source.status === "sleep" && source.sleepTurns != null ? integerInRange(source.sleepTurns, 0, 3, 0) : null,
+        sleepTurns: source.status === "sleep" && source.sleepTurns != null ? integerInRange(source.sleepTurns, 0, 2, 0) : null,
+        freezeTurns: source.status === "freeze" && source.freezeTurns != null ? integerInRange(source.freezeTurns, 0, 2, 0) : null,
         lastActionRound: integerInRange(source.lastActionRound, 0, 9999, 0),
         captured: Boolean(source.captured),
         level: integerInRange(source.level, 1, 200, 5),
@@ -468,6 +469,7 @@ export const createTokenFromPokemon = (pokemon, team, index = 0, side = "ally") 
         currentHp,
         status: pokemon?.rpg?.status || "",
         sleepTurns: pokemon?.rpg?.sleepTurns ?? null,
+        freezeTurns: pokemon?.rpg?.freezeTurns ?? null,
         level: pokemon?.level,
         xp: pokemon?.rpg?.xp || 0,
         types: pokemon?.customTypes?.length
@@ -778,6 +780,7 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 currentHp: token.currentHp,
                 status: token.status,
                 sleepTurns: token.sleepTurns,
+                freezeTurns: token.freezeTurns,
                 xp: token.xp,
                 pp: synchronizedPp,
             };
@@ -788,6 +791,7 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 && partner.rpg?.currentHp === token.currentHp
                 && (partner.rpg?.status || "") === token.status
                 && (partner.rpg?.sleepTurns ?? null) === token.sleepTurns
+                && (partner.rpg?.freezeTurns ?? null) === token.freezeTurns
                 && clampFinite(partner.rpg?.xp, 0, 999999, 0) === token.xp
                 && JSON.stringify(partner.rpg?.pp || []) === JSON.stringify(synchronizedPp || [])
                 && JSON.stringify(partner.moves || []) === JSON.stringify(moves || [])
@@ -1096,7 +1100,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         if (status && activeAbility === "hydration" && effectiveWeather === "chuva") {
             const previousStatus = status;
             status = "";
-            workingToken = recordTraitEvent({ ...workingToken, status, toxicCounter: 0 }, {
+            workingToken = recordTraitEvent({ ...workingToken, status, sleepTurns: null, freezeTurns: null, toxicCounter: 0 }, {
                 kind: "ability",
                 sourceId: activeAbility,
                 label: "Condição curada",
@@ -1107,7 +1111,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         } else if (status && activeAbility === "shed-skin" && randomChance(1, 3, random)) {
             const previousStatus = status;
             status = "";
-            workingToken = recordTraitEvent({ ...workingToken, status, toxicCounter: 0 }, {
+            workingToken = recordTraitEvent({ ...workingToken, status, sleepTurns: null, freezeTurns: null, toxicCounter: 0 }, {
                 kind: "ability",
                 sourceId: activeAbility,
                 label: "Condição curada",
@@ -1139,7 +1143,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         if (status && (currentItem === "lum-berry" || berryMatches)) {
             const previousStatus = status;
             const consumed = consumeHeldItem(workingToken, { reason: `${currentItem} curou ${previousStatus}`, round: room.round });
-            workingToken = recordTraitEvent({ ...consumed.token, status: "", toxicCounter: 0 }, {
+            workingToken = recordTraitEvent({ ...consumed.token, status: "", sleepTurns: null, freezeTurns: null, toxicCounter: 0 }, {
                 kind: "item",
                 sourceId: currentItem,
                 label: "Condição curada",
@@ -1332,9 +1336,9 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
     const healers = tokens.filter(token => token.currentHp > 0 && isAbilityActive(token) && traitSlug(token.ability) === "healer");
     healers.forEach(healer => {
         tokens = tokens.map(target => {
-            if (target.id === healer.id || target.side !== healer.side || !target.status || target.currentHp <= 0 || !randomChance(3, 10, random)) return target;
+            if (target.id === healer.id || target.side !== healer.side || !target.status || target.currentHp <= 0 || !randomChance(1, 2, random)) return target;
             const previousStatus = target.status;
-            const changed = recordTraitEvent({ ...target, status: "", toxicCounter: 0 }, {
+            const changed = recordTraitEvent({ ...target, status: "", sleepTurns: null, freezeTurns: null, toxicCounter: 0 }, {
                 kind: "ability",
                 sourceId: "healer",
                 label: "Condição curada",

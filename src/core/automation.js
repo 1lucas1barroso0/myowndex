@@ -988,6 +988,7 @@ export const applyMoveConsequences = ({
                     ...statusTarget,
                     status,
                     sleepTurns: status === "sleep" ? sleepDuration(random, isAbilityActive(statusTarget) ? normalizeSlug(statusTarget.ability) : "", moveName === "rest") : null,
+                    freezeTurns: status === "freeze" ? 0 : null,
                     toxicCounter: status === "bad-poison" ? 1 : statusTarget.toxicCounter,
                 });
             }
@@ -996,7 +997,7 @@ export const applyMoveConsequences = ({
 
     let trackedEffect = "";
     if (damage > 0 && target?.status === "freeze" && (move?.type?.name === "fire" || THAW_TARGET_MOVES.has(moveName))) {
-        replaceEntity(target.id, { ...target, status: "", sleepTurns: null });
+        replaceEntity(target.id, { ...target, status: "", sleepTurns: null, freezeTurns: null });
     }
     if (moveConnected && target && !substituteBlockedTarget && !targetSecondariesBlocked) {
         const ability = isAbilityActive(target) ? normalizeSlug(target.ability) : "";

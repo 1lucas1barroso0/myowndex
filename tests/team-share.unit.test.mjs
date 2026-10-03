@@ -99,6 +99,20 @@ test("legacy scale preserves HP proportion when a saved partner migrates", () =>
   assert.equal(migrated.rpg.currentHp, 2, "a legacy 1/1 partner must become 2/2, not 1/2");
 });
 
+test("shared teams preserve current sleep and freeze counters", async () => {
+  const source = normalizeTeam({
+    id: "condition-counters",
+    versionGroup: "champions",
+    pokemon: [
+      { speciesName: "pikachu", rpg: { status: "sleep", sleepTurns: 1 } },
+      { speciesName: "shellder", rpg: { status: "freeze", freezeTurns: 2 } },
+    ],
+  });
+  const decoded = await decodeTeam(await encodeTeam(source));
+  assert.equal(decoded.pokemon[0].rpg.sleepTurns, 1);
+  assert.equal(decoded.pokemon[1].rpg.freezeTurns, 2);
+});
+
 test("V4 share code round-trips Unicode and every editable factor", async () => {
   const decoded = await decodeTeam(await encodeTeam(completeTeam));
   assert.equal(decoded.name, completeTeam.name);

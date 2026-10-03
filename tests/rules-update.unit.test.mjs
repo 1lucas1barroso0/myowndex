@@ -43,26 +43,48 @@ test("a double six losing the contest stays potential, never an effective critic
   assert.equal(resolution.damage, 0);
 });
 
-test("sleep draws its duration once, counts attempts and wakes before the next action", () => {
+test("sleep uses the latest one-or-two blocked opportunities and wakes before acting", () => {
   let current = token("a", { status: "sleep" });
-  for (let i = 0; i < 3; i++) {
-    const result = checkActionConditions({ token: current, move, random: sequence(i === 0 ? [0.99] : []) });
-    assert.equal(result.canAct, false);
-    current = result.token;
-    assert.equal(current.sleepTurns, 2 - i);
-  }
-  const awake = checkActionConditions({ token: current, move, random: sequence([]) });
+  const first = checkActionConditions({ token: current, move, random: sequence([0.99]) });
+  assert.equal(first.canAct, false);
+  assert.equal(first.token.sleepTurns, 1);
+  current = first.token;
+  const second = checkActionConditions({ token: current, move, random: sequence([]) });
+  assert.equal(second.canAct, false);
+  assert.equal(second.token.sleepTurns, 0);
+  const awake = checkActionConditions({ token: second.token, move, random: sequence([]) });
   assert.equal(awake.canAct, true);
   assert.equal(awake.token.status, "");
+
+  const shortSleep = checkActionConditions({ token: token("a", { status: "sleep" }), move, random: sequence([0]) });
+  assert.equal(shortSleep.canAct, false);
+  assert.equal(shortSleep.token.sleepTurns, 0);
+  const shortAwake = checkActionConditions({ token: shortSleep.token, move, random: sequence([]) });
+  assert.equal(shortAwake.canAct, true);
+
   const snore = checkActionConditions({ token: token("a", { status: "sleep", sleepTurns: 1 }), move: { name: "snore" }, random: sequence([]) });
   assert.equal(snore.canAct, true);
   assert.equal(snore.token.sleepTurns, 0);
 });
 
-test("paralysis and thaw use the exact inclusive d100 boundaries", () => {
-  for (const [status, draw, canAct] of [["paralysis", 0.24, false], ["paralysis", 0.25, true], ["freeze", 0.19, true], ["freeze", 0.20, false]]) {
-    assert.equal(checkActionConditions({ token: token("a", { status }), move, random: sequence([draw]) }).canAct, canAct);
-  }
+test("paralysis uses exact one-in-eight odds and freeze uses the latest thaw rule", () => {
+  assert.equal(checkActionConditions({ token: token("a", { status: "paralysis" }), move, random: sequence([0.124]) }).canAct, false);
+  assert.equal(checkActionConditions({ token: token("a", { status: "paralysis" }), move, random: sequence([0.125]) }).canAct, true);
+
+  const thawedByChance = checkActionConditions({ token: token("a", { status: "freeze" }), move, random: sequence([0.24]) });
+  assert.equal(thawedByChance.canAct, true);
+  assert.equal(thawedByChance.token.status, "");
+
+  const stillFrozen = checkActionConditions({ token: token("a", { status: "freeze", freezeTurns: 0 }), move, random: sequence([0.25]) });
+  assert.equal(stillFrozen.canAct, false);
+  assert.equal(stillFrozen.token.freezeTurns, 1);
+  const secondFailure = checkActionConditions({ token: stillFrozen.token, move, random: sequence([0.25]) });
+  assert.equal(secondFailure.canAct, false);
+  assert.equal(secondFailure.token.freezeTurns, 2);
+  const forcedThaw = checkActionConditions({ token: secondFailure.token, move, random: sequence([]) });
+  assert.equal(forcedThaw.canAct, true);
+  assert.equal(forcedThaw.token.status, "");
+
   const thawed = checkActionConditions({ token: token("a", { status: "freeze" }), move: { name: "flame-wheel" }, random: sequence([]) });
   assert.equal(thawed.token.status, "");
   assert.equal(thawed.canAct, true);
@@ -116,6 +138,19 @@ test("a blocking status prevents confusion from advancing or self-hitting", () =
   assert.equal(checked.canAct, false);
   assert.equal(checked.selfDamage, 0);
   assert.equal(checked.token.volatileEffects.find(effect => effect.id === "confusion").turns, 3);
+});
+
+test("Healer uses the latest fifty-percent activation rate", () => {
+  const base = createRoomSnapshot("Healer");
+  const healer = token("healer", { side: "ally", ability: "healer", status: "" });
+  const ally = token("ally", { side: "ally", status: "paralysis" });
+  const snapshot = normalizeRoomSnapshot({ ...base, phase: "batalha", tokens: [healer, ally] });
+
+  const cured = applyEndOfRoundEffects(snapshot, sequence([0.49]));
+  assert.equal(cured.room.tokens.find(entry => entry.id === "ally").status, "");
+
+  const unchanged = applyEndOfRoundEffects(snapshot, sequence([0.5]));
+  assert.equal(unchanged.room.tokens.find(entry => entry.id === "ally").status, "paralysis");
 });
 
 test("burn, Guts, Facade, paralysis and Quick Feet preserve their exceptions", () => {

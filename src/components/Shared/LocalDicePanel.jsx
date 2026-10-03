@@ -90,20 +90,20 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
     };
     const changed=result && !result.legacy && configuration.spec && JSON.stringify(result.spec)!==JSON.stringify(configuration.spec);
     return <section className={`local-dice-panel ${compact ? "is-compact" : "game-panel"}`} aria-label="Rolagens locais">
-        <header className="local-dice-heading"><div><h3>Dados locais</h3></div></header>
+        <header className="local-dice-heading"><div><h3>Dados locais</h3><small>Para testes simples e livres. Combate e iniciativa resolvem a oposição automaticamente na Central da Aventura.</small></div></header>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
             <fieldset disabled={busy}><legend className="sr-only">Configurar rolagem local</legend>
-                <div className="local-dice-tabs" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste"],["percent","d100","Chance"],["free","dX","Livre"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
+                <div className="local-dice-tabs" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste simples"],["percent","d100","Chance"],["free","dX","Livre"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
                 <div className="local-dice-fields">
                     {draft.kind!=="free" && <label>Modo<select value={draft.mode} onChange={e=>update("mode",e.target.value)}>{Object.entries(LOCAL_ROLL_MODES).map(([mode,label])=><option key={mode} value={mode}>{label}</option>)}</select></label>}
-                    {draft.kind==="attribute" && <label>Atributo<input type="number" step="1" min="-99999" max="99999" value={draft.attribute} required onChange={e=>update("attribute",e.target.value)} /></label>}
+                    {draft.kind==="attribute" && <label>Modificador<input type="number" step="1" min="-99999" max="99999" value={draft.attribute} required onChange={e=>update("attribute",e.target.value)} /></label>}
                     {draft.kind==="percent" && <label className="local-dice-chance">Chance base (%)<input type="number" step="1" min="0" max="100" value={draft.chance} required onChange={e=>update("chance",e.target.value)} /><input aria-label="Ajustar chance percentual" type="range" min="0" max="100" value={draft.chance || 0} onChange={e=>update("chance",e.target.value)} /></label>}
                     {draft.kind==="free" && <><label>Quantidade<input type="number" step="1" min="1" max="20" value={draft.quantity} required onChange={e=>update("quantity",e.target.value)} /></label><label>Dado<select value={draft.sides} onChange={e=>update("sides",e.target.value)}>{LOCAL_DICE_SIDES.map(sides=><option key={sides} value={sides}>d{sides}</option>)}</select></label><label>Modificador<input type="number" step="1" min="-99999" max="99999" value={draft.modifier} required onChange={e=>update("modifier",e.target.value)} /></label></>}
                 </div>
                 <details className="local-dice-options" open={Boolean(draft.opposition !== "" || draft.label || vibrate)}>
                     <summary>Ajustes opcionais</summary>
                     <div className="local-dice-fields">
-                        {draft.kind==="attribute" && <label>Dificuldade<input type="number" step="1" min="-99999" max="99999" value={draft.opposition ?? ""} onChange={e=>update("opposition",e.target.value)} /><small>Sem valor, o teste não tem oposição.</small></label>}
+                        {draft.kind==="attribute" && <label>Dificuldade<input type="number" step="1" min="-99999" max="99999" value={draft.opposition ?? ""} onChange={e=>update("opposition",e.target.value)} /><small>Sem valor, é apenas sua rolagem. Para oposição entre Pokémon, use a Central da Aventura.</small></label>}
                         <label className="local-dice-label">Nome da ação<input maxLength={80} value={draft.label} onChange={e=>update("label",e.target.value)} /></label>
                         <label className="local-dice-vibration"><input type="checkbox" checked={vibrate} onChange={e=>setVibrate(e.target.checked)} />Vibração</label>
                     </div>
@@ -113,7 +113,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false }
                 {!configuration.error && <details className="local-dice-probability">
                     <summary>Probabilidades</summary>
                     <div className="local-dice-odds" aria-live="polite">
-                        {draft.kind==="attribute" && <><span>{configuration.odds.success!==null ? `Superar dificuldade: ${percentage(configuration.odds.success)}. ` : "2d6 + atributo. "}Crítico: {percentage(configuration.odds.critical)} · erro crítico: {percentage(configuration.odds.fumble)}.</span><small>{draft.mode==="normal" ? "Dois dados de seis faces." : draft.mode==="advantage" ? "Três dados; mantêm-se os dois maiores." : "Três dados; mantêm-se os dois menores."} É preciso superar a dificuldade; empates falham.</small></>}
+                        {draft.kind==="attribute" && <><span>{configuration.odds.success!==null ? `Superar dificuldade: ${percentage(configuration.odds.success)}. ` : "2d6 + modificador. "}Crítico: {percentage(configuration.odds.critical)} · erro crítico: {percentage(configuration.odds.fumble)}.</span><small>{draft.mode==="normal" ? "Dois dados de seis faces." : draft.mode==="advantage" ? "Três dados; mantêm-se os dois maiores." : "Três dados; mantêm-se os dois menores."} É preciso superar a dificuldade; empates falham.</small></>}
                         {draft.kind==="percent" && <><span>Chance efetiva de sucesso: <b>{percentage(configuration.odds.success)}</b></span><small>{draft.mode==="normal" ? "Rola de 1 a 100." : draft.mode==="advantage" ? "Vantagem · menor de dois d100." : "Desvantagem · maior de dois d100."} Sucesso quando o resultado é menor ou igual à chance base.</small></>}
                         {draft.kind==="free" && <span>Resultados possíveis: <b>{configuration.odds.minimum} a {configuration.odds.maximum}</b>.</span>}
                     </div>

@@ -5,13 +5,14 @@ import test from "node:test";
 const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("release-facing files agree on the current MyOwnDex version", async () => {
-  const [pkgText, lockText, worker, readme, automation, current] = await Promise.all([
+  const [pkgText, lockText, worker, readme, automation, current, app] = await Promise.all([
     read("package.json"),
     read("package-lock.json"),
     read("public/sw.js"),
     read("README.md"),
     read("docs/AUTOMACAO.md"),
     read("docs/CONTINUAR.md"),
+    read("src/App.jsx"),
   ]);
   const pkg = JSON.parse(pkgText);
   const lock = JSON.parse(lockText);
@@ -27,6 +28,7 @@ test("release-facing files agree on the current MyOwnDex version", async () => {
     assert.ok(installers.every(found => found === releaseLine), `${name} contains an obsolete installer reference`);
   }
   assert.ok(current.includes(`Versão atual: ${version}`));
+  assert.match(app, new RegExp(`const APP_VERSION = "${version.replaceAll(".", "\\.")}";`));
 });
 
 test("active documentation does not present an older release as current", async () => {

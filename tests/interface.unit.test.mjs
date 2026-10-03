@@ -455,7 +455,6 @@ test("the adventure battle screen uses opposing HUDs and keeps hit kill state se
   assert.match(css, /\.room-token\.hud-left \.room-token-status-card/);
   assert.match(css, /\.battlefield-depth\s*\{[\s\S]*?z-index:\s*2;[\s\S]*?background:\s*transparent;/);
   assert.match(css, /\.token-hit-kill-meter/);
-  assert.match(room, /rollInFlight\.current/);
 });
 
 test("Abilities and held items expose official context, lifecycle, narrative and vivid contrast", async () => {

@@ -42,7 +42,7 @@ O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da V
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A entrega 11.6 continua a versão 11.5 já publicada: organiza 40 regras reais, melhora as referências EN/PT e completa opções de remoção sem alterar as mecânicas. Mantém os dados de produção. Inclui contas sincronizadas, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira e dados completos acessíveis em todos os módulos. As regras dos PRs #20 a #28 estão preservadas, inclusive escala por 10 e resolução proporcional automática. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
+A versão atual é **11.6.0**. O estado vigente do projeto é sempre o conteúdo de `main`, com a versão declarada em `package.json`; documentos de entregas anteriores são apenas registros históricos. A versão atual mantém contas sincronizadas, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira, Dados acessíveis em todos os módulos e as regras preservadas dos PRs #20 a #28. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
 
 ## Arquitetura e fontes
 

@@ -515,7 +515,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                         <div className="app-actions">
                             <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada">
                                 <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><GameIcon name="generator" />Gerar</button>
-                                <button type="button" className="global-dice-button" aria-label="Abrir dados locais" onClick={() => setDiceOpen(true)}><GameIcon name="dice" />Dados</button>
+                                <button type="button" className="global-dice-button" aria-label="Abrir Dados" onClick={() => setDiceOpen(true)}><GameIcon name="dice" />Dados</button>
                                 <AccountButton client={client} onClick={onAccountOpen} />
                             </div>
                             <div className="app-preferences" role="group" aria-label="Preferências da jornada">
@@ -572,12 +572,12 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                     </button>
                                 )}
                             </>
-                    ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} teams={teams} setTeams={setTeams} />}
+                    ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} />}
                 </div>
             </main>
-            <footer className="device-footer"><span>MyOwnDex <b>{APP_VERSION}</b></span><span>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
+            <footer className="device-footer"><span>MyOwnDex <b>{APP_VERSION}</b></span><span>Projeto de fãs · Fonte <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
-            {diceOpen && <LocalDiceDialog open onClose={() => setDiceOpen(false)} teams={teams} setTeams={setTeams} experienceMode={experienceMode} {...(diceRoomContext || {})} />}
+            {diceOpen && <LocalDiceDialog open onClose={() => setDiceOpen(false)} context={diceRoomContext ? "aventura" : "central"} teams={teams} setTeams={setTeams} experienceMode={experienceMode} {...(diceRoomContext || {})} />}
             {generatorOpen && <GeneratorModal onClose={() => setGeneratorOpen(false)} teams={teams} experienceMode={experienceMode} onAddPokemon={addGeneratedPokemon} onAddBox={addGeneratedBox} />}
         </div>
     );

@@ -345,7 +345,7 @@ const initiative = (snapshot, random) => {
     const order = generated.results.map(entry => {
         const token = room.tokens.find(candidate => candidate.id === entry.tokenId);
         const traits = entry.traitState.entries.map(item => formatName(item.sourceId)).join(" + ");
-        return `${token?.name || "Pokémon"} (${entry.total}${traits ? `; ${traits}` : ""})`;
+        return `${token?.name || "Pokémon"}${traits ? ` (${traits})` : ""}`;
     }).join(", ");
     return {
         result: { results: generated.results },

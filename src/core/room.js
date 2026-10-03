@@ -1366,15 +1366,22 @@ export const buildInitiative = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
     const results = room.tokens.filter(token => !token.hidden && token.currentHp > 0).map(token => {
         const traitState = getInitiativeTraitState(token, { weather: isWeatherSuppressed(room.tokens) ? "limpo" : room.weather, round: room.round });
-        const test = rollAttributeTest({
+        const originalSpeed = finiteNumberOrNull(token?.originalStats?.speed);
+        const stagedSpeed = originalSpeed != null
+            ? Math.max(1, Math.floor(originalSpeed * stageMultiplier(normalizeStageMap(token?.stages).speed)))
+            : Math.max(1, integerInRange(token?.stats?.speed, 0, 99999, 0) * RPG_SCALE_DIVISOR);
+        const effectiveSpeed = applyDirectionalIntegerModifier(stagedSpeed, traitState.multiplier, { minimum: 1, maximum: 99999 });
+        const test = rollProportionalAttributeTest({
             mode: "normal",
-            attribute: applyDirectionalIntegerModifier(token.stats?.speed, traitState.multiplier, { minimum: 0, maximum: 99999 }),
+            attribute: effectiveSpeed,
             random,
         });
         return {
             tokenId: token.id,
             priority: token.priority || 0,
             total: test.total,
+            diceTotal: test.diceTotal,
+            speedAttribute: effectiveSpeed,
             dice: test.kept,
             tieBreak: null,
             tieBreakRolls: [],

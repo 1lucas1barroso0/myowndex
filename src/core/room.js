@@ -226,7 +226,8 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         maxHp,
         currentHp,
         status: Object.prototype.hasOwnProperty.call(STATUS_LABELS, source.status) ? source.status : "",
-        sleepTurns: source.status === "sleep" && source.sleepTurns != null ? integerInRange(source.sleepTurns, 0, 3, 0) : null,
+        sleepTurns: source.status === "sleep" && source.sleepTurns != null ? integerInRange(source.sleepTurns, 0, 2, 0) : null,
+        freezeTurns: source.status === "freeze" && source.freezeTurns != null ? integerInRange(source.freezeTurns, 0, 2, 0) : null,
         lastActionRound: integerInRange(source.lastActionRound, 0, 9999, 0),
         captured: Boolean(source.captured),
         level: integerInRange(source.level, 1, 200, 5),
@@ -1332,7 +1333,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
     const healers = tokens.filter(token => token.currentHp > 0 && isAbilityActive(token) && traitSlug(token.ability) === "healer");
     healers.forEach(healer => {
         tokens = tokens.map(target => {
-            if (target.id === healer.id || target.side !== healer.side || !target.status || target.currentHp <= 0 || !randomChance(3, 10, random)) return target;
+            if (target.id === healer.id || target.side !== healer.side || !target.status || target.currentHp <= 0 || !randomChance(1, 2, random)) return target;
             const previousStatus = target.status;
             const changed = recordTraitEvent({ ...target, status: "", toxicCounter: 0 }, {
                 kind: "ability",

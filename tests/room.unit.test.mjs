@@ -307,18 +307,43 @@ test("battle progress returns to the linked Box without erasing journey details"
   assert.equal(untouched[0], team);
 });
 
-test("initiative is derived from the same 2d6 plus Speed rule", () => {
+test("initiative uses proportional 2d6 weighted by effective Speed", () => {
   const first = addTeamToSnapshot(createRoomSnapshot("Teste"), team, "ally").room;
+  const baseSpeed = Math.max(1, first.tokens[0].originalStats.speed);
   const second = {
     ...first,
     tokens: [
-      ...first.tokens,
-      { ...first.tokens[0], id: "slower", name: "Lento", stats: { ...first.tokens[0].stats, speed: 0 } },
+      { ...first.tokens[0], originalStats: { ...first.tokens[0].originalStats, speed: baseSpeed } },
+      {
+        ...first.tokens[0],
+        id: "slower",
+        name: "Lento",
+        originalStats: { ...first.tokens[0].originalStats, speed: Math.max(1, Math.floor(baseSpeed / 2)) },
+      },
     ],
   };
   const result = buildInitiative(second, sequence([0.999, 0.999, 0, 0]));
   assert.equal(result.room.initiative[0], first.tokens[0].id);
-  assert.equal(result.results[0].total, 12 + first.tokens[0].stats.speed);
+  assert.equal(result.results[0].total, result.results[0].diceTotal * result.results[0].speedAttribute);
+});
+
+test("initiative keeps the same dice relevance when Speed scales proportionally", () => {
+  const base = addTeamToSnapshot(createRoomSnapshot("Teste"), team, "ally").room;
+  const resolve = (fastSpeed, slowSpeed) => buildInitiative({
+    ...base,
+    tokens: [
+      { ...base.tokens[0], id: "fast", originalStats: { ...base.tokens[0].originalStats, speed: fastSpeed } },
+      { ...base.tokens[0], id: "slow", originalStats: { ...base.tokens[0].originalStats, speed: slowSpeed } },
+    ],
+  }, sequence([0.5, 0.5, 0.5, 0.5]));
+  const low = resolve(110, 100);
+  const high = resolve(220, 200);
+  assert.equal(low.room.initiative[0], "fast");
+  assert.equal(high.room.initiative[0], "fast");
+  assert.equal(
+    low.results.find(entry => entry.tokenId === "fast").total / low.results.find(entry => entry.tokenId === "slow").total,
+    high.results.find(entry => entry.tokenId === "fast").total / high.results.find(entry => entry.tokenId === "slow").total,
+  );
 });
 
 test("Move priority is resolved before Speed", () => {

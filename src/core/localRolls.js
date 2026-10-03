@@ -8,7 +8,7 @@ export const LOCAL_ROLL_LIMIT = 100;
 export const LOCAL_ROLL_HISTORY_KEY = "myowndex_local_roll_history_v3";
 export const LOCAL_ROLL_MODES = { normal: "Normal", advantage: "Vantagem", disadvantage: "Desvantagem" };
 export const LOCAL_DICE_SIDES = [4, 6, 8, 10, 12, 20, 100];
-const localContext = value => value === "aventura" ? "aventura" : value === "central" ? "central" : "guia";
+const localContext = value => value === "aventura" ? "aventura" : value === "guia" ? "guia" : "central";
 const integer = (value, min, max, name) => {
     if (!["number", "string"].includes(typeof value) || String(value).trim() === "" || !Number.isInteger(Number(value)) || Number(value) < min || Number(value) > max) throw new RangeError(`${name}: use um número inteiro entre ${min} e ${max}.`);
     return Number(value);

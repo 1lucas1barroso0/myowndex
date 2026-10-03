@@ -16,7 +16,7 @@ import RoomSelect from "./RoomSelect.jsx";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import PokemonSprite from "./PokemonSprite.jsx";
 
-const initialField = () => createRoomSnapshot("Campo de testes");
+const initialField = () => createRoomSnapshot("Campo livre");
 const actionLabel = { combat:"Movimento", capture:"Captura", initiative:"Iniciativa", "advance-turn":"Rodada", opposed:"Disputa" };
 
 function actionReceipt(action, resolved, snapshot, context, request = {}) {
@@ -86,7 +86,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
     const sources = useMemo(()=>teams.flatMap(team=>team.pokemon.map(pokemon=>({ key:`${team.id}:${pokemon.id}`, team, pokemon,
         label:`${pokemon.nickname || formatName(pokemon.species?.name)} · ${team.name}` }))),[teams]);
     const currentSource = sources.find(source=>source.key===selectedSource);
-    const onSaveResult = useCallback(saved=>{if(!saved)setNotice("Campo preservado nesta sessão. Não foi possível salvar no dispositivo.");},[]);
+    const onSaveResult = useCallback(saved=>{if(!saved)setNotice("O campo continua aberto, mas esta mudança ainda não foi salva.");},[]);
     const save = useMemo(()=>createScheduledSave({ save:value=>writeDurableStorage(LOCAL_DICE_ROOM_KEY,value,{scope}), onResult:onSaveResult }),[scope,onSaveResult]);
     useEffect(()=>registerLocalPokemonDiceWrites(async()=>{
         while(pendingWork.current.size)await Promise.allSettled([...pendingWork.current]);
@@ -141,7 +141,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
         const saved = await saveLocalRollDurable(receipt,{scope});
         if(!alive.current) return;
         onReceipt?.(receipt);
-        if(!saved)setNotice("Resultado preservado nesta sessão. Não foi possível salvar o histórico no dispositivo.");
+        if(!saved)setNotice("O resultado continua na tela, mas não entrou no histórico.");
     };
 
     const runAction = request=>trackWork(async()=>{
@@ -230,10 +230,10 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             <summary>Pokémon das Boxes <b>{snapshot.tokens.length}</b></summary>
             {sources.length ? <div className="local-dice-fields">
                 <label>Pokémon<RoomSelect aria-label="Pokémon da Box" value={selectedSource} onChange={event=>setSelectedSource(event.target.value)}><option value="">Escolha um parceiro</option>{sources.map(source=><option key={source.key} value={source.key}>{source.label}</option>)}</RoomSelect></label>
-                <label>Posição<RoomSelect aria-label="Posição no campo" value={side} onChange={event=>setSide(event.target.value)}><option value="ally">Aliado</option><option value="opponent">Oponente selvagem</option></RoomSelect></label>
+                <label>Posição<RoomSelect aria-label="Posição no campo" value={side} onChange={event=>setSide(event.target.value)}><option value="ally">Aliado</option><option value="opponent">Oponente</option></RoomSelect></label>
                 <button type="button" className="room-primary-button" disabled={!currentSource || adding || snapshot.tokens.length>=LOCAL_DICE_TOKEN_LIMIT} onClick={()=>void addPartner()}>{adding?"Preparando…":"Trazer para o campo"}</button>
-            </div> : <p>Crie ou gere Pokémon no PC para montar seu campo de testes.</p>}
-            <small>As jogadas ficam neste campo. Suas Boxes são preservadas até você registrar o progresso.</small>
+            </div> : <p>Escolha ou gere Pokémon no PC para montar o campo.</p>}
+            <small>As Boxes só mudam quando você registra o progresso.</small>
         </details>}
         {snapshot.tokens.length>0 && <>
             <div className="local-pokemon-roster" aria-label="Pokémon em campo">{snapshot.tokens.map(token=><button type="button" key={token.id} aria-pressed={selectedToken?.id===token.id} onClick={()=>setSelectedTokenId(token.id)}>
@@ -245,10 +245,10 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
                 <div className="local-pokemon-actions"><button type="button" disabled={!editing || busy || !snapshot.tokens.some(token=>!token.hidden && token.currentHp>0)} onClick={()=>void runAction({action:"initiative"}).catch(showError)}>Rolar iniciativa</button><button type="button" disabled={!editing || busy || !snapshot.initiative.length} onClick={()=>void runAction({action:"advance-turn"}).catch(showError)}>{snapshot.initiative.length && snapshot.turnIndex>=snapshot.initiative.length-1?"Encerrar rodada":"Próximo turno"}</button></div>
             </div></details>
             <details className="room-tool"><summary><strong>Disputa entre Pokémon</strong></summary><div className="room-tool-body"><div className="local-dice-fields">
-                <label>Usuário<RoomSelect aria-label="Usuário da disputa" value={selectedToken?.id || ""} onChange={event=>setSelectedTokenId(event.target.value)}>{snapshot.tokens.map(token=><option key={token.id} value={token.id}>{token.name}</option>)}</RoomSelect></label>
-                <label>Atributo do usuário<RoomSelect value={attackerStat} onChange={event=>setAttackerStat(event.target.value)}>{Object.entries(LOCAL_OPPOSED_STATS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
-                <label>Oposição<RoomSelect aria-label="Oposição da disputa" value={oppositionId} onChange={event=>setOppositionId(event.target.value)}><option value="">Escolha um Pokémon</option>{snapshot.tokens.filter(token=>token.id!==selectedToken?.id).map(token=><option key={token.id} value={token.id}>{token.name}</option>)}</RoomSelect></label>
-                <label>Atributo da oposição<RoomSelect value={defenderStat} onChange={event=>setDefenderStat(event.target.value)}>{Object.entries(LOCAL_OPPOSED_STATS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
+                <label>Pokémon<RoomSelect aria-label="Pokémon da disputa" value={selectedToken?.id || ""} onChange={event=>setSelectedTokenId(event.target.value)}>{snapshot.tokens.map(token=><option key={token.id} value={token.id}>{token.name}</option>)}</RoomSelect></label>
+                <label>Atributo<RoomSelect aria-label="Atributo do Pokémon" value={attackerStat} onChange={event=>setAttackerStat(event.target.value)}>{Object.entries(LOCAL_OPPOSED_STATS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
+                <label>Rival<RoomSelect aria-label="Rival da disputa" value={oppositionId} onChange={event=>setOppositionId(event.target.value)}><option value="">Escolha um Pokémon</option>{snapshot.tokens.filter(token=>token.id!==selectedToken?.id).map(token=><option key={token.id} value={token.id}>{token.name}</option>)}</RoomSelect></label>
+                <label>Atributo rival<RoomSelect aria-label="Atributo do rival" value={defenderStat} onChange={event=>setDefenderStat(event.target.value)}>{Object.entries(LOCAL_OPPOSED_STATS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
                 <label>Situação<RoomSelect value={opposedMode} onChange={event=>setOpposedMode(event.target.value)}><option value="normal">Normal</option><option value="advantage">Vantagem</option><option value="disadvantage">Desvantagem</option></RoomSelect></label>
             </div><button type="button" className="room-primary-button" disabled={busy || !selectedToken || !oppositionId || selectedToken.id===oppositionId} onClick={()=>void opposed()}>Resolver disputa</button></div></details>
             <CaptureAssistant snapshot={snapshot} role={sceneSnapshot?role:"narrator"} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onEvent={onEvent} onError={showError} />
@@ -267,6 +267,6 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
         </>}
         </fieldset>
         {notice && <p role="status" className="local-dice-feedback">{notice}</p>}
-        <ConfirmDialog open={Boolean(pending)} title={pending==="apply"?"Registrar progresso nas Boxes?":pending==="reset"?"Limpar o campo de testes?":"Retirar este Pokémon do campo?"} description={pending==="apply"?"HP, PP e condições dos parceiros deste campo serão registrados nas fichas correspondentes. As demais Boxes serão preservadas.":pending==="reset"?"Somente este campo será esvaziado. Suas Boxes e o histórico de rolagens serão preservados.":"Somente este parceiro sai do campo. Sua ficha na Box e o histórico de rolagens serão preservados."} confirmLabel={pending==="apply"?"Registrar progresso":pending==="reset"?"Limpar campo":"Retirar Pokémon"} onConfirm={confirm} onCancel={()=>setPending("")} />
+        <ConfirmDialog open={Boolean(pending)} title={pending==="apply"?"Registrar progresso nas Boxes?":pending==="reset"?"Limpar o campo?":"Retirar este Pokémon do campo?"} description={pending==="apply"?"HP, PP e condições deste campo vão para as fichas correspondentes.":pending==="reset"?"O campo será esvaziado. Boxes e histórico ficam como estão.":"Este Pokémon sai apenas do campo. A ficha e o histórico ficam como estão."} confirmLabel={pending==="apply"?"Registrar progresso":pending==="reset"?"Limpar campo":"Retirar Pokémon"} onConfirm={confirm} onCancel={()=>setPending("")} />
     </div>;
 }

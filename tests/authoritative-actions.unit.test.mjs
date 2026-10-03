@@ -83,6 +83,23 @@ test("server mapping preserves d100 normal, advantage and disadvantage", () => {
   assert.equal(disadvantage.audit.success, false);
 });
 
+test("server mapping preserves free dice, labels and optional difficulty", () => {
+  const free = quick({ action: "quick-free", quantity: 3, sides: 12, modifier: 2, label: "Dano extra" }, [0, 5, 11]);
+  assert.deepEqual(free.audit.rawDice, [1, 6, 12]);
+  assert.equal(free.audit.result, 21);
+  assert.equal(free.result.title, "Total 21");
+  assert.equal(free.eventPayload.label, "Dano extra");
+
+  const opposed = quick({ action: "quick-attribute", mode: "normal", attribute: 2, opposition: 9, label: "Escalar" }, [3, 3]);
+  assert.equal(opposed.audit.result, 10);
+  assert.equal(opposed.audit.success, true);
+  assert.equal(opposed.audit.modifiers.opposition, 9);
+  assert.equal(opposed.eventPayload.label, "Escalar");
+
+  assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-free", quantity: 1, sides: 7, modifier: 0 }), /Escolha d4/);
+  assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-free", quantity: 21, sides: 6, modifier: 0 }), /quantidade/);
+});
+
 test("critical and fumble flags plus the fumble choice are produced on the server", () => {
   const critical = quick({ action: "quick-attribute", mode: "normal", attribute: 0 }, [5, 5]);
   assert.equal(critical.audit.critical, true);

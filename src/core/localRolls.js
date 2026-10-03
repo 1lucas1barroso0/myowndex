@@ -145,5 +145,5 @@ export function localRollText(record) {
 }
 export function localRollEvent(record) {
     const {spec}=record;
-    return { rollId:record.id, rolledAt:record.createdAt, label:spec.label || (spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.kind === "percent" ? "teste percentual" : "teste de atributo"), mode:spec.mode, result:record.total, ...(spec.kind === "percent" ? {rolls:record.values,chance:spec.chance} : {dice:record.values,kept:record.kept,attribute:spec.attribute ?? spec.modifier ?? 0}), success:record.success, critical:Boolean(record.critical), fumble:Boolean(record.fumble) };
+    return { rollId:record.id, rolledAt:record.createdAt, label:spec.label || (spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.kind === "percent" ? "teste percentual" : "teste simples"), mode:spec.mode, result:record.total, ...(spec.kind === "percent" ? {rolls:record.values,chance:spec.chance} : {dice:record.values,kept:record.kept,attribute:spec.attribute ?? spec.modifier ?? 0}), success:record.success, critical:Boolean(record.critical), fumble:Boolean(record.fumble) };
 }

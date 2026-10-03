@@ -23,7 +23,7 @@ html .app-root.game-edition.handheld-edition .local-dice-panel :is(h3,p,small,la
 html .app-root.game-edition.handheld-edition .local-dice-panel h4 { overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: pretty; }
 html .app-root.game-edition.handheld-edition .local-dice-controls { border: 0 !important; padding: 0 !important; background: transparent !important; }
 html .app-root.game-edition.handheld-edition .local-dice-controls fieldset { padding: 0 !important; margin: 0 !important; border: 0 !important; min-width: 0 !important; }
-html .app-root.game-edition.handheld-edition .local-dice-panel button:not(.room-primary-button) { min-height: 44px !important; height: auto !important; padding: .65rem .75rem !important; border: 1px solid var(--ui-line) !important; border-radius: .3rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; font-weight: 650 !important; font-size: .9rem !important; line-height: 1.45 !important; white-space: normal !important; box-shadow: none !important; }
+html .app-root.game-edition.handheld-edition .local-dice-panel button:not(.room-primary-button):not(:where(.local-pokemon-dice button)) { min-height: 44px !important; height: auto !important; padding: .65rem .75rem !important; border: 1px solid var(--ui-line) !important; border-radius: .3rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; font-weight: 650 !important; font-size: .9rem !important; line-height: 1.45 !important; white-space: normal !important; box-shadow: none !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel button:disabled { opacity: .6 !important; cursor: default !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel :is(button,input,select,summary):focus-visible { outline: 3px solid var(--journey-focus) !important; outline-offset: 3px !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel button:not(:disabled):hover { border-color: var(--ui-blue) !important; }
@@ -40,10 +40,10 @@ html .app-root.game-edition.handheld-edition .local-dice-fields input[type="rang
 html .app-root.game-edition.handheld-edition .local-dice-mode-help { min-height: 1.3em; }
 html .app-root.game-edition.handheld-edition .local-dice-label { grid-column: 1/-1 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel :is(.local-dice-options,.local-dice-history) { margin-top: 1rem !important; border: 0 !important; border-top: 1px solid var(--ui-line) !important; border-radius: 0 !important; background: transparent !important; }
-html .app-root.game-edition.handheld-edition .local-dice-panel summary { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; min-height: 44px !important; padding: .65rem 0 !important; color: var(--ui-ink) !important; font-size: .9rem !important; font-weight: 650 !important; line-height: 1.5 !important; list-style: none !important; cursor: pointer !important; }
+html .app-root.game-edition.handheld-edition .local-dice-panel summary:not(:where(.local-pokemon-dice summary)) { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; min-height: 44px !important; padding: .65rem 0 !important; color: var(--ui-ink) !important; font-size: .9rem !important; font-weight: 650 !important; line-height: 1.5 !important; list-style: none !important; cursor: pointer !important; }
 html .app-root.game-edition.handheld-edition .local-dice-panel summary::-webkit-details-marker { display: none; }
-html .app-root.game-edition.handheld-edition .local-dice-panel summary::after { content: "+" !important; flex: 0 0 auto !important; color: var(--ui-blue) !important; font-size: 1.15rem !important; }
-html .app-root.game-edition.handheld-edition .local-dice-panel details[open] > summary::after { content: "−" !important; }
+html .app-root.game-edition.handheld-edition .local-dice-panel summary:not(:where(.local-pokemon-dice summary))::after { content: "+" !important; flex: 0 0 auto !important; color: var(--ui-blue) !important; font-size: 1.15rem !important; }
+html .app-root.game-edition.handheld-edition .local-dice-panel details[open] > summary:not(:where(.local-pokemon-dice summary))::after { content: "−" !important; }
 html .app-root.game-edition.handheld-edition .local-dice-options > .local-dice-fields { padding: .4rem 0 .6rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-submit { margin-top: .85rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-submit > button { width: 100% !important; height: auto !important; min-height: 48px !important; padding: .75rem 1rem !important; font-size: 1rem !important; line-height: 1.5 !important; white-space: normal !important; }
@@ -152,6 +152,12 @@ html .app-root.game-edition.handheld-edition .local-dice-pages {
   gap: .65rem;
   padding-bottom: 1.25rem;
 }
+html .app-root.game-edition.handheld-edition .local-dice-pages button {
+  min-height: 48px !important;
+  padding: .75rem 1rem !important;
+  font-size: 1rem !important;
+  font-weight: 750 !important;
+}
 html .app-root.game-edition.handheld-edition .local-dice-pages button[aria-pressed="true"] {
   background: var(--ui-selected) !important;
   color: var(--ui-blue) !important;
@@ -159,63 +165,230 @@ html .app-root.game-edition.handheld-edition .local-dice-pages button[aria-press
   box-shadow: inset 0 -3px var(--ui-blue) !important;
 }
 html .app-root.game-edition.handheld-edition .local-pokemon-dice {
+  container: local-field / inline-size;
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
   min-width: 0;
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-dice :is(strong,b,span,button,summary,p,label) {
+  min-width: 0;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  hyphens: none !important;
+  text-wrap: pretty;
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-dice :is(button,summary):focus-visible {
+  outline: 3px solid var(--journey-focus);
+  outline-offset: 3px;
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-dice button:not(.room-primary-button) {
+  min-height: 44px;
+  height: auto;
+  padding: .7rem .8rem;
+  border: 1px solid var(--ui-line);
+  border-radius: .25rem;
+  background: var(--ui-panel);
+  color: var(--ui-ink);
+  font-size: .95rem;
+  font-weight: 650;
+  line-height: 1.5;
+  white-space: normal;
+  box-shadow: none;
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-dice button:disabled {
+  opacity: 1 !important;
+  color: var(--ui-muted) !important;
+  background: var(--ui-raised) !important;
+  border-color: var(--ui-line) !important;
+  box-shadow: none !important;
 }
 html .app-root.game-edition.handheld-edition .local-pokemon-workbench {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
   min-width: 0;
   padding: 0;
   margin: 0;
   border: 0;
 }
+html .app-root.game-edition.handheld-edition .local-pokemon-dice .local-dice-fields {
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,12rem),1fr)) !important;
+  gap: 1rem !important;
+}
 html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-tool {
   min-width: 0;
-  padding: 1rem !important;
+  padding: 1.25rem !important;
   box-shadow: none !important;
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-tool > summary {
+  min-height: 44px;
+  padding: .2rem 0;
+  font-size: 1rem;
 }
 html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-tool-body {
   min-width: 0;
-  padding: 1rem 0 .25rem !important;
+  padding: 1.25rem 0 .25rem !important;
 }
 html .app-root.game-edition.handheld-edition .local-pokemon-setup {
-  padding: .25rem 0 .75rem;
+  padding: .25rem 0 1rem;
   border-bottom: 1px solid var(--ui-line);
 }
-html .app-root.game-edition.handheld-edition .local-pokemon-setup .local-dice-fields {
-  grid-template-columns: minmax(0,1fr);
-  padding: .5rem 0 1rem;
+html .app-root.game-edition.handheld-edition .local-pokemon-setup > summary {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  flex-wrap: wrap;
+  gap: .5rem .75rem;
+  min-height: 48px;
+  padding: .5rem 0;
+  list-style: none;
+  cursor: pointer;
 }
+html .app-root.game-edition.handheld-edition .local-pokemon-setup > summary::-webkit-details-marker { display: none; }
+html .app-root.game-edition.handheld-edition .local-pokemon-setup > summary::after {
+  content: "+";
+  margin-left: auto;
+  color: var(--ui-blue);
+  font-size: 1.2rem;
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-setup[open] > summary::after { content: "−"; }
+html .app-root.game-edition.handheld-edition .local-field-title {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  color: var(--ui-ink);
+  font-size: 1.05rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-title > svg {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  color: var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .local-field-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .3rem;
+  color: var(--ui-muted);
+  font-size: .85rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+html .app-root.game-edition.handheld-edition .local-field-count b {
+  color: var(--ui-blue);
+  font-size: 1rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-source {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  gap: 1rem;
+  padding: .85rem 0 .25rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-source .local-dice-fields { grid-template-columns: minmax(0,1fr) !important; }
+html .app-root.game-edition.handheld-edition .local-field-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  padding: .75rem;
+  border-left: 3px solid var(--ui-blue);
+  background: var(--ui-raised);
+}
+html .app-root.game-edition.handheld-edition .local-field-preview > :is(img,.pokemon-sprite-fallback) {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+html .app-root.game-edition.handheld-edition .local-field-preview > span {
+  display: grid;
+  gap: .25rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-preview strong { font-size: 1.05rem; }
+html .app-root.game-edition.handheld-edition .local-field-preview small { color: var(--ui-muted); font-size: .85rem; }
+html .app-root.game-edition.handheld-edition .local-field-side {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  gap: .45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+html .app-root.game-edition.handheld-edition .local-field-side > span {
+  font-size: .9rem;
+  font-weight: 650;
+}
+html .app-root.game-edition.handheld-edition .local-field-side > div {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: .5rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-side button[aria-pressed="true"] {
+  border-color: var(--ui-blue);
+  color: var(--ui-blue);
+  background: var(--ui-selected);
+  box-shadow: inset 0 -2px var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .local-field-roster-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .5rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-roster-heading h4 { margin: 0; }
+html .app-root.game-edition.handheld-edition .local-field-roster-heading small { color: var(--ui-muted); font-size: .85rem; }
 html .app-root.game-edition.handheld-edition .local-pokemon-roster {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(min(100%,12rem),1fr));
-  gap: .65rem;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,15rem),1fr));
+  gap: .75rem;
 }
 html .app-root.game-edition.handheld-edition .local-pokemon-roster button {
   display: flex;
   align-items: center;
-  gap: .65rem;
+  gap: .75rem;
   min-width: 0;
   text-align: left;
+  border-left-width: 3px;
 }
-html .app-root.game-edition.handheld-edition .local-pokemon-roster img {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+html .app-root.game-edition.handheld-edition .local-pokemon-roster :is(img,.pokemon-sprite-fallback) {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
   object-fit: contain;
   image-rendering: pixelated;
 }
-html .app-root.game-edition.handheld-edition .local-pokemon-roster button > span {
+html .app-root.game-edition.handheld-edition .local-field-partner {
   display: grid;
-  gap: .2rem;
+  flex: 1 1 auto;
+  gap: .3rem;
   min-width: 0;
 }
+html .app-root.game-edition.handheld-edition .local-field-partner strong { font-size: 1rem; }
+html .app-root.game-edition.handheld-edition .local-field-partner small { color: var(--ui-muted); font-size: .85rem; }
+html .app-root.game-edition.handheld-edition .local-pokemon-roster button[data-side="opponent"] { border-left-color: var(--ui-accent); }
+html .app-root.game-edition.handheld-edition .local-pokemon-roster button[data-side="ally"] { border-left-color: var(--ui-blue); }
 html .app-root.game-edition.handheld-edition .local-pokemon-roster button[aria-pressed="true"] {
   background: var(--ui-selected) !important;
   border-color: var(--ui-blue) !important;
 }
+html .app-root.game-edition.handheld-edition .local-field-hp {
+  display: block;
+  height: .4rem;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--ui-line);
+  border-radius: 1px;
+}
+html .app-root.game-edition.handheld-edition .local-field-hp > span {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  background: var(--journey-teal);
+}
+html .app-root.game-edition.handheld-edition .local-field-hp[data-health="low"] > span { background: var(--ui-accent); }
+html .app-root.game-edition.handheld-edition .local-field-hp[data-health="medium"] > span { background: var(--journey-gold); }
 html .app-root.game-edition.handheld-edition .local-pokemon-actions {
   display: flex;
   flex-wrap: wrap;
@@ -237,15 +410,164 @@ html .app-root.game-edition.handheld-edition .local-pokemon-status :is(.token-tr
   border-top: 1px solid var(--ui-line);
   background: transparent;
 }
-html .app-root.game-edition.handheld-edition .local-pokemon-initiative li {
-  padding: .65rem .5rem;
-  color: var(--ui-ink);
-  border-bottom: 1px solid var(--ui-line);
+html .app-root.game-edition.handheld-edition .local-field-turn-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem .75rem;
+  margin-bottom: 1rem;
 }
-html .app-root.game-edition.handheld-edition .local-pokemon-initiative li[aria-current="step"] {
-  border-left: 3px solid var(--ui-blue);
-  background: var(--ui-selected);
+html .app-root.game-edition.handheld-edition .local-field-turn-heading h4 { margin: 0; font-size: 1.1rem; }
+html .app-root.game-edition.handheld-edition .local-field-round {
+  color: var(--ui-blue);
+  font-size: .85rem;
   font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list {
+  display: grid;
+  gap: .5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list > li {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list > li > button {
+  display: grid;
+  grid-template-columns: 1.65rem 40px minmax(0,1fr);
+  align-items: center;
+  gap: .65rem;
+  width: 100%;
+  padding: .5rem .75rem;
+  text-align: left;
+  background: var(--ui-raised);
+  border-color: transparent;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list > li[aria-current="step"] > button {
+  border-color: var(--ui-blue);
+  background: var(--ui-selected);
+  box-shadow: inset 3px 0 var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-position {
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--ui-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list :is(img,.pokemon-sprite-fallback) {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list button > span:last-child {
+  display: grid;
+  gap: .1rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list strong { font-size: .95rem; }
+html .app-root.game-edition.handheld-edition .local-field-turn-list small { color: var(--ui-muted); font-size: .8rem; font-weight: 500; }
+html .app-root.game-edition.handheld-edition .local-field-turn-list > li[aria-current="step"] small { color: var(--ui-blue); font-weight: 750; }
+html .app-root.game-edition.handheld-edition .local-field-turn-actions {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: .65rem;
+  margin-top: 1rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-actions > button { flex: 1 1 10rem; }
+html .app-root.game-edition.handheld-edition .local-field-turn-actions > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-actions > button > svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-dice .local-field-turn-actions > .room-primary-button { margin-top: 0; }
+html .app-root.game-edition.handheld-edition :is(.local-field-initiative-help,.local-field-round-effects) {
+  margin-top: .75rem;
+  border: 0;
+  background: transparent;
+}
+html .app-root.game-edition.handheld-edition :is(.local-field-initiative-help,.local-field-round-effects) > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 44px;
+  padding: .6rem 0;
+  list-style: none;
+  color: var(--ui-muted);
+  font-size: .85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+html .app-root.game-edition.handheld-edition :is(.local-field-initiative-help,.local-field-round-effects) > summary::-webkit-details-marker { display: none; }
+html .app-root.game-edition.handheld-edition :is(.local-field-initiative-help,.local-field-round-effects) > summary::after { content: "+"; color: var(--ui-blue); }
+html .app-root.game-edition.handheld-edition :is(.local-field-initiative-help,.local-field-round-effects)[open] > summary::after { content: "−"; }
+html .app-root.game-edition.handheld-edition :is(.local-field-initiative-help,.local-field-round-effects) p {
+  margin: .25rem 0 .5rem;
+  color: var(--ui-muted);
+  font-size: .9rem;
+  line-height: 1.65;
+}
+html .app-root.game-edition.handheld-edition .local-field-dispute-result {
+  display: grid;
+  grid-template-columns: 56px minmax(0,1fr);
+  align-items: center;
+  gap: .5rem .75rem;
+  margin-top: 1.25rem;
+  padding: .85rem;
+  border-left: 3px solid var(--ui-blue);
+  color: var(--ui-ink);
+  background: var(--ui-selected);
+}
+html .app-root.game-edition.handheld-edition .local-field-dispute-result > :is(img,.pokemon-sprite-fallback) {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+html .app-root.game-edition.handheld-edition .local-field-dispute-result > strong { font-size: 1rem; line-height: 1.5; }
+html .app-root.game-edition.handheld-edition .local-field-dispute-result > details { grid-column: 1/-1; }
+html .app-root.game-edition.handheld-edition .local-field-dispute-result summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ui-blue);
+  font-size: .9rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+html .app-root.game-edition.handheld-edition .local-field-dice-group {
+  display: grid;
+  gap: .5rem;
+  padding: .65rem 0;
+  font-size: .9rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-dice-group > span:last-child { display: flex; flex-wrap: wrap; gap: .4rem; }
+html .app-root.game-edition.handheld-edition .local-field-dice-group b {
+  display: grid;
+  place-items: center;
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  padding: .3rem;
+  border: 1px solid var(--ui-blue);
+  border-radius: .25rem;
+  color: var(--ui-ink);
+  background: var(--ui-panel);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
 }
 html .app-root.game-edition.handheld-edition .local-pokemon-receipt p {
   margin-top: .75rem !important;
@@ -259,6 +581,187 @@ html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-primary-b
   padding: .8rem 1rem !important;
   white-space: normal !important;
 }
+
+/* The field gives the outcome first. Rule exceptions and calculations remain
+   available in disclosures, using the same light and dark palette. */
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-grid {
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,12rem),1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-field-preview {
+  gap: .45rem;
+  margin: .5rem 0 .25rem;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-field-preview > span {
+  min-width: 0;
+  padding: .3rem .55rem;
+  border: 0;
+  border-radius: .2rem;
+  color: var(--ui-blue) !important;
+  background: var(--ui-selected) !important;
+  font-size: .85rem !important;
+  font-weight: 650;
+  line-height: 1.5;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-field-special {
+  margin: .75rem 0;
+  border-top: 1px solid var(--ui-line);
+  border-bottom: 1px solid var(--ui-line);
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact :is(.combat-field-special-details,.combat-result-details) {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--ui-ink);
+  background: transparent;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact :is(.combat-field-special-details,.combat-result-details) > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 44px;
+  padding: .65rem 0;
+  color: var(--ui-muted);
+  font-size: .9rem;
+  font-weight: 650;
+  line-height: 1.5;
+  list-style: none;
+  cursor: pointer;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact :is(.combat-field-special-details,.combat-result-details) > summary::-webkit-details-marker { display: none; }
+html .app-root.game-edition.handheld-edition .combat-is-compact :is(.combat-field-special-details,.combat-result-details) > summary::after {
+  content: "+";
+  flex: 0 0 auto;
+  color: var(--ui-blue);
+  font-size: 1.15rem;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact :is(.combat-field-special-details,.combat-result-details)[open] > summary::after { content: "−"; }
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-field-special-details > header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: .25rem 0 .75rem;
+  color: var(--ui-muted);
+  font-size: .85rem;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-field-special-details :is(p,ul) {
+  margin: 0 0 1rem;
+  color: var(--ui-ink);
+  font-size: .95rem;
+  line-height: 1.7;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-field-special-details li + li { margin-top: .4rem; }
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  gap: 0;
+  margin-top: 1.25rem;
+  padding: 0;
+  border: 0;
+  border-top: 3px solid var(--ui-blue);
+  border-radius: 0;
+  color: var(--ui-ink);
+  background: transparent !important;
+  box-shadow: none;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result.is-miss { border-top-color: var(--ui-line); }
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-summary {
+  display: grid !important;
+  gap: .85rem;
+  min-width: 0;
+  padding: 1rem 0;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-target {
+  display: grid;
+  gap: .4rem;
+  min-width: 0;
+  padding: .9rem 1rem;
+  border-left: 3px solid var(--ui-blue);
+  color: var(--ui-ink);
+  background: var(--ui-selected);
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-target > header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .35rem .75rem;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-target > header > strong { font-size: 1.05rem; }
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-outcome {
+  color: var(--ui-blue);
+  font-size: .9rem;
+  font-weight: 750;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-damage {
+  margin-top: .15rem;
+  color: var(--ui-ink);
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-hp {
+  color: var(--ui-muted);
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-highlight {
+  color: var(--ui-blue);
+  font-size: .9rem;
+  font-weight: 750;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-block {
+  font-size: .9rem;
+  line-height: 1.6;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-effects {
+  display: grid;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+  color: var(--ui-ink);
+  font-size: .9rem;
+  line-height: 1.6;
+  list-style: none;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-details { border-top: 1px solid var(--ui-line); }
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-detail-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,12rem),1fr));
+  gap: .85rem;
+  padding: .5rem 0 .75rem;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-detail-body > .combat-result-metric {
+  display: grid;
+  gap: .35rem;
+  min-width: 0;
+  padding: .75rem;
+  border: 1px solid var(--ui-line);
+  border-radius: .2rem;
+  background: var(--ui-raised);
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-detail-body > .combat-result-metric :is(small,strong) { color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-detail-body > .combat-result-metric small { font-size: .85rem; font-weight: 500; text-transform: none; }
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-detail-body > .combat-result-metric strong { font-size: 1rem; }
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-result-detail-body > :is(p,.combat-target-results,.combat-consequences) { grid-column: 1/-1; }
+html .app-root.game-edition.handheld-edition .combat-is-compact :is(.combat-target-results article,.combat-consequences li) {
+  border-color: var(--ui-line);
+  color: var(--ui-ink) !important;
+  background: var(--ui-raised) !important;
+  border-radius: .25rem;
+  font-size: .9rem;
+  line-height: 1.65;
+}
+html .app-root.game-edition.handheld-edition .combat-is-compact .combat-target-results article :is(span,strong) { color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .combat-is-compact :is(.combat-damage-math,.combat-damage-exception,.combat-trait-line) {
+  border-color: var(--ui-blue) !important;
+  color: var(--ui-ink) !important;
+  background: var(--ui-selected) !important;
+}
 @container local-dice (max-width: 22rem) {
   html .app-root.game-edition.handheld-edition .local-dice-fields { grid-template-columns: minmax(0,1fr) !important; }
   html .app-root.game-edition.handheld-edition .local-dice-tabs { gap: .35rem !important; }
@@ -268,10 +771,9 @@ html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-primary-b
   html .app-root.game-edition.handheld-edition .local-dice-history-result { display: flex !important; flex-wrap: wrap; align-items: center; gap: .5rem !important; }
 }
 @container local-dice (min-width: 33rem) {
-  html .app-root.game-edition.handheld-edition .local-pokemon-setup .local-dice-fields {
-    grid-template-columns: minmax(0,2fr) minmax(0,1fr);
-  }
-  html .app-root.game-edition.handheld-edition .local-pokemon-setup .room-primary-button {
-    grid-column: 1/-1;
-  }
+  html .app-root.game-edition.handheld-edition .local-field-source .local-dice-fields { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
+@container local-field (max-width: 22rem) {
+  html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-tool { padding: 1rem !important; }
+  html .app-root.game-edition.handheld-edition .local-field-preview { gap: .65rem; padding: .65rem; }
 }

@@ -42,7 +42,7 @@ O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da V
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A versão atual é **11.6.3**. O estado vigente do projeto é sempre o conteúdo de `main`, com a versão declarada em `package.json`; documentos de entregas anteriores são apenas registros históricos. A versão atual mantém contas sincronizadas, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira, Dados acessíveis em todos os módulos e as regras preservadas dos PRs #20 a #28. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
+A versão atual é **11.6.4**. O estado vigente do projeto é sempre o conteúdo de `main`, com a versão declarada em `package.json`; documentos de entregas anteriores são apenas registros históricos. A versão atual mantém contas sincronizadas, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira, Dados acessíveis em todos os módulos e as regras preservadas dos PRs #20 a #28. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
 
 ## Arquitetura e fontes
 

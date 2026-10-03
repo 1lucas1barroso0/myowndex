@@ -41,6 +41,28 @@ const stageSummary = changes => changes
         return `${STAGE_LABELS[change.stat] || formatName(change.stat)} ${direction}`;
     }).join(", ") || "";
 
+const outcomeLabel = entry => {
+    const { resolution, consequences, previewHitKill } = entry;
+    if (resolution.typeBlocked) return "Imune";
+    if (resolution.abilityBlock || resolution.traitBlock) return "Movimento bloqueado";
+    if (resolution.specialBlockReason) return "Movimento impedido";
+    if (!resolution.accuracyTest.success) return "Não acertou";
+    if (resolution.profile.requiresDamageContest && !resolution.damageHit) return "Defesa impediu o dano";
+    if (resolution.manualDamage) return "Dano depende da jogada anterior";
+    if (consequences?.scheduledDamage > 0) return "Impacto preparado";
+    if (consequences?.substituteDamage > 0 && !consequences.damage) return "Substitute absorveu o dano";
+    if (consequences?.fainted || previewHitKill?.remainingHp === 0) return "Fora de combate";
+    return resolution.profile.effectOnly ? "Movimento usado" : "Acertou";
+};
+
+const withFieldHealth = (result, tokens) => ({
+    ...result,
+    fieldHealth: Object.fromEntries(tokens.map(token => [token.id, {
+        currentHp: token.currentHp,
+        maxHp: token.maxHp,
+    }])),
+});
+
 
 export default function CombatAssistant({
     role,
@@ -53,8 +75,12 @@ export default function CombatAssistant({
     onDeclareMove,
     onEvent,
     onError,
+    onAttackerChange,
+    compact = false,
 }) {
-    const activeId = snapshot.initiative[snapshot.turnIndex] || selectedTokenId || snapshot.tokens[0]?.id || "";
+    const activeId = (compact
+        ? selectedTokenId || snapshot.initiative[snapshot.turnIndex]
+        : snapshot.initiative[snapshot.turnIndex] || selectedTokenId) || snapshot.tokens[0]?.id || "";
     const [attackerId, setAttackerId] = useState(activeId);
     const [defenderId, setDefenderId] = useState(snapshot.tokens.find(token => token.id !== activeId)?.id || "");
     const [moveName, setMoveName] = useState("");
@@ -208,7 +234,9 @@ export default function CombatAssistant({
                     calledMoveName: needsCalledMove ? move.name : "",
                     mode,
                 });
-                setResult(authoritative.result);
+                setResult(compact
+                    ? withFieldHealth(authoritative.result, authoritative.nextSnapshot?.tokens || tokens)
+                    : authoritative.result);
                 return;
             }
             const resolved = resolveCombatAction({
@@ -216,7 +244,9 @@ export default function CombatAssistant({
                 request: { attackerId: attacker.id, defenderId: defender?.id || "", moveName: moveData.name, calledMoveName: needsCalledMove ? move.name : "", mode },
                 move: moveData, calledMove: needsCalledMove ? move : null,
             });
-            setResult(resolved.result);
+            setResult(compact
+                ? withFieldHealth(resolved.result, resolved.nextSnapshot?.tokens || tokens)
+                : resolved.result);
             if (resolved.nextSnapshot) onSnapshotChange(resolved.nextSnapshot);
             await onEvent(resolved.eventType, resolved.eventPayload);
             if (resolved.sfxPayload) await onEvent("sfx", resolved.sfxPayload);
@@ -258,19 +288,22 @@ export default function CombatAssistant({
     const resultAppliedDamage = result
         ? result.consequences?.damage ?? result.previewDamage ?? 0
         : 0;
+    const ResultBody = compact ? "details" : React.Fragment;
+    const SpecialBody = compact ? "details" : React.Fragment;
+    const ResultDetailsBody = compact ? "div" : React.Fragment;
 
     return (
-        <details className="room-tool">
+        <details className={`room-tool${compact ? " combat-is-compact" : ""}`}>
             <summary>
                 <span>
-                    <strong>Resolver um movimento</strong>
+                    <strong>{compact ? "Usar um movimento" : "Resolver um movimento"}</strong>
                 </span>
             </summary>
             <div className="room-tool-body">
                 <div className="combat-grid">
                     <label>
                         <span>Usuário</span>
-                            <RoomSelect aria-label="Usuário" value={attackerId} disabled={!tokens.length} onChange={event => { setAttackerId(event.target.value); setResult(null); }}>
+                            <RoomSelect aria-label="Usuário" value={attackerId} disabled={!tokens.length} onChange={event => { setAttackerId(event.target.value); setResult(null); onAttackerChange?.(event.target.value); }}>
                                 <option value="">{tokens.length ? "Escolha um Pokémon" : "Sem Pokémon em campo"}</option>
                                 {tokens.map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
                             </RoomSelect>
@@ -291,8 +324,8 @@ export default function CombatAssistant({
                             {moves.map(move => <option key={move} value={move}>{formatName(move)}</option>)}
                         </RoomSelect>
                     </label>
-                    <label>
-                        <span>Situação da disputa</span>
+                    {(!compact || !resolutionProfile || resolutionProfile.requiresDamageContest) && <label>
+                        <span>{compact ? "Modo" : "Situação da disputa"}</span>
                         <RoomSelect
                             aria-label="Situação da disputa"
                             value={resolutionProfile?.requiresDamageContest ? mode : "normal"}
@@ -307,22 +340,25 @@ export default function CombatAssistant({
                                     <option value="disadvantage">Desvantagem</option>
                                 </>}
                         </RoomSelect>
-                    </label>
+                    </label>}
                 </div>
 
                 {specialProfile && (
-                    <section className={`combat-special-card is-${specialProfile.automation}`} aria-live="polite">
+                    <section className={`${compact ? "combat-field-special" : "combat-special-card"} is-${specialProfile.automation}`} aria-live="polite">
+                        <SpecialBody {...(compact ? { className: "combat-field-special-details" } : {})}>
+                        {compact && <summary>{specialProfile.title}</summary>}
                         <header>
                             <span>Mecânica excepcional</span>
                             <b>{SPECIAL_AUTOMATION_LABELS[specialProfile.automation]}</b>
                         </header>
-                        <strong>{specialProfile.title}</strong>
+                        {!compact && <strong>{specialProfile.title}</strong>}
                         <p>{specialProfile.summary}</p>
                         {specialProfile.rules?.length > 0 && (
                             <ul>
                                 {specialProfile.rules.map(rule => <li key={rule}>{rule}</li>)}
                             </ul>
                         )}
+                        </SpecialBody>
                         {needsCalledMove && (
                             <div className="combat-called-move">
                                 <label>
@@ -348,17 +384,19 @@ export default function CombatAssistant({
                 )}
 
                 {resolvedMoveData && (
-                    <div className="combat-automation" aria-live="polite">
+                    <div className={`combat-automation${compact ? " combat-field-preview" : ""}`} aria-live="polite">
                         <span>{formatType(resolvedMoveData.type?.name)}</span>
                         <span>{formatDamageClass(resolvedMoveData.damage_class?.name)}</span>
                         <span>PP {formatNumberPtBr(ppState.remaining ?? moveData.pp ?? 0)} de {formatNumberPtBr(ppState.maximum ?? moveData.pp ?? 0)}</span>
                         {needsCalledMove && calledMoveData && <span>Chamado por {formatName(moveData.name)}</span>}
-                        {automationTags.map(tag => <span key={tag}>{tag}</span>)}
+                        {compact
+                            ? Boolean(resolvedMoveData.priority) && <span>Prioridade {resolvedMoveData.priority > 0 ? "+" : ""}{resolvedMoveData.priority}</span>
+                            : automationTags.map(tag => <span key={tag}>{tag}</span>)}
                         {declaring && <span className="is-syncing">Preparando a prioridade…</span>}
                     </div>
                 )}
-                <p className="combat-target-note">{targetDescription}</p>
-                {originalSpecialBlock && <p className="combat-special-block">Não pode ser resolvido agora: {originalSpecialBlock}.</p>}
+                {(!compact || !resolutionProfile || (resolutionProfile.target.requiresSelection && !defender) || (needsCalledMove && !calledMoveData)) && <p className="combat-target-note">{targetDescription}</p>}
+                {originalSpecialBlock && <p className="combat-special-block">{compact ? `${formatName(moveName)}: ` : "Não pode ser resolvido agora: "}{originalSpecialBlock}.</p>}
                 {originalTraitBlock?.attackerBlocked && <p className="combat-special-block">Item ativo: {originalTraitBlock.reason}.</p>}
                 {!canControlAttacker && role === "player" && (
                     <p className="combat-permission-note">Você pode testar este Pokémon aqui. Para declarar o movimento na rodada, escolha um Pokémon sob seu controle.</p>
@@ -368,12 +406,60 @@ export default function CombatAssistant({
                         ? "Sem PP para este movimento"
                         : running
                             ? "Calculando a jogada…"
+                            : compact
+                                ? `${role === "narrator" ? "Usar" : "Simular"} ${moveName ? formatName(moveName) : "movimento"}`
                             : role === "narrator"
                                 ? `Resolver: ${resolutionProfile?.resolutionLabel || "movimento"}`
                                 : "Simular e compartilhar"}
                 </button>
                 {result && (
-                    <div className={`combat-result ${result.moveConnected ? "is-hit" : "is-miss"}`} aria-live="polite">
+                    <div className={`combat-result ${result.moveConnected ? "is-hit" : "is-miss"}${compact && role !== "narrator" ? " is-simulation" : ""}`} aria-live="polite">
+                        {compact && (
+                            <div className="combat-result-summary">
+                                {result.blockedByCondition && <strong className="combat-result-outcome">Não conseguiu agir</strong>}
+                                {result.conditionNotes?.map(note => <p key={note}>{note}</p>)}
+                                {result.targetResults.map((entry, index) => {
+                                    const targetToken = tokens.find(token => token.id === entry.target?.id);
+                                    const health = result.fieldHealth?.[entry.target?.id];
+                                    const damage = entry.consequences?.damage ?? entry.previewHitKill?.appliedDamage ?? 0;
+                                    const hp = role === "narrator" ? health?.currentHp : entry.previewHitKill?.remainingHp;
+                                    return (
+                                        <article className="combat-result-target" key={entry.target?.id || `field-summary-${index}`}>
+                                            <header>
+                                                <strong>{entry.target?.name || entry.resolution.profile.target.label}</strong>
+                                                <span className="combat-result-outcome">{role !== "narrator" && outcomeLabel(entry) === "Fora de combate" ? "Ficaria fora de combate" : outcomeLabel(entry)}</span>
+                                            </header>
+                                            {(entry.resolution.abilityBlock || entry.resolution.traitBlock) && <span className="combat-result-block">{entry.resolution.abilityBlock?.reason || entry.resolution.traitBlock?.reason}.</span>}
+                                            {entry.resolution.specialBlockReason && <span className="combat-result-block">{entry.resolution.specialBlockReason}.</span>}
+                                            {entry.resolution.profile.requiresDamageContest && <b className="combat-result-damage">{entry.resolution.manualDamage && entry.resolution.damageHit ? "Dano a registrar" : `${formatNumberPtBr(damage)} de dano${role !== "narrator" ? " simulado" : ""}`}</b>}
+                                            {hp != null && targetToken && <span className="combat-result-hp">HP{role !== "narrator" ? " simulado" : ""} {formatNumberPtBr(hp)} de {formatNumberPtBr(health?.maxHp ?? targetToken.maxHp)}</span>}
+                                            {entry.resolution.criticalHit && <span className="combat-result-highlight">Acerto crítico!</span>}
+                                            {(entry.consequences?.hitKillProtected || entry.previewHitKill?.protectedFromKnockout) && <span className="combat-result-highlight">{role === "narrator" ? "Proteção contra Hit Kill ativada" : "Proteção contra Hit Kill agiria"}</span>}
+                                            {(entry.consequences?.traitProtected || entry.previewHitKill?.traitProtected) && <span className="combat-result-highlight">{role === "narrator" ? "Protegido por habilidade ou item" : "Habilidade ou item protegeria"}</span>}
+                                        </article>
+                                    );
+                                })}
+                                {result.consequences && <ul className="combat-result-effects">
+                                    {result.consequences.ppAfter != null && <li>{formatRemainingPp(result.consequences.ppAfter)}</li>}
+                                    {result.consequences.healed > 0 && <li>Recuperou {formatNumberPtBr(result.consequences.healed)} HP.</li>}
+                                    {result.consequences.recoil > 0 && <li>Recuo ou custo: {formatNumberPtBr(result.consequences.recoil)} HP.</li>}
+                                    {result.consequences.abilityDamage > 0 && <li>Habilidade: perdeu {formatNumberPtBr(result.consequences.abilityDamage)} HP.</li>}
+                                    {result.consequences.itemDamage > 0 && <li>Item: perdeu {formatNumberPtBr(result.consequences.itemDamage)} HP.</li>}
+                                    {result.consequences.traitHealing > 0 && <li>Item ou habilidade: recuperou {formatNumberPtBr(result.consequences.traitHealing)} HP.</li>}
+                                    {result.consequences.appliedStatuses.map((status, index) => <li key={`${status}-${index}`}>{STATUS_LABELS[status] || formatName(status)} aplicado.</li>)}
+                                    {result.consequences.traitStatuses.map((entry, index) => <li key={`trait-status-${entry.tokenId}-${index}`}>{formatName(entry.sourceId)}: {STATUS_LABELS[entry.status] || formatName(entry.status)}.</li>)}
+                                    {result.consequences.blockedStatuses.length > 0 && <li>Condição impedida.</li>}
+                                    {result.consequences.trackedEffects.map(effect => <li key={effect}>{effect === "yawn" ? "Yawn: sono na próxima rodada." : `${formatName(effect)} registrado.`}</li>)}
+                                    {stageSummary(result.consequences.stageChanges) && <li>{stageSummary(result.consequences.stageChanges)}.</li>}
+                                    {result.consequences.fieldChange?.weather && <li>Clima: {formatName(result.consequences.fieldChange.weather)}.</li>}
+                                    {result.consequences.fieldChange?.terrain && <li>Terreno: {formatName(result.consequences.fieldChange.terrain)}.</li>}
+                                    {result.consequences.consumedItems.length > 0 && <li>{[...new Set(result.consequences.consumedItems)].map(formatName).join(", ")}: {new Set(result.consequences.consumedItems).size === 1 ? "consumido ou removido" : "consumidos ou removidos"}.</li>}
+                                </ul>}
+                            </div>
+                        )}
+                        <ResultBody {...(compact ? { className: "combat-result-details" } : {})}>
+                        {compact && <summary>Detalhes da jogada</summary>}
+                        <ResultDetailsBody {...(compact ? { className: "combat-result-detail-body" } : {})}>
                         {result.conditionNotes?.map(note => <p key={note}>{note}</p>)}
                         <div className="combat-result-metric is-resolution">
                             <small>Forma de resolução</small>
@@ -500,6 +586,8 @@ export default function CombatAssistant({
                                 <li className="combat-consequence-hit-kill">Prévia da proteção contra Hit Kill: calculado {formatNumberPtBr(resultCalculatedDamage)}, simulado {formatNumberPtBr(resultAppliedDamage)}. A proteção agiria por hit; {result.targetResults.some(entry => entry.previewHitKill?.faintedOnHit) ? "um hit posterior ainda derrotaria o alvo." : "o alvo terminaria a sequência em combate."}</li>
                             </ul>
                         )}
+                        </ResultDetailsBody>
+                        </ResultBody>
                     </div>
                 )}
             </div>

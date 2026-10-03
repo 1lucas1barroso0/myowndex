@@ -128,7 +128,7 @@ try {
     await confirm('Retirar Pokémon');
     await page.waitForFunction(() => document.querySelectorAll('.local-dice-dialog .local-pokemon-roster button').length === 1);
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('myowndex_local_dice_room_v1')).tokens.length === 1);
-    assert.equal(await dice.locator('.local-pokemon-roster button').innerText(), 'Broto\nHP 3 de 3');
+    assert.equal((await dice.locator('.local-pokemon-roster button').innerText()).replace(/\s+/g, ' ').trim(), 'Broto Aliado HP 3 de 3');
     await dice.getByRole('button', { name: 'Limpar campo', exact: true }).click();
     await confirm('Limpar campo');
     await page.waitForFunction(() => document.querySelectorAll('.local-dice-dialog .local-pokemon-roster button').length === 0);

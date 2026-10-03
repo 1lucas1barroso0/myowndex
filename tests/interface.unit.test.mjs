@@ -519,7 +519,7 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(localPanel, /<LocalPokemonDice/);
   assert.doesNotMatch(localPanel, /Probabilidades|local-dice-equation/);
   assert.match(localPokemon, /CombatAssistant/);
-  assert.match(localPokemon, />Oponente<\/option>/);
+  assert.match(localPokemon, /"opponent","Oponente"/);
   assert.doesNotMatch(localPokemon, /Oponente selvagem/);
   assert.match(localPokemon, /CaptureAssistant/);
   assert.match(rules, /aventura e os dados locais usam a mesma resolução/);

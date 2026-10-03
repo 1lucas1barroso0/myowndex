@@ -53,13 +53,13 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
         alive.current=true;
         const saved=readStorage(preferenceKey,null);
         if(saved) { try { setDraft({...DEFAULTS,...localRollSpec(saved)}); } catch { /* Invalid drafts cannot silently change a roll. */ } }
-        const records=readLocalRolls(); setHistory(records); setResult(records.find(r=>!r.legacy) || null);
-        void readLocalRollHistoryDurable().then(next=>{if(alive.current){setHistory(next);setResult(next.find(r=>!r.legacy)||null);setReady(true);}});
+        const records=readLocalRolls(); setHistory(records); setResult(inAdventure ? null : records.find(r=>!r.legacy) || null);
+        void readLocalRollHistoryDurable().then(next=>{if(alive.current){setHistory(next);setResult(inAdventure ? null : next.find(r=>!r.legacy)||null);setReady(true);}});
         const refresh=()=>{
             void readLocalRollHistoryDurable().then(next=>{
                 if(!alive.current)return;
                 setHistory(next);
-                setResult(current=>current && next.some(entry=>entry.id===current.id) ? current : next.find(entry=>!entry.legacy) || null);
+                if(!inAdventure) setResult(current=>current && next.some(entry=>entry.id===current.id) ? current : next.find(entry=>!entry.legacy) || null);
             });
         };
         const sync=event=>{

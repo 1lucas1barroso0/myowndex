@@ -107,34 +107,38 @@ export const normalizeAuthoritativeRequest = input => {
     }
 
     if (action === "quick-attribute") {
+        const opposition = input.opposition === "" || input.opposition == null ? null : exactInteger(input.opposition, -99999, 99999, "A dificuldade");
+        const label = text(input.label, 80);
         return {
             requestId,
             action,
             mode: requiredMode(input.mode),
             attribute: exactInteger(input.attribute ?? 0, -99999, 99999, "O modificador"),
-            opposition: input.opposition === "" || input.opposition == null ? null : exactInteger(input.opposition, -99999, 99999, "A dificuldade"),
-            label: text(input.label, 80),
+            ...(opposition == null ? {} : { opposition }),
+            ...(label ? { label } : {}),
         };
     }
     if (action === "quick-percent") {
+        const label = text(input.label, 80);
         return {
             requestId,
             action,
             mode: requiredMode(input.mode),
             chance: exactInteger(input.chance ?? 50, 0, 100, "A chance"),
-            label: text(input.label, 80),
+            ...(label ? { label } : {}),
         };
     }
     if (action === "quick-free") {
         const sides = exactInteger(input.sides ?? 6, 4, 100, "O dado");
         if (!FREE_DICE_SIDES.has(sides)) throw new AuthoritativeActionError("Escolha d4, d6, d8, d10, d12, d20 ou d100.");
+        const label = text(input.label, 80);
         return {
             requestId,
             action,
             quantity: exactInteger(input.quantity ?? 1, 1, 20, "A quantidade"),
             sides,
             modifier: exactInteger(input.modifier ?? 0, -99999, 99999, "O modificador"),
-            label: text(input.label, 80),
+            ...(label ? { label } : {}),
         };
     }
 

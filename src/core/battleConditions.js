@@ -89,7 +89,7 @@ export const checkActionConditions = ({ token, move, ability = "", random } = {}
     }
     const confusion = next.volatileEffects.find(effect => effect.id === "confusion");
     if (confusion) {
-        const turns = confusion.turns == null ? confusionDuration(random) : integerInRange(confusion.turns, 0, 4, 0);
+        const turns = confusion.turns == null ? confusionDuration(random) : integerInRange(confusion.turns, 0, 5, 0);
         next.volatileEffects = next.volatileEffects.filter(effect => effect.id !== "confusion");
         if (turns > 1 && ability !== "own-tempo") {
             next.volatileEffects.push({ ...confusion, turns: turns - 1 });

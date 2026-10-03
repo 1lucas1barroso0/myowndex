@@ -22,9 +22,10 @@ const move = (name, groups) => ({
   })),
 });
 
-test("lists current games from Champions through Red/Blue", () => {
+test("lists current games in release chronology including Japanese Gen1 releases", () => {
   assert.equal(VERSION_GROUPS[1].value, "champions");
-  assert.equal(VERSION_GROUPS.at(-1).value, "red-blue");
+  assert.equal(VERSION_GROUPS.at(-1).value, "red-green-japan");
+  assert.ok(VERSION_GROUPS.findIndex(group => group.value === "red-blue") < VERSION_GROUPS.findIndex(group => group.value === "blue-japan"));
   assert.ok(VERSION_GROUPS.some(group => group.value === "mega-dimension"));
   assert.ok(VERSION_GROUPS.some(group => group.value === "legends-za"));
 });

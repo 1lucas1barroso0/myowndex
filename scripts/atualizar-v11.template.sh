@@ -6,7 +6,7 @@ umask 077
 
 DEX_STAGE="preparação da atualização"
 DEX_REPO="1lucas1barroso0/myowndex"
-DEX_BASE="d8bb4096702786625f8acdb20ac63d26186d71ba"
+DEX_BASE="f76dec47303e394e81d18186742f664eee33663d"
 DEX_SCOPE="1lucas1barroso0s-projects"
 DEX_PRODUCTION="https://myowndex.vercel.app"
 DEX_ARCHIVE_SHA="__ARCHIVE_SHA256__"
@@ -82,6 +82,10 @@ const failedChecks = checks.filter(check => check.status === "completed" && !acc
 const failedStatuses = statuses.filter(status => ["error", "failure"].includes(status.state));
 const latestRun = runs.sort((a, b) => b.id - a.id)[0];
 if (failedChecks.length || failedStatuses.length || (latestRun?.status === "completed" && latestRun.conclusion !== "success")) {
+  const quota = failedStatuses.find(status => /vercel/i.test(status.context || "") && /rate.limit|retry in|limit.*deploy/i.test(status.description || ""));
+  if (quota) {
+    console.error("A Vercel atingiu o limite diário de publicações. O código, PR, dados e log continuam preservados. Execute este mesmo arquivo após a liberação do limite; nenhum plano será alterado.");
+  }
   console.error("Uma verificação falhou. Consulte o PR ou o GitHub Actions antes de retomar.");
   for (const failed of [...failedChecks, ...failedStatuses]) console.error(`• ${failed.name || failed.context}`);
   process.exit(1);
@@ -104,7 +108,7 @@ DEX_CI_GUARD
 
 case "$DEX_ACTION" in
   publicar|verificar|extrair) ;;
-  *) dex_fail "Uso: bash myowndex-v11.3-linux.sh [publicar|verificar|extrair]" ;;
+  *) dex_fail "Uso: bash myowndex-v11.4-linux.sh [publicar|verificar|extrair]" ;;
 esac
 [[ "$DEX_ARCHIVE_SHA" =~ ^[0-9a-f]{64}$ ]] || dex_fail "Este arquivo ainda é um modelo sem o pacote final. Baixe o instalador publicado."
 for DEX_TOOL in mktemp base64 sha256sum tar tee flock; do
@@ -144,7 +148,7 @@ tar -xzf "$DEX_RELEASE/projeto.tar.gz" -C "$DEX_RELEASE/source"
 rm -- "$DEX_RELEASE/projeto.tar.gz"
 DEX_SOURCE="$DEX_RELEASE/source/myowndex"
 [[ -f "$DEX_SOURCE/package.json" && -f "$DEX_SOURCE/vercel.json" ]] || dex_fail "O pacote não contém o projeto completo."
-printf '\nMyOwnDex 11.3: código extraído em %s\n' "$DEX_SOURCE"
+printf '\nMyOwnDex 11.4: código extraído em %s\n' "$DEX_SOURCE"
 if [[ "$DEX_ACTION" == "extrair" ]]; then exit 0; fi
 
 DEX_MISSING=()
@@ -275,7 +279,7 @@ else
   read -r DEX_BRANCH_BASE < "$DEX_RELEASE/branch-base"
   if [[ "$(git rev-parse origin/main)" != "$DEX_BRANCH_BASE" ]]; then
     DEX_STAGE="integração de mudanças recentes de main"
-    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.3: ajusta escolhas longas e leitura do registro"; fi
+    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.4: contas, encontros e referências completas"; fi
     git merge --no-edit origin/main
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
   fi
@@ -320,7 +324,7 @@ DEX_VERCEL_GUARD
 if [[ "$DEX_MERGED" != "true" ]]; then
   if ! git diff --cached --quiet; then
     DEX_STAGE="registro do código validado"
-    git commit -m "MyOwnDex 11.3: melhora seleção, espaço e idiomas do registro"
+    git commit -m "MyOwnDex 11.4: contas, encontros e referências completas"
   fi
   DEX_HEAD="$(git rev-parse HEAD)"
   printf '%s\n' "$DEX_HEAD" > "$DEX_RELEASE/head"
@@ -341,9 +345,9 @@ DEX_FIND_PR
       node --input-type=module - "$DEX_BRANCH" "$DEX_RELEASE/new-pr.json" <<'DEX_NEW_PR'
 import { writeFileSync } from "node:fs";
 writeFileSync(process.argv[3], JSON.stringify({
-  title: "MyOwnDex 11.3: escolhas legíveis e espaço na aventura",
+  title: "MyOwnDex 11.4: contas sincronizadas, gerador e interface de jogo",
   head: process.argv[2], base: "main", draft: false,
-  body: "Escolhas com nomes longos permanecem legíveis e os formulários da aventura se organizam pelo espaço do painel. A iniciativa lateral e os controles de aparência ganham uma composição mais compacta, mantendo espaço para o conteúdo principal. O registro oferece leitura em EN/PT com textos incluídos no projeto, sem tradução por IA; nomes de Pokémon, itens, movimentos e habilidades permanecem no original.\n\nDados, Boxes, importação/exportação, salvamento e aventuras compartilhadas continuam preservados. As fontes e os limites dos textos em português estão documentados com a validação.\n\nValidação local: testes, ESLint, tipos e build. GitHub Actions repete os mesmos checks; o instalador aguarda os resultados e valida o Preview antes de integrar. Reutiliza os bancos e as variáveis existentes de Preview e Production."
+  body: "Cadastre uma conta e continue suas Boxes, favoritos, preferências e aventuras em outro dispositivo. A sincronização reúne alterações simultâneas e conserva cópias recuperáveis; dados de visitante permanecem separados. O banco Turso existente recebe apenas tabelas adicionais.\n\nO gerador cria Pokémon com movimentos legais no jogo e nível escolhidos, permite guardar individualmente ou em Boxes e exportar arquivos. Dados locais ficam acessíveis em todos os módulos e reutilizam combate, disputas, iniciativa e captura da aventura. A sincronização inclui campos, histórico de dados e prévias do gerador, com limites e recuperação. As regras dos PRs #20 a #28 permanecem: escala por 10, arredondamento correto, condições atuais, migrações de HP e resolução proporcional automática. A interface ganha controles confortáveis, prioridade correta no mobile e parceiros decorativos distintos. XP usa inteiros arredondados para baixo em cálculos, importações e campos.\n\nA Pokédex oferece textos históricos e movimentos por jogo, com alternância EN/PT e fontes registradas. Habilidades e itens usam explicações específicas. Textos incluídos no projeto dispensam GPT ou tradução em tempo de execução. Nomes próprios permanecem no original.\n\nSalvamento durável, caches com limites, importação/exportação e permissões de salas preservados. Validação: testes, ESLint, tipos, build e fluxos reais no Chromium. O instalador repete checks, aguarda CI, confere Preview e publica somente a árvore validada. Reutiliza variáveis e banco existentes; não modifica o plano de hospedagem."
 }), { mode: 0o600 });
 DEX_NEW_PR
       gh api --method POST "repos/$DEX_REPO/pulls" --input "$DEX_RELEASE/new-pr.json" > "$DEX_RELEASE/pr.json"
@@ -360,6 +364,12 @@ DEX_NEW_PR
   dex_vercel curl / --deployment "$DEX_PREVIEW" --yes --scope "$DEX_SCOPE" -- --silent --show-error --fail --max-time 90 --output "$DEX_RELEASE/preview.html"
   DEX_HTTP="$(dex_vercel curl /api/rooms/AAAAAA --deployment "$DEX_PREVIEW" --yes --scope "$DEX_SCOPE" -- --silent --show-error --max-time 90 --output "$DEX_RELEASE/preview-api.json" --write-out '%{http_code}')"
   [[ "$DEX_HTTP" == "401" ]] || dex_fail "O Preview não confirmou acesso ao banco existente (HTTP $DEX_HTTP). Nenhuma variável foi alterada."
+  dex_vercel curl /api/account/session --deployment "$DEX_PREVIEW" --yes --scope "$DEX_SCOPE" -- --silent --show-error --fail --max-time 90 --output "$DEX_RELEASE/preview-account.json"
+  node --input-type=module - "$DEX_RELEASE/preview-account.json" <<'DEX_ACCOUNT_HEALTH'
+import { readFileSync } from "node:fs";
+const response = JSON.parse(readFileSync(process.argv[2], "utf8"));
+if (response.account !== null || response.limitBytes !== 4 * 1024 * 1024) { console.error("O Preview não confirmou a API de contas."); process.exit(1); }
+DEX_ACCOUNT_HEALTH
   DEX_VERSION="$(node -p 'require("./package.json").version')"
   node --input-type=module - "$DEX_RELEASE/preview.html" "$DEX_VERSION" <<'DEX_PREVIEW_HTML'
 import { readFileSync } from "node:fs";
@@ -411,6 +421,12 @@ import { readFileSync } from "node:fs";
 const html = readFileSync(process.argv[2], "utf8");
 if (!html.includes("MyOwnDex") || !html.includes(process.argv[3])) { console.error("A versão publicada ainda não foi confirmada no endereço público."); process.exit(1); }
 DEX_PRODUCTION_HTML
+curl --silent --show-error --fail --retry 3 --retry-delay 2 --max-time 90 "$DEX_PRODUCTION/api/account/session" --output "$DEX_RELEASE/production-account.json"
+node --input-type=module - "$DEX_RELEASE/production-account.json" <<'DEX_PRODUCTION_ACCOUNT'
+import { readFileSync } from "node:fs";
+const response = JSON.parse(readFileSync(process.argv[2], "utf8"));
+if (response.account !== null || response.limitBytes !== 4 * 1024 * 1024) { console.error("A API de contas publicada ainda não foi confirmada."); process.exit(1); }
+DEX_PRODUCTION_ACCOUNT
 DEX_STAGE="teste e limpeza das salas publicadas"
 cat > "$DEX_RELEASE/verify-rooms.mjs" <<'DEX_VERIFY_ROOMS'
 import { pathToFileURL } from "node:url";

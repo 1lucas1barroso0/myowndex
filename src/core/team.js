@@ -1,7 +1,9 @@
 import { calculateStat, convertToTTRPG, fetchCached } from "./mechanics.js";
 import { clampFinite, finiteNumberOrNull, integerInRange, quantizeStepDown } from "./math.js";
 import { secureRandomId } from "./random.js";
-import { readStorage, removeStorage, writeStorage } from "./storage.js";
+import { getStorageScope, readDurableStorage, readStorage, removeDurableStorage, removeStorage, writeDurableStorage, writeStorage } from "./storage.js";
+import { requestPersistentStorage } from "./storageBudget.js";
+import { getPokemonReferenceForMode, getStoredCurrentPokemonReference } from "./referenceGames.js";
 
 export const TEAM_STORAGE_KEY = "myowndex_rotom_v4";
 export const LEGACY_TEAM_STORAGE_KEY = "myowndex_rotom_v3";
@@ -57,7 +59,7 @@ export const normalizeRpgData = (value = {}) => {
     while (pp.length < 4) pp.push(null);
     return {
         scaleVersion: clampInteger(source.scaleVersion, 1, RPG_SCALE_VERSION, source.currentHp == null ? RPG_SCALE_VERSION : 1),
-        xp: normalizeOptionalNumber(source.xp, 0, 999999, 0.5) ?? 0,
+        xp: integerInRange(source.xp, 0, 999999, 0),
         currentHp: normalizeOptionalNumber(source.currentHp, 0, 99999, 1),
         status: RPG_STATUSES.includes(status) ? status : "",
         sleepTurns: status === "sleep" && source.sleepTurns != null ? clampInteger(source.sleepTurns, 0, 2, 0) : null,
@@ -115,9 +117,9 @@ export const normalizePokemon = input => {
         const speciesName = species?.species?.name || species?.name || "";
         const rawMaxHp = calculateStat(
             hpBase,
-            source.evs?.hp,
-            source.ivs?.hp,
-            source.level,
+            normalizeStats(source.evs, 0, 252).hp,
+            normalizeStats(source.ivs, 31, 31).hp,
+            clampInteger(source.level, 1, 200, 5),
             1,
             true,
             speciesName,
@@ -158,7 +160,7 @@ export const normalizePokemon = input => {
     };
 };
 
-const compactSpecies = species => {
+export const compactSpecies = species => {
     if (!species || typeof species !== "object") return {};
     // Keep the catalogue fields used offline; other generations can be fetched again.
     // In particular, the full sprites catalogue can exceed localStorage quota for large PCs.
@@ -192,6 +194,7 @@ const compactSpecies = species => {
         sprites,
         stats: species.stats,
         types: species.types,
+        ...(getStoredCurrentPokemonReference(species) ? { reference_current: getStoredCurrentPokemonReference(species) } : {}),
         height: species.height,
         weight: species.weight,
         gender_rate: species.gender_rate
@@ -266,23 +269,44 @@ export const touchTeam = team => ({
     updatedAt: now()
 });
 
-export const loadTeams = () => {
-    const current = readStorage(TEAM_STORAGE_KEY, null);
+export const loadTeams = (options = {}) => {
+    const current = readStorage(TEAM_STORAGE_KEY, null, options);
     if ([4, TEAM_SCHEMA_VERSION].includes(current?.schema) && Array.isArray(current.teams)) {
         return dedupeTeams(current.teams);
     }
-    const legacy = readStorage(LEGACY_TEAM_STORAGE_KEY, []);
+    const legacy = readStorage(LEGACY_TEAM_STORAGE_KEY, [], options);
     return dedupeTeams(Array.isArray(legacy) ? legacy : []);
 };
 
-export const saveTeams = teams => {
+export const saveTeams = (teams, options = {}) => {
     const compact = dedupeTeams(teams).map(compactTeam);
     const saved = writeStorage(TEAM_STORAGE_KEY, {
         schema: TEAM_SCHEMA_VERSION,
         savedAt: now(),
         teams: compact
-    });
-    if (saved) removeStorage(LEGACY_TEAM_STORAGE_KEY);
+    }, options);
+    if (saved) removeStorage(LEGACY_TEAM_STORAGE_KEY, options);
+    return saved;
+};
+
+export const loadTeamsDurable = async (options = {}) => {
+    const scope = Object.prototype.hasOwnProperty.call(options, "scope") ? options.scope : getStorageScope();
+    const current = await readDurableStorage(TEAM_STORAGE_KEY, null, { scope });
+    if ([4, TEAM_SCHEMA_VERSION].includes(current?.schema) && Array.isArray(current.teams)) return dedupeTeams(current.teams);
+    const legacy = await readDurableStorage(LEGACY_TEAM_STORAGE_KEY, [], { scope });
+    return dedupeTeams(Array.isArray(legacy) ? legacy : []);
+};
+
+export const saveTeamsDurable = async (teams, options = {}) => {
+    const scope = Object.prototype.hasOwnProperty.call(options, "scope") ? options.scope : getStorageScope();
+    const compact = dedupeTeams(teams).map(compactTeam);
+    const saved = await writeDurableStorage(TEAM_STORAGE_KEY, {
+        schema: TEAM_SCHEMA_VERSION, savedAt: now(), teams: compact,
+    }, { scope });
+    if (saved) {
+        await removeDurableStorage(LEGACY_TEAM_STORAGE_KEY, { scope });
+        if (compact.length) void requestPersistentStorage();
+    }
     return saved;
 };
 
@@ -301,19 +325,22 @@ const drainHydrations = () => {
     }
 };
 
-const hydratePokemonData = async pokemon => {
+const hydratePokemonData = async (pokemon, { signal, experienceMode = "rpg", versionGroup = "auto" } = {}) => {
     const stored = normalizePokemon(pokemon);
+    if (signal?.aborted) return stored;
     const formName = stored.species?.name;
     if (!formName) return stored;
 
     const data = await fetchCached(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(formName)}`);
+    if (signal?.aborted) return stored;
     if (!data) return stored;
     const speciesData = data.species?.url ? await fetchCached(data.species.url) : null;
+    if (signal?.aborted) return stored;
     const genderRate = finiteNumberOrNull(speciesData?.gender_rate);
-    const enriched = {
+    const enriched = getPokemonReferenceForMode({
         ...data,
         gender_rate: genderRate == null ? stored.genderRate : integerInRange(genderRate, -1, 8, stored.genderRate)
-    };
+    }, versionGroup, { experienceMode });
     return normalizePokemon({
         ...stored,
         species: enriched,
@@ -323,18 +350,28 @@ const hydratePokemonData = async pokemon => {
 
 // Every Box shares this queue, including simultaneous hydrateTeam calls. The
 // stored partner stays usable while its optional catalogue details refresh.
-export const hydratePokemon = pokemon => new Promise((resolve, reject) => {
-    hydrationQueue.push({ run: () => hydratePokemonData(pokemon), resolve, reject });
+export const hydratePokemon = (pokemon, options = {}) => new Promise((resolve, reject) => {
+    const { signal } = options;
+    if (signal?.aborted) { resolve(normalizePokemon(pokemon)); return; }
+    const complete = callback => value => { signal?.removeEventListener("abort", abort); callback(value); };
+    const task = { run: () => hydratePokemonData(pokemon, options), resolve: complete(resolve), reject: complete(reject) };
+    const abort = () => {
+        const index = hydrationQueue.indexOf(task);
+        if (index >= 0) { hydrationQueue.splice(index, 1); task.resolve(normalizePokemon(pokemon)); }
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+    hydrationQueue.push(task);
     drainHydrations();
 });
 
-export const hydrateTeam = async team => {
+export const hydrateTeam = async (team, options = {}) => {
     const normalized = normalizeTeam(team);
-    const pokemon = await Promise.all(normalized.pokemon.map(hydratePokemon));
+    const hydrationOptions = { ...options, versionGroup: options.versionGroup ?? normalized.versionGroup };
+    const pokemon = await Promise.all(normalized.pokemon.map(pokemon => hydratePokemon(pokemon, hydrationOptions)));
     return { ...normalized, pokemon };
 };
 
-export const hydrateTeams = async teams => Promise.all(asArray(teams).map(hydrateTeam));
+export const hydrateTeams = async (teams, options = {}) => Promise.all(asArray(teams).map(team => hydrateTeam(team, options)));
 
 export const mergeHydratedTeams = (currentTeams, hydratedTeams) => {
     const hydratedByIdentity = new Map();
@@ -352,11 +389,14 @@ export const mergeHydratedTeams = (currentTeams, hydratedTeams) => {
                 // A pending catalogue request belongs to this partner and this form only.
                 // Deleting, replacing or transforming a partner must not revive stale data.
                 if (!hydratedPartner?.species?.name || hydratedPartner.species.name !== partner.species?.name) return partner;
-                return {
+                const enriched = {
                     ...partner,
                     species: hydratedPartner.species,
                     genderRate: hydratedPartner.genderRate
                 };
+                // Apply a deferred scale migration to the current edits, never
+                // copy the RPG state captured by an older catalogue request.
+                return { ...enriched, rpg: normalizePokemon(enriched).rpg };
             })
         };
     });

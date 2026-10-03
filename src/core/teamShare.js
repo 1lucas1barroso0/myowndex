@@ -1,5 +1,5 @@
-import { normalizeTeam, RPG_SCALE_VERSION, STAT_KEYS } from "./team.js";
-import { decompressSync, zlibSync } from "fflate";
+import { normalizePokemon, normalizeTeam, RPG_SCALE_VERSION, STAT_KEYS } from "./team.js";
+import { Decompress, zlibSync } from "fflate";
 
 export const SHARE_PREFIX = "MYOWNDEX4.";
 export const RAW_SHARE_PREFIX = "MYOWNDEX4R.";
@@ -7,6 +7,8 @@ export const POKEMON_SHARE_PREFIX = "MYOWNDEXP1.";
 export const RAW_POKEMON_SHARE_PREFIX = "MYOWNDEXP1R.";
 export const LEGACY_SHARE_PREFIX = "MYOWNDEX-V3-";
 const MAX_CODE_LENGTH = 50000;
+export const MAX_SHARE_PAYLOAD_BYTES = 1024 * 1024;
+const oversizedPayload = () => new Error("Este compartilhamento excede o tamanho seguro de uma Box do MyOwnDex.");
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -58,9 +60,41 @@ const base64UrlToBytes = value => {
     return Uint8Array.from(bytes);
 };
 
-const streamTransform = async (bytes, StreamConstructor, format) => {
+const streamTransform = async (bytes, StreamConstructor, format, limit = Infinity) => {
     const stream = new Blob([bytes]).stream().pipeThrough(new StreamConstructor(format));
-    return new Uint8Array(await new Response(stream).arrayBuffer());
+    const reader = stream.getReader();
+    const chunks = [];
+    let size = 0;
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > limit) { void reader.cancel().catch(() => {}); throw oversizedPayload(); }
+        chunks.push(value);
+    }
+    const transformed = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { transformed.set(chunk, offset); offset += chunk.byteLength; }
+    return transformed;
+};
+
+const decompressBounded = bytes => {
+    const chunks = [];
+    let size = 0;
+    const decompressor = new Decompress(chunk => {
+        size += chunk.byteLength;
+        if (size > MAX_SHARE_PAYLOAD_BYTES) throw oversizedPayload();
+        chunks.push(chunk);
+    });
+    // Small compressed chunks bound each inflater allocation before its result
+    // is checked, including highly compressible malformed share codes.
+    for (let offset = 0; offset < bytes.length; offset += 256) {
+        decompressor.push(bytes.subarray(offset, offset + 256), offset + 256 >= bytes.length);
+    }
+    const output = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
+    return output;
 };
 
 const packStats = (stats, fallback) => STAT_KEYS.map(stat => stats?.[stat] ?? fallback);
@@ -176,7 +210,7 @@ const packPokemonBundle = (pokemon, source = {}) => {
         k: "pokemon",
         n: String(source.name || "Pokémon recebidos").trim().slice(0, 80),
         r: String(source.versionGroup || "auto"),
-        p: partners.map(packPokemon),
+        p: partners.map(normalizePokemon).map(packPokemon),
     };
 };
 
@@ -269,6 +303,7 @@ export const extractShareCode = input => {
 
 export const encodeTeam = async team => {
     const bytes = textEncoder.encode(JSON.stringify(packTeam(team)));
+    if (bytes.byteLength > MAX_SHARE_PAYLOAD_BYTES) throw oversizedPayload();
     if (typeof CompressionStream === "function") {
         try {
             const compressed = await streamTransform(bytes, CompressionStream, "deflate");
@@ -286,6 +321,7 @@ export const encodeTeam = async team => {
 
 export const encodePokemonBundle = async (pokemon, source = {}) => {
     const bytes = textEncoder.encode(JSON.stringify(packPokemonBundle(pokemon, source)));
+    if (bytes.byteLength > MAX_SHARE_PAYLOAD_BYTES) throw oversizedPayload();
     if (typeof CompressionStream === "function") {
         try {
             const compressed = await streamTransform(bytes, CompressionStream, "deflate");
@@ -314,14 +350,16 @@ const decodeCurrentPayload = async code => {
     if (compressed) {
         if (typeof DecompressionStream === "function") {
             try {
-                bytes = await streamTransform(bytes, DecompressionStream, "deflate");
-            } catch {
-                bytes = decompressSync(bytes);
+                bytes = await streamTransform(bytes, DecompressionStream, "deflate", MAX_SHARE_PAYLOAD_BYTES);
+            } catch (error) {
+                if (error?.message === oversizedPayload().message) throw error;
+                bytes = decompressBounded(bytes);
             }
         } else {
-            bytes = decompressSync(bytes);
+            bytes = decompressBounded(bytes);
         }
     }
+    if (bytes.byteLength > MAX_SHARE_PAYLOAD_BYTES) throw oversizedPayload();
     return {
         prefix,
         payload: JSON.parse(textDecoder.decode(bytes)),

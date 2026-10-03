@@ -11,7 +11,7 @@ const browser = await chromium.launch({
     args: ['--no-sandbox'],
     ...(proxyServer ? { proxy: { server: proxyServer, bypass: 'localhost,127.0.0.1,::1' } } : {}),
 });
-const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: 'dark' });
+const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: 'dark', serviceWorkers: 'block' });
 const page = await context.newPage();
 const errors = [];
 const report = [];
@@ -245,6 +245,19 @@ try {
     }
 
     await nav('Abrir o Guia do Treinador');
+    await page.locator('.guide-rule-count').waitFor();
+    assert.equal(await page.locator('.guide-rule-card').count(), 39, 'the complete rule catalog must remain available');
+    const calculator = page.locator('.guide-calculator');
+    await openDetails(calculator);
+    await calculator.getByRole('spinbutton', { name: /^Valor original/ }).fill('55');
+    await calculator.getByRole('spinbutton', { name: /^Nível atual/ }).fill('10');
+    assert.deepEqual(await calculator.locator('.guide-scale-results strong').allTextContents(), ['5', '6'],
+        'the guide must apply the original-attribute scale and the separate HP rounding rule');
+    assert.match(await calculator.locator('.guide-field-value').innerText(), /XP até o próximo: 5/);
+    await calculator.getByRole('spinbutton', { name: /^Nível atual/ }).fill('200');
+    assert.equal(await calculator.locator('.guide-field-value').innerText(), 'Nível máximo');
+    await calculator.getByRole('spinbutton', { name: /^Nível atual/ }).fill('10');
+    await check('guide-complete-rules-canonical-scale-and-integer-xp');
     const protection = page.locator('.guide-rule-card[data-rule-id="3.4"]');
     await openDetails(protection);
     await openDetails(protection.locator('.guide-hit-kill-full-rule'));
@@ -253,6 +266,7 @@ try {
     assert.match(await protection.innerText(), /Sturdy/);
     assert.match(await protection.innerText(), /Focus Sash/);
     assert.match(await protection.innerText(), /Substitute/);
+    assert.match(await protection.innerText(), /Shedinja/);
     const dice = page.locator('.local-dice-panel');
     const free = dice.locator('.local-dice-tabs button').filter({ hasText: 'dX' });
     await free.click();

@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { describeTrait } from "../../core/descriptions.js";
 import { fetchCached, formatName } from "../../core/mechanics.js";
+import AbilityCard from "../Pokedex/AbilityCard.jsx";
+import ItemCard from "../Pokedex/ItemCard.jsx";
 import {
     consumeHeldItem,
     getTraitStatus,
     recordTraitEvent,
     restoreHeldItem,
     setAbilitySuppressed,
-    TRAIT_AUTOMATION_LABELS,
 } from "../../core/traitMechanics.js";
 
 const useTraitDetail = (kind, id) => {
@@ -27,7 +27,6 @@ const useTraitDetail = (kind, id) => {
 };
 
 const TraitCard = ({ kind, id, profile, active, consumed, suppressed, detail, canEdit, onActivate, onConsume, onRestore, onToggleSuppression }) => {
-    const explanation = describeTrait(kind, id, detail);
     const stateLabel = consumed
         ? "Já foi usado"
         : suppressed
@@ -38,23 +37,12 @@ const TraitCard = ({ kind, id, profile, active, consumed, suppressed, detail, ca
     return (
         <article className={`trait-card is-${kind} ${active ? "is-active" : ""} ${consumed || suppressed ? "is-paused" : ""}`}>
             <header>
-                <span>
-                    <small>{kind === "ability" ? "Habilidade" : "Item segurado"}</small>
-                    <strong>{formatName(id)}</strong>
-                </span>
+                <small>Estado na batalha</small>
                 <b>{stateLabel}</b>
             </header>
             <div className="trait-card-copy">
-                <span>{TRAIT_AUTOMATION_LABELS[profile.automation]}</span>
-                <strong>{profile.title}</strong>
-                <p>{explanation.summary}</p>
-                <small>{explanation.trigger}</small>
-                <small>{explanation.handling}</small>
-                {explanation.catalog.text ? (
-                    <details><summary>{explanation.catalog.label}</summary><p lang={explanation.catalog.code}>{explanation.catalog.text}</p></details>
-                ) : (
-                    <p className="catalog-description-missing">Descrição adicional indisponível.</p>
-                )}
+                {kind === "ability" ? <AbilityCard name={id} detail={detail} compact /> : <ItemCard name={id} detail={detail} compact />}
+                <small>{profile.automation === "automatic" ? "Aplicação automática na batalha" : profile.automation === "contextual" ? "Requer escolha de alvo ou contexto" : "Ativação e uso podem ser registrados abaixo"}</small>
             </div>
             {canEdit && (
                 <div className="trait-card-actions">

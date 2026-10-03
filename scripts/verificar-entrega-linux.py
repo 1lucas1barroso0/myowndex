@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("delivery", type=Path)
 args = parser.parse_args()
 delivery = args.delivery.resolve()
-stem = "myowndex-v11.3"
+stem = "myowndex-v11.4"
 installer = delivery / f"{stem}-linux.sh"
 archive_path = delivery / f"{stem}-linux.tar.gz"
 zip_path = delivery / f"{stem}.zip"
@@ -58,7 +58,7 @@ def extract(script, state, expected=0):
 
 
 assert installer.is_file() and archive_path.is_file() and zip_path.is_file()
-manifest = (delivery / "SHA256-V11.3.txt").read_text().splitlines()
+manifest = (delivery / "SHA256-V11.4.txt").read_text().splitlines()
 assert len(manifest) == 3
 for line in manifest:
     expected, filename = line.split(maxsplit=1)
@@ -68,8 +68,8 @@ passed("SHA-256 dos três artefatos")
 text = installer.read_text()
 run(["bash", "-n", str(installer)])
 assert '__ARCHIVE_SHA256__' not in text and '__MYOWNDEX_PACKAGE_BASE64__' not in text
-assert 'DEX_BASE="d8bb4096702786625f8acdb20ac63d26186d71ba"' in text
-passed("Sintaxe Bash, marcadores resolvidos e base publicada 11.2")
+assert 'DEX_BASE="f76dec47303e394e81d18186742f664eee33663d"' in text
+passed("Sintaxe Bash, marcadores resolvidos e base publicada com PRs20–28")
 
 payload = text.split("<<'MYOWNDEX_PACKAGE_BASE64'\n", 1)[1].split("\nMYOWNDEX_PACKAGE_BASE64\n", 1)[0]
 assert base64.b64decode(payload) == archive_path.read_bytes()
@@ -89,8 +89,8 @@ with tarfile.open(archive_path, "r:gz") as archive:
         assert not path.name.startswith(".env") or path.name == ".env.example"
         assert not path.name.endswith((".tsbuildinfo", ".log", ".pyc"))
         contents[member.name] = archive.extractfile(member).read()
-assert json.loads(contents["myowndex/package.json"])["version"] == "11.3.0"
-assert json.loads(contents["myowndex/package-lock.json"])["version"] == "11.3.0"
+assert json.loads(contents["myowndex/package.json"])["version"] == "11.4.0"
+assert json.loads(contents["myowndex/package-lock.json"])["version"] == "11.4.0"
 assert "myowndex/tests/browser-responsive.mjs" in contents
 assert "myowndex/docs/CONTINUAR.md" in contents
 assert "myowndex/docs/VALIDACAO.md" in contents
@@ -128,7 +128,7 @@ with tempfile.TemporaryDirectory(prefix="myowndex-entrega-qa-") as temp:
     assert (old_state / "package-sha256").read_text().strip() == old_digest
     assert (old_state / "branch").read_text() == "branch antigo preservado\n"
     assert (old_state / "pr-number").read_text() == "17\n"
-    assert json.loads((child / "source/myowndex/package.json").read_text())["version"] == "11.3.0"
+    assert json.loads((child / "source/myowndex/package.json").read_text())["version"] == "11.4.0"
     extract(installer, old_state)
     assert len(list(old_state.glob("v11-*"))) == 1
     passed("Versão anterior preservada e retomada no estado específico do pacote")
@@ -158,7 +158,7 @@ with tempfile.TemporaryDirectory(prefix="myowndex-entrega-qa-") as temp:
     assert "extração e integridade do pacote" in result.stderr
     assert not (failure_state / "source/myowndex/package.json").exists()
     extract(installer, failure_state)
-    assert json.loads((failure_state / "source/myowndex/package.json").read_text())["version"] == "11.3.0"
+    assert json.loads((failure_state / "source/myowndex/package.json").read_text())["version"] == "11.4.0"
     passed("Pacote corrompido rejeitado e retomada íntegra no mesmo estado")
 
     outputs = [workspace / "determinismo1", workspace / "determinismo2"]

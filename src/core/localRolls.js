@@ -1,11 +1,14 @@
 import { rollDie, secureRandomId } from "./random.js";
 import { getFumbleSuggestion, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
-import { normalizeRollHistory } from "./rollHistory.js";
+import { normalizeRollHistory, normalizeRollRecord } from "./rollHistory.js";
+import { getScopedBrowserStorage, getStorageScope, readDurableStorage, readStorage, writeDurableStorage, writeStorage } from "./storage.js";
 
 export const LOCAL_ROLL_PREFIX = "myowndex_local_roll_v2:";
 export const LOCAL_ROLL_LIMIT = 100;
+export const LOCAL_ROLL_HISTORY_KEY = "myowndex_local_roll_history_v3";
 export const LOCAL_ROLL_MODES = { normal: "Normal", advantage: "Vantagem", disadvantage: "Desvantagem" };
 export const LOCAL_DICE_SIDES = [4, 6, 8, 10, 12, 20, 100];
+const localContext = value => value === "aventura" ? "aventura" : value === "central" ? "central" : "guia";
 const integer = (value, min, max, name) => {
     if (!["number", "string"].includes(typeof value) || String(value).trim() === "" || !Number.isInteger(Number(value)) || Number(value) < min || Number(value) > max) throw new RangeError(`${name}: use um número inteiro entre ${min} e ${max}.`);
     return Number(value);
@@ -61,7 +64,7 @@ export function performLocalRoll(input, options = {}) {
         const values = Array.from({length:spec.quantity},()=>rollDie(spec.sides, random));
         result = { values, kept: [...values], total: values.reduce((a,b)=>a+b,0)+spec.modifier, success:null };
     }
-    return Object.freeze({ version:2, id, createdAt, context:options.context === "aventura" ? "aventura" : "guia", spec:Object.freeze(spec), ...result, values:Object.freeze(result.values), kept:Object.freeze(result.kept) });
+    return Object.freeze({ version:2, id, createdAt, context:localContext(options.context), spec:Object.freeze(spec), ...result, values:Object.freeze(result.values), kept:Object.freeze(result.kept) });
 }
 const sortRecords = (a,b) => b.createdAt-a.createdAt || b.id.localeCompare(a.id);
 export function mergeLocalRolls(...histories) {
@@ -69,8 +72,24 @@ export function mergeLocalRolls(...histories) {
     for (const entry of histories.flat()) if (entry?.id && !unique.has(entry.id)) unique.set(entry.id, entry);
     return [...unique.values()].sort(sortRecords).slice(0,LOCAL_ROLL_LIMIT);
 }
-function validReceipt(value) {
+export function normalizeLocalRollReceipt(value) {
     try {
+        if (["__proto__","constructor","prototype"].includes(value?.id)) return null;
+        if (value?.legacy === true) {
+            const record=normalizeRollRecord(value);
+            if(!record)return null;
+            return { ...record, version:1, legacy:true, createdAt:Math.min(record.createdAt,8640000000000000),total:record.result,
+                spec:{kind:record.kind,mode:record.mode,label:record.label},context:localContext(record.context) };
+        }
+        if (value?.version === 3) {
+            if (typeof value.id !== "string" || !/^[a-zA-Z0-9_-]{1,120}$/.test(value.id) || !Number.isSafeInteger(value.createdAt) || value.createdAt < 0 || value.createdAt > 8640000000000000 || value.spec?.kind !== "pokemon" || !["combat","capture","initiative","advance-turn","opposed"].includes(value.spec.action)) return null;
+            const groups = Array.isArray(value.groups) ? value.groups.slice(0,120).map(group => ({ label:String(group?.label || "Dados").slice(0,80), values:Array.isArray(group?.values) ? group.values.slice(0,66).filter(v=>Number.isInteger(v) && v>=1 && v<=100) : [] })) : [];
+            return Object.freeze({ version:3, id:value.id, createdAt:value.createdAt, context:localContext(value.context),
+                spec:Object.freeze({ kind:"pokemon", action:value.spec.action, mode:Object.hasOwn(LOCAL_ROLL_MODES,value.spec.mode) ? value.spec.mode : "normal", label:String(value.spec.label || "Jogada Pokémon").slice(0,80) }),
+                detail:String(value.detail || "").slice(0,1200), groups:Object.freeze(groups), values:Object.freeze(groups.flatMap(group=>group.values)), kept:Object.freeze([]),
+                success:typeof value.success === "boolean" ? value.success : null, critical:value.critical === true, fumble:value.fumble === true,
+            });
+        }
         if (!value || value.version !== 2 || typeof value.id !== "string" || !/^[a-zA-Z0-9_-]{1,120}$/.test(value.id) || !Number.isSafeInteger(value.createdAt) || value.createdAt < 0 || value.createdAt > 8640000000000000 || !value.spec) return null;
         const spec = localRollSpec(value.spec);
         const sides = spec.kind === "attribute" ? 6 : spec.kind === "percent" ? 100 : spec.sides;
@@ -83,11 +102,23 @@ function validReceipt(value) {
         const success = spec.kind === "percent" ? total <= spec.chance : spec.kind === "attribute" && spec.opposition !== null ? total > spec.opposition : null;
         if (value.success !== success) return null;
         if (spec.kind === "attribute" && (value.critical !== kept.every(v=>v===6) || value.fumble !== kept.every(v=>v===1))) return null;
-        return Object.freeze({ version:2, id:value.id, createdAt:value.createdAt, spec:Object.freeze(spec), values:Object.freeze([...value.values]), kept:Object.freeze([...kept]), total, success, critical:spec.kind === "attribute" && kept.every(v=>v===6), fumble:spec.kind === "attribute" && kept.every(v=>v===1), margin:spec.kind === "attribute" && spec.opposition !== null ? total-spec.opposition : null, context:value.context === "aventura" ? "aventura" : "guia", suggestion:spec.kind === "attribute" && value.fumble ? String(value.suggestion || "").slice(0,300) : "" });
+        return Object.freeze({ version:2, id:value.id, createdAt:value.createdAt, spec:Object.freeze(spec), values:Object.freeze([...value.values]), kept:Object.freeze([...kept]), total, success, critical:spec.kind === "attribute" && kept.every(v=>v===6), fumble:spec.kind === "attribute" && kept.every(v=>v===1), margin:spec.kind === "attribute" && spec.opposition !== null ? total-spec.opposition : null, context:localContext(value.context), suggestion:spec.kind === "attribute" && value.fumble ? String(value.suggestion || "").slice(0,300) : "" });
     } catch { return null; }
 }
-function browserStorage() { try { return typeof window === "undefined" ? null : window.localStorage; } catch { return null; } }
+const validReceipt = normalizeLocalRollReceipt;
+export const normalizeLocalRollHistory = values => mergeLocalRolls((Array.isArray(values) ? values : []).map(normalizeLocalRollReceipt).filter(Boolean));
+
+export const createPokemonRollReceipt = ({ action, label, detail, groups = [], success = null, critical = false, fumble = false, mode = "normal" }, options = {}) => {
+    const receipt = normalizeLocalRollReceipt({ version:3, id:options.id || secureRandomId("local-pokemon"), createdAt:options.createdAt ?? Date.now(), context:options.context, spec:{ kind:"pokemon", action, mode, label }, detail, groups, success, critical, fumble });
+    if (!receipt) throw new RangeError("Não foi possível registrar essa jogada.");
+    return receipt;
+};
+function browserStorage() { return getScopedBrowserStorage(); }
 export function readLocalRolls(storage = browserStorage()) {
+    if (arguments.length === 0) {
+        const aggregate = readStorage(LOCAL_ROLL_HISTORY_KEY, null);
+        if (aggregate !== null) return normalizeLocalRollHistory(aggregate);
+    }
     const entries = [];
     if (!storage) return entries;
     try {
@@ -102,6 +133,13 @@ export function readLocalRolls(storage = browserStorage()) {
     return mergeLocalRolls(entries);
 }
 export function saveLocalRoll(record, storage = browserStorage()) {
+    if (arguments.length === 1) {
+        if (!validReceipt(record)) return false;
+        const current = readLocalRolls();
+        const duplicate = current.find(entry=>entry.id===record.id);
+        if (duplicate) return JSON.stringify(duplicate)===JSON.stringify(validReceipt(record));
+        return writeStorage(LOCAL_ROLL_HISTORY_KEY, normalizeLocalRollHistory([record,...current]));
+    }
     if (!storage || !validReceipt(record)) return false;
     try {
         const key = LOCAL_ROLL_PREFIX+record.id;
@@ -121,6 +159,7 @@ export function saveLocalRoll(record, storage = browserStorage()) {
     } catch { return false; }
 }
 export function clearLocalRolls(storage = browserStorage()) {
+    if (arguments.length === 0) return writeStorage(LOCAL_ROLL_HISTORY_KEY, []);
     if (!storage) return false;
     try {
         const keys=[];
@@ -135,6 +174,7 @@ export function clearLocalRolls(storage = browserStorage()) {
 }
 export function localRollText(record) {
     if (record.legacy) return `${record.label}: ${record.values.join(" + ")} · ${record.detail}`;
+    if (record.version === 3) return `${record.spec.label}\n${record.detail}${record.groups.length ? "\n"+record.groups.map(group=>`${group.label}: ${group.values.join(" • ")}`).join("\n") : ""}\n${new Date(record.createdAt).toISOString()} · ${record.id} · ${record.context} · Rolagem local`;
     const { spec } = record;
     const modifier = spec.attribute ?? spec.modifier ?? 0;
     const equation = `${record.kept.join(" + ")}${modifier ? modifier < 0 ? ` − ${Math.abs(modifier)}` : ` + ${modifier}` : ""} = ${record.total}`;
@@ -143,6 +183,48 @@ export function localRollText(record) {
     const target = spec.kind === "percent" ? ` · chance ${spec.chance}%` : spec.opposition !== null && spec.opposition !== undefined ? ` · dificuldade ${spec.opposition} (é preciso superar)` : "";
     return `${spec.label ? spec.label+" · " : ""}${kind} · ${LOCAL_ROLL_MODES[spec.mode]}\nDados: ${record.values.join(" • ")}\nCálculo: ${equation}${target}${record.success === null ? "" : record.success ? " · Sucesso" : " · Falha"}${verdict}${record.suggestion ? `\nSugestão: ${record.suggestion}` : ""}\n${new Date(record.createdAt).toISOString()} · ${record.id} · ${record.context} · Rolagem local`;
 }
+
+// The aggregate is one atomic IndexedDB snapshot, so cloud restores and clears
+// cannot resurrect an old per-receipt key. In-flight changes capture their scope.
+let historyWrites = Promise.resolve();
+export const flushLocalRollHistoryWrites = () => historyWrites;
+const historyLock = (options, task) => {
+    const locks=typeof navigator!=="undefined" ? navigator.locks : null;
+    return locks?.request ? locks.request(`myowndex-local-roll-history:${options.scope ?? "guest"}`,task) : task();
+};
+const mutateHistory = (options, task) => {
+    const run = () => historyLock(options,task);
+    const next=historyWrites.then(run);
+    historyWrites=next.catch(()=>undefined);
+    return next;
+};
+const readHistoryUnlocked = async (options = {}) => {
+    const aggregate = await readDurableStorage(LOCAL_ROLL_HISTORY_KEY, null, options);
+    if (aggregate !== null) return normalizeLocalRollHistory(aggregate);
+    return readLocalRolls(getScopedBrowserStorage(options));
+};
+export const readLocalRollHistoryDurable = (options = {}) => {
+    const captured={scope:getStorageScope(),...options};
+    return historyLock(captured,()=>readHistoryUnlocked(captured));
+};
+export const writeLocalRollHistoryDurable = (records, options = {}) => {
+    const captured={scope:getStorageScope(),...options};
+    return mutateHistory(captured,()=>writeDurableStorage(LOCAL_ROLL_HISTORY_KEY,normalizeLocalRollHistory(records),captured));
+};
+export const saveLocalRollDurable = (record, options = {}) => {
+    if (!validReceipt(record)) return Promise.resolve(false);
+    const captured = { scope:getStorageScope(), ...options };
+    return mutateHistory(captured,async () => {
+        const history = await readHistoryUnlocked(captured);
+        const duplicate = history.find(entry=>entry.id===record.id);
+        if (duplicate) return JSON.stringify(duplicate)===JSON.stringify(validReceipt(record));
+        return writeDurableStorage(LOCAL_ROLL_HISTORY_KEY,normalizeLocalRollHistory([record,...history]),captured);
+    });
+};
+export const clearLocalRollsDurable = (options = {}) => {
+    const captured = { scope:getStorageScope(), ...options };
+    return mutateHistory(captured,()=>writeDurableStorage(LOCAL_ROLL_HISTORY_KEY,[],captured));
+};
 export function localRollEvent(record) {
     const {spec}=record;
     return { rollId:record.id, rolledAt:record.createdAt, label:spec.label || (spec.kind === "free" ? `${spec.quantity}d${spec.sides}` : spec.kind === "percent" ? "teste percentual" : "teste simples"), mode:spec.mode, result:record.total, ...(spec.kind === "percent" ? {rolls:record.values,chance:spec.chance} : {dice:record.values,kept:record.kept,attribute:spec.attribute ?? spec.modifier ?? 0}), success:record.success, critical:Boolean(record.critical), fumble:Boolean(record.fumble) };

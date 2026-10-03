@@ -29,7 +29,7 @@ export async function POST(request: Request, context: RouteContext) {
     await ensureRoomSchema();
     const params = await context.params;
     const code = safeRoomCode(params.code);
-    const auth = await authenticateRoom(code, readRoomKey(request));
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
     if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta aventura. Confira o convite e tente novamente." }, { status: 401 });
     const payload = await request.json().catch(() => ({})) as {
       type?: string;

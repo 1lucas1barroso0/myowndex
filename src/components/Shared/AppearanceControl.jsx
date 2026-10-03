@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { readStorage, writeStorage } from "../../core/storage.js";
+import { getStorageScope, readStorage, writeStorage } from "../../core/storage.js";
+import { rebaseLiveAccountDocument } from "../../core/accountDocument.js";
 import GameIcon from "./GameIcon.jsx";
 
 const APPEARANCE_KEY = "myowndex_appearance_v1";
@@ -30,6 +31,13 @@ export default function AppearanceControl() {
     useEffect(() => {
         setPreference(validTheme(readStorage(APPEARANCE_KEY, "normal")));
         setReady(true);
+        const receive = event => {
+            if (event.detail?.scope !== getStorageScope() || !event.detail.document) return;
+            setPreference(current => validTheme(rebaseLiveAccountDocument({ preferences: { appearance: current } },
+                event.detail.document, event.detail.previousDocument).preferences.appearance));
+        };
+        window.addEventListener("myowndex:account-document", receive);
+        return () => window.removeEventListener("myowndex:account-document", receive);
     }, []);
 
     useEffect(() => {

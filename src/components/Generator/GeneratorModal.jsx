@@ -1,0 +1,317 @@
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import speciesCatalogue from '../../data/species.json';
+import speciesMetadata from '../../data/generator-species.json';
+import { formatName, formatType, NATURES, STAT_MAP, TYPE_COLORS, TYPE_TEXT_COLORS, TYPES, VERSION_GROUPS, VERSION_LABELS } from '../../core/mechanics.js';
+import { generatePokemon, GENERATOR_DRAFT_KEY, getGeneratedHp, normalizeGeneratorOptions } from '../../core/pokemonGenerator.js';
+import { getStorageScope, readDurableStorage, readStorage, writeDurableStorage } from '../../core/storage.js';
+import { compactPokemon, createTeam, normalizePokemon } from '../../core/team.js';
+import { encodePokemonBundle, encodeTeam } from '../../core/teamShare.js';
+import RoomSelect from '../Shared/RoomSelect.jsx';
+import PokemonSprite from '../Shared/PokemonSprite.jsx';
+import PokemonCompanion from '../Shared/PokemonCompanion.jsx';
+import ConfirmDialog from '../Shared/ConfirmDialog.jsx';
+
+const normalizeDraft = input => {
+    const draft = input || {};
+    return (Array.isArray(draft.results) ? draft.results : []).slice(0, 6)
+        .filter(entry => entry?.pokemon?.species?.name && typeof entry.versionGroup === 'string')
+        .map(entry => ({ ...entry, pokemon: normalizePokemon(entry.pokemon), saved: Boolean(entry.saved), exported: Boolean(entry.exported) }));
+};
+const readDraft = scope => normalizeDraft(readStorage(GENERATOR_DRAFT_KEY, {}, { scope }));
+const serializeDraft = results => ({ schema: 1, results: results.map(entry => ({ ...entry, pokemon: compactPokemon(entry.pokemon) })) });
+const draftFingerprint = results => JSON.stringify(serializeDraft(results));
+const downloadText = (text, filename) => {
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), summary, [tabindex="0"]';
+
+export default function GeneratorModal({ onClose, teams = [], experienceMode = 'rpg', onAddPokemon, onAddBox }) {
+    const [scope] = useState(getStorageScope);
+    const [results, setResults] = useState(() => readDraft(scope));
+    const [draftReady, setDraftReady] = useState(false);
+    const [options, setOptions] = useState(() => normalizeGeneratorOptions({ experienceMode }));
+    const [selected, setSelected] = useState(() => new Set(readDraft(scope).map(entry => entry.pokemon.id)));
+    const [target, setTarget] = useState('new');
+    const [boxName, setBoxName] = useState('Novos parceiros');
+    const [busy, setBusy] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [progress, setProgress] = useState({ completed: 0, total: 1 });
+    const [notice, setNotice] = useState('');
+    const [error, setError] = useState('');
+    const [replaceConfirm, setReplaceConfirm] = useState(false);
+    const [remoteDraft, setRemoteDraft] = useState(null);
+    const dialogRef = useRef(null);
+    const closeRef = useRef(null);
+    const customizationRef = useRef(null);
+    const resultsRef = useRef(null);
+    const requestRef = useRef(null);
+    const sequenceRef = useRef(0);
+    const mountedRef = useRef(true);
+    const draftRef = useRef(results);
+    const draftReadyRef = useRef(false);
+    const savedDraftRef = useRef(null);
+    const activityRef = useRef({ busy: false, saving: false });
+    const closeCallback = useRef(onClose);
+    const titleId = useId();
+    const selectedResults = useMemo(() => results.filter(entry => selected.has(entry.pokemon.id) && !entry.saved), [results, selected]);
+    const exportSelection = useMemo(() => results.filter(entry => selected.has(entry.pokemon.id)), [results, selected]);
+    const targetBox = teams.find(team => team.id === target);
+    const freeSlots = target === 'new' ? 6 : Math.max(0, 6 - (targetBox?.pokemon?.length || 0));
+    const updateOption = (key, value) => setOptions(current => ({ ...current, [key]: value }));
+
+    useEffect(() => { closeCallback.current = onClose; }, [onClose]);
+    useEffect(() => { draftRef.current = results; }, [results]);
+    useEffect(() => {
+        let active = true;
+        readDurableStorage(GENERATOR_DRAFT_KEY, {}, { scope }).then(value => {
+            if (!active) return;
+            const restored = normalizeDraft(value);
+            draftRef.current = restored;
+            draftReadyRef.current = true;
+            savedDraftRef.current = draftFingerprint(restored);
+            setResults(restored);
+            setSelected(new Set(restored.map(entry => entry.pokemon.id)));
+            setDraftReady(true);
+        });
+        return () => { active = false; };
+    }, [scope]);
+    useEffect(() => {
+        const receive = event => {
+            if (event.detail?.scope !== scope || getStorageScope() !== scope || !event.detail?.document || !draftReadyRef.current) return;
+            const incoming = normalizeDraft(event.detail.document.localTools?.generatorDraft);
+            const current = draftFingerprint(draftRef.current);
+            if (draftFingerprint(incoming) === current) return;
+            if (activityRef.current.busy || activityRef.current.saving || current !== savedDraftRef.current) {
+                setRemoteDraft(incoming);
+                return;
+            }
+            // The account merge has already preserved a competing saved draft
+            // in its recoveries. Keep open controls and focus in this modal.
+            draftRef.current = incoming;
+            savedDraftRef.current = draftFingerprint(incoming);
+            setResults(incoming);
+            setSelected(new Set(incoming.map(entry => entry.pokemon.id)));
+            setRemoteDraft(null);
+            setNotice('Sua prévia foi atualizada.');
+        };
+        window.addEventListener('myowndex:account-document', receive);
+        return () => window.removeEventListener('myowndex:account-document', receive);
+    }, [scope]);
+    useEffect(() => {
+        mountedRef.current = true;
+        const previousFocus = document.activeElement;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const inert = [...document.body.children].filter(element => element instanceof HTMLElement && !element.contains(dialogRef.current) && !['SCRIPT', 'STYLE', 'LINK'].includes(element.tagName)).map(element => [element, element.inert]);
+        for (const [element] of inert) element.inert = true;
+        closeRef.current?.focus({ preventScroll: true });
+        const onKeyDown = event => {
+            if (document.querySelector('.confirm-dialog-overlay')) return;
+            if (event.key === 'Escape') { event.preventDefault(); closeCallback.current(); return; }
+            if (event.key !== 'Tab') return;
+            const choices = [...dialogRef.current.querySelectorAll(FOCUSABLE)].filter(element => element.getClientRects().length && (!element.closest('details:not([open])') || element.tagName === 'SUMMARY'));
+            const first = choices[0];
+            const last = choices[choices.length - 1];
+            if (event.shiftKey && (document.activeElement === first || !dialogRef.current.contains(document.activeElement))) { event.preventDefault(); last?.focus(); }
+            else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current.contains(document.activeElement))) { event.preventDefault(); first?.focus(); }
+        };
+        document.addEventListener('keydown', onKeyDown);
+        return () => {
+            mountedRef.current = false;
+            if (draftReadyRef.current && draftRef.current.length && draftFingerprint(draftRef.current) !== savedDraftRef.current) void writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(draftRef.current), { scope });
+            sequenceRef.current += 1;
+            requestRef.current?.abort();
+            document.removeEventListener('keydown', onKeyDown);
+            document.body.style.overflow = previousOverflow;
+            for (const [element, original] of inert) element.inert = original;
+            if (previousFocus?.isConnected) previousFocus.focus?.({ preventScroll: true });
+        };
+    }, [scope]);
+
+    useEffect(() => {
+        if (!draftReady || !results.length) return undefined;
+        const timer = window.setTimeout(() => {
+            const draft = serializeDraft(results);
+            void writeDurableStorage(GENERATOR_DRAFT_KEY, draft, { scope }).then(saved => {
+                if (saved) savedDraftRef.current = JSON.stringify(draft);
+                if (!saved && mountedRef.current) setError('O armazenamento deste dispositivo não conseguiu guardar a prévia. Exporte os parceiros ou salve em uma Box antes de fechar.');
+            });
+        }, 100);
+        return () => window.clearTimeout(timer);
+    }, [draftReady, results, scope]);
+
+    const runGeneration = async () => {
+        setReplaceConfirm(false);
+        requestRef.current?.abort();
+        const controller = new AbortController();
+        requestRef.current = controller;
+        const sequence = ++sequenceRef.current;
+        activityRef.current.busy = true;
+        setBusy(true);
+        setError('');
+        setNotice('');
+        setProgress({ completed: 0, total: Number(options.count) });
+        try {
+            const generated = await generatePokemon(speciesCatalogue, { ...options, experienceMode }, {
+                signal: controller.signal,
+                metadata: speciesMetadata,
+                onProgress: value => { if (sequenceRef.current === sequence) setProgress(value); },
+            });
+            if (sequenceRef.current !== sequence) return;
+            setResults(generated);
+            setSelected(new Set(generated.map(entry => entry.pokemon.id)));
+            if (customizationRef.current) customizationRef.current.open = false;
+            window.requestAnimationFrame(() => {
+                if (sequenceRef.current === sequence) resultsRef.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            });
+            setNotice(generated.length < Number(options.count) ? `Encontrei ${generated.length} parceiro${generated.length === 1 ? '' : 's'} com esses filtros. Amplie as opções para encontrar mais.` : 'Seus novos parceiros chegaram. Escolha onde guardá-los.');
+        } catch (cause) {
+            if (sequenceRef.current === sequence && cause.name !== 'AbortError') setError(cause.message || 'Não foi possível gerar agora. Tente novamente.');
+        } finally {
+            if (sequenceRef.current === sequence) { activityRef.current.busy = false; setBusy(false); }
+        }
+    };
+    const requestGeneration = event => {
+        event.preventDefault();
+        if (results.some(entry => !entry.saved && !entry.exported)) setReplaceConfirm(true);
+        else void runGeneration();
+    };
+    const updateNickname = (id, nickname) => setResults(current => current.map(entry => entry.pokemon.id === id ? { ...entry, exported: false, pokemon: { ...entry.pokemon, nickname } } : entry));
+    const toggleSelected = id => setSelected(current => {
+        const next = new Set(current);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+    });
+    const saveSelected = async () => {
+        if (!selectedResults.length || selectedResults.length > freeSlots || saving) return;
+        activityRef.current.saving = true;
+        setSaving(true);
+        setError('');
+        const savedIds = new Set();
+        try {
+            if (target === 'new') {
+                const versions = new Set(selectedResults.map(entry => entry.versionGroup));
+                if (await onAddBox?.({ name: boxName.trim() || 'Novos parceiros', versionGroup: versions.size === 1 ? selectedResults[0].versionGroup : 'auto', pokemon: selectedResults.map(entry => entry.pokemon) })) selectedResults.forEach(entry => savedIds.add(entry.pokemon.id));
+            } else {
+                for (const entry of selectedResults) {
+                    if (!await onAddPokemon?.(entry.pokemon, target)) break;
+                    savedIds.add(entry.pokemon.id);
+                }
+            }
+            if (mountedRef.current) {
+                if (savedIds.size) setNotice(`${savedIds.size} parceiro${savedIds.size === 1 ? '' : 's'} guardado${savedIds.size === 1 ? '' : 's'} no PC.`);
+                if (savedIds.size !== selectedResults.length) setError('Alguns parceiros continuam na prévia. Confira o espaço da Box e tente novamente.');
+            }
+        } catch (cause) { if (mountedRef.current) setError(cause.message || 'Não foi possível guardar agora. A prévia continua aqui.'); }
+        finally { activityRef.current.saving = false; if (mountedRef.current) { setResults(current => current.map(entry => savedIds.has(entry.pokemon.id) ? { ...entry, saved: true } : entry)); setSaving(false); } }
+    };
+    const exportResults = async (entries, asBox = false) => {
+        setError('');
+        try {
+            const pokemon = entries.map(entry => entry.pokemon);
+            const versionGroup = new Set(entries.map(entry => entry.versionGroup)).size === 1 ? entries[0].versionGroup : 'auto';
+            const team = { ...createTeam(boxName.trim() || 'Novos parceiros'), versionGroup, pokemon };
+            const text = asBox ? await encodeTeam(team) : await encodePokemonBundle(pokemon, { name: team.name, versionGroup });
+            downloadText(text, asBox ? 'myowndex-box-gerada.txt' : `myowndex-${pokemon.length === 1 ? pokemon[0].species.name : 'parceiros'}.txt`);
+            if (mountedRef.current) {
+                const ids = new Set(pokemon.map(partner => partner.id));
+                setResults(current => current.map(entry => ids.has(entry.pokemon.id) ? { ...entry, exported: true } : entry));
+                setNotice('Arquivo exportado. Importe no PC para continuar a aventura.');
+            }
+            return true;
+        } catch (cause) { if (mountedRef.current) setError(cause.message || 'Não foi possível exportar agora.'); return false; }
+    };
+    const chooseRemoteDraft = async () => {
+        if (!remoteDraft || busy || saving) return;
+        // A newer preview never silently replaces typing or an unfinished
+        // encounter. The explicit action exports unguarded partners first.
+        if (results.some(entry => !entry.saved && !entry.exported) && !await exportResults(results)) return;
+        if (getStorageScope() !== scope || !mountedRef.current) return;
+        if (!await writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(remoteDraft), { scope })) {
+            setError('Não foi possível guardar a prévia sincronizada. As duas prévias continuam disponíveis.');
+            return;
+        }
+        draftRef.current = remoteDraft;
+        savedDraftRef.current = draftFingerprint(remoteDraft);
+        setResults(remoteDraft);
+        setSelected(new Set(remoteDraft.map(entry => entry.pokemon.id)));
+        setRemoteDraft(null);
+        setNotice('Prévia sincronizada aberta.');
+    };
+    const keepCurrentDraft = async () => {
+        if (busy || saving) return;
+        if (!await writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(draftRef.current), { scope })) {
+            setError('Não foi possível guardar a prévia atual. Exporte os parceiros para preservá-los.');
+            return;
+        }
+        savedDraftRef.current = draftFingerprint(draftRef.current);
+        setRemoteDraft(null);
+        setNotice('Sua prévia atual foi mantida.');
+    };
+
+    if (typeof document === 'undefined') return null;
+    return createPortal(<div className="generator-overlay" onMouseDown={event => event.target === event.currentTarget && onClose()}>
+        <section className="generator-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} inert={replaceConfirm || undefined}>
+            <header className="generator-heading">
+                <div><span className="generator-kicker">Um encontro, uma nova aventura</span><h2 id={titleId}>Gerar Pokémon</h2></div>
+                <PokemonCompanion place="generator" className="companion-compact" eager />
+                <button type="button" ref={closeRef} className="generator-close" onClick={onClose} aria-label="Fechar gerador">×</button>
+            </header>
+            {!draftReady ? <p role="status" className="generator-notice">Recuperando sua prévia…</p> : <div className="generator-content">
+                <form className="generator-options" onSubmit={requestGeneration}>
+                    <p>Um parceiro ou uma equipe inteira, prontos para a sua jornada.</p>
+                    <div className="generator-basic-fields">
+                        <label>Quantidade<RoomSelect value={options.count} onChange={event => updateOption('count', Number(event.target.value))} aria-label="Quantidade de Pokémon">{[1, 2, 3, 4, 5, 6].map(count => <option key={count} value={count}>{count} Pokémon</option>)}</RoomSelect></label>
+                        <label>Nível<input type="number" min="1" max={experienceMode === 'game' ? 100 : 200} step="1" value={options.level} onChange={event => updateOption('level', event.target.value)} required /></label>
+                    </div>
+                    <label>Jogo<RoomSelect value={options.versionGroup} onChange={event => updateOption('versionGroup', event.target.value)} aria-label="Jogo dos Pokémon gerados">{VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}</RoomSelect></label>
+                    <details className="generator-customize" ref={customizationRef}><summary>Personalizar o encontro</summary>
+                        <label>Pokémon<RoomSelect value={options.speciesId} onChange={event => updateOption('speciesId', Number(event.target.value))} aria-label="Espécie a gerar"><option value="0">Surpreenda-me</option>{speciesCatalogue.map(entry => <option key={entry.name} value={Number(entry.url.split('/').filter(Boolean).pop())}>{formatName(entry.name)}</option>)}</RoomSelect></label>
+                        <div className="generator-basic-fields">
+                            <label>Tipo<RoomSelect value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo para o encontro"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
+                            <label>Geração<RoomSelect value={options.generation} onChange={event => updateOption('generation', Number(event.target.value))} aria-label="Geração dos Pokémon"><option value="0">Todas</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(generation => <option key={generation} value={generation}>{generation}ª geração</option>)}</RoomSelect></label>
+                        </div>
+                        <label>Lendários e Mythical<RoomSelect value={options.legendary} onChange={event => updateOption('legendary', event.target.value)} aria-label="Filtro de Legendary e Mythical"><option value="all">Podem aparecer</option><option value="exclude">Sem Legendary ou Mythical</option><option value="only">Somente Legendary ou Mythical</option></RoomSelect></label>
+                        <label>Natureza<RoomSelect value={options.nature} onChange={event => updateOption('nature', event.target.value)} aria-label="Natureza a gerar"><option value="random">Aleatória</option>{Object.keys(NATURES).map(nature => <option key={nature} value={nature}>{formatName(nature)}</option>)}</RoomSelect></label>
+                        <label className="generator-checkbox"><input type="checkbox" checked={options.shiny} onChange={event => updateOption('shiny', event.target.checked)} />Shiny</label>
+                        <label className="generator-checkbox"><input type="checkbox" checked={options.hiddenAbility} onChange={event => updateOption('hiddenAbility', event.target.checked)} />Permitir Hidden Ability</label>
+                    </details>
+                    <button type="submit" className="generator-primary" disabled={busy || saving}>{busy ? `Gerando ${progress.completed} de ${progress.total}…` : results.length ? 'Gerar outros Pokémon' : 'Gerar Pokémon'}</button>
+                    {busy && <button type="button" onClick={() => { requestRef.current?.abort(); sequenceRef.current += 1; activityRef.current.busy = false; setBusy(false); }}>Cancelar geração</button>}
+                    <small>Movimentos aprendidos até o nível escolhido. IVs aleatórios, EVs e XP em zero.</small>
+                    {experienceMode !== 'game' && options.versionGroup !== 'auto' && <small>O jogo seleciona os movimentos; as regras do RPG permanecem atuais.</small>}
+                </form>
+                <div className="generator-results" ref={resultsRef}>
+                    {error && <p className="generator-error" role="alert">{error}</p>}
+                    {notice && <p className="generator-notice" role="status">{notice}</p>}
+                    {remoteDraft && <div className="generator-notice generator-sync-choice" role="status"><p>Outra prévia chegou pela sua conta. Seus parceiros continuam aqui.</p><div className="generator-save-actions"><button type="button" disabled={busy || saving} onClick={() => void chooseRemoteDraft()}>{results.some(entry => !entry.saved && !entry.exported) ? 'Exportar atual e ver prévia' : 'Ver prévia sincronizada'}</button><button type="button" disabled={busy || saving} onClick={() => void keepCurrentDraft()}>Manter atual</button></div></div>}
+                    {!results.length && <div className="generator-empty"><span aria-hidden="true">✦</span><h3>Quem vai acompanhar você?</h3><p>Escolha o encontro e deixe a Pokédex trazer os parceiros.</p></div>}
+                    {results.length > 0 && <>
+                        <div className="generator-result-heading"><h3>Novos parceiros</h3><span>{results.length} de 6</span></div>
+                        <div className="generator-partners">{results.map(entry => {
+                            const partner = entry.pokemon;
+                            return <article key={partner.id} className={`generator-partner${entry.saved ? ' is-saved' : ''}`}>
+                                <div className="generator-partner-heading"><label className="generator-partner-choice"><input type="checkbox" checked={selected.has(partner.id)} onChange={() => toggleSelected(partner.id)} aria-label={`Selecionar ${formatName(partner.species.name)}`} /><PokemonSprite pokemonId={partner.species.id} src={partner.shiny ? partner.species.sprites?.front_shiny : partner.species.sprites?.front_default} shiny={partner.shiny} alt="" loading="eager" /><span><strong>{formatName(partner.species.name)}</strong><small>Nv. {partner.level}{partner.shiny ? ' · Shiny' : ''}{entry.saved ? ' · Guardado' : ''}</small></span></label><button type="button" onClick={() => void exportResults([entry])} aria-label={`Exportar ${formatName(partner.species.name)}`}>Exportar</button></div>
+                                <div className="generator-types">{partner.species.types?.map(type => <span key={type.type.name} style={{ background: TYPE_COLORS[type.type.name], color: TYPE_TEXT_COLORS[type.type.name] }}>{formatType(type.type.name)}</span>)}</div>
+                                <dl className="generator-partner-facts"><div><dt>Natureza</dt><dd>{formatName(partner.nature)}</dd></div><div><dt>Habilidade</dt><dd>{formatName(partner.ability) || 'Sem habilidade'}</dd></div></dl>
+                                <ul className="generator-moves" aria-label={`Movimentos de ${formatName(partner.species.name)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
+                                {!partner.moves.some(Boolean) && <p className="generator-small">Ainda não aprende movimentos por nível neste jogo.</p>}
+                                <details className="generator-partner-details"><summary>Ficha do encontro</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl></details>
+                            </article>;
+                        })}</div>
+                        <section className="generator-save" aria-label="Guardar os parceiros selecionados"><h3>Continuar a jornada</h3><label>Destino<RoomSelect value={target} onChange={event => setTarget(event.target.value)} aria-label="Box de destino dos Pokémon gerados"><option value="new">Criar uma nova Box</option>{teams.map(team => <option key={team.id} value={team.id} disabled={team.pokemon.length >= 6}>{team.name} · {6 - team.pokemon.length} vaga{team.pokemon.length === 5 ? '' : 's'}</option>)}</RoomSelect></label>{target === 'new' && <label>Nome da Box<input type="text" maxLength="80" value={boxName} onChange={event => setBoxName(event.target.value)} /></label>}<div className="generator-save-actions"><button type="button" className="generator-primary" disabled={!selectedResults.length || selectedResults.length > freeSlots || saving || busy} onClick={() => void saveSelected()}>{saving ? 'Guardando…' : selectedResults.length ? `Guardar ${selectedResults.length} no PC` : 'Guardar no PC'}</button><button type="button" disabled={!exportSelection.length || busy} onClick={() => void exportResults(exportSelection, true)}>Exportar Box</button></div>{selectedResults.length > freeSlots && <p className="generator-small">Esta Box tem {freeSlots} vaga{freeSlots === 1 ? '' : 's'}. Selecione menos parceiros ou crie outra Box.</p>}</section>
+                    </>}
+                </div>
+            </div>}
+        </section>
+        <ConfirmDialog open={replaceConfirm} title="Trazer novos parceiros?" description="Ainda há Pokémon que você não guardou nem exportou. A nova geração substitui esta prévia." confirmLabel="Gerar novos" cancelLabel="Voltar à prévia" onConfirm={() => void runGeneration()} onCancel={() => setReplaceConfirm(false)} />
+    </div>, document.body);
+}

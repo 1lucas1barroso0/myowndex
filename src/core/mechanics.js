@@ -1,4 +1,5 @@
 import { formatEnglishName } from "./names.js";
+import { canWriteRegenerableCache, jsonByteSize } from "./storageBudget.js";
 import {
     clampFinite,
     finiteNumberOrNull,
@@ -10,6 +11,11 @@ import {
 
 export const apiCache = new Map();
 export const API_CACHE_LIMIT = 256;
+export const API_MEMORY_CACHE_BYTES = 4 * 1024 * 1024;
+export const API_DISK_CACHE_BYTES = 8 * 1024 * 1024;
+export const API_CACHE_ENTRY_BYTES = 1024 * 1024;
+const memoryWeights = new Map();
+let memoryBytes = 0;
 
 const apiRequests = new Map();
 const apiFailures = new Map();
@@ -23,9 +29,20 @@ let cacheGeneration = 0;
 let persistentCacheQueue = Promise.resolve();
 
 const rememberMemory = (key, entry) => {
+    const bytes = jsonByteSize(entry.data);
+    memoryBytes -= memoryWeights.get(key) || 0;
+    memoryWeights.delete(key);
     apiCache.delete(key);
+    if (bytes > API_CACHE_ENTRY_BYTES) return;
     apiCache.set(key, entry);
-    while (apiCache.size > API_CACHE_LIMIT) apiCache.delete(apiCache.keys().next().value);
+    memoryWeights.set(key, bytes);
+    memoryBytes += bytes;
+    while (apiCache.size > API_CACHE_LIMIT || memoryBytes > API_MEMORY_CACHE_BYTES) {
+        const oldest = apiCache.keys().next().value;
+        memoryBytes -= memoryWeights.get(oldest) || 0;
+        memoryWeights.delete(oldest);
+        apiCache.delete(oldest);
+    }
 };
 
 // Only the public catalogue belongs in this optional, regenerable disk cache.
@@ -51,7 +68,18 @@ const queuePersistentCache = (operation, generation = cacheGeneration) => {
 
 const trimPersistentCache = async cache => {
     const keys = await cache.keys();
-    for (const key of keys.slice(0, Math.max(0, keys.length - API_CACHE_LIMIT))) await cache.delete(key);
+    const weights = await Promise.all(keys.map(async key => {
+        const response = await cache.match(key);
+        const weight = Number(response?.headers.get("x-myowndex-bytes"));
+        return Number.isFinite(weight) && weight > 0 ? weight : API_CACHE_ENTRY_BYTES;
+    }));
+    let bytes = weights.reduce((total, size) => total + size, 0);
+    let count = keys.length;
+    for (let index = 0; index < keys.length && (count > API_CACHE_LIMIT || bytes > API_DISK_CACHE_BYTES); index++) {
+        await cache.delete(keys[index]);
+        bytes -= weights[index];
+        count -= 1;
+    }
 };
 
 const touchPersistentCache = (url, generation) => {
@@ -84,13 +112,16 @@ const readPersistentApiCache = async (url) => {
 
 const writePersistentApiCache = (url, data, generation) => {
     if (!canUseCacheStorage() || !isCatalogueUrl(url) || data == null) return Promise.resolve();
+    const bytes = jsonByteSize(data);
+    if (bytes > API_CACHE_ENTRY_BYTES) return Promise.resolve();
     const cachedAt = Date.now();
     return queuePersistentCache(async cache => {
-        await cache.delete(url);
+        if (!await canWriteRegenerableCache(bytes)) return;
         await cache.put(url, new Response(JSON.stringify(data), {
             headers: {
                 "content-type": "application/json; charset=utf-8",
-                "x-myowndex-cached-at": String(cachedAt)
+                "x-myowndex-cached-at": String(cachedAt),
+                "x-myowndex-bytes": String(bytes)
             }
         }));
         await trimPersistentCache(cache);
@@ -198,6 +229,8 @@ export const fetchCached = async (url, options = {}) => {
 export const clearApiCache = async () => {
     cacheGeneration += 1;
     apiCache.clear();
+    memoryWeights.clear();
+    memoryBytes = 0;
     apiRequests.clear();
     apiFailures.clear();
     // Serialize deletion with older writes so they cannot recreate the cache
@@ -278,9 +311,9 @@ export const VERSION_GROUPS = [
     { value: "crystal", label: "Pokémon Crystal" },
     { value: "gold-silver", label: "Pokémon Gold/Silver" },
     { value: "yellow", label: "Pokémon Yellow" },
+    { value: "red-blue", label: "Pokémon Red/Blue" },
     { value: "blue-japan", label: "Pokémon Blue (Japan)" },
-    { value: "red-green-japan", label: "Pokémon Red/Green (Japan)" },
-    { value: "red-blue", label: "Pokémon Red/Blue" }
+    { value: "red-green-japan", label: "Pokémon Red/Green (Japan)" }
 ];
 
 export const VERSION_PRIORITY = VERSION_GROUPS.map(group => group.value).filter(value => value !== "auto");

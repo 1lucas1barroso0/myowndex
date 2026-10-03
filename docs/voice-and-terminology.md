@@ -45,7 +45,7 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Proporções aparecem como porcentagens ou multiplicadores decimais, nunca
   como frações. HP, dano e atributos mostram o resultado inteiro do cálculo,
   obedecendo ao arredondamento da regra correspondente; não arredonde antes de
-  aplicar todos os modificadores. XP admite passos de 0,5 pela regra 2.5, e
+  aplicar todos os modificadores. XP atual, recebida, dividida e metas de nível são inteiras e sempre arredondadas para baixo pela regra 2.5;
   medidas oficiais como 0,7 m conservam sua precisão.
 - Botões começam com verbos diretos: “Criar”, “Entrar”, “Rolar”, “Adicionar”,
   “Compartilhar” e “Continuar”.

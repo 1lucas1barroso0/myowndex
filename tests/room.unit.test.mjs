@@ -174,7 +174,7 @@ test("adding a Box creates linked battlefield tokens with calculated RPG stats",
   assert.equal(result.tokens[0].name, "Brasa");
   assert.equal(result.tokens[0].side, "ally");
   assert.equal(result.tokens[0].ownerPlayerId, "player-one");
-  assert.equal(result.tokens[0].xp, 2.5);
+  assert.equal(result.tokens[0].xp, 2);
   assert.ok(result.tokens[0].maxHp >= 1);
   assert.ok(result.tokens[0].stats.speed >= 0);
 });
@@ -298,7 +298,7 @@ test("battle progress returns to the linked Box without erasing journey details"
   assert.equal(synchronized[0].pokemon[0].level, 11);
   assert.equal(synchronized[0].pokemon[0].rpg.currentHp, 1);
   assert.equal(synchronized[0].pokemon[0].rpg.status, "burn");
-  assert.equal(synchronized[0].pokemon[0].rpg.xp, 5.5);
+  assert.equal(synchronized[0].pokemon[0].rpg.xp, 5);
   assert.deepEqual(synchronized[0].pokemon[0].rpg.pp, [12, 30, null, null]);
 
   const original = [team];

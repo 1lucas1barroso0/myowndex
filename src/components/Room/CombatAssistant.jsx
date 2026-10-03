@@ -25,6 +25,7 @@ import {
 } from "../../core/specialMechanics.js";
 import { getTraitMoveBlock } from "../../core/traitMechanics.js";
 import RoomSelect from "../Shared/RoomSelect.jsx";
+import { getCurrentMoveReference } from "../../core/championsMoves.js";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
@@ -96,7 +97,7 @@ export default function CombatAssistant({
         }
         fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(moveName)}`)
             .then(data => {
-                if (active) setMoveData(data || null);
+                if (active) setMoveData(getCurrentMoveReference(data || null));
             })
             .catch(() => {
                 if (active) setMoveData(null);
@@ -162,7 +163,7 @@ export default function CombatAssistant({
         if (!name || !attacker || !canControlAttacker) return;
         setDeclaring(true);
         try {
-            const detail = await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`);
+            const detail = getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`));
             if (!detail) throw new Error("A Pokédex não conseguiu abrir este movimento agora.");
             setMoveData(detail);
             await onDeclareMove?.(attacker.id, detail);
@@ -180,7 +181,7 @@ export default function CombatAssistant({
         setCalledMoveData(null);
         setResult(null);
         try {
-            const detail = await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`);
+            const detail = getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`));
             if (!detail) throw new Error("Esse movimento resultante não foi encontrado.");
             setCalledMoveData(detail);
             setCalledMoveName(detail.name);
@@ -196,7 +197,7 @@ export default function CombatAssistant({
         resolveInFlight.current = true;
         setRunning(true);
         try {
-            const move = resolvedMoveData || await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(moveName)}`);
+            const move = resolvedMoveData || getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(moveName)}`));
             if (!move) throw new Error("A Pokédex não conseguiu abrir este movimento agora.");
             if (remote) {
                 const authoritative = await onAuthoritativeAction({

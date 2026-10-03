@@ -1,7 +1,7 @@
 import { ROOM_SESSION_STORAGE_KEY } from "./room.js";
 import { finiteNumberOrNull, integerInRange, MAX_SAFE_GAME_INTEGER } from "./math.js";
 import { secureRandomId } from "./random.js";
-import { readStorage, removeStorage, writeStorage } from "./storage.js";
+import { readDurableStorage, readStorage, removeStorage, writeStorage } from "./storage.js";
 
 const REQUEST_TIMEOUT = 15000;
 const SAFE_REQUEST_METHODS = new Set(["GET", "HEAD"]);
@@ -24,6 +24,7 @@ const roomRequest = async (path, key, options = {}) => {
         const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
         const headers = new Headers(requestOptions.headers || {});
         if (key) headers.set("x-myowndex-room-key", key);
+        if (typeof key === "string" && key.startsWith("account_")) headers.set("x-myowndex-account", key.slice("account_".length));
         headers.set("x-myowndex-room-protocol", ROOM_PROTOCOL_VERSION);
         if (requestOptions.body && !(requestOptions.body instanceof FormData) && !headers.has("content-type")) {
             headers.set("content-type", "application/json");
@@ -178,7 +179,11 @@ export const fetchRoomAudioUrl = async (session, mediaId) => {
         let response = null;
         try {
             response = await fetch(path, {
-                headers: { "x-myowndex-room-key": session.key },
+                headers: {
+                    "x-myowndex-room-key": session.key,
+                    "x-myowndex-room-protocol": String(ROOM_PROTOCOL_VERSION),
+                    ...(session.key.startsWith("account_") ? { "x-myowndex-account": session.key.slice("account_".length) } : {}),
+                },
                 cache: "no-store",
                 signal: controller.signal,
             });
@@ -225,14 +230,15 @@ export const normalizeSavedSession = value => {
     };
 };
 
-export const loadRoomSession = () => normalizeSavedSession(readStorage(ROOM_SESSION_STORAGE_KEY, null));
+export const loadRoomSession = (options = {}) => normalizeSavedSession(readStorage(ROOM_SESSION_STORAGE_KEY, null, options));
+export const loadRoomSessionDurable = async (options = {}) => normalizeSavedSession(await readDurableStorage(ROOM_SESSION_STORAGE_KEY, null, options));
 
-export const saveRoomSession = session => {
+export const saveRoomSession = (session, options = {}) => {
     const normalized = normalizeSavedSession(session);
-    return normalized ? writeStorage(ROOM_SESSION_STORAGE_KEY, normalized) : false;
+    return normalized ? writeStorage(ROOM_SESSION_STORAGE_KEY, normalized, options) : false;
 };
 
-export const clearRoomSession = () => removeStorage(ROOM_SESSION_STORAGE_KEY);
+export const clearRoomSession = (options = {}) => removeStorage(ROOM_SESSION_STORAGE_KEY, options);
 
 const normalizeInviteParts = (code, inviteCode) => {
     const normalizedCode = String(code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);

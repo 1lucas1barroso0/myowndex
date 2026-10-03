@@ -132,13 +132,13 @@ export async function POST(request: Request, context: RouteContext) {
     await ensureRoomSchema();
     const params = await context.params;
     const code = safeRoomCode(params.code);
-    const auth = await authenticateRoom(code, readRoomKey(request));
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
     if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta aventura. Confira o convite e tente novamente." }, { status: 401 });
 
     const input = await request.json().catch(() => null);
     const normalized = normalizeAuthoritativeRequest(input);
     if (normalized.action === "capture" && auth.role !== "narrator") throw new AuthoritativeActionError("Só o Narrador confirma uma captura na cena.", 403);
-    const actorKey = auth.role === "narrator" ? "narrator" : auth.playerId || "player";
+    const actorKey = auth.accountId ? `account:${auth.accountId}:${auth.role}:${auth.playerId || 'narrator'}` : auth.role === "narrator" ? "narrator" : auth.playerId || "player";
     const fingerprintPayload = requestFingerprintPayload(normalized);
     const requestJson = JSON.stringify(fingerprintPayload);
     const fingerprint = await hashSecret(requestJson);

@@ -113,3 +113,45 @@ html .app-root .record-state h2 { font-size:1.5rem; font-weight:800; }
 html .app-root .record-state-button { min-height:44px; padding:.7rem 1rem; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); }
 @media (max-width:900px) { html .app-root .record-shell { grid-template-columns:minmax(0,1fr); } html .app-root .record-overview { border-right:0; border-bottom:1px solid var(--ui-line); } html .app-root .record-sprite-stage { min-height:180px; } html .app-root .record-partner-sprite { width:180px; height:180px; } }
 @media (max-width:420px) { html .app-root .record-tabs { gap:.3rem; padding:.75rem; } html .app-root .record-tabs button { flex-direction:column; font-size:.8rem; } html .app-root .record-backdrop { padding:.5rem; } html .app-root .record-shell { max-height:calc(100dvh - 1rem); } html .app-root .record-move-panel { padding-inline:.8rem; } html .app-root .species-description { padding:1rem; } }
+
+/* Game and language choices sit with the information they change. */
+html .app-root .record-game-picker { display:grid; gap:.6rem; min-width:0; margin:0 0 1.25rem; }
+html .app-root .record-game-picker > label { color:var(--ui-muted); font-size:.85rem; font-weight:700; }
+html .app-root .record-game-picker .room-select { width:100%; min-height:50px; }
+html .app-root .record-game-picker .room-select-value { padding:.8rem 2.6rem .8rem .9rem; font-size:.95rem; line-height:1.5; }
+html .app-root .record-moves-heading { display:grid; gap:1rem; }
+html .app-root .record-moves-heading .record-section-title { margin:0; }
+html .app-root .record-moves-heading :is(.record-game-picker,.record-move-version) { margin:0; }
+html .app-root .record-abilities-list { display:grid; gap:1.5rem; }
+html .app-root .record-trait-card { display:grid; gap:1.25rem; min-width:0; padding:1.25rem; border:1px solid var(--ui-line); border-left:3px solid var(--ui-blue); background:var(--ui-raised); border-radius:.2rem; }
+html .app-root .record-trait-card.record-ability-card { margin:0; padding:1.25rem; border:1px solid var(--ui-line); border-left:3px solid var(--ui-blue); background:var(--ui-raised); border-radius:.2rem; }
+html .app-root .record-trait-card.record-item-card { border-left-color:var(--ui-gold,var(--ui-blue)); }
+html .app-root .record-trait-card.is-compact { padding:1.25rem; }
+html .app-root .record-trait-heading { display:flex; flex-wrap:wrap; align-items:center; gap:.85rem; margin:0; min-width:0; }
+html .app-root .record-trait-heading > div { flex:1; min-width:min(140px,100%); }
+html .app-root .record-trait-heading small { display:block; margin-bottom:.35rem; font-size:.8rem; color:var(--ui-muted); }
+html .app-root .record-trait-heading h4 { margin:0; color:var(--ui-ink); font-size:1.15rem; line-height:1.4; font-weight:800; overflow-wrap:anywhere; }
+html .app-root .record-item-sprite { flex:0 0 48px; width:48px; height:48px; object-fit:contain; image-rendering:pixelated; background:var(--ui-panel); border-radius:.15rem; }
+html .app-root .reference-text { display:grid; gap:.75rem; min-width:0; }
+html .app-root .reference-text-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.75rem; min-width:0; }
+html .app-root .reference-text-toolbar > small { color:var(--ui-muted); font-size:.8rem; font-weight:700; line-height:1.5; }
+html .app-root .reference-language-toggle { display:grid; place-items:center; flex:0 0 48px; min-width:48px; min-height:44px; padding:.5rem .6rem; border:1px solid var(--ui-blue); border-radius:.2rem; background:var(--ui-panel); color:var(--ui-blue); font-size:.85rem; font-weight:800; }
+html .app-root .reference-language-toggle[aria-pressed=true] { background:var(--ui-selected); }
+html .app-root .reference-text > p { margin:0; color:var(--ui-ink); font-size:1rem; line-height:1.75; overflow-wrap:anywhere; }
+html .app-root .reference-text-source { color:var(--ui-muted); font-size:.75rem; line-height:1.6; }
+html .app-root .record-move-methods { display:flex; flex-wrap:wrap; gap:.5rem; }
+html .app-root .record-move-methods > span { padding:.4rem .6rem; border:1px solid var(--ui-line); background:var(--ui-panel); color:var(--ui-muted); font-size:.8rem; line-height:1.5; }
+html .app-root .record-move-panel { padding:.5rem 1.1rem 1.4rem; }
+html .app-root .record-move-toggle { padding:1rem; gap:.85rem; min-height:64px; }
+html .app-root .record-move-toggle .record-move-method { white-space:normal; text-align:center; }
+html .app-root .record-move-facts { gap:.85rem; }
+html .app-root .record-move-facts > div { padding:.85rem; }
+html .app-root :is(.record-trait-card,.reference-text,.record-game-picker) :is(button,select):focus-visible { outline:3px solid var(--ui-blue); outline-offset:3px; }
+@media (max-width:420px) {
+    html .app-root .record-trait-card.record-ability-card,
+    html .app-root .record-trait-card.record-item-card { padding:1rem; }
+    html .app-root .record-move-toggle { grid-template-columns:minmax(0,1fr) 24px; gap:.65rem; }
+    html .app-root .record-move-method { grid-column:1; justify-self:start; }
+    html .app-root .record-move-name { grid-column:1; grid-row:2; }
+    html .app-root .record-move-chevron { grid-column:2; grid-row:1/3; }
+}

@@ -1,75 +1,53 @@
-## Referência de regras
+# Validação da edição 11.4
 
-Metagame e formatos competitivos não fazem parte do escopo do modo RPG: banlists, tiers, cláusulas e normas de torneio não alteram a adaptação. O MyOwnDex usa mecânicas centrais dos jogos, anime e narrativa, sempre pela implementação oficial mais recente disponível.
+Em **3 de outubro de 2026**, a fonte final passou em **331 testes, sem falhas, cancelamentos ou testes ignorados**, além de lint, verificação de tipos e build de produção. Ambiente: Node.js 24.19, Next.js 16.2.12 e Chromium. Esses resultados validam a fonte; a publicação da 11.4 ainda precisa ser confirmada separadamente.
 
+| Check | Resultado | Log da execução |
+| --- | --- | --- |
+| `npm test` | 331 de 331 passaram | `/tmp/myowndex-final-unit.log` |
+| `npm run lint` | Passou | `/tmp/myowndex-final-lint.log` |
+| `npm run typecheck` | Passou | `/tmp/myowndex-final-types.log` |
+| `npm run build` | Passou, incluindo rotas de contas e aventuras | `/tmp/myowndex-final-build.log` |
 
-O modo RPG usa como base principal a implementação oficial mais recente e corrigida disponível para cada mecânica. Atualizações, patches e correções posteriores prevalecem sobre versões antigas; o catálogo automático de movimentos prioriza a versão mais recente disponível. Em outubro de 2026, a referência de batalha mais recente é Pokémon Champions, incluindo seus ajustes de condições, movimentos e Habilidades.
+O build foi executado com o transporte Turso/Hrana de teste em `http://127.0.0.1:8097`, sem usar credenciais ou alterar dados de produção. Os logs de `/tmp` são evidências locais temporárias; os testes e os comandos permanecem no repositório.
 
-# Validação da atualização 11.3
+## Cobertura das regras e dos dados
 
-Verificação em 2 de outubro de 2026, Node.js 24.19.0, Next.js 16.2.12 e Chromium. Build de produção, TypeScript, ESLint, HTML servido e 215 testes aprovados. A publicação 11.3 está pendente pelo instalador; produção pública conferida em 11.2.0.
+Os testes verificam a escala e os arredondamentos dos PRs #20–#28, migração proporcional de HP, Shedinja, proteção contra hit kill, Confusion, Sleep, Freeze, paralisia, disputas proporcionais e iniciativa automática. Também cobrem importação/exportação, isolamento do campo de dados locais, recibos persistidos, limpeza do histórico sem retorno de resultados apagados, sincronização e limites de armazenamento.
 
-```bash
-npm ci
-npm test
-npm run lint
-npm run build
-npm run typecheck
-```
+Cinco testes de `tests/champions-runtime.unit.test.mjs`, incluídos no total de 331, confirmam as 45 diferenças verificadas do catálogo de movimentos, preservação dos dados históricos e dos objetos originais, PP atual de Protect, queda de Sp. Atk. de Make It Rain e elegibilidade de First Impression pela quantidade de tentativas após a entrada em campo. Uma tentativa bloqueada por Sleep conta para essa elegibilidade. A referência é aplicada tanto no cliente quanto no motor autoritativo.
 
-Build/tipos são sequenciais, pois Next.js gera tipos durante a build.
+Os testes de referência por jogo confirmam que os dados canônicos compactos permanecem disponíveis offline. Uma Box consultada em um jogo antigo continua histórica na consulta; ao levar seu Pokémon para o campo RPG, o token recupera tipos e atributos atuais sem modificar a ficha original.
 
 ## Navegador
 
-- `tests/browser-responsive.mjs`: 99 checkpoints, quatro módulos em 320/390/768/1280/1440 px, Claro/Escuro, fichas/abas, editor aberto, Link Cable/importação/salvamento, Guia, aventura móvel, 200% zoom, redução de movimento e 80 Boxes/480 Pokémon persistidos.
-- `tests/browser-polish.mjs`: 51 checkpoints, Bulbasaur/Growl/Eevee, evoluções ramificadas, IVs/EVs com reload, proteção 3.4, dados/histórico e migração da preferência antiga.
-- `tests/browser-space.mjs`: 140 checkpoints. Aparência compacta e modos íntegros; original/PT e troca offline sem requisição; medidas oficiais; editor com 12 IV/EV persistidos; aventura vazia/povoada, reservas e nomes longos, escolhas reais de movimentos/situação/Poké Ball; formulários abertos e zoom de 200%. Mede glifos do valor selecionado dentro do campo, reserva da seta, igualdade com selectedOptions e toque/contraste. Não considera conteúdo de details fechado como visível.
-- Todos sem erros JavaScript, vazamento horizontal ou clipping nos cenários cobertos. Contextos isolados, sem dados locais do usuário.
+As verificações abaixo foram executadas durante a integração em Chromium, contra um build de produção local e SQLite real pelo transporte Hrana. Cada número corresponde aos checkpoints do respectivo roteiro, não ao total de testes unitários.
 
-Reprodução com Playwright opcional, fora do runtime:
+| Roteiro | Checkpoints aprovados | Principais fluxos |
+| --- | --- | --- |
+| `tests/browser-responsive.mjs` | 99 | Navegação, campos, limites da tela e temas |
+| `tests/browser-space.mjs` | 140 | Espaçamento, ficha, Boxes e conteúdo longo |
+| `tests/browser-polish.mjs` | 52 | Acabamento da interface, controles e edição |
+| `tests/browser-xp-dice.mjs` | 38 | XP inteira, guia, dados e progressão |
+| `tests/browser-generator.mjs` | 26 | Geração, prévia, exportação e envio ao PC |
+| `tests/browser-reference.mjs` | 25 | EN/PT, registros históricos, movimentos, habilidades e itens |
+| `tests/browser-accounts.mjs` | 62 | Contas, recuperação, privacidade e sincronização entre dispositivos |
+| `tests/browser-local-pokemon-dice.mjs` | 12 | Combate, iniciativa, captura e persistência de dados locais |
 
-```bash
-npm install --no-save --package-lock=false playwright
-npx playwright install chromium
-npm run build
-npm run start
-```
+As telas foram conferidas em **320, 390, 768 e 1280 pixels**, nos dois temas, além de zoom de 200%. A conferência inclui limites das palavras e controles, não apenas ausência de rolagem horizontal da página. O cabeçalho em 390 pixels mantém modos e aparência na mesma linha; em 320 pixels, os grupos quebram em linhas próprias, com alvos de toque de pelo menos 44 pixels. A navegação móvel da aventura não cobre os campos.
 
-Em outro terminal:
+Foram exercitadas 80 Boxes com 480 Pokémon, acesso à última Box, restauração e persistência. Outra prova de quota confirmou a restauração de 120 Boxes a partir da gravação durável. Esses volumes demonstram os fluxos testados e não representam garantia de capacidade ilimitada.
 
-```bash
-MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/browser-responsive.mjs
-MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/browser-polish.mjs
-MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/browser-space.mjs
-```
+Os fluxos de contas confirmaram cadastro, login, recuperação, troca de senha, exclusão, 12 valores de treinamento no outro dispositivo, recibos idênticos, conflito de edição com cópia recuperável e retomada de aventuras compartilhadas sem sincronizar segredos. Notas do Narrador permaneceram privadas. Receber uma atualização remota manteve o diálogo de dados e a ficha abertos, sem fechar a tela ou rolar novamente. A prévia do gerador sincronizou sem inserir Pokémon automaticamente nas Boxes.
 
-`MYOWNDEX_BROWSER_EXECUTABLE=/usr/bin/chromium` usa Chromium instalado; `MYOWNDEX_PLAYWRIGHT_MODULE` aceita instalação separada de Playwright. Cada script documenta os relatórios/screenshots em /tmp. Na sessão, a verificação final usa a build de produção em 3001.
+Os dados locais resolveram combate com PP, iniciativa, fim de rodada, disputa e captura; o campo de prática permaneceu separado das Boxes. Duas abas conservaram seus recibos e apagar o histórico não o fez reaparecer. Ao abrir os dados globais numa aventura, os controles usaram seu contexto real sem substituir o campo de prática privado. Os roteiros de conta, gerador, referências e dados locais não registraram erros de JavaScript não tratados.
 
-## Idiomas e catálogo
+Depois das últimas alterações, foram repetidos e aprovados os roteiros de dados locais com Pokémon (**12**), referências (**25**) e XP/dados globais (**38**), além da conferência do cabeçalho em 320 e 390 pixels nos dois temas. A verificação direta confirmou **Teste**, ausência do parágrafo introdutório fixo e de Vibração, e explicações opcionais recolhidas.
 
-Os três testes novos verificam cobertura exata de 1.025 espécies, pares reais e diferentes EN/PT, proveniência/hash, nomes ingleses, ausência de mutação e frações, forma correta de Gimmighoul e fallback honesto para futuras espécies sem tradução. Corpus local: 1.007 pares oficiais de Pokémon GO e 18 de Scarlet com tradução editorial MyOwnDex; Gimmighoul Roaming adiciona um par oficial de forma. Fonte e direitos originais documentados em `POKEDEX-IDIOMAS.md` e JSON de proveniência. Regeração a partir dos commits fixados foi executada; não depende de tradução por IA.
+## Reproduzir e publicar
 
-Os textos ingleses/portugueses de cada par são da mesma entrada. Mudança de idioma só altera descrição; nomes próprios, fatos, IDs e dados do jogador são preservados. Títulos explicam a origem, inclusive traduções editoriais. O dataset só é importado pelo módulo da ficha carregado sob demanda.
+Executar `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` na fonte final. Para os roteiros de navegador, iniciar `tests/helpers/hrana-server.mjs` e o servidor de produção local; informar `MYOWNDEX_SMOKE_URL`, `MYOWNDEX_PLAYWRIGHT_MODULE` e `MYOWNDEX_BROWSER_EXECUTABLE` conforme o ambiente. Não usar o banco de produção para ensaios de cadastro, privacidade, recuperação ou migração.
 
-Escala RPG usa divisão por 10 e arredondamento ao inteiro mais próximo: empates exatos em 0,5 descem por padrão e sobem apenas para HP escalado. Frações canônicas de HP preservam o arredondamento próprio dos jogos, normalmente para baixo com mínimo de 1 quando o efeito é positivo. Dano/cura continuam inteiros e imunidade continua zero. Modificadores direcionais preservam mudanças legítimas de estágio. XP em passos de 0,5 e medidas oficiais como 0,7 m continuam precisos.
+A distribuição Linux deve ser gerada por `scripts/empacotar-linux.py` e conferida por `scripts/verificar-entrega-linux.py`. Sua aprovação será registrada quando a execução ocorrer. Publicação exige CI e Preview aprovados no SHA final, merge confirmado e verificação do endereço de produção. Na elaboração deste documento, a produção ainda está na **11.3**.
 
-## Salas, armazenamento e entrega
-
-HTML servido aprovado. Smoke HTTP/Hrana/SQLite real completo de salas e sincronização/privacidade em duas páginas foi aprovado na 11.1; não repetido agora. Alterações atuais preservam servidor/protocolo/banco; autorização e ações seguem cobertas pelos testes unitários. Com servidor e banco de QA:
-
-```bash
-MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/room-api.smoke.mjs
-MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/rendered-html.test.mjs
-```
-
-Cache, quota, hidratação, salvamento agrupado/flush e Boxes permanecem testados. Chaves/esquemas iguais, sem expiração das Boxes. Edição simultânea em abas conserva última escrita; volume verificado de 480 parceiros não significa capacidade ilimitada. Áudio/chamadas reais dependem de permissões, CORS e TURN.
-
-Instalador operacional igual à 11.2, com base d8bb4096. Runner executa 12 verificações atuais: SHA/payload, sintaxe/base, caminhos/exclusões, equivalência ZIP/TAR, extração, reexecução, estados antigos, trava, corrupção/recuperação e determinismo. Os 34 testes de automação antigos não são contados como repetidos.
-
-```bash
-python3 scripts/empacotar-linux.py
-python3 scripts/verificar-entrega-linux.py ../entrega
-```
-
-A matemática proporcional de disputas e iniciativa é interna: a interface mostra dados, ordem, sucesso/falha e consequências, nunca exige que o jogador multiplique atributos ou compare totais ponderados. Quando a Central conhece os dois lados de uma disputa, ela rola usuário e oposição no mesmo comando.
-
+Fontes e limites de cobertura: [POKEDEX-IDIOMAS.md](POKEDEX-IDIOMAS.md), [PR-20-28.md](PR-20-28.md), [CONTAS-E-SINCRONIZACAO.md](CONTAS-E-SINCRONIZACAO.md) e [GENERATOR-SOURCES.md](GENERATOR-SOURCES.md). A ausência de uma descrição verificada não é suprida por texto inventado.

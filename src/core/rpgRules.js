@@ -52,7 +52,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "1.1",
                 title: "Testes básicos",
-                body: "Role 2d6. Quando houver oposição entre Pokémon, o jogador só inicia o teste: o MyOwnDex rola também a oposição e aplica automaticamente atributos, IVs, EVs, Nature, nível, estágios, condições, habilidades e itens. A ponderação proporcional acontece apenas no motor; ninguém precisa multiplicar ou trabalhar com totais grandes. Diferenças proporcionais iguais se comportam de modo semelhante em qualquer nível, e o alvo que se defende vence os empates."
+                body: "Role 2d6. Quando houver oposição entre Pokémon, o jogador só inicia o teste: o MyOwnDex rola também a oposição e aplica automaticamente atributos, IVs, EVs, Nature, nível, estágios, condições, habilidades e itens. A aventura e os dados locais usam a mesma resolução quando os Pokémon e o contexto estão definidos.\n\nA ponderação proporcional acontece apenas no motor; ninguém precisa multiplicar ou trabalhar com totais grandes. Diferenças proporcionais iguais se comportam de modo semelhante em qualquer nível, e o alvo que se defende vence os empates."
             },
             {
                 id: "1.2",
@@ -111,10 +111,10 @@ export const RPG_RULE_SECTIONS = [
                 id: "2.5",
                 title: "Experiência e evolução",
                 bullets: [
-                    "Para alcançar o próximo nível, acumule XP igual à metade desse novo nível. A contagem volta a zero depois do avanço.",
+                    "Para alcançar o próximo nível, acumule XP igual à metade desse novo nível, sempre arredondada para baixo. Por exemplo: do nível 10 para o 11, a meta é 5 XP. A contagem volta a zero depois do avanço.",
                     "Por desafio resolvido, cada participante recebe 1 XP em um desafio comum, 2 XP em um desafio importante ou 3 XP em uma grande conquista. A categoria é definida pelo Narrador conforme risco e impacto, não pelo número de ataques ou nocautes.",
                     "Vitória, captura, negociação, resgate e descoberta podem resolver o mesmo desafio: conceda a recompensa uma única vez. Ações triviais, repetidas ou sem risco não geram XP.",
-                    "A divisão padrão é igual entre os participantes. Uma divisão proporcional diferente deve ser combinada antes da recompensa; todo Pokémon que entrou em campo recebe pelo menos 1 XP. Meio ponto de XP é válido."
+                    "XP só usa números inteiros. Arredonde para baixo a XP atual, recebida e dividida. A divisão padrão é igual entre os participantes; uma divisão proporcional diferente deve ser combinada antes da recompensa. Depois da divisão, todo Pokémon que entrou em campo recebe pelo menos 1 XP."
                 ]
             }
         ]
@@ -128,7 +128,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.1",
                 title: "Ordem dos turnos",
-                body: "No início de cada rodada, declare os movimentos e use Rolar iniciativa. O MyOwnDex rola todos os participantes de uma vez, aplica automaticamente Velocidade, estágios, condições, habilidades, itens e prioridade, e entrega apenas a ordem. Empates reais são desempatados automaticamente com 1d6 até haver uma ordem; ninguém precisa calcular ou comparar totais ponderados."
+                body: "No início de cada rodada, declare os movimentos e use Rolar iniciativa. Na aventura ou nos dados locais, o MyOwnDex rola todos os participantes de uma vez, aplica automaticamente Velocidade, estágios, condições, habilidades, itens e prioridade, e entrega apenas a ordem.\n\nEmpates reais são desempatados automaticamente com 1d6 até haver uma ordem; ninguém precisa calcular ou comparar totais ponderados."
             },
             {
                 id: "3.2",
@@ -138,7 +138,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "3.3",
                 title: "Resolução de movimentos",
-                body: "Só movimentos que causam dano fazem a disputa de atributos: Físicos testam Ataque contra Defesa; Especiais testam Ataque Especial contra Defesa Especial. Movimentos de status dirigidos a outro Pokémon usam precisão e imunidades, mas não inventam uma disputa de dano. Ações sobre o usuário ou o campo, como Recuperar e Dança de Espadas, resolvem-se pela declaração.",
+                body: "Só movimentos que causam dano fazem a disputa de atributos: Físicos testam Ataque contra Defesa; Especiais testam Ataque Especial contra Defesa Especial.\n\nMovimentos de status dirigidos a outro Pokémon usam precisão e imunidades, mas não inventam uma disputa de dano. Ações sobre o usuário ou o campo, como Recover e Swords Dance, resolvem-se pela declaração.",
                 bullets: [
                     "Para causar dano, o atacante precisa superar o defensor. Um empate ou resultado menor impede o dano, mas não apaga efeitos secundários se o movimento alcançou o alvo.",
                     "O alvo original do movimento determina quem recebe cura, condição e modificadores; efeitos sobre o usuário não são transferidos ao adversário.",
@@ -276,7 +276,8 @@ export const RPG_RULE_SECTIONS = [
                     "Sono: pela referência atual, impede 1 ou 2 oportunidades de agir; há 1 em 3 de chance de acordar antes da segunda e, caso contrário, o despertar ocorre antes da terceira. Trocar preserva a contagem. Rest mantém sua duração própria; Early Bird reduz a duração; Snore e Sleep Talk mantêm a permissão de agir dormindo.",
                     "Congelamento: antes de agir, há 25% de chance de descongelar e agir; se isso não ocorrer nas duas primeiras oportunidades, o Pokémon descongela antes da terceira. Movimentos que descongelam o próprio usuário dispensam esse teste. Dano de Fire e movimentos com efeito próprio de descongelar também removem a condição.",
                     "Veneno: perde 12,5% do HP máximo ao fim da rodada. Envenenamento grave: começa em 6,25% e aumenta em 6,25% por rodada, até 93,75%; trocar reinicia o contador, não cura a condição.",
-                    "Confusão e hesitação são efeitos voláteis, separados da condição principal. Confusão dura de 2 a 5 oportunidades próprias; antes da última, o Pokémon se recupera. Enquanto estiver ativa, há 1 em 3 de chance de perder a ação e atingir a si mesmo com o equivalente a um ataque físico sem tipo de poder 40, usando seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. O dano próprio desativa a proteção geral contra hit kill, mas Sturdy, Focus Sash e proteções próprias continuam obedecendo às regras dos jogos. Hesitação impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra ambas."
+                    "Confusão: é um efeito volátil, separado da condição principal. Dura de 2 a 5 oportunidades próprias; antes da última, o Pokémon se recupera. Enquanto estiver ativa, há 1 em 3 de chance de perder a ação e atingir a si mesmo com o equivalente a um ataque físico sem tipo de poder 40, usando seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. O dano próprio desativa a proteção geral contra hit kill, mas Sturdy, Focus Sash e proteções próprias continuam obedecendo às regras dos jogos. Trocar encerra a confusão.",
+                    "Hesitação: é um efeito volátil que impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra o efeito."
                 ]
             },
             {
@@ -287,7 +288,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.3",
                 title: "Cura e recuperação",
-                body: "A cura respeita o efeito original e nunca ultrapassa o HP máximo. Drenagem usa o dano realmente aplicado. Quando uma regra exige custo de HP, recuo, drenagem ou perda residual positiva, a fórmula é resolvida primeiro e remove ao menos 1 HP; imunidade, bloqueio ou ausência real de efeito continuam em 0. Cada consequência fica registrada separadamente."
+                body: "A cura respeita o efeito original e nunca ultrapassa o HP máximo. Drenagem usa o dano realmente aplicado.\n\nQuando uma regra exige custo de HP, recuo, drenagem ou perda residual positiva, a fórmula é resolvida primeiro e remove ao menos 1 HP; imunidade, bloqueio ou ausência real de efeito continuam em 0. Cada consequência fica registrada separadamente."
             },
             {
                 id: "6.4",
@@ -305,17 +306,17 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.1",
                 title: "Habilidades",
-                body: "Cada habilidade tem gatilho, estado e histórico. Entrada em campo, clima, terreno, precisão, dano, contato, nocaute, imunidade e fim de rodada são aplicados na ordem correta quando o contexto é objetivo; isso inclui famílias como Intimidate, Download, habilidades de clima e terreno, Sturdy, Adaptability, Technician, absorções, reações de contato, recuperação e alterações de Velocidade. Imposter e Illusion preservam suas regras próprias. Quando alvo, troca, ordem, escolha ou interpretação ainda estiverem abertos, o painel mantém a descrição oficial visível e marca a resolução como guiada em vez de inventar uma resposta."
+                body: "Cada habilidade tem gatilho, estado e histórico. Entrada em campo, clima, terreno, precisão, dano, contato, nocaute, imunidade e fim de rodada são aplicados na ordem correta quando o contexto é objetivo.\n\nIsso inclui Intimidate, Download, habilidades de clima e terreno, Sturdy, Adaptability, Technician, absorções, reações de contato, recuperação e alterações de Velocidade. Imposter e Illusion preservam suas regras próprias.\n\nQuando o efeito permite escolher alvo, troca ou ordem, essa escolha continua com o jogador. O painel explica o efeito e mantém a descrição oficial disponível; decisões narrativas permanecem com o grupo."
             },
             {
                 id: "7.2",
                 title: "Itens",
-                body: "Itens segurados possuem estado próprio na cena: ativo, consumido, removido, trocado ou restaurado. Frutas, itens de escolha, Life Orb, Leftovers, Focus Sash, Weakness Policy, Air Balloon, sementes de terreno, orbes, itens de precisão e modificadores de dano integram o mesmo cálculo e deixam uma trilha narrativa. Trick, Switcheroo, Knock Off, Thief, Covet, Fling, Recycle, Bug Bite, Pluck e Incinerate atualizam esse estado. A ficha da Box conserva o equipamento de origem; mudanças da batalha permanecem na cena até o Narrador editar a ficha ou restaurar o item, evitando que um efeito temporário reescreva a coleção por acidente."
+                body: "Itens segurados possuem estado próprio na cena: ativo, consumido, removido, trocado ou restaurado.\n\nFrutas, itens de escolha, Life Orb, Leftovers, Focus Sash, Weakness Policy, Air Balloon, sementes de terreno, orbes, itens de precisão e modificadores de dano integram o mesmo cálculo e deixam uma trilha narrativa. Trick, Switcheroo, Knock Off, Thief, Covet, Fling, Recycle, Bug Bite, Pluck e Incinerate atualizam esse estado.\n\nA ficha da Box conserva o equipamento de origem; mudanças da batalha permanecem na cena até o Narrador editar a ficha ou restaurar o item, evitando que um efeito temporário reescreva a coleção por acidente."
             },
             {
                 id: "7.3",
                 title: "Formas e transformações",
-                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastalização e outras mecânicas alteram apenas o que suas regras determinam. Transform copia aparência, tipos atuais, habilidade, atributos não relacionados a HP, modificadores e movimentos do alvo com 5 PP, mas preserva HP, nível, item e progresso do usuário; tudo pode ser revertido sem alterar sua ficha original. Mudanças como Stance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast mostram o gatilho, o que muda, o que permanece e se o MyOwnDex já possui contexto para aplicar o efeito."
+                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax, Terastallization e outras mecânicas alteram apenas o que suas regras determinam.\n\nTransform copia aparência, tipos atuais, habilidade, atributos não relacionados a HP, modificadores e movimentos do alvo com 5 PP, mas preserva HP, nível, item e progresso do usuário; tudo pode ser revertido sem alterar sua ficha original.\n\nMudanças como Stance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast mostram o gatilho, o que muda, o que permanece e se o MyOwnDex já possui contexto para aplicar o efeito."
             },
             {
                 id: "7.4",
@@ -324,13 +325,13 @@ export const RPG_RULE_SECTIONS = [
             },
             {
                 id: "7.5",
-                title: "Tipos, STAB e Terastalização",
+                title: "Tipos, STAB e Terastallization",
                 body: "A defesa usa os tipos atuais do alvo. O STAB é 1,5× quando o movimento corresponde a um tipo original ou ao Tera Type; se corresponder aos dois, torna-se 2×. Adaptability ajusta esses valores quando está ativa. Imunidade reduz o dano a zero. Sol, chuva e terrenos modificam os tipos pertinentes e aparecem como parcelas separadas no resultado."
             },
             {
                 id: "7.6",
                 title: "Ordem de resolução conectada",
-                body: "Ao resolver um movimento na Central da Aventura, o jogador escolhe a ação e o alvo; o MyOwnDex executa em sequência as restrições, condições, teste do usuário, oposição, precisão, imunidades, poder, STAB, tipo, clima, terreno, habilidades, itens, sobrevivência, dano, efeitos secundários, contato, consumo, cura, nocaute e histórico. O Narrador só intervém onde a própria regra exige decisão narrativa ou informação que o sistema não possui. Um crítico potencial só se aplica se houver acerto. Shield Dust, Covert Cloak e Sheer Force só alteram efeitos secundários, sem apagar efeitos principais ou custos próprios."
+                body: "Na aventura ou nos dados locais, escolha o movimento e o alvo. O MyOwnDex executa as restrições, condições, teste do usuário, oposição, precisão, imunidades, poder, STAB, tipo, clima, terreno, habilidades, itens, sobrevivência, dano, efeitos secundários, contato, consumo, cura, nocaute e histórico na ordem correta.\n\nAs escolhas que a própria regra permite — como alvo, troca ou movimento chamado — continuam disponíveis. Um crítico potencial só se aplica se houver acerto. Shield Dust, Covert Cloak e Sheer Force só alteram efeitos secundários, sem apagar efeitos principais ou custos próprios."
             }
         ]
     },
@@ -369,7 +370,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "8.5",
                 title: "Testes do Treinador",
-                body: "Só role diante de incerteza e risco relevantes. Declare intenção, oposição e consequências antes dos dados. O Treinador usa 2d6, sem inventar atributos de Pokémon para si; especialidade coerente com sua origem, preparação ou ajuda útil pode conceder vantagem, e um obstáculo relevante pode conceder desvantagem. Várias fontes não empilham dados; vantagem e desvantagem simultâneas se anulam. Contra dificuldade fixa, use 5 para um teste favorável, 7 para exigente e 9 para muito difícil como referências. O MyOwnDex soma modificadores, compara a dificuldade e informa sucesso ou falha; o jogador não precisa fazer a conta. Ações impossíveis pedem outra abordagem; ações triviais não pedem dados."
+                body: "Só role diante de incerteza e risco relevantes. Declare intenção, oposição e consequências antes dos dados. O Treinador usa 2d6, sem inventar atributos de Pokémon para si.\n\nEspecialidade coerente com sua origem, preparação ou ajuda útil pode conceder vantagem; um obstáculo relevante pode conceder desvantagem. Várias fontes não empilham dados; vantagem e desvantagem simultâneas se anulam.\n\nContra dificuldade fixa, use 5 para um teste favorável, 7 para exigente e 9 para muito difícil como referências. O MyOwnDex soma modificadores, compara a dificuldade e informa sucesso ou falha; o jogador não precisa fazer a conta. Ações impossíveis pedem outra abordagem; ações triviais não pedem dados."
             }
         ]
     }
@@ -452,6 +453,6 @@ export const rollPercentTest = ({
 
 export const getRpgScale = (value, isHp = false) => convertToTTRPG(value, isHp);
 
-export const getNextLevelXp = level => (integerInRange(level, 1, 200, 1) + 1) / 2;
+export const getNextLevelXp = level => Math.floor((integerInRange(level, 1, 200, 1) + 1) / 2);
 
 export const getDamageCeiling = level => Math.max(1, integerInRange(level, 1, 200, 1));

@@ -34,6 +34,9 @@ test("catalogue proportions display percentages and disclose approximations whil
     assert.deepEqual(entry, original);
     assert.equal(cleanDescription("Recovers ½ HP; costs one quarter of max HP."), "Recovers 50% HP; costs 25% of max HP.");
     assert.equal(cleanDescription("one-third; 2/3; 3/4"), "≈ 33,33%; ≈ 66,67%; 75%");
+    assert.equal(cleanDescription("O dano é reduzido pela metade."), "O dano é reduzido em 50%.");
+    assert.equal(cleanDescription("Restaura metade do HP."), "Restaura 50% do HP.");
+    assert.equal(cleanDescription("arredondado pela metade para baixo"), "arredondado pela metade para baixo");
 });
 
 test("species category uses its original English name even when a translated catalogue entry exists", () => {

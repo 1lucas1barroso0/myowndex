@@ -2,15 +2,15 @@
 
 ## Um arquivo, um comando
 
-Baixe `myowndex-v11.3-linux.sh` e execute no terminal, dentro da pasta do download:
+Baixe `myowndex-v11.4-linux.sh` e execute no terminal, dentro da pasta do download:
 
 ```bash
-bash myowndex-v11.3-linux.sh
+bash myowndex-v11.4-linux.sh
 ```
 
 O atualizador inclui o projeto e verifica a integridade do pacote. Aproveita os seus logins do GitHub e da Vercel e as variáveis dos bancos já configuradas no projeto `myowndex`. Não há cadastro Turso ou migração de salas nesta atualização.
 
-Esta entrega atualiza a versão 11.2 publicada, usando como base o commit `d8bb4096702786625f8acdb20ac63d26186d71ba` de `main`. O patch é aplicado em um checkout separado e preserva mudanças posteriores compatíveis. A versão 11.3 melhora a leitura de escolhas longas, organiza formulários e iniciativa pela largura do painel e compacta os controles de aparência no cabeçalho. As opções Claro/Escuro continuam separadas dos modos RPG/Jogos/Livre.
+Esta entrega parte de main com as atualizações dos PRs #20 a #28 integradas, usando como base o commit `f76dec47303e394e81d18186742f664eee33663d` de `main`. O patch é aplicado em um checkout separado e preserva mudanças posteriores compatíveis. A versão 11.4 acrescenta contas com sincronização, gerador de Pokémon, referências EN/PT por jogo e dados acessíveis em todos os módulos. O XP passa a ser inteiro, arredondado para baixo. O mobile reorganiza os painéis sem reduzir tudo ao desenho do desktop. As opções Claro/Escuro continuam separadas dos modos RPG/Jogos/Livre.
 
 O registro oferece alternância EN/PT com textos locais, sem depender de GPT ou outro serviço de tradução. Fontes e limites da cobertura em português são registrados em [VALIDACAO.md](VALIDACAO.md). Nomes de Pokémon, itens, movimentos e habilidades permanecem no original em inglês. A atualização preserva importação, exportação, salvamento e sincronização.
 
@@ -18,7 +18,7 @@ A preparação do código executa testes, lint, verificação de tipos e build a
 
 Execute novamente o mesmo arquivo para retomar. O pacote tem uma pasta de estado própria identificada pelo SHA-256; execuções de versões diferentes ficam separadas. Os branches continuam com o prefixo `codex/myowndex-v11-`, e a opção `MYOWNDEX_V11_STATE_DIR` continua disponível para quem já personalizou o local de trabalho. Se esse diretório já contiver outra entrega, o atualizador cria uma subpasta identificada pelo digest e preserva o trabalho anterior.
 
-As opções `bash myowndex-v11.3-linux.sh verificar` e `bash myowndex-v11.3-linux.sh extrair` validam o checkout ou extraem os arquivos sem publicar. `COMANDO-V11.3.txt` encontra o instalador baixado; `SHA256-V11.3.txt` contém os hashes dos arquivos de entrega. O pacote também é disponibilizado como `myowndex-v11.3-linux.tar.gz` e `myowndex-v11.3.zip`.
+As opções `bash myowndex-v11.4-linux.sh verificar` e `bash myowndex-v11.4-linux.sh extrair` validam o checkout ou extraem os arquivos sem publicar. `COMANDO-V11.4.txt` encontra o instalador baixado; `SHA256-V11.4.txt` contém os hashes dos arquivos de entrega. O pacote também é disponibilizado como `myowndex-v11.4-linux.tar.gz` e `myowndex-v11.4.zip`.
 
 O atualizador executa testes, ESLint, verificação de tipos e build no Linux e aguarda o CI antes de integrar o PR. A validação da entrega está registrada em [VALIDACAO.md](VALIDACAO.md).
 

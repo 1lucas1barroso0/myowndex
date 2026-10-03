@@ -18,7 +18,10 @@ const sequence = values => {
 
 test("trainer guide contains every canonical rule chapter", () => {
   assert.deepEqual(RPG_RULE_SECTIONS.map(section => section.number), [1, 2, 3, 4, 5, 6, 7, 8]);
-  assert.ok(RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0) >= 32);
+  const expectedIds = [4, 5, 7, 4, 4, 4, 6, 5].flatMap((count, chapter) =>
+    Array.from({ length: count }, (_, rule) => `${chapter + 1}.${rule + 1}`)
+  );
+  assert.deepEqual(RPG_RULE_SECTIONS.flatMap(section => section.rules.map(rule => rule.id)), expectedIds);
   assert.equal(RPG_RULE_SECTIONS[2].rules.some(rule => rule.title === "Proteção contra hit kill"), true);
 });
 
@@ -104,10 +107,26 @@ test("RPG scale, XP and damage ceiling follow the guide", () => {
   assert.equal(getRpgScale(50), 5);
   assert.equal(getRpgScale(51), 5);
   assert.equal(getRpgScale(55), 5);
-  assert.equal(getNextLevelXp(10), 5.5);
+  assert.equal(getRpgScale(56), 6);
+  assert.equal(getRpgScale(55, true), 6);
+  assert.equal(getNextLevelXp(10), 5);
   assert.equal(getDamageCeiling(1), 1);
   assert.equal(getDamageCeiling(11), 11);
   assert.equal(getDamageCeiling(Infinity), 1);
+});
+
+test("XP goals floor the upcoming level consistently through both level caps", () => {
+  for (const [level, goal] of [[1, 1], [2, 1], [9, 5], [10, 5], [11, 6], [99, 50], [100, 50], [199, 100], [200, 100], [999, 100]]) {
+    assert.equal(getNextLevelXp(level), goal, `level ${level}`);
+  }
+  assert.equal(getNextLevelXp("10.9"), 5);
+  assert.equal(getNextLevelXp(Infinity), 1);
+  const rule = RPG_RULE_SECTIONS.flatMap(section => section.rules).find(rule => rule.id === "2.5");
+  const wording = rule.bullets.join(" ");
+  assert.match(wording, /XP só usa números inteiros/);
+  assert.match(wording, /Arredonde para baixo a XP atual, recebida e dividida/);
+  assert.match(wording, /contagem volta a zero/);
+  assert.doesNotMatch(wording, /Meio ponto de XP é válido/);
 });
 
 test("secure dice reject the uneven uint32 tail instead of introducing modulo bias", () => {

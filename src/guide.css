@@ -3,9 +3,8 @@
 html .app-root.game-edition.handheld-edition .trainer-guide { container: trainer-guide / inline-size; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .guide-hero { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; margin: 0 0 1.5rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 html .app-root.game-edition.handheld-edition .guide-hero h2 { margin: 0 !important; font-size: clamp(1.8rem,4vw,2.5rem) !important; line-height: 1.25 !important; }
-html .app-root.game-edition.handheld-edition .guide-companion { flex: 0 0 4rem !important; width: 4rem !important; height: 4rem !important; object-fit: contain !important; }
-html .app-root.game-edition.handheld-edition .guide-layout { display: grid !important; grid-template-columns: minmax(0,1fr) !important; align-items: start !important; gap: clamp(1.25rem,3vw,2rem) !important; margin: 0 !important; }
-html .app-root.game-edition.handheld-edition .guide-reference { padding: clamp(1rem,3vw,2rem) !important; }
+html .app-root.game-edition.handheld-edition .guide-layout { display: grid !important; grid-template-columns: minmax(0,1fr) !important; grid-template-areas: "tools" "rules" !important; align-items: start !important; gap: clamp(1.25rem,3vw,2rem) !important; margin: 0 !important; }
+html .app-root.game-edition.handheld-edition .guide-reference { grid-area: rules !important; min-width: 0 !important; padding: clamp(1rem,3vw,2rem) !important; }
 html .app-root.game-edition.handheld-edition .guide-panel-heading { display: flex !important; flex-wrap: wrap !important; align-items: baseline !important; justify-content: space-between !important; gap: .65rem 1rem !important; margin-bottom: 1.5rem !important; }
 html .app-root.game-edition.handheld-edition .guide-panel-heading h3 { margin: 0 !important; font-size: 1.35rem !important; line-height: 1.35 !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-count { padding: 0 !important; background: transparent !important; color: var(--ui-muted) !important; font-size: .9rem !important; font-weight: 500 !important; font-variant-numeric: tabular-nums; }
@@ -21,17 +20,18 @@ html .app-root.game-edition.handheld-edition .guide-topic-heading h4 { margin: 0
 html .app-root.game-edition.handheld-edition .guide-topic-heading p { max-width: 68ch !important; margin: .3rem 0 0 !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-content { display: grid !important; gap: 0 !important; padding: 0 !important; border-top: 1px solid var(--ui-line) !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-card { margin: 0 !important; padding: 0 !important; border: 0 !important; border-bottom: 1px solid var(--ui-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .guide-rule-card > summary { display: flex !important; align-items: baseline !important; gap: .7rem !important; min-height: 52px !important; padding: .85rem .3rem !important; list-style: none !important; font-size: 1rem !important; line-height: 1.5 !important; font-weight: 650 !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-card > summary { display: flex !important; align-items: baseline !important; gap: .7rem !important; min-height: 56px !important; padding: .85rem .3rem !important; list-style: none !important; font-size: 1rem !important; line-height: 1.5 !important; font-weight: 650 !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-id { flex: 0 0 2.25rem !important; margin: 0 !important; padding: 0 !important; color: var(--journey-teal) !important; font-size: .9rem !important; font-weight: 650 !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .guide-rule-card > summary > strong { flex: 1 !important; min-width: 0 !important; font-size: inherit !important; font-weight: inherit !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-card[open] > summary { color: var(--journey-teal) !important; }
-html .app-root.game-edition.handheld-edition .guide-rule-body { max-width: 68ch !important; padding: .4rem .3rem 1.4rem !important; color: var(--ui-ink) !important; font-size: 1.025rem !important; line-height: 1.75 !important; font-weight: 400 !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-body { min-width: 0 !important; max-width: 68ch !important; padding: .4rem .3rem 1.4rem !important; color: var(--ui-ink) !important; font-size: 1.025rem !important; line-height: 1.75 !important; font-weight: 400 !important; overflow-wrap: break-word !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body :is(p,li) { font-size: inherit !important; font-weight: inherit !important; line-height: inherit !important; color: inherit !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body p { margin: 0 0 1rem !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body ul { display: grid !important; gap: .85rem !important; margin: 0 !important; padding: 0 0 0 1.3rem !important; list-style: disc !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body li { padding-left: .25rem !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body li::marker { color: var(--journey-teal); }
-html .app-root.game-edition.handheld-edition .guide-tools { display: grid !important; gap: 1.25rem !important; min-width: 0 !important; align-content: start !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-body li > strong { color: var(--ui-ink) !important; font-weight: 750 !important; }
+html .app-root.game-edition.handheld-edition .guide-tools { grid-area: tools !important; display: grid !important; gap: 1.25rem !important; min-width: 0 !important; align-content: start !important; }
 html .app-root.game-edition.handheld-edition :is(.guide-calculator,.guide-mode-note) { padding: 0 clamp(1rem,3vw,1.5rem) !important; }
 html .app-root.game-edition.handheld-edition :is(.guide-calculator,.guide-mode-note) > summary { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; min-height: 56px !important; padding: .85rem 0 !important; font-size: 1rem !important; font-weight: 700 !important; line-height: 1.5 !important; list-style: none !important; }
 html .app-root.game-edition.handheld-edition .trainer-guide summary::-webkit-details-marker { display: none; }
@@ -45,6 +45,9 @@ html .app-root.game-edition.handheld-edition .guide-number-field input { width: 
 html .app-root.game-edition.handheld-edition .guide-field-label { font-size: .9rem !important; font-weight: 650 !important; }
 html .app-root.game-edition.handheld-edition .guide-field-value { color: var(--ui-muted) !important; font-size: .85rem !important; line-height: 1.6 !important; }
 html .app-root.game-edition.handheld-edition .guide-field-value strong { color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .guide-scale-results { display: grid !important; gap: .4rem !important; min-width: 0 !important; }
+html .app-root.game-edition.handheld-edition .guide-scale-results > span { display: flex !important; align-items: baseline !important; justify-content: space-between !important; flex-wrap: wrap !important; gap: .5rem !important; color: var(--ui-muted) !important; font-size: .85rem !important; line-height: 1.6 !important; }
+html .app-root.game-edition.handheld-edition .guide-scale-results strong { color: var(--ui-ink) !important; font-size: 1.05rem !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-card { margin: 1.25rem 0 0 !important; padding: 1rem 0 0 !important; border: 0 !important; border-top: 1px solid var(--ui-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-value { display: flex !important; align-items: center !important; justify-content: space-between !important; flex-wrap: wrap !important; gap: .6rem !important; color: var(--ui-ink) !important; font-size: .95rem !important; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-value strong { font-family: inherit !important; font-size: 1.5rem !important; line-height: 1.2 !important; font-variant-numeric: tabular-nums; }
@@ -83,7 +86,7 @@ html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > ul { pa
 html .app-root.game-edition.handheld-edition .guide-mode-note p { max-width: 68ch !important; margin: 0 !important; padding: .4rem 0 1.25rem !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-empty { padding: .5rem 0 1rem !important; color: var(--ui-muted) !important; font-size: 1rem !important; line-height: 1.7 !important; }
 @container trainer-guide (min-width: 60rem) {
-  html .app-root.game-edition.handheld-edition .guide-layout { grid-template-columns: minmax(0,1.7fr) minmax(18rem,1fr) !important; }
+  html .app-root.game-edition.handheld-edition .guide-layout { grid-template-columns: minmax(0,1.7fr) minmax(18rem,1fr) !important; grid-template-areas: "rules tools" !important; }
 }
 
 @container hit-kill-overview (min-width: 34rem) {

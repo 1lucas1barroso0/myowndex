@@ -28,7 +28,7 @@ export async function GET(request: Request, context: RouteContext) {
   try {
     await ensureRoomSchema();
     const code = await roomCode(context);
-    const auth = await authenticateRoom(code, readRoomKey(request));
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
     if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta aventura. Confira o convite e tente novamente." }, { status: 401 });
     const bundle = await getRoomBundle(code, auth.role);
     if (!bundle) return noStoreJson({ error: "Não encontramos essa aventura. Confira o código e tente novamente." }, { status: 404 });
@@ -44,7 +44,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   try {
     await ensureRoomSchema();
     const code = await roomCode(context);
-    const auth = await authenticateRoom(code, readRoomKey(request));
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
     if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta aventura. Confira o convite e tente novamente." }, { status: 401 });
     if (auth.role !== "narrator") {
       return noStoreJson({ error: "Só o Narrador pode alterar a aventura para todos." }, { status: 403 });
@@ -108,7 +108,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   try {
     await ensureRoomSchema();
     const code = await roomCode(context);
-    const auth = await authenticateRoom(code, readRoomKey(request));
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
     if (!auth || auth.role !== "narrator") {
       return noStoreJson({ error: "Só o Narrador pode encerrar esta aventura." }, { status: 403 });
     }

@@ -31,7 +31,7 @@ async function authenticateCall(request: Request, context: RouteContext) {
   await ensureRoomSchema();
   const params = await context.params;
   const code = safeRoomCode(params.code);
-  const auth = await authenticateRoom(code, readRoomKey(request));
+  const auth = await authenticateRoom(code, readRoomKey(request), request);
   return { code, auth };
 }
 

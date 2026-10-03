@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { zlibSync } from "fflate";
 import { insertImportedPokemon, mergeHydratedTeams, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, RPG_SCALE_VERSION } from "../src/core/team.js";
-import { decodeShare, decodeTeam, encodePokemonBundle, encodeTeam, LEGACY_SHARE_PREFIX } from "../src/core/teamShare.js";
+import { decodeShare, decodeTeam, encodePokemonBundle, encodeTeam, LEGACY_SHARE_PREFIX, MAX_SHARE_PAYLOAD_BYTES, SHARE_PREFIX } from "../src/core/teamShare.js";
 
 const completeTeam = normalizeTeam({
   id: "local-box",
@@ -181,6 +182,18 @@ test("Link Cable remains portable without browser Base64 or Compression Streams"
   } finally {
     Object.assign(globalThis, saved);
   }
+});
+
+test("compressed import bombs are rejected before parsing, with and without browser streams", async () => {
+  const payload = new TextEncoder().encode(JSON.stringify({ z: 4, p: [], padding: 'x'.repeat(MAX_SHARE_PAYLOAD_BYTES * 2) }));
+  const code = SHARE_PREFIX + Buffer.from(zlibSync(payload)).toString('base64url');
+  assert.ok(code.length < 50000, 'the input would bypass the compressed code length limit');
+  await assert.rejects(() => decodeShare(code), /tamanho seguro.*Box/);
+  const stream = globalThis.DecompressionStream;
+  try {
+    globalThis.DecompressionStream = undefined;
+    await assert.rejects(() => decodeShare(code), /tamanho seguro.*Box/);
+  } finally { globalThis.DecompressionStream = stream; }
 });
 
 test("imported Pokémon fill a chosen existing Box and receive local identities", () => {

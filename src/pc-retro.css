@@ -1,12 +1,12 @@
 /* Box selection, team and editor share one flow and one quiet storage surface. */
 html .app-root .pc-workspace.pc-retro { display:grid; grid-template-columns:minmax(200px,240px) minmax(0,1fr); align-items:start; gap:clamp(1.25rem,3vw,2.5rem); color:var(--ui-ink); }
 html .app-root .pc-workspace :is(.pc-sidebar,.pc-content,.pc-main-panel,.pc-toolbar-fields) { min-width:0; }
-html .app-root .pc-sidebar { padding:1.5rem; background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:.35rem; }
+html .app-root .pc-sidebar { padding:1.5rem; background:var(--ui-panel); border:1px solid var(--ui-line); border-top:4px solid var(--ui-blue); border-radius:.35rem; }
 html .app-root :is(.pc-sidebar-heading,.pc-grid-heading,.pc-editor-heading) { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:1rem; }
 html .app-root .pc-sidebar-heading h2 { font-size:1.5rem; font-weight:800; }
 html .app-root .pc-box-count { font-variant-numeric:tabular-nums; color:var(--ui-muted); }
 html .app-root .pc-box-list { display:grid; gap:.5rem; margin:1rem 0; max-height: min(55dvh,36rem); overflow-y:auto; padding:.25rem; }
-html .app-root .pc-box-button { width:100%; text-align:left; min-height:52px; padding:.8rem; border:1px solid transparent; border-radius:.25rem; color:var(--ui-ink); background:var(--ui-raised); }
+html .app-root .pc-box-button { width:100%; text-align:left; min-height:56px; padding:.85rem; border:1px solid transparent; border-radius:.25rem; color:var(--ui-ink); background:var(--ui-raised); }
 html .app-root .pc-box-button.is-selected { background:var(--ui-selected); border-color:var(--ui-blue); box-shadow:inset 3px 0 var(--ui-blue); }
 html .app-root .pc-box-button-heading { display:flex; justify-content:space-between; align-items:center; gap:.75rem; font-size:.95rem; }
 html .app-root .pc-box-button-heading > span:first-child { min-width:0; overflow-wrap:anywhere; }
@@ -25,13 +25,18 @@ html .app-root .pc-toolbar-actions { display:flex; flex-wrap:wrap; align-items:s
 html .app-root .pc-action-button { display:flex; flex:1 1 9rem; align-items:center; justify-content:center; gap:.6rem; min-height:48px; padding:.8rem 1rem; border:1px solid var(--ui-line); border-radius:.25rem; background:var(--ui-raised); color:var(--ui-ink); font-weight:700; }
 html .app-root .pc-action-button.is-share { color:var(--ui-blue); background:var(--ui-selected); border-color:var(--ui-blue); }
 html .app-root .pc-action-button.is-delete { color:var(--ui-accent) !important; }
+html .app-root.game-edition.handheld-edition .pc-toolbar-actions .pc-action-button.is-delete { flex:0 1 auto; color:var(--ui-accent) !important; background:transparent !important; border-color:transparent !important; }
+html .app-root.game-edition.handheld-edition .pc-toolbar-actions .pc-action-button.is-delete:hover { border-color:var(--ui-accent) !important; }
 html .app-root .pc-grid-heading h3 { font-size:1.25rem; font-weight:800; }
-html .app-root .pc-grid-heading > span { font-size:.85rem; color:var(--ui-muted); }
+html .app-root .pc-grid-title { display:grid; gap:.25rem; }
+html .app-root .pc-grid-title > span { font-size:.85rem; color:var(--ui-muted); }
 html .app-root :is(.pc-add-button,.pc-editor-heading button,.pc-create-box-button,.pc-import-button) { min-height:48px; padding:.8rem 1rem; color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; background:var(--ui-panel); font-weight:700; }
 html .app-root .pc-import-button { display:flex; align-items:center; justify-content:center; gap:.6rem; }
+html .app-root .pc-add-button { background:var(--ui-blue); border-color:var(--ui-blue); color:var(--ui-panel); }
 html .app-root .pc-partner-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:1rem; }
 html .app-root .pc-partner-card { display:grid; grid-template-columns:64px minmax(0,1fr); position:relative; align-items:center; gap:1rem; width:100%; text-align:left; padding:1.25rem; min-height:136px; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); border-left:4px solid var(--pc-partner-type,var(--ui-line)); border-radius:.3rem; }
 html .app-root .pc-partner-card.is-selected { background:var(--ui-selected); outline:2px solid var(--ui-blue); outline-offset:1px; }
+html .app-root .pc-partner-card:not(.is-selected):hover { background:var(--ui-selected); border-color:var(--ui-blue); }
 html .app-root .pc-card-position { position:absolute; right:.6rem; top:.5rem; font-family:'Dex Pixel',monospace; color:var(--ui-muted); }
 html .app-root .pc-partner-sprite { position:relative; width:64px; height:64px; }
 html .app-root .pc-partner-sprite img { width:100%; height:100%; object-fit:contain; }
@@ -39,7 +44,9 @@ html .app-root .pc-shiny-mark { position:absolute; right:0; top:0; color:var(--u
 html .app-root .pc-partner-info { display:grid; gap:.45rem; min-width:0; }
 html .app-root .pc-partner-heading { display:flex; flex-wrap:wrap; gap:.5rem; align-items:baseline; padding-right:.75rem; }
 html .app-root .pc-partner-name { font-weight:800; font-size:1rem; overflow-wrap:anywhere; }
-html .app-root .pc-partner-meta { color:var(--ui-muted); font-size:.85rem; line-height:1.6; }
+html .app-root .pc-partner-species { color:var(--ui-muted); font-size:.8rem; }
+html .app-root .pc-partner-meta { display:flex; flex-wrap:wrap; gap:.25rem .75rem; color:var(--ui-muted); font-size:.85rem; line-height:1.6; }
+html .app-root .pc-partner-meta > span + span { padding-left:.75rem; border-left:1px solid var(--ui-line); }
 html .app-root .pc-partner-types { display:flex; flex-wrap:wrap; gap:.35rem; }
 html .app-root .pc-partner-types > span { padding:.2rem .45rem; border-radius:.2rem; font-size:.75rem; font-weight:700; }
 html .app-root .pc-box-empty { padding:2rem 0; color:var(--ui-muted); }
@@ -49,17 +56,18 @@ html .app-root .pc-editor-heading { color:var(--ui-ink); font-size:1rem; gap:1.2
 html .app-root .pc-editor-heading h3 { flex:1 1 220px; font-size:1.2rem; font-weight:800; min-width:0; overflow-wrap:anywhere; }
 html .app-root .pc-editor-actions { display:flex; flex-wrap:wrap; align-items:stretch; justify-content:flex-end; gap:.75rem; }
 html .app-root .pc-editor-actions > button { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; }
-html .app-root .pc-editor-actions .pokemon-remove-button { margin:0; color:var(--ui-accent); }
+html .app-root .pc-editor-actions .pokemon-remove-button { margin:0; color:var(--ui-accent); background:transparent; border-color:transparent; }
+html .app-root .pc-editor-actions .pokemon-remove-button:hover { border-color:var(--ui-accent); }
 html .app-root .pc-empty-state { display:grid; gap:1rem; justify-items:start; padding:clamp(1.5rem,4vw,3rem); background:var(--ui-panel); min-height:320px; border:1px solid var(--ui-line); }
 html .app-root .pc-empty-state h2 { font-size:2rem; font-weight:800; }
 html .app-root .pc-welcome-partners { display:flex; }
 html .app-root .pc-welcome-partners img { width:80px; height:80px; object-fit:contain; }
 /* The essentials stay visible; secondary configuration is opened on demand. */
 html .app-root.game-edition.handheld-edition .pokemon-editor { border:0 !important; padding:0 !important; box-shadow:none !important; background:transparent !important; }
-html .app-root .editor-header { display:flex; flex-wrap:wrap; align-items:center; gap:1.25rem 1.5rem; margin-bottom:2rem; }
-html .app-root .editor-portrait { width:96px; height:96px; object-fit:contain; flex:0 0 auto; }
-html .app-root .editor-identity { flex:1 1 220px; display:grid; gap:.75rem; min-width:0; }
-html .app-root .editor-header > .editor-field { flex:0 1 130px; }
+html .app-root .editor-header { display:grid; grid-template-columns:132px minmax(0,1fr) 104px; grid-template-areas:"portrait identity level"; align-items:center; gap:1.25rem 1.5rem; margin-bottom:2rem; padding-bottom:1.75rem; border-bottom:1px solid var(--ui-line); }
+html .app-root .editor-portrait { grid-area:portrait; width:132px; height:132px; object-fit:contain; background:radial-gradient(ellipse at 50% 90%,var(--ui-selected) 0 30%,transparent 31%); }
+html .app-root .editor-identity { grid-area:identity; display:grid; gap:.75rem; min-width:0; }
+html .app-root .editor-header > .editor-field { grid-area:level; }
 html .app-root .editor-field { display:grid; gap:.6rem; min-width:0; align-content:start; }
 html .app-root .editor-label { color:var(--ui-muted); font-size:.85rem; font-weight:700; text-transform:none; letter-spacing:0; }
 html .app-root .editor-nickname { font-size:1.35rem !important; font-weight:800; width:100%; }
@@ -80,16 +88,20 @@ html .app-root .editor-exception-note { margin:1rem 0; color:var(--ui-muted); }
 html .app-root .editor-section-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:1rem; }
 html .app-root .editor-section-heading h3 { font-size:1.25rem; font-weight:800; }
 html .app-root .editor-moves { margin-top:2rem; }
-html .app-root .editor-moves-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:1.25rem; }
-html .app-root .editor-move-field { min-width:0; display:grid; align-content:start; gap:.8rem; padding:1.25rem; background:var(--ui-raised); border:1px solid var(--ui-line); border-radius:.25rem; }
+html .app-root .editor-moves-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.25rem; align-items:start; }
+html .app-root .editor-move-field { min-width:0; display:grid; align-content:start; gap:1rem; padding:1.25rem; background:var(--ui-raised); border:1px solid var(--ui-line); border-left:4px solid var(--editor-move-type,var(--ui-line)); border-radius:.25rem; }
+html .app-root .editor-move-label { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem .75rem; }
+html .app-root .editor-move-type { padding:.2rem .5rem; border-radius:.15rem; font-size:.75rem; font-weight:750; line-height:1.4; }
 html .app-root .editor-pp-label { display:flex; align-items:center; justify-content:space-between; gap:.75rem; font-size:.85rem; }
 html .app-root .editor-pp-control { width:90px; }
 html .app-root :is(.editor-disclosure,.editor-move-description) { margin-top:1.75rem; border-top:1px solid var(--ui-line); }
+html .app-root .editor-move-description { margin-top:0; }
 html .app-root :is(.editor-disclosure,.editor-move-description) > summary { min-height:48px; padding:.9rem 0; font-weight:750; line-height:1.5; color:var(--ui-ink); }
 html .app-root .editor-disclosure-body { padding:1.25rem 0 1.5rem; }
 html .app-root .editor-trait-reference .editor-disclosure-body { display:grid; grid-template-columns:minmax(0,1fr); gap:1.5rem; }
 html .app-root .editor-disclosure-body p { font-size:1rem; line-height:1.7; max-width:68ch; }
-html .app-root .editor-move-facts { display:flex; flex-wrap:wrap; gap:.75rem; margin:1rem 0; }
+html .app-root .editor-move-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem 1rem; margin:1rem 0; }
+html .app-root .editor-move-facts > div { min-width:0; padding-bottom:.5rem; border-bottom:1px solid var(--ui-line); }
 html .app-root .editor-move-facts dt { font-size:.8rem; color:var(--ui-muted); }
 html .app-root .editor-move-facts dd { font-weight:750; }
 html .app-root .editor-wide-field { grid-column:1/-1; }
@@ -137,10 +149,13 @@ html .app-root .editor-species-name { color:var(--ui-muted); font-size:.9rem; }
 html .app-root .editor-stat-summary { padding:1.5rem 0; }
 html .app-root .editor-stat-summary h3 { font-weight:750; margin-bottom:1rem; }
 html .app-root .editor-stat-summary dl { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,110px),1fr)); gap:1rem; }
+html .app-root .editor-stat-summary dl > div { min-width:0; padding:.75rem .5rem .75rem .8rem; border-left:3px solid var(--ui-blue); background:var(--ui-raised); }
 html .app-root .editor-stat-summary dt { color:var(--ui-muted); font-size:.8rem; }
 html .app-root .editor-stat-summary dd { font-size:1.4rem; font-weight:800; }
 html .app-root .editor-checkboxes { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; min-height:44px; }
 html .app-root .editor-checkboxes label { display:flex; align-items:center; gap:.5rem; min-height:44px; }
+@container (max-width:36rem) { html .app-root .editor-header { grid-template-columns:132px minmax(0,1fr); grid-template-areas:"portrait level" "identity identity"; } }
+@container (max-width:32rem) { html .app-root .editor-moves-grid { grid-template-columns:minmax(0,1fr); } }
 /* Link Cable preserves the same single scroll and comfortable reading width. */
 html .app-root .link-cable-overlay { position:fixed; z-index:250; inset:0; display:grid; place-items:center; padding:clamp(.5rem,3vw,1.5rem); background:#102437b8; }
 html .app-root .link-cable-dialog { width:min(100%,680px); max-height:calc(100dvh - 2rem); overflow-y:auto; padding:clamp(1.25rem,4vw,2rem); position:relative; }

@@ -443,8 +443,7 @@ export default function Teambuilder({ envProps }) {
                         )}
 
                         <header className="pc-grid-heading">
-                            <h3>Equipe</h3>
-                            <span>{occupiedSlots} de {PARTY_SIZE} Pokémon</span>
+                            <div className="pc-grid-title"><h3>Equipe</h3><span>{occupiedSlots} de {PARTY_SIZE} Pokémon</span></div>
                             {freeSlots > 0 && <button type="button" onClick={onSearchClick} className="pc-add-button">+ Adicionar Pokémon</button>}
                         </header>
 
@@ -465,7 +464,8 @@ export default function Teambuilder({ envProps }) {
                                                 <span className="pc-partner-name">{partner.nickname || formatName(partner.species?.name)}</span>
                                                 <span aria-label={partner.gender === "M" ? "Macho" : partner.gender === "F" ? "Fêmea" : "Sem gênero definido"} className="pc-partner-gender">{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
                                             </span>
-                                            <span className="pc-partner-meta">{partner.nickname ? `${formatName(partner.species?.name)} • ` : ""}Nv. {partner.level || 1} • {partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span>
+                                            {partner.nickname && <span className="pc-partner-species">{formatName(partner.species?.name)}</span>}
+                                            <span className="pc-partner-meta"><span>Nv. {partner.level || 1}</span><span>{partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span></span>
                                             <span className="pc-partner-types">
                                                 {types.map(type => <span key={type} style={{ backgroundColor: TYPE_COLORS[type], color: TYPE_TEXT_COLORS[type] }}>{formatType(type)}</span>)}
                                             </span>

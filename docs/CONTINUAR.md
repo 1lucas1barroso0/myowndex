@@ -1,3 +1,13 @@
+# Estado do refino 11.5
+
+A versão11.4 foi publicada pelo PR#29 e conferida em produção. A entrega11.5 parte de `4f1be7ad640e93831b38045cc7a7057be2fd7e16`, com aprimoramentos de apresentação e organização. Os motores, APIs, dados e regras permanecem preservados. Não substituir o trabalho local nem mexer no HEAD/índice original.
+
+Alterações e validação desta rodada em [REFINO-11.5.md](REFINO-11.5.md). O checkpoint final previsto é `codex/myowndex-v11.5-checkpoint-20261003`. O registro após a publicação fica em `/workspace/entrega/STATUS-V11.5.txt`; conferir esse arquivo antes de repetir publicação ou integração.
+
+## Registro da integração anterior
+
+O texto abaixo registra o estado da11.4 antes de seu envio. A publicação foi concluída: PR#29 integrado, CI aprovado e Vercel READY, conforme `STATUS-V11.4.txt` na entrega externa. Os avisos de publicação pendente dessa etapa são históricos.
+
 # Continuidade da edição 11.4
 
 Estado auditado em **3 de outubro de 2026**. A fonte passou nos testes, lint, tipos, build e verificações de navegador descritos em [VALIDACAO.md](VALIDACAO.md). A publicação da 11.4 ainda depende do PR, CI, Preview e confirmação em produção; o endereço público permanece na 11.3 até essa confirmação.

@@ -6,7 +6,7 @@ umask 077
 
 DEX_STAGE="preparação da atualização"
 DEX_REPO="1lucas1barroso0/myowndex"
-DEX_BASE="f76dec47303e394e81d18186742f664eee33663d"
+DEX_BASE="4f1be7ad640e93831b38045cc7a7057be2fd7e16"
 DEX_SCOPE="1lucas1barroso0s-projects"
 DEX_PRODUCTION="https://myowndex.vercel.app"
 DEX_ARCHIVE_SHA="__ARCHIVE_SHA256__"
@@ -108,7 +108,7 @@ DEX_CI_GUARD
 
 case "$DEX_ACTION" in
   publicar|verificar|extrair) ;;
-  *) dex_fail "Uso: bash myowndex-v11.4-linux.sh [publicar|verificar|extrair]" ;;
+  *) dex_fail "Uso: bash myowndex-v11.5-linux.sh [publicar|verificar|extrair]" ;;
 esac
 [[ "$DEX_ARCHIVE_SHA" =~ ^[0-9a-f]{64}$ ]] || dex_fail "Este arquivo ainda é um modelo sem o pacote final. Baixe o instalador publicado."
 for DEX_TOOL in mktemp base64 sha256sum tar tee flock; do
@@ -148,7 +148,7 @@ tar -xzf "$DEX_RELEASE/projeto.tar.gz" -C "$DEX_RELEASE/source"
 rm -- "$DEX_RELEASE/projeto.tar.gz"
 DEX_SOURCE="$DEX_RELEASE/source/myowndex"
 [[ -f "$DEX_SOURCE/package.json" && -f "$DEX_SOURCE/vercel.json" ]] || dex_fail "O pacote não contém o projeto completo."
-printf '\nMyOwnDex 11.4: código extraído em %s\n' "$DEX_SOURCE"
+printf '\nMyOwnDex 11.5: código extraído em %s\n' "$DEX_SOURCE"
 if [[ "$DEX_ACTION" == "extrair" ]]; then exit 0; fi
 
 DEX_MISSING=()
@@ -279,7 +279,7 @@ else
   read -r DEX_BRANCH_BASE < "$DEX_RELEASE/branch-base"
   if [[ "$(git rev-parse origin/main)" != "$DEX_BRANCH_BASE" ]]; then
     DEX_STAGE="integração de mudanças recentes de main"
-    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.4: contas, encontros e referências completas"; fi
+    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.5: clareza, harmonia e acabamento visual"; fi
     git merge --no-edit origin/main
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
   fi
@@ -324,7 +324,7 @@ DEX_VERCEL_GUARD
 if [[ "$DEX_MERGED" != "true" ]]; then
   if ! git diff --cached --quiet; then
     DEX_STAGE="registro do código validado"
-    git commit -m "MyOwnDex 11.4: contas, encontros e referências completas"
+    git commit -m "MyOwnDex 11.5: clareza, harmonia e acabamento visual"
   fi
   DEX_HEAD="$(git rev-parse HEAD)"
   printf '%s\n' "$DEX_HEAD" > "$DEX_RELEASE/head"
@@ -345,9 +345,9 @@ DEX_FIND_PR
       node --input-type=module - "$DEX_BRANCH" "$DEX_RELEASE/new-pr.json" <<'DEX_NEW_PR'
 import { writeFileSync } from "node:fs";
 writeFileSync(process.argv[3], JSON.stringify({
-  title: "MyOwnDex 11.4: contas sincronizadas, gerador e interface de jogo",
+  title: "MyOwnDex 11.5: interface mais clara, organizada e acolhedora",
   head: process.argv[2], base: "main", draft: false,
-  body: "Cadastre uma conta e continue suas Boxes, favoritos, preferências e aventuras em outro dispositivo. A sincronização reúne alterações simultâneas e conserva cópias recuperáveis; dados de visitante permanecem separados. O banco Turso existente recebe apenas tabelas adicionais.\n\nO gerador cria Pokémon com movimentos legais no jogo e nível escolhidos, permite guardar individualmente ou em Boxes e exportar arquivos. Dados locais ficam acessíveis em todos os módulos e reutilizam combate, disputas, iniciativa e captura da aventura. A sincronização inclui campos, histórico de dados e prévias do gerador, com limites e recuperação. As regras dos PRs #20 a #28 permanecem: escala por 10, arredondamento correto, condições atuais, migrações de HP e resolução proporcional automática. A interface ganha controles confortáveis, prioridade correta no mobile e parceiros decorativos distintos. XP usa inteiros arredondados para baixo em cálculos, importações e campos.\n\nA Pokédex oferece textos históricos e movimentos por jogo, com alternância EN/PT e fontes registradas. Habilidades e itens usam explicações específicas. Textos incluídos no projeto dispensam GPT ou tradução em tempo de execução. Nomes próprios permanecem no original.\n\nSalvamento durável, caches com limites, importação/exportação e permissões de salas preservados. Validação: testes, ESLint, tipos, build e fluxos reais no Chromium. O instalador repete checks, aguarda CI, confere Preview e publica somente a árvore validada. Reutiliza variáveis e banco existentes; não modifica o plano de hospedagem."
+  body: "A interface separa navegação, ferramentas e preferências, dá destaque claro aos dados locais e organiza as fichas e as ações do PC. Nomes dos movimentos ficam em primeiro plano; habilidades, itens, evolução e atributos ganham hierarquia e espaço de leitura.\n\nPreserva contas, sincronização, Boxes, idiomas, referências por jogo, importação/exportação e todos os motores e regras dos PRs #20–#28.\n\nO instalador verifica testes, lint, tipos e build, aguarda CI e Preview e confirma versão e APIs em produção. A configuração existente de Turso e Vercel é reaproveitada.",
 }), { mode: 0o600 });
 DEX_NEW_PR
       gh api --method POST "repos/$DEX_REPO/pulls" --input "$DEX_RELEASE/new-pr.json" > "$DEX_RELEASE/pr.json"

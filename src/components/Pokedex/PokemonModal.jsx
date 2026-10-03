@@ -294,10 +294,10 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 const val = isTTRPG ? convertToTTRPG(s.base_stat, s.stat.name === "hp") : (s.base_stat || 0);
                                 const pct = Math.min((val / (isTTRPG ? 13 : 255)) * 100, 100);
                                 return (
-                                    <div key={s.stat.name}>
-                                        <div className="flex justify-between items-end mb-1">
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{STAT_MAP[s.stat.name] || s.stat.name}</span>
-                                            <span className={"text-xs font-black " + (isTTRPG ? "text-red-500" : "text-slate-800")}>{val}</span>
+                                    <div key={s.stat.name} className="record-stat-row">
+                                        <div className="record-stat-heading">
+                                            <span>{STAT_MAP[s.stat.name] || s.stat.name}</span>
+                                            <strong>{val}</strong>
                                         </div>
                                         <div className="record-stat-track" role="meter" aria-label={STAT_MAP[s.stat.name] || s.stat.name} aria-valuemin={0} aria-valuemax={Math.max(isTTRPG ? 13 : 255, val)} aria-valuenow={val}>
                                             <div className="record-stat-fill" style={{ width: pct + "%", backgroundColor: primaryColor }} />
@@ -305,9 +305,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                     </div>
                                 );
                             })}
-                            <div className="flex justify-between items-center mt-3 pt-3 border-t-2 border-slate-200">
-                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{isTTRPG ? "Total no RPG" : "Total de atributos base"}</span>
-                                <span className="text-xl font-black text-slate-800">{bst}</span>
+                            <div className="record-stat-total">
+                                <span>{isTTRPG ? "Total no RPG" : "Total de atributos base"}</span>
+                                <strong>{bst}</strong>
                             </div>
                         </section>
                     </div>
@@ -341,6 +341,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                     <p id={`${recordId}-description-text`} lang={recordTextLanguage} aria-live="polite" aria-atomic="true">{recordText || speciesDescription.summary}</p>
                                     {record.source && <small className="record-entry-source">{record.label || (record.source === 'pokemon-go' ? 'Pokémon GO' : record.source === 'pokemon-scarlet' ? 'Pokémon Scarlet' : record.source)}{recordTextLanguage === 'pt-BR' && record.sourceKind === 'editorial' ? ' · Tradução MyOwnDex' : ''}</small>}
                                 </section>
+                                <div className="record-profile-facts">
                                 <dl className="record-species-facts">
                                     {profileFacts.map((fact, index) => <div key={`species-fact-${index}`} className={fact.label === 'Categoria' ? 'record-species-category' : undefined}>
                                         <dt>{fact.label}</dt>
@@ -351,6 +352,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                     <div><dt>Altura</dt><dd>{formatNumberPtBr((formData.height || 0) / 10)} m</dd></div>
                                     <div><dt>Peso</dt><dd>{formatNumberPtBr((formData.weight || 0) / 10)} kg</dd></div>
                                 </dl>
+                                </div>
                                 {referenceFacts.length > 0 && <section className="record-references" aria-labelledby={`${recordId}-references-title`}>
                                     <h3 id={`${recordId}-references-title`}>Referências dos jogos</h3>
                                     <dl className="record-reference-values">

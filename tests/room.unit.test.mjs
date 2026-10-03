@@ -558,6 +558,48 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
   assert.equal(multiHit.damage, multiHit.damagePerHit * 5);
 });
 
+test("2d6 stays relevant even when the real combat attributes are extremely far apart", () => {
+  const attacker = {
+    id: "underdog",
+    name: "Underdog",
+    level: 50,
+    types: ["normal"],
+    stats: { attack: 1, "special-attack": 1 },
+  };
+  const defender = {
+    id: "wall",
+    name: "Wall",
+    types: ["normal"],
+    stats: { defense: 99, "special-defense": 99 },
+  };
+  const move = {
+    name: "tackle",
+    power: 40,
+    accuracy: null,
+    type: { name: "normal" },
+    damage_class: { name: "physical" },
+  };
+  const upset = calculateMoveResolution({
+    attacker,
+    defender,
+    move,
+    random: sequence([0.999, 0.999, 0, 0]),
+  });
+  assert.equal(upset.contestEdge.rawDifference, -98);
+  assert.equal(upset.contestEdge.effectiveDifference, -6);
+  assert.equal(upset.attackTest.total, 12);
+  assert.equal(upset.defenseTest.total, 8);
+  assert.equal(upset.contestSuccess, true);
+
+  const expected = calculateMoveResolution({
+    attacker,
+    defender,
+    move,
+    random: sequence([0, 0, 0.999, 0.999]),
+  });
+  assert.equal(expected.contestSuccess, false);
+});
+
 test("damage applies multipliers before one final rounding and keeps weak and strong hits proportional", () => {
   const attacker = {
     id: "scale-attacker",

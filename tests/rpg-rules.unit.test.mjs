@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   getDamageCeiling,
   getNextLevelXp,
+  getOpposedAttributeEdge,
   getRpgScale,
   rollAttributeTest,
   rollPercentTest,
@@ -19,6 +20,21 @@ test("trainer guide contains every canonical rule chapter", () => {
   assert.deepEqual(RPG_RULE_SECTIONS.map(section => section.number), [1, 2, 3, 4, 5, 6, 7, 8]);
   assert.ok(RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0) >= 32);
   assert.equal(RPG_RULE_SECTIONS[2].rules.some(rule => rule.title === "Proteção contra hit kill"), true);
+});
+
+test("opposed attribute edge preserves small gaps and caps overwhelming gaps at six", () => {
+  assert.deepEqual(getOpposedAttributeEdge(7, 7), {
+    attacker: 7,
+    defender: 7,
+    rawDifference: 0,
+    effectiveDifference: 0,
+    attackerModifier: 0,
+    defenderModifier: 0,
+  });
+  assert.equal(getOpposedAttributeEdge(8, 7).attackerModifier, 1);
+  assert.equal(getOpposedAttributeEdge(13, 7).attackerModifier, 6);
+  assert.equal(getOpposedAttributeEdge(40, 7).attackerModifier, 6);
+  assert.equal(getOpposedAttributeEdge(7, 40).defenderModifier, 6);
 });
 
 test("attribute tests implement normal, advantage and defender-wins-ties", () => {

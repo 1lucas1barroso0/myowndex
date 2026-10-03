@@ -155,7 +155,7 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
     const changed=result && !result.legacy && configuration.spec && JSON.stringify(result.spec)!==JSON.stringify(configuration.spec);
     return <section className={`local-dice-panel ${compact ? "is-compact" : "game-panel"}`} aria-label="Dados">
         {showHeading && <header className="local-dice-heading"><div><h3>Dados</h3></div></header>}
-        {!inAdventure && <div className="local-dice-pages" aria-label="Escolher tipo de jogada"><button type="button" aria-pressed={page==="simple"} onClick={()=>setPage("simple")}>Rolagens</button><button type="button" aria-pressed={page==="pokemon"} onClick={()=>setPage("pokemon")}>Pokémon</button></div>}
+        {!inAdventure && <div className="local-dice-pages" aria-label="Escolher tipo de jogada"><button type="button" aria-pressed={page==="simple"} onClick={()=>setPage("simple")}>Rolagens</button><button type="button" aria-pressed={page==="pokemon"} onClick={()=>setPage("pokemon")}>Campo</button></div>}
         <div hidden={!inAdventure && page!=="simple"}>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
             <fieldset disabled={busy || accountApplying}><legend className="sr-only">Configurar rolagem</legend>

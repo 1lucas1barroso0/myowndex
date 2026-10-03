@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildInitiative, calculateMoveResolution, createRoomSnapshot, normalizeRoomSnapshot, applyEndOfRoundEffects, swapTeamPokemonInSnapshot } from "../src/core/room.js";
-import { checkActionConditions } from "../src/core/battleConditions.js";
+import { calculateConfusionSelfDamage, checkActionConditions } from "../src/core/battleConditions.js";
 import { calculateCaptureChance, rollCapture } from "../src/core/capture.js";
 import { getDamageTraitModifiers, getInitiativeTraitState } from "../src/core/traitMechanics.js";
 import { normalizeAuthoritativeRequest, resolveCombatAction, resolveCaptureAction } from "../server/authoritativeActions.js";
@@ -80,16 +80,26 @@ test("a blocked combat action commits the condition but neither damage nor PP", 
   assert.equal(snapshot.tokens[0].lastActionRound, 0);
 });
 
-test("confusion persists through round end and self damage disables general survival", () => {
+test("confusion uses modern timing and a scaled power-40 physical self-hit", () => {
   const snapshot = room({ volatileEffects: [{ id: "confusion", turns: 2 }] });
   const ended = applyEndOfRoundEffects(snapshot, sequence([]));
   assert.equal(ended.room.tokens[0].volatileEffects[0].turns, 2);
   const resolved = resolveCombatAction({ snapshot, request, role: "narrator", move, random: sequence([0]) });
-  assert.equal(resolved.nextSnapshot.tokens[0].currentHp, 15);
+  assert.equal(resolved.nextSnapshot.tokens[0].currentHp, 19);
   assert.equal(resolved.nextSnapshot.tokens[0].volatileEffects[0].turns, 1);
   assert.ok(resolved.nextSnapshot.hitKillProtectionDisabled.includes("token:a"));
-  const ending = checkActionConditions({ token: token("a", { volatileEffects: [{ id: "confusion", turns: 1 }] }), move, random: sequence([0.99]) });
+  const ending = checkActionConditions({ token: token("a", { volatileEffects: [{ id: "confusion", turns: 1 }] }), move, random: sequence([]) });
+  assert.equal(ending.canAct, true);
   assert.equal(ending.token.volatileEffects.some(effect => effect.id === "confusion"), false);
+  assert.equal(calculateConfusionSelfDamage(token("a", { stages: { attack: 6, defense: -6 } })), 10);
+});
+
+test("confusion self-hit can still trigger a canonical survival trait", () => {
+  const snapshot = room({ maxHp: 1, currentHp: 1, ability: "sturdy", volatileEffects: [{ id: "confusion", turns: 2 }] });
+  const resolved = resolveCombatAction({ snapshot, request, role: "narrator", move, random: sequence([0]) });
+  assert.equal(resolved.nextSnapshot.tokens[0].currentHp, 1);
+  assert.ok(resolved.nextSnapshot.hitKillProtectionDisabled.includes("token:a"));
+  assert.match(resolved.result.conditionNotes.join(" "), /Sturdy/i);
 });
 
 test("burn, Guts, Facade, paralysis and Quick Feet preserve their exceptions", () => {

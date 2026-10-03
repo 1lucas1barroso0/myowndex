@@ -369,7 +369,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "8.5",
                 title: "Testes do Treinador",
-                body: "Só role diante de incerteza e risco relevantes. Declare intenção, oposição e consequências antes dos dados. O Treinador rola 2d6, sem inventar atributos de Pokémon para si; especialidade coerente com sua origem, preparação ou ajuda útil pode conceder vantagem, e um obstáculo relevante pode conceder desvantagem. Várias fontes não empilham dados; vantagem e desvantagem simultâneas se anulam. Contra dificuldade fixa, o total também precisa superá-la. Use 5 para um teste favorável, 7 para exigente e 9 para muito difícil como referências, ajustadas antes da rolagem. Ações impossíveis pedem outra abordagem; ações triviais não pedem dados."
+                body: "Só role diante de incerteza e risco relevantes. Declare intenção, oposição e consequências antes dos dados. O Treinador usa 2d6, sem inventar atributos de Pokémon para si; especialidade coerente com sua origem, preparação ou ajuda útil pode conceder vantagem, e um obstáculo relevante pode conceder desvantagem. Várias fontes não empilham dados; vantagem e desvantagem simultâneas se anulam. Contra dificuldade fixa, use 5 para um teste favorável, 7 para exigente e 9 para muito difícil como referências. O MyOwnDex soma modificadores, compara a dificuldade e informa sucesso ou falha; o jogador não precisa fazer a conta. Ações impossíveis pedem outra abordagem; ações triviais não pedem dados."
             }
         ]
     }

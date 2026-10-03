@@ -248,7 +248,7 @@ const addConsequences = (summary, current) => ({
 
 const resolutionRollLabel = resolution => {
     if (resolution.attackTest && resolution.defenseTest) {
-        return `${resolution.attackTest.total} × ${resolution.defenseTest.total}`;
+        return `${resolution.contestSuccess ? "ataque venceu" : "defesa venceu"} · dados ${resolution.attackTest.diceTotal} × ${resolution.defenseTest.diceTotal}`;
     }
     if (!resolution.accuracyTest.automatic) {
         return `${resolution.accuracyTest.result}/${resolution.accuracyTest.chance}`;

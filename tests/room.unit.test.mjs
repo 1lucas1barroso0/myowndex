@@ -558,20 +558,7 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
   assert.equal(multiHit.damage, multiHit.damagePerHit * 5);
 });
 
-test("2d6 stays relevant even when the real combat attributes are extremely far apart", () => {
-  const attacker = {
-    id: "underdog",
-    name: "Underdog",
-    level: 50,
-    types: ["normal"],
-    stats: { attack: 1, "special-attack": 1 },
-  };
-  const defender = {
-    id: "wall",
-    name: "Wall",
-    types: ["normal"],
-    stats: { defense: 99, "special-defense": 99 },
-  };
+test("proportional contests keep the same dice relevance when absolute stats scale up", () => {
   const move = {
     name: "tackle",
     power: 40,
@@ -579,25 +566,37 @@ test("2d6 stays relevant even when the real combat attributes are extremely far 
     type: { name: "normal" },
     damage_class: { name: "physical" },
   };
-  const upset = calculateMoveResolution({
-    attacker,
-    defender,
+  const resolve = (attack, defense, draws) => calculateMoveResolution({
+    attacker: {
+      id: `attacker-${attack}`,
+      name: "Atacante",
+      level: 50,
+      types: ["normal"],
+      stats: { attack: Math.max(1, Math.floor(attack / 10)) },
+      originalStats: { attack },
+    },
+    defender: {
+      id: `defender-${defense}`,
+      name: "Defensor",
+      types: ["normal"],
+      stats: { defense: Math.max(1, Math.floor(defense / 10)) },
+      originalStats: { defense },
+    },
     move,
-    random: sequence([0.999, 0.999, 0, 0]),
+    random: sequence(draws),
   });
-  assert.equal(upset.contestEdge.rawDifference, -98);
-  assert.equal(upset.contestEdge.effectiveDifference, -6);
-  assert.equal(upset.attackTest.total, 12);
-  assert.equal(upset.defenseTest.total, 8);
-  assert.equal(upset.contestSuccess, true);
 
-  const expected = calculateMoveResolution({
-    attacker,
-    defender,
-    move,
-    random: sequence([0, 0, 0.999, 0.999]),
-  });
-  assert.equal(expected.contestSuccess, false);
+  const lowScale = resolve(110, 100, [0.5, 0.5, 0.5, 0.5]);
+  const highScale = resolve(220, 200, [0.5, 0.5, 0.5, 0.5]);
+  assert.equal(lowScale.contestSuccess, true);
+  assert.equal(highScale.contestSuccess, true);
+  assert.equal(lowScale.attackTest.diceTotal, highScale.attackTest.diceTotal);
+  assert.equal(lowScale.defenseTest.diceTotal, highScale.defenseTest.diceTotal);
+  assert.equal(lowScale.attackTest.total / lowScale.defenseTest.total, highScale.attackTest.total / highScale.defenseTest.total);
+
+  const poorRoll = resolve(110, 100, [0, 0, 0.999, 0.999]);
+  assert.equal(poorRoll.contestSuccess, false);
+  assert.deepEqual(poorRoll.contestAttributes, { attacker: 110, defender: 100 });
 });
 
 test("damage applies multipliers before one final rounding and keeps weak and strong hits proportional", () => {

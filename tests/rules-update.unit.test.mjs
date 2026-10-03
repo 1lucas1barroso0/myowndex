@@ -102,6 +102,17 @@ test("confusion self-hit can still trigger a canonical survival trait", () => {
   assert.match(resolved.result.conditionNotes.join(" "), /Sturdy/i);
 });
 
+test("a blocking status prevents confusion from advancing or self-hitting", () => {
+  const checked = checkActionConditions({
+    token: token("a", { status: "paralysis", volatileEffects: [{ id: "confusion", turns: 3 }] }),
+    move,
+    random: sequence([0]),
+  });
+  assert.equal(checked.canAct, false);
+  assert.equal(checked.selfDamage, 0);
+  assert.equal(checked.token.volatileEffects.find(effect => effect.id === "confusion").turns, 3);
+});
+
 test("burn, Guts, Facade, paralysis and Quick Feet preserve their exceptions", () => {
   const damage = (status, ability = "", name = "tackle") => getDamageTraitModifiers({ attacker: token("a", { status, ability }), defender: token("b"), move: { ...move, name } }).multiplier;
   assert.equal(damage("burn"), 0.5);

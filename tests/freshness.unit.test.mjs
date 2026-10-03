@@ -29,6 +29,10 @@ test("release-facing files agree on the current MyOwnDex version", async () => {
   }
   assert.ok(current.includes(`Versão atual: ${version}`));
   assert.match(app, new RegExp(`const APP_VERSION = "${version.replaceAll(".", "\\.")}";`));
+  for (const path of ["scripts/empacotar-linux.py", "scripts/verificar-entrega-linux.py"]) {
+    const source = await read(path);
+    assert.doesNotMatch(source, /\bversion\s*!=\s*"11\.\d+\.\d+"|\["version"\]\s*==\s*"11\.\d+\.\d+"/, `${path} must not pin an obsolete patch version`);
+  }
 });
 
 test("active documentation does not present an older release as current", async () => {

@@ -50,8 +50,8 @@ const openGenerator = async () => {
     return page.locator('.generator-dialog');
 };
 const openDice = async currentPage => {
-    await currentPage.getByRole('button', { name: 'Abrir dados locais', exact: true }).filter({ visible: true }).first().click();
-    const dialog = currentPage.getByRole('dialog', { name: 'Dados locais', exact: true });
+    await currentPage.getByRole('button', { name: 'Abrir Dados', exact: true }).filter({ visible: true }).first().click();
+    const dialog = currentPage.getByRole('dialog', { name: 'Dados', exact: true });
     await dialog.locator('.local-dice-tabs').waitFor();
     return dialog;
 };
@@ -101,7 +101,7 @@ try {
 
     let dice = await openDice(page);
     await openDetails(dice.locator('.local-dice-history'));
-    await dice.getByRole('button', { name: 'Apagar registro de Primeira', exact: true }).click();
+    await dice.getByRole('button', { name: 'Apagar rolagem de Primeira', exact: true }).click();
     await page.getByRole('alertdialog').getByRole('button', { name: 'Cancelar', exact: true }).click();
     assert.equal(await dice.locator('.local-dice-history ol > li').count(), 2);
     const originalField = await page.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem('myowndex_local_dice_room_v1'))));
@@ -109,18 +109,18 @@ try {
     await tab.goto(process.env.MYOWNDEX_SMOKE_URL || 'http://localhost:3000');
     const secondDice = await openDice(tab);
     await openDetails(secondDice.locator('.local-dice-history'));
-    await dice.getByRole('button', { name: 'Apagar registro de Primeira', exact: true }).click();
-    await confirm('Apagar registro');
+    await dice.getByRole('button', { name: 'Apagar rolagem de Primeira', exact: true }).click();
+    await confirm('Apagar rolagem');
     await page.waitForFunction(() => document.querySelectorAll('.local-dice-dialog .local-dice-history ol > li').length === 1);
     await tab.waitForFunction(() => document.querySelectorAll('.local-dice-dialog .local-dice-history ol > li').length === 1);
-    assert.equal(await secondDice.getByRole('button', { name: 'Apagar registro de Primeira', exact: true }).count(), 0);
+    assert.equal(await secondDice.getByRole('button', { name: 'Apagar rolagem de Primeira', exact: true }).count(), 0);
     assert.equal(await page.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem('myowndex_local_dice_room_v1')))), originalField);
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('myowndex_local_roll_history_v3'))[0].id), 'second-roll');
     await assertFits(dice);
     pass('individual-receipt-removal-updates-both-open-tabs-and-preserves-field-at-320px');
     await tab.close();
 
-    await dice.getByRole('button', { name: 'Pokémon', exact: true }).click();
+    await dice.getByRole('button', { name: 'Campo', exact: true }).click();
     const conditions = dice.locator('.room-tool').filter({ has: page.getByText('Condições do campo', { exact: true }) });
     await openDetails(conditions);
     await dice.locator('.local-pokemon-roster button').filter({ hasText: 'Buba' }).click();
@@ -136,10 +136,10 @@ try {
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('myowndex_local_roll_history_v3')).length), 1);
     assert.equal(await page.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem('myowndex_rotom_v4')).teams)), originalBoxes);
     pass('confirmed-practice-partner-and-field-removals-preserve-boxes-and-rolls');
-    await dice.getByRole('button', { name: 'Fechar dados locais', exact: true }).click();
+    await dice.getByRole('button', { name: 'Fechar dados', exact: true }).click();
     await page.reload();
     dice = await openDice(page);
-    await dice.getByRole('button', { name: 'Pokémon', exact: true }).click();
+    await dice.getByRole('button', { name: 'Campo', exact: true }).click();
     assert.equal(await dice.locator('.local-pokemon-roster button').count(), 0);
     await openDetails(dice.locator('.local-dice-history'));
     assert.equal(await dice.locator('.local-dice-history ol > li').count(), 1);

@@ -18,7 +18,7 @@ output.mkdir(parents=True, exist_ok=True)
 version = json.loads((root / "package.json").read_text())["version"]
 major = version.split(".")[0]
 release = ".".join(version.split(".")[:2])
-if major != "11" or version != "11.6.0":
+if major != "11" or release != "11.6":
     raise SystemExit("Review the updater base and release metadata before packaging a different version.")
 stem = f"myowndex-v{release}"
 excluded = {".git", "node_modules", ".next", ".npm-cache", ".sites-runtime", ".wrangler", ".vercel", "outputs", "work", "coverage", "dist", "dist-static", "dist-gateway", "__pycache__"}

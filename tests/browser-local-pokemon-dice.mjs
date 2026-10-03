@@ -56,8 +56,8 @@ try {
     pass("local-initiative-both-pokemon-next-turn-and-round-effects");
 
     const dispute=dialog.locator(".room-tool").filter({has:page.getByText("Disputa entre Pokémon",{exact:true})});await openDetails(dispute);
-    await dispute.getByRole("combobox",{name:"Usuário da disputa",exact:true}).selectOption({label:"Buba"});
-    await dispute.getByRole("combobox",{name:"Oposição da disputa",exact:true}).selectOption({label:"Pika"});
+    await dispute.getByRole("combobox",{name:"Pokémon da disputa",exact:true}).selectOption({label:"Buba"});
+    await dispute.getByRole("combobox",{name:"Rival da disputa",exact:true}).selectOption({label:"Pika"});
     await dispute.getByRole("button",{name:"Resolver disputa",exact:true}).click();
     await dialog.locator(".local-pokemon-receipt").filter({hasText:"venceu a disputa"}).waitFor();
     assert.doesNotMatch(await dialog.locator(".local-pokemon-receipt").innerText(),/produto|ponderad|atributo.*\d.*[×*]/i);

@@ -6,7 +6,8 @@ umask 077
 
 DEX_STAGE="preparação da atualização"
 DEX_REPO="1lucas1barroso0/myowndex"
-DEX_BASE="83462f453e0f67317aa40a20f71c7d4b827bf005"
+# Base publicada e auditada; o instalador aplica somente a diferença desta entrega.
+DEX_BASE="28e4dd28c96348545a1b04a73b91719a0aab15b0"
 DEX_SCOPE="1lucas1barroso0s-projects"
 DEX_PRODUCTION="https://myowndex.vercel.app"
 DEX_ARCHIVE_SHA="__ARCHIVE_SHA256__"
@@ -50,6 +51,8 @@ DEX_DEPLOYMENT_URL
 dex_validate() {
   DEX_STAGE="instalação das dependências"
   dex_log_run npm ci
+  DEX_STAGE="segurança das dependências de produção"
+  dex_log_run npm audit --omit=dev --audit-level=moderate
   DEX_STAGE="testes do MyOwnDex"
   dex_log_run npm test
   DEX_STAGE="revisão do código"
@@ -279,7 +282,7 @@ else
   read -r DEX_BRANCH_BASE < "$DEX_RELEASE/branch-base"
   if [[ "$(git rev-parse origin/main)" != "$DEX_BRANCH_BASE" ]]; then
     DEX_STAGE="integração de mudanças recentes de main"
-    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.6: 40 regras, idiomas naturais e remoções seguras"; fi
+    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.6: Dados unificados e revisão final"; fi
     git merge --no-edit origin/main
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
   fi
@@ -324,7 +327,7 @@ DEX_VERCEL_GUARD
 if [[ "$DEX_MERGED" != "true" ]]; then
   if ! git diff --cached --quiet; then
     DEX_STAGE="registro do código validado"
-    git commit -m "MyOwnDex 11.6: 40 regras, idiomas naturais e remoções seguras"
+    git commit -m "MyOwnDex 11.6: Dados unificados e revisão final"
   fi
   DEX_HEAD="$(git rev-parse HEAD)"
   printf '%s\n' "$DEX_HEAD" > "$DEX_RELEASE/head"
@@ -345,9 +348,9 @@ DEX_FIND_PR
       node --input-type=module - "$DEX_BRANCH" "$DEX_RELEASE/new-pr.json" <<'DEX_NEW_PR'
 import { writeFileSync } from "node:fs";
 writeFileSync(process.argv[3], JSON.stringify({
-  title: "MyOwnDex 11.6: 40 regras, referências bilíngues e remoções seguras",
+  title: "MyOwnDex 11.6: Dados unificados e revisão final",
   head: process.argv[2], base: "main", draft: false,
-  body: "O Guia apresenta 40 regras reais, reorganizando efeitos já existentes sem alterar suas mecânicas. Referências em português ganham revisão editorial, com nomes originais preservados e alternância EN/PT natural. Prévia do gerador, registros individuais, Diário e cópias recebem opções seguras de remoção, sem reaplicar ações nem restaurar dados apagados.\n\nPreserva contas, sincronização, Boxes, idiomas, referências por jogo, importação/exportação e todos os motores e regras dos PRs #20–#28.\n\nO instalador verifica testes, lint, tipos e build, aguarda CI e Preview e confirma versão e APIs em produção. A configuração existente de Turso e Vercel é reaproveitada.",
+  body: "Atualização sobre a main auditada, preservando os PRs recentes. Dados tem um único acesso global e usa o contexto da aventura sem duplicar campo ou histórico. Corrige a apresentação dos recibos confirmados pelo servidor, refina campos e histórico em telas pequenas e atualiza dependências de produção.\n\nPreserva as 40 regras, contas, sincronização, Boxes, idiomas, referências por jogo, importação/exportação e todos os motores e regras dos PRs #20–#28.\n\nO instalador verifica segurança das dependências de produção, testes, lint, tipos e build, aguarda CI e Preview e confirma versão e APIs em produção. A configuração existente de Turso e Vercel é reaproveitada.",
 }), { mode: 0o600 });
 DEX_NEW_PR
       gh api --method POST "repos/$DEX_REPO/pulls" --input "$DEX_RELEASE/new-pr.json" > "$DEX_RELEASE/pr.json"

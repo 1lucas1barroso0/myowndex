@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { clearLocalRolls, clearLocalRollsDurable, deleteLocalRollDurable, flushLocalRollHistoryWrites, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_LIMIT, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRoll, saveLocalRollDurable } from "../src/core/localRolls.js";
+import { authoritativeLocalRollReceipt, clearLocalRolls, clearLocalRollsDurable, deleteLocalRollDurable, flushLocalRollHistoryWrites, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_LIMIT, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRoll, saveLocalRollDurable } from "../src/core/localRolls.js";
+import { resolveAuthoritativeAction } from "../server/authoritativeActions.js";
 import { rollAttributeTest } from "../src/core/rpgRules.js";
 import { getStorageScope, resolveStorageKey, setStorageScope } from "../src/core/storage.js";
 
@@ -20,6 +21,33 @@ const faces = (values, sides=6) => {
     return (values[cursor++]-0.5)/sides;
   };
 };
+
+test("shared quick rolls display the server's exact receipt without drawing or storing again", () => {
+  const cases = [
+    [{kind:"attribute",mode:"advantage",attribute:3,opposition:10},[2,6,4]],
+    [{kind:"attribute",mode:"normal",attribute:0},[1,1]],
+    [{kind:"percent",mode:"disadvantage",chance:50},[20,80]],
+    [{kind:"free",quantity:3,sides:12,modifier:-2},[3,6,9]],
+  ];
+  for (const [spec, values] of cases) {
+    let cursor=0;
+    const random=()=>((values[cursor++] || 3)-.5)/(spec.kind==="percent"?100:spec.sides || 6);
+    const request={action:spec.kind==="attribute"?"quick-attribute":spec.kind==="percent"?"quick-percent":"quick-free",...localRollSpec(spec)};
+    const resolved=resolveAuthoritativeAction({request,random});
+    const response={...resolved,id:"authority-42",createdAt:"2026-10-03 12:34:56",serverAuthoritative:true};
+    const draws=cursor;
+    const receipt=authoritativeLocalRollReceipt(response,spec);
+    assert.ok(receipt);
+    assert.equal(receipt.total,resolved.audit.result);
+    assert.deepEqual(receipt.values,resolved.audit.rawDice);
+    assert.deepEqual(receipt.kept,resolved.audit.keptDice);
+    assert.equal(receipt.success,resolved.audit.success);
+    assert.equal(receipt.createdAt,Date.parse("2026-10-03T12:34:56Z"));
+    assert.equal(cursor,draws,"reading never rerolls a receipt");
+    assert.equal(authoritativeLocalRollReceipt({...response,audit:{...response.audit,result:99999}},spec),null,"inconsistent receipt fails closed");
+  }
+  assert.equal(authoritativeLocalRollReceipt({result:{title:"Resultado"}},{kind:"attribute"}),null);
+});
 
 async function durableStorage(t) {
   const previousWindow=globalThis.window;

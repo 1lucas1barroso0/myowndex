@@ -41,7 +41,7 @@ import {
     resolveDamageSequence,
     stageMultiplier,
 } from "./automation.js";
-import { getDamageCeiling, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
+import { getDamageCeiling, getOpposedAttributeEdge, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
 import { randomChance, randomChoice, randomInt, randomUnit, rollD6, SecureRandomError } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 import {
@@ -1447,17 +1447,26 @@ export const calculateMoveResolution = ({
         return safeDivide(current, stageMultiplier(normalizeStageMap(token?.stages)[key]), current);
     };
     const offensiveToken = statProfile.attackSource === "defender" ? defender : attacker;
+    const attackAttribute = profile.requiresDamageContest
+        ? contestAttribute(offensiveToken, attackKey, attackerStagesIgnored)
+        : 0;
+    const defenseAttribute = profile.requiresDamageContest
+        ? contestAttribute(defender, defenseKey, defenderStagesIgnored)
+        : 0;
+    const contestEdge = profile.requiresDamageContest
+        ? getOpposedAttributeEdge(attackAttribute, defenseAttribute)
+        : null;
     const attackTest = profile.requiresDamageContest
         ? rollAttributeTest({
             mode,
-            attribute: contestAttribute(offensiveToken, attackKey, attackerStagesIgnored),
+            attribute: contestEdge.attackerModifier,
             random,
         })
         : null;
     const defenseTest = profile.requiresDamageContest
         ? rollAttributeTest({
             mode: "normal",
-            attribute: contestAttribute(defender, defenseKey, defenderStagesIgnored),
+            attribute: contestEdge.defenderModifier,
             random,
         })
         : null;
@@ -1595,6 +1604,7 @@ export const calculateMoveResolution = ({
         defenderStagesIgnored,
         statProfile,
         contestSuccess,
+        contestEdge,
         accuracy: accuracyState.baseAccuracy,
         adjustedAccuracy: accuracyState.adjustedAccuracy,
         accuracyState,

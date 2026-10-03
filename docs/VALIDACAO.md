@@ -1,5 +1,8 @@
 ## Referência de regras
 
+Metagame e formatos competitivos não fazem parte do escopo do modo RPG: banlists, tiers, cláusulas e normas de torneio não alteram a adaptação. O MyOwnDex usa mecânicas centrais dos jogos, anime e narrativa, sempre pela implementação oficial mais recente disponível.
+
+
 O modo RPG usa como base principal a implementação oficial mais recente e corrigida disponível para cada mecânica. Atualizações, patches e correções posteriores prevalecem sobre versões antigas; o catálogo automático de movimentos prioriza a versão mais recente disponível. Em outubro de 2026, a referência de batalha mais recente é Pokémon Champions, incluindo seus ajustes de condições, movimentos e Habilidades.
 
 # Validação da atualização 11.3

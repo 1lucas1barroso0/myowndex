@@ -37,7 +37,7 @@ test("all twenty weighted multi-hit outcomes yield exactly 35/35/15/15 percent",
 });
 
 test("a double six losing the contest stays potential, never an effective critical", () => {
-  const resolution = calculateMoveResolution({ attacker: token("a"), defender: token("b", { stats: { defense: 99 } }), move, random: sequence([0.99, 0.99, 0, 0]) });
+  const resolution = calculateMoveResolution({ attacker: token("a"), defender: token("b", { stats: { defense: 99 } }), move, random: sequence([0.99, 0.99, 0.99, 0.99]) });
   assert.equal(resolution.attackTest.critical, true);
   assert.equal(resolution.criticalHit, false);
   assert.equal(resolution.damage, 0);

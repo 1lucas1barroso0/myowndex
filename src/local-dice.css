@@ -80,8 +80,6 @@ html .app-root.game-edition.handheld-edition .local-dice-history li button b { f
 html .app-root.game-edition.handheld-edition .local-dice-history-result { display: grid !important; flex: 0 0 auto !important; justify-items: end !important; gap: .1rem !important; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history li button[aria-pressed="true"] { border-color: var(--ui-blue) !important; background: var(--ui-selected) !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history li small { display: block !important; font-weight: 400 !important; }
-html .app-root.game-edition.handheld-edition .local-dice-history-meta { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: .4rem .65rem !important; padding: .45rem .75rem 0 !important; }
-html .app-root.game-edition.handheld-edition .local-dice-history-meta > small:first-child { flex: 1 1 8rem !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history .local-dice-history-outcome { padding: .2rem .4rem !important; background: var(--ui-raised) !important; border-radius: .2rem !important; font-weight: 650 !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history .local-dice-history-outcome.is-success { color: var(--ui-blue) !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history .local-dice-history-outcome.is-failure { color: var(--ui-accent) !important; }

@@ -21,3 +21,7 @@ A prévia mantém no máximo seis Pokémon e é isolada por conta, com cópia du
 Consultamos https://pokeroledex.nl/home e o gerador em https://pokeroledex.nl/generators/pokemon, por seu JavaScript público `/assets/index-C5TRZdgt.js`. A referência oferece quantidade, espécie fixa ou aleatória, filtros por habitat e Legendary, seed e prévias individuais que podem ser adicionadas ou preservadas entre gerações. A inspiração é o fluxo de preparação rápida, seguido de inspeção e armazenamento; as regras próprias de Pokérole, ranks e estatísticas não são importadas. O MyOwnDex conserva seu próprio modelo de Pokémon, suas regras e dados de jogos oficiais.
 
 O catálogo PokeAPI é uma fonte comunitária de dados dos jogos. Os direitos dos nomes, personagens e propriedades Pokémon permanecem com seus respectivos titulares.
+## Frescor das fontes
+
+O projeto compara diariamente os arquivos upstream relevantes com os commits fixados por proveniência. Se algum blob usado pelo MyOwnDex mudar no branch principal da fonte, a verificação falha até que a mudança seja revisada, os dados sejam regenerados quando necessário e os testes passem novamente. Um pin continua sendo chamado de atual somente enquanto o conteúdo relevante permanecer idêntico ao upstream.
+

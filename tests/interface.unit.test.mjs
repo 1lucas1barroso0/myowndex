@@ -469,6 +469,9 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(rules, /Somente dano realmente causado conta/);
   assert.match(rules, /reduz o próprio HP/);
   assert.match(rules, /Acertos críticos.*superam o limite comum de dano/);
+  assert.match(rules, /implementação oficial mais recente e corrigida/);
+  assert.match(rules, /1 em 8 de chance de perder a ação/);
+  assert.match(rules, /25% de chance de descongelar/);
   assert.match(localPanel, /lock\.current/);
   assert.match(localPanel, /entry\.id/);
 });

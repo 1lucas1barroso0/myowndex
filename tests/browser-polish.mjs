@@ -276,7 +276,6 @@ try {
     await dice.getByLabel('Quantidade', { exact: true }).fill('3');
     await dice.getByRole('combobox', { name: /^Dado\b/ }).selectOption('12');
     await dice.getByLabel('Modificador', { exact: true }).fill('2');
-    await openDetails(dice.locator('.local-dice-probability'));
     await openDetails(dice.locator('.local-dice-history'));
     for (const theme of themes) {
         await appearance(theme);
@@ -293,7 +292,7 @@ try {
             assert.equal(await dice.locator('.local-dice-faces > li').count(), 3);
             assert.equal(await dice.getByRole('button', { name: /Copiar/i }).count(), 0);
             assert.doesNotMatch(await dice.innerText(), fractionPattern);
-            assert.doesNotMatch(await dice.locator('.local-dice-probability').innerText(), /Cada dado é independente/i);
+            assert.equal(await dice.locator('.local-dice-probability,.local-dice-equation').count(), 0);
             assert.ok(await dice.locator('.local-dice-history > div > ol > li').count() > 0);
             await dice.locator('.local-dice-history').scrollIntoViewIfNeeded();
             await check(`${theme}-${width}-free-dice-result-and-history`);

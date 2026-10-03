@@ -91,7 +91,7 @@ MYOWNDEX_SMOKE_URL=http://localhost:3000 node tests/rendered-html.test.mjs
 
 O teste abre uma aventura temporária e verifica autorização, convidados, revisão, ações do servidor, eventos e sinalização de chamadas. Ele remove a aventura ao terminar. Os testes unitários do driver exercitam parâmetros, rollback, IDs de inserção e exclusão em cascata usando SQLite real, além da proteção e expiração do envio de áudio. Uma execução contra seu Turso e seu bucket continua sendo necessária para validar credenciais, CORS e permissões da sua infraestrutura.
 
-## Contas na edição 11.4
+## Contas
 
 Cadastro, login, recuperação por códigos e sincronização usam o mesmo Turso das aventuras. As tabelas são criadas de forma aditiva na primeira chamada da API; não é necessário contratar outro serviço nem configurar uma chave de IA. O instalador confere `GET /api/account/session` no Preview e em produção sem cadastrar uma conta de ensaio. Veja [CONTAS-E-SINCRONIZACAO.md](CONTAS-E-SINCRONIZACAO.md) para segurança, recuperação e orçamento de armazenamento.
 

@@ -140,6 +140,19 @@ test("a blocking status prevents confusion from advancing or self-hitting", () =
   assert.equal(checked.token.volatileEffects.find(effect => effect.id === "confusion").turns, 3);
 });
 
+test("Healer uses the latest fifty-percent activation rate", () => {
+  const base = createRoomSnapshot("Healer");
+  const healer = token("healer", { side: "ally", ability: "healer", status: "" });
+  const ally = token("ally", { side: "ally", status: "paralysis" });
+  const snapshot = normalizeRoomSnapshot({ ...base, phase: "batalha", tokens: [healer, ally] });
+
+  const cured = applyEndOfRoundEffects(snapshot, sequence([0.49]));
+  assert.equal(cured.room.tokens.find(entry => entry.id === "ally").status, "");
+
+  const unchanged = applyEndOfRoundEffects(snapshot, sequence([0.5]));
+  assert.equal(unchanged.room.tokens.find(entry => entry.id === "ally").status, "paralysis");
+});
+
 test("burn, Guts, Facade, paralysis and Quick Feet preserve their exceptions", () => {
   const damage = (status, ability = "", name = "tackle") => getDamageTraitModifiers({ attacker: token("a", { status, ability }), defender: token("b"), move: { ...move, name } }).multiplier;
   assert.equal(damage("burn"), 0.5);

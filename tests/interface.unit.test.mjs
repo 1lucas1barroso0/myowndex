@@ -474,4 +474,11 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(rules, /25% de chance de descongelar/);
   assert.match(localPanel, /lock\.current/);
   assert.match(localPanel, /entry\.id/);
+  assert.match(rules, /rola também a oposição/);
+  assert.match(rules, /ninguém precisa multiplicar ou trabalhar com totais grandes/);
+  assert.match(localPanel, /Teste simples/);
+  assert.match(localPanel, /Combate e iniciativa resolvem a oposição automaticamente/);
+  assert.match(combat, /Atributos e modificadores foram aplicados automaticamente/);
+  assert.doesNotMatch(combat, /attackTest\.total/);
+  assert.doesNotMatch(combat, /contestAttributes\.attacker/);
 });

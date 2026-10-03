@@ -46,9 +46,9 @@ export default function LocalDiceDialog({ open, onClose, ...diceProps }) {
     >
         {open && <>
             <header className="local-dice-dialog-heading">
-                <div><h2 id={titleId}>Dados locais</h2></div>
+                <div><h2 id={titleId}>Dados</h2></div>
                 <PokemonCompanion place="dice" className="companion-compact" eager />
-                <button ref={closeRef} type="button" className="local-dice-dialog-close" aria-label="Fechar dados locais" onClick={() => onCloseRef.current?.()}>×</button>
+                <button ref={closeRef} type="button" className="local-dice-dialog-close" aria-label="Fechar dados" onClick={() => onCloseRef.current?.()}>×</button>
             </header>
             <div className="local-dice-dialog-content"><LocalDicePanel {...diceProps} context="central" compact showHeading={false} /></div>
         </>}

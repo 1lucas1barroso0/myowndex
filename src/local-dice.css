@@ -73,6 +73,8 @@ html .app-root.game-edition.handheld-edition .local-dice-history > div > p { pad
 html .app-root.game-edition.handheld-edition .local-dice-history-actions .is-clear { color: var(--ui-accent) !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history ol { list-style: none !important; padding: 0 !important; margin-top: 1rem !important; max-height: min(24rem,65dvh) !important; overflow-y: auto !important; overscroll-behavior: contain; }
 html .app-root.game-edition.handheld-edition .local-dice-history li { padding: .65rem 0 !important; border-top: 1px solid var(--ui-line) !important; }
+html .app-root.game-edition.handheld-edition .local-dice-history-entry { display: grid; grid-template-columns: minmax(0,1fr) 44px; align-items: start; gap: .5rem; }
+html .app-root.game-edition.handheld-edition .local-dice-history .local-dice-delete-receipt { justify-content: center !important; width: 44px !important; padding: .65rem .3rem !important; color: var(--ui-accent) !important; background: transparent !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history li button { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; width: 100% !important; text-align: left !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history li button > span { flex: 1 1 auto !important; min-width: 0 !important; overflow-wrap: break-word !important; }
 html .app-root.game-edition.handheld-edition .local-dice-history li button b { flex: 0 0 auto !important; color: var(--ui-blue) !important; font-size: 1.1rem !important; font-variant-numeric: tabular-nums; }

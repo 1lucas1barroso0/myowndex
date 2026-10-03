@@ -375,3 +375,69 @@ html .app-root.game-edition.handheld-edition .token-modifier b {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Journal actions stay with their entry and disclose only when needed. */
+html .app-root.game-edition.handheld-edition .journal-options {
+  margin-bottom: 1rem;
+  color: var(--ui-muted);
+}
+html .app-root.game-edition.handheld-edition .journal-options > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: .85rem;
+}
+html .app-root.game-edition.handheld-edition .event-log article {
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: .5rem .75rem;
+  align-items: start;
+}
+html .app-root.game-edition.handheld-edition .event-log article > span {
+  grid-column: 1;
+}
+html .app-root.game-edition.handheld-edition .event-log article > p {
+  grid-column: 1;
+}
+html .app-root.game-edition.handheld-edition .event-log article > :is(button, small) {
+  grid-column: 1 / -1;
+}
+html .app-root.game-edition.handheld-edition .journal-entry-options {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  min-width: 0;
+}
+html .app-root.game-edition.handheld-edition .journal-entry-options > summary {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  list-style: none;
+  color: var(--ui-muted);
+  font-size: 1.25rem;
+  letter-spacing: .1em;
+}
+html .app-root.game-edition.handheld-edition .journal-entry-options > summary::-webkit-details-marker { display: none; }
+html .app-root.game-edition.handheld-edition .journal-entry-options[open] {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+}
+html .app-root.game-edition.handheld-edition :is(.journal-options, .journal-entry-options) > button {
+  min-height: 44px;
+  max-width: 100%;
+  border: 1px solid var(--ui-line);
+  border-radius: .25rem;
+  background: var(--ui-panel);
+  color: var(--ui-ink);
+  padding: .6rem .85rem;
+  line-height: 1.5;
+}
+html .app-root.game-edition.handheld-edition :is(.journal-options, .journal-entry-options) > button:not(:disabled) {
+  color: var(--ui-accent);
+}

@@ -6,7 +6,7 @@ import { hydratePokemon } from "../../core/team.js";
 import { createScheduledSave } from "../../core/scheduledSave.js";
 import { getStorageScope, readDurableStorage, resolveStorageKey, writeDurableStorage } from "../../core/storage.js";
 import { createPokemonRollReceipt, saveLocalRollDurable } from "../../core/localRolls.js";
-import { LOCAL_DICE_ROOM_KEY, LOCAL_DICE_TOKEN_LIMIT, LOCAL_OPPOSED_STATS, normalizeLocalDiceRoom, registerLocalPokemonDiceWrites, rollLocalPokemonOpposition } from "../../core/localPokemonRolls.js";
+import { LOCAL_DICE_ROOM_KEY, LOCAL_DICE_TOKEN_LIMIT, LOCAL_OPPOSED_STATS, normalizeLocalDiceRoom, registerLocalPokemonDiceWrites, removeLocalDiceToken, rollLocalPokemonOpposition } from "../../core/localPokemonRolls.js";
 import { resolveAuthoritativeAction } from "../../../server/authoritativeActions.js";
 import CombatAssistant from "../Room/CombatAssistant.jsx";
 import CaptureAssistant from "../Room/CaptureAssistant.jsx";
@@ -209,10 +209,17 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
         } catch(error){showError(error);} finally{actionLock.current=false;if(alive.current)setBusy(false);}
     });
     const confirm = ()=>{
-        if(isAccountApplying?.())return;
-        if(pending==="reset")commit(initialField());
+        if(isAccountApplying?.() || actionLock.current || adding)return;
+        if(pending==="reset") { commit(initialField());setSelectedTokenId("");setOppositionId(""); }
         if(pending==="apply" && setTeams)setTeams(current=>syncTeamsWithRoomProgress(current,snapshotRef.current));
-        setPending("");setNotice(pending==="apply"?"Progresso registrado nas Boxes.":"Campo reiniciado.");
+        if(pending.startsWith("remove:")) {
+            const tokenId=pending.slice(7);
+            const next=removeLocalDiceToken(snapshotRef.current,tokenId);
+            commit(next);
+            setSelectedTokenId(current=>current===tokenId ? next.tokens[0]?.id || "" : current);
+            setOppositionId(current=>current===tokenId ? "" : current);
+        }
+        setPending("");setNotice(pending==="apply"?"Progresso registrado nas Boxes.":pending==="reset"?"Campo limpo.":"Pokémon retirado do campo.");
     };
 
     if(!ready)return <p role="status">Abrindo o campo…</p>;
@@ -254,12 +261,12 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
                 <label>Condição<RoomSelect value={selectedToken.status} onChange={event=>updateToken({...selectedToken,status:event.target.value})}>{Object.entries(STATUS_LABELS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
                 {Object.entries(STAGE_LABELS).map(([key,label])=><label key={key}>{label}<RoomSelect value={selectedToken.stages?.[key] || 0} onChange={event=>updateToken(applyStageChange(selectedToken,key,Number(event.target.value)-(selectedToken.stages?.[key] || 0)))}>{Array.from({length:13},(_,index)=>index-6).map(stage=><option key={stage} value={stage}>{stage>0?`+${stage}`:stage}</option>)}</RoomSelect></label>)}
             </div><TraitMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} /><SpecialMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} />
-            {!sceneSnapshot && <button type="button" onClick={()=>commit({...snapshot,tokens:snapshot.tokens.filter(token=>token.id!==selectedToken.id),initiative:snapshot.initiative.filter(id=>id!==selectedToken.id)})}>Retirar do campo</button>}
+            {!sceneSnapshot && <button type="button" onClick={()=>setPending(`remove:${selectedToken.id}`)}>Retirar do campo</button>}
             </div>}</div></details>}
-            {!sceneSnapshot && <div className="local-pokemon-actions">{setTeams && <button type="button" onClick={()=>setPending("apply")}>Registrar progresso nas Boxes</button>}<button type="button" onClick={()=>setPending("reset")}>Reiniciar campo</button></div>}
+            {!sceneSnapshot && <div className="local-pokemon-actions">{setTeams && <button type="button" onClick={()=>setPending("apply")}>Registrar progresso nas Boxes</button>}<button type="button" onClick={()=>setPending("reset")}>Limpar campo</button></div>}
         </>}
         </fieldset>
         {notice && <p role="status" className="local-dice-feedback">{notice}</p>}
-        <ConfirmDialog open={Boolean(pending)} title={pending==="apply"?"Registrar progresso nas Boxes?":"Reiniciar campo de testes?"} description={pending==="apply"?"HP, PP e condições dos parceiros deste campo serão registrados nas fichas correspondentes. As demais Boxes serão preservadas.":"Somente este campo será esvaziado. Suas Boxes e o histórico de rolagens serão preservados."} confirmLabel={pending==="apply"?"Registrar progresso":"Reiniciar campo"} onConfirm={confirm} onCancel={()=>setPending("")} />
+        <ConfirmDialog open={Boolean(pending)} title={pending==="apply"?"Registrar progresso nas Boxes?":pending==="reset"?"Limpar o campo de testes?":"Retirar este Pokémon do campo?"} description={pending==="apply"?"HP, PP e condições dos parceiros deste campo serão registrados nas fichas correspondentes. As demais Boxes serão preservadas.":pending==="reset"?"Somente este campo será esvaziado. Suas Boxes e o histórico de rolagens serão preservados.":"Somente este parceiro sai do campo. Sua ficha na Box e o histórico de rolagens serão preservados."} confirmLabel={pending==="apply"?"Registrar progresso":pending==="reset"?"Limpar campo":"Retirar Pokémon"} onConfirm={confirm} onCancel={()=>setPending("")} />
     </div>;
 }

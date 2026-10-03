@@ -168,6 +168,25 @@ test("account routes authenticate, isolate, synchronize and recover real SQLite 
     assert.equal({}.polluted, undefined);
   });
 
+  await t.test("previous-copy deletion requires scope, origin and the current revision while preserving current data", async () => {
+    const before = (await call("data", undefined, aliceSecond)).data;
+    assert.equal((await call("data", { expectedRevision: 2 }, { ...bob, id: alice.id }, { method: "DELETE" })).response.status, 409);
+    assert.equal((await call("data", { expectedRevision: 2 }, aliceSecond, { method: "DELETE", headers: { origin: "https://other.example" } })).response.status, 403);
+    assert.equal((await call("data", { expectedRevision: 1 }, aliceSecond, { method: "DELETE" })).response.status, 409);
+    assert.equal((await call("data", { expectedRevision: 2.5 }, aliceSecond, { method: "DELETE" })).response.status, 400);
+    assert.equal((await call("data", { expectedRevision: 2, document: {} }, aliceSecond, { method: "DELETE" })).response.status, 400);
+    assert.equal((await call("data?previous=1", undefined, aliceSecond)).data.document.boxes[0].name, "Viridian Forest");
+    const erased = await call("data", { expectedRevision: 2 }, aliceSecond, { method: "DELETE" });
+    assert.equal(erased.response.status, 200);
+    assert.equal(erased.data.previousDeleted, true);
+    assert.equal(erased.data.previousRevision, null);
+    assert.equal(erased.data.revision, before.revision);
+    assert.deepEqual(erased.data.document, before.document);
+    assert.equal((await call("data?previous=1", undefined, aliceSecond)).data.document, null);
+    assert.equal((await call("data", { expectedRevision: 2 }, aliceSecond, { method: "DELETE" })).response.status, 200, "repeating the same erase is safe");
+    assert.equal((await call("data", undefined, bob)).data.document, null);
+  });
+
   await t.test("finite database reserve rejects writes without replacing existing documents", async () => {
     process.env.MYOWNDEX_DATABASE_LIMIT_BYTES = String(32 * 1024 * 1024);
     sqlite.exec("CREATE TABLE test_capacity(payload BLOB)");

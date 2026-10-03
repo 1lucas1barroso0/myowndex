@@ -5,7 +5,7 @@ import vm from "node:vm";
 import { apiCache, API_CACHE_LIMIT, API_CACHE_ENTRY_BYTES, API_DISK_CACHE_BYTES, API_MEMORY_CACHE_BYTES, clearApiCache, fetchCached } from "../src/core/mechanics.js";
 import { compactPokemon, hydrateTeam, hydrateTeams, loadTeams, loadTeamsDurable, mergeHydratedTeams, normalizePokemon, saveTeams, saveTeamsDurable, STAT_KEYS, TEAM_HYDRATION_CONCURRENCY, TEAM_STORAGE_KEY } from "../src/core/team.js";
 import { createScheduledSave } from "../src/core/scheduledSave.js";
-import { getStorageScope, readDurableStorage, readStorage, removeDurableStorage, resolveStorageKey, setStorageScope, writeDurableStorage } from "../src/core/storage.js";
+import { clearStorageScope, getStorageScope, listStoredAccountScopes, readDurableStorage, readStorage, removeDurableStorage, resolveStorageKey, setStorageScope, writeDurableStorage } from "../src/core/storage.js";
 
 const origin = "https://myowndex.vercel.app";
 const shellCacheName = `myowndex-shell-v${JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version}`;
@@ -32,6 +32,8 @@ class MemoryCaches {
 }
 class MemoryStorage {
   entries = new Map();
+  get length() { return this.entries.size; }
+  key(index) { return [...this.entries.keys()][index] ?? null; }
   getItem(key) { return this.entries.get(key) ?? null; }
   setItem(key, value) { this.entries.set(key, String(value)); }
   removeItem(key) { this.entries.delete(key); }
@@ -515,6 +517,20 @@ class MemoryIndexedDB {
             });
             return request;
           },
+          getAllKeys() {
+            const request = {};
+            queueMicrotask(() => {
+              request.result = [...values.keys()];
+              request.onsuccess?.();
+              queueMicrotask(() => transaction.oncomplete?.());
+            });
+            return request;
+          },
+          delete(key) {
+            if (shouldFail()) { queueMicrotask(() => transaction.onabort?.()); return {}; }
+            values.delete(key);
+            return {};
+          },
           put(value) {
             const request = {};
             queueMicrotask(() => {
@@ -570,6 +586,51 @@ test('durable Boxes restore the latest IndexedDB commit beyond localStorage quot
   assert.equal(await saveTeamsDurable([{ ...original[0], name: 'Não foi salvo' }]), false);
   assert.equal((await loadTeamsDurable()).length, 120, 'a failed transaction leaves the committed PC intact');
   storage.setItem = write;
+});
+
+test('explicit device-copy deletion removes both stores, isolates accounts and blocks stale pending saves', async t => {
+  const { storage, indexedDB } = await withDurableStorage(t);
+  const key = TEAM_STORAGE_KEY;
+  await writeDurableStorage(key, { name: 'Guest Box' }, { scope: null });
+  await writeDurableStorage(key, { name: 'Account B Box' }, { scope: 'account-b' });
+  setStorageScope('account-a');
+  await writeDurableStorage(key, { name: 'Account A Box' });
+  await writeDurableStorage('myowndex_generator_v1', { results: ['durable-only'] });
+  const draftKey = resolveStorageKey('myowndex_generator_v1');
+  storage.removeItem(draftKey);
+  storage.setItem('foreign-app-data', 'preserve');
+  assert.deepEqual((await listStoredAccountScopes()).sort(), ['account-a', 'account-b']);
+  const staleSave = writeDurableStorage(key, { name: 'Late stale save' });
+  await clearStorageScope('account-a');
+  assert.equal(await staleSave, false);
+  assert.equal(await readDurableStorage(key, null, { scope: 'account-a' }), null);
+  assert.equal(await readDurableStorage('myowndex_generator_v1', null, { scope: 'account-a' }), null);
+  assert.equal(await writeDurableStorage(key, { name: 'Stale pagehide recreation' }, { scope: 'account-a' }), false);
+  assert.equal([...indexedDB.values.keys()].some(saved => saved.startsWith('myowndex_account:account-a:')), false);
+  assert.equal([...storage.entries.keys()].some(saved => saved.includes('myowndex_account:account-a:')), false);
+  assert.equal((await readDurableStorage(key, null, { scope: null })).name, 'Guest Box');
+  assert.equal((await readDurableStorage(key, null, { scope: 'account-b' })).name, 'Account B Box');
+  assert.equal(storage.getItem('foreign-app-data'), 'preserve');
+  setStorageScope('account-a');
+  assert.equal(await writeDurableStorage(key, { name: 'Deliberate fresh login' }), true);
+  assert.equal((await readDurableStorage(key)).name, 'Deliberate fresh login');
+});
+
+test('clearing the guest copy preserves account data and fails safely before any erase if invalidation is denied', async t => {
+  const { storage } = await withDurableStorage(t);
+  await writeDurableStorage(TEAM_STORAGE_KEY, { name: 'Guest Box' });
+  await writeDurableStorage(TEAM_STORAGE_KEY, { name: 'Account Box' }, { scope: 'account-a' });
+  const write = storage.setItem.bind(storage);
+  storage.setItem = (key, value) => {
+    if (key.startsWith('myowndex_copy_epoch:')) throw new Error('QuotaExceededError');
+    write(key, value);
+  };
+  await assert.rejects(clearStorageScope(null), /não permitiu apagar/);
+  assert.equal((await readDurableStorage(TEAM_STORAGE_KEY)).name, 'Guest Box');
+  storage.setItem = write;
+  await clearStorageScope(null);
+  assert.equal(await readDurableStorage(TEAM_STORAGE_KEY), null);
+  assert.equal((await readDurableStorage(TEAM_STORAGE_KEY, null, { scope: 'account-a' })).name, 'Account Box');
 });
 
 test('a failed metadata update cannot make an old local mirror override a later database-only save', async t => {

@@ -234,7 +234,7 @@ try {
         assert.match(await page.locator('.record-measurements').innerText(), /6,9 kg/);
         for (const width of widths) {
             await viewport(width);
-            await page.getByRole('button', { name: 'Traduzir registro para português', exact: true }).click();
+            await page.getByRole('button', { name: 'Ver tradução do registro em português', exact: true }).click();
             const translated = normalize(await description.locator('p').first().innerText());
             assert.notEqual(translated, original, 'translation must change the descriptive prose');
             assert.match(translated, /semente|planta|costas/i);
@@ -250,7 +250,7 @@ try {
         const listener = request => requests.push(request.url());
         page.on('request', listener);
         await context.setOffline(true);
-        await page.getByRole('button', { name: 'Traduzir registro para português', exact: true }).click();
+            await page.getByRole('button', { name: 'Ver tradução do registro em português', exact: true }).click();
         await page.getByRole('button', { name: 'Ver registro original em inglês', exact: true }).click();
         assert.equal(normalize(await description.locator('p').first().innerText()), original);
         assert.deepEqual(requests, [], 'switching description languages must work locally without an API or AI');

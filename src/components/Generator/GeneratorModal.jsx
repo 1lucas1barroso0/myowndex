@@ -47,6 +47,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     const [notice, setNotice] = useState('');
     const [error, setError] = useState('');
     const [replaceConfirm, setReplaceConfirm] = useState(false);
+    const [pendingRemoval, setPendingRemoval] = useState(null);
     const [remoteDraft, setRemoteDraft] = useState(null);
     const dialogRef = useRef(null);
     const closeRef = useRef(null);
@@ -58,6 +59,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     const draftRef = useRef(results);
     const draftReadyRef = useRef(false);
     const savedDraftRef = useRef(null);
+    const draftTimerRef = useRef(null);
     const activityRef = useRef({ busy: false, saving: false });
     const closeCallback = useRef(onClose);
     const titleId = useId();
@@ -126,7 +128,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         document.addEventListener('keydown', onKeyDown);
         return () => {
             mountedRef.current = false;
-            if (draftReadyRef.current && draftRef.current.length && draftFingerprint(draftRef.current) !== savedDraftRef.current) void writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(draftRef.current), { scope });
+            if (draftReadyRef.current && draftFingerprint(draftRef.current) !== savedDraftRef.current) void writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(draftRef.current), { scope });
             sequenceRef.current += 1;
             requestRef.current?.abort();
             document.removeEventListener('keydown', onKeyDown);
@@ -137,7 +139,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     }, [scope]);
 
     useEffect(() => {
-        if (!draftReady || !results.length) return undefined;
+        if (!draftReady || draftFingerprint(results) === savedDraftRef.current) return undefined;
         const timer = window.setTimeout(() => {
             const draft = serializeDraft(results);
             void writeDurableStorage(GENERATOR_DRAFT_KEY, draft, { scope }).then(saved => {
@@ -145,8 +147,41 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 if (!saved && mountedRef.current) setError('O armazenamento deste dispositivo não conseguiu guardar a prévia. Exporte os parceiros ou salve em uma Box antes de fechar.');
             });
         }, 100);
+        draftTimerRef.current = timer;
         return () => window.clearTimeout(timer);
     }, [draftReady, results, scope]);
+
+    const removePreview = async () => {
+        if (pendingRemoval === null || busy || saving || getStorageScope() !== scope) return;
+        const removal = pendingRemoval;
+        const previous = draftRef.current;
+        const next = removal === 'all' ? [] : previous.filter(entry => entry.pokemon.id !== removal);
+        setPendingRemoval(null);
+        activityRef.current.saving = true;
+        setSaving(true);
+        setError('');
+        window.clearTimeout(draftTimerRef.current);
+        // Persist an explicit empty draft rather than removing its key: cloud
+        // clocks must distinguish a deliberate clear from a missing mirror.
+        draftRef.current = next;
+        try {
+            if (!await writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(next), { scope })) {
+                draftRef.current = previous;
+                if (mountedRef.current) setError('Não foi possível limpar a prévia. Os Pokémon continuam aqui.');
+                return;
+            }
+            savedDraftRef.current = draftFingerprint(next);
+            if (mountedRef.current) {
+                setResults(next);
+                setSelected(current => new Set([...current].filter(id => next.some(entry => entry.pokemon.id === id))));
+                setRemoteDraft(null);
+                setNotice(next.length ? 'Pokémon removido da prévia.' : 'Prévia limpa. Os parceiros guardados continuam no PC.');
+            }
+        } finally {
+            activityRef.current.saving = false;
+            if (mountedRef.current) setSaving(false);
+        }
+    };
 
     const runGeneration = async () => {
         setReplaceConfirm(false);
@@ -259,7 +294,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
 
     if (typeof document === 'undefined') return null;
     return createPortal(<div className="generator-overlay" onMouseDown={event => event.target === event.currentTarget && onClose()}>
-        <section className="generator-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} inert={replaceConfirm || undefined}>
+        <section className="generator-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} inert={replaceConfirm || pendingRemoval !== null || undefined}>
             <header className="generator-heading">
                 <div><span className="generator-kicker">Um encontro, uma nova aventura</span><h2 id={titleId}>Gerar Pokémon</h2></div>
                 <PokemonCompanion place="generator" className="companion-compact" eager />
@@ -295,7 +330,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                     {remoteDraft && <div className="generator-notice generator-sync-choice" role="status"><p>Outra prévia chegou pela sua conta. Seus parceiros continuam aqui.</p><div className="generator-save-actions"><button type="button" disabled={busy || saving} onClick={() => void chooseRemoteDraft()}>{results.some(entry => !entry.saved && !entry.exported) ? 'Exportar atual e ver prévia' : 'Ver prévia sincronizada'}</button><button type="button" disabled={busy || saving} onClick={() => void keepCurrentDraft()}>Manter atual</button></div></div>}
                     {!results.length && <div className="generator-empty"><span aria-hidden="true">✦</span><h3>Quem vai acompanhar você?</h3><p>Escolha o encontro e deixe a Pokédex trazer os parceiros.</p></div>}
                     {results.length > 0 && <>
-                        <div className="generator-result-heading"><h3>Novos parceiros</h3><span>{results.length} de 6</span></div>
+                        <div className="generator-result-heading"><h3>Novos parceiros <span>{results.length} de 6</span></h3><button type="button" className="generator-clear-preview" disabled={busy || saving} onClick={() => setPendingRemoval('all')}>Limpar prévia</button></div>
                         <div className="generator-partners">{results.map(entry => {
                             const partner = entry.pokemon;
                             return <article key={partner.id} className={`generator-partner${entry.saved ? ' is-saved' : ''}`}>
@@ -304,7 +339,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                                 <dl className="generator-partner-facts"><div><dt>Natureza</dt><dd>{formatName(partner.nature)}</dd></div><div><dt>Habilidade</dt><dd>{formatName(partner.ability) || 'Sem habilidade'}</dd></div></dl>
                                 <ul className="generator-moves" aria-label={`Movimentos de ${formatName(partner.species.name)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
                                 {!partner.moves.some(Boolean) && <p className="generator-small">Ainda não aprende movimentos por nível neste jogo.</p>}
-                                <details className="generator-partner-details"><summary>Ficha do encontro</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl></details>
+                                <details className="generator-partner-details"><summary>Ficha do encontro</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={busy || saving} onClick={() => setPendingRemoval(partner.id)} aria-label={`Remover ${formatName(partner.species.name)} da prévia`}>Remover da prévia</button></details>
                             </article>;
                         })}</div>
                         <section className="generator-save" aria-label="Guardar os parceiros selecionados"><h3>Continuar a jornada</h3><label>Destino<RoomSelect value={target} onChange={event => setTarget(event.target.value)} aria-label="Box de destino dos Pokémon gerados"><option value="new">Criar uma nova Box</option>{teams.map(team => <option key={team.id} value={team.id} disabled={team.pokemon.length >= 6}>{team.name} · {6 - team.pokemon.length} vaga{team.pokemon.length === 5 ? '' : 's'}</option>)}</RoomSelect></label>{target === 'new' && <label>Nome da Box<input type="text" maxLength="80" value={boxName} onChange={event => setBoxName(event.target.value)} /></label>}<div className="generator-save-actions"><button type="button" className="generator-primary" disabled={!selectedResults.length || selectedResults.length > freeSlots || saving || busy} onClick={() => void saveSelected()}>{saving ? 'Guardando…' : selectedResults.length ? `Guardar ${selectedResults.length} no PC` : 'Guardar no PC'}</button><button type="button" disabled={!exportSelection.length || busy} onClick={() => void exportResults(exportSelection, true)}>Exportar Box</button></div>{selectedResults.length > freeSlots && <p className="generator-small">Esta Box tem {freeSlots} vaga{freeSlots === 1 ? '' : 's'}. Selecione menos parceiros ou crie outra Box.</p>}</section>
@@ -313,5 +348,6 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             </div>}
         </section>
         <ConfirmDialog open={replaceConfirm} title="Trazer novos parceiros?" description="Ainda há Pokémon que você não guardou nem exportou. A nova geração substitui esta prévia." confirmLabel="Gerar novos" cancelLabel="Voltar à prévia" onConfirm={() => void runGeneration()} onCancel={() => setReplaceConfirm(false)} />
+        <ConfirmDialog open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar esta prévia?' : 'Remover este Pokémon da prévia?'} description="Os Pokémon removidos saem da prévia. Os parceiros já guardados nas Boxes e os arquivos exportados serão preservados." confirmLabel={pendingRemoval === 'all' ? 'Limpar prévia' : 'Remover da prévia'} cancelLabel="Voltar à prévia" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
     </div>, document.body);
 }

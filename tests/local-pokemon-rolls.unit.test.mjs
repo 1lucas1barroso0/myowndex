@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createRoomSnapshot } from "../src/core/room.js";
-import { flushLocalPokemonDiceWrites, LOCAL_DICE_ROOM_KEY, localOpposedAttribute, normalizeLocalDiceRoom, registerLocalPokemonDiceWrites, rollLocalPokemonOpposition } from "../src/core/localPokemonRolls.js";
+import { flushLocalPokemonDiceWrites, LOCAL_DICE_ROOM_KEY, localOpposedAttribute, normalizeLocalDiceRoom, registerLocalPokemonDiceWrites, removeLocalDiceToken, rollLocalPokemonOpposition } from "../src/core/localPokemonRolls.js";
 import { createPokemonRollReceipt, localRollText, normalizeLocalRollHistory, normalizeLocalRollReceipt } from "../src/core/localRolls.js";
 import { createScheduledSave } from "../src/core/scheduledSave.js";
 import { getStorageScope, readDurableStorage, setStorageScope, writeDurableStorage } from "../src/core/storage.js";
@@ -95,4 +95,18 @@ test("an unsaved practice field blocks account replacement instead of reporting 
     assert.equal(await flushLocalPokemonDiceWrites(),false);
     unregister();
     assert.equal(await flushLocalPokemonDiceWrites(),true);
+});
+
+test("removing a practice partner preserves the surviving active turn and never changes the source field",()=>{
+    const field={...snapshot(token("A"),token("B"),token("C")),initiative:["A","B","C"],turnIndex:1};
+    const before=JSON.stringify(field);
+    const withoutPrevious=removeLocalDiceToken(field,"A");
+    assert.deepEqual(withoutPrevious.tokens.map(partner=>partner.id),["B","C"]);
+    assert.deepEqual(withoutPrevious.initiative,["B","C"]);
+    assert.equal(withoutPrevious.initiative[withoutPrevious.turnIndex],"B");
+    const withoutCurrent=removeLocalDiceToken(field,"B");
+    assert.equal(withoutCurrent.initiative[withoutCurrent.turnIndex],"C");
+    assert.equal(JSON.stringify(field),before);
+    const empty=removeLocalDiceToken(removeLocalDiceToken(withoutPrevious,"B"),"C");
+    assert.deepEqual(empty.tokens,[]);assert.deepEqual(empty.initiative,[]);assert.equal(empty.turnIndex,0);
 });

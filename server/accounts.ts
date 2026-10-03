@@ -572,3 +572,26 @@ export async function putAccountDocument(request: Request) {
   if (!updated.meta.changes) return accountJson({ ...current, conflict: true, code: "ACCOUNT_REVISION_CONFLICT", error: "Outra mudança chegou primeiro. Os dois conjuntos de dados continuam disponíveis para reunir com segurança." }, { status: 409 });
   return accountJson(current);
 }
+
+/** Clear the previous cloud copy without replacing the current document. */
+export async function deletePreviousAccountDocument(request: Request) {
+  requireAccountOrigin(request);
+  await ensureAccountSchema();
+  const account = await requireAccountSession(request);
+  await consumeAccountRate(request, "write", account.id);
+  const payload = await readAccountPayload(request);
+  const revision = payload.expectedRevision;
+  if (!Number.isSafeInteger(revision) || (revision as number) < 0 || Object.keys(payload).some(key => key !== "expectedRevision")) {
+    throw new AccountError("Atualize a conta antes de apagar a cópia anterior.", 400, "ACCOUNT_REVISION");
+  }
+  const db = accountDatabase();
+  const updated = await db.prepare(`UPDATE myowndex_account_documents
+    SET previous_json = NULL, previous_revision = NULL
+    WHERE account_id = ? AND revision = ?`).bind(account.id, revision).run();
+  const current = await accountDocument(db, account.id);
+  if (!updated.meta.changes) return accountJson({
+    ...current, conflict: true, code: "ACCOUNT_REVISION_CONFLICT",
+    error: "Outra mudança chegou primeiro. Atualize a conta e confirme novamente.",
+  }, { status: 409 });
+  return accountJson({ ...current, previousDeleted: true });
+}

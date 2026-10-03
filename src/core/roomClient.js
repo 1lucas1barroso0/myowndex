@@ -103,6 +103,13 @@ export const postRoomEvent = (session, type, payload = {}) =>
         body: JSON.stringify({ type, payload }),
     });
 
+export const deleteRoomJournal = (session, selection) =>
+    roomRequest(`/api/rooms/${encodeURIComponent(session.code)}/events`, session.key, {
+        method: "DELETE",
+        idempotent: true,
+        body: JSON.stringify(selection),
+    });
+
 export const createRoomActionRequestId = () => secureRandomId("room-action");
 
 export const requestRemoteRoomAction = (session, actionRequest) =>

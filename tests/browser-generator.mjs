@@ -14,7 +14,7 @@ const report = [];
 page.on('pageerror', error => errors.push(error.message));
 const baseUrl = process.env.MYOWNDEX_SMOKE_URL || 'http://localhost:3000';
 const dialog = page.locator('.generator-dialog');
-const open = async () => { await page.getByRole('button', { name: 'Gerar Pokémon', exact: true }).click(); await dialog.waitFor(); };
+const open = async () => { await page.getByRole('button', { name: 'Gerar Pokémon', exact: true }).click(); await dialog.waitFor(); await dialog.locator('.generator-content').waitFor(); };
 const close = async () => { await dialog.getByRole('button', { name: 'Fechar gerador' }).click(); await dialog.waitFor({ state: 'detached' }); };
 
 async function verify(label) {

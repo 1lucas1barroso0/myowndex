@@ -188,3 +188,57 @@ export async function POST(request: Request, context: RouteContext) {
     return routeError(error);
   }
 }
+
+// Deleting a journal entry never replays or reverses a mechanical action.
+// Ready receipts retain their idempotency key/result for delayed network retries.
+export async function DELETE(request: Request, context: RouteContext) {
+  const protocolError = requireCurrentRoomProtocol(request);
+  if (protocolError) return protocolError;
+  try {
+    await ensureRoomSchema();
+    const { code: rawCode } = await context.params;
+    const code = safeRoomCode(rawCode);
+    const auth = await authenticateRoom(code, readRoomKey(request), request);
+    if (!auth) return noStoreJson({ error: "Não foi possível entrar nesta aventura." }, { status: 401 });
+    const payload = await request.json().catch(() => null);
+    const id = typeof payload?.id === "number" ? String(payload.id) : payload?.id;
+    const all = payload?.all === true;
+    if (!all && (typeof id !== "string" || !/^(?:authority-)?[1-9]\d*$/.test(id))) {
+      return noStoreJson({ error: "Escolha um registro do Diário." }, { status: 400 });
+    }
+    const { db } = getBindings();
+    const ownership = auth.role === "narrator" ? "" : " AND player_id = ?";
+    const ownerArgs = auth.role === "narrator" ? [] : [auth.playerId];
+    if (all) {
+      const eventLimit = payload?.through?.events;
+      const rollLimit = payload?.through?.rolls;
+      if (![eventLimit, rollLimit].every(value => Number.isSafeInteger(value) && value >= 0)) {
+        return noStoreJson({ error: "Atualize o Diário antes de limpar os registros." }, { status: 400 });
+      }
+      // Cutoffs make a retried clear safe for messages/actions arriving later.
+      await db.batch([
+        db.prepare(`DELETE FROM room_events WHERE room_code = ? AND id <= ?${ownership}`).bind(code, eventLimit, ...ownerArgs),
+        db.prepare(`UPDATE room_rolls SET journal_hidden = 1 WHERE room_code = ? AND id <= ? AND status = 'ready'${ownership}`).bind(code, rollLimit, ...ownerArgs),
+      ]);
+    } else {
+      const authoritative = id.startsWith("authority-");
+      const rowId = Number(authoritative ? id.slice("authority-".length) : id);
+      if (!Number.isSafeInteger(rowId)) return noStoreJson({ error: "Este registro não é válido." }, { status: 400 });
+      const table = authoritative ? "room_rolls" : "room_events";
+      const entry = await db.prepare(`SELECT player_id FROM ${table} WHERE room_code = ? AND id = ? LIMIT 1`)
+        .bind(code, rowId).first<{ player_id: string | null }>();
+      if (entry && auth.role !== "narrator" && entry.player_id !== auth.playerId) {
+        return noStoreJson({ error: "Você só pode apagar seus próprios registros." }, { status: 403 });
+      }
+      if (entry) {
+        await db.prepare(authoritative
+          ? `UPDATE room_rolls SET journal_hidden = 1 WHERE room_code = ? AND id = ? AND status = 'ready'${ownership}`
+          : `DELETE FROM room_events WHERE room_code = ? AND id = ?${ownership}`)
+          .bind(code, rowId, ...ownerArgs).run();
+      }
+    }
+    return noStoreJson({ ok: true });
+  } catch (error) {
+    return routeError(error);
+  }
+}

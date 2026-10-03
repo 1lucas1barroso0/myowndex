@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getStorageScope, readStorage, resolveStorageKey, writeStorage } from "../../core/storage.js";
-import { clearLocalRollsDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRollDurable } from "../../core/localRolls.js";
+import { clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRollDurable } from "../../core/localRolls.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import LocalPokemonDice from "./LocalPokemonDice.jsx";
 
@@ -38,6 +38,7 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
     const [error,setError]=useState("");
     const [feedback,setFeedback]=useState("");
     const [clearPending,setClearPending]=useState(false);
+    const [deletePending,setDeletePending]=useState(null);
     const [accountApplying,setAccountApplying]=useState(false);
     const applyingAccount=useRef(false);
     const lock=useRef(false), unlockTimer=useRef(null), alive=useRef(true);
@@ -111,11 +112,23 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
         } catch { setFeedback("O dispositivo não permitiu baixar o histórico agora."); }
     };
     const clearHistory=async ()=>{
-        if(applyingAccount.current)return;
+        if(applyingAccount.current || lock.current)return;
         setClearPending(false);
         if(!history.length) return;
         if(!await clearLocalRollsDurable()) { setFeedback("Não foi possível apagar o histórico neste dispositivo."); return; }
         setHistory([]); setResult(null); setFeedback("Histórico apagado.");
+    };
+    const deleteReceipt=async ()=>{
+        if(applyingAccount.current || lock.current || !deletePending)return;
+        const id=deletePending.id;
+        setDeletePending(null);
+        if(!await deleteLocalRollDurable(id)) { setFeedback("Não foi possível apagar este registro. Ele continua no histórico."); return; }
+        if(!alive.current)return;
+        const next=await readLocalRollHistoryDurable();
+        if(!alive.current)return;
+        setHistory(next);
+        setResult(current=>current?.id===id ? next.find(entry=>!entry.legacy)||null : current);
+        setFeedback("Registro apagado.");
     };
     const changed=result && !result.legacy && configuration.spec && JSON.stringify(result.spec)!==JSON.stringify(configuration.spec);
     return <section className={`local-dice-panel ${compact ? "is-compact" : "game-panel"}`} aria-label="Rolagens locais">
@@ -151,9 +164,9 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
             </fieldset>
         </form>
         {error && <p className="local-dice-feedback is-error" role="alert">{error}</p>}
-        {feedback && <p className="local-dice-feedback" role="status">{feedback}</p>}
         </div>
         <div hidden={page!=="pokemon"}><LocalPokemonDice {...pokemonProps} accountApplying={accountApplying} isAccountApplying={()=>applyingAccount.current} context={context} onReceipt={record=>{setResult(record);setHistory(current=>mergeLocalRolls([record],current,readLocalRolls()));}} /></div>
+        {feedback && <p className="local-dice-feedback" role="status">{feedback}</p>}
         {result?.version===3 && <article className="local-dice-result local-pokemon-receipt" aria-live="polite"><header><h4>{result.spec.label}</h4><RollTimestamp value={result.createdAt} /></header><p>{result.detail}</p>{result.groups.map((group,index)=><p key={index}><strong>{group.label}</strong> · {group.values.join(" · ")}</p>)}{result.success!=null && <strong className={result.success?"is-success":"is-failure"}>{result.success?"Sucesso":"Falha"}</strong>}</article>}
         {result?.version===2 && !result.legacy && <article className="local-dice-result" key={result.id} aria-live="polite" aria-atomic="true">
             <header><div><small>{rollLabel(result.spec)}</small><h4>{result.spec.label || "Resultado"}</h4></div><strong className="local-dice-total">{result.total}</strong></header>
@@ -165,8 +178,8 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
         </article>}
         <details className="local-dice-history"><summary><span>Histórico</span><b>{history.length} {history.length===1 ? "rolagem" : "rolagens"}</b></summary><div>
             <p>{history.length ? "Até 100 resultados salvos. Selecione uma rolagem para consultar os dados e os ajustes usados." : "Role os dados para começar seu histórico."}</p>
-            <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar histórico</button><button type="button" className="is-clear" disabled={!history.length || accountApplying} onClick={()=>setClearPending(true)}>Apagar histórico</button></div>
-            {history.length>0 && <ol>{history.map(entry=><li key={entry.id}><button type="button" disabled={Boolean(entry.legacy)} aria-pressed={!entry.legacy && result?.id===entry.id} onClick={()=>{setResult(entry);setFeedback("");}}><span>{entry.spec.label || kindLabel(entry.spec)} <small>{entry.context==="aventura" ? "Aventura" : entry.context==="central" ? "Dados locais" : "Guia"} · <RollTimestamp value={entry.createdAt} /></small></span>{entry.version!==3 && <b>{entry.total}</b>}</button><div className="local-dice-history-meta"><small>{entry.version===3 ? entry.detail : `Dados: ${entry.values.join(" · ")}${entry.legacy ? " · registro anterior" : entry.spec.mode!=="normal" ? ` · ${LOCAL_ROLL_MODES[entry.spec.mode]}` : ""}`}</small>{!entry.legacy && rollOutcome(entry) && <small className={`local-dice-history-outcome ${entry.fumble || entry.success===false ? "is-failure" : "is-success"}`}>{rollOutcome(entry)}</small>}</div></li>)}</ol>}
+            <div className="local-dice-history-actions"><button type="button" disabled={!history.length} onClick={download}>Baixar histórico</button><button type="button" className="is-clear" disabled={!history.length || busy || accountApplying} onClick={()=>setClearPending(true)}>Apagar histórico</button></div>
+            {history.length>0 && <ol>{history.map(entry=><li key={entry.id}><div className="local-dice-history-entry"><button type="button" disabled={Boolean(entry.legacy)} aria-pressed={!entry.legacy && result?.id===entry.id} onClick={()=>{setResult(entry);setFeedback("");}}><span>{entry.spec.label || kindLabel(entry.spec)} <small>{entry.context==="aventura" ? "Aventura" : entry.context==="central" ? "Dados locais" : "Guia"} · <RollTimestamp value={entry.createdAt} /></small></span>{entry.version!==3 && <b>{entry.total}</b>}</button><button type="button" className="local-dice-delete-receipt" disabled={busy || accountApplying} onClick={()=>setDeletePending(entry)} aria-label={`Apagar registro de ${entry.spec.label || kindLabel(entry.spec)}`} title="Apagar registro"><span aria-hidden="true">⌫</span></button></div><div className="local-dice-history-meta"><small>{entry.version===3 ? entry.detail : `Dados: ${entry.values.join(" · ")}${entry.legacy ? " · registro anterior" : entry.spec.mode!=="normal" ? ` · ${LOCAL_ROLL_MODES[entry.spec.mode]}` : ""}`}</small>{!entry.legacy && rollOutcome(entry) && <small className={`local-dice-history-outcome ${entry.fumble || entry.success===false ? "is-failure" : "is-success"}`}>{rollOutcome(entry)}</small>}</div></li>)}</ol>}
         </div></details>
         <ConfirmDialog
             open={clearPending}
@@ -176,5 +189,6 @@ export default function LocalDicePanel({ context="guia", onRoll, compact=false, 
             onConfirm={clearHistory}
             onCancel={()=>setClearPending(false)}
         />
+        <ConfirmDialog open={Boolean(deletePending)} title="Apagar este registro?" description="Somente esta rolagem sai do histórico local. HP, PP, turnos e Diário das aventuras permanecem como estão." confirmLabel="Apagar registro" onConfirm={()=>void deleteReceipt()} onCancel={()=>setDeletePending(null)} />
     </section>;
 }

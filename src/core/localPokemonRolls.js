@@ -34,6 +34,19 @@ export const normalizeLocalDiceRoom = value => {
     };
 };
 
+/** Remove a practice partner while preserving the current surviving turn. */
+export const removeLocalDiceToken = (value, tokenId) => {
+    const field = normalizeLocalDiceRoom(value);
+    const initiative = field.initiative.filter(id => id !== tokenId);
+    const removedBeforeTurn = field.initiative.slice(0, field.turnIndex).filter(id => id === tokenId).length;
+    return normalizeLocalDiceRoom({ ...field,
+        tokens: field.tokens.filter(token => token.id !== tokenId),
+        benchTokens: field.benchTokens.filter(token => token.id !== tokenId),
+        initiative,
+        turnIndex: initiative.length ? Math.max(0, Math.min(initiative.length - 1, field.turnIndex - removedBeforeTurn)) : 0,
+    });
+};
+
 /** The same original stats and stage conventions used by the battle engine.
  * Multiplication remains internal; callers show the dice and the winner. */
 export const localOpposedAttribute = (token, stat, snapshot) => {

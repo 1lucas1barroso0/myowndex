@@ -401,7 +401,7 @@ export default function CombatAssistant({
                                         {resolution.attackTest && resolution.defenseTest && (
                                             <span>
                                                 Disputa {resolution.attackTest.total} × {resolution.defenseTest.total}: {resolution.contestSuccess ? "ataque venceu" : "defesa venceu"}.
-                                                {resolution.contestEdge && <> Atributos {resolution.contestEdge.attacker} × {resolution.contestEdge.defender}; diferença efetiva {Math.abs(resolution.contestEdge.effectiveDifference)}{Math.abs(resolution.contestEdge.rawDifference) > Math.abs(resolution.contestEdge.effectiveDifference) ? " (limite 6)" : ""}.</>}
+                                                {resolution.contestAttributes && <> Dados {resolution.attackTest.diceTotal} × atributo {resolution.contestAttributes.attacker} contra {resolution.defenseTest.diceTotal} × atributo {resolution.contestAttributes.defender}.</>}
                                             </span>
                                         )}
                                         <span>

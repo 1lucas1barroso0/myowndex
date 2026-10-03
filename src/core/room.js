@@ -41,7 +41,7 @@ import {
     resolveDamageSequence,
     stageMultiplier,
 } from "./automation.js";
-import { getDamageCeiling, getOpposedAttributeEdge, rollAttributeTest, rollPercentTest } from "./rpgRules.js";
+import { getDamageCeiling, rollAttributeTest, rollPercentTest, rollProportionalAttributeTest } from "./rpgRules.js";
 import { randomChance, randomChoice, randomInt, randomUnit, rollD6, SecureRandomError } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
 import {
@@ -1441,32 +1441,39 @@ export const calculateMoveResolution = ({
     const defenderStagesIgnored = profile.requiresDamageContest && isAbilityActive(attacker) && normalizeSlug(attacker?.ability) === "unaware";
     const contestAttribute = (token, key, ignoreStages) => {
         const current = integerInRange(token?.stats?.[key], 0, 99999, 0);
-        if (!ignoreStages) return current;
         const original = finiteNumberOrNull(token?.originalStats?.[key]);
-        if (original != null) return convertToTTRPG(original);
-        return safeDivide(current, stageMultiplier(normalizeStageMap(token?.stages)[key]), current);
+        const stage = ignoreStages ? 0 : normalizeStageMap(token?.stages)[key];
+        if (original != null) {
+            return Math.max(1, Math.floor(original * stageMultiplier(stage)));
+        }
+        const reconstructed = Math.max(1, current * RPG_SCALE_DIVISOR);
+        if (ignoreStages) {
+            return Math.max(1, Math.floor(safeDivide(
+                reconstructed,
+                stageMultiplier(normalizeStageMap(token?.stages)[key]),
+                reconstructed,
+            )));
+        }
+        return reconstructed;
     };
     const offensiveToken = statProfile.attackSource === "defender" ? defender : attacker;
     const attackAttribute = profile.requiresDamageContest
         ? contestAttribute(offensiveToken, attackKey, attackerStagesIgnored)
-        : 0;
+        : 1;
     const defenseAttribute = profile.requiresDamageContest
         ? contestAttribute(defender, defenseKey, defenderStagesIgnored)
-        : 0;
-    const contestEdge = profile.requiresDamageContest
-        ? getOpposedAttributeEdge(attackAttribute, defenseAttribute)
-        : null;
+        : 1;
     const attackTest = profile.requiresDamageContest
-        ? rollAttributeTest({
+        ? rollProportionalAttributeTest({
             mode,
-            attribute: contestEdge.attackerModifier,
+            attribute: attackAttribute,
             random,
         })
         : null;
     const defenseTest = profile.requiresDamageContest
-        ? rollAttributeTest({
+        ? rollProportionalAttributeTest({
             mode: "normal",
-            attribute: contestEdge.defenderModifier,
+            attribute: defenseAttribute,
             random,
         })
         : null;
@@ -1480,7 +1487,7 @@ export const calculateMoveResolution = ({
             automatic: false,
             ...rollPercentTest({
                 chance: accuracyState.adjustedAccuracy,
-                advantage: profile.requiresDamageContest && contestSuccess && attackTest.total - defenseTest.total > 1,
+                advantage: profile.requiresDamageContest && contestSuccess && attackTest.diceTotal - defenseTest.diceTotal > 1,
                 random,
             }),
         };
@@ -1604,7 +1611,7 @@ export const calculateMoveResolution = ({
         defenderStagesIgnored,
         statProfile,
         contestSuccess,
-        contestEdge,
+        contestAttributes: profile.requiresDamageContest ? { attacker: attackAttribute, defender: defenseAttribute } : null,
         accuracy: accuracyState.baseAccuracy,
         adjustedAccuracy: accuracyState.adjustedAccuracy,
         accuracyState,

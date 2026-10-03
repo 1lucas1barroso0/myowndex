@@ -1,3 +1,5 @@
+> **Registro histórico de release.** Este arquivo registra o fechamento original da linha 11.6. Mudanças posteriores dentro da mesma linha são representadas pela `main`, não por este snapshot.
+
 # Fechamento 11.6
 
 Esta rodada parte do checkpoint 11.5 publicado (`6b8d8dad6238c91a8606c45f3b80e736b15b6f8a`) e mantém os dados, o PC, a sincronização, as aventuras, os idiomas e os motores dos PRs #20–#28.

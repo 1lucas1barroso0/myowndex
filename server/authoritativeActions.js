@@ -294,8 +294,14 @@ const quickAttribute = (request, random) => {
     const suggestion = test.fumble ? getFumbleSuggestion(random) : "";
     return {
         result: {
-            title: test.critical ? "Crítico potencial" : test.fumble ? "Erro crítico" : `Total ${test.total}`,
-            detail: suggestion || `${test.dice.join(" • ")}${test.attribute ? ` + ${test.attribute}` : ""}`,
+            title: test.critical
+                ? "Crítico potencial"
+                : test.fumble
+                    ? "Erro crítico"
+                    : test.success == null
+                        ? `Total ${test.total}`
+                        : `${test.success ? "Sucesso" : "Falha"} · ${test.total}`,
+            detail: suggestion || `${test.dice.join(" • ")}${test.attribute ? ` + ${test.attribute}` : ""}${request.opposition == null ? "" : ` · dificuldade ${request.opposition}`}`,
         },
         nextSnapshot: null,
         audit: {

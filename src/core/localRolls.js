@@ -22,7 +22,7 @@ export function localRollSpec(input = {}) {
         if (!LOCAL_DICE_SIDES.includes(sides)) throw new RangeError("Escolha d4, d6, d8, d10, d12, d20 ou d100.");
         return { ...common, sides, quantity: integer(input.quantity ?? 1, 1, 20, "Quantidade"), modifier: integer(input.modifier ?? 0, -99999, 99999, "Modificador") };
     }
-    return { ...common, attribute: integer(input.attribute ?? 0, -99999, 99999, "Atributo"), opposition: input.opposition === "" || input.opposition == null ? null : integer(input.opposition, -99999, 99999, "Dificuldade") };
+    return { ...common, attribute: integer(input.attribute ?? 0, -99999, 99999, "Modificador"), opposition: input.opposition === "" || input.opposition == null ? null : integer(input.opposition, -99999, 99999, "Dificuldade") };
 }
 export function localRollOdds(input) {
     const spec = localRollSpec(input);

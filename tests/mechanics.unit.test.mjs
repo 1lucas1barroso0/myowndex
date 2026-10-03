@@ -38,11 +38,12 @@ test("filters moves to one exact version group without old fallbacks", () => {
   assert.equal(result[0].version_group, "champions");
 });
 
-test("uses the MyOwnDex scale by 10 with half-up rounding", () => {
+test("uses scale by 10 with half-down ties except for HP", () => {
   assert.equal(convertToTTRPG(50), 5);
   assert.equal(convertToTTRPG(49), 5);
-  assert.equal(convertToTTRPG(15), 2);
-  assert.equal(convertToTTRPG(14), 1);
+  assert.equal(convertToTTRPG(15), 1);
+  assert.equal(convertToTTRPG(16), 2);
+  assert.equal(convertToTTRPG(15, true), 2);
   assert.equal(convertToTTRPG(1, true), 1);
 });
 

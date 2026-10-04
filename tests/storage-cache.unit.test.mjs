@@ -653,6 +653,30 @@ test('a failed metadata update cannot make an old local mirror override a later 
   assert.deepEqual(readStorage(key), { view: 'teambuilder' });
 });
 
+test('a newer versioned mirror from another tab wins before its IndexedDB transaction commits', async t => {
+  const { storage, indexedDB } = await withDurableStorage(t);
+  const key = 'myowndex_local_dice_room_v1';
+  const older = { tokens: [{ id: 'partner', currentHp: 6 }] };
+  const newer = { tokens: [{ id: 'partner', currentHp: 4 }] };
+  await writeDurableStorage(key, older);
+  const previousCommit = structuredClone(indexedDB.values.get(key));
+
+  // A different tab writes the synchronous value and its matching metadata
+  // before opening its write transaction. Its storage event can therefore
+  // cause this tab to read while IndexedDB still contains the previous value.
+  const serialized = JSON.stringify(newer);
+  let hash = 2166136261;
+  for (let index = 0; index < serialized.length; index++) hash = Math.imul(hash ^ serialized.charCodeAt(index), 16777619);
+  storage.setItem(key, serialized);
+  storage.setItem(`myowndex_snapshot_meta:${key}`, JSON.stringify({
+    writtenAt: previousCommit.writtenAt + 1,
+    fingerprint: `${serialized.length}:${hash >>> 0}`,
+  }));
+  assert.deepEqual(indexedDB.values.get(key), previousCommit, 'the other tab has not committed its database transaction yet');
+  assert.deepEqual(await readDurableStorage(key), newer, 'an old confirmed in-memory mirror must not conceal a newer matching local revision');
+  assert.deepEqual(readStorage(key), newer, 'subsequent synchronous reads use the same verified revision');
+});
+
 test('a newer local-only save survives reload even when its metadata and database writes fail', async t => {
   const { storage, indexedDB } = await withDurableStorage(t);
   const savedAt = Date.now();

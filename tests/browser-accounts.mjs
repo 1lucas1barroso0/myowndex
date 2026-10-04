@@ -357,7 +357,7 @@ try {
     const practice = first.page.locator('.local-dice-dialog');
     await practice.getByRole('button', { name: 'Campo', exact: true }).click();
     await practice.getByRole('combobox', { name: 'Pokémon da Box', exact: true })
-        .selectOption({ label: 'Parceiro da conta · Box convidada' });
+        .selectOption({ label: 'Parceiro da conta' });
     await practice.getByRole('button', { name: 'Trazer para o campo', exact: true }).click();
     await practice.locator('.local-pokemon-roster button').first().waitFor();
     const conditions = practice.locator('.room-tool').filter({ has: first.page.getByText('Condições do campo', { exact: true }) });
@@ -366,7 +366,6 @@ try {
     await conditions.getByRole('combobox', { name: 'Condição', exact: true }).selectOption('paralysis');
     await conditions.getByRole('combobox', { name: 'Ataque', exact: true }).selectOption('2');
     const initiative = practice.locator('.local-pokemon-initiative');
-    await initiative.locator(':scope > summary').click();
     await initiative.getByRole('button', { name: 'Rolar iniciativa', exact: true }).click();
     await initiative.locator('li').first().waitFor();
     await practice.getByRole('button', { name: 'Fechar dados', exact: true }).click();

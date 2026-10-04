@@ -274,7 +274,6 @@ export const readDurableStorage = async (key, fallback = null, options = {}) => 
         return value;
     };
     const mirror = confirmedMirrors.get(storageKey);
-    if (mirror && mirror.writtenAt >= record.writtenAt) return mirror.value;
     let localMetadata = null;
     let raw = null;
     let local = missing;
@@ -284,8 +283,20 @@ export const readDurableStorage = async (key, fallback = null, options = {}) => 
         if (raw != null) local = JSON.parse(raw);
         try { localMetadata = JSON.parse(storage?.getItem(metadataKey(storageKey)) || "null"); } catch {}
     } catch {}
+    const currentFingerprint = raw == null ? null : fingerprint(raw);
+    // Another tab publishes its versioned local value before its IndexedDB
+    // transaction commits. A storage event can arrive during that interval;
+    // the old in-memory/database copy must not hide the newer verified value.
+    if (local !== missing && localMetadata?.fingerprint === currentFingerprint
+        && Number.isFinite(localMetadata.writtenAt)
+        && localMetadata.writtenAt > Math.max(record.writtenAt, mirror?.writtenAt || 0)) {
+        if (scope === activeScope && PROTECTED_KEYS.has(key)) {
+            confirmedMirrors.set(storageKey, { value: local, writtenAt: localMetadata.writtenAt });
+        }
+        return local;
+    }
+    if (mirror && mirror.writtenAt >= record.writtenAt) return mirror.value;
     if (local === missing) return restore(stored);
-    const currentFingerprint = fingerprint(raw);
     if (localMetadata?.fingerprint === currentFingerprint && Number.isFinite(localMetadata.writtenAt)) {
         return localMetadata.writtenAt > record.writtenAt ? local : restore(stored);
     }

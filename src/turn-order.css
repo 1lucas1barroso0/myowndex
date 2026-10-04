@@ -1,0 +1,42 @@
+/* A turn queue, rather than a second set of battle settings. */
+html .app-root.game-edition.handheld-edition .turn-order {
+  container-type:normal !important; container-name:none !important;
+  min-width:0; padding:1rem !important; border:1px solid var(--ui-line) !important;
+  border-top:3px solid var(--ui-blue) !important; background:var(--ui-panel) !important;
+  border-radius:.3rem !important; box-shadow:none !important;
+}
+html .app-root.game-edition.handheld-edition .turn-order-heading {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem 1rem; margin-bottom:.85rem;
+}
+html .app-root.game-edition.handheld-edition .turn-order-heading :is(h3,h4) { margin:0; font-size:1.1rem; font-weight:750; line-height:1.4; letter-spacing:0; }
+html .app-root.game-edition.handheld-edition .turn-order-round { color:var(--ui-blue); background:var(--ui-selected); border:0; padding:.35rem .6rem; font-size:.875rem; line-height:1.5; border-radius:.2rem; white-space:nowrap; }
+html .app-root.game-edition.handheld-edition .turn-order-list { display:grid; gap:.45rem; list-style:none; margin:0; padding:0; }
+html .app-root.game-edition.handheld-edition .turn-order-list > li { min-width:0; margin:0; padding:0; border:0; }
+html .app-root.game-edition.handheld-edition .turn-order-list > li > button {
+  display:flex !important; align-items:center; gap:.65rem; width:100%; min-width:44px; min-height:64px;
+  padding:.5rem .65rem !important; border:1px solid transparent !important; border-left:3px solid transparent !important;
+  background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-radius:.2rem !important; text-align:left; box-shadow:none !important;
+}
+html .app-root.game-edition.handheld-edition .turn-order-list > li[aria-current="step"] > button { border-color:var(--ui-blue) !important; background:var(--ui-selected) !important; }
+html .app-root.game-edition.handheld-edition .turn-order-list :is(img,.pokemon-sprite-fallback) { width:44px; height:44px; flex:0 0 44px; object-fit:contain; }
+html .app-root.game-edition.handheld-edition .turn-order-list button > span:not(.turn-order-done) { display:grid; gap:.15rem; min-width:0; flex:1; }
+html .app-root.game-edition.handheld-edition .turn-order-list strong { color:var(--ui-ink); font-size:1rem; line-height:1.4; font-weight:750; overflow-wrap:normal; word-break:normal; hyphens:none; }
+html .app-root.game-edition.handheld-edition .turn-order-list small { color:var(--ui-muted); font-size:.875rem; font-weight:500; line-height:1.5; }
+html .app-root.game-edition.handheld-edition .turn-order-list > li[aria-current="step"] small { color:var(--ui-blue); font-weight:750; }
+html .app-root.game-edition.handheld-edition .turn-order-position { color:var(--ui-muted); font-size:.875rem; font-variant-numeric:tabular-nums; width:1.1rem; flex:0 0 1.1rem; text-align:center; }
+html .app-root.game-edition.handheld-edition .turn-order-done { color:var(--ui-blue); flex:0 0 auto; font-size:1rem; }
+html .app-root.game-edition.handheld-edition .turn-order-actions { display:grid; grid-template-columns:minmax(0,1fr); gap:.6rem; margin-top:.85rem; }
+html .app-root.game-edition.handheld-edition .turn-order-actions > button { display:flex; justify-content:center; align-items:center; gap:.5rem; width:100%; min-height:48px; padding:.65rem .9rem !important; font:inherit; font-weight:750; line-height:1.5; }
+html .app-root.game-edition.handheld-edition .turn-order-actions svg { width:20px; height:20px; flex:0 0 20px; }
+html .app-root.game-edition.handheld-edition .turn-order-empty { margin:.25rem 0; color:var(--ui-muted); font-size:.9rem; line-height:1.6; }
+html .app-root.game-edition.handheld-edition .turn-order-help { border:0 !important; border-top:1px solid var(--ui-line) !important; margin-top:.85rem; background:transparent !important; }
+html .app-root.game-edition.handheld-edition .turn-order-help > summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; list-style:none; min-height:44px; padding:.55rem 0; font-size:.875rem; color:var(--ui-muted); cursor:pointer; }
+html .app-root.game-edition.handheld-edition .turn-order-help > summary::after { content:"+"; color:var(--ui-blue); font-size:1rem; }
+html .app-root.game-edition.handheld-edition .turn-order-help[open] > summary::after { content:"−"; }
+html .app-root.game-edition.handheld-edition .turn-order-help p { margin:.35rem 0 .5rem; font-size:.9rem; line-height:1.65; color:var(--ui-muted); }
+html .app-root.game-edition.handheld-edition .turn-order :is(button,summary):focus-visible { outline:3px solid var(--journey-focus); outline-offset:3px; }
+
+html .app-root.game-edition.handheld-edition .turn-order-moves { display:grid; gap:.6rem; margin:.85rem 0; font-size:.875rem; line-height:1.6; }
+html .app-root.game-edition.handheld-edition .turn-order-moves > div { display:grid; gap:.15rem; padding-bottom:.5rem; border-bottom:1px solid var(--ui-line); }
+html .app-root.game-edition.handheld-edition .turn-order-moves dt { font-weight:750; color:var(--ui-ink); }
+html .app-root.game-edition.handheld-edition .turn-order-moves dd { margin:0; color:var(--ui-muted); }

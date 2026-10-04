@@ -180,7 +180,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 setSelected(current => new Set([...current].filter(id => next.some(entry => entry.pokemon.id === id))));
                 setRemoteDraft(null);
                 setNotice(next.length ? 'Pokémon removido da prévia.' : 'Prévia limpa. Os parceiros guardados continuam no PC.');
-                window.requestAnimationFrame(() => resultsRef.current?.focus());
+                window.requestAnimationFrame(() => (next.length ? resultsRef.current : generateRef.current)?.focus());
             }
         } finally {
             activityRef.current.saving = false;
@@ -325,15 +325,14 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
 
     if (typeof document === 'undefined') return null;
     return createPortal(<div className="generator-overlay" onMouseDown={event => event.target === event.currentTarget && onClose()}>
-        <section className="generator-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} inert={replaceConfirm || pendingRemoval !== null || undefined}>
+        <section className={`generator-dialog${results.length ? ' has-results' : ' is-preparing'}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} inert={replaceConfirm || pendingRemoval !== null || undefined}>
             <header className="generator-heading">
-                <div><span className="generator-kicker">Um encontro, uma nova aventura</span><h2 id={titleId}>Gerar Pokémon</h2></div>
+                <div><h2 id={titleId}>Gerar Pokémon</h2></div>
                 <PokemonCompanion place="generator" className="companion-compact" eager />
                 <button type="button" ref={closeRef} className="generator-close" onClick={onClose} aria-label="Fechar gerador">×</button>
             </header>
             {!draftReady ? <p role="status" className="generator-notice">Recuperando sua prévia…</p> : <div className="generator-content">
-                <form className="generator-options" onSubmit={requestGeneration} aria-busy={busy}>
-                    <p>Um parceiro ou uma equipe inteira, prontos para a sua jornada.</p>
+                <form className={`generator-options${results.length ? '' : ' generator-empty'}`} onSubmit={requestGeneration} aria-busy={busy}>
                     <div className="generator-basic-fields">
                         <label>Quantidade<RoomSelect disabled={working} value={options.count} onChange={event => updateOption('count', Number(event.target.value))} aria-label="Quantidade de Pokémon">{[1, 2, 3, 4, 5, 6].map(count => <option key={count} value={count}>{count} Pokémon</option>)}</RoomSelect></label>
                         <label>Nível<input type="number" min="1" max={experienceMode === 'game' ? 100 : 200} step="1" value={options.level} onChange={event => updateOption('level', event.target.value)} required disabled={working} /></label>
@@ -358,9 +357,8 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                     {error && <p className="generator-error" role="alert">{error}</p>}
                     {notice && <p className="generator-notice" role="status">{notice}</p>}
                     {remoteDraft && <div className="generator-notice generator-sync-choice" role="status"><p>Outra prévia chegou pela sua conta. Seus parceiros continuam aqui.</p><div className="generator-save-actions"><button type="button" disabled={working} onClick={() => void chooseRemoteDraft()}>{results.some(entry => !entry.saved && !entry.exported) ? 'Exportar atual e ver prévia' : 'Ver prévia sincronizada'}</button><button type="button" disabled={working} onClick={() => void keepCurrentDraft()}>Manter atual</button></div></div>}
-                    {!results.length && <div className="generator-empty"><span aria-hidden="true">✦</span><h3>Quem vai acompanhar você?</h3><p>Escolha o encontro e deixe a Pokédex trazer os parceiros.</p></div>}
                     {results.length > 0 && <>
-                        <div className="generator-result-heading"><h3>Novos parceiros <span>{results.length} de 6</span></h3><button type="button" className="generator-clear-preview" disabled={working} onClick={() => setPendingRemoval('all')}>Limpar prévia</button></div>
+                        <div className="generator-result-heading"><h3>Novos parceiros <span>{results.length} Pokémon</span></h3><button type="button" className="generator-clear-preview" disabled={working} onClick={() => setPendingRemoval('all')}>Limpar prévia</button></div>
                         <div className="generator-partners">{results.map(entry => {
                             const partner = entry.pokemon;
                             return <article key={partner.id} className={`generator-partner${entry.saved ? ' is-saved' : ''}`}>

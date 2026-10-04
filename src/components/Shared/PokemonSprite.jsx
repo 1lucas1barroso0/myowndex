@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { finiteNumberOrNull } from "../../core/math.js";
+import { getPokemonSpriteScale } from "../../core/pokemonHeights.js";
 
 const EMPTY_CANDIDATES = Object.freeze([]);
 
@@ -28,6 +29,7 @@ export default function PokemonSprite({
     src = "",
     pokemonId = 0,
     shiny = false,
+    height,
     candidates = EMPTY_CANDIDATES,
     alt = "",
     className = "",
@@ -44,7 +46,7 @@ export default function PokemonSprite({
 
     if (!sources[sourceIndex]) {
         return (
-            <span className={fallbackClassName} role="img" aria-label={alt || "Sprite temporariamente indisponível"}>
+            <span className={fallbackClassName} role={alt ? "img" : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : true}>
                 <span aria-hidden="true">◇</span>
             </span>
         );
@@ -54,7 +56,8 @@ export default function PokemonSprite({
         <img
             src={sources[sourceIndex]}
             alt={alt}
-            className={className}
+            className={`pokemon-sized-sprite ${className}`}
+            style={{ "--pokemon-scale": getPokemonSpriteScale(pokemonId, height) }}
             loading={loading}
             decoding="async"
             onError={() => setSourceIndex(index => index + 1)}

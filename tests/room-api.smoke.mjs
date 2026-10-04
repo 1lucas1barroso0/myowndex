@@ -154,7 +154,7 @@ try {
   });
   const afterDeclaration = await request(`/api/rooms/${created.code}`, { key: created.narratorKey });
   assert.equal(afterDeclaration.snapshot.tokens[0].declaredMove, "quick-attack");
-  assert.equal(afterDeclaration.snapshot.tokens[0].priority, -7);
+  assert.equal(afterDeclaration.snapshot.tokens[0].priority, 1, "declarations ignore a forged priority and confirm the official move");
   assert.ok(afterDeclaration.events.some(event => event.type === "move-declared"));
 
   await request(`/api/rooms/${created.code}/events`, {
@@ -232,6 +232,15 @@ try {
   assert.equal(initiative.room.snapshot.tokens[0].priority, 1);
   assert.equal(initiative.room.snapshot.initiative.length, 2);
 
+  await assert.rejects(request(`/api/rooms/${created.code}/events`, {
+    method: "POST", key: joined.playerKey,
+    body: { type: "move-declared", payload: { tokenId: "token-qa", moveName: "quick-attack", priority: 7 } },
+  }), error => error.status === 409);
+  await assert.rejects(request(`/api/rooms/${created.code}/rolls`, {
+    method: "POST", key: created.narratorKey,
+    body: { requestId: `smoke-reroll-${Date.now()}`, action: "initiative", expectedRevision: initiative.room.revision },
+  }), error => error.status === 409);
+
   const combat = await request(`/api/rooms/${created.code}/rolls`, {
     method: "POST",
     key: created.narratorKey,
@@ -249,6 +258,12 @@ try {
   assert.equal(combat.result.serverAuthoritative, true);
   assert.equal(combat.result.audit.type, "combat");
   assert.ok(combat.room.events.some(event => event.id === combat.result.id && event.type === "move"));
+
+  assert.equal(combat.room.snapshot.tokens[0].declaredMove, "quick-attack", "the selected action remains visible until round end");
+  await assert.rejects(request(`/api/rooms/${created.code}/rolls`, {
+    method: "POST", key: created.narratorKey,
+    body: { requestId: `smoke-repeat-action-${Date.now()}`, action: "combat", expectedRevision: combat.room.revision, attackerId: "token-qa", defenderId: "target-qa", moveName: "quick-attack", mode: "normal" },
+  }), error => error.status === 409);
 
   await assert.rejects(
     request(`/api/rooms/${created.code}`, {

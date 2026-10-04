@@ -1,5 +1,7 @@
-import React, { useId, useMemo, useState } from "react";
+import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
+import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
+import { integerInRange } from "../../core/math.js";
 import { formatNumberPtBr } from "../../core/mechanics.js";
 import {
     EXPERIENCE_MODES,
@@ -21,45 +23,27 @@ function RuleBullet({ text }) {
     ) : readable;
 }
 
-function HitKillOverview({ showFacts = false }) {
-    return (
-        <div className="guide-hit-kill-overview">
-            <div className="guide-hit-kill-heading">
-                <svg className="guide-hit-kill-emblem" aria-hidden="true" viewBox="0 0 32 32" fill="none">
-                    <path d="M16 3 27 7v8c0 7-6 11-11 14C11 26 5 22 5 15V7L16 3Z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
-                    <path d="M9 16h4l2-5 3 10 2-5h3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <div><strong>Uma chance de continuar</strong><span>Uma vez por Pokémon, em cada batalha.</span></div>
-            </div>
-            <ol className="guide-hit-kill-flow" aria-label="Condições para a proteção agir">
-                <li><span className="guide-hit-kill-step" aria-hidden="true">1</span><div><strong>HP cheio</strong><span>Antes de receber o dano.</span></div></li>
-                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>Dano fatal abaixo de 3× o HP máximo</strong><span>A proteção precisa estar disponível.</span></div></li>
-                <li className="guide-hit-kill-outcome"><span className="guide-hit-kill-step" aria-hidden="true">3</span><div><strong>Permanece com <b>1 HP</b></strong><span>A proteção é consumida.</span></div></li>
-            </ol>
-            <p className="guide-hit-kill-example"><strong>Por exemplo:</strong> com 20 HP máximos e cheios, um dano final de 30 deixa 1 HP se a proteção estiver disponível. Um dano de 60 ou mais atravessa a proteção, crítico ou não.</p>
-            {showFacts && (
-                <>
-                    <dl className="guide-hit-kill-facts">
-                        <div><dt>Quando verificar</dt><dd>Cada hit e cada fonte de dano indireto, separadamente.</dd></div>
-                        <div><dt>Sem dano, sem consumo</dt><dd>Erro, imunidade, bloqueio e dano absorvido pelo Substitute não afetam a proteção.</dd></div>
-                        <div><dt>O que a remove</dt><dd>Usá-la, pagar HP, sofrer recuo ou causar dano a si próprio. Cura e troca não a restauram.</dd></div>
-                        <div><dt>O que a atravessa</dt><dd>Dano igual ou superior a 3× o HP máximo e movimentos de nocaute direto.</dd></div>
-                        <div><dt>Exceção de 1 HP</dt><dd>HP fixado em 1 por regra própria da espécie ou forma, como Shedinja, não recebe a proteção geral.</dd></div>
-                    </dl>
-                    <p className="guide-hit-kill-own-protection"><strong>Sturdy e Focus Sash mantêm suas próprias regras.</strong> Quando a proteção geral age primeiro, não os consome e preserva sua elegibilidade até o próximo dano que alcançar o Pokémon.</p>
-                </>
-            )}
-        </div>
-    );
-}
-
 export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
+    const protectionRef = useRef(null);
     const scaleLabelId = useId(), scaleResultId = useId(), levelLabelId = useId(), levelResultId = useId();
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
     const searching = Boolean(query.trim());
+    const normalizedLevel = getDamageCeiling(level);
+    const showProtection = () => {
+        setQuery("");
+        window.requestAnimationFrame(() => {
+            const rule = protectionRef.current;
+            if (!rule) return;
+            rule.open = true;
+            const completeRule = rule.querySelector(".guide-hit-kill-full-rule");
+            if (completeRule) completeRule.open = true;
+            rule.querySelector(":scope > summary")?.focus({ preventScroll: true });
+            rule.scrollIntoView({ block: "start", behavior: "instant" });
+        });
+    };
 
     const visibleSections = useMemo(() => {
         const normalized = normalizeSearch(query);
@@ -108,21 +92,15 @@ export default function TrainerGuide({ experienceMode }) {
                                 </header>
                                 <div className="guide-rule-content">
                                     {section.rules.map(rule => (
-                                        <details key={rule.id} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
+                                        <details key={rule.id} ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
                                             <summary>
                                                 <span className="guide-rule-id">{rule.id}</span>
                                                 <strong>{rule.title}</strong>
                                             </summary>
                                             <div className="guide-rule-body">
-                                                {rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
+                                                {rule.id !== "3.4" && rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
                                                 {rule.id === "3.4" ? (
-                                                    <>
-                                                        <HitKillOverview />
-                                                        <details className="guide-hit-kill-full-rule" open={searching}>
-                                                            <summary>Situações especiais e exceções</summary>
-                                                            <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>
-                                                        </details>
-                                                    </>
+                                                    <HitKillExplanation expanded={searching} />
                                                 ) : rule.bullets && <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>}
                                             </div>
                                         </details>
@@ -141,7 +119,7 @@ export default function TrainerGuide({ experienceMode }) {
                             <div className="guide-conversion-grid">
                                 <label className="guide-number-field">
                                     <span className="guide-field-label" id={scaleLabelId}>Valor original</span>
-                                    <input aria-labelledby={scaleLabelId} aria-describedby={scaleResultId} type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} />
+                                    <input aria-labelledby={scaleLabelId} aria-describedby={scaleResultId} type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} onBlur={() => setScaleValue(integerInRange(scaleValue, 0, 999999, 0))} />
                                     <span className="guide-scale-results" id={scaleResultId} aria-live="polite">
                                         <span>Atributo ÷ 10 <strong>{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
                                         <span>HP ÷ 10 <strong>{formatNumberPtBr(getRpgScale(scaleValue, true))}</strong></span>
@@ -149,24 +127,31 @@ export default function TrainerGuide({ experienceMode }) {
                                 </label>
                                 <label className="guide-number-field">
                                     <span className="guide-field-label" id={levelLabelId}>Nível atual</span>
-                                    <input aria-labelledby={levelLabelId} aria-describedby={levelResultId} type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} />
-                                    <span className="guide-field-value" id={levelResultId}>{getDamageCeiling(level) >= 200 ? "Nível máximo" : <>XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></>}</span>
+                                    <input aria-labelledby={levelLabelId} aria-describedby={levelResultId} type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} onBlur={() => setLevel(normalizedLevel)} />
+                                    <span className="guide-field-value" id={levelResultId}>{normalizedLevel >= 200 ? "Nível máximo" : <>XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></>}</span>
                                 </label>
                             </div>
-                            <article className="guide-damage-limit-card" data-rule-id="3.3" aria-label={`Limite comum de dano: ${formatNumberPtBr(getDamageCeiling(level))}`}>
+                            <details className="guide-rounding-help">
+                                <summary>Como arredonda</summary>
+                                <p>A conversão escolhe o inteiro mais próximo. No empate, o atributo desce e o HP sobe. XP sempre arredonda para baixo.</p>
+                            </details>
+                            <article className="guide-damage-limit-card" aria-label={`Limite comum de dano: ${formatNumberPtBr(normalizedLevel)}`}>
                                 <div className="guide-damage-limit-value">
                                     <span>Limite comum de dano</span>
-                                    <strong>{formatNumberPtBr(getDamageCeiling(level))}</strong>
+                                    <strong>{formatNumberPtBr(normalizedLevel)}</strong>
                                 </div>
-                                <p>No nível {formatNumberPtBr(getDamageCeiling(level))}, este é o teto-base por hit. Super efetividade e aumentos temporários elevam o limite proporcionalmente; críticos e danos de regra própria usam suas exceções.</p>
+                                <details className="guide-effectiveness-help">
+                                    <summary>Tipos e limite de dano</summary>
+                                    <dl className="guide-effectiveness-cases">
+                                        <div className="is-immune"><dt>Imune <b>0</b></dt><dd>O movimento não causa dano.</dd></div>
+                                        <div className="is-resistant"><dt>Resistente <b>50% ou 25%</b></dt><dd>O dano diminui. O teto-base continua {formatNumberPtBr(normalizedLevel)}.</dd></div>
+                                        <div className="is-neutral"><dt>Normal <b>×1</b></dt><dd>O limite por hit é {formatNumberPtBr(normalizedLevel)}.</dd></div>
+                                        <div className="is-effective"><dt>Superefetivo <b>×2 ou ×4</b></dt><dd>O dano e o limite aumentam. Neste nível, o teto vai a {formatNumberPtBr(normalizedLevel * 2)} ou {formatNumberPtBr(normalizedLevel * 4)}.</dd></div>
+                                    </dl>
+                                    <p>Com vários tipos, as vantagens e resistências se combinam: duas vantagens dão ×4; vantagem e resistência dão ×1; duas resistências dão 25%. Uma imunidade mantém 0, salvo quando um efeito próprio a remove. Estágios temporários também podem elevar o teto; críticos e movimentos de regra própria usam suas exceções.</p>
+                                </details>
                             </article>
-                            <details className="guide-hit-kill-card" data-rule-id="3.4">
-                                <summary>Proteção contra hit kill</summary>
-                                <div className="guide-hit-kill-content">
-                                    <HitKillOverview showFacts />
-                                    <p className="guide-hit-kill-limit-note">Esta proteção é separada do limite comum de dano. A regra 3.4 reúne as situações especiais e exceções.</p>
-                                </div>
-                            </details>
+                            <button type="button" className="guide-hit-kill-link room-secondary-button" onClick={showProtection}>Ver proteção contra hit kill</button>
                         </div>
                     </details>
                     <details className="game-panel guide-mode-note">

@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { applyStageChange, STAGE_LABELS } from "../../core/automation.js";
 import { formatName } from "../../core/mechanics.js";
-import { createRoomSnapshot, addTeamToSnapshot, normalizeRoomToken, ROOM_WEATHERS, ROOM_TERRAINS, STATUS_LABELS, syncTeamsWithRoomProgress } from "../../core/room.js";
+import { createRoomSnapshot, addTeamToSnapshot, declareRoomMove, normalizeRoomToken, ROOM_WEATHERS, ROOM_TERRAINS, STATUS_LABELS, syncTeamsWithRoomProgress } from "../../core/room.js";
 import { hydratePokemon } from "../../core/team.js";
 import { createScheduledSave } from "../../core/scheduledSave.js";
-import { getStorageScope, readDurableStorage, resolveStorageKey, writeDurableStorage } from "../../core/storage.js";
+import { getStorageScope, readDurableStorage, readStorage, resolveStorageKey, writeDurableStorage } from "../../core/storage.js";
+import { playSoundEffect } from "../../core/audio.js";
 import { createPokemonRollReceipt, saveLocalRollDurable } from "../../core/localRolls.js";
 import { LOCAL_DICE_ROOM_KEY, LOCAL_DICE_TOKEN_LIMIT, LOCAL_OPPOSED_STATS, normalizeLocalDiceRoom, registerLocalPokemonDiceWrites, removeLocalDiceToken, rollLocalPokemonOpposition } from "../../core/localPokemonRolls.js";
-import { resolveAuthoritativeAction } from "../../../server/authoritativeActions.js";
+import { applyAuthoritativeMovePriorities, resolveAuthoritativeAction } from "../../../server/authoritativeActions.js";
 import CombatAssistant from "../Room/CombatAssistant.jsx";
 import CaptureAssistant from "../Room/CaptureAssistant.jsx";
 import SpecialMechanicsPanel from "../Room/SpecialMechanicsPanel.jsx";
@@ -17,8 +18,10 @@ import ConfirmDialog from "./ConfirmDialog.jsx";
 import PokemonSprite from "./PokemonSprite.jsx";
 import GameIcon from "./GameIcon.jsx";
 import TurnOrder from "./TurnOrder.jsx";
+import ExperienceAward from "./ExperienceAward.jsx";
+import { awardRoomPokemonExperience, getRoomBattleRewardContext } from "../../core/roomExperience.js";
 
-const initialField = () => createRoomSnapshot("Campo livre");
+const initialField = () => normalizeLocalDiceRoom(createRoomSnapshot("Campo livre"));
 const actionLabel = { combat:"Movimento", capture:"Captura", initiative:"Iniciativa", "advance-turn":"Rodada", opposed:"Disputa" };
 
 function actionReceipt(action, resolved, snapshot, context, request = {}) {
@@ -78,6 +81,8 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
     const [opposedMode,setOpposedMode] = useState("normal");
     const [opposedResult,setOpposedResult] = useState(null);
     const [roundResult,setRoundResult] = useState(null);
+    const showCombat = !sceneSnapshot || sceneSnapshot.phase === "batalha";
+    const showCapture = !sceneSnapshot || ["batalha", "exploracao"].includes(sceneSnapshot.phase);
     const sideLabelId = useId();
     const alive = useRef(true);
     const actionLock = useRef(false);
@@ -142,10 +147,17 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
     };
 
     const commit = useCallback(next=>{
-        if(sceneSnapshot) onSnapshotChange?.(next);
-        else { const normalized = normalizeLocalDiceRoom(next);fieldRevision.current+=1;snapshotRef.current=normalized;setField(normalized);save.schedule(normalized); }
+        if(sceneSnapshot) return onSnapshotChange?.(next);
+        const normalized = normalizeLocalDiceRoom(next);fieldRevision.current+=1;snapshotRef.current=normalized;setField(normalized);save.schedule(normalized);
+        return true;
     },[sceneSnapshot,onSnapshotChange,save]);
     const updateToken = nextToken => commit({ ...snapshotRef.current, tokens:snapshotRef.current.tokens.map(token=>token.id===nextToken.id ? normalizeRoomToken(nextToken) : token) });
+    const awardExperience = reward => trackWork(async () => {
+        if (accountApplying || isAccountApplying?.()) return false;
+        const saved = await commit(awardRoomPokemonExperience(snapshotRef.current, selectedToken.id, reward, teams));
+        if (saved === false) return false;
+        return sceneSnapshot ? true : await save.flush() !== false;
+    });
     const showError = useCallback(error=>setNotice(error instanceof Error ? error.message : String(error)),[]);
     const record = async receipt=>{
         const saved = await saveLocalRollDurable(receipt,{scope});
@@ -179,8 +191,19 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
                 if(pokemon?.species?.name)species=await fetchCached(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(pokemon.species.name)}`);
                 if(!species)throw new Error("Não foi possível consultar a espécie do alvo.");
             }
+            let declaredMoves;
+            if(request.action==="initiative") {
+                const names=[...new Set(before.tokens.map(token=>token.declaredMove).filter(Boolean))];
+                declaredMoves=new Map(await Promise.all(names.map(async name=>{
+                    const detail=await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`);
+                    if(!detail)throw new Error("Não foi possível confirmar os movimentos. Tente rolar novamente.");
+                    return [name,detail];
+                })));
+            }
             if(!alive.current)throw new Error("O campo foi fechado antes da jogada.");
             before=snapshotRef.current;
+            if(declaredMoves && before.tokens.some(token=>token.declaredMove && !declaredMoves.has(token.declaredMove)))throw new Error("Uma escolha mudou. Confira os movimentos e role novamente.");
+            if(declaredMoves)before=applyAuthoritativeMovePriorities(before,declaredMoves);
             const resolved=resolveAuthoritativeAction({ request, snapshot:before, role:sceneSnapshot?role:"narrator", move,calledMove,species });
             if(resolved.nextSnapshot) {
                 commit(resolved.nextSnapshot);
@@ -193,6 +216,13 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             const receipt=actionReceipt(request.action,resolved,before,context,request);
             await record(receipt);
             if(sceneSnapshot && onEvent)await onEvent(resolved.eventType,resolved.eventPayload);
+            if (resolved.sfxPayload) {
+                if (sceneSnapshot && onEvent) await onEvent("sfx", resolved.sfxPayload);
+                else {
+                    const preferences = readStorage("myowndex_audio_preferences_v1", {});
+                    if (!preferences?.muted) void playSoundEffect(resolved.sfxPayload.effectId, preferences?.volume ?? .85).catch(() => {});
+                }
+            }
             return resolved;
         } finally { actionLock.current=false;if(alive.current)setBusy(false); }
     });
@@ -210,9 +240,9 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
         } catch(error){if(alive.current)showError(error);} finally {if(alive.current)setAdding(false);}
     });
     const declareMove=async(tokenId,move)=>{
-        if(isAccountApplying?.())return;
+        if(isAccountApplying?.())throw new Error("Aguarde a conta terminar de atualizar.");
         if(sceneSnapshot && onDeclareMove)return onDeclareMove(tokenId,move);
-        commit({...snapshotRef.current,tokens:snapshotRef.current.tokens.map(token=>token.id===tokenId?{...token,declaredMove:move.name,priority:move.priority || 0}:token)});
+        commit(declareRoomMove(snapshotRef.current,tokenId,move));
     };
     const opposed=()=>trackWork(async()=>{
         if(isAccountApplying?.() || actionLock.current || !selectedToken || !oppositionId)return;
@@ -263,11 +293,12 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             <div className="local-pokemon-roster" role="group" aria-label="Pokémon em campo">{snapshot.tokens.map(token=><button type="button" key={token.id} aria-pressed={selectedToken?.id===token.id} data-side={token.side} onClick={()=>setSelectedTokenId(token.id)}>
                 <PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><span className="local-field-partner"><strong>{token.name}</strong><small>{token.side==="opponent"?"Oponente":"Aliado"}{token.captured?" · capturado":""}</small><span className="local-field-hp" aria-hidden="true" data-health={token.currentHp<=token.maxHp*.2?"low":token.currentHp<=token.maxHp*.5?"medium":"high"}><span style={{width:`${Math.max(0,Math.min(100,token.currentHp/Math.max(1,token.maxHp)*100))}%`}} /></span><small>HP {token.currentHp} de {token.maxHp}</small></span>
             </button>)}</div>
-            <TurnOrder local snapshot={snapshot} onSelect={setSelectedTokenId} canControl={editing} busy={busy}
+            {showCombat && <TurnOrder local snapshot={snapshot} onSelect={setSelectedTokenId} canControl={editing} busy={busy}
+                onDeclareMove={declareMove} canDeclareToken={token=>!sceneSnapshot || role==="narrator" || Boolean(playerId && token.ownerPlayerId===playerId)}
                 onRoll={()=>void runAction({action:"initiative"}).catch(showError)}
-                onAdvance={()=>void runAction({action:"advance-turn"}).catch(showError)} />
+                onAdvance={()=>void runAction({action:"advance-turn"}).catch(showError)} />}
             {roundResult && <details className="local-field-round-effects"><summary>Efeitos da rodada</summary><p>{roundResult}</p></details>}
-            <CombatAssistant compact snapshot={snapshot} role={sceneSnapshot?role:"narrator"} playerId={playerId} selectedTokenId={selectedToken?.id} onAttackerChange={setSelectedTokenId} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onDeclareMove={declareMove} onEvent={onEvent} onError={showError} />
+            {showCombat && <CombatAssistant compact snapshot={snapshot} role={sceneSnapshot?role:"narrator"} playerId={playerId} selectedTokenId={selectedToken?.id} onAttackerChange={setSelectedTokenId} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onEvent={onEvent} onError={showError} />}
             <details className="room-tool"><summary><strong>Disputa entre Pokémon</strong></summary><div className="room-tool-body"><div className="local-dice-fields">
                 <label>Pokémon<RoomSelect aria-label="Pokémon da disputa" value={selectedToken?.id || ""} onChange={event=>setSelectedTokenId(event.target.value)}>{snapshot.tokens.map(token=><option key={token.id} value={token.id}>{token.name}</option>)}</RoomSelect></label>
                 <label>Atributo<RoomSelect aria-label="Atributo do Pokémon" value={attackerStat} onChange={event=>setAttackerStat(event.target.value)}>{Object.entries(LOCAL_OPPOSED_STATS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
@@ -275,16 +306,17 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
                 <label>Atributo rival<RoomSelect aria-label="Atributo do rival" value={defenderStat} onChange={event=>setDefenderStat(event.target.value)}>{Object.entries(LOCAL_OPPOSED_STATS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
                 <label>Situação<RoomSelect value={opposedMode} onChange={event=>setOpposedMode(event.target.value)}><option value="normal">Normal</option><option value="advantage">Vantagem</option><option value="disadvantage">Desvantagem</option></RoomSelect></label>
             </div><button type="button" className="room-primary-button" disabled={busy || !selectedToken || !oppositionId || selectedToken.id===oppositionId} onClick={()=>void opposed()}>Resolver disputa</button>{opposedResult && <div className="local-field-dispute-result" role="status"><PokemonSprite src={opposedResult.winnerToken?.sprite} pokemonId={opposedResult.winnerToken?.speciesId} alt="" /><strong>{opposedResult.detail}</strong><details><summary>Ver dados</summary>{[[opposedResult.attackerName,opposedResult.attackerStat,opposedResult.attack],[opposedResult.defenderName,opposedResult.defenderStat,opposedResult.defense]].map(([name,stat,test],index)=><div className="local-field-dice-group" key={index}><span>{name} · {LOCAL_OPPOSED_STATS[stat]}</span><span>{test.dice.map((value,die)=><b key={die}>{value}</b>)}</span></div>)}</details></div>}</div></details>
-            <CaptureAssistant snapshot={snapshot} role={sceneSnapshot?role:"narrator"} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onEvent={onEvent} onError={showError} />
-            {editing && <details className="room-tool"><summary><strong>Condições do campo</strong></summary><div className="room-tool-body"><div className="local-dice-fields">
+            {showCapture && <CaptureAssistant snapshot={snapshot} role={sceneSnapshot?role:"narrator"} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onEvent={onEvent} onError={showError} />}
+            {editing && <details className="room-tool local-pokemon-status-tool"><summary><strong>Condições do campo</strong></summary><div className="room-tool-body"><div className="local-dice-fields">
                 <label>Clima<RoomSelect value={snapshot.weather} onChange={event=>commit({...snapshot,weather:event.target.value})}>{ROOM_WEATHERS.map(option=><option key={option.id} value={option.id}>{option.label}</option>)}</RoomSelect></label>
                 <label>Terreno<RoomSelect value={snapshot.terrain} onChange={event=>commit({...snapshot,terrain:event.target.value})}>{ROOM_TERRAINS.map(option=><option key={option.id} value={option.id}>{option.label}</option>)}</RoomSelect></label>
-                <label>Fase<RoomSelect value={snapshot.phase} onChange={event=>commit({...snapshot,phase:event.target.value})}><option value="exploracao">Exploração</option><option value="batalha">Batalha</option></RoomSelect></label>
             </div>{selectedToken && <div className="local-pokemon-status"><h4>{selectedToken.name}</h4><div className="local-dice-fields">
                 <label>HP atual<input type="number" min="0" max={selectedToken.maxHp} step="1" value={selectedToken.currentHp} onChange={event=>updateToken({...selectedToken,currentHp:Math.floor(Number(event.target.value))})} /></label>
                 <label>Condição<RoomSelect value={selectedToken.status} onChange={event=>updateToken({...selectedToken,status:event.target.value})}>{Object.entries(STATUS_LABELS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
                 {Object.entries(STAGE_LABELS).map(([key,label])=><label key={key}>{label}<RoomSelect value={selectedToken.stages?.[key] || 0} onChange={event=>updateToken(applyStageChange(selectedToken,key,Number(event.target.value)-(selectedToken.stages?.[key] || 0)))}>{Array.from({length:13},(_,index)=>index-6).map(stage=><option key={stage} value={stage}>{stage>0?`+${stage}`:stage}</option>)}</RoomSelect></label>)}
-            </div><TraitMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} /><SpecialMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} />
+            </div>{role === "narrator" && <ExperienceAward key={selectedToken.id} winnerLevel={selectedToken.level} battleContext={getRoomBattleRewardContext(snapshot, selectedToken.id)} disabled={busy || accountApplying} onAward={awardExperience} />}
+            {selectedToken.pendingEvs > 0 && <p className="token-growth-reserve">{selectedToken.pendingEvs} EVs para distribuir na ficha do PC.</p>}
+            <TraitMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} /><SpecialMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} />
             {!sceneSnapshot && <button type="button" onClick={()=>setPending(`remove:${selectedToken.id}`)}>Retirar do campo</button>}
             </div>}</div></details>}
             {!sceneSnapshot && <div className="local-pokemon-actions">{setTeams && <button type="button" onClick={()=>setPending("apply")}>Registrar progresso nas Boxes</button>}<button type="button" onClick={()=>setPending("reset")}>Limpar campo</button></div>}

@@ -13,7 +13,11 @@ import {
   safeRoomCode,
   safeText,
 } from "../../../../../server/rooms";
-import { clampFinite, integerInRange } from "../../../../../src/core/math.js";
+import { clampFinite } from "../../../../../src/core/math.js";
+
+import { declareRoomMove } from "../../../../../src/core/room.js";
+import { AuthoritativeActionError } from "../../../../../server/authoritativeActions.js";
+import { fetchServerMove } from "../../../../../server/moveReference";
 
 export const dynamic = "force-dynamic";
 
@@ -130,7 +134,7 @@ export async function POST(request: Request, context: RouteContext) {
       const moveName = safeText(eventPayload.moveName, 80)
         .toLowerCase()
         .replace(/\s+/g, "-");
-      const priority = integerInRange(eventPayload.priority, -7, 7, 0);
+      let move: Awaited<ReturnType<typeof fetchServerMove>> = null;
       const { db } = getBindings();
       for (let attempt = 0; attempt < 3; attempt += 1) {
         const room = await getRoom(code);
@@ -144,13 +148,19 @@ export async function POST(request: Request, context: RouteContext) {
         const moves = Array.isArray(token?.moves)
           ? token.moves.map(move => safeText(move, 80).toLowerCase().replace(/\s+/g, "-"))
           : [];
-        if (!token || token.ownerPlayerId !== auth.playerId || !moveName || !moves.includes(moveName)) {
+        if (!token || token.ownerPlayerId !== auth.playerId || (moveName && !moves.includes(moveName))) {
           return noStoreJson({ error: "Escolha um movimento de um Pokémon que esteja sob seu controle." }, { status: 403 });
         }
-        const nextSnapshot = {
-          ...snapshot,
-          tokens: tokens.map(item => item === token ? { ...token, declaredMove: moveName, priority } : item),
-        };
+        if (Array.isArray(snapshot.initiative) && snapshot.initiative.length) return noStoreJson({ error: "A rodada já começou. Escolha o movimento antes da próxima iniciativa." }, { status: 409 });
+        if (eventPayload.expectedRevision != null && eventPayload.expectedRevision !== room.revision) return noStoreJson({ error: "A aventura recebeu outra mudança. Atualize sua escolha.", conflict: true }, { status: 409 });
+        if (moveName && !move) move = await fetchServerMove(moveName);
+        let nextSnapshot;
+        try {
+          nextSnapshot = declareRoomMove(snapshot, tokenId, move);
+        } catch (error) {
+          return noStoreJson({ error: error instanceof Error ? error.message : "Não foi possível escolher esta ação." }, { status: 409 });
+        }
+        const priority = nextSnapshot.tokens.find((candidate: { id: string }) => candidate.id === tokenId)?.priority || 0;
         assertStateSize(nextSnapshot);
         const result = await db.prepare(
           `UPDATE rooms
@@ -185,6 +195,7 @@ export async function POST(request: Request, context: RouteContext) {
     const id = await appendRoomEvent({ code, auth, type, payload: eventPayload });
     return noStoreJson({ ok: true, id }, { status: 201 });
   } catch (error) {
+    if (error instanceof AuthoritativeActionError) return noStoreJson({ error: error.message }, { status: error.status });
     return routeError(error);
   }
 }

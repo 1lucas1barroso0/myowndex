@@ -2,7 +2,7 @@ import React, { useId, useMemo, useState } from "react";
 import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
-import { clampFinite, finiteNumber, safeDivide } from "../../core/math.js";
+import { clampFinite, safeDivide } from "../../core/math.js";
 import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS, STATUS_LABELS } from "../../core/room.js";
 import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
 import { getTraitStatus } from "../../core/traitMechanics.js";
@@ -30,30 +30,30 @@ const Token = ({
     isSelected,
     canMove,
     position,
-    showHp,
     mirrored,
+    showHp,
     protectionState,
     onSelect,
     onPointerDown,
     onPointerMove,
     onPointerUp,
+    onPointerCancel,
     onKeyMove,
     movementHelpId,
 }) => {
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
-    const hpPercentage = token.maxHp ? clamp(token.currentHp / token.maxHp * 100, 0, 100) : 0;
-    const hpTone = getHpTone(token);
-    const hudPlacement = finiteNumber(position.x, 50) > 50 ? "hud-left" : "hud-right";
+
     return (
     <button
         type="button"
-        className={`room-token side-${token.side} ${hudPlacement} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
-        style={{ left: `${position.x}%`, top: `${position.y}%` }}
-        onClick={() => onSelect(token.id)}
+        className={`room-token side-${token.side} ${canMove ? "can-move" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
+        style={{ left: `clamp(3.5rem, ${position.x}%, calc(100% - 3.5rem))`, top: `clamp(3.5rem, ${position.y}%, calc(100% - 3.5rem))` }}
+        onClick={() => onSelect(isSelected ? "" : token.id)}
         onPointerDown={event => canMove && onPointerDown(event, token)}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
         onKeyDown={event => {
             if (!canMove || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
             event.preventDefault();
@@ -64,51 +64,20 @@ const Token = ({
             });
         }}
         aria-pressed={isSelected}
-        aria-expanded={isSelected}
         aria-describedby={canMove ? movementHelpId : undefined}
-        aria-label={`${display.name}, nível ${token.level}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
+        aria-label={`${display.name}, nível ${token.level}${showHp ? `, ${token.currentHp} de ${token.maxHp} pontos de vida` : ""}${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
             {display.sprite ? (
                 <PokemonSprite
                     src={display.sprite}
-                    pokemonId={token.speciesId}
+                    pokemonId={display.disguised ? token.specialState?.illusion?.speciesId || token.speciesId : token.speciesId}
                     alt=""
                     className={`room-token-sprite pixelated ${mirrored && token.side === "ally" ? "is-mirrored" : ""}`}
                     fallbackClassName="room-token-fallback"
                 />
             ) : <span className="room-token-fallback" aria-hidden="true">●</span>}
         </span>
-        {isSelected && <span className="room-token-status-card" aria-hidden="true">
-            <span className="room-token-status-heading">
-                <strong className="room-token-name">{display.name}</strong>
-                <small>Nv. {token.level}</small>
-            </span>
-            <span className="room-token-status-meta">
-                {token.status && <b>{STATUS_LABELS[token.status] || formatName(token.status)}</b>}
-                {(display.transformed || display.disguised) && (
-                    <span className="room-token-special">{display.disguised ? "Ilusão" : "Transform"}</span>
-                )}
-                {(traits.ability || traits.item) && (
-                    <span className="room-token-traits">
-                        {traits.ability && <i className={traits.abilityActive ? "is-ability" : "is-paused"}>◆</i>}
-                        {traits.item && <i className={traits.itemConsumed ? "is-consumed" : "is-item"}>●</i>}
-                    </span>
-                )}
-                <i className={`room-token-protection is-${protectionState}`}>
-                    {protectionState === "available" ? "◆" : protectionState === "used" ? "◇" : "×"}
-                </i>
-            </span>
-            {showHp && (
-                <span className="room-token-hp-row">
-                    <b>HP</b>
-                    <span className={`room-token-hp is-${hpTone}`}>
-                        <span style={{ width: `${hpPercentage}%` }} />
-                    </span>
-                    <small>{token.currentHp} de {token.maxHp}</small>
-                </span>
-            )}
-        </span>}
     </button>
     );
 };
@@ -121,10 +90,12 @@ export default function Battlefield({
     onSelectToken,
     onSnapshotChange,
     onChoosePokemon,
+    compact = false,
 }) {
+    const battle = snapshot.phase === "batalha";
     const [drag, setDrag] = useState(null);
     const movementHelpId = useId();
-    const currentTokenId = snapshot.initiative[snapshot.turnIndex] || "";
+    const currentTokenId = battle ? snapshot.initiative[snapshot.turnIndex] || "" : "";
     const tokenById = useMemo(
         () => Object.fromEntries(snapshot.tokens.map(token => [token.id, token])),
         [snapshot.tokens],
@@ -138,6 +109,10 @@ export default function Battlefield({
         [snapshot.hitKillProtectionDisabled],
     );
 
+    const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId);
+    const selectedDisplay = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
+    const visibleTokens = snapshot.tokens.filter(token => !token.hidden && !token.captured);
+
     const canMoveToken = token => role === "narrator"
         || (snapshot.settings.allowPlayerMovement && token.ownerPlayerId === playerId);
 
@@ -145,22 +120,25 @@ export default function Battlefield({
         if (!drag) return;
         const rect = event.currentTarget.closest(".battlefield-board")?.getBoundingClientRect();
         if (!rect) return;
-        const x = clamp((event.clientX - rect.left) / rect.width * 100, 4, 96);
-        const y = clamp((event.clientY - rect.top) / rect.height * 100, 8, 92);
+        const deltaX = event.clientX - drag.startClientX;
+        const deltaY = event.clientY - drag.startClientY;
+        const x = clamp(drag.startX + deltaX / rect.width * 100, 4, 96);
+        const y = clamp(drag.startY + deltaY / rect.height * 100, 8, 92);
         setDrag(current => current ? { ...current, x, y } : current);
-        if (commit) {
+        if (commit && Math.hypot(deltaX, deltaY) > 3) {
             onSnapshotChange({
                 ...snapshot,
                 tokens: snapshot.tokens.map(token => token.id === drag.tokenId ? { ...token, x, y } : token),
             });
-            setDrag(null);
         }
+        if (commit) setDrag(null);
     };
 
     const handlePointerDown = (event, token) => {
         event.preventDefault();
         event.currentTarget.setPointerCapture?.(event.pointerId);
-        setDrag({ tokenId: token.id, x: token.x, y: token.y });
+        event.currentTarget.focus({ preventScroll: true });
+        setDrag({ tokenId: token.id, x: token.x, y: token.y, startX: token.x, startY: token.y, startClientX: event.clientX, startClientY: event.clientY });
     };
 
     const handlePointerUp = event => {
@@ -183,14 +161,14 @@ export default function Battlefield({
     };
 
     return (
-        <section className="battlefield-card" aria-label="Campo de batalha">
+        <section className={`battlefield-card ${battle ? "is-battle-scene" : "is-story-scene"}${compact ? " is-compact-scene" : ""}`} aria-label={battle ? "Campo de batalha" : "Cena da aventura"}>
             <p id={movementHelpId} className="sr-only">Para mover um Pokémon com o teclado, use as setas. Segure Shift para mover mais longe.</p>
             <div className="battlefield-toolbar">
                 <div>
-                    <h3>Campo de batalha</h3>
+                    <h3>{battle ? "Campo de batalha" : "Cena"}</h3>
                 </div>
                 <details className="battlefield-environment">
-                    <summary>Preparar o campo</summary>
+                    <summary>{battle ? "Preparar o campo" : "Escolher cenário"}</summary>
                     <div className="battlefield-selectors">
                     <label>
                         <span>Cenário</span>
@@ -202,7 +180,7 @@ export default function Battlefield({
                             {ROOM_SCENARIOS.map(scene => <option key={scene.id} value={scene.id}>{scene.label}</option>)}
                         </RoomSelect>
                     </label>
-                    <label>
+                    {!compact && <label>
                         <span>Clima</span>
                         <RoomSelect
                             value={snapshot.weather}
@@ -211,8 +189,8 @@ export default function Battlefield({
                         >
                             {ROOM_WEATHERS.map(weather => <option key={weather.id} value={weather.id}>{weather.label}</option>)}
                         </RoomSelect>
-                    </label>
-                    <label>
+                    </label>}
+                    {battle && <label>
                         <span>Terreno</span>
                         <RoomSelect
                             value={snapshot.terrain}
@@ -221,18 +199,21 @@ export default function Battlefield({
                         >
                             {ROOM_TERRAINS.map(terrain => <option key={terrain.id} value={terrain.id}>{terrain.label}</option>)}
                         </RoomSelect>
-                    </label>
+                    </label>}
                     </div>
                 </details>
             </div>
 
-            <div className={`battlefield-board ${snapshot.tokens.length ? "has-pokemon" : "is-empty-field"} scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`}>
-                <div className="battlefield-depth battlefield-depth-back" />
-                <div className="battlefield-depth battlefield-depth-front" />
-                <div className="battlefield-center-line" />
-                <div className="battlefield-side-label label-opponent">Oponentes</div>
-                <div className="battlefield-side-label label-ally">Treinadores</div>
-                {snapshot.tokens.map(token => {
+            {compact && snapshot.phase === "intervalo" && visibleTokens.length > 0 && <div className="scene-rest-party" role="group" aria-label="Pokémon no intervalo">
+                {visibleTokens.map(token => { const display = getBattleDisplayIdentity(token); return <button type="button" key={token.id} aria-pressed={selectedTokenId === token.id} aria-label={`Cuidar de ${display.name}`} onClick={() => onSelectToken(selectedTokenId === token.id ? "" : token.id)}>
+                    <PokemonSprite src={display.sprite} pokemonId={display.disguised ? token.specialState?.illusion?.speciesId || token.speciesId : token.speciesId} alt="" />
+                    <span><strong>{display.name}</strong>{snapshot.settings.showHp && <small>HP {token.currentHp} de {token.maxHp}</small>}</span>
+                </button>; })}
+            </div>}
+
+            {!compact && <div className={`battlefield-board ${visibleTokens.length ? "has-pokemon" : "is-empty-field"} scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`} style={{ "--field-token-size": `${visibleTokens.length > 8 ? 4 : visibleTokens.length > 4 ? 5 : 7}rem` }}>
+                {battle && <><div className="battlefield-center-line" /><div className="battlefield-side-label label-opponent">Oponentes</div><div className="battlefield-side-label label-ally">Aliados</div></>}
+                {visibleTokens.map(token => {
                     const position = drag?.tokenId === token.id ? drag : token;
                     const protectionKey = getHitKillProtectionKey(token);
                     const protectionState = protectionKey && hitKillProtectionUsed.has(protectionKey)
@@ -248,36 +229,41 @@ export default function Battlefield({
                             isCurrent={currentTokenId === token.id}
                             isSelected={selectedTokenId === token.id}
                             canMove={canMoveToken(token)}
-                            showHp={snapshot.settings.showHp}
                             mirrored={snapshot.settings.mirrorSprites}
+                            showHp={battle && snapshot.settings.showHp}
                             protectionState={protectionState}
                             onSelect={onSelectToken}
                             onPointerDown={handlePointerDown}
                             onPointerMove={event => updatePosition(event, false)}
                             onPointerUp={handlePointerUp}
+                            onPointerCancel={() => setDrag(null)}
                             onKeyMove={handleKeyMove}
                             movementHelpId={movementHelpId}
                         />
                     );
                 })}
-                {!snapshot.tokens.length && (
+                {!visibleTokens.length && (
                     <div className="battlefield-empty">
-                        <strong>Quem vai batalhar?</strong>
+                        <strong>{battle ? "Quem vai batalhar?" : "Quem vai explorar?"}</strong>
                         {onChoosePokemon
                             ? <button type="button" className="room-primary-button battlefield-choose-pokemon" onClick={onChoosePokemon}>Escolher Pokémon</button>
                             : <small>Escolha um parceiro em “Equipe para a cena”.</small>}
                     </div>
                 )}
                 <div className="battlefield-pixel-grid" aria-hidden="true" />
-            </div>
+            </div>}
 
+            {selectedToken && !compact && <div className={`battlefield-focus side-${selectedToken.side}`} aria-live="polite">
+                <span className="battlefield-focus-identity"><strong>{selectedDisplay.name}</strong><small>Nv. {selectedToken.level}{selectedToken.status ? ` · ${STATUS_LABELS[selectedToken.status] || formatName(selectedToken.status)}` : ""}</small></span>
+                {battle && snapshot.settings.showHp && <span className="battlefield-focus-health"><span className={`room-token-hp is-${getHpTone(selectedToken)}`} aria-hidden="true"><span style={{ width: `${selectedToken.maxHp ? clamp(selectedToken.currentHp / selectedToken.maxHp * 100, 0, 100) : 0}%` }} /></span><strong>HP {selectedToken.currentHp} de {selectedToken.maxHp}</strong></span>}
+            </div>}
             <div className="battlefield-footer">
                 <span>{ROOM_SCENARIOS.find(scene => scene.id === snapshot.scenario)?.label}</span>
-                {snapshot.weather !== "limpo" && <span>{ROOM_WEATHERS.find(weather => weather.id === snapshot.weather)?.label}</span>}
-                {snapshot.terrain !== "nenhum" && <span>{ROOM_TERRAINS.find(terrain => terrain.id === snapshot.terrain)?.label}</span>}
-                {snapshot.tokens.length > 0 && <>
-                    <span>{formatPokemonInScene(snapshot.tokens.length)}</span>
-                    <span>{tokenById[currentTokenId]?.name ? `Turno de ${tokenById[currentTokenId].name}` : "Aguardando iniciativa"}</span>
+                {!compact && snapshot.weather !== "limpo" && <span>{ROOM_WEATHERS.find(weather => weather.id === snapshot.weather)?.label}</span>}
+                {battle && snapshot.terrain !== "nenhum" && <span>{ROOM_TERRAINS.find(terrain => terrain.id === snapshot.terrain)?.label}</span>}
+                {!compact && visibleTokens.length > 0 && <>
+                    <span>{formatPokemonInScene(visibleTokens.length)}</span>
+                    {battle && <span>{tokenById[currentTokenId]?.name ? `Turno de ${tokenById[currentTokenId].name}` : "Escolha os movimentos para começar"}</span>}
                 </>}
             </div>
         </section>

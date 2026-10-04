@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createRoomSnapshot } from "../src/core/room.js";
+import { applyEndOfRoundEffects, createRoomSnapshot } from "../src/core/room.js";
 import { flushLocalPokemonDiceWrites, LOCAL_DICE_ROOM_KEY, localOpposedAttribute, normalizeLocalDiceRoom, registerLocalPokemonDiceWrites, removeLocalDiceToken, rollLocalPokemonOpposition } from "../src/core/localPokemonRolls.js";
 import { createPokemonRollReceipt, localRollText, normalizeLocalRollHistory, normalizeLocalRollReceipt } from "../src/core/localRolls.js";
 import { createScheduledSave } from "../src/core/scheduledSave.js";
@@ -9,6 +9,15 @@ import { getStorageScope, readDurableStorage, setStorageScope, writeDurableStora
 const token=(id,original=100)=>({id,name:id,maxHp:10,currentHp:10,side:id==="A"?"ally":"opponent",originalStats:{attack:original,defense:original,speed:original},stats:{attack:10,defense:10,speed:10},stages:{attack:0,defense:0,speed:0},moves:[],level:20});
 const snapshot=(...tokens)=>({...createRoomSnapshot(),tokens});
 const faces=values=>{let index=0;return ()=>{assert.ok(index<values.length,"unexpected entropy draw");return (values[index++]-0.5)/6;};};
+
+test("cached practice phases cannot suppress the battle field's end-of-round conditions", () => {
+    const legacy = { ...snapshot({ ...token("A"), status: "burn" }), phase: "exploracao" };
+    const practice = normalizeLocalDiceRoom(legacy);
+    assert.equal(practice.phase, "batalha");
+    const ended = applyEndOfRoundEffects(practice);
+    assert.ok(ended.room.tokens[0].currentHp < practice.tokens[0].currentHp);
+    assert.equal(legacy.tokens[0].currentHp, 10);
+});
 
 test("local opposition uses original proportional attributes and rolls both sides once, including strict defensive ties",()=>{
     const field=snapshot(token("A",50),token("B",100));

@@ -44,6 +44,21 @@ html .app-root.game-edition.handheld-edition .nav-capsule.is-active .nav-emblem 
 html .app-root.game-edition.handheld-edition .app-actions {
   padding-top: .8rem !important;
 }
+html .app-root.game-edition.handheld-edition .app-actions .global-dice-button {
+  background: #b9233b !important;
+  color: #fff !important;
+  border-color: #ffffff80 !important;
+  box-shadow: none !important;
+}
+html .app-root.game-edition.handheld-edition .app-actions .global-dice-button:hover {
+  background: #222b30 !important;
+  border-color: #fff !important;
+}
+html .app-root.game-edition.handheld-edition .app-actions .global-dice-button[aria-expanded="true"] {
+  background: var(--journey-gold) !important;
+  color: #222b30 !important;
+  border-color: var(--journey-gold) !important;
+}
 html .app-root.game-edition.handheld-edition .device-footer {
   align-items: flex-start !important;
   padding-block: .25rem max(.25rem, env(safe-area-inset-bottom)) !important;

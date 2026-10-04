@@ -146,8 +146,8 @@ test("XP goals floor the upcoming level consistently through both level caps", (
   assert.equal(getNextLevelXp(Infinity), 1);
   const rule = RPG_RULE_SECTIONS.flatMap(section => section.rules).find(rule => rule.id === "2.5");
   const wording = rule.bullets.join(" ");
-  assert.match(wording, /XP só usa números inteiros/);
-  assert.match(wording, /Arredonde para baixo a XP atual, recebida e dividida/);
+  assert.match(wording, /XP recebida já é inteira/);
+  assert.match(wording, /divisão padrão é igual, com resultado arredondado para baixo/);
   assert.match(wording, /contagem volta a zero/);
   assert.doesNotMatch(wording, /Meio ponto de XP é válido/);
 });

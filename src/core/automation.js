@@ -850,7 +850,8 @@ export const applyMoveConsequences = ({
     const effectAdvantage = Boolean(
         resolution.attackTest
         && resolution.defenseTest
-        && resolution.attackTest.total - resolution.defenseTest.total > 1
+        && resolution.attackTest.total > resolution.defenseTest.total
+        && resolution.attackTest.diceTotal - resolution.defenseTest.diceTotal > 1
     );
     const resolvedDamage = damageHit
         ? integerInRange(resolution.damage, 0, MAX_SAFE_GAME_INTEGER, 0)

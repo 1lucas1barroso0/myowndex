@@ -22,6 +22,8 @@ import {
   safeRoomCode,
 } from "../../../../../server/rooms";
 
+import { fetchServerMove as fetchMove } from "../../../../../server/moveReference";
+
 export const dynamic = "force-dynamic";
 
 type RouteContext = { params: Promise<{ code: string }> };
@@ -69,28 +71,6 @@ const responseForStored = async (code: string, role: "narrator" | "player", row:
   return noStoreJson({ ok: true, result: decorateStoredRoll(row), room });
 };
 
-type PokeApiMove = { name?: string; priority?: number } & Record<string, unknown>;
-
-const fetchMove = async (name: string): Promise<PokeApiMove | null> => {
-  if (!name) return null;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12_000);
-  try {
-    const response = await fetch(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`, {
-      headers: { accept: "application/json" },
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    if (!response.ok) throw new AuthoritativeActionError("A Pokédex não conseguiu confirmar este movimento agora.", 502);
-    return await response.json() as PokeApiMove;
-  } catch (error) {
-    if (error instanceof AuthoritativeActionError) throw error;
-    throw new AuthoritativeActionError("A Pokédex não conseguiu confirmar este movimento agora.", 502);
-  } finally {
-    clearTimeout(timeout);
-  }
-};
-
 const snapshotWithServerPriorities = async (snapshot: Record<string, unknown>) => {
   const tokens = Array.isArray(snapshot.tokens) ? snapshot.tokens : [];
   const declaredMoves = [...new Set(tokens.flatMap(token => {
@@ -104,7 +84,7 @@ const snapshotWithServerPriorities = async (snapshot: Record<string, unknown>) =
   }))];
   const moves = await Promise.all(declaredMoves.map(fetchMove));
   const priorities = new Map(moves.flatMap(move =>
-    move?.name ? [[move.name, Number(move.priority)]] : []
+    move?.name ? [[move.name, move]] : []
   ));
   return applyAuthoritativeMovePriorities(snapshot, priorities);
 };
@@ -164,6 +144,7 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     const storedSnapshot = parseJson<Record<string, unknown>>(room.state_json, {});
+    if (normalized.action === "initiative" && Array.isArray(storedSnapshot.initiative) && storedSnapshot.initiative.length) throw new AuthoritativeActionError("A rodada já começou. Encerre os turnos antes de rolar uma nova iniciativa.", 409);
     const snapshot = normalized.action === "initiative"
       ? await snapshotWithServerPriorities(storedSnapshot)
       : storedSnapshot;

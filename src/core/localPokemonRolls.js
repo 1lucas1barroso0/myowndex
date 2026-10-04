@@ -24,7 +24,9 @@ export const LOCAL_OPPOSED_STATS = Object.freeze({
 
 /** A single bounded practice field; Box partners are never overwritten by a test. */
 export const normalizeLocalDiceRoom = value => {
-    const snapshot = normalizeRoomSnapshot(value);
+    // Practice has one combat field. Story phases belong to Adventures;
+    // a cached exploration phase must not suppress end-of-round effects.
+    const snapshot = normalizeRoomSnapshot({ ...value, phase: "batalha" });
     const tokens = snapshot.tokens.slice(0, LOCAL_DICE_TOKEN_LIMIT);
     const tokenIds = new Set(tokens.map(token => token.id));
     return { ...snapshot, tokens, benchTokens: snapshot.benchTokens.slice(0, LOCAL_DICE_TOKEN_LIMIT - tokens.length),

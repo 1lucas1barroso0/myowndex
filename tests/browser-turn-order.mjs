@@ -25,8 +25,6 @@ const move = name => ({ name, pp: name === "quick-attack" ? 30 : 35, accuracy: 1
     priority: name === "quick-attack" ? 1 : 0, type: { name: "normal" }, damage_class: { name: "physical" },
     target: { name: "selected-pokemon" }, effect_entries: [{ language: { name: "en" }, effect: "Inflicts regular damage." }],
     stat_changes: [], meta: { ailment: { name: "none" }, category: { name: "damage" }, crit_rate: 0 } });
-const openDetails = async locator => { if (!await locator.evaluate(element => element.open)) await locator.locator(":scope > summary").click(); };
-
 try {
     for (const mode of ["practice", "adventure"]) {
         const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
@@ -126,11 +124,8 @@ try {
         assert.equal(await order.locator(".turn-order-list li").count(), 0);
         checks.push(`${mode}: end round applies effects, clears declarations, and waits for fresh initiative`);
 
-        await pane("Ações");
-        const combat = page.locator(".room-tool").filter({ has: page.getByText(mode === "practice" ? "Usar um movimento" : "Resolver um movimento", { exact: true }) });
-        await openDetails(combat);
-        await combat.getByRole("combobox", { name: "Usuário", exact: true }).selectOption("fast");
-        await combat.getByRole("combobox", { name: "Movimento", exact: true }).selectOption("quick-attack");
+        await pane("Campo");
+        await order.getByRole("combobox", { name: "Movimento de Pikachu nesta rodada", exact: true }).selectOption("quick-attack");
         await page.waitForFunction(mode => {
             const saved = JSON.parse(localStorage.getItem(mode === "practice" ? "myowndex_local_dice_room_v1" : "myowndex_local_room_v1") || "null");
             return (mode === "practice" ? saved : saved?.snapshot)?.tokens.find(token => token.id === "fast")?.priority === 1;

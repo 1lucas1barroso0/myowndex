@@ -29,6 +29,7 @@ import {
     getHitKillProtectionKey,
     getHitKillSurvivalGraceKeys,
     getMoveResolutionProfile,
+    getMovePpState,
     getMoveStab,
     getStatusBlockReason,
     isDirectKnockoutMove,
@@ -43,6 +44,7 @@ import {
 import { getDamageCeiling, rollPercentTest, rollProportionalAttributeTest } from "./rpgRules.js";
 import { randomChance, randomChoice, randomInt, randomUnit, rollD6, SecureRandomError } from "./random.js";
 import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
+import { EV_STAT_KEYS, normalizeGrowthData } from "./experience.js";
 import { getPokemonReferenceForMode } from "./referenceGames.js";
 import {
     applyBattleIllusion,
@@ -233,10 +235,18 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         activeMoveActions: source.activeMoveActions == null ? null : integerInRange(source.activeMoveActions, 0, 99999, 0),
         captured: Boolean(source.captured),
         level: integerInRange(source.level, 1, 200, 5),
+        battleParticipated: Boolean(source.battleParticipated),
+        battleEntryLevel: integerInRange(source.battleEntryLevel, 0, 200, 0),
         enteredRound: integerInRange(source.enteredRound, 1, 9999, 1),
         xp: integerInRange(source.xp, 0, 999999, 0),
+        ...normalizeGrowthData(source),
+        growthVersion: source.growthVersion === 0 ? 0 : source.growthVersion === 1 || Object.hasOwn(source, "pendingEvs") || Object.hasOwn(source, "experienceAwards") ? 1 : 0,
+        evs: Object.fromEntries(EV_STAT_KEYS.map(stat => [stat, integerInRange(source.evs?.[stat], 0, 252, 0)])),
+        ivs: Object.fromEntries(EV_STAT_KEYS.map(stat => [stat, integerInRange(source.ivs?.[stat], 0, 31, 31)])),
+        friendship: integerInRange(source.friendship, 0, 255, 70),
         priority: integerInRange(source.priority, -7, 7, 0),
         declaredMove: normalizeSlug(source.declaredMove),
+        declaredDamageClass: ["physical", "special", "status"].includes(source.declaredDamageClass) ? source.declaredDamageClass : "",
         types,
         originalTypes,
         teraType: normalizeSlug(source.teraType),
@@ -333,19 +343,23 @@ export const changeRoomPhase = (snapshot, nextPhase) => {
         ? nextPhase
         : room.phase;
     if (phase === room.phase) return room;
+    const startingBattle = phase === "batalha" && room.initiative.length === 0;
     return normalizeRoomSnapshot({
         ...room,
         phase,
-        tokens: phase === "batalha" ? room.tokens.map(token => ({ ...token, activeMoveActions: 0 })) : room.tokens,
-        benchTokens: phase === "batalha" ? room.benchTokens.map(token => ({ ...token, activeMoveActions: 0 })) : room.benchTokens,
-        trainerInterventions: phase === "batalha" ? [] : room.trainerInterventions,
-        hitKillProtectionUsed: phase === "batalha"
+        tokens: startingBattle ? room.tokens.map(token => ({ ...token, activeMoveActions: 0,
+            battleParticipated: !token.hidden && !token.captured && token.currentHp > 0,
+            battleEntryLevel: !token.hidden && !token.captured && token.currentHp > 0 ? token.level : 0 })) : room.tokens,
+        benchTokens: startingBattle ? room.benchTokens.map(token => ({ ...token, activeMoveActions: 0,
+            battleParticipated: false, battleEntryLevel: 0 })) : room.benchTokens,
+        trainerInterventions: startingBattle ? [] : room.trainerInterventions,
+        hitKillProtectionUsed: startingBattle
             ? []
             : room.hitKillProtectionUsed,
-        hitKillProtectionDisabled: phase === "batalha"
+        hitKillProtectionDisabled: startingBattle
             ? []
             : room.hitKillProtectionDisabled,
-        hitKillSurvivalGrace: phase === "batalha"
+        hitKillSurvivalGrace: startingBattle
             ? []
             : room.hitKillSurvivalGrace,
     });
@@ -478,6 +492,10 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
         activeMoveActions: 0,
         level: pokemon?.level,
         xp: pokemon?.rpg?.xp || 0,
+        ...normalizeGrowthData(pokemon?.rpg),
+        evs: pokemon?.evs,
+        ivs: pokemon?.ivs,
+        friendship: pokemon?.friendship,
         types: pokemon?.customTypes?.length
             ? pokemon.customTypes
             : pokemon?.species?.types?.map(entry => entry?.type?.name),
@@ -635,6 +653,7 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
         ownerPlayerId: token.ownerPlayerId || asText(ownerPlayerId),
         enteredRound: room.round,
         activeMoveActions: 0,
+        ...(room.phase === "batalha" ? { battleParticipated: true, battleEntryLevel: token.battleEntryLevel || token.level } : {}),
     }));
     const promotedIds = new Set(promotedTokens.map(token => token.id));
     const available = team.pokemon.filter(pokemon => !existingPokemon.has(pokemon.id));
@@ -657,7 +676,8 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
         ownerPlayerId: asText(ownerPlayerId),
         enteredRound: room.round,
     }));
-    const tokens = [...promotedTokens, ...createdTokens];
+    const tokens = [...promotedTokens, ...createdTokens].map(token => room.phase === "batalha" && token.currentHp > 0 && !token.hidden && !token.captured
+        ? { ...token, battleParticipated: true, battleEntryLevel: token.battleEntryLevel || token.level } : token);
     let combined = [...room.tokens, ...tokens];
     const enteredIds = new Set(tokens.map(token => token.id));
     const activated = activateEnteredTokens(room, combined, enteredIds);
@@ -736,7 +756,8 @@ export const swapTeamPokemonInSnapshot = (snapshot, outgoingTokenId, incomingTok
         y: outgoing.y,
         ownerPlayerId: outgoing.ownerPlayerId,
         enteredRound: room.round,
-        lastActionRound: room.phase === "batalha" && outgoing.currentHp > 0 ? room.round : incoming.lastActionRound,
+        lastActionRound: (room.phase === "batalha" || room.initiative.length > 0) && outgoing.currentHp > 0 ? room.round : incoming.lastActionRound,
+        ...(room.phase === "batalha" ? { battleParticipated: true, battleEntryLevel: incoming.battleEntryLevel || incoming.level } : {}),
     };
     const tokens = room.tokens.map((token, index) => index === outgoingIndex ? entered : token);
     const benchTokens = room.benchTokens.map((token, index) => index === incomingIndex ? benched : token);
@@ -790,6 +811,7 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 sleepTurns: token.sleepTurns,
                 freezeTurns: token.freezeTurns,
                 xp: token.xp,
+                ...(token.growthVersion === 1 ? normalizeGrowthData(token) : {}),
                 pp: synchronizedPp,
             };
             const permanentMoveChange = specialState.moveOverrides.some(override => override.permanent);
@@ -801,11 +823,17 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 && (partner.rpg?.sleepTurns ?? null) === token.sleepTurns
                 && (partner.rpg?.freezeTurns ?? null) === token.freezeTurns
                 && clampFinite(partner.rpg?.xp, 0, 999999, 0) === token.xp
+                && (token.growthVersion !== 1 || (
+                    JSON.stringify(normalizeGrowthData(partner.rpg)) === JSON.stringify(normalizeGrowthData(token))
+                    && JSON.stringify(partner.evs || {}) === JSON.stringify(token.evs)
+                    && integerInRange(partner.friendship, 0, 255, 70) === token.friendship
+                ))
                 && JSON.stringify(partner.rpg?.pp || []) === JSON.stringify(synchronizedPp || [])
                 && JSON.stringify(partner.moves || []) === JSON.stringify(moves || [])
             ) return partner;
             teamChanged = true;
-            return { ...partner, level: token.level, moves, rpg };
+            return { ...partner, level: token.level, moves, rpg,
+                ...(token.growthVersion === 1 ? { evs: token.evs, friendship: token.friendship } : {}) };
         });
         if (!teamChanged) return team;
         changed = true;
@@ -1370,9 +1398,80 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
     };
 };
 
+// Move metadata is canonical; abilities can change its priority without changing Speed.
+// PokeAPI omits some heal flags (for example Swallow/Purify/Revival Blessing).
+// Canonical heal-flag set checked against pokemon-showdown/data/moves.ts and
+// Triage's onModifyPriority, 2026-10-04; effect metadata handles future additions.
+const PRIORITY_HEALING_MOVES = new Set(["absorb", "bitter-blade", "bouncy-bubble", "draining-kiss", "drain-punch", "dream-eater", "floral-healing", "giga-drain", "healing-wish", "heal-order", "heal-pulse", "horn-leech", "jungle-healing", "leech-life", "life-dew", "lunar-blessing", "lunar-dance", "matcha-gotcha", "mega-drain", "milk-drink", "moonlight", "morning-sun", "oblivion-wing", "parabolic-charge", "purify", "recover", "rest", "revival-blessing", "roost", "shore-up", "slack-off", "soft-boiled", "strength-sap", "swallow", "synthesis", "wish"]);
+export const getEffectiveMovePriority = ({ token, move }) => {
+    if (!move) return 0;
+    const ability = isAbilityActive(token) ? traitSlug(token?.ability) : "";
+    let priority = integerInRange(move.priority, -7, 7, 0);
+    if (ability === "prankster" && move.damage_class?.name === "status") priority += 1;
+    if (ability === "gale-wings" && move.type?.name === "flying" && token.currentHp > 0 && token.currentHp === token.maxHp) priority += 1;
+    if (ability === "triage" && (Number(move.meta?.healing) > 0 || Number(move.meta?.drain) > 0 || move.flags?.heal || PRIORITY_HEALING_MOVES.has(normalizeSlug(move.name)))) priority += 3;
+    return integerInRange(priority, -7, 7, 0);
+};
+
+/** Priority protections block contact with the target; they do not reorder turns. */
+export const getMovePriorityBlock = ({ token: attacker, defender, move, terrain = "nenhum", priority: rolledPriority = null }) => {
+    if (!defender || attacker?.id === defender.id || attacker?.side === defender.side) return null;
+    const ability = isAbilityActive(attacker) ? traitSlug(attacker.ability) : "";
+    const target = normalizeSlug(move?.target?.name);
+    if (["user", "users-field", "user-and-allies", "all-allies", "all-pokemon", "entire-field", "opponents-field"].includes(target)) return null;
+    if (ability === "prankster" && move?.damage_class?.name === "status" && defender.types?.includes("dark")) return { kind: "ability", sourceId: "prankster", reason: "O tipo Dark bloqueou o movimento de status fortalecido por Prankster", absorbed: false };
+    const priority = rolledPriority == null ? getEffectiveMovePriority({ token: attacker, move }) : integerInRange(rolledPriority, -7, 7, 0);
+    const grounded = !defender.types?.includes("flying") && !(isAbilityActive(defender) && traitSlug(defender.ability) === "levitate") && !(isHeldItemActive(defender) && traitSlug(defender.item) === "air-balloon");
+    if (priority > 0 && terrain === "psiquico" && grounded) return { kind: "environment", sourceId: "psychic-terrain", reason: "Psychic Terrain protegeu o alvo no chão contra prioridade positiva", absorbed: false };
+    return null;
+};
+
+/** Choosing an action is preparation, never a way to reorder an active round.
+ * @param {any} snapshot
+ * @param {string} tokenId
+ * @param {any} [move]
+ */
+export const declareRoomMove = (snapshot, tokenId, move = null) => {
+    const room = normalizeRoomSnapshot(snapshot);
+    if (room.initiative.length) throw new RangeError("A rodada já começou. Escolha o movimento antes da próxima iniciativa.");
+    const token = room.tokens.find(candidate => candidate.id === tokenId);
+    if (!token || token.hidden || token.captured || token.currentHp <= 0) throw new RangeError("Escolha um Pokémon disponível no campo.");
+    const moveName = normalizeSlug(move?.name);
+    if (move && (!moveName || !token.moves.includes(moveName))) throw new RangeError("Escolha um movimento da ficha deste Pokémon.");
+    if (move && getMovePpState(token, move, moveName).remaining === 0) throw new RangeError("Este movimento está sem PP. Escolha outra ação.");
+    const priority = move ? getEffectiveMovePriority({ token, move }) : 0;
+    return { ...room, tokens: room.tokens.map(candidate => candidate.id === token.id ? { ...candidate, declaredMove: moveName, declaredDamageClass: move?.damage_class?.name || "", priority } : candidate) };
+};
+
+/** PATCH edits may change HP, notes and positions, but not the choices already rolled. */
+export const getRoundDeclarationPatchBlockReason = (current, next) => {
+    if (!current?.initiative?.length) return "";
+    const previous = new Map((current.tokens || []).map(token => [token.id, token]));
+    for (const token of next?.tokens || []) {
+        const before = previous.get(token.id);
+        if (before ? normalizeSlug(before.declaredMove) !== normalizeSlug(token.declaredMove)
+            || integerInRange(before.priority, -7, 7, 0) !== integerInRange(token.priority, -7, 7, 0)
+            || (Object.hasOwn(token, "declaredDamageClass") && (before.declaredDamageClass || "") !== (token.declaredDamageClass || ""))
+            : Boolean(token.declaredMove) || Number(token.priority || 0) !== 0) return "As ações desta rodada já foram escolhidas. Escolha novamente antes da próxima iniciativa.";
+    }
+    return "";
+};
+
+/** Shared by local actions and the server; free practice remains free without an order. */
+export const getRoundMoveBlockReason = ({ snapshot, token, move }) => {
+    if (!token || token.hidden || token.captured || token.currentHp <= 0) return "Este Pokémon não está disponível para agir.";
+    if (!snapshot.initiative?.length) return "";
+    if (snapshot.initiative[snapshot.turnIndex] !== token.id) return "Aguarde o turno deste Pokémon.";
+    if (token.lastActionRound === snapshot.round) return "Este Pokémon já agiu nesta rodada. Avance o turno.";
+    if (token.declaredMove && normalizeSlug(move?.name) !== token.declaredMove) return `Use ${formatName(token.declaredMove)}, escolhido antes da iniciativa.`;
+    if (!token.declaredMove && getEffectiveMovePriority({ token, move }) !== 0) return "Escolha um movimento com prioridade antes da próxima iniciativa.";
+    return "";
+};
+
 export const buildInitiative = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
-    const results = room.tokens.filter(token => !token.hidden && token.currentHp > 0).map(token => {
+    if (room.initiative.length) throw new RangeError("A rodada já começou. Encerre os turnos antes de rolar uma nova iniciativa.");
+    const results = room.tokens.filter(token => !token.hidden && !token.captured && token.currentHp > 0).map(token => {
         const traitState = getInitiativeTraitState(token, { weather: isWeatherSuppressed(room.tokens) ? "limpo" : room.weather, round: room.round });
         const originalSpeed = finiteNumberOrNull(token?.originalStats?.speed);
         const stagedSpeed = originalSpeed != null
@@ -1446,6 +1545,7 @@ export const calculateMoveResolution = ({
     weather = "limpo",
     terrain = "nenhum",
     weatherSuppressed = false,
+    movePriority = null,
 }) => {
     const effectiveWeather = weatherSuppressed ? "limpo" : weather;
     const profile = getMoveResolutionProfile(move);
@@ -1526,7 +1626,7 @@ export const calculateMoveResolution = ({
         && (profile.requiresDamageContest || typeSensitiveStatusMoves.has(normalizeSlug(move?.name)));
     const specialBlockReason = getSpecialMoveBlockReason({ move, attacker, defender, round });
     const abilityBlock = getAbilityMoveBlock({ move, attacker, defender, effectiveness });
-    const traitBlock = getTraitMoveBlock({ move, attacker, defender });
+    const traitBlock = getTraitMoveBlock({ move, attacker, defender }) || getMovePriorityBlock({ token: attacker, move, defender, terrain, priority: movePriority });
     const moveConnected = accuracyTest.success && !typeBlocked && !specialBlockReason && !abilityBlock && !traitBlock;
     const damageHit = profile.requiresDamageContest && contestSuccess && moveConnected;
     const hit = moveConnected;
@@ -1671,7 +1771,7 @@ export const eventSummary = event => {
         return `${event.author} rolou ${payload.label || "um teste"}: ${payload.result ?? "—"}.${protection}`;
     }
     if (event?.type === "move-declared") {
-        return `${event.author} escolheu ${payload.moveName ? formatName(payload.moveName) : "um movimento"}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
+        return `${event.author} escolheu ${payload.moveName ? formatName(payload.moveName) : "Outra ação"}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
     }
     if (event?.type === "move") {
         const damage = integerInRange(payload.damage, 0, MAX_SAFE_GAME_INTEGER, 0);

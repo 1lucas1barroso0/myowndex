@@ -40,3 +40,13 @@ html .app-root.game-edition.handheld-edition .turn-order-moves { display:grid; g
 html .app-root.game-edition.handheld-edition .turn-order-moves > div { display:grid; gap:.15rem; padding-bottom:.5rem; border-bottom:1px solid var(--ui-line); }
 html .app-root.game-edition.handheld-edition .turn-order-moves dt { font-weight:750; color:var(--ui-ink); }
 html .app-root.game-edition.handheld-edition .turn-order-moves dd { margin:0; color:var(--ui-muted); }
+
+html .app-root.game-edition.handheld-edition .round-declarations { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:.85rem; list-style:none; padding:0; margin:1rem 0; }
+html .app-root.game-edition.handheld-edition .round-choice { display:grid; align-content:start; gap:.5rem; min-width:0; padding:.65rem; border:1px solid var(--ui-line); border-radius:.2rem; background:var(--ui-raised); }
+html .app-root.game-edition.handheld-edition .round-choice-identity { display:flex; align-items:center; gap:.5rem; min-width:0; }
+html .app-root.game-edition.handheld-edition .round-choice-identity :is(img,.pokemon-sprite-fallback) { width:44px; height:44px; flex:0 0 44px; object-fit:contain; }
+html .app-root.game-edition.handheld-edition .round-choice-identity strong { min-width:0; font-size:1rem; line-height:1.4; flex:1; }
+html .app-root.game-edition.handheld-edition .round-choice-priority { display:grid; place-items:center; min-width:32px; min-height:32px; padding:.15rem .3rem; box-sizing:border-box; color:var(--ui-blue); background:var(--ui-selected); font-size:.875rem; font-weight:750; border-radius:.2rem; }
+html .app-root.game-edition.handheld-edition .round-choice :is(.room-select,select) { width:100%; min-width:0; }
+html .app-root.game-edition.handheld-edition .round-choice :is(p,small) { margin:0; font-size:.875rem; line-height:1.5; color:var(--ui-muted); }
+html .app-root.game-edition.handheld-edition .round-choice .round-choice-error { color:var(--ui-accent); }

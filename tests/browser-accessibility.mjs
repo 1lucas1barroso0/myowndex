@@ -156,6 +156,41 @@ try {
         await openDetails(editor.locator('details').filter({ has: page.locator(':scope > summary').filter({ hasText: summary }) }).first());
     }
     await checkpoint('PC: ficha completa com habilidades, item, IVs e EVs', [320, 1280]);
+    const experience = editor.locator('.experience-award');
+    const training = editor.locator('.ev-training');
+    const friendship = editor.locator('.friendship-control');
+    await openDetails(experience);
+    await openDetails(friendship.locator('.friendship-help'));
+    assert.equal(await training.locator(':scope > header > strong').innerText(), '0', 'New training reserve starts empty');
+    await checkpoint('PC: recompensa do desafio e Amizade', [320, 1280]);
+    await experience.getByRole('button', { name: '3 XP', exact: true }).click();
+    await openDetails(experience.locator('.experience-battle-context'));
+    await experience.getByRole('checkbox', { name: 'Usar os dois lados da batalha', exact: true }).check();
+    const opponentReward = experience.getByRole('group', { name: 'Adversário', exact: true });
+    await opponentReward.getByLabel('Maior nível', { exact: true }).fill('40');
+    await opponentReward.getByLabel('Pokémon que lutaram', { exact: true }).fill('2');
+    await experience.getByRole('button', { name: 'Receber 12 XP', exact: true }).waitFor();
+    await checkpoint('PC: recompensa da batalha pronta', [320, 1280]);
+    await experience.getByRole('button', { name: 'Receber 12 XP', exact: true }).click();
+    await experience.getByRole('status').filter({ hasText: '12 XP e 24 EVs registrados.' }).waitFor();
+    assert.equal(await editor.getByLabel('Nível', { exact: true }).inputValue(), '21', 'A challenge advances at most one level');
+    assert.equal(await editor.getByLabel('XP atual', { exact: true }).inputValue(), '0', 'A gained level resets accumulated XP');
+    assert.equal(await training.locator(':scope > header > strong').innerText(), '24');
+    await checkpoint('PC: XP recebido e EVs disponíveis', [320, 1280]);
+    await training.getByLabel('EVs', { exact: true }).fill('2');
+    await training.getByRole('button', { name: 'Treinar', exact: true }).click();
+    assert.equal(await editor.getByRole('spinbutton', { name: 'EVs de HP', exact: true }).inputValue(), '2');
+    assert.equal(await training.locator(':scope > header > strong').innerText(), '22', 'Training consumes only the chosen EVs');
+    await friendship.getByRole('button', { name: 'Aumentar Amizade em 50', exact: true }).click();
+    await friendship.getByRole('button', { name: 'Diminuir Amizade em 5', exact: true }).click();
+    assert.equal(await friendship.getByLabel('Amizade', { exact: true }).inputValue(), '115');
+    assert.equal(await friendship.locator('output').innerText(), 'RPG 11 de 25');
+    await checkpoint('PC: EVs distribuídos e ajuste de Amizade', [320, 1280]);
+    await openDetails(training.locator('.ev-training-options'));
+    await training.getByRole('button', { name: 'Apagar EVs disponíveis', exact: true }).click();
+    await checkpoint('PC: confirmação de apagar EVs disponíveis', [320]);
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Cancelar', exact: true }).click();
+    assert.equal(await training.locator(':scope > header > strong').innerText(), '22', 'Cancel preserves the remaining EVs');
     await screenshot('pc-journey-night', '.rpg-journey-panel', 'Escuro');
     await page.getByRole('button', { name: 'Compartilhar', exact: true }).click();
     await checkpoint('PC: compartilhamento', [320]);
@@ -184,12 +219,30 @@ try {
     await page.getByLabel('Pesquisar regras').fill('dano');
     await checkpoint('Guia: regras abertas por busca', [320, 1280]);
     await page.getByLabel('Pesquisar regras').fill('');
+    assert.equal(await page.locator('.guide-rule-card').count(), 40, 'The complete guide contains all forty rules');
     await openDetails(page.locator('.guide-calculator'));
     await checkpoint('Guia: calculadora', [320]);
+    const conversion = page.locator('.guide-calculator');
+    await conversion.getByRole('spinbutton', { name: 'Valor original', exact: true }).fill('15');
+    await conversion.getByRole('spinbutton', { name: 'Nível atual', exact: true }).fill('10');
+    assert.deepEqual(await conversion.locator('.guide-scale-results strong').allTextContents(), ['1', '2'], 'The same tie rounds attributes down and HP up');
+    assert.equal(await conversion.locator('.guide-field-value strong').innerText(), '5', 'XP requirements round down');
+    await openDetails(conversion.locator('.guide-rounding-help'));
+    await openDetails(conversion.locator('.guide-effectiveness-help'));
+    await checkpoint('Guia: conversão, arredondamento e limite de dano', [320, 1280]);
+    await conversion.getByRole('button', { name: 'Ver proteção contra hit kill', exact: true }).click();
+    const protection = page.locator('.guide-rule-protection');
+    await protection.locator('.guide-hit-kill-full-rule[open]').waitFor();
+    assert.equal(await protection.locator(':scope > summary').evaluate(element => element === document.activeElement), true, 'The conversion link focuses the complete protection rule');
+    assert.equal(await protection.locator('.guide-hit-kill-canonical > ul > li').count(), 13, 'All canonical protection clauses remain available');
+    await checkpoint('Guia: proteção contra hit kill completa', [320, 1280]);
 
     const diceTrigger = page.getByRole('button', { name: 'Abrir Dados', exact: true }).filter({ visible: true }).first();
     await diceTrigger.click();
     const dice = page.getByRole('dialog', { name: 'Dados', exact: true });
+    await dice.getByRole('button', { name: 'Silenciar som', exact: true }).click();
+    assert.equal(await dice.getByRole('button', { name: 'Ativar som', exact: true }).getAttribute('aria-pressed'), 'true');
+    await dice.getByRole('button', { name: 'Ativar som', exact: true }).click();
     await openDetails(dice.locator('.local-dice-options'));
     await dice.getByRole('button', { name: 'Rolar 2d6', exact: true }).click();
     await dice.locator('.local-dice-result').waitFor();
@@ -206,11 +259,23 @@ try {
     await dice.getByRole('combobox', { name: 'Pokémon da Box', exact: true }).selectOption('a11y-box:a11y-pika');
     await dice.getByRole('button', { name: 'Oponente', exact: true }).click();
     await dice.getByRole('button', { name: 'Trazer para o campo', exact: true }).click();
+    const localOrder = dice.locator('.turn-order');
+    for (const name of ['Buba', 'Pika']) {
+        await localOrder.getByRole('combobox', { name: `Movimento de ${name} nesta rodada`, exact: true }).selectOption('tackle');
+    }
+    await checkpoint('Dados: escolhas de movimentos antes da iniciativa', [320, 1280]);
     await dice.getByRole('button', { name: 'Rolar iniciativa', exact: true }).click();
+    // Both choices are fixed before rolling. Respect the actual rolled order
+    // when opening Buba's move instead of letting QA attack out of turn.
+    if (await localOrder.locator('li[aria-current="step"] strong').innerText() !== 'Buba') {
+        await localOrder.getByRole('button', { name: 'Próximo turno', exact: false }).click();
+    }
+    assert.equal(await localOrder.locator('li[aria-current="step"] strong').innerText(), 'Buba');
     const combat = dice.locator('details.room-tool').filter({ has: page.getByText('Usar um movimento', { exact: true }) });
     await openDetails(combat);
     await combat.getByRole('combobox', { name: 'Usuário', exact: true }).selectOption({ label: 'Buba' });
-    await combat.getByRole('combobox', { name: 'Movimento', exact: true }).selectOption('tackle');
+    assert.equal(await combat.getByRole('combobox', { name: 'Movimento', exact: true }).inputValue(), 'tackle');
+    assert.equal(await combat.getByRole('combobox', { name: 'Movimento', exact: true }).isDisabled(), true, 'The declared move stays fixed during its round');
     await combat.getByRole('combobox', { name: 'Alvo', exact: true }).selectOption({ label: 'Pika' });
     await combat.getByRole('button', { name: 'Usar Tackle', exact: true }).click();
     await combat.locator('.combat-result-summary').waitFor();
@@ -220,6 +285,10 @@ try {
     await screenshot('field-result', '.combat-result-summary');
     await openDetails(combat.locator('.combat-result-details'));
     await checkpoint('Dados: detalhes completos da jogada', [320]);
+    const fieldExperience = dice.locator('.experience-award');
+    await openDetails(fieldExperience);
+    await openDetails(fieldExperience.locator('.experience-battle-context'));
+    await checkpoint('Dados: recompensa do Pokémon em campo', [320, 1280]);
     await dialogKeyboard(dice, diceTrigger, 'Fechar dados');
 
     await nav('Abrir a Central da Aventura');
@@ -231,6 +300,14 @@ try {
     await page.getByRole('button', { name: 'Entrar como aliado', exact: true }).click();
     await page.getByRole('combobox', { name: 'Quem entra em campo', exact: true }).selectOption({ label: 'Pika' });
     await page.getByRole('button', { name: 'Entrar como oponente', exact: true }).click();
+    const roomFieldPane = page.locator('.room-mobile-nav button').filter({ hasText: 'Campo' });
+    if (await roomFieldPane.isVisible()) await roomFieldPane.click();
+    await page.getByRole('radio', { name: /^Batalha\./ }).click();
+    const roomOrder = page.locator('.room-initiative');
+    for (const name of ['Buba', 'Pika']) {
+        await roomOrder.getByRole('combobox', { name: `Movimento de ${name} nesta rodada`, exact: true }).selectOption('tackle');
+    }
+    await checkpoint('Aventura: escolhas de movimentos antes da iniciativa', [320, 1280], ['Claro', 'Escuro'], 'Campo');
     for (const pane of ['Equipe', 'Campo', 'Ações']) {
         const button = page.locator('.room-mobile-nav button').filter({ hasText: pane });
         if (await button.isVisible()) await button.click();
@@ -247,6 +324,19 @@ try {
     await inspector.waitFor();
     for (const disclosure of await inspector.locator(':scope > details').all()) await openDetails(disclosure);
     await checkpoint('Aventura: ficha rápida, modificadores, habilidades e item', [320, 1280], ['Claro', 'Escuro'], 'Campo');
+    await page.getByRole('radio', { name: /^Intervalo\./ }).click();
+    assert.equal(await page.locator('.room-initiative').count(), 0, 'Intervalo keeps initiative off the care screen');
+    const intervalExperience = inspector.locator('.experience-award');
+    await openDetails(intervalExperience);
+    await openDetails(intervalExperience.locator('.experience-battle-context'));
+    await checkpoint('Aventura: Intervalo, ficha e recompensa', [320, 1280], ['Claro', 'Escuro'], 'Campo');
+    const actionsPane = page.locator('.room-mobile-nav button').filter({ hasText: 'Ações' });
+    if (await actionsPane.isVisible()) await actionsPane.click();
+    const audio = page.locator('.audio-tool');
+    await openDetails(audio);
+    await openDetails(audio.locator('.audio-effects'));
+    await openDetails(audio.locator('.audio-preferences'));
+    await checkpoint('Aventura: trilha, efeitos sonoros e volume', [320, 1280], ['Claro', 'Escuro'], 'Ações');
     await page.getByRole('button', { name: 'Encerrar', exact: true }).click();
     await checkpoint('Aventura: confirmação de encerramento', [320]);
     await page.getByRole('button', { name: 'Continuar aventura', exact: true }).click();

@@ -803,3 +803,21 @@ html .app-root.game-edition.handheld-edition :is(.journal-options, .journal-entr
 html .app-root.game-edition.handheld-edition :is(.journal-options, .journal-entry-options) > button:not(:disabled) {
   color: var(--ui-accent);
 }
+
+html .app-root.game-edition.handheld-edition .combat-special-block {
+  border-color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-panel) 90%, var(--ui-accent) 10%);
+  color: var(--ui-ink) !important;
+  font-size: .875rem;
+  line-height: 1.6;
+  padding: .65rem .8rem;
+}
+
+.token-protection-details > summary { min-height: 44px; cursor: pointer; }
+.token-protection-details > summary .token-hit-kill-state { margin: 0; }
+.token-hp-control:has(.token-protection-details[open]),
+.token-growth-reserve, .token-inspector .experience-award { grid-column: 1 / -1; }
+.token-protection-details[open] > .guide-hit-kill-overview { margin-top: 1rem; }
+.token-growth-reserve { margin: 0; color: var(--ui-muted); font-size: .875rem; line-height: 1.6; }
+
+html .confirm-dialog-shell .room-secondary-button { background: var(--ui-raised) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; }

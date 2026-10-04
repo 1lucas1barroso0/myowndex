@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useId, useMemo, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import { formatNumberPtBr } from "../../core/mechanics.js";
 import {
@@ -57,6 +57,7 @@ export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
     const [scaleValue, setScaleValue] = useState(100);
     const [level, setLevel] = useState(10);
+    const scaleLabelId = useId(), scaleResultId = useId(), levelLabelId = useId(), levelResultId = useId();
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
     const searching = Boolean(query.trim());
 
@@ -139,17 +140,17 @@ export default function TrainerGuide({ experienceMode }) {
                         <div className="guide-calculator-content">
                             <div className="guide-conversion-grid">
                                 <label className="guide-number-field">
-                                    <span className="guide-field-label">Valor original</span>
-                                    <input type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} />
-                                    <span className="guide-scale-results" aria-live="polite">
+                                    <span className="guide-field-label" id={scaleLabelId}>Valor original</span>
+                                    <input aria-labelledby={scaleLabelId} aria-describedby={scaleResultId} type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} />
+                                    <span className="guide-scale-results" id={scaleResultId} aria-live="polite">
                                         <span>Atributo ÷ 10 <strong>{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
                                         <span>HP ÷ 10 <strong>{formatNumberPtBr(getRpgScale(scaleValue, true))}</strong></span>
                                     </span>
                                 </label>
                                 <label className="guide-number-field">
-                                    <span className="guide-field-label">Nível atual</span>
-                                    <input type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} />
-                                    <span className="guide-field-value">{getDamageCeiling(level) >= 200 ? "Nível máximo" : <>XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></>}</span>
+                                    <span className="guide-field-label" id={levelLabelId}>Nível atual</span>
+                                    <input aria-labelledby={levelLabelId} aria-describedby={levelResultId} type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} />
+                                    <span className="guide-field-value" id={levelResultId}>{getDamageCeiling(level) >= 200 ? "Nível máximo" : <>XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></>}</span>
                                 </label>
                             </div>
                             <article className="guide-damage-limit-card" data-rule-id="3.3" aria-label={`Limite comum de dano: ${formatNumberPtBr(getDamageCeiling(level))}`}>

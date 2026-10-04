@@ -10,7 +10,7 @@ html .app-root.game-edition.handheld-edition .room-select {
   max-width: 100%;
   min-width: 0;
   min-height: 44px;
-  border: 1px solid var(--ui-line);
+  border: 1px solid var(--ui-control-line);
   border-radius: .25rem;
   background: var(--ui-panel);
   color: var(--ui-ink) !important;
@@ -85,7 +85,7 @@ html .app-root.game-edition.handheld-edition .combat-grid label {
 }
 html .app-root.game-edition.handheld-edition .combat-grid label > span:not(.room-select) {
   color: var(--ui-muted);
-  font-size: .85rem;
+  font-size: .875rem;
   font-weight: 750;
   line-height: 1.5;
   letter-spacing: 0;
@@ -143,7 +143,7 @@ html .app-root.game-edition.handheld-edition .capture-metrics {
 html .app-root.game-edition.handheld-edition .capture-metrics dt {
   margin-bottom: .35rem;
   color: var(--ui-muted);
-  font-size: .85rem;
+  font-size: .875rem;
 }
 html .app-root.game-edition.handheld-edition .capture-metrics dd {
   margin: 0;
@@ -157,6 +157,36 @@ html .app-root.game-edition.handheld-edition .capture-metrics dd {
 }
 
 /* Initiative is readable even when its panel is narrower than the page. */
+html .app-root.game-edition.handheld-edition .room-app :is(small,button,p,label > span:not(.room-select)),
+html .app-root.game-edition.handheld-edition :is(.room-role-badge,.room-tool-badge,.room-section-heading > span,.room-team-box > span,.room-notes-grid label > span,.battlefield-footer,.battlefield-footer > span) { font-size:.875rem !important; line-height:1.5; letter-spacing:0; text-transform:none; }
+html .app-root.game-edition.handheld-edition .room-app :is(button,summary) { min-height:44px !important; min-width:44px !important; }
+html .app-root.game-edition.handheld-edition :is(.token-self-damage-action > span,.trait-context > span) { font-size:.875rem !important; line-height:1.5; }
+html .app-root.game-edition.handheld-edition .token-modifiers > summary > span { font-size:1rem !important; }
+html .app-root.game-edition.handheld-edition :is(.room-title small,.room-player small,.room-app label > span:not(.room-select)) { color:var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition :is(.room-role-badge,.room-tool-badge) { background:var(--ui-selected) !important; color:var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .room-phase-options button.is-selected { background:var(--ui-ink) !important; color:var(--ui-panel) !important; border-color:var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition :is(.room-note,.room-note.is-private,.room-settings label,.event-log article,.token-modifier,.audio-now,.audio-local-toggle,.audio-local-note,.call-note,.token-self-damage-action) { background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-color:var(--ui-line) !important; }
+html .app-root.game-edition.handheld-edition :is(.audio-now small,.audio-now strong,.audio-local-toggle span,.audio-local-note,.call-note,.event-log article > span,.event-log article p,.token-self-damage-action > span,.token-self-damage-action > strong,.token-modifier strong,.token-modifier small,.journal-entry-options summary) { color:var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .event-log article > span { font-size:.875rem !important; color:var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition :is(.token-traits > summary,.token-modifiers > summary,.trait-card,.trait-card.is-active,.trait-card > header) { background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-color:var(--ui-line) !important; }
+html .app-root.game-edition.handheld-edition :is(.token-traits > summary strong,.token-traits > summary small,.trait-card > header strong,.trait-card > header small,.trait-card-copy p,.trait-card-copy small) { color:var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .room-tool > summary > b { background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; }
+html .app-root.game-edition.handheld-edition .room-invite-panel > summary { background:var(--ui-raised) !important; color:var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .room-invite-panel > summary small { color:var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition .room-invite-panel > summary > b { background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; }
+html .app-root.game-edition.handheld-edition .audio-upload { position:relative; min-width:44px; min-height:48px; padding:.75rem; background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-color:var(--ui-control-line); }
+html .app-root.game-edition.handheld-edition .room-app .audio-upload input[type="file"] { position:absolute; inset:0; width:100%; height:100%; padding:0 !important; opacity:0; cursor:pointer; }
+html .app-root.game-edition.handheld-edition .audio-upload:focus-within { outline:3px solid var(--journey-focus); outline-offset:3px; }
+html .app-root.game-edition.handheld-edition .trait-card > header > b { background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; padding:.35rem .6rem; }
+html .app-root.game-edition.handheld-edition :is(.token-xp-actions button,.token-modifier-reset,.token-tera) { background:var(--ui-selected) !important; color:var(--ui-blue) !important; border-color:var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .trait-card-actions .is-warning { background:#b9233b !important; color:#fff !important; border-color:#941d31 !important; }
+html .app-root.game-edition.handheld-edition .room-initiative li.is-empty { color:var(--ui-muted) !important; font-size:1rem; line-height:1.6; }
+html .app-root.game-edition.handheld-edition .token-traits > summary > b { background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; line-height:1.5; padding:.35rem .6rem; }
+html .app-root.game-edition.handheld-edition :is(.combat-result,.combat-target-results) :is(p,small) { font-size:.875rem !important; line-height:1.7 !important; text-transform:none !important; letter-spacing:0 !important; }
+html .app-root.game-edition.handheld-edition .combat-target-results article span { font-size:.875rem !important; line-height:1.7 !important; }
+html .app-root .capture-help { margin:.75rem 0; border-top:1px solid var(--ui-line); }
+html .app-root .capture-help > summary { display:flex; align-items:center; min-height:44px; padding:.65rem 0; color:var(--ui-muted); font-size:.875rem; font-weight:700; }
+html .app-root .capture-help > p { margin:.5rem 0 1rem; line-height:1.7; }
 html .app-root.game-edition.handheld-edition .room-section {
   container: room-section / inline-size;
 }
@@ -189,7 +219,7 @@ html .app-root.game-edition.handheld-edition .initiative-list li > span {
   height: 1.75rem;
   background: var(--ui-selected);
   color: var(--ui-ink);
-  font-size: .85rem;
+  font-size: .875rem;
 }
 html .app-root.game-edition.handheld-edition .initiative-list li > button {
   min-width: 0;
@@ -205,7 +235,7 @@ html .app-root.game-edition.handheld-edition .initiative-list li > small {
   grid-column: 2;
   min-width: 0;
   color: var(--ui-muted);
-  font-size: .8rem;
+  font-size: .875rem;
   font-weight: 600;
   line-height: 1.5;
   text-align: left;
@@ -259,7 +289,7 @@ html .app-root.game-edition.handheld-edition .token-inspector-identity strong {
 }
 html .app-root.game-edition.handheld-edition .token-inspector-identity :is(small, em) {
   color: var(--ui-muted);
-  font-size: .85rem;
+  font-size: .875rem;
   line-height: 1.5;
   text-transform: none;
 }
@@ -280,7 +310,7 @@ html .app-root.game-edition.handheld-edition .token-hp-control {
 html .app-root.game-edition.handheld-edition .token-hp-control > span {
   grid-column: 1 / -1;
   color: var(--ui-muted);
-  font-size: .85rem;
+  font-size: .875rem;
 }
 html .app-root.game-edition.handheld-edition .token-hp-control button {
   width: 44px;
@@ -297,7 +327,7 @@ html .app-root.game-edition.handheld-edition .token-inspector > label {
 }
 html .app-root.game-edition.handheld-edition .token-inspector label > span:not(.room-select) {
   color: var(--ui-muted);
-  font-size: .85rem;
+  font-size: .875rem;
   line-height: 1.5;
   letter-spacing: 0;
   text-transform: none;
@@ -327,7 +357,7 @@ html .app-root.game-edition.handheld-edition .token-switch-control {
 }
 html .app-root.game-edition.handheld-edition .token-switch-control > small {
   color: var(--ui-muted);
-  font-size: .85rem;
+  font-size: .875rem;
   font-weight: 500;
   line-height: 1.6;
 }
@@ -386,7 +416,7 @@ html .app-root.game-edition.handheld-edition .journal-options > summary {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-size: .85rem;
+  font-size: .875rem;
 }
 html .app-root.game-edition.handheld-edition .event-log article {
   grid-template-columns: minmax(0, 1fr) 44px;

@@ -25,13 +25,16 @@ export default function AccountModal({ open, onClose, client }) {
     const [removeDeviceCopy, setRemoveDeviceCopy] = useState(false);
     const dialogRef = useRef(null);
     const closeRef = useRef(null);
+    const errorRef = useRef(null);
     const onCloseRef = useRef(onClose);
     const busyRef = useRef(false);
     const titleId = useId();
     const errorId = useId();
 
     useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
-    useEffect(() => { busyRef.current = busy; }, [busy]);
+    useEffect(() => {
+        if (open && formError) errorRef.current?.focus();
+    }, [open, formError]);
     const refreshDeviceCopies = client.refreshDeviceCopies;
     useEffect(() => {
         if (open) void refreshDeviceCopies().catch(() => {});
@@ -42,6 +45,20 @@ export default function AccountModal({ open, onClose, client }) {
         const dialog = dialogRef.current;
         const overflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
+        const siblings = new Map();
+        const protectBackground = () => {
+            for (const element of document.body.children) {
+                if (!(element instanceof HTMLElement) || element.contains(dialog)
+                    || ["SCRIPT", "STYLE", "LINK"].includes(element.tagName)) continue;
+                if (!siblings.has(element)) siblings.set(element, element.inert);
+                element.inert = true;
+            }
+        };
+        protectBackground();
+        // Signing in briefly replaces the guest app with the account app.
+        // Newly mounted background controls must stay outside this modal.
+        const backgroundObserver = new MutationObserver(protectBackground);
+        backgroundObserver.observe(document.body, { childList: true });
         const keydown = event => {
             if (event.key === "Escape") { event.preventDefault(); event.stopImmediatePropagation(); if (!busyRef.current) onCloseRef.current(); return; }
             if (event.key !== "Tab") return;
@@ -59,16 +76,23 @@ export default function AccountModal({ open, onClose, client }) {
         const frame = requestAnimationFrame(() => closeRef.current?.focus());
         return () => {
             cancelAnimationFrame(frame); document.removeEventListener("keydown", keydown, true);
-            document.body.style.overflow = overflow; previous?.focus?.();
+            backgroundObserver.disconnect();
+            document.body.style.overflow = overflow;
+            for (const [element, original] of siblings) element.inert = original;
+            const returnTarget = previous?.isConnected && previous.tabIndex >= 0 ? previous
+                : [...document.querySelectorAll(".account-header-button")].find(button => button.getClientRects().length && !button.closest("[inert]"));
+            returnTarget?.focus?.({ preventScroll: true });
             dialog?.querySelectorAll('input[type="password"]').forEach(input => { input.value = ""; });
         };
     }, [open]);
 
     const run = async action => {
+        if (busyRef.current) return;
+        busyRef.current = true;
         setBusy(true); setFormError(""); setMessage("");
         try { await action(); }
         catch (failure) { setFormError(failure.message || "Não foi possível concluir. Tente novamente."); }
-        finally { setBusy(false); }
+        finally { busyRef.current = false; setBusy(false); }
     };
     const keepCodes = result => {
         if (result.recoveryCodes?.length) {
@@ -115,14 +139,14 @@ export default function AccountModal({ open, onClose, client }) {
 
     if (!open || typeof document === "undefined") return null;
     return createPortal(<div className="account-overlay" onMouseDown={event => { if (!busy && event.target === event.currentTarget) onClose(); }}>
-        <section className="account-dialog" ref={dialogRef} role="dialog" tabIndex={-1} aria-modal="true" aria-labelledby={titleId}>
+        <section className="account-dialog" ref={dialogRef} role="dialog" tabIndex={-1} aria-modal="true" aria-labelledby={titleId} aria-busy={busy}>
             <header className="account-dialog-heading">
                 <div className="account-dialog-title"><span className="account-kicker">Cartão de Treinador</span><h2 id={titleId}>Seu MyOwnDex</h2></div>
                 <PokemonCompanion place="account" className="companion-compact" eager />
                 <button type="button" ref={closeRef} className="account-close" aria-label="Fechar conta" disabled={busy} onClick={onClose}>×</button>
             </header>
             <div className="account-dialog-content">
-                {(formError || client.error) && <p className="account-error" role="alert" id={errorId}>{formError || client.error}</p>}
+                {(formError || client.error) && <p ref={errorRef} tabIndex={-1} className="account-error" role="alert" id={errorId}>{formError || client.error}</p>}
                 {message && <p className="account-message" role="status">{message}</p>}
                 {client.account ? <>
                     <div className="account-trainer-card">
@@ -138,27 +162,27 @@ export default function AccountModal({ open, onClose, client }) {
                     {client.recoveryCount > 0 && <aside className="account-recovery-notice"><h3>Cópia recuperada</h3><p>Dois dispositivos editaram a mesma aventura ou prévia. Uma versão está ativa; a outra foi preservada para download.</p><button type="button" disabled={busy} onClick={() => void run(async () => download(await client.exportAccount(), `myowndex-dados-recuperados-${client.account.username}.json`))}>Baixar dados recuperados</button></aside>}
                     {client.guestAvailable && <details className="account-disclosure"><summary>Adicionar dados deste dispositivo</summary><p>Adicione suas Boxes, favoritos e rolagens usados sem conta. Aventuras e prévias são copiadas quando a conta ainda não tem uma. A cópia sem conta continua aqui.</p><button type="button" disabled={busy} onClick={() => void run(async () => { await client.importGuest(); setMessage("Dados adicionados. A cópia usada sem conta foi preservada."); })}>Adicionar à conta</button></details>}
                     <details className="account-disclosure" open={passwordForm} onToggle={event => setPasswordForm(event.currentTarget.open)}><summary>Alterar senha</summary>
-                        <form onSubmit={event => {
+                        <form aria-describedby={formError || client.error ? errorId : undefined} onSubmit={event => {
                             event.preventDefault(); const form = event.currentTarget; const fields = new FormData(form);
                             void run(async () => { const result = await client.changePassword({ password: fields.get("password"), newPassword: fields.get("newPassword") }); keepCodes(result); form.reset(); setMessage("Senha alterada. Os códigos anteriores foram substituídos."); });
                         }}>
-                            <label>Senha atual<input name="password" type="password" autoComplete="current-password" required maxLength={128} /></label>
-                            <label>Nova senha<input name="newPassword" type="password" autoComplete="new-password" required minLength={10} maxLength={128} aria-describedby={`${titleId}-password-help`} /></label>
+                            <label>Senha atual<input name="password" type="password" autoComplete="current-password" required maxLength={128} disabled={busy} /></label>
+                            <label>Nova senha<input name="newPassword" type="password" autoComplete="new-password" required minLength={10} maxLength={128} aria-describedby={`${titleId}-password-help`} disabled={busy} /></label>
                             <p id={`${titleId}-password-help`} className="account-field-help">Use de 10 a 128 caracteres.</p>
                             <button type="submit" disabled={busy}>Salvar nova senha</button>
                         </form>
                     </details>
                     <div className="account-signout"><p>Ao sair, os dados sem conta voltam à tela.</p><label className="account-checkbox"><input type="checkbox" checked={removeDeviceCopy} onChange={event => setRemoveDeviceCopy(event.target.checked)} disabled={busy} />Apagar também a cópia desta conta neste dispositivo.</label>{removeDeviceCopy && <p>Alterações que ainda não chegaram à nuvem também serão apagadas. Baixe uma cópia antes de sair.</p>}<button type="button" disabled={busy} onClick={() => void run(async () => { await client.logout({ removeCopy: removeDeviceCopy }); setCodes([]); setRemoveDeviceCopy(false); setMessage("Você saiu da conta."); })}>Sair da conta</button></div>
-                    <details className="account-disclosure is-danger"><summary>Remover conta</summary><p>Apaga cadastro e dados da nuvem. Aventuras compartilhadas e cópias em outros dispositivos continuam separadas. Baixe uma cópia antes de remover.</p><form onSubmit={event => { event.preventDefault(); const fields = new FormData(event.currentTarget); void run(async () => { await client.deleteAccount(String(fields.get("password") || ""), { removeCopy: fields.has("removeCopy") }); setCodes([]); setMessage("Conta removida da nuvem."); }); }}><label>Confirme sua senha<input name="password" type="password" autoComplete="current-password" maxLength={128} required /></label><label className="account-checkbox"><input type="checkbox" name="removeCopy" />Apagar também a cópia desta conta neste dispositivo.</label><label className="account-checkbox"><input type="checkbox" required />Quero remover esta conta da nuvem.</label><button type="submit" disabled={busy}>Remover minha conta</button></form></details>
+                    <details className="account-disclosure is-danger"><summary>Remover conta</summary><p>Apaga cadastro e dados da nuvem. Aventuras compartilhadas e cópias em outros dispositivos continuam separadas. Baixe uma cópia antes de remover.</p><form aria-describedby={formError || client.error ? errorId : undefined} onSubmit={event => { event.preventDefault(); const fields = new FormData(event.currentTarget); void run(async () => { await client.deleteAccount(String(fields.get("password") || ""), { removeCopy: fields.has("removeCopy") }); setCodes([]); setMessage("Conta removida da nuvem."); }); }}><label>Confirme sua senha<input name="password" type="password" autoComplete="current-password" maxLength={128} required disabled={busy} /></label><label className="account-checkbox"><input type="checkbox" name="removeCopy" disabled={busy} />Apagar também a cópia desta conta neste dispositivo.</label><label className="account-checkbox"><input type="checkbox" required disabled={busy} />Quero remover esta conta da nuvem.</label><button type="submit" disabled={busy}>Remover minha conta</button></form></details>
                 </> : <>
                     <p className="account-intro">Leve seu PC e sua aventura para outro dispositivo. Seus dados sem conta continuam aqui.</p>
                     <div className="account-pages" role="group" aria-label="Acesso à conta">{[["login", "Entrar"], ["signup", "Criar conta"], ["recover", "Recuperar acesso"]].map(([id, label]) => <button type="button" key={id} aria-pressed={page === id} onClick={() => { setPage(id); setImportDevice(id === "signup"); setFormError(""); setMessage(""); }} disabled={busy}>{label}</button>)}</div>
-                    <form className="account-form" key={page} onSubmit={authenticate}>
-                        <label>Nome de usuário<input name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} required minLength={3} maxLength={32} pattern={"[A-Za-z0-9_\\-]{3,32}"} /></label>
-                        {page === "signup" && <><p className="account-field-help">De 3 a 32 letras, números, traços ou sublinhados.</p><label>Nome do Treinador<input name="displayName" autoComplete="nickname" maxLength={48} /></label></>}
-                        {page === "recover" ? <><label>Código de recuperação<input name="recoveryCode" autoComplete="off" autoCapitalize="characters" spellCheck={false} required maxLength={32} /></label><label>Nova senha<input name="newPassword" type="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label><p className="account-field-help">Use um dos códigos guardados ao criar a conta. A recuperação troca a senha e substitui os códigos anteriores.</p></> : <label>Senha<input name="password" type="password" autoComplete={page === "signup" ? "new-password" : "current-password"} required minLength={page === "signup" ? 10 : undefined} maxLength={128} /></label>}
-                        {page === "signup" && <p className="account-field-help">Senha de 10 a 128 caracteres. Você receberá códigos para recuperar o acesso.</p>}
-                        {client.guestAvailable && page !== "recover" && <label className="account-checkbox"><input type="checkbox" checked={importDevice} onChange={event => setImportDevice(event.target.checked)} />Adicionar meus dados deste dispositivo.</label>}
+                    <form className="account-form" key={page} onSubmit={authenticate} aria-describedby={formError || client.error ? errorId : undefined}>
+                        <label>Nome de usuário<input name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} required minLength={3} maxLength={32} pattern={"[A-Za-z0-9_\\-]{3,32}"} aria-describedby={page === "signup" ? `${titleId}-username-help` : undefined} disabled={busy} /></label>
+                        {page === "signup" && <><p id={`${titleId}-username-help`} className="account-field-help">De 3 a 32 letras, números, traços ou sublinhados.</p><label>Nome do Treinador<input name="displayName" autoComplete="nickname" maxLength={48} disabled={busy} /></label></>}
+                        {page === "recover" ? <><label>Código de recuperação<input name="recoveryCode" autoComplete="off" autoCapitalize="characters" spellCheck={false} required maxLength={32} aria-describedby={`${titleId}-recovery-help`} disabled={busy} /></label><p id={`${titleId}-recovery-help`} className="account-field-help">Use um dos códigos que você guardou ao criar a conta.</p><label>Nova senha<input name="newPassword" type="password" autoComplete="new-password" required minLength={10} maxLength={128} aria-describedby={`${titleId}-new-password-help`} disabled={busy} /></label><p id={`${titleId}-new-password-help`} className="account-field-help">Use de 10 a 128 caracteres. Você receberá novos códigos de recuperação.</p></> : <label>Senha<input name="password" type="password" autoComplete={page === "signup" ? "new-password" : "current-password"} required minLength={page === "signup" ? 10 : undefined} maxLength={128} aria-describedby={page === "signup" ? `${titleId}-signup-password-help` : undefined} disabled={busy} /></label>}
+                        {page === "signup" && <p id={`${titleId}-signup-password-help`} className="account-field-help">Senha de 10 a 128 caracteres. Guarde os códigos que receber para recuperar o acesso.</p>}
+                        {client.guestAvailable && page !== "recover" && <label className="account-checkbox"><input type="checkbox" checked={importDevice} onChange={event => setImportDevice(event.target.checked)} disabled={busy} />Adicionar meus dados deste dispositivo.</label>}
                         <button type="submit" className="account-primary" disabled={busy}>{busy ? "Aguarde…" : page === "login" ? "Entrar na conta" : page === "signup" ? "Criar minha conta" : "Redefinir senha"}</button>
                     </form>
                 </>}

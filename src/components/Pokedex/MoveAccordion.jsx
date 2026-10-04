@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { getCatalogText, loadCatalogText } from "../../core/catalogText.js";
 import { describeMove } from "../../core/descriptions.js";
 import { convertToTTRPG, fetchCached, formatDamageClass, formatName, formatType, TYPE_COLORS, TYPE_TEXT_COLORS } from "../../core/mechanics.js";
@@ -18,9 +18,11 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
     const [isOpen, setIsOpen] = useState(false);
     const [data, setData] = useState(null);
     const [loadError, setLoadError] = useState(false);
+    const [retryAttempt, setRetryAttempt] = useState(0);
     const [catalogReady, setCatalogReady] = useState(false);
     const [reference, setReference] = useState(null);
     const panelId = useId();
+    const panelRef = useRef(null);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -40,17 +42,22 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
         if (!isOpen || data || !moveData?.move?.url) return;
         let active = true;
         setLoadError(false);
-        fetchCached(moveData.move.url).then(result => {
+        fetchCached(moveData.move.url, { forceRefresh: retryAttempt > 0 }).then(result => {
             if (!active) return;
             if (result) setData(result);
             else setLoadError(true);
         }).catch(() => { if (active) setLoadError(true); });
         return () => { active = false; };
-    }, [data, isOpen, moveData?.move?.url]);
+    }, [data, isOpen, moveData?.move?.url, retryAttempt]);
 
     if (!moveData?.move) return null;
 
     const handleOpen = () => setIsOpen(value => !value);
+    const retry = () => {
+        panelRef.current?.focus({ preventScroll: true });
+        setLoadError(false);
+        setRetryAttempt(attempt => attempt + 1);
+    };
 
     const details = moveData.latest_detail || moveData.latest_details?.[0];
     // Retain the verified snapshot with the visible description. Public cache
@@ -67,16 +74,19 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
 
     return (
         <article className={`record-move-card ${isOpen ? "is-open" : ""}`} style={{ "--move-type": moveColor }}>
-            <button type="button" onClick={handleOpen} aria-expanded={isOpen} aria-controls={panelId} className="record-move-toggle">
+            <button id={`${panelId}-toggle`} type="button" onClick={handleOpen} aria-expanded={isOpen} aria-controls={panelId} className="record-move-toggle">
                 <span className="record-move-name">{formatName(moveData.move.name)}</span>
                 <span className="record-move-method">{methodLabel(details)}</span>
                 <span aria-hidden="true" className="record-move-chevron">{isOpen ? "−" : "+"}</span>
             </button>
 
-            {isOpen && (
-                <div id={panelId} className="record-move-panel">
+            <div ref={panelRef} id={panelId} hidden={!isOpen} role="region" tabIndex={-1} aria-labelledby={`${panelId}-toggle`} aria-busy={isOpen && !data && !loadError} className="record-move-panel">
+                {isOpen && (<>
                     {!data && !loadError ? <p role="status" className="record-section-note">Consultando movimento…</p> : loadError ? (
-                        <p role="status">Não foi possível consultar este movimento.</p>
+                        <div className="record-load-retry">
+                            <p role="alert">Não foi possível abrir este movimento.</p>
+                            <button type="button" onClick={retry}>Tentar novamente</button>
+                        </div>
                     ) : (
                         <div className="move-description animate-fade-in">
                             <div className="record-move-classification">
@@ -86,10 +96,10 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
                             <dl className="record-move-facts" aria-label="Valores do movimento">
                                 {versionData.damage_class?.name !== 'status' && <div><dt>Poder</dt><dd>{versionData.power ? (isTTRPG ? convertToTTRPG(versionData.power) : versionData.power) : "Variável"}</dd></div>}
                                 <div><dt>Precisão</dt><dd>{versionData.accuracy == null || versionData.accuracy === true ? "Sem teste" : `${versionData.accuracy}%`}</dd></div>
-                                <div><dt>PP</dt><dd>{versionData.pp ?? "—"}</dd></div>
+                                <div><dt><abbr title="Usos disponíveis do movimento">PP</abbr></dt><dd>{versionData.pp ?? "—"}</dd></div>
                             </dl>
                             {shownReference ? <ReferenceText {...shownReference} label="Efeito do movimento" defaultLanguage="pt-BR" className="record-move-description" /> : <p className="record-section-note" role="status">{catalogReady ? 'Este registro não trouxe uma descrição.' : 'Consultando descrição…'}</p>}
-                            {moveData.latest_details?.length > 1 && <div className="record-move-methods" aria-label="Formas de aprender este movimento">
+                            {moveData.latest_details?.length > 1 && <div className="record-move-methods" role="group" aria-label="Formas de aprender este movimento">
                                 {[...new Set(moveData.latest_details.map(methodLabel))].map(method => <span key={method}>{method}</span>)}
                             </div>}
                             {explanation.facts.length > 0 && (
@@ -102,8 +112,8 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
                             )}
                         </div>
                     )}
-                </div>
-            )}
+                </>)}
+            </div>
         </article>
     );
 }

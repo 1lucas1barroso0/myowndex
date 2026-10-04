@@ -260,7 +260,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
         </details>}
         {snapshot.tokens.length>0 && <>
             <header className="local-field-roster-heading"><strong>Em campo</strong><span className="local-field-count"><b>{snapshot.tokens.length}</b> Pokémon</span></header>
-            <div className="local-pokemon-roster" aria-label="Pokémon em campo">{snapshot.tokens.map(token=><button type="button" key={token.id} aria-pressed={selectedToken?.id===token.id} data-side={token.side} onClick={()=>setSelectedTokenId(token.id)}>
+            <div className="local-pokemon-roster" role="group" aria-label="Pokémon em campo">{snapshot.tokens.map(token=><button type="button" key={token.id} aria-pressed={selectedToken?.id===token.id} data-side={token.side} onClick={()=>setSelectedTokenId(token.id)}>
                 <PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><span className="local-field-partner"><strong>{token.name}</strong><small>{token.side==="opponent"?"Oponente":"Aliado"}{token.captured?" · capturado":""}</small><span className="local-field-hp" aria-hidden="true" data-health={token.currentHp<=token.maxHp*.2?"low":token.currentHp<=token.maxHp*.5?"medium":"high"}><span style={{width:`${Math.max(0,Math.min(100,token.currentHp/Math.max(1,token.maxHp)*100))}%`}} /></span><small>HP {token.currentHp} de {token.maxHp}</small></span>
             </button>)}</div>
             <section className="room-tool local-pokemon-initiative" aria-label="Iniciativa"><header className="local-field-turn-heading"><h4>Ordem dos turnos</h4><span className="local-field-round">Rodada <b>{snapshot.round}</b></span></header>

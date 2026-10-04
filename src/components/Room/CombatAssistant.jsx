@@ -85,6 +85,9 @@ export default function CombatAssistant({
     const [defenderId, setDefenderId] = useState(snapshot.tokens.find(token => token.id !== activeId)?.id || "");
     const [moveName, setMoveName] = useState("");
     const [moveData, setMoveData] = useState(null);
+    const [loadingMove, setLoadingMove] = useState(false);
+    const [moveLoadError, setMoveLoadError] = useState(false);
+    const [moveRefresh, setMoveRefresh] = useState(0);
     const [mode, setMode] = useState("normal");
     const [result, setResult] = useState(null);
     const [running, setRunning] = useState(false);
@@ -93,6 +96,7 @@ export default function CombatAssistant({
     const [calledMoveData, setCalledMoveData] = useState(null);
     const [loadingCalledMove, setLoadingCalledMove] = useState(false);
     const resolveInFlight = useRef(false);
+    const retryMoveRequested = useRef(false);
     const tokens = snapshot.tokens;
     const attacker = tokens.find(token => token.id === attackerId);
     const defender = tokens.find(token => token.id === defenderId);
@@ -117,19 +121,29 @@ export default function CombatAssistant({
 
     useEffect(() => {
         let active = true;
+        const forceRefresh = retryMoveRequested.current;
+        retryMoveRequested.current = false;
+        setMoveLoadError(false);
+        setMoveData(null);
         if (!moveName) {
-            setMoveData(null);
+            setLoadingMove(false);
             return () => { active = false; };
         }
-        fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(moveName)}`)
+        setLoadingMove(true);
+        fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(moveName)}`, { forceRefresh })
             .then(data => {
-                if (active) setMoveData(getCurrentMoveReference(data || null));
+                if (active) {
+                    const reference = getCurrentMoveReference(data || null);
+                    setMoveData(reference);
+                    setMoveLoadError(!reference);
+                }
             })
             .catch(() => {
-                if (active) setMoveData(null);
-            });
+                if (active) setMoveLoadError(true);
+            })
+            .finally(() => { if (active) setLoadingMove(false); });
         return () => { active = false; };
-    }, [moveName]);
+    }, [moveName, moveRefresh]);
 
     const moves = useMemo(() => attacker?.moves?.filter(Boolean) || [], [attacker]);
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
@@ -188,13 +202,16 @@ export default function CombatAssistant({
         setCalledMoveData(null);
         if (!name || !attacker || !canControlAttacker) return;
         setDeclaring(true);
+        let referenceLoaded = false;
         try {
             const detail = getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`));
             if (!detail) throw new Error("A Pokédex não conseguiu abrir este movimento agora.");
+            referenceLoaded = true;
             setMoveData(detail);
             await onDeclareMove?.(attacker.id, detail);
         } catch (error) {
-            onError?.(error);
+            if (referenceLoaded) onError?.(error);
+            else setMoveLoadError(true);
         } finally {
             setDeclaring(false);
         }
@@ -262,6 +279,10 @@ export default function CombatAssistant({
         ? "Leve um Pokémon para o campo para escolher seu movimento."
         : !moveName
             ? "Escolha um movimento para conferir seus alvos."
+            : !moveData && loadingMove
+                ? `Abrindo ${formatName(moveName)}…`
+                : !moveData && moveLoadError
+                    ? `Não foi possível abrir ${formatName(moveName)}.`
             : needsCalledMove && !calledMoveData
         ? "Confirme qual movimento foi chamado para revelar alvo, precisão e forma de resolução."
         : resolutionProfile
@@ -327,7 +348,7 @@ export default function CombatAssistant({
                     {(!compact || !resolutionProfile || resolutionProfile.requiresDamageContest) && <label>
                         <span>{compact ? "Modo" : "Situação da disputa"}</span>
                         <RoomSelect
-                            aria-label="Situação da disputa"
+                            aria-label={compact ? "Modo da disputa" : "Situação da disputa"}
                             value={resolutionProfile?.requiresDamageContest ? mode : "normal"}
                             disabled={Boolean(resolutionProfile && !resolutionProfile.requiresDamageContest)}
                             onChange={event => setMode(event.target.value)}
@@ -395,7 +416,8 @@ export default function CombatAssistant({
                         {declaring && <span className="is-syncing">Preparando a prioridade…</span>}
                     </div>
                 )}
-                {(!compact || !resolutionProfile || (resolutionProfile.target.requiresSelection && !defender) || (needsCalledMove && !calledMoveData)) && <p className="combat-target-note">{targetDescription}</p>}
+                {(!compact || !resolutionProfile || (resolutionProfile.target.requiresSelection && !defender) || (needsCalledMove && !calledMoveData)) && <p className="combat-target-note" role={moveLoadError && !moveData ? "alert" : loadingMove && !moveData ? "status" : undefined}>{targetDescription}</p>}
+                {moveName && moveLoadError && !moveData && <button type="button" onClick={() => { retryMoveRequested.current = true; setMoveRefresh(current => current + 1); }}>Tentar novamente</button>}
                 {originalSpecialBlock && <p className="combat-special-block">{compact ? `${formatName(moveName)}: ` : "Não pode ser resolvido agora: "}{originalSpecialBlock}.</p>}
                 {originalTraitBlock?.attackerBlocked && <p className="combat-special-block">Item ativo: {originalTraitBlock.reason}.</p>}
                 {!canControlAttacker && role === "player" && (

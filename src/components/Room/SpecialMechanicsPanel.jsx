@@ -162,7 +162,7 @@ export default function SpecialMechanicsPanel({
                 )}
 
                 {state.markers.length > 0 && (
-                    <div className="token-special-markers" aria-label="Marcadores de mecânicas únicas">
+                    <div className="token-special-markers" role="group" aria-label="Marcadores de mecânicas únicas">
                         {state.markers.map(marker => <span key={marker}>{formatName(marker)}</span>)}
                     </div>
                 )}

@@ -1,12 +1,14 @@
 /* A field record with one scroll surface at every width and zoom level. */
+html .app-root .record-load-retry { display:grid; justify-items:start; gap:1rem; padding:1rem 0; }
+html .app-root .record-load-retry button { min-width:44px; min-height:44px; padding:.75rem 1rem; background:var(--ui-selected); color:var(--ui-blue); border:1px solid var(--ui-blue); border-radius:.25rem; font-weight:750; }
 html .app-root .record-backdrop { position:fixed; inset:0; z-index:200; display:grid; place-items:center; padding:clamp(.5rem,2.5vw,1.5rem); background:#102437b8; }
 html .app-root .record-shell { display:grid; grid-template-columns:minmax(250px,.85fr) minmax(0,1.3fr); width:min(1080px,100%); max-height:calc(100dvh - 2rem); overflow:auto; position:relative; background:var(--ui-panel); color:var(--ui-ink); border:1px solid var(--ui-line); border-top:4px solid var(--ui-accent); border-radius:.4rem; box-shadow:0 20px 60px #0004; }
 html .app-root .record-topbar { grid-column:1/-1; display:flex; justify-content:flex-end; padding:.65rem 1rem; background:var(--ui-panel); border-bottom:1px solid var(--ui-line); }
-html .app-root .record-close { position:static; display:flex; align-items:center; justify-content:center; gap:.5rem; width:auto; min-height:44px; padding:.6rem .8rem; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); border-radius:.25rem; font-size:.85rem; }
+html .app-root .record-close { position:static; display:flex; align-items:center; justify-content:center; gap:.5rem; width:auto; min-height:44px; padding:.6rem .8rem; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); border-radius:.25rem; font-size:.875rem; }
 html .app-root .record-close svg { width:20px; height:20px; }
 html .app-root .record-overview { display:flex; flex-direction:column; gap:1.5rem; min-width:0; overflow:visible; padding:clamp(1.25rem,3vw,2rem); border-right:1px solid var(--ui-line); background:var(--ui-raised); }
 html .app-root .record-header h2 { font-size:clamp(1.8rem,4vw,2.7rem); font-weight:800; margin:.5rem 0; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:pretty; }
-html .app-root .record-cartridge-label { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; color:var(--ui-muted); font-size:.8rem; }
+html .app-root .record-cartridge-label { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; color:var(--ui-muted); font-size:.875rem; }
 html .app-root .record-cartridge-label small { font-size:inherit; }
 html .app-root .record-cartridge-label b { font-variant-numeric:tabular-nums; }
 html .app-root .record-cartridge-label > span { display:none; }
@@ -16,7 +18,7 @@ html .app-root .record-partner-sprite { width:240px; height:240px; max-width:100
 html .app-root .record-sprite-ground { position:absolute; bottom:15px; width:65%; height:15px; border-radius:50%; background:#222b3010; }
 html .app-root .record-attributes { display:grid; gap:1.5rem; }
 html .app-root .record-types { display:flex; flex-wrap:wrap; gap:.5rem; }
-html .app-root .record-type-chip { display:inline-flex; align-items:center; min-height:28px; padding:.35rem .7rem; border-radius:.2rem; font-size:.8rem; font-weight:700; }
+html .app-root .record-type-chip { display:inline-flex; align-items:center; min-height:28px; padding:.35rem .7rem; border-radius:.2rem; font-size:.875rem; font-weight:700; }
 html .app-root .record-stats { display:grid; gap:.95rem; }
 html .app-root .record-stats h3 { font-size:1rem; font-weight:800; margin-bottom:.5rem; }
 html .app-root .record-stats h3 > span { display:none; }
@@ -26,7 +28,7 @@ html .app-root .record-stat-heading > strong { color:var(--ui-blue); font-size:1
 html .app-root .record-stat-track { height:7px; background:color-mix(in srgb,var(--ui-line) 60%,var(--ui-panel)); overflow:hidden; border-radius:2px; }
 html .app-root .record-stat-fill { height:100%; }
 html .app-root .record-stat-total { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-top:.35rem; padding-top:1rem; border-top:2px solid var(--ui-line); }
-html .app-root .record-stat-total > span { color:var(--ui-muted); font-size:.85rem; font-weight:650; }
+html .app-root .record-stat-total > span { color:var(--ui-muted); font-size:.875rem; font-weight:650; }
 html .app-root .record-stat-total > strong { font-size:1.5rem; line-height:1; font-weight:800; font-variant-numeric:tabular-nums; }
 html .app-root .record-details { min-width:0; overflow:visible; }
 html .app-root .record-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.5rem; padding:1rem; border-bottom:1px solid var(--ui-line); background:var(--ui-panel); }
@@ -38,32 +40,32 @@ html .app-root .record-body :is(p,li) { font-size:1rem; line-height:1.75; max-wi
 html .app-root .species-description { padding:1.4rem; border:0; border-left:4px solid var(--record-type); background:color-mix(in srgb,var(--record-type) 9%,var(--ui-panel)); box-shadow:none; }
 html .app-root .record-entry-heading { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem 1rem; margin-bottom:1rem; }
 html .app-root .species-description h3 { flex:1; min-width:0; font-size:1.3rem; font-weight:800; margin:0; }
-html .app-root .record-catalog-language { display:inline-flex; align-items:center; align-self:flex-start; justify-self:start; width:max-content; max-width:100%; padding:.2rem .4rem; color:var(--ui-muted); border:1px solid var(--ui-line); border-radius:.15rem; font-size:.7rem; font-weight:750; letter-spacing:.06em; }
-html .app-root .record-language-toggle { display:grid; place-items:center; flex:0 0 44px; width:44px; min-height:44px; padding:.4rem; background:var(--ui-panel); color:var(--ui-blue); border:1px solid var(--ui-blue); border-radius:.2rem; font-size:.85rem; font-weight:800; }
+html .app-root .record-catalog-language { display:inline-flex; align-items:center; align-self:flex-start; justify-self:start; width:max-content; max-width:100%; padding:.2rem .4rem; color:var(--ui-muted); border:1px solid var(--ui-line); border-radius:.15rem; font-size:.875rem; font-weight:750; letter-spacing:.06em; }
+html .app-root .record-language-toggle { display:grid; place-items:center; flex:0 0 44px; width:44px; min-height:44px; padding:.4rem; background:var(--ui-panel); color:var(--ui-blue); border:1px solid var(--ui-blue); border-radius:.2rem; font-size:.875rem; font-weight:800; }
 html .app-root .record-language-toggle[aria-pressed=true] { background:var(--ui-blue); color:var(--ui-panel); }
-html .app-root .record-entry-source { display:block; margin-top:1rem; color:var(--ui-muted); font-size:.8rem; line-height:1.5; }
+html .app-root .record-entry-source { display:block; margin-top:1rem; color:var(--ui-muted); font-size:.875rem; line-height:1.5; }
 html .app-root .record-profile-facts { display:grid; gap:1.35rem; min-width:0; padding:1.25rem; border-top:2px solid color-mix(in srgb,var(--record-type) 50%,var(--ui-line)); background:var(--ui-raised); }
 html .app-root .record-species-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:1.25rem 1.5rem; margin:0; }
 html .app-root .record-species-category { grid-column:1/-1; }
 html .app-root .record-species-facts > div { min-width:0; padding-bottom:.9rem; border-bottom:1px solid var(--ui-line); }
-html .app-root .record-species-facts dt { color:var(--ui-muted); font-size:.85rem; margin-bottom:.35rem; }
+html .app-root .record-species-facts dt { color:var(--ui-muted); font-size:.875rem; margin-bottom:.35rem; }
 html .app-root .record-species-facts dd { margin:0; font-size:1rem; line-height:1.6; font-weight:750; }
-html .app-root .record-species-facts dd > small { display:block; color:var(--ui-muted); margin-top:.5rem; font-size:.85rem; font-weight:400; line-height:1.65; }
+html .app-root .record-species-facts dd > small { display:block; color:var(--ui-muted); margin-top:.5rem; font-size:.875rem; font-weight:400; line-height:1.65; }
 html .app-root .catalog-description { margin-top:1rem; background:transparent; padding:0; border:0; color:var(--ui-ink); }
 html .app-root .catalog-description > summary { min-height:44px; padding:.7rem 0; color:var(--ui-muted); font-weight:700; }
 html .app-root .catalog-description p { margin-top:.75rem; }
-html .app-root .catalog-description-missing { color:var(--ui-muted); font-size:.85rem; }
+html .app-root .catalog-description-missing { color:var(--ui-muted); font-size:.875rem; }
 html .app-root .record-measurements { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5rem; margin:0; }
 html .app-root .record-measurements > div { padding-bottom:.75rem; border-bottom:1px solid var(--ui-line); }
-html .app-root .record-measurements dt { font-size:.85rem; color:var(--ui-muted); }
+html .app-root .record-measurements dt { font-size:.875rem; color:var(--ui-muted); }
 html .app-root .record-measurements dd { margin-top:.35rem; font-weight:750; }
 html .app-root .record-references { display:grid; gap:1.25rem; padding:1.25rem; background:var(--ui-raised); border-left:3px solid var(--ui-blue); }
 html .app-root .record-references h3 { font-size:1rem; font-weight:800; margin:0; }
 html .app-root .record-reference-values { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5rem; }
-html .app-root .record-reference-values dt { color:var(--ui-muted); font-size:.85rem; line-height:1.5; }
+html .app-root .record-reference-values dt { color:var(--ui-muted); font-size:.875rem; line-height:1.5; }
 html .app-root .record-reference-values dd { color:var(--ui-blue); font-size:1.65rem; font-weight:800; font-variant-numeric:tabular-nums; margin:.35rem 0 0; }
 html .app-root .record-reference-help { border-top:1px solid var(--ui-line); padding-top:.5rem; }
-html .app-root .record-reference-help summary { display:flex; align-items:center; gap:.5rem; min-height:44px; padding:.5rem 0; font-size:.85rem; font-weight:650; color:var(--ui-ink); }
+html .app-root .record-reference-help summary { display:flex; align-items:center; gap:.5rem; min-height:44px; padding:.5rem 0; font-size:.875rem; font-weight:650; color:var(--ui-ink); }
 html .app-root .record-reference-help p { margin:.75rem 0 0; font-size:.9rem; line-height:1.7; }
 html .app-root .record-section-title { font-size:1.25rem; font-weight:800; margin:1.75rem 0 1rem; }
 html .app-root .record-profile > div > .record-section-title { margin-top:0; }
@@ -85,7 +87,7 @@ html .app-root .record-matchup-group.is-weak { --matchup-color:var(--ui-accent);
 html .app-root .record-matchup-group.is-resist { --matchup-color:var(--record-type); }
 html .app-root .record-matchup-group.is-neutral { --matchup-color:var(--ui-line); }
 html .app-root .record-matchup-group h4 { display:flex; flex-wrap:wrap; justify-content:space-between; gap:.5rem; font-weight:750; margin-bottom:.75rem; }
-html .app-root .record-matchup-group h4 > span { color:var(--ui-muted); font-size:.85rem; font-weight:500; font-variant-numeric:tabular-nums; }
+html .app-root .record-matchup-group h4 > span { color:var(--ui-muted); font-size:.875rem; font-weight:500; font-variant-numeric:tabular-nums; }
 html .app-root .record-matchup-group > div { display:flex; flex-wrap:wrap; gap:.5rem; }
 html .app-root .record-matchup-chip { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; padding:.6rem .75rem; background:var(--ui-panel); font-size:.9rem; line-height:1.5; }
 html .app-root .record-matchup-chip b { margin-left:.25rem; font-variant-numeric:tabular-nums; }
@@ -97,7 +99,7 @@ html .app-root .record-move-version select { width:100%; }
 html .app-root .record-ability-card { padding:1rem 0; border:0; border-bottom:1px solid var(--ui-line); margin:0; background:transparent; border-radius:0; }
 html .app-root .record-ability-heading { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin-bottom:.75rem; }
 html .app-root .record-ability-heading h4 { font-size:1.1rem; font-weight:800; }
-html .app-root .record-ability-badge { padding:.2rem .4rem; font-size:.8rem; color:var(--ui-blue); background:var(--ui-selected); }
+html .app-root .record-ability-badge { padding:.2rem .4rem; font-size:.875rem; color:var(--ui-blue); background:var(--ui-selected); }
 html .app-root .record-moves-list { display:grid; gap:.7rem; }
 html .app-root .record-move-card { padding:0; border:1px solid var(--ui-line); border-left:3px solid var(--move-type,var(--ui-blue)); margin:0; background:var(--ui-panel); border-radius:.2rem; }
 html .app-root .record-move-card.is-open { background:color-mix(in srgb,var(--move-type) 5%,var(--ui-panel)); }
@@ -105,15 +107,15 @@ html .app-root .record-move-toggle { display:grid; grid-template-columns:minmax(
 html .app-root .record-move-toggle:hover { background:color-mix(in srgb,var(--move-type) 10%,var(--ui-panel)); }
 html .app-root .record-move-toggle[aria-expanded=true] { border-bottom:1px solid var(--ui-line); background:color-mix(in srgb,var(--move-type) 8%,var(--ui-panel)); }
 html .app-root .record-move-name { min-width:0; font-size:1.05rem; line-height:1.5; font-weight:800; }
-html .app-root .record-move-method { display:inline-flex; align-items:center; justify-content:center; padding:0; font-size:.8rem; line-height:1.5; color:var(--ui-muted); }
+html .app-root .record-move-method { display:inline-flex; align-items:center; justify-content:center; padding:0; font-size:.875rem; line-height:1.5; color:var(--ui-muted); }
 html .app-root .record-move-chevron { display:grid; place-items:center; color:var(--ui-blue); font-size:1.25rem; font-weight:750; }
 html .app-root .record-move-panel { padding:.3rem 1rem 1.1rem; }
 html .app-root .move-description { display:grid; gap:1rem; }
 html .app-root .record-move-classification { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; }
-html .app-root .record-move-category { color:var(--ui-muted); font-size:.85rem; }
+html .app-root .record-move-category { color:var(--ui-muted); font-size:.875rem; }
 html .app-root .record-move-facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,95px),1fr)); gap:.6rem; margin:0; }
 html .app-root .record-move-facts > div { min-width:0; padding:.6rem .7rem; border-bottom:2px solid color-mix(in srgb,var(--move-type) 40%,var(--ui-line)); background:var(--ui-raised); }
-html .app-root .record-move-facts dt { color:var(--ui-muted); font-size:.8rem; }
+html .app-root .record-move-facts dt { color:var(--ui-muted); font-size:.875rem; }
 html .app-root .record-move-facts dd { margin:.2rem 0 0; font-size:1.15rem; font-weight:800; }
 html .app-root .record-move-description { display:grid; gap:.5rem; }
 html .app-root .record-move-description .record-catalog-language { justify-self:start; width:max-content; max-width:100%; }
@@ -128,11 +130,11 @@ html .app-root .record-state { display:grid; justify-items:center; gap:1rem; pad
 html .app-root .record-state h2 { font-size:1.5rem; font-weight:800; }
 html .app-root .record-state-button { min-height:44px; padding:.7rem 1rem; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); }
 @media (max-width:900px) { html .app-root .record-shell { grid-template-columns:minmax(0,1fr); } html .app-root .record-overview { border-right:0; border-bottom:1px solid var(--ui-line); } html .app-root .record-sprite-stage { min-height:180px; } html .app-root .record-partner-sprite { width:180px; height:180px; } }
-@media (max-width:420px) { html .app-root .record-tabs { gap:.3rem; padding:.75rem; } html .app-root .record-tabs button { flex-direction:column; font-size:.8rem; } html .app-root .record-backdrop { padding:.5rem; } html .app-root .record-shell { max-height:calc(100dvh - 1rem); } html .app-root .record-move-panel { padding-inline:.8rem; } html .app-root .species-description { padding:1rem; } }
+@media (max-width:420px) { html .app-root .record-tabs { gap:.3rem; padding:.75rem; } html .app-root .record-tabs button { flex-direction:column; font-size:.875rem; } html .app-root .record-backdrop { padding:.5rem; } html .app-root .record-shell { max-height:calc(100dvh - 1rem); } html .app-root .record-move-panel { padding-inline:.8rem; } html .app-root .species-description { padding:1rem; } }
 
 /* Game and language choices sit with the information they change. */
 html .app-root .record-game-picker { display:grid; gap:.6rem; min-width:0; margin:0 0 1.25rem; }
-html .app-root .record-game-picker > label { color:var(--ui-muted); font-size:.85rem; font-weight:700; }
+html .app-root .record-game-picker > label { color:var(--ui-muted); font-size:.875rem; font-weight:700; }
 html .app-root .record-game-picker .room-select { width:100%; min-height:50px; }
 html .app-root .record-game-picker .room-select-value { padding:.8rem 2.6rem .8rem .9rem; font-size:.95rem; line-height:1.5; }
 html .app-root .record-moves-heading { display:grid; gap:1rem; }
@@ -146,21 +148,21 @@ html[data-theme="night"] .app-root .record-trait-card.record-item-card { --trait
 html .app-root .record-trait-card.is-compact { padding:1.25rem; }
 html .app-root .record-trait-heading { display:flex; flex-wrap:wrap; align-items:center; gap:.85rem; margin:0; min-width:0; }
 html .app-root .record-trait-heading > div { flex:1; min-width:min(140px,100%); }
-html .app-root .record-trait-heading small { display:block; margin-bottom:.35rem; font-size:.8rem; color:var(--ui-muted); }
+html .app-root .record-trait-heading small { display:block; margin-bottom:.35rem; font-size:.875rem; color:var(--ui-muted); }
 html .app-root .record-trait-heading h4 { margin:0; color:var(--ui-ink); font-size:1.15rem; line-height:1.4; font-weight:800; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:pretty; }
 html .app-root .record-trait-card .record-trait-heading { padding-bottom:1rem; border-bottom:1px solid color-mix(in srgb,var(--trait-accent) 35%,var(--ui-line)); }
-html .app-root .record-trait-card .record-ability-badge { align-self:flex-start; padding:.3rem .6rem; font-size:.8rem; line-height:1.5; font-weight:650; }
+html .app-root .record-trait-card .record-ability-badge { align-self:flex-start; padding:.3rem .6rem; font-size:.875rem; line-height:1.5; font-weight:650; }
 html .app-root .record-item-sprite { flex:0 0 48px; width:48px; height:48px; object-fit:contain; image-rendering:pixelated; background:var(--ui-panel); border-radius:.15rem; }
 html .app-root .reference-text { display:grid; gap:.75rem; min-width:0; }
 html .app-root .reference-text-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.75rem; min-width:0; }
-html .app-root .reference-text-toolbar > small { color:var(--ui-muted); font-size:.8rem; font-weight:700; line-height:1.5; }
-html .app-root .reference-language-toggle { display:grid; place-items:center; flex:0 0 48px; min-width:48px; min-height:44px; padding:.5rem .6rem; border:1px solid var(--ui-blue); border-radius:.2rem; background:var(--ui-panel); color:var(--ui-blue); font-size:.85rem; font-weight:800; }
+html .app-root .reference-text-toolbar > small { color:var(--ui-muted); font-size:.875rem; font-weight:700; line-height:1.5; }
+html .app-root .reference-language-toggle { display:grid; place-items:center; flex:0 0 48px; min-width:48px; min-height:44px; padding:.5rem .6rem; border:1px solid var(--ui-blue); border-radius:.2rem; background:var(--ui-panel); color:var(--ui-blue); font-size:.875rem; font-weight:800; }
 html .app-root .reference-language-toggle[aria-pressed=true] { background:var(--ui-selected); }
 html .app-root .reference-text > p { margin:0; color:var(--ui-ink); font-size:1rem; line-height:1.75; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:pretty; }
 html .app-root .record-trait-card .reference-text-source { padding-top:.75rem; border-top:1px solid var(--ui-line); }
-html .app-root .reference-text-source { color:var(--ui-muted); font-size:.75rem; line-height:1.6; }
+html .app-root .reference-text-source { color:var(--ui-muted); font-size:.875rem; line-height:1.6; }
 html .app-root .record-move-methods { display:flex; flex-wrap:wrap; gap:.5rem; }
-html .app-root .record-move-methods > span { padding:.4rem .6rem; border:1px solid var(--ui-line); background:var(--ui-panel); color:var(--ui-muted); font-size:.8rem; line-height:1.5; }
+html .app-root .record-move-methods > span { padding:.4rem .6rem; border:1px solid var(--ui-line); background:var(--ui-panel); color:var(--ui-muted); font-size:.875rem; line-height:1.5; }
 html .app-root .record-move-panel { padding:1.1rem 1.1rem 1.4rem; }
 html .app-root .record-move-toggle { padding:1rem; gap:.85rem; min-height:64px; }
 html .app-root .record-move-toggle .record-move-method { white-space:normal; text-align:center; }

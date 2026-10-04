@@ -26,7 +26,7 @@ export default function LocalDiceDialog({ open, onClose, context = "central", ..
             window.cancelAnimationFrame(frame);
             if (dialog.open) dialog.close();
             document.body.style.overflow = overflow;
-            previous?.focus?.();
+            if (previous?.isConnected) previous.focus?.({ preventScroll: true });
         };
     }, [open]);
 
@@ -34,6 +34,26 @@ export default function LocalDiceDialog({ open, onClose, context = "central", ..
         ref={dialogRef}
         className="local-dice-dialog"
         aria-labelledby={titleId}
+        onKeyDown={event => {
+            if (event.key !== "Tab" || event.altKey || event.ctrlKey || event.metaKey
+                || event.currentTarget.querySelector('[role="alertdialog"][aria-modal="true"]')) return;
+            const choices = [...event.currentTarget.querySelectorAll('button,input,select,textarea,summary,a[href],[tabindex="0"]')]
+                .filter(element => {
+                    const closed = element.closest("details:not([open])");
+                    return element.tabIndex >= 0 && element.getClientRects().length
+                        && getComputedStyle(element).visibility !== "hidden"
+                        && !element.closest("[hidden],[inert]") && !element.matches(':disabled,[aria-disabled="true"]')
+                        && (!closed || closed.querySelector(":scope > summary")?.contains(element));
+                });
+            const first = choices[0];
+            const last = choices.at(-1);
+            if (!first) { event.preventDefault(); event.currentTarget.focus(); }
+            else if (event.shiftKey && (document.activeElement === first || !event.currentTarget.contains(document.activeElement))) {
+                event.preventDefault(); last.focus();
+            } else if (!event.shiftKey && (document.activeElement === last || !event.currentTarget.contains(document.activeElement))) {
+                event.preventDefault(); first.focus();
+            }
+        }}
         onCancel={event => {
             event.preventDefault();
             if (!document.querySelector('[role="alertdialog"][aria-modal="true"]')) onCloseRef.current?.();

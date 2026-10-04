@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useId, useMemo, useState } from "react";
 import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
@@ -37,6 +37,7 @@ const Token = ({
     onPointerMove,
     onPointerUp,
     onKeyMove,
+    movementHelpId,
 }) => {
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
@@ -63,6 +64,7 @@ const Token = ({
         }}
         aria-pressed={isSelected}
         aria-expanded={isSelected}
+        aria-describedby={canMove ? movementHelpId : undefined}
         aria-label={`${display.name}, nível ${token.level}, ${token.currentHp} de ${token.maxHp} pontos de vida${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
@@ -119,6 +121,7 @@ export default function Battlefield({
     onSnapshotChange,
 }) {
     const [drag, setDrag] = useState(null);
+    const movementHelpId = useId();
     const currentTokenId = snapshot.initiative[snapshot.turnIndex] || "";
     const tokenById = useMemo(
         () => Object.fromEntries(snapshot.tokens.map(token => [token.id, token])),
@@ -179,6 +182,7 @@ export default function Battlefield({
 
     return (
         <section className="battlefield-card" aria-label="Campo de batalha">
+            <p id={movementHelpId} className="sr-only">Para mover um Pokémon com o teclado, use as setas. Segure Shift para mover mais longe.</p>
             <div className="battlefield-toolbar">
                 <div>
                     <h3>Campo de batalha</h3>
@@ -247,6 +251,7 @@ export default function Battlefield({
                             onPointerMove={event => updatePosition(event, false)}
                             onPointerUp={handlePointerUp}
                             onKeyMove={handleKeyMove}
+                            movementHelpId={movementHelpId}
                         />
                     );
                 })}

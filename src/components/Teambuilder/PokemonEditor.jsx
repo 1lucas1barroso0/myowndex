@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useId, useMemo, useRef } from 'react';
-import { RPG_STATUS_LABELS } from '../../core/copy.js';
+import { formatCanonicalItemName, RPG_STATUS_LABELS } from '../../core/copy.js';
 import { describeMove } from '../../core/descriptions.js';
 import { getCatalogText, loadCatalogText } from '../../core/catalogText.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, TYPE_COLORS, TYPE_TEXT_COLORS, filterMovesByLatestVersion } from '../../core/mechanics.js';
@@ -95,9 +95,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     }, []);
 
     const dismissKeyboard = () => {
-        if (document.activeElement && document.activeElement.blur) {
-            document.activeElement.blur();
-        }
+        const control = document.activeElement;
+        if (control?.matches('textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="range"])')) control.blur();
     };
 
     const handleEnter = (e) => {
@@ -243,7 +242,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             });
             setSpeciesProfile(profile || null);
         } catch {
-            if (mountedRef.current) setFormError("A Pokédex não conseguiu abrir essa forma agora, mas sua ficha continua intacta.");
+            if (mountedRef.current) setFormError("Não foi possível abrir esta forma. Escolha outra ou tente novamente.");
         } finally {
             if (mountedRef.current) setSwitchingForm(false);
         }
@@ -370,9 +369,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const awardXp = amount => applyXpProgression(finiteNumber(rpg.xp, 0) + finiteNumber(amount, 0));
     return (
         <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatName(pk.species?.name)}`}>
-            <datalist id={itemListId}>{validItems.map(value => <option key={value} value={value} />)}</datalist>
-            <datalist id={abilityListId}>{validAbs.map(ability => { const value = typeof ability === "string" ? ability : ability?.name; return value ? <option key={value} value={value} /> : null; })}</datalist>
-            <datalist id={moveListId}>{validMoves.map(move => { const value = typeof move === "string" ? move : move?.name; return value ? <option key={value} value={value} /> : null; })}</datalist>
+            <datalist id={itemListId}>{validItems.map(value => <option key={value} value={value} label={formatCanonicalItemName(value)} />)}</datalist>
+            <datalist id={abilityListId}>{validAbs.map(ability => { const value = typeof ability === "string" ? ability : ability?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
+            <datalist id={moveListId}>{validMoves.map(move => { const value = typeof move === "string" ? move : move?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
 
             <header className="editor-header">
                 <PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" />
@@ -393,7 +392,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 </div>
                 <label className="editor-field editor-level">
                     <span className="editor-label">Nível</span>
-                    <input type="number" min="1" max={isHackmon ? 200 : 100} value={pk.level === "" ? "" : pk.level} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, level: event.target.value === "" ? "" : integerInRange(event.target.value, 1, isHackmon ? 200 : 100, 1) })} className="editor-input" />
+                    <input type="number" inputMode="numeric" min="1" max={isHackmon ? 200 : 100} value={pk.level === "" ? "" : pk.level} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, level: event.target.value === "" ? "" : integerInRange(event.target.value, 1, isHackmon ? 200 : 100, 1) })} className="editor-input" />
                 </label>
             </header>
             {exceptionCount > 0 && <p className="editor-exception-note" role="status">{`${exceptionCount} ${exceptionCount === 1 ? "escolha fora do jogo de referência" : "escolhas fora do jogo de referência"}.`}</p>}
@@ -404,7 +403,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     <label htmlFor={`${fieldId}-ability`} className="editor-label">Habilidade</label>
                     <div className="editor-choice-control">
                         <input id={`${fieldId}-ability`} list={abilityListId} value={pk.ability || ""} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, ability: (event.target.value || "").toLowerCase() })} className="editor-input" />
-                        <button type="button" aria-label="Sortear habilidade" title="Sortear habilidade" onClick={() => randomize("ability")} className="editor-random-button">⚄</button>
+                        {validAbs.length > 1 && <button type="button" aria-label="Sortear habilidade" title="Sortear habilidade" onClick={() => randomize("ability")} className="editor-random-button">⚄</button>}
                     </div>
                     {abilityException && <span className="editor-field-note">Escolha livre mantida</span>}
                 </div>
@@ -463,10 +462,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                                 updatePk({ ...pk, moves, rpg: { ...rpg, pp } });
                             }} className="editor-input" /></div>
                             {isException && <span className="editor-field-note">{experienceMode === "game" ? "Não disponível neste jogo" : "Escolha livre"}</span>}
-                            {isTTRPG && moveName && <label className="editor-pp-label">PP atual<input type="number" min="0" max={detail?.pp || 99} value={currentPp ?? detail?.pp ?? ""} onChange={event => { const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = event.target.value === "" ? null : integerInRange(event.target.value, 0, integerInRange(detail?.pp, 0, 99, 99), 0); updateRpg({ pp }); }} className="editor-input editor-pp-control" /></label>}
+                            {isTTRPG && moveName && <><label className="editor-pp-label">PP atual<input type="number" inputMode="numeric" min="0" max={detail?.pp || 99} aria-describedby={`${fieldId}-move-${index}-pp-help`} value={currentPp ?? detail?.pp ?? ""} onChange={event => { const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = event.target.value === "" ? null : integerInRange(event.target.value, 0, integerInRange(detail?.pp, 0, 99, 99), 0); updateRpg({ pp }); }} className="editor-input editor-pp-control" /></label><span className="sr-only" id={`${fieldId}-move-${index}-pp-help`}>Usos restantes de {formatName(moveName)}.</span></>}
                             {moveExplanation && <details className="editor-move-description">
                                 <summary>Detalhes do movimento</summary>
                                 <dl className="editor-move-facts"><div><dt>Poder</dt><dd>{detail.power == null ? "—" : isTTRPG ? convertToTTRPG(detail.power) : detail.power}</dd></div><div><dt>Precisão</dt><dd>{detail.accuracy == null ? "Sem teste próprio" : `${detail.accuracy}%`}</dd></div><div><dt>PP máximo</dt><dd>{detail.pp ?? "—"}</dd></div>{Boolean(detail.priority) && <div><dt>Prioridade</dt><dd>{detail.priority > 0 ? "+" : ""}{detail.priority}</dd></div>}</dl>
+                                <p className="editor-field-note">PP são os usos disponíveis deste movimento.</p>
                                 {moveReference && <ReferenceText {...moveReference} label="Efeito do movimento" defaultLanguage="pt-BR" />}
                                 <p>{moveExplanation.summary}</p><ul>{moveExplanation.facts.map((fact, factIndex) => <li key={`${normalizedName}-${factIndex}`}>{fact}</li>)}</ul>
                             </details>}
@@ -478,22 +478,22 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <details className="editor-disclosure rpg-journey-panel">
                 <summary><span>Progresso da jornada</span><span className="rpg-journey-hp">HP {rpg.currentHp ?? displayedMaxHp} de {displayedMaxHp}</span></summary>
                 <div className="editor-disclosure-body rpg-journey-body">
-                    <div className="editor-field"><label htmlFor={`${fieldId}-hp`} className="editor-label">HP atual</label><div className="editor-choice-control"><input id={`${fieldId}-hp`} type="number" min="0" max={displayedMaxHp} value={rpg.currentHp ?? displayedMaxHp} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" /><button type="button" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button">Recuperar</button></div></div>
-                    <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" min="0" step="1" max="999999" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: integerInRange(event.target.value, 0, 999999, rpg.xp ?? 0) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">{atXpLevelCap ? `Nível máximo · ${xpLevelCap}` : `Meta: ${formatNumberPtBr(nextLevelXp)} XP · nível ${integerInRange(pk.level, 1, xpLevelCap, 1) + 1}`}</small><div className="editor-xp-actions"><button type="button" disabled={atXpLevelCap} onClick={() => awardXp(1)}>+1 XP</button></div></div>
+                    <div className="editor-field"><label htmlFor={`${fieldId}-hp`} className="editor-label">HP atual</label><div className="editor-choice-control"><input id={`${fieldId}-hp`} type="number" inputMode="numeric" min="0" max={displayedMaxHp} aria-describedby={`${fieldId}-hp-help`} value={rpg.currentHp ?? displayedMaxHp} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" /><button type="button" aria-label="Recuperar HP ao máximo" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button">Recuperar</button></div><span className="sr-only" id={`${fieldId}-hp-help`}>Energia do Pokémon. Zero HP significa que ele está fora de combate.</span></div>
+                    <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" inputMode="numeric" min="0" step="1" max="999999" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: integerInRange(event.target.value, 0, 999999, rpg.xp ?? 0) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">{atXpLevelCap ? `Nível máximo · ${xpLevelCap}` : `Meta: ${formatNumberPtBr(nextLevelXp)} XP · nível ${integerInRange(pk.level, 1, xpLevelCap, 1) + 1}`}</small><div className="editor-xp-actions"><button type="button" disabled={atXpLevelCap} onClick={() => awardXp(1)}>+1 XP</button></div></div>
                     <label className="editor-field"><span className="editor-label">Condição</span><RoomSelect aria-label="Condição" value={rpg.status || ""} onChange={event => updateRpg({ status: event.target.value })} className="editor-input">{RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{RPG_STATUS_LABELS[status]}</option>)}</RoomSelect></label>
                     <label className="editor-field"><span className="editor-label">Poké Ball da captura</span><input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} className="editor-input" /></label>
                     <label className="editor-field editor-wide-field"><span className="editor-label">Treinador original</span><input type="text" value={rpg.originalTrainer || ""} onChange={event => updateRpg({ originalTrainer: event.target.value })} className="editor-input" /></label>
-                    <label className="editor-field editor-wide-field"><span className="editor-label">Notas da jornada</span><textarea value={rpg.notes || ""} onChange={event => updateRpg({ notes: event.target.value })} rows={3} className="editor-input" /></label>
-                    <label className="editor-field editor-wide-field"><span className="editor-label">Possibilidades da aventura</span><textarea value={rpg.animeNotes || ""} onChange={event => updateRpg({ animeNotes: event.target.value })} rows={3} className="editor-input" /></label>
+                    <div className="editor-field editor-wide-field"><label htmlFor={`${fieldId}-journey-notes`} className="editor-label">Notas da jornada</label><textarea id={`${fieldId}-journey-notes`} value={rpg.notes || ""} onChange={event => updateRpg({ notes: event.target.value })} rows={3} className="editor-input" /></div>
+                    <div className="editor-field editor-wide-field"><label htmlFor={`${fieldId}-adventure-ideas`} className="editor-label">Ideias para a aventura</label><textarea id={`${fieldId}-adventure-ideas`} value={rpg.animeNotes || ""} onChange={event => updateRpg({ animeNotes: event.target.value })} rows={3} className="editor-input" /></div>
                 </div>
             </details>
 
             <details className="editor-disclosure editor-characteristics">
                 <summary>Características e transformações</summary>
                 <div className="editor-disclosure-body editor-basics-grid">
-                    <label className="editor-field"><span className="editor-label">Amizade</span><input type="number" min="0" max="255" value={pk.friendship === "" ? "" : pk.friendship} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, friendship: event.target.value === "" ? "" : integerInRange(event.target.value, 0, 255, 0) })} className="editor-input" />{isTTRPG && <small>RPG: {convertToTTRPG(pk.friendship || 0)}</small>}</label>
+                    <label className="editor-field"><span className="editor-label">Amizade</span><input type="number" inputMode="numeric" min="0" max="255" value={pk.friendship === "" ? "" : pk.friendship} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, friendship: event.target.value === "" ? "" : integerInRange(event.target.value, 0, 255, 0) })} className="editor-input" />{isTTRPG && <small>RPG: {convertToTTRPG(pk.friendship || 0)}</small>}</label>
                     <label className="editor-field"><span className="editor-label">Tipo Tera</span><RoomSelect aria-label="Tipo Tera" value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
-                    <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
+                    <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" inputMode="numeric" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
                     <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Gigantamax</label><label><input type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} />Shiny</label></div>
                     {isHackmon && [0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><RoomSelect aria-label={`Tipo personalizado ${index + 1}`} value={customT[index] || ""} onChange={event => { dismissKeyboard(); const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>)}
                 </div>
@@ -507,6 +507,15 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     const value = calculateStat(base, pk.evs?.[name] ?? 0, pk.ivs?.[name] ?? 31, pk.level, getMulti(name), name === "hp", pk.species?.name);
                     return <div key={name}><dt>{STAT_MAP[name] || name}</dt><dd>{isTTRPG ? convertToTTRPG(value, name === "hp") : value}</dd></div>;
                 })}</dl>
+                <details className="editor-move-description editor-stat-help">
+                    <summary>Entender os atributos</summary>
+                    <ul>
+                        <li><strong>HP:</strong> energia do Pokémon. Com zero HP, ele fica fora de combate.</li>
+                        <li><strong>Ataque e Defesa:</strong> força e proteção contra movimentos físicos.</li>
+                        <li><strong>Ataque Especial e Defesa Especial:</strong> força e proteção contra movimentos especiais.</li>
+                        <li><strong>Velocidade:</strong> ajuda a definir a ordem dos turnos.</li>
+                    </ul>
+                </details>
             </section>
             <details className="editor-disclosure pokemon-training-panel">
                 <summary>
@@ -518,6 +527,10 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <p>IVs de 0 a 31 · EVs até 252 por atributo</p>
                         <button type="button" onClick={() => randomize("ivs")} className="editor-training-random">⚄ Sortear IVs</button>
                     </div>
+                    <details className="editor-move-description editor-training-help">
+                        <summary>O que são IVs e EVs?</summary>
+                        <p><strong>IVs</strong> são as características naturais do Pokémon. <strong>EVs</strong> são pontos ganhos com treinamento. Ambos influenciam seus atributos.</p>
+                    </details>
                     <div className="pokemon-stat-list">{pk.species?.stats?.map(stat => {
                         const name = stat.stat?.name; if (!name) return null;
                         const base = isHackmon && pk.customStats?.[name] !== undefined ? pk.customStats[name] : stat.base_stat || 0;

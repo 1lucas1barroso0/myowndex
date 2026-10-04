@@ -29,6 +29,10 @@ As verificações responsivas devem incluir, no mínimo, 320, 390, 768, 1280 e 1
 
 A interface não usa placeholders como instrução ou decoração. Rótulos e ajuda necessária permanecem visíveis e com linguagem do jogo.
 
+`tests/browser-accessibility.mjs` verifica os estados das quatro áreas, fichas, gerador, contas e Dados com axe-core (WCAG 2 e 2.1 AA), nos dois temas. Também verifica reflow, tamanho de controles, nomes de campos, foco, teclado, zoom e movimento reduzido. Instale Playwright e axe-core em uma pasta de ferramentas, fora das dependências do aplicativo. Execute com `MYOWNDEX_PLAYWRIGHT_MODULE` apontando para o módulo Playwright, `MYOWNDEX_AXE_PATH` para `axe-core/axe.min.js`, `MYOWNDEX_BROWSER_EXECUTABLE` para Chromium e `MYOWNDEX_SMOKE_URL` para o servidor testado. Cadastros de teste só são executados em localhost com o banco de teste; o roteiro não modifica contas reais.
+
+Auditorias automáticas não substituem a inspeção visual nem o uso pelo teclado. Aguarde o fim das animações de entrada antes de medir contraste; verifique separadamente a preferência por movimento reduzido. Ajuda, metadados e rótulos devem ter pelo menos 14 px na escala normal; os campos de texto usam 16 px. Aumentar texto não pode esconder nomes, cortar controles ou mudar as regras do jogo.
+
 ## Dados e regras
 
 - Regras do RPG são verificadas pelos testes do motor e pelos testes de integração que compartilham a mesma resolução entre cliente e servidor.

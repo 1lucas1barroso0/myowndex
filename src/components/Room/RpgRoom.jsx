@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
@@ -260,11 +260,14 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
 
 function NoteField({ label, value, privateNote, disabled, onCommit }) {
     const [draft, setDraft] = useState(value || "");
+    const noteId = useId();
     useEffect(() => setDraft(value || ""), [value]);
     return (
-        <label className={`room-note ${privateNote ? "is-private" : ""}`}>
-            <span>{label}{privateNote ? " • só Narrador" : ""}</span>
+        <label className={`room-note ${privateNote ? "is-private" : ""}`} htmlFor={noteId}>
+            <span id={`${noteId}-label`}>{label}{privateNote ? " • só Narrador" : ""}</span>
             <textarea
+                id={noteId}
+                aria-labelledby={`${noteId}-label`}
                 value={draft}
                 disabled={disabled}
                 rows={3}
@@ -1454,16 +1457,16 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                             <div>
                                 <h3>Iniciativa</h3>
                             </div>
-                            <span>R{snapshot.round}</span>
+                            <span>Rodada {snapshot.round}</span>
                         </div>
-                        <ol className="initiative-list">
+                        <ol className="initiative-list" aria-label="Ordem dos turnos">
                             {snapshot.initiative.map((tokenId, index) => {
                                 const token = snapshot.tokens.find(item => item.id === tokenId);
                                 if (!token) return null;
                                 return (
-                                    <li key={tokenId} className={currentTokenId === tokenId ? "is-current" : ""}>
+                                    <li key={tokenId} className={currentTokenId === tokenId ? "is-current" : ""} aria-current={currentTokenId === tokenId ? "step" : undefined}>
                                         <span>{index + 1}</span>
-                                        <button type="button" onClick={() => setSelectedTokenId(tokenId)}>{token.name}</button>
+                                        <button type="button" onClick={() => setSelectedTokenId(tokenId)} aria-label={`Selecionar ${token.name}, ${index + 1}º na iniciativa${currentTokenId === tokenId ? ", turno atual" : ""}`}>{token.name}</button>
                                         <small title={token.declaredMove ? "Movimento escolhido e prioridade correspondente" : "Velocidade atual"}>
                                             {token.declaredMove
                                                 ? `${formatName(token.declaredMove)} • ${token.priority > 0 ? `+${token.priority}` : token.priority}`
@@ -1473,7 +1476,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                                 );
                             })}
                             {!snapshot.initiative.length && <li className="is-empty" id="room-initiative-help">{snapshot.tokens.length
-                                ? "Declare os movimentos e role a iniciativa."
+                                ? "Escolha os movimentos e role a iniciativa."
                                 : "Leve Pokémon para o campo para começar a rodada."}</li>}
                         </ol>
                         {role === "narrator" && (
@@ -1494,7 +1497,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                             readOnly={role !== "narrator"}
                             onChange={phase => commitSnapshot(changeRoomPhase(snapshot, phase))}
                         />
-                        <div className="room-scene-stats" aria-label="Resumo da cena">
+                        <div className="room-scene-stats" role="group" aria-label="Resumo da cena">
                             <div>
                                 <small>Rodada</small>
                                 <strong>{snapshot.round}</strong>
@@ -1624,7 +1627,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                                 </div>
                             )}
                             {selectedToken.volatileEffects?.length > 0 && (
-                                <div className="token-volatile-list" aria-label="Efeitos temporários ativos">
+                                <div className="token-volatile-list" role="group" aria-label="Efeitos temporários ativos">
                                     {selectedToken.volatileEffects.map(effect => (
                                         <span key={effect.id}>
                                             {volatileEffectLabel(effect)}

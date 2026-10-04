@@ -50,6 +50,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const [learnsetVersion, setLearnsetVersion] = useState('auto');
     const [recordHistory, setRecordHistory] = useState([]);
     const [loadError, setLoadError] = useState("");
+    const [retryAttempt, setRetryAttempt] = useState(0);
     const [evolutionStatus, setEvolutionStatus] = useState("loading");
     const dialogRef = useRef(null);
     const closeRef = useRef(null);
@@ -74,16 +75,16 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         setRecordVersion('auto');
         setLearnsetVersion('auto');
         setRecordHistory([]);
-        fetchCached(speciesUrl).then(async data => {
+        fetchCached(speciesUrl, { forceRefresh: retryAttempt > 0 }).then(async data => {
             if (!mounted) return;
             if (!data) {
-                setLoadError("A Pokédex não conseguiu abrir este registro agora. Feche e tente novamente.");
+                setLoadError("Não foi possível abrir este Pokémon. Tente novamente.");
                 return;
             }
             setBaseInfo(data);
             const defVar = data.varieties?.find(v => v.is_default)?.pokemon || data.varieties?.[0]?.pokemon;
             if (defVar?.url) setActiveForm(defVar);
-            else setLoadError("Este registro não trouxe os dados de uma forma. Feche a ficha e tente novamente.");
+            else setLoadError("Não foi possível abrir as formas deste Pokémon. Tente novamente.");
 
             if (data.evolution_chain?.url) {
                 const evo = await fetchCached(data.evolution_chain.url).catch(() => null);
@@ -102,9 +103,9 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             } else {
                 setEvolutionStatus("ready");
             }
-        }).catch(() => mounted && setLoadError("A Pokédex não conseguiu abrir este registro agora. Feche e tente novamente."));
+        }).catch(() => mounted && setLoadError("Não foi possível abrir este Pokémon. Tente novamente."));
         return () => mounted = false;
-    }, [speciesUrl]);
+    }, [speciesUrl, retryAttempt]);
 
     useEffect(() => {
         let mounted = true;
@@ -113,7 +114,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             setRecordVersion('auto');
             setFormData(null);
             setLoadError("");
-            fetchCached(activeForm.url).then(async data => {
+            fetchCached(activeForm.url, { forceRefresh: retryAttempt > 0 }).then(async data => {
                 if (!mounted) return;
                 if (!data) {
                     setLoadError("A Pokédex não conseguiu abrir esta forma agora. Tente novamente em instantes.");
@@ -132,7 +133,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             }).catch(() => mounted && setLoadError("A Pokédex não conseguiu abrir esta forma agora. Tente novamente em instantes."));
         }
         return () => mounted = false;
-    }, [activeForm, baseInfo]);
+    }, [activeForm, baseInfo, retryAttempt]);
 
     useEffect(() => {
         if (!baseInfo?.id) return;
@@ -249,6 +250,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         <small>Pokédex</small>
                         <h2 id={titleId}>{phase === "loading" ? "Consultando Pokémon…" : "Registro indisponível"}</h2>
                         <p role={phase === "loading" ? "status" : "alert"}>{phase === "loading" ? "Carregando a ficha." : loadError}</p>
+                        {phase === "error" && <button type="button" className="record-state-button" onClick={() => { closeRef.current?.focus({ preventScroll: true }); setLoadError(""); setRetryAttempt(attempt => attempt + 1); }}>Tentar novamente</button>}
                         <button type="button" className="record-state-button" onClick={onClose}>{phase === "loading" ? "Cancelar consulta" : "Voltar à Pokédex"}</button>
                     </div>
                 ) : (<>
@@ -280,7 +282,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     </button>
 
                     <div className="record-attributes">
-                        <div className="record-types" aria-label="Tipos deste Pokémon">
+                        <div className="record-types" role="group" aria-label="Tipos deste Pokémon">
                             {formData.types?.map(t => (
                                 <span key={t.type?.name} className="record-type-chip" style={{ backgroundColor: TYPE_COLORS[t.type?.name] || TYPE_COLORS.normal, color: TYPE_TEXT_COLORS[t.type?.name] || TYPE_TEXT_COLORS.normal }}>
                                     {formatType(t.type?.name)}
@@ -310,6 +312,10 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 <span>{isTTRPG ? "Total no RPG" : "Total de atributos base"}</span>
                                 <strong>{bst}</strong>
                             </div>
+                            <details className="record-reference-help">
+                                <summary>Entender os atributos</summary>
+                                <p><strong>HP</strong> é a energia do Pokémon. <strong>Ataque e Defesa</strong> são usados em movimentos físicos; <strong>Ataque Especial e Defesa Especial</strong>, em movimentos especiais. <strong>Velocidade</strong> ajuda a definir a ordem dos turnos.</p>
+                            </details>
                         </section>
                     </div>
                 </div>
@@ -402,7 +408,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                                 <div>
                                     <h3 className="record-section-title">Linha evolutiva</h3>
                                     <div className="record-evolution-list">
-                                        {evolutionStatus === "loading" ? <p role="status" className="record-section-note">Consultando a linha evolutiva...</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">A linha evolutiva não chegou desta vez. As outras páginas da ficha continuam disponíveis.</p> : evoChain.length > 0 ? evoChain.map((path, idx) => (
+                                        {evolutionStatus === "loading" ? <p role="status" className="record-section-note">Consultando a linha evolutiva…</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">Não foi possível abrir a linha evolutiva agora.</p> : evoChain.length > 0 ? evoChain.map((path, idx) => (
                                             <ol key={idx} className="record-evolution-path" aria-label={evoChain.length > 1 ? `Caminho evolutivo ${idx + 1}` : "Caminho evolutivo"} style={{ "--evolution-stages": path.length }}>
                                                 {path.map((node, i) => (
                                                         <li key={node.name + i} className={`record-evolution-node ${String(node.id) === String(baseInfo.id) ? "is-current" : ""}`} aria-current={String(node.id) === String(baseInfo.id) ? "step" : undefined}>

@@ -103,7 +103,7 @@ export default function TraitMechanicsPanel({ token, snapshot, role, onTokenChan
                 <b>{[abilityId, itemId].filter(Boolean).length === 1 ? "1 presente" : `${[abilityId, itemId].filter(Boolean).length} presentes`}</b>
             </summary>
             <div className="token-traits-body">
-                <div className="trait-context" aria-label="Contexto que pode ativar efeitos">
+                <div className="trait-context" role="group" aria-label="Contexto que pode ativar efeitos">
                     <span>Rodada {snapshot.round}</span>
                     <span>Clima: {formatName(snapshot.weather)}</span>
                     <span>Terreno: {formatName(snapshot.terrain)}</span>

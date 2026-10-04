@@ -531,7 +531,7 @@ export default function VoiceCall({ session, role }) {
                             <span>{callLabel}</span>
                         </div>
                         {error && <p className="call-error" role="status">{error}</p>}
-                        <div className="call-members" aria-label="Participantes da chamada">
+                        <div className="call-members" role="group" aria-label="Participantes da chamada">
                             {members.map(member => {
                                 const isSelf = member.participantId === selfId;
                                 const isSpeaking = !member.muted && !locallyMuted[member.participantId] && speaking[member.participantId];
@@ -546,12 +546,13 @@ export default function VoiceCall({ session, role }) {
                                                 {member.muted ? " • microfone fechado" : isSpeaking ? " • falando agora" : state === "connected" ? " • na chamada" : " • conectando"}
                                             </small>
                                         </span>
-                                        <i aria-label={member.muted ? "Microfone fechado" : isSpeaking ? "Falando agora" : "Microfone aberto"}>{member.muted ? "×" : "●"}</i>
+                                        <i aria-hidden="true">{member.muted ? "×" : "●"}</i>
                                         {!isSelf && (
                                             <button
                                                 type="button"
                                                 className="call-local-mute"
                                                 aria-pressed={Boolean(locallyMuted[member.participantId])}
+                                                aria-label={`${locallyMuted[member.participantId] ? "Ouvir" : "Silenciar"} ${member.displayName} apenas para você`}
                                                 onClick={() => setLocallyMuted(current => ({ ...current, [member.participantId]: !current[member.participantId] }))}
                                             >
                                                 {locallyMuted[member.participantId] ? "Ouvir" : "Silenciar"}
@@ -571,7 +572,7 @@ export default function VoiceCall({ session, role }) {
                         </div>
                         <label className="call-volume">
                             <span>Volume da chamada</span>
-                            <input type="range" min="0" max="1" step="0.05" value={remoteVolume} onChange={event => setRemoteVolume(clampFinite(event.target.value, 0, 1, remoteVolume))} />
+                            <input type="range" min="0" max="1" step="0.05" value={remoteVolume} aria-valuetext={`${Math.round(remoteVolume * 100)}%`} onChange={event => setRemoteVolume(clampFinite(event.target.value, 0, 1, remoteVolume))} />
                         </label>
                         <label className="call-sounds">
                             <input type="checkbox" checked={callSounds} onChange={event => setCallSounds(event.target.checked)} />

@@ -10,26 +10,36 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
     const [ball, setBall] = useState("poke-ball");
     const [wildConfirmed, setWild] = useState(false);
     const [species, setSpecies] = useState(null);
+    const [speciesLoadState, setSpeciesLoadState] = useState("idle");
+    const [speciesRefresh, setSpeciesRefresh] = useState(0);
     const [busy, setBusy] = useState(false);
     const [result, setResult] = useState(null);
     const lock = useRef(false);
+    const retrySpeciesRequested = useRef(false);
     const target = snapshot.tokens.find(token => token.id === targetId);
     const trainers = snapshot.tokens.filter(token => token.side === "ally" && !token.hidden && !token.captured);
     const targets = snapshot.tokens.filter(token => token.id !== trainerTokenId && token.side !== "ally" && !token.hidden && !token.captured && !token.ownerPlayerId && token.currentHp > 0);
     const speciesName = target?.speciesName || target?.speciesId;
     useEffect(() => {
         let active = true;
+        const forceRefresh = retrySpeciesRequested.current;
+        retrySpeciesRequested.current = false;
         setSpecies(null);
+        setSpeciesLoadState(speciesName ? "loading" : "idle");
         if (speciesName) void (async () => {
             try {
-                const pokemon = await fetchCached(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(speciesName)}`);
+                const pokemon = await fetchCached(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(speciesName)}`, { forceRefresh });
                 if (!pokemon?.species?.name) throw new Error("A espécie do alvo não foi confirmada.");
-                const detail = await fetchCached(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(pokemon.species.name)}`);
-                if (active) setSpecies({ name: speciesName, detail });
-            } catch (error) { if (active) onError?.(error); }
+                const detail = await fetchCached(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(pokemon.species.name)}`, { forceRefresh });
+                if (!detail) throw new Error("Não foi possível consultar a espécie do alvo.");
+                if (active) {
+                    setSpecies({ name: speciesName, detail });
+                    setSpeciesLoadState("ready");
+                }
+            } catch { if (active) setSpeciesLoadState("error"); }
         })();
         return () => { active = false; };
-    }, [speciesName, onError]);
+    }, [speciesName, speciesRefresh]);
     let calculation = null;
     if (target && species?.name === speciesName) {
         try { calculation = calculateCaptureChance({ target, captureRate: species.detail.capture_rate, ball }); }
@@ -71,13 +81,15 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
                     <label><span>Poké Ball</span><RoomSelect aria-label="Poké Ball" value={ball} onChange={event => setBall(event.target.value)}>{Object.entries(CAPTURE_BALLS).map(([key, info]) => <option key={key} value={key}>{info.label}</option>)}</RoomSelect></label>
                     <label className="capture-confirmation"><input type="checkbox" checked={wildConfirmed} onChange={event => setWild(event.target.checked)} required /><span>O alvo é selvagem e a captura é permitida.</span></label>
                 </fieldset>
+                {speciesLoadState === "loading" && <p role="status">Calculando a chance de captura…</p>}
+                {speciesLoadState === "error" && <div><p role="alert">Não foi possível consultar este alvo.</p><button type="button" onClick={() => { retrySpeciesRequested.current = true; setSpeciesRefresh(current => current + 1); }}>Tentar novamente</button></div>}
                 {calculation && <dl className="capture-metrics">
                     <div><dt>Chance · d100</dt><dd>{calculation.chance}%</dd></div>
                     <div><dt>Taxa de captura</dt><dd>{calculation.captureRate} de 255</dd></div>
                     <div><dt>HP do alvo</dt><dd>{calculation.currentHp} de {calculation.maxHp}</dd></div>
                     <div><dt>Bônus</dt><dd>Poké Ball ×{formatNumberPtBr(calculation.ballBonus)}<br />Condição ×{formatNumberPtBr(calculation.statusBonus)}</dd></div>
                 </dl>}
-                <p className="capture-note">A captura usa d100 e a intervenção da rodada. Registre a Poké Ball usada no inventário.</p>
+                <details className="capture-help"><summary>Como capturar</summary><p className="capture-note">Escolha seu Pokémon, o alvo e a Poké Ball. Confirme que o alvo é selvagem. A captura usa d100 e a intervenção da rodada; registre a Poké Ball usada no inventário.</p></details>
                 <button type="submit" className="room-primary-button" disabled={busy || !calculation || !trainerTokenId || !wildConfirmed}>{busy ? "Resolvendo…" : "Lançar Poké Ball"}</button>
             </form>}
             {result && <p role="status">{result.detail}{result.success ? " Registre o novo parceiro no PC." : ""}</p>}

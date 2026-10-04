@@ -1,6 +1,15 @@
 import React, { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 
+const RETURN_FOCUS_TARGETS = 'button,input,select,textarea,summary,a[href],[tabindex="0"]';
+const canReturnFocus = element => {
+    const closedDetails = element.closest('details:not([open])');
+    return element.tabIndex >= 0 && element.getClientRects().length
+        && getComputedStyle(element).visibility !== "hidden"
+        && !element.closest("[hidden],[inert]") && !element.matches(':disabled,[aria-disabled="true"]')
+        && (!closedDetails || closedDetails.querySelector(":scope > summary")?.contains(element));
+};
+
 export default function ConfirmDialog({
     open,
     title,
@@ -24,8 +33,16 @@ export default function ConfirmDialog({
     useEffect(() => {
         if (!open) return undefined;
         const previous = document.activeElement;
+        const returnContexts = [];
+        for (let context = previous?.parentElement; context; context = context.parentElement) returnContexts.push(context);
         const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
+        const overlay = dialogRef.current?.parentElement;
+        const siblings = [...overlay?.parentElement?.children || []]
+            .filter(element => element instanceof HTMLElement && element !== overlay
+                && !["SCRIPT", "STYLE", "LINK"].includes(element.tagName))
+            .map(element => [element, element.inert]);
+        for (const [element] of siblings) element.inert = true;
         const handleKeyDown = event => {
             if (event.key === "Escape") {
                 event.preventDefault();
@@ -54,7 +71,17 @@ export default function ConfirmDialog({
             document.removeEventListener("keydown", handleKeyDown, true);
             window.cancelAnimationFrame(focusFrame);
             document.body.style.overflow = previousOverflow;
-            previous?.focus?.();
+            for (const [element, original] of siblings) element.inert = original;
+            if (previous?.isConnected && canReturnFocus(previous)) previous.focus({ preventScroll: true });
+            else {
+                // Deleting a partner or Box can remove the original button.
+                // Continue in its closest surviving list or editor instead.
+                for (const context of returnContexts) {
+                    if (!context.isConnected) continue;
+                    const next = [...context.querySelectorAll(RETURN_FOCUS_TARGETS)].find(canReturnFocus);
+                    if (next) { next.focus(); break; }
+                }
+            }
         };
     }, [open]);
 
@@ -73,6 +100,6 @@ export default function ConfirmDialog({
                 </div>
             </section>
         </div>,
-        document.querySelector("dialog[open]") || document.body
+        [...document.querySelectorAll("dialog[open]")].at(-1) || document.body
     );
 }

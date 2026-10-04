@@ -210,7 +210,7 @@ export default function AudioDeck({
                         Ativar áudio neste dispositivo
                     </button>
                 )}
-                <div className="sfx-grid" aria-label="Efeitos sonoros">
+                <div className="sfx-grid" role="group" aria-label="Efeitos sonoros">
                     {SOUND_EFFECTS.map(effect => (
                         <button
                             key={effect.id}
@@ -260,6 +260,7 @@ export default function AudioDeck({
                         max="1"
                         step="0.05"
                         value={localVolume}
+                        aria-valuetext={`${Math.round(localVolume * 100)}%`}
                         onChange={event => setLocalVolume(clampFinite(event.target.value, 0, 1, localVolume))}
                     />
                 </label>
@@ -276,6 +277,7 @@ export default function AudioDeck({
                             max="1"
                             step="0.05"
                             value={snapshot.audio.volume}
+                            aria-valuetext={`${Math.round(snapshot.audio.volume * 100)}%`}
                             onChange={event => onSnapshotChange({
                                 ...snapshot,
                                 audio: { ...snapshot.audio, volume: clampFinite(event.target.value, 0, 1, snapshot.audio.volume) },

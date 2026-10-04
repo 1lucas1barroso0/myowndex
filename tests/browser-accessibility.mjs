@@ -120,6 +120,15 @@ try {
     for (const name of ['Abrir a Pokédex', 'Abrir o PC do Bill', 'Abrir o Guia do Treinador', 'Abrir a Central da Aventura']) {
         await nav(name); await checkpoint(name, [320, 1280]);
     }
+    const credits = page.locator('.game-credits');
+    assert.equal(await credits.evaluate(element => element.open), false, 'Credits stay optional');
+    await credits.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await credits.evaluate(element => element.open), true, 'Keyboard opens credits');
+    await checkpoint('Créditos: leitura e teclado', [320, 1280]);
+    await credits.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await credits.evaluate(element => element.open), false, 'Keyboard closes credits');
     await nav('Abrir a Pokédex');
     const recordTrigger = page.getByRole('button', { name: 'Consultar Bulbasaur na Pokédex', exact: true });
     await recordTrigger.click();
@@ -164,7 +173,7 @@ try {
     await generator.getByRole('button', { name: 'Gerar Pokémon', exact: true }).click();
     await generator.locator('.generator-partner').nth(1).waitFor();
     await openDetails(generator.locator('.generator-partner-details').first());
-    await checkpoint('Gerador: parceiros e ficha', [320, 1280]);
+    await checkpoint('Gerador: encontro e ficha', [320, 1280]);
     await screenshot('generator-result', '.generator-result-heading');
     await generator.getByRole('button', { name: 'Remover Bulbasaur da prévia', exact: true }).first().click();
     await checkpoint('Gerador: confirmação de remoção', [320]);

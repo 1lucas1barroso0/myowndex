@@ -7,10 +7,15 @@ umask 077
 DEX_STAGE="preparação da atualização"
 DEX_REPO="1lucas1barroso0/myowndex"
 # Base publicada e auditada; o instalador aplica somente a diferença desta entrega.
-DEX_BASE="e6a5dc3df879f1fff7d13cd313c2dfc352ae650b"
+DEX_BASE="d1c7d0072cc48e489197980f977afc8b32c17e27"
 DEX_SCOPE="1lucas1barroso0s-projects"
 DEX_PRODUCTION="https://myowndex.vercel.app"
 DEX_ARCHIVE_SHA="__ARCHIVE_SHA256__"
+DEX_PACKAGE_VERSION="__RELEASE_VERSION__"
+DEX_RELEASE_LABEL="__RELEASE_LABEL__"
+DEX_STATE_ID="v${DEX_RELEASE_LABEL}-${DEX_ARCHIVE_SHA:0:16}"
+DEX_BRANCH_PREFIX="codex/myowndex-v${DEX_RELEASE_LABEL}"
+DEX_UPDATE_TITLE="MyOwnDex ${DEX_RELEASE_LABEL}: atualização validada"
 DEX_RELEASE=""
 DEX_CHECKOUT=""
 DEX_LOG=""
@@ -47,6 +52,18 @@ const urls = readFileSync(process.argv[2], "utf8").split(/\s+/).filter(value => 
 if (!urls.length) { console.error("A Vercel não retornou a URL do deployment."); process.exit(1); }
 process.stdout.write(urls.at(-1));
 DEX_DEPLOYMENT_URL
+}
+dex_verify_version() {
+  node --input-type=module - "$1" "$2" "$3" <<'DEX_VERSION_GUARD'
+import { readFileSync } from "node:fs";
+const html = readFileSync(process.argv[2], "utf8");
+const shell = readFileSync(process.argv[3], "utf8");
+const version = process.argv[4];
+if (!html.includes("MyOwnDex") || !html.includes(`data-version="${version}"`)
+    || !shell.includes(`const CACHE_NAME = "myowndex-shell-v${version}";`)) {
+  console.error("A publicação não corresponde à versão validada."); process.exit(1);
+}
+DEX_VERSION_GUARD
 }
 dex_validate() {
   DEX_STAGE="instalação das dependências"
@@ -111,19 +128,21 @@ DEX_CI_GUARD
 
 case "$DEX_ACTION" in
   publicar|verificar|extrair) ;;
-  *) dex_fail "Uso: bash myowndex-v11.6-linux.sh [publicar|verificar|extrair]" ;;
+  *) dex_fail "Uso: bash myowndex-v${DEX_RELEASE_LABEL}-linux.sh [publicar|verificar|extrair]" ;;
 esac
 [[ "$DEX_ARCHIVE_SHA" =~ ^[0-9a-f]{64}$ ]] || dex_fail "Este arquivo ainda é um modelo sem o pacote final. Baixe o instalador publicado."
 for DEX_TOOL in mktemp base64 sha256sum tar tee flock; do
   command -v "$DEX_TOOL" >/dev/null || dex_fail "Falta $DEX_TOOL; instale coreutils, tar e util-linux pelo gerenciador da sua distribuição."
 done
-DEX_RELEASE="${MYOWNDEX_V11_STATE_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/myowndex/releases/v11-${DEX_ARCHIVE_SHA:0:16}}"
-if [[ -n "${MYOWNDEX_V11_STATE_DIR:-}" ]]; then
+# O override antigo continua aceito; nenhum estado anterior é movido ou apagado.
+DEX_CUSTOM_STATE="${MYOWNDEX_STATE_DIR:-${MYOWNDEX_V11_STATE_DIR:-}}"
+DEX_RELEASE="${DEX_CUSTOM_STATE:-${XDG_DATA_HOME:-$HOME/.local/share}/myowndex/releases/$DEX_STATE_ID}"
+if [[ -n "$DEX_CUSTOM_STATE" ]]; then
   DEX_SAVED_ARCHIVE_SHA=""
   if [[ -s "$DEX_RELEASE/package-sha256" ]]; then read -r DEX_SAVED_ARCHIVE_SHA < "$DEX_RELEASE/package-sha256"; fi
   if { [[ -n "$DEX_SAVED_ARCHIVE_SHA" && "$DEX_SAVED_ARCHIVE_SHA" != "$DEX_ARCHIVE_SHA" ]]; } \
     || { [[ -z "$DEX_SAVED_ARCHIVE_SHA" ]] && { [[ -e "$DEX_RELEASE/branch" || -e "$DEX_RELEASE/pr-number" || -e "$DEX_RELEASE/patch-ready" ]]; }; }; then
-    DEX_RELEASE="${DEX_RELEASE%/}/v11-${DEX_ARCHIVE_SHA:0:16}"
+    DEX_RELEASE="${DEX_RELEASE%/}/$DEX_STATE_ID"
   fi
 fi
 mkdir -p -- "$DEX_RELEASE/source"
@@ -151,7 +170,7 @@ tar -xzf "$DEX_RELEASE/projeto.tar.gz" -C "$DEX_RELEASE/source"
 rm -- "$DEX_RELEASE/projeto.tar.gz"
 DEX_SOURCE="$DEX_RELEASE/source/myowndex"
 [[ -f "$DEX_SOURCE/package.json" && -f "$DEX_SOURCE/vercel.json" ]] || dex_fail "O pacote não contém o projeto completo."
-printf '\nMyOwnDex 11.6: código extraído em %s\n' "$DEX_SOURCE"
+printf '\nMyOwnDex %s: código extraído em %s\n' "$DEX_RELEASE_LABEL" "$DEX_SOURCE"
 if [[ "$DEX_ACTION" == "extrair" ]]; then exit 0; fi
 
 DEX_MISSING=()
@@ -181,6 +200,12 @@ if ! node -e 'const[a,b]=process.versions.node.split(".").map(Number);process.ex
   set -u
 fi
 node -e 'const[a,b]=process.versions.node.split(".").map(Number);if(a<22||(a===22&&b<18)){console.error("Use Node.js 24 LTS, ou no mínimo 22.18.");process.exit(1)}'
+node --input-type=module - "$DEX_SOURCE/package.json" "$DEX_PACKAGE_VERSION" <<'DEX_PACKAGE_VERSION_GUARD'
+import { readFileSync } from "node:fs";
+if (JSON.parse(readFileSync(process.argv[2], "utf8")).version !== process.argv[3]) {
+  console.error("Os metadados do instalador não correspondem ao pacote incluído."); process.exit(1);
+}
+DEX_PACKAGE_VERSION_GUARD
 DEX_STAGE="acesso ao GitHub"
 if ! gh auth status --hostname github.com >/dev/null 2>&1; then
   if [[ -n "${GH_TOKEN:-}${GITHUB_TOKEN:-}" ]]; then unset GH_TOKEN GITHUB_TOKEN; fi
@@ -223,12 +248,13 @@ else
     DEX_STAGE="preparação do código atualizado"
     git cat-file -e "$DEX_BASE^{commit}" || dex_fail "A versão base desta entrega não foi encontrada; confira o histórico atual."
     git merge-base --is-ancestor "$DEX_BASE" origin/main || dex_fail "Main não contém a versão base desta entrega; o histórico e o checkout foram preservados."
-    DEX_BRANCH="codex/myowndex-v11-$(date -u +%Y%m%d-%H%M%S)-$RANDOM"
+    DEX_BRANCH="$DEX_BRANCH_PREFIX-$(date -u +%Y%m%d-%H%M%S)-$RANDOM"
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
     printf '%s\n' "$DEX_BRANCH" > "$DEX_RELEASE/branch"
   fi
   read -r DEX_BRANCH < "$DEX_RELEASE/branch"
-  [[ "$DEX_BRANCH" =~ ^codex/myowndex-v11-[0-9]{8}-[0-9]{6}-[0-9]+$ ]] || dex_fail "O branch preservado não corresponde a esta atualização."
+  DEX_BRANCH_SUFFIX="${DEX_BRANCH#"$DEX_BRANCH_PREFIX-"}"
+  [[ "$DEX_BRANCH" == "$DEX_BRANCH_PREFIX-"* && "$DEX_BRANCH_SUFFIX" =~ ^[0-9]{8}-[0-9]{6}-[0-9]+$ ]] || dex_fail "O branch preservado não corresponde a esta atualização."
   if git show-ref --verify --quiet "refs/heads/$DEX_BRANCH"; then git switch "$DEX_BRANCH"; else git switch -c "$DEX_BRANCH" origin/main; fi
   [[ -s "$DEX_RELEASE/branch-base" ]] || dex_fail "A base do branch preservado não foi encontrada."
   if [[ ! -f "$DEX_RELEASE/patch-ready" ]]; then
@@ -282,7 +308,7 @@ else
   read -r DEX_BRANCH_BASE < "$DEX_RELEASE/branch-base"
   if [[ "$(git rev-parse origin/main)" != "$DEX_BRANCH_BASE" ]]; then
     DEX_STAGE="integração de mudanças recentes de main"
-    if ! git diff --cached --quiet; then git commit -m "MyOwnDex 11.6: Dados unificados e revisão final"; fi
+    if ! git diff --cached --quiet; then git commit -m "$DEX_UPDATE_TITLE"; fi
     git merge --no-edit origin/main
     git rev-parse origin/main > "$DEX_RELEASE/branch-base"
   fi
@@ -327,7 +353,7 @@ DEX_VERCEL_GUARD
 if [[ "$DEX_MERGED" != "true" ]]; then
   if ! git diff --cached --quiet; then
     DEX_STAGE="registro do código validado"
-    git commit -m "MyOwnDex 11.6: Dados unificados e revisão final"
+    git commit -m "$DEX_UPDATE_TITLE"
   fi
   DEX_HEAD="$(git rev-parse HEAD)"
   printf '%s\n' "$DEX_HEAD" > "$DEX_RELEASE/head"
@@ -345,12 +371,12 @@ if (pulls[0]) process.stdout.write(String(pulls[0].number));
 DEX_FIND_PR
     )"
     if [[ -z "$DEX_PR" ]]; then
-      node --input-type=module - "$DEX_BRANCH" "$DEX_RELEASE/new-pr.json" <<'DEX_NEW_PR'
+      node --input-type=module - "$DEX_BRANCH" "$DEX_RELEASE/new-pr.json" "$DEX_UPDATE_TITLE" <<'DEX_NEW_PR'
 import { writeFileSync } from "node:fs";
 writeFileSync(process.argv[3], JSON.stringify({
-  title: "MyOwnDex 11.6: Dados unificados e revisão final",
+  title: process.argv[4],
   head: process.argv[2], base: "main", draft: false,
-  body: "Atualização sobre a main auditada, preservando os PRs recentes. Dados tem um único acesso global e usa o contexto da aventura sem duplicar campo ou histórico. Corrige a apresentação dos recibos confirmados pelo servidor, refina campos e histórico em telas pequenas e atualiza dependências de produção.\n\nPreserva as 40 regras, contas, sincronização, Boxes, idiomas, referências por jogo, importação/exportação e todos os motores e regras dos PRs #20–#28.\n\nO instalador verifica segurança das dependências de produção, testes, lint, tipos e build, aguarda CI e Preview e confirma versão e APIs em produção. A configuração existente de Turso e Vercel é reaproveitada.",
+  body: "Atualização do pacote sobre a main auditada, preservando as mudanças recentes.\n\nPreserva as 40 regras, contas, sincronização, Boxes, idiomas, referências por jogo, importação/exportação e os motores de regras existentes.\n\nO instalador verifica segurança das dependências de produção, testes, lint, tipos e build, aguarda CI e Preview e confirma versão e APIs em produção. A configuração existente de Turso e Vercel é reaproveitada.",
 }), { mode: 0o600 });
 DEX_NEW_PR
       gh api --method POST "repos/$DEX_REPO/pulls" --input "$DEX_RELEASE/new-pr.json" > "$DEX_RELEASE/pr.json"
@@ -374,11 +400,8 @@ const response = JSON.parse(readFileSync(process.argv[2], "utf8"));
 if (response.account !== null || response.limitBytes !== 4 * 1024 * 1024) { console.error("O Preview não confirmou a API de contas."); process.exit(1); }
 DEX_ACCOUNT_HEALTH
   DEX_VERSION="$(node -p 'require("./package.json").version')"
-  node --input-type=module - "$DEX_RELEASE/preview.html" "$DEX_VERSION" <<'DEX_PREVIEW_HTML'
-import { readFileSync } from "node:fs";
-const html = readFileSync(process.argv[2], "utf8");
-if (!html.includes("MyOwnDex") || !html.includes(process.argv[3])) { console.error("O Preview não corresponde à versão validada."); process.exit(1); }
-DEX_PREVIEW_HTML
+  dex_vercel curl /sw.js --deployment "$DEX_PREVIEW" --yes --scope "$DEX_SCOPE" -- --silent --show-error --fail --max-time 90 --output "$DEX_RELEASE/preview-shell.js"
+  dex_verify_version "$DEX_RELEASE/preview.html" "$DEX_RELEASE/preview-shell.js" "$DEX_VERSION"
   DEX_STAGE="integração segura do PR"
   git fetch origin main
   read -r DEX_BRANCH_BASE < "$DEX_RELEASE/branch-base"
@@ -419,11 +442,8 @@ git fetch origin main
 DEX_STAGE="verificação do endereço público"
 curl --silent --show-error --fail --retry 3 --retry-delay 2 --max-time 90 "$DEX_PRODUCTION/" --output "$DEX_RELEASE/production.html"
 DEX_VERSION="$(node -p 'require("./package.json").version')"
-node --input-type=module - "$DEX_RELEASE/production.html" "$DEX_VERSION" <<'DEX_PRODUCTION_HTML'
-import { readFileSync } from "node:fs";
-const html = readFileSync(process.argv[2], "utf8");
-if (!html.includes("MyOwnDex") || !html.includes(process.argv[3])) { console.error("A versão publicada ainda não foi confirmada no endereço público."); process.exit(1); }
-DEX_PRODUCTION_HTML
+curl --silent --show-error --fail --retry 3 --retry-delay 2 --max-time 90 "$DEX_PRODUCTION/sw.js" --output "$DEX_RELEASE/production-shell.js"
+dex_verify_version "$DEX_RELEASE/production.html" "$DEX_RELEASE/production-shell.js" "$DEX_VERSION"
 curl --silent --show-error --fail --retry 3 --retry-delay 2 --max-time 90 "$DEX_PRODUCTION/api/account/session" --output "$DEX_RELEASE/production-account.json"
 node --input-type=module - "$DEX_RELEASE/production-account.json" <<'DEX_PRODUCTION_ACCOUNT'
 import { readFileSync } from "node:fs";

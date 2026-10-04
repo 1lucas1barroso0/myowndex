@@ -19,9 +19,10 @@ import { DEX_GENERATIONS, debutGeneration, selectDexSpecies, urlForView, viewFro
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "11.6.6";
+const APP_VERSION = "2.0.0";
+const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
-function OpeningScreen() { return <div className="account-opening" role="status"><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
+function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
 const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: OpeningScreen });
@@ -493,7 +494,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     if (!teamsBooted || !modeBooted) return <OpeningScreen />;
 
     return (
-        <div className={`app-root game-edition handheld-edition view-${view}`}>
+        <div className={`app-root game-edition handheld-edition view-${view}`} data-version={APP_VERSION} data-game-screen={view}>
             <a className="skip-to-content" href="#main-content">Ir para o conteúdo</a>
             <header className="app-header">
                 <div className="game-shell app-header-shell">
@@ -506,10 +507,10 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 </div>
                             </div>
                             <nav aria-label="Navegação principal" className="app-nav">
-                                <button type="button" title="Abrir a Central da Aventura para criar, entrar ou continuar uma jornada" aria-label="Abrir a Central da Aventura" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule ${view === "room" ? "is-active" : ""}`}><GameIcon name="adventure" />Aventura</button>
-                                <button type="button" title="Consultar espécies, formas, habilidades e movimentos" aria-label="Abrir a Pokédex" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule ${view === "pokedex" ? "is-active" : ""}`}><GameIcon name="dex" />Pokédex</button>
-                                <button type="button" title="Organizar Boxes, equipes e fichas de Pokémon" aria-label="Abrir o PC do Bill" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule ${view === "teambuilder" ? "is-active" : ""}`}><GameIcon name="pc" />PC</button>
-                                <button type="button" title="Consultar todas as regras usadas pelo MyOwnDex" aria-label="Abrir o Guia do Treinador" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule ${view === "guide" ? "is-active" : ""}`}><GameIcon name="guide" />Guia</button>
+                                <button type="button" title="Abrir a Central da Aventura para criar, entrar ou continuar uma jornada" aria-label="Abrir a Central da Aventura" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule nav-adventure ${view === "room" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="adventure" /></span><span>Aventura</span></button>
+                                <button type="button" title="Consultar espécies, formas, habilidades e movimentos" aria-label="Abrir a Pokédex" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule nav-dex ${view === "pokedex" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="dex" /></span><span>Pokédex</span></button>
+                                <button type="button" title="Organizar Boxes, equipes e fichas de Pokémon" aria-label="Abrir o PC do Bill" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule nav-pc ${view === "teambuilder" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="pc" /></span><span>PC</span></button>
+                                <button type="button" title="Consultar todas as regras usadas pelo MyOwnDex" aria-label="Abrir o Guia do Treinador" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule nav-guide ${view === "guide" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="guide" /></span><span>Guia</span></button>
                             </nav>
                         </div>
 
@@ -532,7 +533,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                 <span className="sr-only" role="status" aria-atomic="true">{VIEW_LABELS[view]}</span>
                 <div className="game-shell app-main-shell">
                     {!online && <StatusNotice tone="amber">Você está sem internet, mas tudo o que já consultou na Pokédex continua disponível.</StatusNotice>}
-                    {storageError && <StatusNotice tone="red">Não foi possível salvar esta Box neste dispositivo. Libere espaço ou permita o armazenamento do site e tente novamente.</StatusNotice>}
+                    {storageError && <StatusNotice tone="red">Não foi possível salvar esta Box neste dispositivo. Libere espaço ou permita o salvamento no navegador e tente novamente.</StatusNotice>}
                     {notice && <StatusNotice tone={notice.tone} actionLabel={notice.actionLabel} onAction={notice.onAction} onClose={() => setNotice(null)}>{notice.text}</StatusNotice>}
 
                     {view === "room" ? (
@@ -578,7 +579,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} />}
                 </div>
             </main>
-            <footer className="device-footer"><span>MyOwnDex <b>{APP_VERSION}</b></span><span>Projeto de fãs · Fonte <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></span></footer>
+            <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION_LABEL}</b></span><details className="game-credits"><summary>Créditos</summary><p>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></p></details></footer>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
             {diceOpen && <LocalDiceDialog open onClose={() => setDiceOpen(false)} context={diceRoomContext ? "aventura" : "central"} teams={teams} setTeams={setTeams} experienceMode={experienceMode} {...(diceRoomContext || {})} />}
             {generatorOpen && <GeneratorModal onClose={() => setGeneratorOpen(false)} teams={teams} experienceMode={experienceMode} onAddPokemon={addGeneratedPokemon} onAddBox={addGeneratedBox} />}

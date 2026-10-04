@@ -49,10 +49,11 @@ def run(command, **options):
     return result
 
 
-def extract(script, state, expected=0):
+def extract(script, state, expected=0, state_key="MYOWNDEX_STATE_DIR"):
+    environment = {key: value for key, value in os.environ.items() if key not in {"MYOWNDEX_STATE_DIR", "MYOWNDEX_V11_STATE_DIR"}}
     result = subprocess.run(
         ["bash", str(script), "extrair"],
-        env={**os.environ, "MYOWNDEX_V11_STATE_DIR": str(state)},
+        env={**environment, state_key: str(state)},
         text=True,
         capture_output=True,
     )
@@ -70,7 +71,8 @@ passed("SHA-256 dos três artefatos")
 
 text = installer.read_text()
 run(["bash", "-n", str(installer)])
-assert '__ARCHIVE_SHA256__' not in text and '__MYOWNDEX_PACKAGE_BASE64__' not in text
+assert all(marker not in text for marker in ("__ARCHIVE_SHA256__", "__MYOWNDEX_PACKAGE_BASE64__", "__RELEASE_VERSION__", "__RELEASE_LABEL__"))
+assert f'DEX_PACKAGE_VERSION="{version}"' in text and f'DEX_RELEASE_LABEL="{release}"' in text
 published_base = re.search(r'^DEX_BASE="([0-9a-f]{40})"$', (root / "scripts/atualizar-v11.template.sh").read_text(), re.M).group(1)
 assert f'DEX_BASE="{published_base}"' in text
 passed("Sintaxe Bash, marcadores resolvidos e base publicada auditada")
@@ -78,6 +80,7 @@ passed("Sintaxe Bash, marcadores resolvidos e base publicada auditada")
 payload = text.split("<<'MYOWNDEX_PACKAGE_BASE64'\n", 1)[1].split("\nMYOWNDEX_PACKAGE_BASE64\n", 1)[0]
 assert base64.b64decode(payload) == archive_path.read_bytes()
 expected_archive_digest = re.search(r'^DEX_ARCHIVE_SHA="([0-9a-f]{64})"$', text, re.M).group(1)
+state_id = f"v{release}-{expected_archive_digest[:16]}"
 assert digest(archive_path) == expected_archive_digest
 passed("Pacote embutido idêntico ao TAR e checksum interno")
 
@@ -95,6 +98,8 @@ with tarfile.open(archive_path, "r:gz") as archive:
         contents[member.name] = archive.extractfile(member).read()
 assert json.loads(contents["myowndex/package.json"])["version"] == version
 assert json.loads(contents["myowndex/package-lock.json"])["version"] == version
+assert json.loads(contents["myowndex/package-lock.json"])["packages"][""]["version"] == version
+assert f'const CACHE_NAME = "myowndex-shell-v{version}";' in contents["myowndex/public/sw.js"].decode()
 assert "myowndex/tests/browser-responsive.mjs" in contents
 assert "myowndex/docs/CONTINUAR.md" in contents
 assert "myowndex/docs/VALIDACAO.md" in contents
@@ -118,7 +123,7 @@ with tempfile.TemporaryDirectory(prefix="myowndex-entrega-qa-") as temp:
 
     extract(installer, state)
     assert all((state / "source" / name).read_bytes() == data for name, data in contents.items())
-    assert not (state / f"v11-{expected_archive_digest[:16]}").exists()
+    assert not (state / state_id).exists()
     passed("Reexecução idempotente no mesmo estado")
 
     old_state = workspace / "entrega anterior"
@@ -128,13 +133,13 @@ with tempfile.TemporaryDirectory(prefix="myowndex-entrega-qa-") as temp:
     (old_state / "branch").write_text("branch antigo preservado\n")
     (old_state / "pr-number").write_text("17\n")
     extract(installer, old_state)
-    child = old_state / f"v11-{expected_archive_digest[:16]}"
+    child = old_state / state_id
     assert (old_state / "package-sha256").read_text().strip() == old_digest
     assert (old_state / "branch").read_text() == "branch antigo preservado\n"
     assert (old_state / "pr-number").read_text() == "17\n"
     assert json.loads((child / "source/myowndex/package.json").read_text())["version"] == version
     extract(installer, old_state)
-    assert len(list(old_state.glob("v11-*"))) == 1
+    assert len(list(old_state.glob(f"v{release}-*"))) == 1
     passed("Versão anterior preservada e retomada no estado específico do pacote")
 
     old_without_digest = workspace / "estado legado sem digest"
@@ -143,8 +148,20 @@ with tempfile.TemporaryDirectory(prefix="myowndex-entrega-qa-") as temp:
     extract(installer, old_without_digest)
     assert (old_without_digest / "patch-ready").read_text() == "ok anterior\n"
     assert not (old_without_digest / "package-sha256").exists()
-    assert (old_without_digest / f"v11-{expected_archive_digest[:16]}" / "source/myowndex/package.json").exists()
+    assert (old_without_digest / state_id / "source/myowndex/package.json").exists()
     passed("Estado legado sem digest preservado")
+
+    legacy_override = workspace / "override legado"
+    extract(installer, legacy_override, state_key="MYOWNDEX_V11_STATE_DIR")
+    assert json.loads((legacy_override / "source/myowndex/package.json").read_text())["version"] == version
+    assert (legacy_override / "package-sha256").read_text().strip() == expected_archive_digest
+    passed("Compatibilidade do override MYOWNDEX_V11_STATE_DIR")
+
+    preferred = workspace / "override atual"
+    ignored = workspace / "override antigo ignorado"
+    result = run(["bash", str(installer), "extrair"], env={**os.environ, "MYOWNDEX_STATE_DIR": str(preferred), "MYOWNDEX_V11_STATE_DIR": str(ignored)})
+    assert (preferred / "source/myowndex/package.json").exists() and not ignored.exists()
+    passed("Override atual tem precedência sem alterar o diretório legado")
 
     with (state / "atualizacao.lock").open("w") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -164,6 +181,23 @@ with tempfile.TemporaryDirectory(prefix="myowndex-entrega-qa-") as temp:
     extract(installer, failure_state)
     assert json.loads((failure_state / "source/myowndex/package.json").read_text())["version"] == version
     passed("Pacote corrompido rejeitado e retomada íntegra no mesmo estado")
+
+    package = source / "package.json"
+    lock = source / "package-lock.json"
+    worker = source / "public/sw.js"
+    originals = {path: path.read_bytes() for path in (package, lock, worker)}
+    cases = [
+        (package, {**json.loads(originals[package]), "version": "invalid"}, "versão estável"),
+        (lock, {**json.loads(originals[lock]), "version": "0.0.0"}, "package-lock.json"),
+        (worker, worker.read_text().replace(f"myowndex-shell-v{version}", "myowndex-shell-v0.0.0", 1), "shell offline"),
+    ]
+    for path, changed, message in cases:
+        path.write_text(json.dumps(changed) if isinstance(changed, dict) else changed)
+        result = subprocess.run(["python3", str(source / "scripts/empacotar-linux.py"), "--output", str(workspace / "metadados-invalidos")], text=True, capture_output=True)
+        assert result.returncode != 0 and message in result.stderr, (result.returncode, result.stdout, result.stderr)
+        path.write_bytes(originals[path])
+    assert not list((workspace / "metadados-invalidos").iterdir())
+    passed("Metadados incoerentes rejeitados antes de gerar artefatos")
 
     outputs = [workspace / "determinismo1", workspace / "determinismo2"]
     for output in outputs:

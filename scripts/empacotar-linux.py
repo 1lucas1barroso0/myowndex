@@ -5,6 +5,7 @@ import base64
 import gzip
 import hashlib
 import json
+import re
 import tarfile
 import zipfile
 from pathlib import Path
@@ -16,10 +17,24 @@ root = Path(__file__).resolve().parents[1]
 output = (args.output or root.parent / "entrega").resolve()
 output.mkdir(parents=True, exist_ok=True)
 version = json.loads((root / "package.json").read_text())["version"]
-major = version.split(".")[0]
+if not re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", version):
+    raise SystemExit("Declare uma versão estável no formato major.minor.patch em package.json.")
 release = ".".join(version.split(".")[:2])
-if major != "11" or release != "11.6":
-    raise SystemExit("Review the updater base and release metadata before packaging a different version.")
+lock = json.loads((root / "package-lock.json").read_text())
+if lock.get("version") != version or lock.get("packages", {}).get("", {}).get("version") != version:
+    raise SystemExit("As versões de package.json e package-lock.json precisam coincidir.")
+if f'const CACHE_NAME = "myowndex-shell-v{version}";' not in (root / "public/sw.js").read_text():
+    raise SystemExit("O shell offline precisa acompanhar a versão de package.json.")
+template = (root / "scripts/atualizar-v11.template.sh").read_text()
+if not re.search(r'^DEX_BASE="[0-9a-f]{40}"$', template, re.M):
+    raise SystemExit("Declare a base publicada e auditada no modelo do atualizador.")
+replacements = {
+    "__RELEASE_VERSION__": version,
+    "__RELEASE_LABEL__": release,
+}
+for marker in (*replacements, "__ARCHIVE_SHA256__", "__MYOWNDEX_PACKAGE_BASE64__"):
+    if template.count(marker) != 1:
+        raise SystemExit(f"Expected exactly one updater marker: {marker}")
 stem = f"myowndex-v{release}"
 excluded = {".git", "node_modules", ".next", ".npm-cache", ".sites-runtime", ".wrangler", ".vercel", "outputs", "work", "coverage", "dist", "dist-static", "dist-gateway", "__pycache__"}
 files = []
@@ -52,12 +67,12 @@ with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compressle
         info.external_attr = (0o755 if path.suffix == ".sh" else 0o644) << 16
         archive.writestr(info, path.read_bytes())
 digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
-template = (root / "scripts/atualizar-v11.template.sh").read_text()
-for marker in ("__ARCHIVE_SHA256__", "__MYOWNDEX_PACKAGE_BASE64__"):
-    if template.count(marker) != 1:
-        raise SystemExit(f"Expected exactly one updater marker: {marker}")
+replacements["__ARCHIVE_SHA256__"] = digest
+replacements["__MYOWNDEX_PACKAGE_BASE64__"] = base64.encodebytes(archive_path.read_bytes()).decode("ascii").rstrip("\n")
+for marker, value in replacements.items():
+    template = template.replace(marker, value)
 installer = output / f"{stem}-linux.sh"
-installer.write_text(template.replace("__ARCHIVE_SHA256__", digest).replace("__MYOWNDEX_PACKAGE_BASE64__", base64.encodebytes(archive_path.read_bytes()).decode("ascii").rstrip("\n")))
+installer.write_text(template)
 installer.chmod(0o755)
 command = """bash -c '
 arquivo=""

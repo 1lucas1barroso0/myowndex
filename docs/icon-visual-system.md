@@ -4,7 +4,7 @@ O MyOwnDex combina a organização ampla dos menus de Pokémon Sword/Shield com 
 
 ## Princípios
 
-- Navegação principal estável, área de trabalho clara e ações situadas junto ao conteúdo que alteram.
+- Navegação principal estável, área de jogo clara e ações situadas junto ao conteúdo que alteram.
 - Sprites com pixels nítidos, sem suavização; escala proporcional, com espaço para cada Pokémon.
 - Cores de tipos e estados preservadas sem criar uma paleta de interface diferente em cada tela.
 - Títulos, rótulos e textos de ajuda com uma hierarquia comum. Frases curtas explicam ações e resultados.
@@ -19,6 +19,14 @@ O MyOwnDex combina a organização ampla dos menus de Pokémon Sword/Shield com 
 Texto legível pode quebrar linha; não deve desaparecer para caber em um botão, cartão ou campo. Grades precisam usar colunas que encolhem com a janela. Modais respeitam a altura disponível, as áreas seguras do dispositivo e o zoom, com rolagem interna que alcance todas as ações.
 
 Foco de teclado, seleção e erro precisam permanecer visíveis. Cor vem acompanhada de texto, ícone, posição ou atributo acessível. Os temas claro e noturno preservam a mesma hierarquia.
+
+## Menu da fase 2.0
+
+O menu usa emblemas legíveis e uma seleção escura com acento dourado. Cada destino mantém seu nome e seu símbolo, sem depender apenas da cor. As grandes áreas diagonais pertencem ao cabeçalho; os módulos continuam com superfícies tranquilas para jogar e ler. A aparência e o estilo de jogo permanecem controles separados.
+
+Os créditos ficam disponíveis sob demanda, sem disputar espaço com as ações. A versão visível é curta, 2.0; os metadados e o shell offline usam 2.0.0. Essa apresentação não cria um novo formato para os dados.
+
+O Gerador apresenta um encontro, sem presumir que os Pokémon são aliados. Os próprios resultados indicam que a geração terminou; somente situações que exigem atenção, salvamento e exportação precisam de mensagens adicionais. A personalidade vem dos sprites, dos símbolos e das interações existentes, sem inventar missões, recompensas ou regras.
 
 ## Referências e fontes
 

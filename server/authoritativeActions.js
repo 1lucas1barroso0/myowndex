@@ -17,6 +17,8 @@ import {
     advanceInitiative,
     applyEndOfRoundEffects,
     buildInitiative,
+    getEffectiveMovePriority,
+    getRoundMoveBlockReason,
     calculateMoveResolution,
     normalizeRoomSnapshot,
 } from "../src/core/room.js";
@@ -81,8 +83,11 @@ export const applyAuthoritativeMovePriorities = (snapshot, movePriorities = new 
             return {
                 ...token,
                 declaredMove,
+                declaredDamageClass: typeof movePriorities.get(declaredMove) === "object" ? movePriorities.get(declaredMove)?.damage_class?.name || "" : token.declaredDamageClass,
                 priority: declaredMove && movePriorities.has(declaredMove)
-                    ? exactInteger(movePriorities.get(declaredMove), -7, 7, "A prioridade do movimento")
+                    ? typeof movePriorities.get(declaredMove) === "object"
+                        ? getEffectiveMovePriority({ token, move: movePriorities.get(declaredMove) })
+                        : exactInteger(movePriorities.get(declaredMove), -7, 7, "A prioridade do movimento")
                     : 0,
             };
         }),
@@ -404,6 +409,8 @@ const quickFree = (request, random) => {
 
 const initiative = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
+    if (room.initiative.length) throw new AuthoritativeActionError("A rodada já começou. Encerre os turnos antes de rolar uma nova iniciativa.", 409);
+    if (!room.tokens.some(token => !token.hidden && !token.captured && token.currentHp > 0)) throw new AuthoritativeActionError("Traga um Pokémon disponível para começar.", 409);
     const generated = buildInitiative(room, random);
     const order = generated.results.map(entry => {
         const token = room.tokens.find(candidate => candidate.id === entry.tokenId);
@@ -432,7 +439,8 @@ const initiative = (snapshot, random) => {
 
 const advanceTurn = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
-    const closingRound = room.initiative.length > 0 && room.turnIndex >= room.initiative.length - 1;
+    if (!room.initiative.length) throw new AuthoritativeActionError("Escolha os movimentos e role a iniciativa para começar a rodada.", 409);
+    const closingRound = room.turnIndex >= room.initiative.length - 1;
     const roundEnd = closingRound ? applyEndOfRoundEffects(room, random) : null;
     const nextSnapshot = closingRound
         ? {
@@ -440,7 +448,7 @@ const advanceTurn = (snapshot, random) => {
             round: room.round + 1,
             turnIndex: 0,
             initiative: [],
-            tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", priority: 0 })),
+            tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", declaredDamageClass: "", priority: 0 })),
         }
         : advanceInitiative(room);
     const activeId = nextSnapshot.initiative[nextSnapshot.turnIndex];
@@ -483,6 +491,8 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     if (!move || slug(move.name) !== request.moveName) {
         throw new AuthoritativeActionError("A Pokédex não conseguiu confirmar este movimento.", 502);
     }
+    const roundBlock = getRoundMoveBlockReason({ snapshot: room, token: attacker, move });
+    if (roundBlock) throw new AuthoritativeActionError(roundBlock, 409);
     const specialProfile = getMoveSpecialProfile(move);
     const needsCalledMove = specialProfile?.id === "called-move";
     if (needsCalledMove && (!calledMove || slug(calledMove.name) !== request.calledMoveName)) {
@@ -491,13 +501,15 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     if (!needsCalledMove && request.calledMoveName) {
         throw new AuthoritativeActionError("Este movimento não aceita um movimento resultante enviado pelo dispositivo.");
     }
-    const resolvedMove = needsCalledMove ? calledMove : move;
+    const specialBlock = getSpecialMoveBlockReason({ move, attacker, defender, round: room.round });
+    // A legal choice can fail when its prerequisite or target has changed.
+    // Resolve that attempt so PP and the action are spent; a failed caller
+    // cannot execute its called move.
+    const resolvedMove = needsCalledMove && !specialBlock ? calledMove : move;
     const ppState = getMovePpState(attacker, move, request.moveName);
     if (ppState.remaining != null && ppState.remaining <= 0) {
         throw new AuthoritativeActionError("Este movimento está sem PP.", 409);
     }
-    const specialBlock = getSpecialMoveBlockReason({ move, attacker, defender, round: room.round });
-    if (specialBlock) throw new AuthoritativeActionError(`Não pode ser resolvido agora: ${specialBlock}.`, 409);
     const traitBlock = getTraitMoveBlock({ move, attacker, defender });
     if (traitBlock?.attackerBlocked) throw new AuthoritativeActionError(`Item ativo: ${traitBlock.reason}.`, 409);
 
@@ -565,6 +577,11 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             weather: room.weather,
             terrain: room.terrain,
             weatherSuppressed: isWeatherSuppressed(workingTokens),
+            // Called moves inherit the chosen caller's priority; the active order
+            // also keeps the priority frozen when HP/abilities change after rolling.
+            movePriority: room.initiative.length && attacker.declaredMove === move.name
+                ? attacker.priority
+                : getEffectiveMovePriority({ token: attacker, move }),
         });
 
         if (role === "narrator") {
@@ -578,7 +595,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
                 random,
                 consumePp: index === 0,
                 applySelfChanges: index === 0,
-                clearDeclaration: index === targetsToResolve.length - 1,
+                clearDeclaration: !room.initiative.length && index === targetsToResolve.length - 1,
                 round: room.round,
                 hitKillProtectionUsed: workingHitKillProtectionUsed,
                 hitKillProtectionDisabled: workingHitKillProtectionDisabled,

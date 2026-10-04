@@ -4,6 +4,7 @@ import { secureRandomId } from "./random.js";
 import { getStorageScope, readDurableStorage, readStorage, removeDurableStorage, removeStorage, writeDurableStorage, writeStorage } from "./storage.js";
 import { requestPersistentStorage } from "./storageBudget.js";
 import { getPokemonReferenceForMode, getStoredCurrentPokemonReference } from "./referenceGames.js";
+import { normalizeGrowthData } from "./experience.js";
 
 export const TEAM_STORAGE_KEY = "myowndex_rotom_v4";
 export const LEGACY_TEAM_STORAGE_KEY = "myowndex_rotom_v3";
@@ -60,6 +61,7 @@ export const normalizeRpgData = (value = {}) => {
     return {
         scaleVersion: clampInteger(source.scaleVersion, 1, RPG_SCALE_VERSION, source.currentHp == null ? RPG_SCALE_VERSION : 1),
         xp: integerInRange(source.xp, 0, 999999, 0),
+        ...normalizeGrowthData(source),
         currentHp: normalizeOptionalNumber(source.currentHp, 0, 99999, 1),
         status: RPG_STATUSES.includes(status) ? status : "",
         sleepTurns: status === "sleep" && source.sleepTurns != null ? clampInteger(source.sleepTurns, 0, 2, 0) : null,

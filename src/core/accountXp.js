@@ -1,8 +1,11 @@
 import { integerInRange } from "./math.js";
+import { normalizeGrowthData } from "./experience.js";
 
 const object = value => value && typeof value === "object" && !Array.isArray(value);
 const floorXp = record => object(record) && Object.hasOwn(record, "xp")
-    ? { ...record, xp: integerInRange(record.xp, 0, 999999, 0) } : record;
+    ? { ...record, xp: integerInRange(record.xp, 0, 999999, 0),
+        ...(Object.hasOwn(record, "pendingEvs") || Object.hasOwn(record, "experienceAwards") || Object.hasOwn(record, "closedAward")
+            ? { ...normalizeGrowthData(record), ...(record.growthVersion === 0 ? { growthVersion: 0 } : {}) } : {}) } : record;
 
 /** Apply the XP rule only to known player data; measurements and rules stay exact. */
 export function normalizeAccountXpDocument(document) {

@@ -19,7 +19,7 @@ import { DEX_GENERATIONS, debutGeneration, selectDexSpecies, urlForView, viewFro
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "2.0.1";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }
@@ -517,7 +517,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                         <div className="app-actions">
                             <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada">
                                 <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><GameIcon name="generator" />Gerar</button>
-                                <button type="button" className="global-dice-button" aria-label="Abrir Dados" onClick={() => setDiceOpen(true)}><GameIcon name="dice" />Dados</button>
+                                <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onClick={() => setDiceOpen(true)}><GameIcon name="dice" />Dados</button>
                                 <AccountButton client={client} onClick={onAccountOpen} />
                             </div>
                             <div className="app-preferences" role="group" aria-label="Preferências da jornada">
@@ -579,7 +579,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} />}
                 </div>
             </main>
-            <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION_LABEL}</b></span><details className="game-credits"><summary>Créditos</summary><p>Projeto de fãs · Dados <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></p></details></footer>
+            <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION_LABEL}</b></span><details className="game-credits"><summary>Créditos</summary><p>Projeto de fãs · <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></p></details></footer>
             {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
             {diceOpen && <LocalDiceDialog open onClose={() => setDiceOpen(false)} context={diceRoomContext ? "aventura" : "central"} teams={teams} setTeams={setTeams} experienceMode={experienceMode} {...(diceRoomContext || {})} />}
             {generatorOpen && <GeneratorModal onClose={() => setGeneratorOpen(false)} teams={teams} experienceMode={experienceMode} onAddPokemon={addGeneratedPokemon} onAddBox={addGeneratedBox} />}

@@ -648,8 +648,8 @@ test("a margin above one grants the second d100 to a secondary effect", () => {
       moveConnected: true,
       damageHit: true,
       damage: 1,
-      attackTest: { total: 12, critical: false },
-      defenseTest: { total: 8 },
+      attackTest: { total: 12, diceTotal: 12, critical: false },
+      defenseTest: { total: 8, diceTotal: 8 },
     },
     random: (() => {
       const values = [0.9, 0.1];

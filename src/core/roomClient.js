@@ -177,11 +177,14 @@ export const uploadRoomAudio = async (session, file, title, onProgress) => {
     return result;
 };
 
-export const fetchRoomAudioUrl = async (session, mediaId) => {
+export const fetchRoomAudioUrl = async (session, mediaId, { signal } = {}) => {
     const path = `/api/rooms/${encodeURIComponent(session.code)}/audio/${encodeURIComponent(mediaId)}`;
     let lastError = null;
     for (let attempt = 0; attempt < 3; attempt += 1) {
+        if (signal?.aborted) throw signal.reason || new DOMException("Áudio cancelado", "AbortError");
         const controller = new AbortController();
+        const abort = () => controller.abort(signal?.reason);
+        signal?.addEventListener("abort", abort, { once: true });
         const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
         let response = null;
         try {
@@ -200,14 +203,24 @@ export const fetchRoomAudioUrl = async (session, mediaId) => {
                 error.retryable = response.status === 408 || response.status === 429 || response.status >= 500;
                 throw error;
             }
-            return URL.createObjectURL(await response.blob());
+            const maximumSize = 24 * 1024 * 1024;
+            if (Number(response.headers.get("content-length")) > maximumSize) {
+                await response.body?.cancel();
+                throw new Error("Esta trilha excede o limite de 24 MB.");
+            }
+            const blob = await response.blob();
+            if (signal?.aborted) throw signal.reason || new DOMException("Áudio cancelado", "AbortError");
+            if (blob.size > maximumSize) throw new Error("Esta trilha excede o limite de 24 MB.");
+            return URL.createObjectURL(blob);
         } catch (error) {
+            if (signal?.aborted) throw signal.reason || error;
             lastError = error;
             const retryable = error?.name === "AbortError" || error?.retryable || error instanceof TypeError;
             if (!retryable || attempt === 2) break;
             await pause(retryWait(response, attempt));
         } finally {
             window.clearTimeout(timeout);
+            signal?.removeEventListener("abort", abort);
         }
     }
     throw lastError || new Error("Esta trilha não pôde ser aberta agora.");

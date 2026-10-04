@@ -219,7 +219,8 @@ test("Dados has one visible home and becomes contextual inside an adventure", as
   assert.match(panel, /!inAdventure && <div className="local-dice-pages"/);
   assert.match(panel, /!inAdventure && <details className="local-dice-history"/);
   assert.match(panel, /action:"quick-free"/);
-  assert.match(app, /Projeto de fãs · (?:Fonte|Dados)/);
+  assert.match(app, /Projeto de fãs · <a[^>]*href="https:\/\/pokeapi\.co\/about"/);
+  assert.match(app, /aria-expanded=\{diceOpen\}/);
 });
 
 test("game style and adventure phase use compact tabs with complete help on demand", async () => {
@@ -258,7 +259,7 @@ test("game style and adventure phase use compact tabs with complete help on dema
 });
 
 test("the common presentation preserves critical rules without hiding content", async () => {
-  const [app, guide, room, combat, css, guideCss, documentation] = await Promise.all([
+  const [app, guide, room, combat, css, guideCss, documentation, protection] = await Promise.all([
     read("src/App.jsx"),
     read("src/components/Guide/TrainerGuide.jsx"),
     read("src/components/Room/RpgRoom.jsx"),
@@ -266,13 +267,17 @@ test("the common presentation preserves critical rules without hiding content", 
     read("src/journey.css"),
     read("src/guide.css"),
     read("docs/icon-visual-system.md"),
+    read("src/components/Shared/HitKillExplanation.jsx"),
   ]);
   assert.doesNotMatch(guide, /<span className="guide-pill">/);
   assert.match(guide, /guide-damage-limit-card/);
-  assert.match(guide, /guide-hit-kill-flow/);
+  assert.match(guide, /<HitKillExplanation/);
+  assert.match(room, /<HitKillExplanation expanded/);
+  assert.match(protection, /guide-hit-kill-flow/);
+  assert.match(protection, /protectionRule\?\.bullets\?\.map/);
   assert.doesNotMatch(guide, /guide-damage-ceiling|guide-critical-rules/);
-  assert.match(guide, /data-rule-id="3\.3"/);
-  assert.match(guide, /data-rule-id="3\.4"/);
+  assert.match(guide, /data-rule-id=\{rule\.id\}/);
+  assert.doesNotMatch(guide, /data-rule-id="3\.[34]"/);
   assert.match(guide, /guide-rule-card/);
   assert.match(combat, /Limite comum/);
   assert.match(combat, /Dano calculado/);
@@ -299,7 +304,7 @@ test("the common presentation preserves critical rules without hiding content", 
   assert.match(css, /overflow-wrap:\s*normal/);
   assert.match(css, /white-space:\s*normal/);
   assert.match(guideCss, /\.guide-damage-limit-card/);
-  assert.match(guideCss, /\.guide-hit-kill-card/);
+  assert.match(guideCss, /\.guide-hit-kill-overview/);
   assert.match(documentation, /Sword\/Shield/);
   assert.match(documentation, /HeartGold\/SoulSilver/);
   assert.match(documentation, /não deve desaparecer para caber/);
@@ -434,27 +439,24 @@ test("unique Pokémon and exceptional Moves expose state, narrative and automati
   assert.match(mechanics, /illusion/);
 });
 
-test("the adventure battle screen uses opposing HUDs and keeps hit kill state separate from self-cost", async () => {
+test("the adventure field keeps readable selected health outside the movable Pokémon", async () => {
   const [battlefield, room, css] = await Promise.all([
     read("src/components/Room/Battlefield.jsx"),
     read("src/components/Room/RpgRoom.jsx"),
-    read("src/index.css"),
+    read("src/battlefield-polish.css"),
   ]);
-  assert.match(battlefield, /battlefield-depth-front/);
-  assert.match(battlefield, /room-token-status-card/);
-  assert.match(battlefield, /isSelected && <span className="room-token-status-card"/);
-  assert.match(battlefield, /aria-expanded=\{isSelected\}/);
-  assert.match(battlefield, /room-token-hp-row/);
   assert.match(battlefield, /aria-pressed=\{isSelected\}/);
+  assert.match(battlefield, /battlefield-focus/);
+  assert.match(battlefield, /battle && snapshot\.settings\.showHp/);
+  assert.match(battlefield, /STATUS_LABELS\[selectedToken\.status\]/);
+  assert.doesNotMatch(battlefield, /room-token-status-card|battlefield-depth-front/);
   assert.match(room, /token-battle-vitals/);
   assert.match(room, /Proteção contra hit kill/);
   assert.match(room, /Registrar autocusto/);
   assert.match(room, /token-self-damage-action/);
   assert.doesNotMatch(room, /if \(result\.tokens\[0\]\) setSelectedTokenId/);
-  assert.match(css, /\.room-token\.hud-right \.room-token-status-card/);
-  assert.match(css, /\.room-token\.hud-left \.room-token-status-card/);
-  assert.match(css, /\.battlefield-depth\s*\{[\s\S]*?z-index:\s*2;[\s\S]*?background:\s*transparent;/);
-  assert.match(css, /\.token-hit-kill-meter/);
+  assert.match(css, /battlefield-focus-health/);
+  assert.match(css, /prefers-reduced-motion/);
 });
 
 test("Abilities and held items expose official context, lifecycle, narrative and vivid contrast", async () => {
@@ -478,7 +480,9 @@ test("Abilities and held items expose official context, lifecycle, narrative and
   assert.match(room, /<TraitMechanicsPanel/);
   assert.match(combat, /traitModifiers/);
   assert.match(combat, /Cloud Nine ou Air Lock/);
-  assert.match(battlefield, /room-token-traits/);
+  assert.match(battlefield, /getTraitStatus/);
+  assert.match(battlefield, /traits\.abilityActive/);
+  assert.match(battlefield, /traits\.itemConsumed/);
   assert.match(mechanics, /weakness-policy/);
   assert.match(mechanics, /neutralizing-gas/);
   assert.match(css, /Contrato de contraste 9\.5/);

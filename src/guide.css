@@ -52,14 +52,21 @@ html .app-root.game-edition.handheld-edition .guide-field-value strong { color: 
 html .app-root.game-edition.handheld-edition .guide-scale-results { display: grid !important; gap: .4rem !important; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .guide-scale-results > span { display: flex !important; align-items: baseline !important; justify-content: space-between !important; flex-wrap: wrap !important; gap: .5rem !important; color: var(--ui-muted) !important; font-size: .875rem !important; line-height: 1.6 !important; }
 html .app-root.game-edition.handheld-edition .guide-scale-results strong { color: var(--ui-ink) !important; font-size: 1.05rem !important; font-variant-numeric: tabular-nums; }
+html .app-root.game-edition.handheld-edition :is(.guide-rounding-help,.guide-effectiveness-help) { margin-top: 1rem; border-top: 1px solid var(--ui-line); }
+html .app-root.game-edition.handheld-edition :is(.guide-rounding-help,.guide-effectiveness-help) > summary { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 48px; padding: .8rem 0; font-size: .95rem; font-weight: 700; list-style: none; }
+html .app-root.game-edition.handheld-edition .guide-rounding-help p { margin: 0 0 .75rem; color: var(--ui-muted); font-size: .95rem; line-height: 1.7; }
+html .app-root.game-edition.handheld-edition .guide-effectiveness-cases { display: grid; grid-template-columns: minmax(0,1fr); gap: .75rem; margin: .3rem 0 1rem; }
+html .app-root.game-edition.handheld-edition .guide-effectiveness-cases > div { display: grid; gap: .35rem; min-width: 0; padding: .8rem .9rem; border-left: 3px solid var(--ui-line); background: var(--ui-raised); }
+html .app-root.game-edition.handheld-edition .guide-effectiveness-cases .is-resistant { border-left-color: var(--ui-blue); }
+html .app-root.game-edition.handheld-edition .guide-effectiveness-cases .is-effective { border-left-color: var(--journey-teal); }
+html .app-root.game-edition.handheld-edition .guide-effectiveness-cases dt { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .3rem .75rem; margin: 0; color: var(--ui-ink); font-size: .95rem; font-weight: 700; }
+html .app-root.game-edition.handheld-edition .guide-effectiveness-cases dt b { font-size: .95rem; font-variant-numeric: tabular-nums; }
+html .app-root.game-edition.handheld-edition .guide-effectiveness-cases dd { margin: 0; color: var(--ui-muted); font-size: .95rem; line-height: 1.6; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-link { width: 100%; margin-top: 1.25rem; min-height: 48px; font-size: .95rem; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-card { margin: 1.25rem 0 0 !important; padding: 1rem 0 0 !important; border: 0 !important; border-top: 1px solid var(--ui-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-value { display: flex !important; align-items: center !important; justify-content: space-between !important; flex-wrap: wrap !important; gap: .6rem !important; color: var(--ui-ink) !important; font-size: .95rem !important; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-value strong { font-family: inherit !important; font-size: 1.5rem !important; line-height: 1.2 !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .guide-damage-limit-card p { margin: .75rem 0 !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.7 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-card { margin-top: 1.25rem !important; padding: 0 !important; border: 1px solid var(--ui-line) !important; border-left: 4px solid var(--ui-blue) !important; border-radius: 3px !important; background: var(--ui-selected) !important; box-shadow: none !important; color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-card > summary { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .75rem !important; min-height: 56px !important; padding: .85rem 1rem !important; font-size: 1rem !important; font-weight: 750 !important; line-height: 1.5 !important; list-style: none !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-content { display: grid !important; gap: 1rem !important; padding: .2rem 1rem 1rem !important; font-size: .95rem !important; line-height: 1.7 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-content p { margin: 0 !important; color: inherit !important; font-size: inherit !important; line-height: inherit !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-overview { container: hit-kill-overview / inline-size !important; display: grid !important; min-width: 0 !important; gap: 1.1rem !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-heading { display: flex !important; align-items: center !important; gap: .8rem !important; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-emblem { flex: 0 0 2.5rem !important; width: 2.5rem !important; height: 2.5rem !important; color: var(--ui-blue) !important; }
@@ -76,17 +83,18 @@ html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li.guide-hit-k
 html .app-root.game-edition.handheld-edition .guide-hit-kill-outcome .guide-hit-kill-step { background: var(--journey-teal) !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-outcome b { color: var(--journey-teal) !important; font-size: 1.2rem !important; font-weight: 850 !important; white-space: nowrap !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-example { margin: 0 !important; padding: .8rem 0 0 !important; border-top: 1px solid var(--ui-line) !important; color: var(--ui-muted) !important; font-size: .9rem !important; line-height: 1.7 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-facts { display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: 1rem !important; margin: 0 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-facts > div { display: grid !important; min-width: 0 !important; gap: .25rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-facts dt { color: var(--ui-ink) !important; font-size: .95rem !important; font-weight: 750 !important; letter-spacing: 0 !important; text-transform: none !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-facts dd { margin: 0 !important; color: var(--ui-muted) !important; font-size: .95rem !important; font-weight: 400 !important; line-height: 1.7 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-own-protection { padding-top: 1rem !important; border-top: 1px solid var(--ui-line) !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-limit-note { color: var(--ui-muted) !important; font-size: .875rem !important; line-height: 1.6 !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-protection > summary { color: var(--ui-blue) !important; }
-html .app-root.game-edition.handheld-edition .guide-rule-protection > .guide-rule-body { max-width: none !important; padding: 1rem clamp(.75rem,2vw,1.25rem) 1.25rem !important; background: var(--ui-selected) !important; border-left: 4px solid var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-protection > .guide-rule-body { max-width: none !important; padding: 1rem clamp(.75rem,2vw,1.25rem) 1.25rem !important; background: transparent !important; border-left: 0 !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule { margin-top: 1.25rem !important; border-top: 1px solid var(--ui-line) !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > summary { display: flex !important; align-items: baseline !important; justify-content: space-between !important; gap: .75rem !important; min-height: 48px !important; padding: .8rem 0 !important; list-style: none !important; font-size: .95rem !important; font-weight: 700 !important; line-height: 1.5 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > ul { padding-top: .6rem !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > summary::-webkit-details-marker { display: none; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > summary::after { content: "+" !important; flex: 0 0 auto; color: var(--journey-teal); font-size: 1.15rem; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule[open] > summary::after { content: "−" !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical { padding-top: .6rem !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical ul { display: grid !important; gap: 1rem !important; margin: 0 !important; padding: 0 0 0 1.2rem !important; list-style: disc !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical :is(p,li) { color: var(--ui-ink) !important; font-size: .95rem !important; font-weight: 400 !important; line-height: 1.75 !important; }
+html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical li::marker { color: var(--journey-teal); }
+html .app-root.game-edition.handheld-edition .guide-rule-protection { scroll-margin-top: 1rem; }
 html .app-root.game-edition.handheld-edition .guide-mode-note p { max-width: 68ch !important; margin: 0 !important; padding: .4rem 0 1.25rem !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-empty { padding: .5rem 0 1rem !important; color: var(--ui-muted) !important; font-size: 1rem !important; line-height: 1.7 !important; }
 @container trainer-guide (min-width: 60rem) {

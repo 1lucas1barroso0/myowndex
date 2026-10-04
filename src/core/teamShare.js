@@ -136,7 +136,12 @@ const packPokemon = pokemon => ({
         o: pokemon.rpg.originalTrainer || "",
         n: pokemon.rpg.notes || "",
         a: pokemon.rpg.animeNotes || "",
-        p: pokemon.rpg.pp || [null, null, null, null]
+        p: pokemon.rpg.pp || [null, null, null, null],
+        ...(pokemon.rpg.pendingEvs || pokemon.rpg.experienceAwards?.length || pokemon.rpg.closedAward ? { g: [
+            pokemon.rpg.pendingEvs || 0,
+            (pokemon.rpg.experienceAwards || []).map(entry => [entry.id, entry.xp, entry.levelCap, entry.isTTRPG ? 1 : 0]),
+            pokemon.rpg.closedAward || "",
+        ] } : {}),
     } : null
 });
 
@@ -172,7 +177,10 @@ const unpackPokemon = pokemon => ({
         originalTrainer: pokemon.j.o || "",
         notes: pokemon.j.n || "",
         animeNotes: pokemon.j.a || "",
-        pp: pokemon.j.p
+        pp: pokemon.j.p,
+        pendingEvs: pokemon.j.g?.[0] || 0,
+        experienceAwards: Array.isArray(pokemon.j.g?.[1]) ? pokemon.j.g[1].map(entry => ({ id: entry?.[0], xp: entry?.[1], levelCap: entry?.[2], isTTRPG: entry?.[3] !== 0 })) : [],
+        closedAward: pokemon.j.g?.[2] || "",
     } : undefined
 });
 

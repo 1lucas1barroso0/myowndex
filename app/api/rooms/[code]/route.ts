@@ -15,6 +15,8 @@ import {
 } from "../../../../server/rooms";
 import { finiteNumberOrNull } from "../../../../src/core/math.js";
 
+import { getRoundDeclarationPatchBlockReason } from "../../../../src/core/room.js";
+
 export const dynamic = "force-dynamic";
 
 type RouteContext = { params: Promise<{ code: string }> };
@@ -83,12 +85,27 @@ export async function PATCH(request: Request, context: RouteContext) {
         room: await getRoomBundle(code, "narrator"),
       }, { status: 403 });
     }
+    const declarationBlock = getRoundDeclarationPatchBlockReason(currentSnapshot, payload.snapshot);
+    if (declarationBlock) return noStoreJson({ error: declarationBlock, serverAuthoritative: true, room: await getRoomBundle(code, "narrator") }, { status: 409 });
+    // Previous cached clients omit the additive canonical category; their HP/notes
+    // edits must preserve it rather than erase the action fixed for this round.
+    const previousTokens = new Map((Array.isArray(currentSnapshot.tokens) ? currentSnapshot.tokens : []).map(token => [(token as Record<string, unknown>).id, token as Record<string, unknown>]));
+    const persistedSnapshot = {
+      ...payload.snapshot,
+      title,
+      tokens: Array.isArray(payload.snapshot.tokens) ? payload.snapshot.tokens.map(item => {
+        const token = item as Record<string, unknown>;
+        const previous = previousTokens.get(token.id);
+        return previous && !Object.hasOwn(token, "declaredDamageClass") ? { ...token, declaredDamageClass: previous.declaredDamageClass || "" } : token;
+      }) : payload.snapshot.tokens,
+    };
+    assertStateSize(persistedSnapshot);
     const { db } = getBindings();
     const result = await db.prepare(
       `UPDATE rooms
        SET title = ?, state_json = ?, revision = revision + 1, updated_at = CURRENT_TIMESTAMP
        WHERE code = ? AND revision = ?`,
-    ).bind(title, JSON.stringify({ ...payload.snapshot, title }), code, expectedRevision).run();
+    ).bind(title, JSON.stringify(persistedSnapshot), code, expectedRevision).run();
     if (!result.meta.changes) {
       const latest = await getRoomBundle(code, "narrator");
       return noStoreJson({

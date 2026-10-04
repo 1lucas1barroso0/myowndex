@@ -106,7 +106,7 @@ html .app-root.game-edition.handheld-edition .local-dice-dialog[open] { display:
 html .app-root.game-edition.handheld-edition .local-dice-dialog::backdrop { background: #102437b8; }
 html .app-root.game-edition.handheld-edition .local-dice-dialog-heading {
   display: grid;
-  grid-template-columns: minmax(0,1fr) auto auto;
+  grid-template-columns: minmax(0,1fr) auto auto auto;
   align-items: center;
   gap: .75rem;
   padding: 1.25rem 1.5rem;
@@ -129,6 +129,12 @@ html .app-root.game-edition.handheld-edition .local-dice-dialog-close {
   line-height: 1;
 }
 html .app-root.game-edition.handheld-edition .local-dice-dialog-close:focus-visible { outline: 3px solid var(--journey-focus); outline-offset: 3px; }
+html .app-root.game-edition.handheld-edition .local-dice-sound-control { display: grid; place-items: center; width: 44px; min-height: 44px; padding: .55rem; border: 1px solid var(--ui-line); border-radius: .3rem; background: var(--ui-panel); color: var(--ui-ink); }
+html .app-root.game-edition.handheld-edition .local-dice-sound-control svg { width: 22px; height: 22px; }
+html .app-root.game-edition.handheld-edition .local-dice-sound-control:focus-visible { outline: 3px solid var(--journey-focus); outline-offset: 3px; }
+/* Inline containment can give Blink zero-sized status fields after a round.
+   The outer field still provides the responsive query container. */
+html .app-root.game-edition.handheld-edition .local-pokemon-status-tool { container-type: normal !important; container-name: none !important; }
 html .app-root.game-edition.handheld-edition .local-dice-dialog-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem; }
 @media (max-width: 480px) {
   html .app-root.game-edition.handheld-edition .local-dice-dialog { width: calc(100% - 1rem); max-height: calc(100dvh - 1rem); }
@@ -140,7 +146,7 @@ html .app-root.game-edition.handheld-edition .local-dice-dialog-content { min-he
 
 @media (max-width: 360px) {
   html .app-root.game-edition.handheld-edition .local-dice-dialog { width: calc(100% - .5rem); max-height: calc(100dvh - .5rem); }
-  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading { grid-template-columns: minmax(0,1fr) auto; padding: .8rem; }
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading { grid-template-columns: minmax(0,1fr) auto auto; padding: .8rem; }
   html .app-root.game-edition.handheld-edition .local-dice-dialog-heading .companion-compact { display: none !important; }
   html .app-root.game-edition.handheld-edition .local-dice-dialog-content { padding: .75rem; }
 }

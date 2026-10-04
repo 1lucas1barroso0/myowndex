@@ -101,6 +101,7 @@ try {
 
     const conditions=dialog.locator(".room-tool").filter({has:page.getByText("Condições do campo",{exact:true})});await openDetails(conditions);
     await dialog.locator(".local-pokemon-roster button").filter({hasText:"Buba"}).click();
+    assert.equal((await fieldState()).phase,"batalha","the independent practice field always uses the complete battle tools");
     await conditions.getByRole("combobox",{name:/^Condição\b/}).selectOption("burn");
     const initiative=dialog.getByRole("region",{name:"Iniciativa",exact:true});
     assert.equal(await initiative.getByText("Como funciona",{exact:true}).count(),1);
@@ -131,6 +132,7 @@ try {
     assert.match(await roundEffects.innerText(),/Buba/);
     await roundEffects.locator(":scope > summary").click();
     await dialog.locator(".local-pokemon-roster button").filter({hasText:"Buba"}).click();
+    await openDetails(conditions);
     await conditions.getByRole("combobox",{name:/^Condição\b/}).selectOption("");
     await conditions.getByLabel("HP atual",{exact:true}).fill("5");
     pass("local-initiative-both-pokemon-next-turn-and-round-effects");
@@ -198,19 +200,25 @@ try {
     const fakeOut= combat.getByRole("button",{name:"Usar Fake Out",exact:true});
     await fakeOut.waitFor();
     await page.waitForFunction(()=>document.querySelector(".combat-is-compact .combat-special-block")?.textContent.length>0);
-    assert.equal(await fakeOut.isDisabled(),true);
+    assert.equal(await fakeOut.isEnabled(),true,"a legal move attempt may fail while still consuming PP and the action");
+    assert.match(await combat.locator(".combat-special-block").innerText(),/^Falhará:/);
     assert.match(await combat.locator(".combat-special-block").innerText(),/primeir[ao].*(movimento|rodada)/i);
     for(const special of await combat.locator(".combat-field-special-details").all())assert.equal(await special.evaluate(element=>element.open),false,"special mechanics can stay folded while a blocking reason remains visible");
     assert.equal(await combat.locator(".combat-special-block").isVisible(),true);
-    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3")).filter(record=>record.spec.action==="combat").length),1,"an unavailable move never creates a second roll");
-    assert.equal((await fieldState()).tokens.find(token=>token.name==="Buba").pp[2],10,"an unavailable move never consumes PP");
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3")).filter(record=>record.spec.action==="combat").length),1,"browsing a move does not create another roll");
+    assert.equal((await fieldState()).tokens.find(token=>token.name==="Buba").pp[2],10,"browsing a move never consumes PP");
+    const hpBeforeFailedAttempt=(await fieldState()).tokens.find(token=>token.name==="Pika").currentHp;
+    await fakeOut.click();
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_dice_room_v1"))?.tokens.find(token=>token.name==="Buba")?.pp[2]===9);
+    assert.equal((await fieldState()).tokens.find(token=>token.name==="Pika").currentHp,hpBeforeFailedAttempt,"a failed Fake Out leaves the target's HP untouched");
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_local_roll_history_v3")).filter(record=>record.spec.action==="combat").length),2,"a deliberate failed attempt receives exactly one historical receipt");
     await fakeOut.scrollIntoViewIfNeeded();
-    await dialog.screenshot({path:"/tmp/myowndex-field-fake-out-blocked-390.png"});
+    await dialog.screenshot({path:"/tmp/myowndex-field-fake-out-failed-390.png"});
     await combat.getByRole("combobox",{name:"Movimento",exact:true}).selectOption("tackle");
     await combat.getByRole("button",{name:"Usar Tackle",exact:true}).waitFor();
-    pass("fake-out-blocks-after-entering-turn-with-readable-reason-and-no-pp-or-history-loss");
+    pass("fake-out-failed-attempt-explains-the-rule-and-spends-pp-without-damage");
     const actionHistory=dialog.locator(".local-dice-history");await openDetails(actionHistory);
-    await actionHistory.getByRole("button").filter({hasText:/^Movimento\s/}).click();
+    await actionHistory.getByRole("button").filter({hasText:/^Movimento\s/}).first().click();
     await dialog.locator(".local-pokemon-receipt:visible").waitFor();
     assert.equal(await dialog.locator(".combat-result:visible").count(),0,"opening history shows only the chosen receipt");
     await dialog.getByRole("button",{name:"Campo",exact:true}).click();
@@ -332,4 +340,10 @@ try {
     pass("adventure-dice-is-contextual-without-duplicating-field-or-history");
     assert.deepEqual(errors,[]);
     console.log("PASS no-runtime-errors");
+} catch(error) {
+    await page.screenshot({path:"/tmp/myowndex-local-pokemon-dice-failure.png"}).catch(()=>{});
+    console.error(await page.locator(".local-pokemon-status").innerText().catch(()=>"No selected Pokémon status panel"));
+    console.error(await page.getByRole("combobox").evaluateAll(fields=>fields.map(field=>({aria:field.getAttribute("aria-label"),label:field.closest("label")?.innerText}))));
+    console.error(JSON.stringify(await page.locator(".local-pokemon-status").evaluate(element=>({bounds:element.getBoundingClientRect().toJSON(),details:[...document.querySelectorAll(".local-pokemon-dice details")].map(detail=>({title:detail.querySelector("summary")?.textContent,open:detail.open,bounds:detail.getBoundingClientRect().toJSON()})),ancestors:[element,...Array.from((function*(node){while(node=node.parentElement)yield node;})(element))].map(node=>({tag:node.tagName,cls:node.className,visibility:getComputedStyle(node).visibility,display:getComputedStyle(node).display,container:getComputedStyle(node).containerType}))})).catch(()=>null),null,2));
+    throw error;
 } finally {await browser.close();}

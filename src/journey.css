@@ -235,6 +235,70 @@ html .error-boundary-shell .game-button:focus-visible { outline:3px solid var(--
   html .app-root.game-edition.handheld-edition :is(button,input,select,textarea,.game-panel) { border: 1px solid ButtonText !important; }
 }
 
+/* Journey rewards are small game choices. Detail opens only when it is needed. */
+html .app-root :is(.experience-award,.ev-training,.friendship-control) {
+  min-width: 0;
+  color: var(--ui-ink);
+  font-size: 1rem;
+}
+html .app-root :is(.experience-award,.experience-battle-context,.ev-training-options,.friendship-help) > summary {
+  min-height: 48px;
+  padding: .85rem 0;
+  color: var(--ui-blue);
+  font-weight: 750;
+  font-size: .95rem;
+  line-height: 1.5;
+}
+html .app-root .experience-award { border-top: 1px solid var(--ui-line); }
+html .app-root .experience-award-body { display: grid; gap: 1rem; padding: .6rem 0 1rem; }
+html .app-root :is(.experience-base-choice,.experience-sides fieldset) { border: 0; padding: 0; margin: 0; min-width: 0; }
+html .app-root :is(.experience-base-choice,.experience-sides fieldset) > legend { font-size: .875rem; font-weight: 750; margin-bottom: .65rem; color: var(--ui-ink); }
+html .app-root .experience-base-choice > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .6rem; }
+html .app-root :is(.experience-base-choice button,.experience-received button,.friendship-controls button,.ev-training-discard) {
+  min-height: 44px;
+  padding: .7rem .75rem;
+  border: 1px solid var(--ui-control-line);
+  border-radius: .25rem;
+  background: var(--ui-panel);
+  color: var(--ui-ink);
+  font-size: .95rem;
+  font-weight: 750;
+}
+html .app-root .experience-base-choice button[aria-pressed="true"] { background: var(--ui-selected); color: var(--ui-blue); border: 2px solid var(--ui-blue); }
+html .app-root .experience-battle-context { margin: 0; border-top: 1px solid var(--ui-line); border-bottom: 1px solid var(--ui-line); }
+html .app-root .experience-battle-toggle { display: flex; align-items: center; gap: .6rem; min-height: 44px; font-size: .875rem; margin: .3rem 0 .75rem; }
+html .app-root .experience-battle-toggle input { width: 20px; height: 20px; flex: 0 0 20px; }
+html .app-root .experience-sides { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,200px),1fr)); gap: 1.2rem; padding-bottom: 1rem; }
+html .app-root .experience-sides fieldset { display: grid; gap: .85rem; }
+html .app-root :is(.experience-sides label,.ev-training-controls label) { display: grid; gap: .4rem; min-width: 0; font-size: .875rem; color: var(--ui-muted); }
+html .app-root :is(.experience-sides input,.ev-training-controls input) { width: 100%; min-width: 0; font-variant-numeric: tabular-nums; }
+html .app-root .experience-reward-preview { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; margin: 0; }
+html .app-root .experience-reward-preview > div { padding: .9rem; border-left: 3px solid var(--journey-teal); background: var(--ui-panel); min-width: 0; }
+html .app-root .experience-reward-preview dt { color: var(--ui-muted); font-size: .875rem; }
+html .app-root .experience-reward-preview dd { margin: .2rem 0 0; font-size: 1.6rem; font-weight: 800; line-height: 1.2; color: var(--ui-ink); }
+html .app-root .experience-reasons { margin: 0; padding-left: 1.2rem; color: var(--ui-muted); font-size: .875rem; line-height: 1.65; }
+html .app-root :is(.experience-confirm,.ev-training-controls > button) { width: 100%; min-height: 48px; padding: .8rem 1rem; font-size: 1rem; }
+html .app-root .experience-received { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+html .app-root .experience-received p { color: var(--ui-ink); font-size: .9rem; margin: 0; }
+html .app-root .experience-error { color: var(--ui-accent); margin: 0; font-size: .875rem; }
+html .app-root .ev-training { display: grid; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem; border: 1px solid var(--ui-line); border-left: 3px solid var(--journey-teal); background: var(--ui-selected); border-radius: .25rem; }
+html .app-root .ev-training > header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; }
+html .app-root .ev-training h4 { margin: 0; font-size: 1rem; font-weight: 750; }
+html .app-root .ev-training header > strong { font-size: clamp(.875rem,3vw,1.3rem); font-weight: 800; font-variant-numeric: tabular-nums; }
+html .app-root .ev-training-controls { display: grid; grid-template-columns: minmax(0,2fr) minmax(70px,1fr); align-items: end; gap: .9rem; }
+html .app-root .ev-training-controls > button { grid-column: 1/-1; }
+html .app-root .ev-training p { margin: 0; font-size: .875rem; line-height: 1.6; }
+html .app-root .ev-training-options { border-top: 1px solid var(--ui-line); }
+html .app-root .ev-training-discard { color: var(--ui-accent); }
+html .app-root .friendship-control { display: grid; gap: .8rem; }
+html .app-root .friendship-control > header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+html .app-root .friendship-control output { font-size: .875rem; color: var(--journey-teal); font-weight: 750; }
+html .app-root .friendship-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
+html .app-root .friendship-controls > input { width: min(100%,110px); flex: 0 1 110px; }
+html .app-root .friendship-controls > div { display: grid; grid-template-columns: repeat(4,minmax(44px,1fr)); gap: .5rem; flex: 1 1 220px; }
+html .app-root .friendship-help { border-top: 1px solid var(--ui-line); }
+html .app-root .friendship-help p { margin: .25rem 0 1rem; font-size: .875rem; line-height: 1.65; }
+
 /* Notices carry actions and wrap with the same rhythm as the rest of the UI. */
 html .app-root.game-edition.handheld-edition .status-notice { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: .75rem !important; margin-bottom: 1rem !important; border-color: var(--ui-blue) !important; box-shadow: none !important; }
 html .app-root.game-edition.handheld-edition .status-notice.is-caution { border-color: var(--ui-accent) !important; }

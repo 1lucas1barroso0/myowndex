@@ -16,7 +16,7 @@ import {
 } from "../../core/automation.js";
 import { formatCount, formatRemainingPp } from "../../core/copy.js";
 import { integerInRange, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
-import { STATUS_LABELS } from "../../core/room.js";
+import { getEffectiveMovePriority, getRoundMoveBlockReason, STATUS_LABELS } from "../../core/room.js";
 import { resolveCombatAction } from "../../../server/authoritativeActions.js";
 import {
     getMoveSpecialProfile,
@@ -72,7 +72,6 @@ export default function CombatAssistant({
     remote,
     onAuthoritativeAction,
     onSnapshotChange,
-    onDeclareMove,
     onEvent,
     onError,
     onAttackerChange,
@@ -91,7 +90,6 @@ export default function CombatAssistant({
     const [mode, setMode] = useState("normal");
     const [result, setResult] = useState(null);
     const [running, setRunning] = useState(false);
-    const [declaring, setDeclaring] = useState(false);
     const [calledMoveName, setCalledMoveName] = useState("");
     const [calledMoveData, setCalledMoveData] = useState(null);
     const [loadingCalledMove, setLoadingCalledMove] = useState(false);
@@ -113,11 +111,11 @@ export default function CombatAssistant({
     }, [attackerId, moveName]);
 
     useEffect(() => {
-        if (!attacker?.moves?.includes(moveName)) {
+        if (!attacker?.moves?.includes(moveName) || (snapshot.initiative.length && attacker?.declaredMove && moveName !== attacker.declaredMove)) {
             setMoveName(attacker?.declaredMove || attacker?.moves?.find(Boolean) || "");
             setResult(null);
         }
-    }, [attacker, moveName]);
+    }, [attacker, moveName, snapshot.initiative.length]);
 
     useEffect(() => {
         let active = true;
@@ -181,6 +179,8 @@ export default function CombatAssistant({
         ? getSpecialMoveBlockReason({ move: moveData, attacker, defender, round: snapshot.round })
         : "";
     const originalTraitBlock = moveData ? getTraitMoveBlock({ move: moveData, attacker, defender }) : null;
+    const roundBlock = moveData ? getRoundMoveBlockReason({ snapshot, token: attacker, move: moveData }) : "";
+    const effectivePriority = moveData ? snapshot.initiative.length && attacker?.declaredMove === moveData.name ? attacker.priority : getEffectiveMovePriority({ token: attacker, move: moveData }) : 0;
     const canResolve = Boolean(
         attacker
         && moveName
@@ -189,8 +189,8 @@ export default function CombatAssistant({
         && resolutionProfile
         && hasRequiredTarget
         && !outOfPp
-        && !originalSpecialBlock
         && !originalTraitBlock?.attackerBlocked
+        && !roundBlock
     );
     const automationTags = getMoveAutomationTags(resolvedMoveData);
 
@@ -200,21 +200,6 @@ export default function CombatAssistant({
         setResult(null);
         setCalledMoveName("");
         setCalledMoveData(null);
-        if (!name || !attacker || !canControlAttacker) return;
-        setDeclaring(true);
-        let referenceLoaded = false;
-        try {
-            const detail = getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`));
-            if (!detail) throw new Error("A Pokédex não conseguiu abrir este movimento agora.");
-            referenceLoaded = true;
-            setMoveData(detail);
-            await onDeclareMove?.(attacker.id, detail);
-        } catch (error) {
-            if (referenceLoaded) onError?.(error);
-            else setMoveLoadError(true);
-        } finally {
-            setDeclaring(false);
-        }
     };
 
     const loadCalledMove = async () => {
@@ -340,7 +325,7 @@ export default function CombatAssistant({
                     )}
                     <label>
                         <span>Movimento</span>
-                        <RoomSelect aria-label="Movimento" value={moveName} disabled={!moves.length} onChange={event => void selectMove(event.target.value)}>
+                        <RoomSelect aria-label="Movimento" value={moveName} disabled={!moves.length || Boolean(snapshot.initiative.length && attacker?.declaredMove)} onChange={event => void selectMove(event.target.value)}>
                             <option value="">{moves.length ? "Escolha um movimento" : "Sem movimentos na ficha"}</option>
                             {moves.map(move => <option key={move} value={move}>{formatName(move)}</option>)}
                         </RoomSelect>
@@ -411,19 +396,19 @@ export default function CombatAssistant({
                         <span>PP {formatNumberPtBr(ppState.remaining ?? moveData.pp ?? 0)} de {formatNumberPtBr(ppState.maximum ?? moveData.pp ?? 0)}</span>
                         {needsCalledMove && calledMoveData && <span>Chamado por {formatName(moveData.name)}</span>}
                         {compact
-                            ? Boolean(resolvedMoveData.priority) && <span>Prioridade {resolvedMoveData.priority > 0 ? "+" : ""}{resolvedMoveData.priority}</span>
+                            ? Boolean(effectivePriority) && <span>Prioridade {effectivePriority > 0 ? "+" : ""}{effectivePriority}</span>
                             : automationTags.map(tag => <span key={tag}>{tag}</span>)}
-                        {declaring && <span className="is-syncing">Preparando a prioridade…</span>}
                     </div>
                 )}
                 {(!compact || !resolutionProfile || (resolutionProfile.target.requiresSelection && !defender) || (needsCalledMove && !calledMoveData)) && <p className="combat-target-note" role={moveLoadError && !moveData ? "alert" : loadingMove && !moveData ? "status" : undefined}>{targetDescription}</p>}
                 {moveName && moveLoadError && !moveData && <button type="button" onClick={() => { retryMoveRequested.current = true; setMoveRefresh(current => current + 1); }}>Tentar novamente</button>}
-                {originalSpecialBlock && <p className="combat-special-block">{compact ? `${formatName(moveName)}: ` : "Não pode ser resolvido agora: "}{originalSpecialBlock}.</p>}
+                {originalSpecialBlock && <p className="combat-special-block">Falhará: {originalSpecialBlock}. A tentativa usa PP e a ação.</p>}
                 {originalTraitBlock?.attackerBlocked && <p className="combat-special-block">Item ativo: {originalTraitBlock.reason}.</p>}
+                {roundBlock && <p className="combat-special-block" role="status">{roundBlock}</p>}
                 {!canControlAttacker && role === "player" && (
-                    <p className="combat-permission-note">Você pode testar este Pokémon aqui. Para declarar o movimento na rodada, escolha um Pokémon sob seu controle.</p>
+                    <p className="combat-permission-note">As escolhas da rodada ficam na Iniciativa. Você declara os Pokémon sob seu controle.</p>
                 )}
-                <button type="button" className="room-primary-button" disabled={!canResolve || running || declaring} onClick={resolve}>
+                <button type="button" className="room-primary-button" disabled={!canResolve || running} onClick={resolve}>
                     {outOfPp
                         ? "Sem PP para este movimento"
                         : running

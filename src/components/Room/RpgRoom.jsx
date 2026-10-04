@@ -5,6 +5,9 @@ import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import GameIcon from "../Shared/GameIcon.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import TurnOrder from "../Shared/TurnOrder.jsx";
+import ExperienceAward from "../Shared/ExperienceAward.jsx";
+import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
+import { awardRoomPokemonExperience, getRoomBattleRewardContext } from "../../core/roomExperience.js";
 import {
     accuracyStageMultiplier,
     applyStageChange,
@@ -28,6 +31,7 @@ import {
     compactTeamOffer,
     createTokenFromPokemon,
     createRoomSnapshot,
+    declareRoomMove,
     eventSummary,
     LOCAL_ROOM_STORAGE_KEY,
     mergeRoomConflictSnapshot,
@@ -38,7 +42,7 @@ import {
 } from "../../core/room.js";
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import { formatCount } from "../../core/copy.js";
-import { finiteNumber, integerInRange } from "../../core/math.js";
+import { integerInRange } from "../../core/math.js";
 import {
     buildPlayerInvite,
     buildRoomInviteToken,
@@ -59,6 +63,7 @@ import {
     saveRoomSession,
 } from "../../core/roomClient.js";
 import { getNextLevelXp } from "../../core/rpgRules.js";
+import { applyAuthoritativeMovePriorities } from "../../../server/authoritativeActions.js";
 import { accountRequest } from "../../core/accountClient.js";
 import { bindAccountRoom, listAccountRooms, unlinkAccountRoom } from "../../core/accountRooms.js";
 import { mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
@@ -604,8 +609,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
 
     const commitSnapshot = useCallback(nextValue => {
         if (!session || session.role !== "narrator") return;
-        const baseSnapshot = snapshot;
+        const baseSnapshot = snapshotRef.current;
         const normalized = normalizeRoomSnapshot(nextValue);
+        snapshotRef.current = normalized;
         if (session.local) {
             setRoom(current => {
                 if (!current) return current;
@@ -645,11 +651,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 revisionRef.current = integerInRange(result.revision, 0, Number.MAX_SAFE_INTEGER, Math.min(Number.MAX_SAFE_INTEGER, expectedRevision + 1));
                 if (mountedRef.current && pendingSavesRef.current <= 1) applyBundle(result);
                 channelRef.current?.postMessage({ type: "invalidate" });
+                return true;
             } catch (value) {
                 if (mountedRef.current) {
                     setConnection(navigator.onLine ? "error" : "offline");
                     showError(value);
                 }
+                return false;
             } finally {
                 pendingSavesRef.current = Math.max(0, pendingSavesRef.current - 1);
                 if (mountedRef.current && pendingSavesRef.current === 0) setConnection("connected");
@@ -657,7 +665,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         };
 
         saveQueueRef.current = saveQueueRef.current.then(persist, persist);
-    }, [applyBundle, session, showError, snapshot, storageScope]);
+        return saveQueueRef.current;
+    }, [applyBundle, session, showError, storageScope]);
 
     const sendEvent = useCallback(async (type, payload) => {
         if (!session) return;
@@ -1048,7 +1057,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             level: nextPokemon.level,
             xp: 0,
             maxHp: recalculated.maxHp,
-            currentHp: Math.min(recalculated.maxHp, selectedToken.currentHp + hpGrowth),
+            currentHp: selectedToken.currentHp === 0 ? 0 : Math.min(recalculated.maxHp, selectedToken.currentHp + hpGrowth),
             stats: recalculated.stats,
             originalStats: recalculated.originalStats,
         };
@@ -1077,8 +1086,19 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         }
     };
 
-    const awardSelectedExperience = amount => {
-        applySelectedExperience(finiteNumber(selectedToken?.xp, 0) + finiteNumber(amount, 0));
+    const awardSelectedExperience = async reward => {
+        if (!selectedToken || role !== "narrator") return false;
+        const before = snapshotRef.current;
+        const next = awardRoomPokemonExperience(before, selectedToken.id, reward, teams);
+        const updated = next.tokens.find(token => token.id === selectedToken.id);
+        const saved = await commitSnapshot(next);
+        if (saved === false) { await refresh(session).catch(() => {}); return false; }
+        if (updated.level !== selectedToken.level) {
+            setTeams(current => syncTeamsWithRoomProgress(current, { ...next, tokens: [updated] }));
+            setNotice?.({ tone: "blue", text: `${updated.name} alcançou o nível ${updated.level}!` });
+            void sendEvent("system", { text: `${updated.name} alcançou o nível ${updated.level}!` });
+        }
+        return true;
     };
 
     const choosePokemon = () => {
@@ -1100,7 +1120,16 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 await requestAuthoritativeAction({ action: "initiative" });
                 return;
             }
-            const generated = buildInitiative(snapshot);
+            const { fetchCached } = await import("../../core/mechanics.js");
+            const names = [...new Set(snapshotRef.current.tokens.map(token => token.declaredMove).filter(Boolean))];
+            const references = new Map(await Promise.all(names.map(async name => {
+                const move = await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`);
+                if (!move) throw new Error("Não foi possível confirmar os movimentos. Tente rolar novamente.");
+                return [name, move];
+            })));
+            const current = snapshotRef.current;
+            if (current.tokens.some(token => token.declaredMove && !references.has(token.declaredMove))) throw new Error("Uma escolha mudou. Confira os movimentos e role novamente.");
+            const generated = buildInitiative(applyAuthoritativeMovePriorities(current, references));
             commitSnapshot(generated.room);
             await sendEvent("system", {
                 text: `Ordem da rodada: ${generated.results.map(result => {
@@ -1135,7 +1164,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     round: snapshot.round + 1,
                     turnIndex: 0,
                     initiative: [],
-                    tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", priority: 0 })),
+                    tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", declaredDamageClass: "", priority: 0 })),
                 }
                 : advanceInitiative(snapshot);
             commitSnapshot(next);
@@ -1159,40 +1188,25 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
     };
 
     const declareMove = async (tokenId, move) => {
-        const token = snapshot.tokens.find(candidate => candidate.id === tokenId);
+        const current = snapshotRef.current;
+        const token = current.tokens.find(candidate => candidate.id === tokenId);
         const moveName = String(move?.name || "").toLowerCase();
-        const priority = integerInRange(move?.priority, -7, 7, 0);
-        if (!token || !moveName || !token.moves.includes(moveName)) return;
+        if (!token) throw new Error("Este Pokémon saiu do campo.");
+        const next = declareRoomMove(current, tokenId, move);
         if (role === "narrator") {
-            if (token.declaredMove === moveName && token.priority === priority) return;
-            commitSnapshot({
-                ...snapshot,
-                tokens: snapshot.tokens.map(candidate => candidate.id === token.id
-                    ? { ...candidate, declaredMove: moveName, priority }
-                    : candidate),
-            });
-            setNotice?.({
-                tone: "blue",
-                text: `${token.name} vai usar ${formatName(moveName)}. A prioridade ficou em ${priority > 0 ? `+${priority}` : priority}.`,
-            });
+            const saved = await commitSnapshot(next);
+            if (saved === false) { await refresh(session); throw new Error("Não foi possível confirmar a escolha. Tente novamente."); }
             return;
         }
-        if (!session.playerId || token.ownerPlayerId !== session.playerId) return;
-        setRoom(current => current ? {
-            ...current,
-            snapshot: normalizeRoomSnapshot({
-                ...snapshot,
-                tokens: snapshot.tokens.map(candidate => candidate.id === token.id
-                    ? { ...candidate, declaredMove: moveName, priority }
-                    : candidate),
-            }),
-        } : current);
-        await sendEvent("move-declared", {
+        if (!session.playerId || token.ownerPlayerId !== session.playerId) throw new Error("Escolha um Pokémon sob seu controle.");
+        await postRoomEvent(session, "move-declared", {
             tokenId: token.id,
             tokenName: token.name,
             moveName,
-            priority,
+            expectedRevision: revisionRef.current,
         });
+        channelRef.current?.postMessage({ type: "invalidate" });
+        await refresh(session);
     };
 
     const diceHandlersRef = useRef({});
@@ -1324,7 +1338,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
     }
 
     return (
-        <div className={`room-app role-${role} mobile-pane-${mobilePane}`}>
+        <div className={`room-app role-${role} phase-${snapshot.phase} mobile-pane-${mobilePane}`}>
             <header className="room-header">
                 <div className="room-title">
                     <span className={`room-connection is-${connection}`} />
@@ -1462,7 +1476,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                             const button = [...document.querySelectorAll(".room-token")].find(node => node.getAttribute("aria-label")?.startsWith(`${selectedTeamPokemonToken.name},`));
                                             button?.focus();
                                         });
-                                    }}>Ver no campo</button> : <div className="room-button-row">
+                                    }}>{snapshot.phase === "intervalo" ? "Ver ficha" : "Ver no campo"}</button> : <div className="room-button-row">
                                         <button type="button" disabled={!selectedTeamPokemon} onClick={() => addSelectedTeam("ally")}>Entrar como aliado</button>
                                         <button type="button" disabled={!selectedTeamPokemon} onClick={() => addSelectedTeam("opponent")}>Entrar como oponente</button>
                                     </div>
@@ -1492,15 +1506,17 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         onSelectToken={setSelectedTokenId}
                         onSnapshotChange={handleBattlefieldChange}
                         onChoosePokemon={choosePokemon}
+                        compact={["interpretacao", "intervalo"].includes(snapshot.phase)}
                     />
-                    {snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
+                    {snapshot.phase === "batalha" && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
+                        onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}
                         onRoll={generateInitiative} onAdvance={nextTurn} />}
 
-                    {selectedToken && (
+                    {selectedToken && ["batalha", "intervalo"].includes(snapshot.phase) && (
                         <section className="token-inspector">
                             <header className="token-inspector-header">
                                 <div className="token-inspector-identity">
-                                    <PokemonSprite src={selectedDisplayIdentity?.sprite} pokemonId={selectedToken.speciesId} alt="" className="pixelated" fallbackClassName="room-token-fallback" />
+                                    <PokemonSprite src={selectedDisplayIdentity?.sprite} pokemonId={selectedDisplayIdentity?.disguised ? selectedToken.specialState?.illusion?.speciesId || selectedToken.speciesId : selectedToken.speciesId} alt="" className="pixelated" fallbackClassName="room-token-fallback" />
                                     <span>
                                         <small>Nível {selectedToken.level}</small>
                                         <strong>{selectedDisplayIdentity?.name || selectedToken.name}</strong>
@@ -1530,7 +1546,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                         title="Recuperar HP"
                                     >+</button>
                                 </div>
-                                <div
+                                <details className="token-protection-details"><summary><div
                                     className={`token-hit-kill-state is-${selectedProtectionState}`}
                                     role="status"
                                     aria-live="polite"
@@ -1548,11 +1564,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                                 ? "Encerrada por autocusto"
                                                 : selectedProtectionState === "used"
                                                     ? "Consumida nesta batalha"
-                                                    : "Pronta no HP máximo"}
+                                                    : selectedToken.currentHp === selectedToken.maxHp ? "Pronta" : "Precisa de HP cheio"}
                                         </strong>
                                     </span>
                                     <span className="token-hit-kill-meter" aria-hidden="true"><i /></span>
-                                </div>
+                                </div></summary><HitKillExplanation expanded /></details>
                                 {role === "narrator" && selectedToken.currentHp > 0 && (
                                     <button
                                         type="button"
@@ -1580,11 +1596,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     onBlur={() => applySelectedExperience(selectedToken.xp)}
                                 />
                                 <small className="token-xp-next-level">{selectedToken.level >= 200 ? "Nível máximo · 200" : `Meta: ${formatNumberPtBr(getNextLevelXp(selectedToken.level))} XP`}</small>
-                                {role === "narrator" && (
-                                    <span className="token-xp-actions">
-                                        <button type="button" disabled={selectedToken.level >= 200} onClick={() => awardSelectedExperience(1)}>+1 XP</button>
-                                    </span>
-                                )}
                             </div>
                             <label>
                                 <span>Condição</span>
@@ -1604,6 +1615,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     <small>HP, condição, PP, item consumido e proteção contra Hit Kill continuam vinculados ao próprio Pokémon.</small>
                                 </div>
                             )}
+                            {role === "narrator" && <ExperienceAward key={selectedToken.id} winnerLevel={selectedToken.level} battleContext={getRoomBattleRewardContext(snapshot, selectedToken.id)} onAward={awardSelectedExperience} disabled={busy} />}
+                            {selectedToken.pendingEvs > 0 && <p className="token-growth-reserve">{selectedToken.pendingEvs} EVs para distribuir na ficha do PC.</p>}
                             {selectedToken.volatileEffects?.length > 0 && (
                                 <div className="token-volatile-list" role="group" aria-label="Efeitos temporários ativos">
                                     {selectedToken.volatileEffects.map(effect => (
@@ -1685,19 +1698,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                             {players.map(player => <option key={player.id} value={player.id}>{player.displayName}</option>)}
                                         </RoomSelect>
                                     </label>
-                                    <label>
-                                        <span>Ajustar prioridade</span>
-                                        <RoomSelect aria-label="Ajustar prioridade" value={selectedToken.priority || 0} onChange={event => updateToken({ priority: event.target.value })}>
-                                            {[7,6,5,4,3,2,1,0,-1,-2,-3,-4,-5,-6,-7].map(value => <option key={value} value={value}>{value > 0 ? `+${value}` : value}</option>)}
-                                        </RoomSelect>
-                                    </label>
                                     <button type="button" className="token-remove" onClick={removeToken}>Retirar da cena</button>
                                 </>
                             )}
                         </section>
                     )}
 
-                    <details className="room-notes-panel">
+                    <details className="room-notes-panel" open={snapshot.phase === "interpretacao"}>
                         <summary>Notas da cena</summary>
                     <div className="room-notes-grid">
                         <NoteField
@@ -1720,7 +1727,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
 
                 <aside className="room-tools">
                     {!session.local && <VoiceCall session={session} role={role} />}
-                    <CombatAssistant
+                    {snapshot.phase === "batalha" && <CombatAssistant
                         role={role}
                         playerId={session.playerId}
                         snapshot={snapshot}
@@ -1728,11 +1735,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         remote={!session.local}
                         onAuthoritativeAction={requestAuthoritativeAction}
                         onSnapshotChange={commitSnapshot}
-                        onDeclareMove={declareMove}
                         onEvent={sendEvent}
                         onError={showError}
-                    />
-                    <CaptureAssistant role={role} snapshot={snapshot} remote={!session.local} onAuthoritativeAction={requestAuthoritativeAction} onSnapshotChange={commitSnapshot} onEvent={sendEvent} onError={showError} />
+                    />}
+                    {["batalha", "exploracao"].includes(snapshot.phase) && <CaptureAssistant role={role} snapshot={snapshot} remote={!session.local} onAuthoritativeAction={requestAuthoritativeAction} onSnapshotChange={commitSnapshot} onEvent={sendEvent} onError={showError} />}
                     <AudioDeck
                         session={session}
                         role={role}
@@ -1846,7 +1852,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             <ConfirmDialog
                 open={ending}
                 title="Encerrar esta aventura?"
-                description="Esta aventura, o diário compartilhado e as trilhas serão apagados para todos. Suas Boxes continuarão seguras no PC."
+                description="Antes de encerrar, o Narrador avalia a Amizade pela história da sessão. A aventura, o diário e as trilhas serão apagados; suas Boxes continuam no PC."
                 confirmLabel={busy ? "Encerrando…" : "Encerrar aventura"}
                 cancelLabel="Continuar aventura"
                 danger

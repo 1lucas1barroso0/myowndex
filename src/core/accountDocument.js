@@ -2,6 +2,7 @@ import { compactPokemon, compactTeam, dedupeTeams } from "./team.js";
 import { normalizeAccountXpDocument } from "./accountXp.js";
 import { normalizeLocalDiceRoom } from "./localPokemonRolls.js";
 import { localRollSpec, normalizeLocalRollHistory } from "./localRolls.js";
+import { mergePokemonExperienceAwards } from "./experience.js";
 
 export const ACCOUNT_SCHEMA = 1;
 export const ACCOUNT_DOCUMENT_LIMIT = 4 * 1024 * 1024;
@@ -127,6 +128,19 @@ const recoveryBox = box => {
 };
 const mergeClockMaps = (first, second) => Object.fromEntries([...new Set([...Object.keys(first), ...Object.keys(second)])].map(key => [key, Math.max(clock(first[key]), clock(second[key]))]));
 
+const mergeBoxExperienceAwards = (left, right, baseline) => {
+    if (!left || !right || !baseline || left.pokemon.length !== baseline.pokemon.length || right.pokemon.length !== baseline.pokemon.length) return null;
+    const metadata = box => ({ ...box, updatedAt: 0, pokemon: [] });
+    if (!accountValuesEqual(metadata(left), metadata(baseline)) || !accountValuesEqual(metadata(right), metadata(baseline))) return null;
+    const pokemon = baseline.pokemon.map((partner, index) => {
+        const first = left.pokemon[index], second = right.pokemon[index];
+        if (first?.id !== partner.id || second?.id !== partner.id) return null;
+        return mergePokemonExperienceAwards(first, second, partner);
+    });
+    if (pokemon.some(partner => !partner)) return null;
+    return { ...baseline, updatedAt: Math.max(left.updatedAt, right.updatedAt), pokemon };
+};
+
 /** Three-way merge preserves independent Boxes and recovers competing edits. */
 export function mergeAccountDocuments(localValue, remoteValue, baseValue = null) {
     const local = normalizeAccountDocument(localValue);
@@ -154,7 +168,11 @@ export function mergeAccountDocuments(localValue, remoteValue, baseValue = null)
             if (leftChanged && !rightChanged) chosen = left;
             else if (rightChanged && !leftChanged) chosen = right;
         }
-        if (left && right && !boxEqual(left, right) && (!previous || (!boxEqual(left, previous) && !boxEqual(right, previous)))) {
+        const competingEdits = left && right && !boxEqual(left, right)
+            && (!previous || (!boxEqual(left, previous) && !boxEqual(right, previous)));
+        const mergedRewards = competingEdits && previous ? mergeBoxExperienceAwards(left, right, previous) : null;
+        if (mergedRewards) chosen = mergedRewards;
+        if (!mergedRewards && competingEdits) {
             const recovered = recoveryBox(chosen === left ? right : left);
             boxes.set(recovered.id, recovered);
         }

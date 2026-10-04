@@ -16,6 +16,7 @@ import RoomSelect from "./RoomSelect.jsx";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import PokemonSprite from "./PokemonSprite.jsx";
 import GameIcon from "./GameIcon.jsx";
+import TurnOrder from "./TurnOrder.jsx";
 
 const initialField = () => createRoomSnapshot("Campo livre");
 const actionLabel = { combat:"Movimento", capture:"Captura", initiative:"Iniciativa", "advance-turn":"Rodada", opposed:"Disputa" };
@@ -95,7 +96,6 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
     const sourceBoxes = teams.filter(team=>team.pokemon.length);
     const sourceBox = sourceBoxes.find(team=>team.id===selectedBoxId) || currentSource?.team || sourceBoxes[0];
     const boxSources = sources.filter(source=>source.team.id===sourceBox?.id);
-    const turnOrder = snapshot.initiative.map((id,index)=>({token:snapshot.tokens.find(token=>token.id===id),index})).filter(entry=>entry.token);
     const onSaveResult = useCallback(saved=>{if(!saved)setNotice("O campo continua aberto, mas esta mudança ainda não foi salva.");},[]);
     const save = useMemo(()=>createScheduledSave({ save:value=>writeDurableStorage(LOCAL_DICE_ROOM_KEY,value,{scope}), onResult:onSaveResult }),[scope,onSaveResult]);
     useEffect(()=>registerLocalPokemonDiceWrites(async()=>{
@@ -263,12 +263,10 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             <div className="local-pokemon-roster" role="group" aria-label="Pokémon em campo">{snapshot.tokens.map(token=><button type="button" key={token.id} aria-pressed={selectedToken?.id===token.id} data-side={token.side} onClick={()=>setSelectedTokenId(token.id)}>
                 <PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><span className="local-field-partner"><strong>{token.name}</strong><small>{token.side==="opponent"?"Oponente":"Aliado"}{token.captured?" · capturado":""}</small><span className="local-field-hp" aria-hidden="true" data-health={token.currentHp<=token.maxHp*.2?"low":token.currentHp<=token.maxHp*.5?"medium":"high"}><span style={{width:`${Math.max(0,Math.min(100,token.currentHp/Math.max(1,token.maxHp)*100))}%`}} /></span><small>HP {token.currentHp} de {token.maxHp}</small></span>
             </button>)}</div>
-            <section className="room-tool local-pokemon-initiative" aria-label="Iniciativa"><header className="local-field-turn-heading"><h4>Ordem dos turnos</h4><span className="local-field-round">Rodada <b>{snapshot.round}</b></span></header>
-                {turnOrder.length>0 && <ol className="local-field-turn-list" aria-label="Ordem da rodada">{turnOrder.map(({token,index})=><li key={token.id} aria-current={index===snapshot.turnIndex?"step":undefined}><button type="button" onClick={()=>setSelectedTokenId(token.id)} aria-label={`Selecionar ${token.name}, ${index+1}º na iniciativa${index===snapshot.turnIndex?", turno atual":""}`}><b className="local-field-turn-position">{index+1}</b><PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><span><strong>{token.name}</strong><small>{index===snapshot.turnIndex?"Agora":index<snapshot.turnIndex?"Já jogou":"A seguir"}</small></span></button></li>)}</ol>}
-                <div className="local-field-turn-actions">{turnOrder.length>0 ? <><button type="button" className="room-primary-button" disabled={!editing || busy} onClick={()=>void runAction({action:"advance-turn"}).catch(showError)}>{snapshot.turnIndex>=snapshot.initiative.length-1?"Encerrar rodada":"Próximo turno"}<span aria-hidden="true"> →</span></button><button type="button" disabled={!editing || busy || !snapshot.tokens.some(token=>!token.hidden && token.currentHp>0)} onClick={()=>void runAction({action:"initiative"}).catch(showError)}><GameIcon name="dice" />Refazer ordem</button></> : <button type="button" className="room-primary-button" disabled={!editing || busy || !snapshot.tokens.some(token=>!token.hidden && token.currentHp>0)} onClick={()=>void runAction({action:"initiative"}).catch(showError)}><GameIcon name="dice" />Rolar iniciativa</button>}</div>
-                <details className="local-field-initiative-help"><summary>Como funciona</summary><p>A iniciativa usa a prioridade do movimento e a Speed de cada Pokémon. Refazer a ordem volta ao primeiro turno. Encerrar a rodada aplica seus efeitos.</p></details>
-                {roundResult && <details className="local-field-round-effects"><summary>Efeitos da rodada</summary><p>{roundResult}</p></details>}
-            </section>
+            <TurnOrder local snapshot={snapshot} onSelect={setSelectedTokenId} canControl={editing} busy={busy}
+                onRoll={()=>void runAction({action:"initiative"}).catch(showError)}
+                onAdvance={()=>void runAction({action:"advance-turn"}).catch(showError)} />
+            {roundResult && <details className="local-field-round-effects"><summary>Efeitos da rodada</summary><p>{roundResult}</p></details>}
             <CombatAssistant compact snapshot={snapshot} role={sceneSnapshot?role:"narrator"} playerId={playerId} selectedTokenId={selectedToken?.id} onAttackerChange={setSelectedTokenId} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onDeclareMove={declareMove} onEvent={onEvent} onError={showError} />
             <details className="room-tool"><summary><strong>Disputa entre Pokémon</strong></summary><div className="room-tool-body"><div className="local-dice-fields">
                 <label>Pokémon<RoomSelect aria-label="Pokémon da disputa" value={selectedToken?.id || ""} onChange={event=>setSelectedTokenId(event.target.value)}>{snapshot.tokens.map(token=><option key={token.id} value={token.id}>{token.name}</option>)}</RoomSelect></label>

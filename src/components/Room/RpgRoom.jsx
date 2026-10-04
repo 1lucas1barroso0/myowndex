@@ -4,6 +4,7 @@ import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import GameIcon from "../Shared/GameIcon.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
+import TurnOrder from "../Shared/TurnOrder.jsx";
 import {
     accuracyStageMultiplier,
     applyStageChange,
@@ -279,12 +280,14 @@ function NoteField({ label, value, privateNote, disabled, onCommit }) {
     );
 }
 
-export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, account, onDiceContext }) {
+export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNotice, account, onDiceContext }) {
     const storageScope = useMemo(() => getStorageScope(), []);
     const initialInvite = useMemo(() => parseRoomInvite(), []);
     const [session, setSession] = useState(null);
     const [room, setRoom] = useState(null);
     const [busy, setBusy] = useState(false);
+    const [initiativeBusy, setInitiativeBusy] = useState(false);
+    const initiativeLock = useRef(false);
     const [connection, setConnection] = useState("connecting");
     const [error, setError] = useState("");
     const [selectedTeamId, setSelectedTeamId] = useState(teams[0]?.id || "");
@@ -1078,7 +1081,20 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
         applySelectedExperience(finiteNumber(selectedToken?.xp, 0) + finiteNumber(amount, 0));
     };
 
+    const choosePokemon = () => {
+        if (!teams.some(team => team.pokemon.length)) { onOpenPc?.(); return; }
+        setMobilePane("roster");
+        window.requestAnimationFrame(() => {
+            const entry = document.querySelector(".room-team-entry");
+            entry?.scrollIntoView({ block: "nearest", behavior: "auto" });
+            entry?.querySelector("select,button")?.focus({ preventScroll: true });
+        });
+    };
+
     const generateInitiative = async () => {
+        if (initiativeLock.current) return;
+        initiativeLock.current = true;
+        setInitiativeBusy(true);
         try {
             if (!session.local) {
                 await requestAuthoritativeAction({ action: "initiative" });
@@ -1095,10 +1111,16 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
             });
         } catch (error) {
             showError(error);
+        } finally {
+            initiativeLock.current = false;
+            if (mountedRef.current) setInitiativeBusy(false);
         }
     };
 
     const nextTurn = async () => {
+        if (initiativeLock.current) return;
+        initiativeLock.current = true;
+        setInitiativeBusy(true);
         try {
             if (!session.local) {
                 await requestAuthoritativeAction({ action: "advance-turn" });
@@ -1130,6 +1152,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
             });
         } catch (error) {
             showError(error);
+        } finally {
+            initiativeLock.current = false;
+            if (mountedRef.current) setInitiativeBusy(false);
         }
     };
 
@@ -1253,7 +1278,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
             .map(event => integerInRange(event.payload?.offerId, 0, Number.MAX_SAFE_INTEGER, 0))
             .filter(Number.isFinite),
     );
-    const currentTokenId = snapshot.initiative[snapshot.turnIndex] || "";
     const handleBattlefieldChange = nextSnapshot => {
         if (role === "narrator") {
             commitSnapshot(nextSnapshot);
@@ -1357,13 +1381,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
 
             <div className="room-layout">
                 <aside className="room-roster">
-                    <section className="room-section">
-                        <div className="room-section-heading">
-                            <div>
-                                <h3>Participantes</h3>
-                            </div>
-                            <span>{players.length + 1}</span>
-                        </div>
+                    <details className="room-section room-participants">
+                        <summary><strong>Participantes</strong><span>{players.length + 1}</span></summary>
                         <div className="room-player-list">
                             <div className="room-player is-narrator">
                                 <i />
@@ -1385,14 +1404,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                                 {players.find(player => player.id === session.playerId)?.ready ? "Quero me preparar mais" : "Tudo pronto"}
                             </button>
                         )}
-                    </section>
+                    </details>
 
-                    <section className="room-section">
+                    <section className="room-section room-team-entry">
                         <div className="room-section-heading">
                             <div>
-                                <h3>Equipe para a cena</h3>
+                                <h3>Trazer Pokémon</h3>
                             </div>
-                            <span>{teams.length}</span>
                         </div>
                         {teams.length ? (
                             <>
@@ -1437,76 +1455,33 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                                     {!selectedTeam?.pokemon.length && <small>Esta Box ainda está vazia.</small>}
                                 </div>
                                 {role === "narrator" ? (
-                                    <div className="room-button-row">
-                                        <button type="button" disabled={!selectedTeamPokemon || Boolean(selectedTeamPokemonToken)} onClick={() => addSelectedTeam("ally")}>
-                                            {selectedTeamPokemonToken ? "Já está em campo" : "Entrar como aliado"}
-                                        </button>
-                                        <button type="button" disabled={!selectedTeamPokemon || Boolean(selectedTeamPokemonToken)} onClick={() => addSelectedTeam("opponent")}>
-                                            {selectedTeamPokemonToken ? "Já está em campo" : "Entrar como oponente"}
-                                        </button>
+                                    selectedTeamPokemonToken ? <button type="button" className="room-secondary-button" onClick={() => {
+                                        setMobilePane("field");
+                                        setSelectedTokenId(selectedTeamPokemonToken.id);
+                                        window.requestAnimationFrame(() => {
+                                            const button = [...document.querySelectorAll(".room-token")].find(node => node.getAttribute("aria-label")?.startsWith(`${selectedTeamPokemonToken.name},`));
+                                            button?.focus();
+                                        });
+                                    }}>Ver no campo</button> : <div className="room-button-row">
+                                        <button type="button" disabled={!selectedTeamPokemon} onClick={() => addSelectedTeam("ally")}>Entrar como aliado</button>
+                                        <button type="button" disabled={!selectedTeamPokemon} onClick={() => addSelectedTeam("opponent")}>Entrar como oponente</button>
                                     </div>
                                 ) : (
                                     <button type="button" className="room-secondary-button" disabled={!selectedTeam?.pokemon.length} onClick={offerTeam}>Enviar ao Narrador</button>
                                 )}
                             </>
-                        ) : <p className="room-empty-copy">Crie uma Box no PC para trazê-la à aventura.</p>}
+                        ) : <button type="button" className="room-secondary-button" onClick={onOpenPc}>Abrir PC</button>}
                     </section>
 
-                    <section className="room-section room-initiative">
-                        <div className="room-section-heading">
-                            <div>
-                                <h3>Iniciativa</h3>
-                            </div>
-                            <span>Rodada {snapshot.round}</span>
-                        </div>
-                        <ol className="initiative-list" aria-label="Ordem dos turnos">
-                            {snapshot.initiative.map((tokenId, index) => {
-                                const token = snapshot.tokens.find(item => item.id === tokenId);
-                                if (!token) return null;
-                                return (
-                                    <li key={tokenId} className={currentTokenId === tokenId ? "is-current" : ""} aria-current={currentTokenId === tokenId ? "step" : undefined}>
-                                        <span>{index + 1}</span>
-                                        <button type="button" onClick={() => setSelectedTokenId(tokenId)} aria-label={`Selecionar ${token.name}, ${index + 1}º na iniciativa${currentTokenId === tokenId ? ", turno atual" : ""}`}>{token.name}</button>
-                                        <small title={token.declaredMove ? "Movimento escolhido e prioridade correspondente" : "Velocidade atual"}>
-                                            {token.declaredMove
-                                                ? `${formatName(token.declaredMove)} • ${token.priority > 0 ? `+${token.priority}` : token.priority}`
-                                                : `Velocidade ${token.stats?.speed ?? "—"}`}
-                                        </small>
-                                    </li>
-                                );
-                            })}
-                            {!snapshot.initiative.length && <li className="is-empty" id="room-initiative-help">{snapshot.tokens.length
-                                ? "Escolha os movimentos e role a iniciativa."
-                                : "Leve Pokémon para o campo para começar a rodada."}</li>}
-                        </ol>
-                        {role === "narrator" && (
-                            <div className="room-button-row">
-                                <button type="button" disabled={!snapshot.tokens.length} aria-describedby={!snapshot.initiative.length ? "room-initiative-help" : undefined} onClick={generateInitiative}>Rolar iniciativa</button>
-                                <button type="button" disabled={!snapshot.initiative.length} onClick={nextTurn}>
-                                    {snapshot.initiative.length && snapshot.turnIndex >= snapshot.initiative.length - 1 ? "Encerrar rodada" : "Próximo turno"}
-                                </button>
-                            </div>
-                        )}
-                    </section>
                 </aside>
 
-                <main className="room-field">
+                <section className="room-field" aria-label="Campo e ficha">
                     <div className="room-scene-strip">
                         <AdventurePhaseControl
                             value={snapshot.phase}
                             readOnly={role !== "narrator"}
                             onChange={phase => commitSnapshot(changeRoomPhase(snapshot, phase))}
                         />
-                        <div className="room-scene-stats" role="group" aria-label="Resumo da cena">
-                            <div>
-                                <small>Rodada</small>
-                                <strong>{snapshot.round}</strong>
-                            </div>
-                            <div>
-                                <small>Em cena</small>
-                                <strong>{snapshot.tokens.length}</strong>
-                            </div>
-                        </div>
                     </div>
 
                     <Battlefield
@@ -1516,7 +1491,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                         selectedTokenId={selectedTokenId}
                         onSelectToken={setSelectedTokenId}
                         onSnapshotChange={handleBattlefieldChange}
+                        onChoosePokemon={choosePokemon}
                     />
+                    {snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
+                        onRoll={generateInitiative} onAdvance={nextTurn} />}
 
                     {selectedToken && (
                         <section className="token-inspector">
@@ -1719,6 +1697,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                         </section>
                     )}
 
+                    <details className="room-notes-panel">
+                        <summary>Notas da cena</summary>
                     <div className="room-notes-grid">
                         <NoteField
                             label="Descrição da cena"
@@ -1735,7 +1715,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, setNotice, accou
                             />
                         )}
                     </div>
-                </main>
+                    </details>
+                </section>
 
                 <aside className="room-tools">
                     {!session.local && <VoiceCall session={session} role={role} />}

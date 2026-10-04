@@ -229,6 +229,10 @@ try {
         await checkpoint(`Aventura local: ${pane}`, [320, 1280], ['Claro', 'Escuro'], pane);
     }
     await page.setViewportSize({ width: 1280, height: 900 });
+    await openDetails(page.locator('.battlefield-environment'));
+    await openDetails(page.locator('.room-notes-panel'));
+    await openDetails(page.locator('.room-participants'));
+    await checkpoint('Aventura: preparação do campo, notas e participantes', [320, 1280], ['Claro', 'Escuro'], 'Campo');
     await page.locator('.room-token').first().click();
     const inspector = page.locator('.token-inspector');
     await inspector.waitFor();

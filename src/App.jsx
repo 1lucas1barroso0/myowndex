@@ -19,7 +19,7 @@ import { DEX_GENERATIONS, debutGeneration, selectDexSpecies, urlForView, viewFro
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "11.6.5";
+const APP_VERSION = "11.6.6";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 function OpeningScreen() { return <div className="account-opening" role="status"><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
@@ -540,6 +540,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                             teams={teams}
                             setTeams={setTeams}
                             onOpenGuide={handleOpenGuide}
+                            onOpenPc={handleOpenTeambuilder}
                             setNotice={setNotice}
                             account={client.account}
                             onDiceContext={receiveDiceContext}

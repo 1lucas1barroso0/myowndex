@@ -7,6 +7,7 @@ import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS, STATUS_LABELS } from "../
 import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
 import { getTraitStatus } from "../../core/traitMechanics.js";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
+import RoomSelect from "../Shared/RoomSelect.jsx";
 
 const clamp = (value, minimum, maximum) => clampFinite(value, minimum, maximum, minimum);
 
@@ -119,6 +120,7 @@ export default function Battlefield({
     selectedTokenId,
     onSelectToken,
     onSnapshotChange,
+    onChoosePokemon,
 }) {
     const [drag, setDrag] = useState(null);
     const movementHelpId = useId();
@@ -187,41 +189,44 @@ export default function Battlefield({
                 <div>
                     <h3>Campo de batalha</h3>
                 </div>
-                <div className="battlefield-selectors">
+                <details className="battlefield-environment">
+                    <summary>Preparar o campo</summary>
+                    <div className="battlefield-selectors">
                     <label>
                         <span>Cenário</span>
-                        <select
+                        <RoomSelect
                             value={snapshot.scenario}
                             disabled={role !== "narrator"}
                             onChange={event => onSnapshotChange({ ...snapshot, scenario: event.target.value })}
                         >
                             {ROOM_SCENARIOS.map(scene => <option key={scene.id} value={scene.id}>{scene.label}</option>)}
-                        </select>
+                        </RoomSelect>
                     </label>
                     <label>
                         <span>Clima</span>
-                        <select
+                        <RoomSelect
                             value={snapshot.weather}
                             disabled={role !== "narrator"}
                             onChange={event => onSnapshotChange({ ...snapshot, weather: event.target.value })}
                         >
                             {ROOM_WEATHERS.map(weather => <option key={weather.id} value={weather.id}>{weather.label}</option>)}
-                        </select>
+                        </RoomSelect>
                     </label>
                     <label>
                         <span>Terreno</span>
-                        <select
+                        <RoomSelect
                             value={snapshot.terrain}
                             disabled={role !== "narrator"}
                             onChange={event => onSnapshotChange({ ...snapshot, terrain: event.target.value })}
                         >
                             {ROOM_TERRAINS.map(terrain => <option key={terrain.id} value={terrain.id}>{terrain.label}</option>)}
-                        </select>
+                        </RoomSelect>
                     </label>
-                </div>
+                    </div>
+                </details>
             </div>
 
-            <div className={`battlefield-board scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`}>
+            <div className={`battlefield-board ${snapshot.tokens.length ? "has-pokemon" : "is-empty-field"} scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`}>
                 <div className="battlefield-depth battlefield-depth-back" />
                 <div className="battlefield-depth battlefield-depth-front" />
                 <div className="battlefield-center-line" />
@@ -257,8 +262,10 @@ export default function Battlefield({
                 })}
                 {!snapshot.tokens.length && (
                     <div className="battlefield-empty">
-                        <strong>Nenhum Pokémon em campo</strong>
-                        <small>Escolha um parceiro em “Equipe para a cena”.</small>
+                        <strong>Quem vai batalhar?</strong>
+                        {onChoosePokemon
+                            ? <button type="button" className="room-primary-button battlefield-choose-pokemon" onClick={onChoosePokemon}>Escolher Pokémon</button>
+                            : <small>Escolha um parceiro em “Equipe para a cena”.</small>}
                     </div>
                 )}
                 <div className="battlefield-pixel-grid" aria-hidden="true" />
@@ -266,8 +273,12 @@ export default function Battlefield({
 
             <div className="battlefield-footer">
                 <span>{ROOM_SCENARIOS.find(scene => scene.id === snapshot.scenario)?.label}</span>
-                <span>{formatPokemonInScene(snapshot.tokens.length)}</span>
-                <span>{tokenById[currentTokenId]?.name ? `Turno de ${tokenById[currentTokenId].name}` : "Aguardando iniciativa"}</span>
+                {snapshot.weather !== "limpo" && <span>{ROOM_WEATHERS.find(weather => weather.id === snapshot.weather)?.label}</span>}
+                {snapshot.terrain !== "nenhum" && <span>{ROOM_TERRAINS.find(terrain => terrain.id === snapshot.terrain)?.label}</span>}
+                {snapshot.tokens.length > 0 && <>
+                    <span>{formatPokemonInScene(snapshot.tokens.length)}</span>
+                    <span>{tokenById[currentTokenId]?.name ? `Turno de ${tokenById[currentTokenId].name}` : "Aguardando iniciativa"}</span>
+                </>}
             </div>
         </section>
     );

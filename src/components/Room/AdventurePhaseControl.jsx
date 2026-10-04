@@ -1,5 +1,8 @@
 import React, { useRef } from "react";
 import { ROOM_PHASES } from "../../core/room.js";
+import GameIcon from "../Shared/GameIcon.jsx";
+
+const phaseIcons = { exploracao: "adventure", interpretacao: "guide", batalha: "move", intervalo: "moon" };
 
 const movementKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
@@ -46,6 +49,7 @@ export default function AdventurePhaseControl({ value, readOnly, onChange }) {
                             onClick={() => onChange(phase.id)}
                             onKeyDown={event => moveSelection(event, index)}
                         >
+                            <GameIcon name={phaseIcons[phase.id]} />
                             <strong>{phase.label}</strong>
                         </button>
                     );

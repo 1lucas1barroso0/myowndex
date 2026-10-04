@@ -406,6 +406,338 @@ html .app-root.game-edition.handheld-edition .token-modifier b {
   }
 }
 
+/* The adventure reads as a game: team and turn order support one broad field.
+   Secondary controls remain available behind concise, predictable menus. */
+html .app-root.game-edition.handheld-edition .room-roster > .room-participants {
+  grid-column: 1 / -1;
+  padding: .4rem 1.25rem;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ui-line) !important;
+  box-shadow: none !important;
+}
+html .app-root.game-edition.handheld-edition .room-participants > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 48px;
+  color: var(--ui-ink);
+  font-size: .95rem;
+  font-weight: 750;
+}
+html .app-root.game-edition.handheld-edition .room-participants > summary .room-section-heading {
+  flex: 1;
+  margin: 0;
+}
+html .app-root.game-edition.handheld-edition :is(.room-participants, .room-notes-panel) > summary::after,
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary::after {
+  content: "+";
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--ui-blue);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+html .app-root.game-edition.handheld-edition :is(.room-participants, .room-notes-panel)[open] > summary::after,
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool[open] > summary::after {
+  content: "−";
+}
+html .app-root.game-edition.handheld-edition .room-participants > summary > span {
+  margin-left: auto;
+}
+html .app-root.game-edition.handheld-edition .room-participants > summary::after {
+  margin-left: 0;
+}
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary > span:first-child {
+  flex: 1;
+}
+html .app-root.game-edition.handheld-edition .room-participants[open] .room-player-list {
+  margin: .75rem 0 1rem;
+}
+html .app-root.game-edition.handheld-edition .room-roster > .room-team-entry {
+  grid-column: 1 / -1;
+}
+html .app-root.game-edition.handheld-edition .room-team-entry {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  border-top: 3px solid var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .room-team-entry > :is(.room-section-heading, .room-mini-team, .room-button-row, .room-empty-copy, button) {
+  grid-column: 1 / -1;
+}
+html .app-root.game-edition.handheld-edition .room-team-entry :is(.room-section-heading, .room-team-box, .room-button-row) {
+  margin: 0 !important;
+}
+html .app-root.game-edition.handheld-edition .room-team-entry :is(.room-team-box, .room-team-lead) {
+  gap: .5rem !important;
+}
+html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 0;
+}
+html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team > span {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  background: var(--ui-raised);
+  border-radius: .25rem;
+}
+html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+html .app-root.game-edition.handheld-edition .room-scene-strip {
+  display: block;
+  padding: 0;
+  margin: 0;
+  box-shadow: none !important;
+}
+html .app-root.game-edition.handheld-edition .room-phase-options button {
+  font-family: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+html .app-root.game-edition.handheld-edition .room-phase-control .game-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 auto;
+}
+html .app-root.game-edition.handheld-edition .room-phase-control .room-phase-label {
+  color: var(--ui-muted);
+  font-size: .875rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+html .app-root.game-edition.handheld-edition .room-tools {
+  gap: .25rem;
+  border-top: 3px solid var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool {
+  margin: 0;
+  padding: .75rem 1rem;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ui-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool[open] {
+  padding: 1.25rem;
+  border: 1px solid var(--ui-line) !important;
+  border-left: 3px solid var(--ui-blue) !important;
+  border-radius: .3rem !important;
+  background: var(--ui-panel) !important;
+}
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary {
+  min-height: 48px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--ui-ink) !important;
+  font-weight: 750;
+}
+html .app-root.game-edition.handheld-edition .battlefield-card {
+  container: battlefield / inline-size;
+}
+html .app-root.game-edition.handheld-edition .battlefield-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .65rem;
+  padding: 1rem 1.25rem;
+  border: 0;
+  background: var(--ui-panel) !important;
+}
+html .app-root.game-edition.handheld-edition .battlefield-toolbar h3 {
+  margin: 0;
+  color: var(--ui-ink);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+html .app-root.game-edition.handheld-edition .battlefield-environment > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 48px;
+  padding: .6rem .85rem;
+  border: 1px solid var(--ui-control-line);
+  border-radius: .25rem;
+  color: var(--ui-blue);
+  font-size: .875rem;
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+html .app-root.game-edition.handheld-edition .battlefield-environment > summary::-webkit-details-marker {
+  display: none;
+}
+html .app-root.game-edition.handheld-edition .battlefield-environment > summary::after {
+  content: "+";
+  flex: 0 0 auto;
+  font-size: 1.1rem;
+}
+html .app-root.game-edition.handheld-edition .battlefield-environment[open] > summary::after {
+  content: "−";
+}
+html .app-root.game-edition.handheld-edition .battlefield-environment[open] .battlefield-selectors {
+  margin-top: 1rem;
+}
+html .app-root.game-edition.handheld-edition .battlefield-selectors label > span:not(.room-select) {
+  color: var(--ui-muted);
+  font-size: .875rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.scene-rota {
+  background: linear-gradient(to bottom, #9bdedb 0 40%, #e9efd1 40% 44%, #77bd90 44%);
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.scene-rota::before {
+  opacity: .4;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon {
+  min-height: 19rem;
+  height: clamp(19rem, 38vw, 26rem);
+  aspect-ratio: auto;
+}
+html .app-root.game-edition.handheld-edition .room-token-sprite {
+  width: 7rem;
+  height: 7rem;
+  max-width: none !important;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field {
+  min-height: 15rem;
+  height: clamp(15rem, 28vw, 19rem);
+  aspect-ratio: auto;
+  touch-action: auto;
+}
+html .app-root.game-edition.handheld-edition .battlefield-empty {
+  display: grid;
+  gap: 1rem;
+  width: min(calc(100% - 2rem), 22rem);
+  padding: 1.25rem;
+  border: 1px solid var(--ui-line);
+  border-radius: .3rem;
+  background: var(--ui-panel);
+  color: var(--ui-ink);
+  box-shadow: 0 3px 0 #222b3026;
+  backdrop-filter: none;
+}
+html .app-root.game-edition.handheld-edition .battlefield-empty strong {
+  margin: 0;
+  color: var(--ui-ink);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+html .app-root.game-edition.handheld-edition .battlefield-empty small {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: .875rem;
+  line-height: 1.6;
+}
+html .app-root.game-edition.handheld-edition .battlefield-choose-pokemon {
+  width: 100%;
+}
+html .app-root.game-edition.handheld-edition .battlefield-side-label {
+  border: 1px solid #fff;
+  background: #222b30;
+  color: #fff;
+  padding: .4rem .6rem;
+  box-shadow: none;
+  font-size: .875rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field .battlefield-side-label {
+  display: none;
+}
+html .app-root.game-edition.handheld-edition .battlefield-footer {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--ui-panel) !important;
+  color: var(--ui-muted) !important;
+}
+html .app-root.game-edition.handheld-edition .battlefield-footer > span {
+  color: var(--ui-muted) !important;
+}
+html .app-root.game-edition.handheld-edition .battlefield-footer > span:last-child {
+  color: var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .room-notes-panel {
+  padding: .4rem 1.25rem;
+  border-top: 1px solid var(--ui-line);
+}
+html .app-root.game-edition.handheld-edition .room-notes-panel > summary {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  gap: .75rem;
+  color: var(--ui-muted);
+  font-size: .95rem;
+  font-weight: 700;
+}
+html .app-root.game-edition.handheld-edition .room-notes-panel[open] .room-notes-grid {
+  margin-top: .75rem;
+}
+html .app-root.game-edition.handheld-edition .room-notes-grid {
+  gap: 1rem;
+  margin-top: 0;
+}
+html .app-root.game-edition.handheld-edition .room-note {
+  padding: 1rem;
+  border: 1px solid var(--ui-line) !important;
+  border-left: 3px solid var(--ui-blue) !important;
+  border-radius: .3rem !important;
+  box-shadow: none;
+}
+html .app-root.game-edition.handheld-edition .room-note.is-private {
+  border-left-color: var(--ui-accent) !important;
+}
+html .app-root.game-edition.handheld-edition .room-notes-grid textarea {
+  margin-top: .65rem;
+  min-height: 6rem;
+}
+@container battlefield (min-width: 36rem) {
+  html .app-root.game-edition.handheld-edition .battlefield-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 1.25rem;
+  }
+  html .app-root.game-edition.handheld-edition .battlefield-environment[open] {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 701px) {
+  html .app-root.game-edition.handheld-edition .room-phase-options {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@container (min-width: 84rem) {
+  html .app-root.game-edition.handheld-edition .room-team-entry {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 540px) {
+  html .app-root.game-edition.handheld-edition .room-team-entry {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (min-width: 1440px) {
+  html .app-root.game-edition.handheld-edition .room-roster > .room-participants {
+    grid-column: auto;
+  }
+}
+
 /* Journal actions stay with their entry and disclose only when needed. */
 html .app-root.game-edition.handheld-edition .journal-options {
   margin-bottom: 1rem;

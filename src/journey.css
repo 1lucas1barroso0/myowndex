@@ -300,12 +300,12 @@ html .app-root.game-edition.handheld-edition .game-panel { box-shadow:none !impo
 /* The field stays broad. Side information stacks before it squeezes the scene. */
 html .app-root .room-app { container-type:inline-size; }
 html .app-root .room-layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; align-items:start; gap:1.5rem; }
-html .app-root .room-roster { grid-column:1/-1; display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); align-items:start; gap:1.5rem; }
+html .app-root .room-roster { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:1.5rem; }
 html .app-root .room-roster > .room-section { margin:0; grid-column:auto; height:auto; }
 html .app-root :is(.room-roster,.room-tools) { max-height: none; overflow: visible; padding-right: 0; }
 html .app-root :is(.room-section,.room-tool,.token-inspector) { padding:1.25rem; box-shadow:none !important; }
-html .app-root .room-field { min-width:0; }
-html .app-root .battlefield-selectors { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr)); width:100%; min-width:0; gap:1rem; }
+html .app-root .room-field { min-width:0; display:grid; gap:1.25rem; align-content:start; }
+html .app-root .battlefield-selectors { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr)); width:100%; min-width:0; gap:1rem; }
 html .app-root .battlefield-selectors label { display:grid; gap:.4rem; min-width:0; }
 html .app-root .battlefield-selectors select { width:100%; max-width:100%; min-width:0; }
 html .app-root .room-tools { min-width:0; display:grid; grid-column:auto; grid-template-columns:minmax(0,1fr); align-items:start; grid-auto-rows:max-content; gap:1rem; }
@@ -315,10 +315,10 @@ html .app-root .room-player strong { font-size:.95rem; }
 html .app-root :is(.room-roster,.room-tools,.room-mobile-nav) button { min-height:44px; font-size:.875rem; padding:.6rem .75rem; }
 html .app-root .room-mini-team small { font-size:.875rem; }
 html .app-root .room-header-actions > button { display: inline-flex; align-items: center; justify-content: center; }
-html .app-root .room-phase-control { display:grid; grid-template-columns:minmax(0,1fr); gap:.65rem; padding:1rem; border:1px solid var(--ui-line); background:var(--ui-panel); box-shadow:none; }
+html .app-root .room-phase-control { display:grid; grid-template-columns:minmax(0,1fr); gap:.75rem; width:100%; padding:1rem 1.25rem; border:0; background:transparent; box-shadow:none; }
 html .app-root .room-phase-label { font-size:.875rem; color:var(--ui-muted); }
-html .app-root .room-phase-options { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,7.5rem),1fr)); gap:.6rem; }
-html .app-root .room-phase-options button { min-height:44px; height:auto; padding:.6rem .4rem; font-size:.875rem; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); box-shadow:none; }
+html .app-root .room-phase-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+html .app-root .room-phase-options button { display:flex; align-items:center; justify-content:center; gap:.5rem; min-height:48px; height:auto; padding:.65rem .6rem; font-size:.875rem; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); box-shadow:none; }
 html .app-root .room-phase-options button strong { color:inherit; font-size:inherit; }
 html .app-root .room-phase-options button.is-selected { background:#222b30; color:#fff; border-color:#222b30; box-shadow:none; }
 html .app-root .room-phase-help summary { font-size:.875rem; min-height:44px; }
@@ -350,11 +350,12 @@ html .app-root :is(.room-account-adventure-options,.room-account-adventure-list 
 html .app-root :is(.room-account-adventure-options,.room-account-adventure-list > article > details) > button { margin-top: .75rem; color: var(--ui-accent) !important; }
 html .app-root .choice-help .choice-help-popover { position:static; width:100%; transform:none; background:var(--ui-panel); color:var(--ui-ink); border:1px solid var(--ui-line); padding:1rem; margin-top:.5rem; }
 @container (min-width:84rem) { html .app-root .room-layout { grid-template-columns:220px minmax(0,1fr) 300px; } html .app-root .room-roster { grid-column:auto; grid-template-columns:minmax(0,1fr); } }
-@container (max-width:56rem) { html .app-root .room-layout { grid-template-columns:minmax(0,1fr); } html .app-root .room-roster { grid-column:auto; } }
+@container (max-width:68rem) { html .app-root .room-layout { grid-template-columns:minmax(0,1fr); } html .app-root .room-roster { grid-column:auto; } }
+@media (max-width:540px) { html .app-root .room-roster { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:900px) {
   html .app-root .room-roster,html .app-root .room-tools,html .app-root .room-field { display:none; }
   html .app-root .mobile-pane-roster .room-roster { display:grid; }
-  html .app-root .mobile-pane-field .room-field { display:block; }
+  html .app-root .mobile-pane-field .room-field { display:grid; }
   html .app-root .mobile-pane-tools .room-tools { display:grid; }
   html .app-root .room-mobile-nav { position: static; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .65rem; margin: 1rem 0 1.5rem; padding: .5rem; background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: .3rem; backdrop-filter: none; }
   html .app-root .room-mobile-nav button { min-height: 48px; padding: .75rem .6rem; background: var(--ui-panel); color: var(--ui-ink); border: 1px solid var(--ui-line); border-radius: .25rem; font-size: .95rem; font-weight: 750; }

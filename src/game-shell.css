@@ -1,0 +1,97 @@
+/* Phase 2: one game menu around the existing, independently playable modules.
+   Large, legible navigation; small 2D accents; no additional gameplay state. */
+html .app-root.game-edition.handheld-edition .app-header {
+  background: linear-gradient(116deg, #b9233b 0 16%, transparent 16% 79%, #b9233b 79%), #da3041 !important;
+  border-bottom: 4px solid #942338 !important;
+}
+html .app-root.game-edition.handheld-edition .app-header-shell {
+  padding-block: 1rem !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav {
+  gap: .5rem !important;
+}
+html .app-root.game-edition.handheld-edition .nav-capsule {
+  flex-direction: column !important;
+  gap: .45rem !important;
+  min-width: 88px !important;
+  min-height: 92px !important;
+  padding: .6rem .9rem !important;
+  border-radius: .2rem !important;
+  font-size: 1rem !important;
+}
+html .app-root.game-edition.handheld-edition .nav-emblem {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #b9233b;
+  background: #fbfaf3;
+  box-shadow: 0 2px 0 #222b3026;
+}
+html .app-root.game-edition.handheld-edition .nav-pc .nav-emblem { color: #226cae; }
+html .app-root.game-edition.handheld-edition .nav-guide .nav-emblem { color: #117870; }
+html .app-root.game-edition.handheld-edition .nav-adventure .nav-emblem { color: #765516; }
+html .app-root.game-edition.handheld-edition .nav-emblem .game-icon {
+  width: 26px !important;
+  height: 26px !important;
+}
+html .app-root.game-edition.handheld-edition .nav-capsule.is-active .nav-emblem {
+  color: #222b30;
+  background: var(--journey-gold);
+}
+html .app-root.game-edition.handheld-edition .app-actions {
+  padding-top: .8rem !important;
+}
+html .app-root.game-edition.handheld-edition .device-footer {
+  align-items: flex-start !important;
+  padding-block: .25rem max(.25rem, env(safe-area-inset-bottom)) !important;
+}
+html .app-root.game-edition.handheld-edition .game-release {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+}
+html .app-root.game-edition.handheld-edition .game-release b {
+  font-family: "Dex Pixel", monospace;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--journey-gold);
+}
+html .app-root.game-edition.handheld-edition .game-credits {
+  max-width: 100%;
+  margin-left: auto;
+  text-align: right;
+}
+html .app-root.game-edition.handheld-edition .game-credits summary {
+  display: list-item;
+  width: fit-content;
+  min-width: 88px;
+  min-height: 44px;
+  margin-left: auto;
+  padding: .75rem .35rem;
+  box-sizing: border-box;
+  color: #f3f5ef;
+  font-size: .875rem;
+}
+html .app-root.game-edition.handheld-edition .game-credits p {
+  margin: 0 0 .5rem;
+  font-size: .875rem;
+}
+@media (max-width: 700px) {
+  html .app-root.game-edition.handheld-edition .nav-capsule {
+    min-width: 0 !important;
+    padding-inline: .2rem !important;
+    font-size: .875rem !important;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html .app-root.game-edition.handheld-edition .nav-emblem {
+    transition: transform .15s ease-out;
+  }
+  html .app-root.game-edition.handheld-edition .nav-capsule:hover .nav-emblem {
+    transform: translateY(-2px);
+  }
+}

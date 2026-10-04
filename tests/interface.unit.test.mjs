@@ -50,8 +50,8 @@ test("the public interface keeps the RPG name and the canonical area labels", as
   assert.doesNotMatch(text, /\bVGC\b/);
   assert.doesNotMatch(text, /Recovery Mode|Reload MyOwnDex|Close share code|Add to Team/);
   assert.match(text, /label:\s*"RPG"/);
-  assert.match(text, />Aventura<\/button>/);
-  assert.match(text, />Guia<\/button>/);
+  assert.match(text, />Aventura<\/(?:span|button)>/);
+  assert.match(text, />Guia<\/(?:span|button)>/);
 });
 
 test("the editorial glossary keeps names, agreement and Pokémon plurals consistent", () => {
@@ -219,7 +219,7 @@ test("Dados has one visible home and becomes contextual inside an adventure", as
   assert.match(panel, /!inAdventure && <div className="local-dice-pages"/);
   assert.match(panel, /!inAdventure && <details className="local-dice-history"/);
   assert.match(panel, /action:"quick-free"/);
-  assert.match(app, /Projeto de fãs · Fonte/);
+  assert.match(app, /Projeto de fãs · (?:Fonte|Dados)/);
 });
 
 test("game style and adventure phase use compact tabs with complete help on demand", async () => {

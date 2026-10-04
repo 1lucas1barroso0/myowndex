@@ -129,7 +129,7 @@ try {
     await dialog.getByRole('button', { name: 'Gerar outros Pokémon' }).click();
     await page.waitForFunction(() => document.querySelectorAll('.generator-partner').length === 1 && !document.querySelector('.generator-partner.is-saved'));
     await dialog.getByRole('button', { name: 'Gerar outros Pokémon' }).click();
-    await page.getByRole('alertdialog', { name: 'Trazer novos parceiros?' }).waitFor();
+    await page.getByRole('alertdialog', { name: 'Gerar outros Pokémon?' }).waitFor();
     assert.ok(await page.locator('.confirm-dialog-overlay').evaluate(element => Number(getComputedStyle(element).zIndex) > Number(getComputedStyle(document.querySelector('.generator-overlay')).zIndex)));
     assert.equal(await dialog.getAttribute('inert'), '');
     await page.getByRole('button', { name: 'Voltar à prévia' }).click();

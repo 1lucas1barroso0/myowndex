@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 11.6.6.**
+**Versão atual: 2.0.0.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa nova numeração não modifica o formato dos dados, contas, Boxes ou aventuras.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -30,11 +30,15 @@ O MyOwnDex reúne Pokédex, PC do Bill, Guia do Treinador, Gerador, Dados, conta
 
 A interface deve continuar responsiva, utilizável por teclado, legível em telas estreitas e reconhecível como jogo. Placeholders não são usados como instrução ou decoração.
 
-A revisão de acessibilidade da versão 11.6.6 usa rótulos legíveis, contraste coerente entre os temas, controles com alvo confortável e foco contextual. Abrir fichas, gerar Pokémon e corrigir erros deve levar o teclado ao conteúdo correspondente; fechar diálogos ou cancelar ações devolve o foco. Confirmações bloqueiam a interação com o fundo, inclusive dentro de Dados. Campos de consulta permitem tentar novamente após falha de rede. Siglas e instruções adicionais ficam em ajuda recolhida, sem aumentar o ruído permanente.
+A interface usa rótulos legíveis, contraste coerente entre os temas, controles com alvo confortável e foco contextual. Abrir fichas, gerar Pokémon e corrigir erros deve levar o teclado ao conteúdo correspondente; fechar diálogos ou cancelar ações devolve o foco. Confirmações bloqueiam a interação com o fundo, inclusive dentro de Dados. Campos de consulta permitem tentar novamente após falha de rede. Siglas e instruções adicionais ficam em ajuda recolhida, sem aumentar o ruído permanente.
 
 No Campo dos Dados, Box e Pokémon são escolhas separadas. O contador acompanha os Pokémon em campo; a iniciativa mostra a rodada e uma fila com sprites, turno atual e avanço explícito. Escolher um parceiro ou usuário mantém a seleção visual consistente. Movimentos mostram o resultado essencial e guardam a auditoria completa em detalhes recolhidos, sem repetir recibos abaixo do campo. O histórico continua permitindo consultar e apagar cada jogada.
 
 Alterações salvas em outra aba são reconhecidas pela revisão verificada do armazenamento, inclusive no intervalo anterior ao commit do IndexedDB. Uma cópia antiga em memória não pode encobrir essa revisão. A leitura continua protegendo dados quando o dispositivo não permite atualizar uma das cópias.
+
+A iniciativa da Aventura e do Campo usa uma fila comum com sprites. Cada rodada oferece somente sua ação atual: rolar, avançar ou encerrar; encerrar aplica os efeitos e prepara uma nova rolagem. Não há botão de refazer no meio da rodada. As regras e o estado persistido permanecem nos motores existentes. A Aventura prioriza o campo e recolhe preparação/participantes; o Gerador abre compacto e expande após gerar os resultados.
+
+As 40 regras e as funções existentes são preservadas. A linguagem visual combina a clareza de Sword/Shield com o acabamento 2D de HGSS/BW/B2W2. A ação principal é imediatamente reconhecível; detalhes são consultáveis sem ocupar permanentemente a tela. Textos descrevem o que acontece no jogo, sem assumir que todo Pokémon é aliado. Nomes próprios permanecem no original, com explicações naturais em português e referências EN/PT quando disponíveis.
 
 ## Documentos históricos
 
@@ -43,6 +47,3 @@ Arquivos com versão ou intervalo de PR no próprio nome, como `REFINO-11.5.md`,
 ## Publicação
 
 O estado só é considerado publicado depois que o CI do commit final passa e o deployment de produção correspondente fica pronto no domínio principal. Um build local ou Preview aprovado, isoladamente, não prova que produção está atualizada.
-
-
-A versão 11.6.6 reúne a iniciativa da Aventura e do Campo em uma fila comum com sprites. Cada rodada oferece somente sua ação atual: rolar, avançar ou encerrar; encerrar aplica os efeitos e prepara uma nova rolagem. O botão de refazer no meio da rodada foi removido. As regras e o estado persistido permanecem nos motores existentes. A Aventura prioriza o campo e recolhe preparação/participantes; o Gerador abre compacto e expande após gerar parceiros.

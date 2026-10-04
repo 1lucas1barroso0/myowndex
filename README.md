@@ -9,10 +9,10 @@ Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para Pokémon RPG.
 - Escolhas com nomes longos mantêm o texto legível. Formulários e iniciativa se organizam pela largura do painel; os controles de aparência ocupam um canto compacto do cabeçalho.
 - Catálogo nacional de 1.025 espécies incluído; 152 sprites locais (Kanto e Rotom). A abertura da Pokédex não precisa esperar pela rede.
 - Busca por nome/número, favoritos e filtro por geração de estreia. Detalhes, formas, habilidades e movimentos usam a PokéAPI, com cache.
-- Boxes com até seis Pokémon, lista rolável e parceiros sem espaços vazios decorativos. Importação, compartilhamento, duplicação, exclusão e desfazer preservados.
+- Boxes com até seis Pokémon e lista rolável, sem espaços vazios decorativos. Importação, compartilhamento, duplicação, exclusão e desfazer preservados.
 - Registro da Pokédex, linha evolutiva e movimentos com cores por função, hierarquia de leitura e símbolos distintos. A ficha mantém navegação por teclado, abas com setas, retorno do foco e rolagem contínua no celular. Movimento respeita a preferência de redução de animações.
 - Alternância EN/PT no registro com textos incluídos no projeto, sem tradução por IA. Nomes próprios permanecem no original; fontes e cobertura dos textos em português estão em [docs/VALIDACAO.md](docs/VALIDACAO.md).
-- Guia com regras individuais expansíveis, busca e destaque para a proteção contra hit kill. Pokémon, itens, movimentos e habilidades mantêm seus nomes originais em inglês; valores calculados seguem os arredondamentos das regras. A leitura segue os padrões responsivos do Fate Gameplay Toolkit.
+- Guia com 40 regras individuais expansíveis, busca e destaque para a proteção contra hit kill. Pokémon, itens, movimentos e habilidades mantêm seus nomes originais em inglês; valores calculados seguem os arredondamentos das regras. A leitura segue os padrões responsivos do Fate Gameplay Toolkit.
 - Telas grandes carregadas sob demanda; service worker nunca guarda APIs privadas nem respostas RSC.
 - Cache público limitado a 256 respostas de catálogo e 500 assets regeneráveis, hidratação com quatro tarefas simultâneas e salvamento agrupado. Boxes mantêm seus dados e formato de armazenamento.
 - A Vercel executa páginas e APIs diretamente. Salas usam banco Turso sob seu controle; áudio compartilhado usa armazenamento S3/R2 sob seu controle, com upload direto assinado.
@@ -32,17 +32,17 @@ Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configur
 
 ## Atualizar pelo Linux
 
-Baixe `myowndex-v11.6-linux.sh`, abra o terminal na pasta do download e execute:
+Baixe `myowndex-v2.0-linux.sh`, abra o terminal na pasta do download e execute:
 
 ```bash
-bash myowndex-v11.6-linux.sh
+bash myowndex-v2.0-linux.sh
 ```
 
 O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da Vercel e os bancos já configurados. Você não precisa criar outra conta Turso, copiar tokens, extrair um arquivo ZIP ou migrar salas.
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A versão atual é **11.6.6**. O estado vigente do projeto é sempre o conteúdo de `main`, com a versão declarada em `package.json`; documentos de entregas anteriores são apenas registros históricos. A versão atual mantém contas sincronizadas, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira, Dados acessíveis em todos os módulos e as regras preservadas dos PRs #20 a #28. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
+A versão atual é **2.0.0**, apresentada como **2.0** na interface. A nova leva sucede a 11.6.6 e mantém as 40 regras, contas sincronizadas, Boxes, aventuras, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira e Dados acessíveis em todos os módulos. A numeração da entrega é independente do formato dos dados e não altera suas chaves ou esquemas. O estado vigente do projeto é sempre o conteúdo de `main`, com a versão declarada em `package.json`; documentos de entregas anteriores são registros históricos. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
 
 A interface usa rótulos legíveis, foco visível, alvos confortáveis e contraste consistente nos dois temas. Fichas, gerador e diálogos têm navegação pelo teclado e retorno de foco. Ajuda adicional fica recolhida; consultas de catálogo permitem tentar novamente após falhas de conexão. O roteiro de acessibilidade e os demais testes de navegador estão descritos em [docs/VALIDACAO.md](docs/VALIDACAO.md).
 

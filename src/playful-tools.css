@@ -1,0 +1,184 @@
+/* Tools share the same friendly game pieces without changing their actions. */
+html :is(.generator-dialog,.account-dialog) {
+  border-radius: var(--play-radius,1rem);
+  box-shadow: 0 8px 0 #10243724,0 24px 72px #071a324a;
+}
+html :is(.generator-heading,.account-dialog-heading) {
+  background: linear-gradient(115deg,var(--ui-panel) 45%,var(--ui-selected));
+}
+html :is(.generator-dialog,.account-dialog) button {
+  border-radius: var(--play-control-radius,.65rem);
+}
+html :is(.generator-dialog,.account-dialog) button:not(:disabled):not([aria-pressed="true"]):not(.generator-primary):not(.account-primary):hover {
+  border-color: var(--ui-blue);
+  background: var(--ui-selected);
+}
+html :is(.generator-dialog,.account-dialog) :is(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),.room-select) {
+  border-radius: var(--play-control-radius,.65rem) !important;
+}
+html :is(.generator-heading,.account-dialog-heading) .pokemon-companion::before {
+  opacity: .75;
+  filter: blur(1px);
+}
+
+/* Encounters look like Pokémon cards; their actual selection stays explicit. */
+html .generator-partner {
+  border-radius: var(--play-radius,1rem);
+  border-top-width: 4px;
+  padding: 1.15rem;
+  box-shadow: var(--play-shadow,0 4px 0 #20373c12);
+}
+html .generator-partner:has(.generator-partner-choice input:checked) {
+  outline: 1px solid color-mix(in srgb,var(--journey-teal) 45%,var(--ui-line));
+}
+html .generator-partner.is-saved { border-top-color: var(--ui-blue); }
+html .generator-types span {
+  border-radius: .55rem;
+  padding: .35rem .7rem;
+}
+html .generator-partner-facts { gap: .75rem; }
+html .generator-partner-facts > div {
+  padding: .75rem;
+  border-radius: .65rem;
+  background: var(--ui-raised);
+}
+html .generator-moves { gap: .5rem; }
+html .generator-moves li {
+  border-radius: .55rem;
+  padding: .65rem .8rem;
+}
+html .generator-save {
+  border-radius: var(--play-radius,1rem);
+  box-shadow: var(--play-shadow,0 4px 0 #20373c12);
+}
+html .generator-customize { padding-inline: .15rem; }
+html .generator-customize summary:hover { color: var(--ui-ink); }
+html :is(.generator-error,.generator-notice) { border-radius: .65rem; }
+
+/* The Trainer card feels like a game profile, with calm and clear form fields. */
+html .account-pages { gap: .65rem; }
+html .account-pages button[aria-pressed="true"] {
+  color: var(--ui-blue);
+  background: var(--ui-selected);
+  border-color: var(--ui-blue);
+  box-shadow: inset 0 -3px var(--ui-blue);
+}
+html .account-trainer-card {
+  border-radius: var(--play-radius,1rem);
+  border: 1px solid var(--ui-line);
+  border-left: 4px solid var(--ui-blue);
+  background: linear-gradient(115deg,var(--ui-selected),var(--ui-panel));
+  box-shadow: var(--play-shadow,0 4px 0 #20373c12);
+}
+html .account-trainer-card > svg {
+  box-sizing: border-box;
+  padding: .65rem;
+  border-radius: 50%;
+  background: var(--ui-panel);
+}
+html :is(.account-error,.account-message,.account-recovery-notice,.account-recovery-codes) {
+  border-radius: .65rem;
+}
+html .account-disclosure summary:hover { color: var(--ui-blue); }
+html .account-disclosure.is-danger summary:hover { color: var(--ui-accent); }
+
+/* Dice have their own tactile pieces; unselected tabs keep a neutral surface. */
+html .app-root.game-edition.handheld-edition .local-dice-dialog {
+  border-radius: var(--play-radius,1rem);
+  box-shadow: 0 8px 0 #10243724,0 24px 72px #071a324a;
+}
+html .app-root.game-edition.handheld-edition .local-dice-dialog-heading {
+  background: linear-gradient(115deg,var(--ui-panel) 45%,var(--ui-selected));
+}
+html .app-root.game-edition.handheld-edition :is(.local-dice-dialog-close,.local-dice-sound-control) {
+  border-radius: var(--play-control-radius,.65rem);
+}
+html .app-root.game-edition.handheld-edition .local-dice-panel button:not(.room-primary-button):not(:where(.local-pokemon-dice button)) {
+  border-radius: var(--play-control-radius,.65rem) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-tabs button {
+  min-height: 72px !important;
+  border-bottom-width: 3px !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-tabs b { font-size: 1.25rem !important; }
+html .app-root.game-edition.handheld-edition .local-dice-tabs button[aria-pressed="false"] {
+  background: var(--ui-panel) !important;
+  box-shadow: 0 2px 0 var(--ui-line) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-tabs button[aria-pressed="true"] {
+  box-shadow: inset 0 -3px var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-fields :is(input:not([type="range"]),.room-select) {
+  border-radius: var(--play-control-radius,.65rem) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-result {
+  border: 1px solid var(--ui-line) !important;
+  border-top: 4px solid var(--ui-blue) !important;
+  border-radius: var(--play-radius,1rem) !important;
+  padding: 1rem !important;
+  background: var(--ui-raised) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-total {
+  border-radius: .85rem !important;
+  background: var(--ui-panel) !important;
+  border: 2px solid var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-faces b {
+  min-width: 3rem !important;
+  min-height: 3rem !important;
+  border-radius: .65rem !important;
+  background: var(--ui-panel) !important;
+  box-shadow: 0 3px 0 var(--ui-line) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-faces .is-discarded b {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-verdict > :is(b,strong) {
+  border-radius: .55rem !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-panel .local-dice-feedback {
+  border-radius: .65rem !important;
+}
+
+/* Field cards remain compact. Only the current turn and chosen Pokémon glow. */
+html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-tool {
+  border-radius: var(--play-radius,1rem) !important;
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-dice button:not(.room-primary-button) {
+  border-radius: var(--play-control-radius,.65rem);
+}
+html .app-root.game-edition.handheld-edition .local-pokemon-dice :is(.local-field-preview,.local-field-dispute-result,.combat-result-target) {
+  border-radius: .75rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-hp { border-radius: 1rem; }
+html .app-root.game-edition.handheld-edition .local-pokemon-roster button {
+  padding: .85rem;
+  border-bottom-width: 3px;
+}
+html .app-root.game-edition.handheld-edition .local-field-round {
+  padding: .35rem .65rem;
+  border: 1px solid var(--ui-line);
+  border-radius: 2rem;
+  background: var(--ui-raised);
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list > li > button {
+  border-radius: .75rem;
+}
+html .app-root.game-edition.handheld-edition .local-field-turn-list > li[aria-current="step"] > button {
+  box-shadow: inset 4px 0 var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .local-field-dice-group b {
+  border-radius: .55rem;
+  box-shadow: 0 2px 0 var(--ui-line);
+}
+
+@media (max-width: 480px) {
+  html .generator-partner { padding: 1rem; }
+  html .generator-partner-facts { gap: .65rem; }
+  html .generator-partner-facts > div { padding: .65rem; }
+}
+@media (forced-colors: active) {
+  html :is(.generator-dialog,.account-dialog,.generator-partner,.generator-save,.account-trainer-card) { box-shadow: none; }
+  html .app-root.game-edition.handheld-edition :is(.local-dice-dialog,.local-dice-result,.local-dice-tabs button,.local-dice-faces b) { box-shadow: none !important; }
+}

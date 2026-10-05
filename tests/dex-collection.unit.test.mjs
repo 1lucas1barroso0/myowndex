@@ -41,6 +41,15 @@ test("dex search accepts explicit National Dex intervals and keeps fixed forms w
   assert.deepEqual(selectDexSpecies(catalogue, { query: "1026-1030" }), []);
 });
 
+test("fixed forms have independent favorites while legacy numeric species favorites remain valid", () => {
+  const catalogue = [
+    { name: "rattata", url: "https://pokeapi.co/api/v2/pokemon-species/19/" },
+    { name: "rattata-alola", url: "https://pokeapi.co/api/v2/pokemon-species/19/", speciesId: 19, pokemonId: 10091, formKey: "rattata-alola", generation: 7 },
+  ];
+  assert.deepEqual(selectDexSpecies(catalogue, { favorites: ["19"], onlyFavorites: true }).map(p => p.name), ["rattata"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { favorites: ["form:rattata-alola"], onlyFavorites: true }).map(p => p.name), ["rattata-alola"]);
+});
+
 test("favorites combine with search and sorting without mutating the catalogue", () => {
   const original = structuredClone(species);
   assert.deepEqual(selectDexSpecies(species, { favorites: ["25", "1"], onlyFavorites: true }).map(p => p.name), ["bulbasaur", "pikachu"]);

@@ -123,6 +123,8 @@ const packPokemon = pokemon => ({
     d: pokemon.dynamaxLevel ?? 0,
     y: pokemon.teraType || "",
     h: pokemon.friendship ?? 70,
+    u: pokemon.formKey || "",
+    z: pokemon.formId ?? null,
     c: pokemon.customStats || null,
     x: pokemon.customTypes || null,
     j: pokemon.rpg ? {
@@ -166,6 +168,8 @@ const unpackPokemon = pokemon => ({
     dynamaxLevel: pokemon.d ?? 0,
     teraType: pokemon.y || "",
     friendship: pokemon.h ?? 70,
+    formKey: pokemon.u || "",
+    formId: pokemon.z ?? null,
     customStats: pokemon.c || null,
     customTypes: pokemon.x || null,
     rpg: pokemon.j ? {

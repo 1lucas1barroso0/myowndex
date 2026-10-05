@@ -31,10 +31,10 @@ test("dex search understands padded numbers, accents, punctuation and gender", (
 
 test("dex search accepts inclusive National Dex intervals without confusing forms with new numbers", () => {
   const catalogue = [
-    { speciesId: 19, pokemonId: 19, speciesName: "rattata", pokemonName: "rattata", isDefault: true, url: "https://pokeapi.co/api/v2/pokemon-species/19/" },
-    { speciesId: 19, pokemonId: 10091, speciesName: "rattata", pokemonName: "rattata-alola", form: "alola", isDefault: false, url: "https://pokeapi.co/api/v2/pokemon-species/19/", pokemonUrl: "https://pokeapi.co/api/v2/pokemon/10091/" },
-    { speciesId: 20, pokemonId: 20, speciesName: "raticate", pokemonName: "raticate", isDefault: true, url: "https://pokeapi.co/api/v2/pokemon-species/20/" },
-    { speciesId: 25, pokemonId: 25, speciesName: "pikachu", pokemonName: "pikachu", isDefault: true, url: "https://pokeapi.co/api/v2/pokemon-species/25/" },
+    { speciesId: 19, pokemonId: 19, speciesName: "rattata", pokemonName: "rattata", isDefault: true, generation: 1, formGeneration: 1, url: "https://pokeapi.co/api/v2/pokemon-species/19/" },
+    { speciesId: 19, pokemonId: 10091, speciesName: "rattata", pokemonName: "rattata-alola", catalogFormKey: "rattata-alola", form: "alola", isDefault: false, generation: 1, formGeneration: 7, url: "https://pokeapi.co/api/v2/pokemon-species/19/", pokemonUrl: "https://pokeapi.co/api/v2/pokemon/10091/" },
+    { speciesId: 20, pokemonId: 20, speciesName: "raticate", pokemonName: "raticate", isDefault: true, generation: 1, formGeneration: 1, url: "https://pokeapi.co/api/v2/pokemon-species/20/" },
+    { speciesId: 25, pokemonId: 25, speciesName: "pikachu", pokemonName: "pikachu", isDefault: true, generation: 1, formGeneration: 1, url: "https://pokeapi.co/api/v2/pokemon-species/25/" },
   ];
   assert.deepEqual(parseDexNumberRange("20-19"), { start: 19, end: 20 });
   assert.deepEqual(parseDexNumberRange("#0019 até #0020"), { start: 19, end: 20 });
@@ -42,6 +42,8 @@ test("dex search accepts inclusive National Dex intervals without confusing form
   assert.deepEqual(selectDexSpecies(catalogue, { query: "19-20" }).map(getDexEntryIdentity), ["rattata", "rattata-alola", "raticate"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "alola" }).map(getDexEntryIdentity), ["rattata-alola"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "0019" }).map(getDexEntryIdentity), ["rattata", "rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "7" }).map(getDexEntryIdentity), ["rattata-alola"], "a regional form follows its own debut generation");
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "1" }).map(getDexEntryIdentity), ["rattata", "raticate", "pikachu"]);
   assert.equal(getDexSpeciesId(catalogue[1]), 19);
   assert.equal(getDexPokemonId(catalogue[1]), 10091);
   assert.equal(getDexEntryName(catalogue[1]), "rattata-alola");

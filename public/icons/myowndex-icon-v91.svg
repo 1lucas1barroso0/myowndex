@@ -4,7 +4,7 @@
     <linearGradient id="screen" x1="139" y1="266" x2="376" y2="404" gradientUnits="userSpaceOnUse"><stop stop-color="#ECFEFF"/><stop offset="1" stop-color="#BAE6FD"/></linearGradient>
     <radialGradient id="lens" cx="0" cy="0" r="1" gradientTransform="translate(188 171) rotate(48) scale(87)"><stop stop-color="#F0FDFF"/><stop offset=".22" stop-color="#67E8F9"/><stop offset=".6" stop-color="#0EA5E9"/><stop offset="1" stop-color="#075985"/></radialGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#7F1D1D"/>
+  <rect width="512" height="512" fill="#7F1D1D"/>
   <path d="M89 119c0-24 19-43 43-43h248c24 0 43 19 43 43v304c0 24-19 43-43 43H132c-24 0-43-19-43-43V119Z" fill="#450A0A" fill-opacity=".34"/>
   <g>
     <path d="M89 104c0-24 19-43 43-43h248c24 0 43 19 43 43v304c0 24-19 43-43 43H132c-24 0-43-19-43-43V104Z" fill="url(#case)"/>

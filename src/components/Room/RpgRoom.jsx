@@ -42,7 +42,7 @@ import {
     swapTeamPokemonInSnapshot,
     syncTeamsWithRoomProgress,
 } from "../../core/room.js";
-import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
+import { formatName, formatPokemonIdentity, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import { formatCount } from "../../core/copy.js";
 import { integerInRange } from "../../core/math.js";
 import {
@@ -837,7 +837,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
     const addSelectedTeam = async side => {
         if (!selectedTeam || !selectedTeamPokemon) return;
         const pokemonName = selectedTeamPokemon.nickname
-            || formatName(selectedTeamPokemon.species?.species?.name || selectedTeamPokemon.species?.name);
+            || formatPokemonIdentity(selectedTeamPokemon);
         const result = addTeamToSnapshot(snapshot, selectedTeam, side, "", {
             activePokemonIds: [selectedTeamPokemon.id],
             benchRemaining: true,
@@ -1479,7 +1479,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                         {!selectedTeam?.pokemon.length && <option value="">Esta Box está vazia</option>}
                                         {selectedTeam?.pokemon.map(pokemon => (
                                             <option key={pokemon.id} value={pokemon.id}>
-                                                {pokemon.nickname || formatName(pokemon.species?.species?.name || pokemon.species?.name)}
+                                                {pokemon.nickname || formatPokemonIdentity(pokemon)}
                                             </option>
                                         ))}
                                     </RoomSelect>

@@ -131,6 +131,23 @@ test("V4 share code round-trips Unicode and every editable factor", async () => 
   assert.deepEqual(decoded.pokemon[0].rpg.pp, [10, 15, 20, 5]);
 });
 
+test("Link Cable preserves a fixed visual form independently from the mechanical Pokémon form", async () => {
+  const source = normalizeTeam({
+    id: "styled-form",
+    pokemon: [{
+      speciesName: "alcremie",
+      formName: "alcremie",
+      formKey: "alcremie-rainbow-swirl-star-sweet",
+      formId: 10473,
+      nickname: "Prisma",
+    }],
+  });
+  const decoded = await decodeTeam(await encodeTeam(source));
+  assert.equal(decoded.pokemon[0].species.name, "alcremie");
+  assert.equal(decoded.pokemon[0].formKey, "alcremie-rainbow-swirl-star-sweet");
+  assert.equal(decoded.pokemon[0].formId, 10473);
+});
+
 test("legacy V3 codes remain importable", async () => {
   const payload = {
     boxName: "Legacy",

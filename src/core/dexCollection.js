@@ -69,6 +69,8 @@ export function selectDexSpecies(species, {
     const maximum = Number(maxNumber);
     const hasMinimum = Number.isInteger(minimum) && minimum >= 1 && minimum <= 1025;
     const hasMaximum = Number.isInteger(maximum) && maximum >= 1 && maximum <= 1025;
+    const lowerBound = hasMinimum && hasMaximum ? Math.min(minimum, maximum) : minimum;
+    const upperBound = hasMinimum && hasMaximum ? Math.max(minimum, maximum) : maximum;
     const range = DEX_GENERATIONS.find(gen => gen.id === generation) || DEX_GENERATIONS[0];
     return species.filter(entry => {
         const id = dexEntryNumber(entry);
@@ -83,7 +85,7 @@ export function selectDexSpecies(species, {
                         .filter(Boolean).some(value => normalizeDexSearch(value).includes(normalized)));
         const entryTypes = Array.isArray(entry?.types) ? entry.types : [];
         const matchesTypes = [...selectedTypes].every(type => entryTypes.includes(type));
-        const matchesBounds = (!hasMinimum || id >= minimum) && (!hasMaximum || id <= maximum);
+        const matchesBounds = (!hasMinimum || id >= lowerBound) && (!hasMaximum || id <= upperBound);
         const variantSearchMatch = entry?.isPrimarySpecies === false
             && !numericRange
             && numericQuery === null

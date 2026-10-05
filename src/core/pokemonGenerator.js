@@ -65,7 +65,8 @@ export const normalizeGeneratorOptions = (options = {}) => ({
 export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null, metadata = {}) => {
     const normalized = normalizeGeneratorOptions(options);
     const range = GENERATION_RANGES[normalized.generation - 1];
-    const gameGeneration = normalized.experienceMode === 'game' ? getReferenceGameGeneration(normalized.versionGroup) || 9 : 9;
+    const referenceGeneration = getReferenceGameGeneration(normalized.versionGroup) || 9;
+    const gameGeneration = normalized.experienceMode === 'game' ? referenceGeneration : 9;
     return (Array.isArray(catalogue) ? catalogue : []).map(entry => {
         const speciesId = Number(entry?.speciesId || extractId(entry?.url));
         const pokemonId = Number(entry?.pokemonId || extractId(entry?.pokemonUrl) || speciesId);
@@ -74,6 +75,7 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
     }).filter(entry => Number.isInteger(entry.id) && entry.id >= 1 && entry.id <= 1025
         && (!normalized.speciesId || entry.id === normalized.speciesId)
         && (!normalized.formName || (entry.pokemonName || entry.name) === normalized.formName)
+        && (!entry.formGeneration || entry.formGeneration <= referenceGeneration)
         && (!range || (entry.id >= range[0] && entry.id <= range[1]))
         && (normalized.legendary === 'all' || !entry.pinned || (normalized.legendary === 'only'
             ? entry.pinned.legendary || entry.pinned.mythical

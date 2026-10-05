@@ -236,6 +236,39 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", initialC
     const selectedCatalogForm = catalogForms.find(entry => entry.catalogFormKey === catalogFormKey) || null;
     const persistentPokemonNames = useMemo(() => new Set(catalogForms.map(entry => entry.pokemonName)), [catalogForms]);
     const temporaryVarieties = (baseInfo?.varieties || []).filter(value => !persistentPokemonNames.has(value.pokemon?.name));
+    const formChoices = [
+        ...catalogForms.map(entry => ({
+            key: `catalog:${entry.catalogFormKey}`,
+            label: Number(entry.formCount) > 1 && entry.form
+                ? formatName(entry.form)
+                : entry.isDefault ? "Forma base" : formatName(entry.pokemonName.replace((baseInfo?.name || "") + "-", "")),
+            entry,
+        })),
+        ...temporaryVarieties.map(value => {
+            const formSlug = (value.pokemon?.name || "").replace((baseInfo?.name || "") + "-", "");
+            return {
+                key: `temporary:${value.pokemon?.name || ""}`,
+                label: value.pokemon?.name === baseInfo?.name || !formSlug ? "Forma base" : formatName(formSlug),
+                variety: value,
+            };
+        }),
+    ];
+    const activeFormChoice = catalogFormKey
+        ? `catalog:${catalogFormKey}`
+        : `temporary:${activeForm?.name || ""}`;
+    const chooseFormChoice = value => {
+        const choice = formChoices.find(entry => entry.key === value);
+        if (!choice) return;
+        if (choice.entry) {
+            setCatalogFormKey(choice.entry.catalogFormKey);
+            if (activeForm?.url !== choice.entry.pokemonUrl) {
+                setActiveForm({ name: choice.entry.pokemonName, url: choice.entry.pokemonUrl });
+            }
+            return;
+        }
+        setCatalogFormKey("");
+        setActiveForm(choice.variety.pokemon);
+    };
     const selectedFormLabel = selectedCatalogForm && Number(selectedCatalogForm.formCount) > 1 && selectedCatalogForm.form
         ? formatName(selectedCatalogForm.form)
         : activeForm?.name !== baseInfo?.name
@@ -399,49 +432,34 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", initialC
                                     <div className="record-abilities-list">{formData.abilities?.map((a, i) => <AbilityCard key={a.ability?.name || i} name={a.ability?.name} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
                                 </div>
                                 
-                                {(catalogForms.length > 1 || temporaryVarieties.length > 0) && (
+                                {formChoices.length > 1 && (
                                     <div>
                                         <h3 className="record-section-title">Formas</h3>
-                                        <div className="record-form-options">
-                                            {catalogForms.map(entry => {
-                                                const btnName = Number(entry.formCount) > 1 && entry.form
-                                                    ? formatName(entry.form)
-                                                    : entry.isDefault ? "Forma base" : formatName(entry.pokemonName.replace(baseInfo.name + "-", ""));
-                                                const selected = catalogFormKey === entry.catalogFormKey;
-                                                return (
-                                                    <button
-                                                        key={entry.catalogFormKey}
-                                                        type="button"
-                                                        aria-pressed={selected}
-                                                        onClick={() => {
-                                                            setCatalogFormKey(entry.catalogFormKey);
-                                                            if (activeForm?.url !== entry.pokemonUrl) setActiveForm({ name: entry.pokemonName, url: entry.pokemonUrl });
-                                                        }}
-                                                        className={`record-form-button ${selected ? "is-selected" : ""}`}
-                                                    >
-                                                        {btnName}
-                                                    </button>
-                                                );
-                                            })}
-                                            {temporaryVarieties.map((v, index) => {
-                                                const formSlug = (v.pokemon?.name || "").replace(baseInfo.name + "-", "");
-                                                const btnName = v.pokemon?.name === baseInfo.name || !formSlug
-                                                    ? "Forma base"
-                                                    : formatName(formSlug);
-                                                const selected = !catalogFormKey && activeForm?.name === v.pokemon?.name;
-                                                return (
-                                                    <button
-                                                        key={v.pokemon?.name || `temporary-form-${index}`}
-                                                        type="button"
-                                                        aria-pressed={selected}
-                                                        onClick={() => { setCatalogFormKey(""); setActiveForm(v.pokemon); }}
-                                                        className={`record-form-button ${selected ? "is-selected" : ""}`}
-                                                    >
-                                                        {btnName}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                        {formChoices.length > 12 ? (
+                                            <div className="record-game-picker">
+                                                <label htmlFor={`${recordId}-form-choice`}>Forma</label>
+                                                <RoomSelect id={`${recordId}-form-choice`} aria-label="Forma do Pokémon" value={activeFormChoice} onChange={event => chooseFormChoice(event.target.value)}>
+                                                    {formChoices.map(choice => <option key={choice.key} value={choice.key}>{choice.label}</option>)}
+                                                </RoomSelect>
+                                            </div>
+                                        ) : (
+                                            <div className="record-form-options">
+                                                {formChoices.map(choice => {
+                                                    const selected = activeFormChoice === choice.key;
+                                                    return (
+                                                        <button
+                                                            key={choice.key}
+                                                            type="button"
+                                                            aria-pressed={selected}
+                                                            onClick={() => chooseFormChoice(choice.key)}
+                                                            className={`record-form-button ${selected ? "is-selected" : ""}`}
+                                                        >
+                                                            {choice.label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 

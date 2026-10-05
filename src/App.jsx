@@ -369,6 +369,8 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     }, [view, envLoaded]);
 
     const filteredSpecies = useMemo(() => selectDexSpecies(species, { query: deferredSearchTerm, favorites, onlyFavorites, order: dexOrder, generation: dexGeneration }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder, dexGeneration]);
+    const filteredSpeciesCount = useMemo(() => new Set(filteredSpecies.map(getDexSpeciesId)).size, [filteredSpecies]);
+    const filteredFormCount = Math.max(0, filteredSpecies.length - filteredSpeciesCount);
 
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 
@@ -539,7 +541,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 <header className="dex-heading">
                                     <div className="dex-title"><h2>Pokédex Nacional</h2></div>
                                     <PokemonCompanion place="pokedex" className="dex-companion" eager />
-                                    <span className="dex-count" role="status">{formatPokemonCount(filteredSpecies.length)}</span>
+                                    <span className="dex-count" role="status">{formatPokemonCount(filteredSpeciesCount)}{filteredFormCount ? ` · ${filteredFormCount} ${filteredFormCount === 1 ? "forma" : "formas"}` : ""}</span>
                                 </header>
                                 <div className="dex-toolbar">
                                     <label className="dex-search"><span className="dex-search-label">Nome, forma, número ou intervalo</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} /></label>

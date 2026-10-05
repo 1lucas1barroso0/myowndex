@@ -2,7 +2,6 @@ import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useSt
 import dynamic from "next/dynamic";
 import bundledSpecies from "./data/species.json";
 import fixedFormCatalogue from "./data/forms.json";
-import { formatPokemonCount } from "./core/copy.js";
 import { integerInRange } from "./core/math.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { compactSpecies, createTeam, hydrateTeam, loadTeamsDurable, mergeHydratedTeams, normalizePokemon, saveTeamsDurable, touchTeam } from "./core/team.js";
@@ -23,6 +22,12 @@ import AccountButton from "./components/Account/AccountButton.jsx";
 const APP_VERSION = "2.0.4";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
+const formatDexResultCount = (speciesCount, formCount) => {
+    const parts = [];
+    if (speciesCount) parts.push(`${speciesCount} ${speciesCount === 1 ? "espécie" : "espécies"}`);
+    if (formCount) parts.push(`${formCount} ${formCount === 1 ? "forma" : "formas"}`);
+    return parts.join(" · ") || "0 resultados";
+};
 function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
@@ -592,7 +597,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 <header className="dex-heading">
                                     <div className="dex-title"><h2>Pokédex Nacional</h2></div>
                                     <PokemonCompanion place="pokedex" className="dex-companion" eager />
-                                    <span className="dex-count" role="status">{formatPokemonCount(filteredSpeciesCount)}{filteredFormCount ? ` · ${filteredFormCount} ${filteredFormCount === 1 ? "forma" : "formas"}` : ""}</span>
+                                    <span className="dex-count" role="status">{formatDexResultCount(filteredSpeciesCount, filteredFormCount)}</span>
                                 </header>
                                 <div className="dex-toolbar">
                                     <label className="dex-search"><span className="dex-search-label">Nome, número ou intervalo</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} inputMode="search" /></label>

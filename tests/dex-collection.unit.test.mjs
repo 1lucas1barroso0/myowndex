@@ -50,6 +50,16 @@ test("fixed forms have independent favorites while legacy numeric species favori
   assert.deepEqual(selectDexSpecies(catalogue, { favorites: ["form:rattata-alola"], onlyFavorites: true }).map(p => p.name), ["rattata-alola"]);
 });
 
+test("a named primary form keeps legacy species favorites and remains searchable by form", () => {
+  const unownA = {
+    name: "unown", speciesName: "unown", pokemonName: "unown", speciesId: 201,
+    url: "https://pokeapi.co/api/v2/pokemon-species/201/", formKey: "unown-a",
+    formIdentifier: "a", formId: 201, generation: 2, isPrimarySpecies: true,
+  };
+  assert.deepEqual(selectDexSpecies([unownA], { query: "unown a" }).map(p => p.formKey), ["unown-a"]);
+  assert.deepEqual(selectDexSpecies([unownA], { favorites: ["201"], onlyFavorites: true }).map(p => p.formKey), ["unown-a"]);
+});
+
 test("favorites combine with search and sorting without mutating the catalogue", () => {
   const original = structuredClone(species);
   assert.deepEqual(selectDexSpecies(species, { favorites: ["25", "1"], onlyFavorites: true }).map(p => p.name), ["bulbasaur", "pikachu"]);

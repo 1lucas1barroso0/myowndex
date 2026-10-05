@@ -240,7 +240,7 @@ export const RPG_RULE_SECTIONS = [
                     "Chance = 100 × taxa da espécie ÷ 255 × (3 × HP máximo − 2 × HP atual) ÷ (3 × HP máximo) × bônus da Ball × bônus da condição. O jogo arredonda para baixo e mantém de 1% a 100% quando a taxa é positiva. Taxa 0 não permite captura comum.",
                     "Poké Ball, Premier Ball, Luxury Ball e Heal Ball: ×1; Great Ball: ×1,5; Ultra Ball: ×2. Sono ou congelamento: ×2,5; queimadura, paralisia ou veneno: ×1,5. Master Ball dispensa o teste, mas não permite capturar o Pokémon de outro Treinador.",
                     "No d100, igual ou menor que a chance é captura. A taxa vem da Pokédex; HP e condição vêm da cena. A vantagem de um ataque não passa para a captura.",
-                    "Uma Ball especial mantém sua própria descrição e bônus: não é tratada silenciosamente como uma Poké Ball comum. O Narrador registra uma exceção quando necessário. Depois da captura, registre o Pokémon no PC e ajuste o inventário; o Diário guarda o resultado.",
+                    "Uma Ball especial mantém sua própria descrição e bônus: não é tratada silenciosamente como uma Poké Ball comum. O Narrador registra uma exceção quando necessário. Depois da captura, registre o Pokémon no PC e ajuste o inventário; o Diário da aventura guarda o resultado.",
                 ]
             },
             {

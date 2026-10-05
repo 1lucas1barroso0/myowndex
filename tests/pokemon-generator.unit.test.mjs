@@ -59,18 +59,13 @@ test('form type filters use the selected historical game instead of current typi
     assert.deepEqual(getGeneratorSpeciesPool([rotomWash], { type: 'water', experienceMode: 'game', versionGroup: 'black-white' }).map(entry => entry.name), ['rotom-wash']);
 });
 
-test('a named primary persistent form remains the species choice instead of being rejected as an alternate', () => {
-    const unownA = {
-        id: 201,
-        speciesId: 201,
-        name: 'unown',
-        formKey: 'unown-a',
-        isPrimarySpecies: true,
-        generation: 2,
-        types: ['psychic'],
-        url: `${API}pokemon-species/201/`,
-    };
-    assert.deepEqual(getGeneratorSpeciesPool([unownA], { speciesId: 201 }).map(entry => entry.formKey), ['unown-a']);
+test('choosing a species keeps interchangeable forms grouped while an explicit fixed variant remains selectable', () => {
+    const entries = [
+        { id: 201, speciesId: 201, name: 'unown', formKey: '', isPrimarySpecies: true, generation: 2, types: ['psychic'], url: `${API}pokemon-species/201/` },
+        { id: 201, speciesId: 201, name: 'unown-b', formKey: 'unown-b', isPrimarySpecies: false, generation: 2, types: ['psychic'], url: `${API}pokemon-species/201/` },
+    ];
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { speciesId: 201 }).map(entry => entry.formKey), ['']);
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { speciesId: 201, formKey: 'unown-b' }).map(entry => entry.formKey), ['unown-b']);
 });
 
 test('generator learnset uses the latest actual game and only moves learned by the selected level', () => {

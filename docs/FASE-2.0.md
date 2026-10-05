@@ -12,7 +12,7 @@ O menu comum às quatro áreas usa emblemas, seleção clara e grandes áreas de
 
 A auditoria confirmou 40 IDs e títulos únicos em oito capítulos: Rolagens 4, Cálculos 5, Combate 7, Treinador 4, Criação 4, Condições 5, Habilidades/Itens/Formas 6 e Condução 5. Os 38 arquivos de core, dados e servidor auditados permanecem idênticos à base publicada.
 
-XP inteira arredondada para baixo, demais arredondamentos, prioridade e Speed na iniciativa, nova rolagem a cada rodada, proteção contra hit kill e referências de Champions permanecem nos motores existentes. A apresentação não altera contas, sincronização, Boxes, aventuras, importação/exportação, EN/PT ou exclusões.
+XP recebida inteira, metas e divisões de XP arredondadas para baixo, demais arredondamentos, prioridade e Speed na iniciativa, nova rolagem a cada rodada, proteção contra hit kill e referências de Champions permanecem nos motores existentes. A apresentação não altera contas, sincronização, Boxes, aventuras, importação/exportação, EN/PT ou exclusões.
 
 A nova numeração não modifica chaves de localStorage/IndexedDB, schemas nem formatos de conta. As dependências também não mudaram. O shell offline acompanha 2.0.0; a interface exibe 2.0. O instalador deriva nomes e metadados da versão e aceita o override legado sem sobrescrever o estado de outra entrega.
 

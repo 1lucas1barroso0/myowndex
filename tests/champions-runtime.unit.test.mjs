@@ -4,16 +4,16 @@ import fs from 'node:fs/promises';
 import { getCurrentMoveReference } from '../src/core/championsMoves.js';
 import { getMoveReferenceForMode } from '../src/core/referenceGames.js';
 import { getSpecialMoveBlockReason } from '../src/core/specialMechanics.js';
-import { changeRoomPhase, createRoomSnapshot, normalizeRoomSnapshot } from '../src/core/room.js';
+import { changeRoomPhase, createRoomSnapshot, normalizeRoomSnapshot, startNewRoomBattle } from '../src/core/room.js';
 import { resolveAuthoritativeAction } from '../server/authoritativeActions.js';
 
 const random = { nextUint32: () => 2 };
 const fixture = (name, target = 'selected-pokemon') => ({ name, pp: 10, power: 40, accuracy: 100,
     type: { name: 'normal' }, damage_class: { name: target === 'user' ? 'status' : 'special' },
     target: { name: target }, meta: { ailment: { name: 'none' }, drain: 0, healing: 0 }, stat_changes: [] });
-const scene = name => normalizeRoomSnapshot({ ...createRoomSnapshot(), phase: 'batalha', round: 2, tokens: [
+const scene = name => normalizeRoomSnapshot({ ...createRoomSnapshot(), phase: 'batalha', round: 2, initiative: ['user', 'target'], turnIndex: 0, tokens: [
     { id: 'user', name: 'Parceiro', side: 'ally', level: 50, maxHp: 50, currentHp: 50,
-        types: ['normal'], moves: [name, 'tackle'], pp: [null, 35], enteredRound: 1, activeMoveActions: 0,
+        types: ['normal'], moves: [name, 'tackle'], declaredMove: name, pp: [null, 35], enteredRound: 1, activeMoveActions: 0,
         originalStats: { attack: 100, defense: 50, 'special-attack': 100, 'special-defense': 50, speed: 100 } },
     { id: 'target', name: 'Alvo', side: 'opponent', level: 50, maxHp: 100, currentHp: 100,
         types: ['normal'], moves: ['tackle'], originalStats: { attack: 10, defense: 10, 'special-attack': 10, 'special-defense': 10, speed: 10 } },
@@ -60,7 +60,10 @@ test('First Impression uses actual movement attempts since entry, survives persi
     assert.equal(used.tokens[0].activeMoveActions, 1);
     assert.equal(normalizeRoomSnapshot(JSON.parse(JSON.stringify(used))).tokens[0].activeMoveActions, 1);
     assert.match(getSpecialMoveBlockReason({ move, attacker: used.tokens[0], defender: used.tokens[1], round: 2 }), /primeiro movimento/);
-    assert.equal(changeRoomPhase(changeRoomPhase(used, 'exploracao'), 'batalha').tokens[0].activeMoveActions, 0);
+    const resumed = changeRoomPhase(changeRoomPhase(used, 'exploracao'), 'batalha');
+    assert.equal(resumed.tokens[0].activeMoveActions, 1);
+    assert.throws(() => startNewRoomBattle(resumed), /Termine a rodada/);
+    assert.equal(startNewRoomBattle({ ...resumed, initiative: [], turnIndex: 0 }).tokens[0].activeMoveActions, 0);
 });
 
 test('an attempted movement blocked by Sleep still prevents a later First Impression', () => {

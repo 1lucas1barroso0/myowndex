@@ -16,6 +16,35 @@ export const RPG_STATUSES = ["", "burn", "freeze", "paralysis", "poison", "bad-p
 const now = () => Date.now();
 const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
+const itemSlug = value => asText(value).trim().toLowerCase().replace(/[\s_]+/g, "-");
+
+// The Box keeps its chosen item; only its availability belongs to the journey.
+// A different item is a fresh choice, so an old consumption marker cannot follow it.
+export const getPokemonConsumedItem = pokemon => {
+    const consumedItem = itemSlug(pokemon?.rpg?.consumedItem);
+    return consumedItem && consumedItem === itemSlug(pokemon?.item) ? consumedItem : "";
+};
+
+const normalizeItemJourneyOrigin = value => {
+    const id = asText(value?.id).slice(0, 80);
+    const itemId = itemSlug(value?.itemId).slice(0, 80);
+    const sequence = integerInRange(value?.sequence, 0, Number.MAX_SAFE_INTEGER, 0);
+    return itemId && (id || sequence > 0) ? { id, itemId, sequence } : null;
+};
+
+export const getPokemonItemOrigin = pokemon => {
+    const origin = normalizeItemJourneyOrigin(pokemon?.rpg?.itemOrigin);
+    return origin?.itemId === itemSlug(pokemon?.item) ? origin : null;
+};
+
+export const replacePokemonHeldItem = (pokemon, item) => {
+    const itemId = itemSlug(item);
+    const rpg = { ...pokemon?.rpg };
+    delete rpg.consumedItem;
+    if (itemId) rpg.itemOrigin = { id: createId("item"), itemId, sequence: 0 };
+    else delete rpg.itemOrigin;
+    return { ...pokemon, item: asText(item).toLowerCase(), rpg };
+};
 
 export const createId = (prefix = "box") => {
     return secureRandomId(prefix);
@@ -67,6 +96,8 @@ export const normalizeRpgData = (value = {}) => {
         sleepTurns: status === "sleep" && source.sleepTurns != null ? clampInteger(source.sleepTurns, 0, 2, 0) : null,
         freezeTurns: status === "freeze" && source.freezeTurns != null ? clampInteger(source.freezeTurns, 0, 2, 0) : null,
         caughtWith: asText(source.caughtWith).slice(0, 80),
+        ...(itemSlug(source.consumedItem) ? { consumedItem: itemSlug(source.consumedItem).slice(0, 80) } : {}),
+        ...(normalizeItemJourneyOrigin(source.itemOrigin) ? { itemOrigin: normalizeItemJourneyOrigin(source.itemOrigin) } : {}),
         originalTrainer: asText(source.originalTrainer).slice(0, 120),
         notes: asText(source.notes).slice(0, 2000),
         animeNotes: asText(source.animeNotes).slice(0, 1000),
@@ -135,6 +166,14 @@ export const normalizePokemon = input => {
                 ? newMaxHp
                 : Math.max(1, Math.min(newMaxHp, Math.round((oldCurrentHp / oldMaxHp) * newMaxHp)));
         rpg = { ...normalizedRpg, currentHp, scaleVersion: RPG_SCALE_VERSION };
+    }
+    if (rpg.consumedItem && !getPokemonConsumedItem({ item: source.item, rpg })) {
+        rpg = { ...rpg };
+        delete rpg.consumedItem;
+    }
+    if (rpg.itemOrigin && !getPokemonItemOrigin({ item: source.item, rpg })) {
+        rpg = { ...rpg };
+        delete rpg.itemOrigin;
     }
 
     return {

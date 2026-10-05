@@ -7,7 +7,7 @@ import { normalizePokemon, compactPokemon } from "../src/core/team.js";
 import { normalizeAccountDocument, mergeAccountDocuments, recordAccountChanges } from "../src/core/accountDocument.js";
 import { decodeShare, encodePokemonBundle, encodeTeam } from "../src/core/teamShare.js";
 import { addTeamToSnapshot, changeRoomPhase, createRoomSnapshot, createTokenFromPokemon, normalizeRoomSnapshot,
-    swapTeamPokemonInSnapshot, syncTeamsWithRoomProgress } from "../src/core/room.js";
+    swapTeamPokemonInSnapshot, syncTeamsWithRoomProgress, startNewRoomBattle } from "../src/core/room.js";
 
 const partner = () => normalizePokemon({ id: "pokemon", species: { id: 25, name: "pikachu",
     stats: [{ base_stat: 35, stat: { name: "hp" } }] }, level: 10, friendship: 255,
@@ -169,7 +169,10 @@ test("battle reward participation follows field entry and preserves pre-reward l
     battle = normalizeRoomSnapshot({ ...battle, tokens: battle.tokens.map(token => ({ ...token, level: rewarded.level, xp: rewarded.rpg.xp })) });
     assert.equal(battle.tokens[0].level, 13);
     assert.equal(battle.tokens[0].battleEntryLevel, 12, "one reward must not change the comparison for the next participant");
-    const next = changeRoomPhase(changeRoomPhase(battle, "intervalo"), "batalha");
+    const resumed = changeRoomPhase(changeRoomPhase(battle, "intervalo"), "batalha");
+    assert.equal(resumed.tokens[0].battleEntryLevel, 12);
+    assert.equal([...resumed.tokens, ...resumed.benchTokens].filter(token => token.battleParticipated).length, 2);
+    const next = startNewRoomBattle(resumed);
     assert.equal(next.tokens[0].battleEntryLevel, 13);
     assert.equal(next.benchTokens.filter(token => token.battleParticipated).length, 0);
 });

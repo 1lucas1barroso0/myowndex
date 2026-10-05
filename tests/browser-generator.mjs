@@ -161,14 +161,14 @@ try {
     newer.results[0].pokemon.nickname = 'Recebido durante a edição';
     await nickname.fill('Meu apelido em edição');
     await page.evaluate(value => window.dispatchEvent(new CustomEvent('myowndex:account-document', { detail: { scope: null, document: value } })), normalizeAccountDocument({ localTools: { generatorDraft: newer }, preferences: { appearance: 'night' } }));
-    await dialog.getByRole('button', { name: 'Exportar atual e ver prévia', exact: true }).waitFor();
+    await dialog.getByRole('button', { name: 'Exportar esta e abrir outra', exact: true }).waitFor();
     assert.equal(await nickname.inputValue(), 'Meu apelido em edição');
     assert.equal(await nickname.evaluate(element => element === document.activeElement), true);
     report.push('incoming account draft never replaces unfinished typing or steals focus');
     await page.setViewportSize({ width: 320, height: 900 });
     await verify('remote draft choice 320');
     const preservedDownload = page.waitForEvent('download');
-    await dialog.getByRole('button', { name: 'Exportar atual e ver prévia', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Exportar esta e abrir outra', exact: true }).click();
     const preserved = await decodeShare(await fs.readFile(await (await preservedDownload).path(), 'utf8'));
     assert.equal(preserved.pokemon[0].nickname, 'Meu apelido em edição');
     await page.waitForFunction(() => document.querySelector('.generator-partner-details input')?.value === 'Recebido durante a edição');

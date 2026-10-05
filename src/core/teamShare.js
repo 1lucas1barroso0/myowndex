@@ -137,6 +137,8 @@ const packPokemon = pokemon => ({
         n: pokemon.rpg.notes || "",
         a: pokemon.rpg.animeNotes || "",
         p: pokemon.rpg.pp || [null, null, null, null],
+        ...(pokemon.rpg.consumedItem ? { i: pokemon.rpg.consumedItem } : {}),
+        ...(pokemon.rpg.itemOrigin ? { k: [pokemon.rpg.itemOrigin.id, pokemon.rpg.itemOrigin.itemId, pokemon.rpg.itemOrigin.sequence] } : {}),
         ...(pokemon.rpg.pendingEvs || pokemon.rpg.experienceAwards?.length || pokemon.rpg.closedAward ? { g: [
             pokemon.rpg.pendingEvs || 0,
             (pokemon.rpg.experienceAwards || []).map(entry => [entry.id, entry.xp, entry.levelCap, entry.isTTRPG ? 1 : 0]),
@@ -178,6 +180,8 @@ const unpackPokemon = pokemon => ({
         notes: pokemon.j.n || "",
         animeNotes: pokemon.j.a || "",
         pp: pokemon.j.p,
+        consumedItem: pokemon.j.i || "",
+        itemOrigin: pokemon.j.k ? { id: pokemon.j.k[0], itemId: pokemon.j.k[1], sequence: pokemon.j.k[2] } : null,
         pendingEvs: pokemon.j.g?.[0] || 0,
         experienceAwards: Array.isArray(pokemon.j.g?.[1]) ? pokemon.j.g[1].map(entry => ({ id: entry?.[0], xp: entry?.[1], levelCap: entry?.[2], isTTRPG: entry?.[3] !== 0 })) : [],
         closedAward: pokemon.j.g?.[2] || "",

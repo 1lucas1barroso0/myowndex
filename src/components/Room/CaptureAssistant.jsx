@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CAPTURE_BALLS, calculateCaptureChance } from "../../core/capture.js";
 import { fetchCached, formatNumberPtBr } from "../../core/mechanics.js";
-import { resolveCaptureAction } from "../../../server/authoritativeActions.js";
+import { getCaptureInterventionBlockReason, resolveCaptureAction } from "../../../server/authoritativeActions.js";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 
 export default function CaptureAssistant({ role, snapshot, remote, onAuthoritativeAction, onSnapshotChange, onEvent, onError }) {
@@ -19,6 +19,7 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
     const target = snapshot.tokens.find(token => token.id === targetId);
     const trainers = snapshot.tokens.filter(token => token.side === "ally" && !token.hidden && !token.captured);
     const targets = snapshot.tokens.filter(token => token.id !== trainerTokenId && token.side !== "ally" && !token.hidden && !token.captured && !token.ownerPlayerId && token.currentHp > 0);
+    const interventionBlock = getCaptureInterventionBlockReason(snapshot, trainers.find(token => token.id === trainerTokenId));
     const speciesName = target?.speciesName || target?.speciesId;
     useEffect(() => {
         let active = true;
@@ -47,7 +48,7 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
     }
     const capture = async event => {
         event.preventDefault();
-        if (lock.current || !calculation || !trainerTokenId || !wildConfirmed) return;
+        if (lock.current || interventionBlock || !calculation || !trainerTokenId || !wildConfirmed) return;
         lock.current = true; setBusy(true);
         try {
             const request = { action: "capture", trainerTokenId, targetId, ball, wildConfirmed };
@@ -90,7 +91,8 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
                     <div><dt>Bônus</dt><dd>Poké Ball ×{formatNumberPtBr(calculation.ballBonus)}<br />Condição ×{formatNumberPtBr(calculation.statusBonus)}</dd></div>
                 </dl>}
                 <details className="capture-help"><summary>Como capturar</summary><p className="capture-note">Escolha seu Pokémon, o alvo e a Poké Ball. Confirme que o alvo é selvagem. A captura usa d100 e a intervenção da rodada; registre a Poké Ball usada no inventário.</p></details>
-                <button type="submit" className="room-primary-button" disabled={busy || !calculation || !trainerTokenId || !wildConfirmed}>{busy ? "Resolvendo…" : "Lançar Poké Ball"}</button>
+                {interventionBlock && <p role="status">{interventionBlock}</p>}
+                <button type="submit" className="room-primary-button" disabled={busy || Boolean(interventionBlock) || !calculation || !trainerTokenId || !wildConfirmed}>{busy ? "Resolvendo…" : "Lançar Poké Ball"}</button>
             </form>}
             {result && <p role="status">{result.detail}{result.success ? " Registre o novo parceiro no PC." : ""}</p>}
         </div>

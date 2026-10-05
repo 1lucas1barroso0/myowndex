@@ -121,12 +121,17 @@ test("confusion uses modern timing and a scaled power-40 physical self-hit", () 
   assert.equal(calculateConfusionSelfDamage(token("a", { stages: { attack: 6, defense: -6 } })), 13);
 });
 
-test("confusion self-hit can still trigger a canonical survival trait", () => {
-  const snapshot = room({ maxHp: 1, currentHp: 1, ability: "sturdy", volatileEffects: [{ id: "confusion", turns: 2 }] });
-  const resolved = resolveCombatAction({ snapshot, request, role: "narrator", move, random: sequence([0]) });
-  assert.equal(resolved.nextSnapshot.tokens[0].currentHp, 1);
-  assert.ok(resolved.nextSnapshot.hitKillProtectionDisabled.includes("token:a"));
-  assert.match(resolved.result.conditionNotes.join(" "), /Sturdy/i);
+test("confusion self-hit bypasses Sturdy and preserves an unused Focus Sash", () => {
+  for (const trait of [{ ability: "sturdy" }, { item: "focus-sash" }]) {
+    const snapshot = room({ maxHp: 1, currentHp: 1, ...trait, volatileEffects: [{ id: "confusion", turns: 2 }] });
+    const resolved = resolveCombatAction({ snapshot, request, role: "narrator", move, random: sequence([0]) });
+    const self = resolved.nextSnapshot.tokens[0];
+    assert.equal(self.currentHp, 0);
+    assert.ok(resolved.nextSnapshot.hitKillProtectionDisabled.includes("token:a"));
+    assert.doesNotMatch(resolved.result.conditionNotes.join(" "), /Sturdy|Focus Sash/i);
+    assert.equal(self.traitState.item.consumed, false);
+    if (trait.item) assert.equal(self.item, "focus-sash");
+  }
 });
 
 test("a blocking status prevents confusion from advancing or self-hitting", () => {
@@ -223,5 +228,5 @@ test("switching preserves sleep, resets toxic and clears volatile conditions", (
 
 test("guide contains explicit action economy, XP, safe rest and Trainer tests", () => {
   const text = JSON.stringify(RPG_RULE_SECTIONS);
-  for (const pattern of [/Crítico|crítico potencial/, /1 XP.*2 XP.*3 XP/, /ação principal/, /Trocar preserva/, /Testes do Treinador/, /Encerrar uma sessão.*não restaura/, /adaptação explícita/]) assert.match(text, pattern);
+  for (const pattern of [/crítico/i, /1 XP.*2 para.*3 para/, /ação principal/, /recursos de cada Pokémon continuam/, /Testes do Treinador/, /Encerrar.*sessão.*não.*recupera|Encerrar.*sessão.*não.*restaura/, /adaptação explícita/]) assert.match(text, pattern);
 });

@@ -43,7 +43,7 @@ import {
 } from "./automation.js";
 import { getDamageCeiling, rollPercentTest, rollProportionalAttributeTest } from "./rpgRules.js";
 import { randomChance, randomChoice, randomInt, randomUnit, rollD6, SecureRandomError } from "./random.js";
-import { compactTeam, createId, normalizeTeam, touchTeam } from "./team.js";
+import { compactTeam, createId, getPokemonConsumedItem, getPokemonItemOrigin, normalizeTeam, touchTeam } from "./team.js";
 import { EV_STAT_KEYS, normalizeGrowthData } from "./experience.js";
 import { getPokemonReferenceForMode } from "./referenceGames.js";
 import {
@@ -69,6 +69,7 @@ import {
     isHeldItemActive,
     isWeatherSuppressed,
     normalizeTraitState,
+    normalizeHeldItemOrigin,
     recordTraitEvent,
     restoreHeldItem,
     setAbilitySuppressed,
@@ -141,6 +142,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     schema: ROOM_SCHEMA_VERSION,
     title: asText(title).trim().slice(0, 80) || "Nova aventura",
     phase: "exploracao",
+    battleStarted: false,
     round: 1,
     turnIndex: 0,
     scenario: "rota",
@@ -295,12 +297,23 @@ export const normalizeRoomSnapshot = value => {
     });
     const tokenIds = new Set(resolvedTokens.map(token => token.id));
     const initiative = asArray(source.initiative).filter(id => tokenIds.has(id)).slice(0, 40);
+    const battleStarted = Boolean(source.battleStarted || initiative.length || Number(source.round) > 1
+        || asArray(source.trainerInterventions).some(entry => entry?.battle === true)
+        || (source.battleStarted !== false && (source.phase === "batalha"
+            || asArray(source.trainerInterventions).length
+            || asArray(source.hitKillProtectionUsed).length
+            || asArray(source.hitKillProtectionDisabled).length
+            || asArray(source.hitKillSurvivalGrace).length
+            || [...tokens, ...benchTokens].some(token => token.battleParticipated || token.battleEntryLevel > 0 || token.activeMoveActions > 0 || token.lastActionRound > 0))));
     return {
         ...fallback,
         ...source,
         schema: ROOM_SCHEMA_VERSION,
         title: asText(source.title).trim().slice(0, 80) || fallback.title,
         phase: ROOM_PHASES.some(phase => phase.id === source.phase) ? source.phase : fallback.phase,
+        // Legacy battles have no lifecycle flag. Their existing records prove
+        // that returning to Battle must not create a fresh battle.
+        battleStarted,
         round: integerInRange(source.round, 1, 9999, 1),
         turnIndex: initiative.length
             ? integerInRange(source.turnIndex, 0, initiative.length - 1, 0)
@@ -313,7 +326,7 @@ export const normalizeRoomSnapshot = value => {
         tokens: resolvedTokens,
         benchTokens,
         initiative,
-        trainerInterventions: asArray(source.trainerInterventions).slice(0, 40).filter(entry => entry && typeof entry.trainerKey === "string").map(entry => ({ trainerKey: entry.trainerKey.slice(0, 100), round: integerInRange(entry.round, 1, 9999, 1) })),
+        trainerInterventions: asArray(source.trainerInterventions).slice(0, 40).filter(entry => entry && typeof entry.trainerKey === "string").map(entry => ({ trainerKey: entry.trainerKey.slice(0, 100), round: integerInRange(entry.round, 1, 9999, 1), battle: entry.battle === true || (entry.battle !== false && battleStarted) })),
         hitKillProtectionUsed: normalizeHitKillProtectionUsage(source.hitKillProtectionUsed),
         hitKillProtectionDisabled: normalizeHitKillProtectionUsage(source.hitKillProtectionDisabled),
         hitKillSurvivalGrace: normalizeHitKillProtectionUsage(source.hitKillSurvivalGrace),
@@ -337,32 +350,50 @@ export const normalizeRoomSnapshot = value => {
     };
 };
 
+/** A new battle is explicit. Moving between story phases never refreshes it. */
+export const startNewRoomBattle = snapshot => {
+    const room = normalizeRoomSnapshot(snapshot);
+    if (room.initiative.length) throw new RangeError("Termine a rodada antes de começar outra batalha.");
+    const resetToken = (token, active) => {
+        const changed = prepareTokenForSwitch(token);
+        const participating = active && !token.hidden && !token.captured && token.currentHp > 0;
+        return {
+            ...changed,
+            declaredDamageClass: "",
+            enteredRound: 1,
+            lastActionRound: 0,
+            activeMoveActions: 0,
+            battleParticipated: participating,
+            battleEntryLevel: participating ? token.level : 0,
+            traitState: { ...changed.traitState, markers: [],
+                history: changed.traitState.history.filter(entry => entry.itemAvailability && entry.origin) },
+            specialState: { ...changed.specialState, markers: [], history: [] },
+        };
+    };
+    return normalizeRoomSnapshot({
+        ...room,
+        phase: "batalha",
+        battleStarted: true,
+        round: 1,
+        turnIndex: 0,
+        initiative: [],
+        tokens: room.tokens.map(token => resetToken(token, true)),
+        benchTokens: room.benchTokens.map(token => resetToken(token, false)),
+        trainerInterventions: [],
+        hitKillProtectionUsed: [],
+        hitKillProtectionDisabled: [],
+        hitKillSurvivalGrace: [],
+    });
+};
+
 export const changeRoomPhase = (snapshot, nextPhase) => {
     const room = normalizeRoomSnapshot(snapshot);
     const phase = ROOM_PHASES.some(candidate => candidate.id === nextPhase)
         ? nextPhase
         : room.phase;
     if (phase === room.phase) return room;
-    const startingBattle = phase === "batalha" && room.initiative.length === 0;
-    return normalizeRoomSnapshot({
-        ...room,
-        phase,
-        tokens: startingBattle ? room.tokens.map(token => ({ ...token, activeMoveActions: 0,
-            battleParticipated: !token.hidden && !token.captured && token.currentHp > 0,
-            battleEntryLevel: !token.hidden && !token.captured && token.currentHp > 0 ? token.level : 0 })) : room.tokens,
-        benchTokens: startingBattle ? room.benchTokens.map(token => ({ ...token, activeMoveActions: 0,
-            battleParticipated: false, battleEntryLevel: 0 })) : room.benchTokens,
-        trainerInterventions: startingBattle ? [] : room.trainerInterventions,
-        hitKillProtectionUsed: startingBattle
-            ? []
-            : room.hitKillProtectionUsed,
-        hitKillProtectionDisabled: startingBattle
-            ? []
-            : room.hitKillProtectionDisabled,
-        hitKillSurvivalGrace: startingBattle
-            ? []
-            : room.hitKillSurvivalGrace,
-    });
+    if (phase === "batalha" && !room.battleStarted) return startNewRoomBattle(room);
+    return normalizeRoomSnapshot({ ...room, phase });
 };
 
 const sameValue = (first, second) => JSON.stringify(first) === JSON.stringify(second);
@@ -466,6 +497,12 @@ const getBattlefieldPosition = (index = 0, side = "ally") => {
 
 export const createTokenFromPokemon = (input, team, index = 0, side = "ally") => {
     const pokemon = input?.species ? { ...input, species: getPokemonReferenceForMode(input.species, team?.versionGroup) } : input;
+    const consumedItem = getPokemonConsumedItem(pokemon);
+    const originalItem = traitSlug(pokemon?.item);
+    const journeyOrigin = getPokemonItemOrigin(pokemon);
+    const itemOrigin = normalizeHeldItemOrigin({ teamId: team?.id, teamShareId: team?.shareId,
+        pokemonId: pokemon?.id, itemId: originalItem, revision: journeyOrigin?.id || "",
+        sequence: journeyOrigin?.sequence ?? (consumedItem ? 1 : 0) }, originalItem);
     const computed = calculatePokemonStats(pokemon);
     const maxHp = computed.hp.rpg;
     const currentHp = pokemon?.rpg?.currentHp == null
@@ -505,7 +542,13 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
         teraType: pokemon?.teraType || "",
         teraActive: false,
         ability: pokemon?.ability || "",
-        item: pokemon?.item || "",
+        item: consumedItem ? "" : pokemon?.item || "",
+        ...(originalItem ? { traitState: { item: {
+            originalId: originalItem,
+            consumed: Boolean(consumedItem),
+            consumedReason: consumedItem ? "Item usado ou perdido durante a jornada" : "",
+            ...(itemOrigin ? { origin: itemOrigin } : {}),
+        } } } : {}),
         nature: pokemon?.nature || "",
         gender: pokemon?.gender || "",
         stats: Object.fromEntries(Object.entries(computed).map(([key, values]) => [key, values.rpg])),
@@ -653,7 +696,7 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
         ownerPlayerId: token.ownerPlayerId || asText(ownerPlayerId),
         enteredRound: room.round,
         activeMoveActions: 0,
-        ...(room.phase === "batalha" ? { battleParticipated: true, battleEntryLevel: token.battleEntryLevel || token.level } : {}),
+        ...((room.phase === "batalha" || room.initiative.length > 0) ? { battleParticipated: true, battleEntryLevel: token.battleEntryLevel || token.level } : {}),
     }));
     const promotedIds = new Set(promotedTokens.map(token => token.id));
     const available = team.pokemon.filter(pokemon => !existingPokemon.has(pokemon.id));
@@ -676,7 +719,7 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
         ownerPlayerId: asText(ownerPlayerId),
         enteredRound: room.round,
     }));
-    const tokens = [...promotedTokens, ...createdTokens].map(token => room.phase === "batalha" && token.currentHp > 0 && !token.hidden && !token.captured
+    const tokens = [...promotedTokens, ...createdTokens].map(token => (room.phase === "batalha" || room.initiative.length > 0) && token.currentHp > 0 && !token.hidden && !token.captured
         ? { ...token, battleParticipated: true, battleEntryLevel: token.battleEntryLevel || token.level } : token);
     let combined = [...room.tokens, ...tokens];
     const enteredIds = new Set(tokens.map(token => token.id));
@@ -710,6 +753,7 @@ const prepareTokenForSwitch = tokenInput => {
     const changed = {
         ...token,
         declaredMove: "",
+        declaredDamageClass: "",
         priority: 0,
         activeMoveActions: 0,
         volatileEffects: [],
@@ -747,8 +791,15 @@ export const swapTeamPokemonInSnapshot = (snapshot, outgoingTokenId, incomingTok
     );
     if (!sameTeam) return { room, swapped: false, reason: "A troca só pode usar o banco da mesma equipe." };
     if (incoming.currentHp <= 0) return { room, swapped: false, reason: `${incoming.name} não pode mais batalhar.` };
+    if (outgoing.currentHp > 0 && room.initiative.length) {
+        const reason = getRoundMoveBlockReason({ snapshot: room, token: outgoing, move: null });
+        if (reason) return { room, swapped: false, reason };
+    }
 
-    const benched = prepareTokenForSwitch(outgoing);
+    const voluntaryBattleSwitch = outgoing.currentHp > 0 && (room.phase === "batalha" || room.initiative.length > 0);
+    const benched = { ...prepareTokenForSwitch(outgoing),
+        lastActionRound: voluntaryBattleSwitch ? room.round : outgoing.lastActionRound };
+
     const entered = {
         ...prepareTokenForSwitch(incoming),
         side: outgoing.side,
@@ -756,8 +807,8 @@ export const swapTeamPokemonInSnapshot = (snapshot, outgoingTokenId, incomingTok
         y: outgoing.y,
         ownerPlayerId: outgoing.ownerPlayerId,
         enteredRound: room.round,
-        lastActionRound: (room.phase === "batalha" || room.initiative.length > 0) && outgoing.currentHp > 0 ? room.round : incoming.lastActionRound,
-        ...(room.phase === "batalha" ? { battleParticipated: true, battleEntryLevel: incoming.battleEntryLevel || incoming.level } : {}),
+        lastActionRound: voluntaryBattleSwitch ? room.round : Math.max(outgoing.lastActionRound, incoming.lastActionRound),
+        ...((room.phase === "batalha" || room.initiative.length > 0) ? { battleParticipated: true, battleEntryLevel: incoming.battleEntryLevel || incoming.level } : {}),
     };
     const tokens = room.tokens.map((token, index) => index === outgoingIndex ? entered : token);
     const benchTokens = room.benchTokens.map((token, index) => index === incomingIndex ? benched : token);
@@ -783,40 +834,92 @@ export const compactTeamOffer = team => compactTeam(team);
 
 export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
     const room = normalizeRoomSnapshot(snapshot);
-    const eligibleTokens = [...room.tokens, ...room.benchTokens].filter(token =>
+    const allTokens = [...room.tokens, ...room.benchTokens];
+    const eligibleTokens = allTokens.filter(token =>
         token.pokemonId
         && token.teamId
         && (!playerId || token.ownerPlayerId === playerId)
     );
-    if (!eligibleTokens.length) return teams;
+    const itemChanges = allTokens.flatMap(token => {
+        const state = normalizeTraitState(token.traitState, token.item, token.ability);
+        return [
+            ...state.history.filter(entry => entry.origin && entry.itemAvailability).map(entry => ({
+                origin: entry.origin, consumed: entry.itemAvailability === "consumed",
+            })),
+            ...(state.item.origin ? [{ origin: state.item.origin, consumed: state.item.consumed }] : []),
+        ];
+    });
+    if (!eligibleTokens.length && !itemChanges.length) return teams;
+    const originBelongsToTeam = (origin, team) => origin.teamId === team.id
+        || (origin.teamShareId && origin.teamShareId === team.shareId);
     let changed = false;
     const synchronized = asArray(teams).map(team => {
         const related = eligibleTokens.filter(token =>
             token.teamId === team.id
             || (token.teamShareId && token.teamShareId === team.shareId)
         );
-        if (!related.length) return team;
+        const relatedItems = itemChanges.filter(entry => originBelongsToTeam(entry.origin, team));
+        if (!related.length && !relatedItems.length) return team;
         let teamChanged = false;
         const pokemon = asArray(team.pokemon).map(partner => {
             const token = related.find(candidate => candidate.pokemonId === partner.id);
-            if (!token) return partner;
-            const specialState = normalizeSpecialState(token.specialState);
+            const originalItem = traitSlug(partner.item);
+            const previousOrigin = getPokemonItemOrigin(partner);
+            const revision = previousOrigin?.id || "";
+            let consumedItem = getPokemonConsumedItem(partner);
+            let itemOrigin = previousOrigin;
+            const latestItem = relatedItems.filter(entry => entry.origin.pokemonId === partner.id
+                && entry.origin.itemId === originalItem && entry.origin.revision === revision
+                && entry.origin.sequence >= (previousOrigin?.sequence || 0))
+                .sort((first, second) => second.origin.sequence - first.origin.sequence || Number(second.consumed) - Number(first.consumed))[0];
+            if (latestItem) {
+                consumedItem = latestItem.consumed ? originalItem : "";
+                if (latestItem.origin.sequence > 0 || revision) {
+                    itemOrigin = { id: revision, itemId: originalItem, sequence: latestItem.origin.sequence };
+                }
+            } else if (token && !revision) {
+                // Legacy rooms did not record item ownership. Only the fighter's
+                // own original item can be synchronized from that older state.
+                const state = normalizeTraitState(token.traitState, token.item, token.ability);
+                if (!state.item.origin && originalItem
+                    && ((!token.item && state.item.consumed && state.item.originalId === originalItem)
+                        || traitSlug(token.item) === originalItem)) {
+                    const consumed = !token.item && state.item.consumed;
+                    const changedAvailability = Boolean(consumedItem) !== consumed;
+                    consumedItem = consumed ? originalItem : "";
+                    const sequence = (previousOrigin?.sequence || 0) + Number(changedAvailability);
+                    if (sequence) itemOrigin = { id: "", itemId: originalItem, sequence };
+                }
+            }
+            const itemChanged = getPokemonConsumedItem(partner) !== consumedItem
+                || JSON.stringify(previousOrigin) !== JSON.stringify(itemOrigin);
+            if (!token && !itemChanged) return partner;
+            const specialState = normalizeSpecialState(token?.specialState);
             const hasTemporaryMoveCopy = specialState.moveOverrides.some(override => !override.permanent);
             const synchronizedPp = specialState.transform?.base?.pp
-                || (hasTemporaryMoveCopy ? partner.rpg?.pp : token.pp);
+                || (hasTemporaryMoveCopy || !token ? partner.rpg?.pp : token.pp);
             const rpg = {
                 ...partner.rpg,
-                currentHp: token.currentHp,
-                status: token.status,
-                sleepTurns: token.sleepTurns,
-                freezeTurns: token.freezeTurns,
-                xp: token.xp,
-                ...(token.growthVersion === 1 ? normalizeGrowthData(token) : {}),
-                pp: synchronizedPp,
+                ...(token ? {
+                    currentHp: token.currentHp,
+                    status: token.status,
+                    sleepTurns: token.sleepTurns,
+                    freezeTurns: token.freezeTurns,
+                    xp: token.xp,
+                    ...(token.growthVersion === 1 ? normalizeGrowthData(token) : {}),
+                    pp: synchronizedPp,
+                } : {}),
             };
+            if (consumedItem) rpg.consumedItem = consumedItem;
+            else delete rpg.consumedItem;
+            if (itemOrigin) rpg.itemOrigin = itemOrigin;
+            else delete rpg.itemOrigin;
             const permanentMoveChange = specialState.moveOverrides.some(override => override.permanent);
-            const moves = permanentMoveChange ? token.moves : partner.moves;
+            const moves = permanentMoveChange && token ? token.moves : partner.moves;
             if (
+                token
+                && !itemChanged
+                &&
                 integerInRange(partner.level, 1, 200, 1) === token.level
                 && partner.rpg?.currentHp === token.currentHp
                 && (partner.rpg?.status || "") === token.status
@@ -832,8 +935,8 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 && JSON.stringify(partner.moves || []) === JSON.stringify(moves || [])
             ) return partner;
             teamChanged = true;
-            return { ...partner, level: token.level, moves, rpg,
-                ...(token.growthVersion === 1 ? { evs: token.evs, friendship: token.friendship } : {}) };
+            return { ...partner, ...(token ? { level: token.level } : {}), moves, rpg,
+                ...(token?.growthVersion === 1 ? { evs: token.evs, friendship: token.friendship } : {}) };
         });
         if (!teamChanged) return team;
         changed = true;
@@ -1013,7 +1116,9 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             }
 
             if (["aqua-ring", "ingrain"].includes(effect.id)) {
-                persistentHealing += residualAmount(token.maxHp, 1 / 16);
+                const bigRootActive = activeItem === "big-root";
+                persistentHealing += residualAmount(token.maxHp, (1 / 16) * (bigRootActive ? 1.3 : 1));
+                healingSources.push(`${formatName(effect.id)}${bigRootActive ? " + Big Root" : ""}`);
                 volatileEffects.push(effect);
                 return;
             }
@@ -1305,6 +1410,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                         sourceTokenId: damageEvent.leechSourceTokenId,
                         sourceName: damageEvent.leechSourceName,
                         amount: resolved.appliedDamage,
+                        liquidOoze: activeAbility === "liquid-ooze",
                     });
                 }
             });
@@ -1324,10 +1430,34 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         const index = tokens.findIndex(token => token.id === drain.sourceTokenId && token.currentHp > 0);
         if (index < 0) return;
         const source = tokens[index];
-        const currentHp = integerInRange(source.currentHp + drain.amount, 0, source.maxHp, source.currentHp);
+        const bigRootActive = isHeldItemActive(source) && traitSlug(source.item) === "big-root";
+        const amount = quantizePositiveHpChange(finiteProduct([drain.amount, bigRootActive ? 1.3 : 1], { minimum: 0, maximum: MAX_SAFE_GAME_INTEGER, fallback: 0 }));
+        const sources = ["Leech Seed", ...(bigRootActive ? ["Big Root"] : [])];
+        if (drain.liquidOoze) {
+            if (isAbilityActive(source) && traitSlug(source.ability) === "magic-guard") {
+                tokens[index] = recordTraitEvent(source, { kind: "ability", sourceId: "magic-guard", label: "Dano indireto impedido", detail: "Magic Guard impediu o dano de Liquid Ooze em Leech Seed", round: room.round });
+                effects.push({ kind: "state", tokenId: source.id, tokenName: source.name, damage: 0, remainingHp: source.currentHp, fainted: false, sources: ["Magic Guard impediu Liquid Ooze"] });
+                return;
+            }
+            const resolved = resolveRoundDamage(source, amount, { allowSurvivalTrait: false });
+            tokens[index] = recordTraitEvent(resolved.token || source, { kind: "ability", sourceId: "liquid-ooze", label: "Drenagem invertida", detail: `${resolved.appliedDamage} de dano de Liquid Ooze em Leech Seed`, round: room.round });
+            effects.push({
+                kind: "damage",
+                tokenId: source.id,
+                tokenName: source.name,
+                damage: resolved.appliedDamage,
+                remainingHp: resolved.remainingHp,
+                fainted: resolved.remainingHp <= 0,
+                protectedFromKnockout: resolved.protectedFromKnockout,
+                traitProtected: resolved.traitProtected,
+                sources: ["Liquid Ooze", ...sources],
+            });
+            return;
+        }
+        const currentHp = integerInRange(source.currentHp + amount, 0, source.maxHp, source.currentHp);
         const healed = currentHp - source.currentHp;
         if (healed <= 0) return;
-        tokens[index] = { ...source, currentHp };
+        tokens[index] = recordTraitEvent({ ...source, currentHp }, { kind: "state", sourceId: "leech-seed", label: "HP recuperado", detail: `${healed} HP de ${sources.join(" + ")}`, round: room.round });
         effects.push({
             kind: "heal",
             tokenId: source.id,
@@ -1336,7 +1466,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             damage: 0,
             remainingHp: currentHp,
             fainted: false,
-            sources: ["Leech Seed"],
+            sources,
         });
     });
 
@@ -1457,19 +1587,83 @@ export const getRoundDeclarationPatchBlockReason = (current, next) => {
     return "";
 };
 
+/** PATCH preserves the lifecycle and the action already spent this round. */
+export const getBattleLifecyclePatchBlockReason = (currentSnapshot, nextSnapshot) => {
+    const current = normalizeRoomSnapshot(currentSnapshot);
+    const next = normalizeRoomSnapshot(nextSnapshot);
+    if (current.battleStarted && nextSnapshot?.battleStarted === false) return "Use Nova batalha para começar outro confronto.";
+    for (const key of ["hitKillProtectionUsed", "hitKillProtectionDisabled"]) {
+        if (Object.hasOwn(nextSnapshot, key) && current[key].some(id => !next[key].includes(id))) return "Mudar a fase não devolve a proteção. Use Nova batalha para outro confronto.";
+    }
+    if (Object.hasOwn(nextSnapshot, "trainerInterventions") && current.trainerInterventions.some(entry => entry.round === current.round
+        && (entry.battle || current.battleStarted || current.phase === "batalha" || current.initiative.length)
+        && !next.trainerInterventions.some(candidate => candidate.trainerKey === entry.trainerKey && candidate.round === entry.round))) return "A intervenção desta rodada já foi usada.";
+    const previousTokens = new Map([...current.tokens, ...current.benchTokens].map(token => [token.id, token]));
+    for (const token of [...next.tokens, ...next.benchTokens]) {
+        const previous = previousTokens.get(token.id);
+        if (!previous) continue;
+        const raw = [...asArray(nextSnapshot.tokens), ...asArray(nextSnapshot.benchTokens)].find(candidate => candidate?.id === token.id);
+        if (previous.battleParticipated && ((Object.hasOwn(raw, "battleParticipated") && !token.battleParticipated)
+            || (Object.hasOwn(raw, "battleEntryLevel") && previous.battleEntryLevel !== token.battleEntryLevel))) return "Os participantes desta batalha ficam registrados até Nova batalha.";
+        if (Object.hasOwn(raw, "lastActionRound") && (token.lastActionRound > current.round
+            || (previous.lastActionRound >= current.round && token.lastActionRound !== previous.lastActionRound))) return "Este Pokémon já agiu nesta rodada.";
+        if (current.tokens.some(candidate => candidate.id === token.id) && next.tokens.some(candidate => candidate.id === token.id)
+            && Object.hasOwn(raw, "activeMoveActions") && token.activeMoveActions < previous.activeMoveActions) return "Os movimentos já usados ficam registrados até a troca ou Nova batalha.";
+    }
+    if (!current.initiative.length) return "";
+    const nextIds = new Set(next.tokens.map(token => token.id));
+    const replacements = new Map();
+    for (const outgoing of current.tokens.filter(token => !nextIds.has(token.id))) {
+        if (!next.benchTokens.some(token => token.id === outgoing.id)) continue;
+        const incoming = next.tokens.find(token => !current.tokens.some(candidate => candidate.id === token.id)
+            && current.benchTokens.some(candidate => candidate.id === token.id)
+            && token.teamId === outgoing.teamId && token.side === outgoing.side
+            && token.x === outgoing.x && token.y === outgoing.y);
+        if (!incoming) return "Escolha um Pokémon do banco da mesma equipe para a troca.";
+        const checked = swapTeamPokemonInSnapshot(current, outgoing.id, incoming.id);
+        if (!checked.swapped) return checked.reason;
+        if (incoming.lastActionRound !== checked.incoming.lastActionRound) return "A troca usa a ação deste turno.";
+        replacements.set(outgoing.id, incoming.id);
+    }
+    const expectedOrder = current.initiative.map(id => replacements.get(id) || id).filter(id => nextIds.has(id));
+    if (JSON.stringify(expectedOrder) !== JSON.stringify(next.initiative)) return "A ordem desta rodada já foi formada. Avance os turnos para continuar.";
+    const currentActorId = current.initiative[current.turnIndex];
+    const retainedActorIndex = expectedOrder.indexOf(replacements.get(currentActorId) || currentActorId);
+    const removedBeforeActor = current.initiative.slice(0, current.turnIndex).filter(id => !nextIds.has(replacements.get(id) || id)).length;
+    const expectedTurnIndex = expectedOrder.length
+        ? retainedActorIndex >= 0 ? retainedActorIndex : Math.max(0, Math.min(expectedOrder.length - 1, current.turnIndex - removedBeforeActor))
+        : 0;
+    if (next.turnIndex !== expectedTurnIndex) return "Avance o turno pelo botão Próximo turno.";
+    return "";
+};
+
 /** Shared by local actions and the server; free practice remains free without an order. */
 export const getRoundMoveBlockReason = ({ snapshot, token, move }) => {
     if (!token || token.hidden || token.captured || token.currentHp <= 0) return "Este Pokémon não está disponível para agir.";
-    if (!snapshot.initiative?.length) return "";
+    if (!snapshot.initiative?.length) return snapshot.battleStarted
+        ? "Escolha os movimentos e role a iniciativa para começar a rodada." : "";
     if (snapshot.initiative[snapshot.turnIndex] !== token.id) return "Aguarde o turno deste Pokémon.";
-    if (token.lastActionRound === snapshot.round) return "Este Pokémon já agiu nesta rodada. Avance o turno.";
+    if (token.lastActionRound >= snapshot.round) return "Este Pokémon já agiu nesta rodada. Avance o turno.";
     if (token.declaredMove && normalizeSlug(move?.name) !== token.declaredMove) return `Use ${formatName(token.declaredMove)}, escolhido antes da iniciativa.`;
     if (!token.declaredMove && getEffectiveMovePriority({ token, move }) !== 0) return "Escolha um movimento com prioridade antes da próxima iniciativa.";
     return "";
 };
 
 export const buildInitiative = (snapshot, random) => {
-    const room = normalizeRoomSnapshot(snapshot);
+    const normalized = normalizeRoomSnapshot(snapshot);
+    // The first ordered round closes free training. Keep field preparation and
+    // declared choices, but do not carry a training action into round one.
+    const prepared = normalized.battleStarted ? normalized : normalizeRoomSnapshot({
+        ...normalized, battleStarted: true, phase: "batalha", round: 1,
+        tokens: normalized.tokens.map(token => ({ ...token, lastActionRound: 0, activeMoveActions: 0,
+            battleParticipated: !token.hidden && !token.captured && token.currentHp > 0,
+            battleEntryLevel: !token.hidden && !token.captured && token.currentHp > 0 ? token.level : 0 })),
+        benchTokens: normalized.benchTokens.map(token => ({ ...token, lastActionRound: 0, activeMoveActions: 0,
+            battleParticipated: false, battleEntryLevel: 0 })),
+        trainerInterventions: [], hitKillProtectionUsed: [], hitKillProtectionDisabled: [], hitKillSurvivalGrace: [],
+    });
+    const room = { ...prepared, tokens: prepared.tokens.map(token => !token.hidden && !token.captured && token.currentHp > 0
+        ? { ...token, battleParticipated: true, battleEntryLevel: token.battleEntryLevel || token.level } : token) };
     if (room.initiative.length) throw new RangeError("A rodada já começou. Encerre os turnos antes de rolar uma nova iniciativa.");
     const results = room.tokens.filter(token => !token.hidden && !token.captured && token.currentHp > 0).map(token => {
         const traitState = getInitiativeTraitState(token, { weather: isWeatherSuppressed(room.tokens) ? "limpo" : room.weather, round: room.round });
@@ -1528,6 +1722,7 @@ export const buildInitiative = (snapshot, random) => {
         room: {
             ...room,
             initiative: results.map(result => result.tokenId),
+            battleStarted: true,
             turnIndex: 0,
             round: room.round,
         },

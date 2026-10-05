@@ -18,6 +18,7 @@ import ConfirmDialog from "./ConfirmDialog.jsx";
 import PokemonSprite from "./PokemonSprite.jsx";
 import GameIcon from "./GameIcon.jsx";
 import TurnOrder from "./TurnOrder.jsx";
+import NewBattleButton from "./NewBattleButton.jsx";
 import ExperienceAward from "./ExperienceAward.jsx";
 import { awardRoomPokemonExperience, getRoomBattleRewardContext } from "../../core/roomExperience.js";
 
@@ -174,7 +175,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             let before = snapshotRef.current;
             if(sceneSnapshot && remote) {
                 const response = await onAuthoritativeAction(request);
-                await record(actionReceipt(request.action,response,before,context,request));
+                if (request.action !== "start-battle") await record(actionReceipt(request.action,response,before,context,request));
                 return response;
             }
             // Fetch only the selected moves/species, never a whole Box catalog.
@@ -206,15 +207,17 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             if(declaredMoves)before=applyAuthoritativeMovePriorities(before,declaredMoves);
             const resolved=resolveAuthoritativeAction({ request, snapshot:before, role:sceneSnapshot?role:"narrator", move,calledMove,species });
             if(resolved.nextSnapshot) {
-                commit(resolved.nextSnapshot);
+                await commit(resolved.nextSnapshot);
                 if(request.action==="initiative" || request.action==="advance-turn") {
                     const activeId=resolved.nextSnapshot.initiative[resolved.nextSnapshot.turnIndex];
                     if(activeId)setSelectedTokenId(activeId);
                     setRoundResult(request.action==="advance-turn" && resolved.result?.effects?.length ? resolved.eventPayload.text : null);
                 }
             }
-            const receipt=actionReceipt(request.action,resolved,before,context,request);
-            await record(receipt);
+            if (request.action !== "start-battle") {
+                const receipt=actionReceipt(request.action,resolved,before,context,request);
+                await record(receipt);
+            }
             if(sceneSnapshot && onEvent)await onEvent(resolved.eventType,resolved.eventPayload);
             if (resolved.sfxPayload) {
                 if (sceneSnapshot && onEvent) await onEvent("sfx", resolved.sfxPayload);
@@ -319,6 +322,12 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             <TraitMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} /><SpecialMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} />
             {!sceneSnapshot && <button type="button" onClick={()=>setPending(`remove:${selectedToken.id}`)}>Retirar do campo</button>}
             </div>}</div></details>}
+            {!sceneSnapshot && <details className="room-tool"><summary><strong>Sobre o campo</strong></summary><div className="room-tool-body"><p>{snapshot.battleStarted ? "Escolha as ações e role a iniciativa a cada rodada." : "Treine movimentos livremente ou role a iniciativa para começar uma batalha."}</p><NewBattleButton onStart={async () => {
+                await runAction({ action: "start-battle" });
+                setRoundResult(null);
+                setOpposedResult(null);
+                setNotice("Nova batalha pronta.");
+            }} activeRound={snapshot.initiative.length > 0} disabled={busy || accountApplying} onError={showError} /></div></details>}
             {!sceneSnapshot && <div className="local-pokemon-actions">{setTeams && <button type="button" onClick={()=>setPending("apply")}>Registrar progresso nas Boxes</button>}<button type="button" onClick={()=>setPending("reset")}>Limpar campo</button></div>}
         </>}
         </fieldset>

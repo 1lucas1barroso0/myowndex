@@ -290,7 +290,62 @@ try {
   assert.equal(updated.snapshot.sceneNotes, "Estado atualizado");
   assert.ok(updated.events.some(event => event.type === "ready"));
 
-  console.log("Central da Aventura API: auth, calls, authoritative RNG, idempotency, combat, audit and sync passed.");
+  await assert.rejects(request(`/api/rooms/${created.code}/rolls`, {
+    method: "POST", key: joined.playerKey,
+    body: { requestId: `smoke-player-newbattle-${Date.now()}`, action: "start-battle", expectedRevision: updated.revision },
+  }), error => error.status === 403);
+  await assert.rejects(request(`/api/rooms/${created.code}/rolls`, {
+    method: "POST", key: created.narratorKey,
+    body: { requestId: `smoke-active-newbattle-${Date.now()}`, action: "start-battle", expectedRevision: updated.revision },
+  }), error => error.status === 409);
+  await assert.rejects(request(`/api/rooms/${created.code}`, {
+    method: "PATCH", key: created.narratorKey,
+    body: { expectedRevision: updated.revision, snapshot: { ...updated.snapshot, battleStarted: false, phase: "exploracao" } },
+  }), error => error.status === 409 && error.data.serverAuthoritative === true);
+
+  let closed = updated;
+  while (closed.snapshot.initiative.length) {
+    const advanced = await request(`/api/rooms/${created.code}/rolls`, {
+      method: "POST", key: created.narratorKey,
+      body: { requestId: `smoke-next-${Date.now()}-${closed.revision}`, action: "advance-turn", expectedRevision: closed.revision },
+    });
+    closed = advanced.room;
+  }
+  assert.equal(closed.snapshot.battleStarted, true);
+  assert.equal(closed.snapshot.round, 2);
+  await assert.rejects(request(`/api/rooms/${created.code}/rolls`, {
+    method: "POST", key: created.narratorKey,
+    body: { requestId: `smoke-between-rounds-${Date.now()}`, action: "combat", expectedRevision: closed.revision,
+      attackerId: "token-qa", defenderId: "target-qa", moveName: "quick-attack", mode: "normal" },
+  }), error => error.status === 409);
+
+  const protectionKey = "token:token-qa";
+  const marked = await request(`/api/rooms/${created.code}`, {
+    method: "PATCH", key: created.narratorKey,
+    body: { expectedRevision: closed.revision, snapshot: { ...closed.snapshot, hitKillProtectionUsed: [protectionKey] } },
+  });
+  await assert.rejects(request(`/api/rooms/${created.code}`, {
+    method: "PATCH", key: created.narratorKey,
+    body: { expectedRevision: marked.revision, snapshot: { ...marked.snapshot, phase: "exploracao", hitKillProtectionUsed: [] } },
+  }), error => error.status === 409);
+  const newBattleRequest = { requestId: `smoke-newbattle-${Date.now()}`, action: "start-battle", expectedRevision: marked.revision };
+  const [newBattle, repeatedBattle] = await Promise.all([1, 2].map(() => request(`/api/rooms/${created.code}/rolls`, {
+    method: "POST", key: created.narratorKey, body: newBattleRequest,
+  })));
+  assert.equal(newBattle.result.id, repeatedBattle.result.id);
+  assert.equal(newBattle.room.revision, repeatedBattle.room.revision);
+  assert.deepEqual(newBattle.result.audit.randomDraws, []);
+  assert.equal(newBattle.room.snapshot.round, 1);
+  assert.equal(newBattle.room.snapshot.battleStarted, true);
+  assert.deepEqual(newBattle.room.snapshot.hitKillProtectionUsed, []);
+  for (const previous of marked.snapshot.tokens) {
+    const actor = newBattle.room.snapshot.tokens.find(token => token.id === previous.id);
+    for (const key of ["currentHp", "pp", "status", "xp", "friendship", "item"]) assert.deepEqual(actor[key], previous[key]);
+    assert.equal(actor.lastActionRound, 0);
+    assert.equal(actor.declaredMove, "");
+  }
+
+  console.log("Central da Aventura API: auth, calls, authoritative RNG, idempotency, combat, battle lifecycle, audit and sync passed.");
 } finally {
   if (session) {
     await request(`/api/rooms/${session.code}`, {

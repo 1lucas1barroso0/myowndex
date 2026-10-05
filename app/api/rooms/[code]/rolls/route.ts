@@ -117,6 +117,7 @@ export async function POST(request: Request, context: RouteContext) {
 
     const input = await request.json().catch(() => null);
     const normalized = normalizeAuthoritativeRequest(input);
+    if (normalized.action === "start-battle" && auth.role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode começar uma nova batalha.", 403);
     if (normalized.action === "capture" && auth.role !== "narrator") throw new AuthoritativeActionError("Só o Narrador confirma uma captura na cena.", 403);
     const actorKey = auth.accountId ? `account:${auth.accountId}:${auth.role}:${auth.playerId || 'narrator'}` : auth.role === "narrator" ? "narrator" : auth.playerId || "player";
     const fingerprintPayload = requestFingerprintPayload(normalized);
@@ -136,6 +137,11 @@ export async function POST(request: Request, context: RouteContext) {
     const room = await getRoom(code);
     if (!room) return noStoreJson({ error: "Não encontramos essa aventura. Confira o código e tente novamente." }, { status: 404 });
     if ("expectedRevision" in normalized && normalized.expectedRevision !== room.revision) {
+      // A concurrent copy can finish after the first receipt lookup.
+      const completed = await readStoredRoll(code, actorKey, normalized.requestId);
+      if (completed?.status === "ready" && completed.request_fingerprint === fingerprint) {
+        return responseForStored(code, auth.role, completed);
+      }
       return noStoreJson({
         error: "Outra mudança chegou primeiro. O MyOwnDex já atualizou a aventura; tente novamente.",
         conflict: true,

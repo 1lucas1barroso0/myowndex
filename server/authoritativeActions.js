@@ -21,6 +21,7 @@ import {
     getRoundMoveBlockReason,
     calculateMoveResolution,
     normalizeRoomSnapshot,
+    startNewRoomBattle,
 } from "../src/core/room.js";
 import { getFumbleSuggestion, rollAttributeTest, rollPercentTest } from "../src/core/rpgRules.js";
 import { getMoveSpecialProfile, getSpecialMoveBlockReason } from "../src/core/specialMechanics.js";
@@ -29,16 +30,17 @@ import { checkActionConditions } from "../src/core/battleConditions.js";
 import { CAPTURE_BALLS, captureTrainerKey, rollCapture } from "../src/core/capture.js";
 import { getCurrentMoveReference } from "../src/core/championsMoves.js";
 
-const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture"]);
+const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "start-battle"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
 const FREE_DICE_SIDES = new Set([4, 6, 8, 10, 12, 20, 100]);
-const STATE_ACTIONS = new Set(["initiative", "advance-turn", "combat", "capture"]);
+const STATE_ACTIONS = new Set(["initiative", "advance-turn", "combat", "capture", "start-battle"]);
 const COMMON_KEYS = new Set(["requestId", "action"]);
 const ACTION_KEYS = Object.freeze({
     "quick-attribute": new Set(["mode", "attribute", "opposition", "label"]),
     "quick-percent": new Set(["mode", "chance", "label"]),
     "quick-free": new Set(["quantity", "sides", "modifier", "label"]),
     initiative: new Set(["expectedRevision"]),
+    "start-battle": new Set(["expectedRevision"]),
     "advance-turn": new Set(["expectedRevision"]),
     combat: new Set(["expectedRevision", "attackerId", "defenderId", "moveName", "calledMoveName", "mode"]),
     capture: new Set(["expectedRevision", "trainerTokenId", "targetId", "ball", "wildConfirmed"]),
@@ -528,7 +530,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             damage: conditionCheck.selfDamage,
             round: room.round,
             protectionDisabled: true,
-            allowSurvivalTrait: true,
+            allowSurvivalTrait: false,
         });
         conditionToken = conditionSelfDamage.token || conditionToken;
         conditionNotes.push(`Sofreu ${conditionSelfDamage.appliedDamage} HP de dano ao próprio Pokémon.`);
@@ -745,6 +747,14 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     };
 };
 
+export const getCaptureInterventionBlockReason = (snapshot, trainer) => {
+    if (!trainer) return "";
+    const trainerKey = captureTrainerKey(trainer);
+    return snapshot.trainerInterventions?.some(entry => entry.trainerKey === trainerKey && entry.round === snapshot.round
+        && (snapshot.battleStarted || snapshot.phase === "batalha" || snapshot.initiative?.length > 0 || entry.battle))
+        ? "Este Treinador já usou a intervenção desta rodada." : "";
+};
+
 export const resolveCaptureAction = ({ request, snapshot, role, species, random = undefined }) => {
     if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador confirma uma captura na cena.", 403);
     const room = normalizeRoomSnapshot(snapshot);
@@ -754,9 +764,8 @@ export const resolveCaptureAction = ({ request, snapshot, role, species, random 
         throw new AuthoritativeActionError("Confirme sua equipe e um alvo selvagem na cena.", 409);
     }
     const trainerKey = captureTrainerKey(trainer);
-    if (room.phase === "batalha" && room.trainerInterventions.some(entry => entry.trainerKey === trainerKey && entry.round === room.round)) {
-        throw new AuthoritativeActionError("Este Treinador já usou a intervenção desta rodada.", 409);
-    }
+    const interventionBlock = getCaptureInterventionBlockReason(room, trainer);
+    if (interventionBlock) throw new AuthoritativeActionError(interventionBlock, 409);
     const result = rollCapture({ target, captureRate: species?.capture_rate, ball: request.ball }, random);
     const capturedInitiativeIndex = room.initiative.indexOf(target.id);
     const initiative = result.success
@@ -770,7 +779,7 @@ export const resolveCaptureAction = ({ request, snapshot, role, species, random 
         : room.turnIndex;
     const nextSnapshot = {
         ...room,
-        trainerInterventions: [...room.trainerInterventions.filter(entry => entry.round === room.round), { trainerKey, round: room.round }],
+        trainerInterventions: [...room.trainerInterventions.filter(entry => entry.round === room.round), { trainerKey, round: room.round, battle: room.battleStarted || room.initiative.length > 0 }],
         initiative,
         turnIndex: initiative.length ? turnIndex : 0,
         tokens: room.tokens.map(token => token.id === target.id && result.success ? { ...token, captured: true, hidden: true } : token),
@@ -791,6 +800,21 @@ export const resolveAuthoritativeAction = ({ request, snapshot, role, move = nul
     if (request.action === "quick-attribute") return quickAttribute(request, random);
     if (request.action === "quick-percent") return quickPercent(request, random);
     if (request.action === "quick-free") return quickFree(request, random);
+    if (request.action === "start-battle") {
+        if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode começar uma nova batalha.", 403);
+        const room = normalizeRoomSnapshot(snapshot);
+        if (room.initiative.length) throw new AuthoritativeActionError("Termine a rodada antes de começar outra batalha.", 409);
+        const nextSnapshot = startNewRoomBattle(room);
+        return {
+            result: { round: 1, detail: "Nova batalha pronta. Escolha as ações da primeira rodada." },
+            nextSnapshot,
+            audit: { type: "start-battle", mode: "normal", rawDice: [], modifiers: null,
+                chance: null, result: { round: 1 }, success: true, critical: false, fumble: false },
+            eventType: "system",
+            eventPayload: { text: "Nova batalha pronta. Escolha as ações da primeira rodada." },
+            sfxPayload: null,
+        };
+    }
     if (request.action === "capture") return resolveCaptureAction({ request, snapshot, role, species, random });
     if (request.action === "initiative") {
         if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode formar a iniciativa.", 403);

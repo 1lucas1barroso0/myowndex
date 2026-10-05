@@ -287,7 +287,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         setSaving(true);
         try {
             if (!await writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(remoteDraft), { scope })) {
-                if (mountedRef.current) setError('Não foi possível guardar a prévia sincronizada. As duas prévias continuam disponíveis.');
+                if (mountedRef.current) setError('Não foi possível abrir a outra prévia. As duas continuam disponíveis.');
                 return;
             }
             draftRef.current = remoteDraft;
@@ -296,7 +296,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 setResults(remoteDraft);
                 setSelected(new Set(remoteDraft.map(entry => entry.pokemon.id)));
                 setRemoteDraft(null);
-                setNotice('Prévia sincronizada aberta.');
+                setNotice('Outra prévia aberta.');
             }
         } finally {
             activityRef.current.saving = false;
@@ -315,7 +315,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             savedDraftRef.current = draftFingerprint(draftRef.current);
             if (mountedRef.current) {
                 setRemoteDraft(null);
-                setNotice('Sua prévia atual foi mantida.');
+                setNotice('Esta prévia foi mantida.');
             }
         } finally {
             activityRef.current.saving = false;
@@ -331,7 +331,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 <PokemonCompanion place="generator" className="companion-compact" eager />
                 <button type="button" ref={closeRef} className="generator-close" onClick={onClose} aria-label="Fechar gerador">×</button>
             </header>
-            {!draftReady ? <p role="status" className="generator-notice">Recuperando sua prévia…</p> : <div className="generator-content">
+            {!draftReady ? <p role="status" className="generator-notice">Abrindo sua prévia…</p> : <div className="generator-content">
                 <form className={`generator-options${results.length ? '' : ' generator-empty'}`} onSubmit={requestGeneration} aria-busy={busy}>
                     <div className="generator-basic-fields">
                         <label>Quantidade<RoomSelect disabled={working} value={options.count} onChange={event => updateOption('count', Number(event.target.value))} aria-label="Quantidade de Pokémon">{[1, 2, 3, 4, 5, 6].map(count => <option key={count} value={count}>{count} Pokémon</option>)}</RoomSelect></label>
@@ -344,19 +344,19 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                             <label>Tipo<RoomSelect disabled={working} value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo para o encontro"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
                             <label>Geração<RoomSelect disabled={working} value={options.generation} onChange={event => updateOption('generation', Number(event.target.value))} aria-label="Geração dos Pokémon"><option value="0">Todas</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(generation => <option key={generation} value={generation}>{generation}ª geração</option>)}</RoomSelect></label>
                         </div>
-                        <label>Lendários e Mythical<RoomSelect disabled={working} value={options.legendary} onChange={event => updateOption('legendary', event.target.value)} aria-label="Filtro de Legendary e Mythical"><option value="all">Podem aparecer</option><option value="exclude">Sem Legendary ou Mythical</option><option value="only">Somente Legendary ou Mythical</option></RoomSelect></label>
+                        <label>Pokémon lendários e míticos<RoomSelect disabled={working} value={options.legendary} onChange={event => updateOption('legendary', event.target.value)} aria-label="Pokémon lendários e míticos"><option value="all">Podem aparecer</option><option value="exclude">Não incluir</option><option value="only">Somente eles</option></RoomSelect></label>
                         <label>Natureza<RoomSelect disabled={working} value={options.nature} onChange={event => updateOption('nature', event.target.value)} aria-label="Natureza a gerar"><option value="random">Aleatória</option>{Object.keys(NATURES).map(nature => <option key={nature} value={nature}>{formatName(nature)}</option>)}</RoomSelect></label>
                         <label className="generator-checkbox"><input type="checkbox" checked={options.shiny} onChange={event => updateOption('shiny', event.target.checked)} disabled={working} />Shiny</label>
                         <label className="generator-checkbox"><input type="checkbox" checked={options.hiddenAbility} onChange={event => updateOption('hiddenAbility', event.target.checked)} disabled={working} />Permitir Hidden Ability</label>
                     </details>
                     <button ref={generateRef} type="submit" className="generator-primary" disabled={working}>{busy ? <span role="status">Gerando {progress.completed} de {progress.total}…</span> : results.length ? 'Gerar outros Pokémon' : 'Gerar Pokémon'}</button>
                     {busy && <button type="button" onClick={() => { requestRef.current?.abort(); sequenceRef.current += 1; activityRef.current.busy = false; setBusy(false); window.requestAnimationFrame(() => generateRef.current?.focus({ preventScroll: true })); }}>Cancelar geração</button>}
-                    <details className="generator-customize"><summary>Como nasce a ficha</summary><small>Movimentos aprendidos até o nível escolhido. IVs aleatórios, EVs e XP em zero.</small>{experienceMode !== 'game' && options.versionGroup !== 'auto' && <small>O jogo seleciona os movimentos; as regras do RPG permanecem atuais.</small>}</details>
+                    <details className="generator-customize"><summary>O que vem na ficha</summary><small>Até quatro movimentos aprendidos por nível no jogo escolhido. IVs sorteados; EVs e XP começam em zero.</small>{experienceMode !== 'game' && options.versionGroup !== 'auto' && <small>O jogo escolhido define os movimentos. Os cálculos seguem as regras atuais.</small>}</details>
                 </form>
                 <div className="generator-results" ref={resultsRef} tabIndex={-1} role="region" aria-label="Pokémon gerados" aria-busy={saving || exporting}>
                     {error && <p className="generator-error" role="alert">{error}</p>}
                     {notice && <p className="generator-notice" role="status">{notice}</p>}
-                    {remoteDraft && <div className="generator-notice generator-sync-choice" role="status"><p>Outra prévia chegou pela sua conta. Os Pokémon atuais continuam aqui.</p><div className="generator-save-actions"><button type="button" disabled={working} onClick={() => void chooseRemoteDraft()}>{results.some(entry => !entry.saved && !entry.exported) ? 'Exportar atual e ver prévia' : 'Ver prévia sincronizada'}</button><button type="button" disabled={working} onClick={() => void keepCurrentDraft()}>Manter atual</button></div></div>}
+                    {remoteDraft && <div className="generator-notice generator-sync-choice" role="status"><p>Há outra prévia na sua conta. Esta continua aqui.</p><div className="generator-save-actions"><button type="button" disabled={working} onClick={() => void chooseRemoteDraft()}>{results.some(entry => !entry.saved && !entry.exported) ? 'Exportar esta e abrir outra' : 'Ver outra prévia'}</button><button type="button" disabled={working} onClick={() => void keepCurrentDraft()}>Manter esta prévia</button></div></div>}
                     {results.length > 0 && <>
                         <div className="generator-result-heading"><h3>Encontro <span>{results.length} Pokémon</span></h3><button type="button" className="generator-clear-preview" disabled={working} onClick={() => setPendingRemoval('all')}>Limpar prévia</button></div>
                         <div className="generator-partners">{results.map(entry => {
@@ -366,8 +366,8 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                                 <div className="generator-types">{partner.species.types?.map(type => <span key={type.type.name} style={{ background: TYPE_COLORS[type.type.name], color: TYPE_TEXT_COLORS[type.type.name] }}>{formatType(type.type.name)}</span>)}</div>
                                 <dl className="generator-partner-facts"><div><dt>Natureza</dt><dd>{formatName(partner.nature)}</dd></div><div><dt>Habilidade</dt><dd>{formatName(partner.ability) || 'Sem habilidade'}</dd></div></dl>
                                 <ul className="generator-moves" aria-label={`Movimentos de ${formatName(partner.species.name)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
-                                {!partner.moves.some(Boolean) && <p className="generator-small">Ainda não aprende movimentos por nível neste jogo.</p>}
-                                <details className="generator-partner-details"><summary>Ficha do encontro</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => setPendingRemoval(partner.id)} aria-label={`Remover ${formatName(partner.species.name)} da prévia`}>Remover da prévia</button></details>
+                                {!partner.moves.some(Boolean) && <p className="generator-small">Neste jogo, ainda não aprende movimentos por nível.</p>}
+                                <details className="generator-partner-details"><summary>Ficha do Pokémon</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => setPendingRemoval(partner.id)} aria-label={`Remover ${formatName(partner.species.name)} da prévia`}>Remover da prévia</button></details>
                             </article>;
                         })}</div>
                         <section className="generator-save" aria-label="Guardar os Pokémon selecionados"><h3>Guardar no PC</h3><label>Destino<RoomSelect disabled={working} value={target} onChange={event => setTarget(event.target.value)} aria-label="Box de destino dos Pokémon gerados"><option value="new">Criar uma nova Box</option>{teams.map(team => <option key={team.id} value={team.id} disabled={team.pokemon.length >= 6}>{team.name} · {6 - team.pokemon.length} vaga{team.pokemon.length === 5 ? '' : 's'}</option>)}</RoomSelect></label>{target === 'new' && <label>Nome da Box<input type="text" maxLength="80" value={boxName} onChange={event => setBoxName(event.target.value)} disabled={working} /></label>}<div className="generator-save-actions"><button type="button" className="generator-primary" disabled={!selectedResults.length || selectedResults.length > freeSlots || working} onClick={() => void saveSelected()}>{saving ? 'Guardando…' : selectedResults.length ? `Guardar ${selectedResults.length} no PC` : 'Guardar no PC'}</button><button type="button" disabled={!exportSelection.length || working} onClick={() => void exportResults(exportSelection, true)}>Exportar Box</button></div>{selectedResults.length > freeSlots && <p className="generator-small">Esta Box tem {freeSlots} vaga{freeSlots === 1 ? '' : 's'}. Selecione menos Pokémon ou crie outra Box.</p>}</section>
@@ -376,6 +376,6 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             </div>}
         </section>
         <ConfirmDialog open={replaceConfirm} title="Gerar outros Pokémon?" description="Ainda há Pokémon que você não guardou nem exportou. A nova geração substitui esta prévia." confirmLabel="Gerar novos" cancelLabel="Voltar à prévia" onConfirm={() => void runGeneration()} onCancel={() => setReplaceConfirm(false)} />
-        <ConfirmDialog open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar esta prévia?' : 'Remover este Pokémon da prévia?'} description="Os Pokémon removidos saem da prévia. Os Pokémon já guardados nas Boxes e os arquivos exportados serão preservados." confirmLabel={pendingRemoval === 'all' ? 'Limpar prévia' : 'Remover da prévia'} cancelLabel="Voltar à prévia" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
+        <ConfirmDialog open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar esta prévia?' : 'Remover este Pokémon da prévia?'} description="Os Pokémon escolhidos saem da prévia. Suas Boxes e os arquivos exportados continuam como estão." confirmLabel={pendingRemoval === 'all' ? 'Limpar prévia' : 'Remover da prévia'} cancelLabel="Voltar à prévia" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
     </div>, document.body);
 }

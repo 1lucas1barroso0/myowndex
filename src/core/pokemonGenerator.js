@@ -161,7 +161,7 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
         typeIds = new Set((type.pokemon || []).map(entry => Number(extractId(entry.pokemon?.url))).filter(id => id <= 1025));
     }
     const pool = shuffled(getGeneratorSpeciesPool(catalogue, normalized, typeIds, metadata), random);
-    if (!pool.length) throw new Error('Nenhum Pokémon combina com esses filtros. Escolha outro tipo ou geração.');
+    if (!pool.length) throw new Error('Nenhum Pokémon combina com essas escolhas. Mude os filtros e tente de novo.');
     const candidates = normalized.speciesId ? Array.from({ length: normalized.count }, () => pool[0]) : pool;
     const result = [];
     let checked = 0;
@@ -199,6 +199,6 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
         if (result.length === normalized.count) break;
     }
     checkSignal(signal);
-    if (!result.length) throw new Error('Esses filtros não encontraram uma ficha no jogo escolhido. Experimente “Mais recente disponível” ou amplie a geração.');
+    if (!result.length) throw new Error('Nenhum Pokémon está disponível com essas escolhas. Mude o jogo ou amplie os filtros.');
     return result;
 };

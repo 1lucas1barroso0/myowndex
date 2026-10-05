@@ -28,10 +28,12 @@ import {
     applyEndOfRoundEffects,
     buildInitiative,
     changeRoomPhase,
+    startNewRoomBattle,
     compactTeamOffer,
     createTokenFromPokemon,
     createRoomSnapshot,
     declareRoomMove,
+    getRoundMoveBlockReason,
     eventSummary,
     LOCAL_ROOM_STORAGE_KEY,
     mergeRoomConflictSnapshot,
@@ -708,7 +710,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             await saveQueueRef.current;
             pending = authoritativeRequestsRef.current.get(requestKey);
             if (!pending) {
-                const needsRevision = ["initiative", "advance-turn", "combat", "capture"].includes(input.action);
+                const needsRevision = ["initiative", "advance-turn", "combat", "capture", "start-battle"].includes(input.action);
                 pending = {
                     requestId: createRoomActionRequestId(),
                     ...(needsRevision ? { expectedRevision: revisionRef.current } : {}),
@@ -952,6 +954,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         });
     };
 
+    const swapBlockReason = selectedToken?.currentHp > 0 && snapshot.initiative.length
+        ? getRoundMoveBlockReason({ snapshot, token: selectedToken, move: null }) : "";
     const swapSelectedPokemon = () => {
         if (!selectedToken || !selectedBenchToken || role !== "narrator") return;
         const synchronizedTeams = syncTeamsWithRoomProgress(teams, snapshot);
@@ -996,11 +1000,14 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         const removed = selectedToken;
         const tokenIndex = snapshot.tokens.findIndex(token => token.id === removed.id);
         const initiativeIndex = snapshot.initiative.indexOf(removed.id);
+        const initiative = snapshot.initiative.filter(id => id !== removed.id);
+        const turnIndex = initiative.length ? Math.max(0, Math.min(initiative.length - 1,
+            snapshot.turnIndex - (initiativeIndex >= 0 && initiativeIndex < snapshot.turnIndex ? 1 : 0))) : 0;
         commitSnapshot({
             ...snapshot,
             tokens: snapshot.tokens.filter(token => token.id !== removed.id),
-            initiative: snapshot.initiative.filter(id => id !== removed.id),
-            turnIndex: 0,
+            initiative,
+            turnIndex,
         });
         setSelectedTokenId("");
         setNotice?.({
@@ -1011,14 +1018,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 const latest = normalizeRoomSnapshot(snapshotRef.current);
                 if (latest.tokens.some(token => token.id === removed.id)) return;
                 const tokens = [...latest.tokens];
-                tokens.splice(Math.min(Math.max(0, tokenIndex), tokens.length), 0, removed);
-                const initiative = [...latest.initiative];
-                if (initiativeIndex >= 0) {
-                    initiative.splice(Math.min(initiativeIndex, initiative.length), 0, removed.id);
-                }
-                commitSnapshot({ ...latest, tokens, initiative });
+                tokens.splice(Math.min(Math.max(0, tokenIndex), tokens.length), 0,
+                    { ...removed, declaredMove: "", declaredDamageClass: "", priority: 0 });
+                // Returning to the field cannot rewrite the rolled order.
+                commitSnapshot({ ...latest, tokens });
                 setSelectedTokenId(removed.id);
-                setNotice?.({ tone: "blue", text: `${removed.name} voltou à cena.` });
+                setNotice?.({ tone: "blue", text: `${removed.name} voltou à cena.${latest.initiative.length ? " Participa da próxima ordem." : ""}` });
             },
         });
     };
@@ -1109,6 +1114,25 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             entry?.scrollIntoView({ block: "nearest", behavior: "auto" });
             entry?.querySelector("select,button")?.focus({ preventScroll: true });
         });
+    };
+
+    const startBattle = async () => {
+        if (role !== "narrator" || initiativeLock.current) return false;
+        initiativeLock.current = true;
+        setInitiativeBusy(true);
+        try {
+            if (!session.local) await requestAuthoritativeAction({ action: "start-battle" });
+            else {
+                const saved = await commitSnapshot(startNewRoomBattle(snapshotRef.current));
+                if (saved === false) throw new Error("A nova batalha ainda não foi salva. Tente novamente.");
+                await sendEvent("system", { text: "Nova batalha pronta. Escolha as ações da primeira rodada." });
+            }
+            setNotice?.({ tone: "blue", text: "Nova batalha pronta." });
+            return true;
+        } finally {
+            initiativeLock.current = false;
+            setInitiativeBusy(false);
+        }
     };
 
     const generateInitiative = async () => {
@@ -1494,7 +1518,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         <AdventurePhaseControl
                             value={snapshot.phase}
                             readOnly={role !== "narrator"}
-                            onChange={phase => commitSnapshot(changeRoomPhase(snapshot, phase))}
+                            onChange={phase => commitSnapshot(changeRoomPhase(snapshotRef.current, phase))}
+                            onStartBattle={startBattle}
+                            activeRound={snapshot.initiative.length > 0}
+                            busy={initiativeBusy}
+                            onError={showError}
                         />
                     </div>
 
@@ -1611,7 +1639,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                             {selectedBenchTokens.map(token => <option key={token.id} value={token.id}>{token.name} • {token.currentHp} de {token.maxHp} HP</option>)}
                                         </RoomSelect>
                                     </label>
-                                    <button type="button" onClick={swapSelectedPokemon}>Fazer a troca</button>
+                                    <button type="button" disabled={Boolean(swapBlockReason)} onClick={swapSelectedPokemon}>Fazer a troca</button>
+                                    {swapBlockReason && <small role="status">{swapBlockReason}</small>}
                                     <small>HP, condição, PP, item consumido e proteção contra Hit Kill continuam vinculados ao próprio Pokémon.</small>
                                 </div>
                             )}

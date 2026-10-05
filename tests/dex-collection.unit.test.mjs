@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { DEX_GENERATIONS, debutGeneration, normalizeDexSearch, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
+import { DEX_GENERATIONS, debutGeneration, dexEntryRegion, normalizeDexSearch, parseDexRange, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
 const species = [[25, "pikachu"], [122, "mr-mime"], [29, "nidoran-f"], [83, "farfetchd"], [1, "bulbasaur"]].map(([id, name]) => ({ name, url: `https://pokeapi.co/api/v2/pokemon-species/${id}/` }));
 
 test("generation filters respect every National Dex debut boundary, including Hisui and Pecharunt", () => {
@@ -39,6 +39,25 @@ test("dex search accepts explicit National Dex intervals and keeps fixed forms w
   assert.deepEqual(selectDexSpecies(catalogue, { query: "#0026 a #0019" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "19..26", generation: "7" }).map(p => p.name), ["rattata-alola"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "1026-1030" }), []);
+});
+
+test("dex filters support open ranges, multiple types and optional regional segregation", () => {
+  const catalogue = [
+    { name: "rattata", speciesName: "rattata", speciesId: 19, isPrimarySpecies: true, types: ["normal"], url: "https://pokeapi.co/api/v2/pokemon-species/19/" },
+    { name: "rattata-alola", speciesName: "rattata", speciesId: 19, pokemonId: 10091, isPrimarySpecies: false, formKey: "rattata-alola", formIdentifier: "alola", generation: 7, types: ["dark", "normal"], url: "https://pokeapi.co/api/v2/pokemon-species/19/" },
+    { name: "sableye", speciesName: "sableye", speciesId: 302, isPrimarySpecies: true, types: ["dark", "ghost"], url: "https://pokeapi.co/api/v2/pokemon-species/302/" },
+    { name: "aron", speciesName: "aron", speciesId: 304, isPrimarySpecies: true, types: ["steel", "rock"], url: "https://pokeapi.co/api/v2/pokemon-species/304/" },
+    { name: "miraidon", speciesName: "miraidon", speciesId: 1008, isPrimarySpecies: true, types: ["electric", "dragon"], url: "https://pokeapi.co/api/v2/pokemon-species/1008/" },
+  ];
+  assert.deepEqual(parseDexRange("a partir de 304"), [304, 1025]);
+  assert.deepEqual(parseDexRange("até 302"), [1, 302]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "a partir de 304" }).map(p => p.speciesId), [304, 1008]);
+  assert.deepEqual(selectDexSpecies(catalogue, { minNumber: 300, maxNumber: 400 }).map(p => p.speciesId), [302, 304]);
+  assert.deepEqual(selectDexSpecies(catalogue, { types: ["dark", "ghost"] }).map(p => p.name), ["sableye"]);
+  assert.deepEqual(selectDexSpecies(catalogue).map(p => p.name), ["rattata", "sableye", "aron", "miraidon"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { variantMode: "separate", regions: ["alola"] }).map(p => p.name), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "alola" }).map(p => p.name), ["rattata-alola"]);
+  assert.equal(dexEntryRegion(catalogue[1]), "alola");
 });
 
 test("fixed forms have independent favorites while legacy numeric species favorites remain valid", () => {

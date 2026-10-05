@@ -19,7 +19,7 @@ import { DEX_GENERATIONS, debutGeneration, getDexEntryIdentity, getDexEntryName,
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.3";
+const APP_VERSION = "2.0.4";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }

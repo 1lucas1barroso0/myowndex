@@ -79,7 +79,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "1.4",
                 title: "Probabilidades e efeitos secundários",
-                body: "Para uma chance inteira em porcentagem, role 1d100. Resultado igual ou menor que a chance é sucesso. Com vantagem, o jogo tenta duas vezes e fica com o melhor resultado; com desvantagem, fica com o pior. Chances exatas que o d100 não consegue representar são sorteadas sem aproximação.\n\nEm um ataque, vencer a disputa e somar pelo menos 2 a mais nos dados mantidos do que a defesa dá vantagem na precisão e nos efeitos secundários. Compare os dados, não o total dos atributos. O jogo verifica isso para você."
+                body: "Para uma chance inteira em porcentagem, role 1d100. Resultado igual ou menor que a chance é sucesso. Com vantagem, o jogo tenta duas vezes e fica com o melhor resultado; com desvantagem, fica com o pior. Chances exatas que o d100 não consegue representar são sorteadas sem aproximação.\n\nEm um ataque, vencer a disputa e somar pelo menos 2 a mais nos dados mantidos do que a defesa ativa Vantagem para a precisão e para efeitos secundários quando a regra pedir outra chance. Compare os dados, não o total dos atributos. O jogo verifica isso para você."
             }
         ]
     },
@@ -117,7 +117,7 @@ export const RPG_RULE_SECTIONS = [
                     "Para chegar ao próximo nível, a meta é metade do novo nível, arredondada para baixo. Do nível 10 para o 11, são 5 XP. A contagem volta a zero depois de subir.",
                     "O Narrador escolhe a recompensa-base: 1 XP para um desafio comum, 2 para um importante e 3 para uma grande conquista. Fora de batalha, ela fica de 1 a 3. Repetir algo trivial ou sem risco não cria outro desafio.",
                     "Na vitória em batalha, dobre a recompensa se ao menos um adversário tiver o dobro ou mais do maior nível do lado vencedor. Dobre também se o lado adversário tiver o dobro ou mais de Pokémon participantes. As duas condições juntas dão ×4. Compare os níveis de entrada na batalha e conte quem participou, incluindo quem saiu ou foi derrotado; quem ficou só no banco não conta.",
-                    "Se essas vantagens forem do vencedor, cada uma tira 1 da base e não dá multiplicador. Em casos mistos, tire primeiro, multiplique depois e mantenha no mínimo 1 XP ao final. Exemplo: base 3, vencedor com vantagem de nível e adversários em dobro dão (3 − 1) ×2 = 4 XP.",
+                    "Se essas condições estiverem do lado vencedor, cada uma tira 1 da base e não dá multiplicador. Em casos mistos, tire primeiro, multiplique depois e mantenha no mínimo 1 XP ao final. Exemplo: base 3, vencedor com vantagem de nível e adversários em dobro dão (3 − 1) ×2 = 4 XP.",
                     "Vencer, capturar, negociar, resgatar ou descobrir podem resolver o mesmo desafio. Recompense esse desafio uma vez, não uma vez por botão, golpe ou resultado.",
                     "A XP recebida já é inteira. Se o grupo usar uma recompensa coletiva, a divisão padrão é igual, com resultado arredondado para baixo; combine outra divisão antes de conceder. Cada Pokémon que participou recebe pelo menos 1 XP em um desafio recompensado. Editar a XP atual corrige a ficha: não concede outra recompensa.",
                     "Cada aquisição de XP entrega o dobro em EVs. Receber 3 XP, por exemplo, dá 6 EVs para distribuir: até 252 por atributo e 510 no total. A mesma recompensa registrada não entrega XP nem EVs duas vezes.",
@@ -198,7 +198,7 @@ export const RPG_RULE_SECTIONS = [
                     "Para trocar por vontade própria, declare Outra ação antes da iniciativa. A troca usa a ação do Pokémon que sai. Quem entra ocupa esse lugar e não ganha outra ação na rodada. Substituir um Pokémon derrotado não gasta a ação da rodada seguinte. Os recursos de cada Pokémon continuam com ele.",
                     "Mover-se dentro da mesma faixa pode acompanhar a ação. Cruzar uma faixa sob oposição ou conquistar uma posição decisiva pode exigir a ação e um teste. Combine alcance, terreno e Velocidade antes de rolar.",
                     "Uma reação precisa ser permitida por movimento, habilidade, item ou situação. A defesa normal já faz parte da disputa: não é cobrada como outra ação.",
-                    "Outra ação guarda uma vez de prioridade 0 para trocar, improvisar ou escolher um movimento de prioridade 0. Não permite escolher uma prioridade maior depois da rolagem. Resolva e avance. Efeitos que dão outra ação ou mudam a ordem precisam de uma permissão própria; o Narrador registra a exceção no Diário.",
+                    "Outra ação guarda uma vez de prioridade 0 para trocar, improvisar ou escolher um movimento de prioridade 0. Não permite escolher uma prioridade maior depois da rolagem. Resolva e avance. Efeitos que dão outra ação ou mudam a ordem precisam de uma permissão própria; o Narrador registra a exceção no Histórico da aventura.",
                 ]
             }
         ]
@@ -222,7 +222,7 @@ export const RPG_RULE_SECTIONS = [
                     "Chance = 100 × taxa da espécie ÷ 255 × (3 × HP máximo − 2 × HP atual) ÷ (3 × HP máximo) × bônus da Ball × bônus da condição. O jogo arredonda para baixo e mantém de 1% a 100% quando a taxa é positiva. Taxa 0 não permite captura comum.",
                     "Poké Ball, Premier Ball, Luxury Ball e Heal Ball: ×1; Great Ball: ×1,5; Ultra Ball: ×2. Sono ou congelamento: ×2,5; queimadura, paralisia ou veneno: ×1,5. Master Ball dispensa o teste, mas não permite capturar o Pokémon de outro Treinador.",
                     "No d100, igual ou menor que a chance é captura. A taxa vem da Pokédex; HP e condição vêm da cena. A vantagem de um ataque não passa para a captura.",
-                    "Uma Ball especial mantém sua própria descrição e bônus: não é tratada silenciosamente como uma Poké Ball comum. O Narrador registra uma exceção quando necessário. Depois da captura, registre o Pokémon no PC e ajuste o inventário; o Diário guarda o resultado.",
+                    "Uma Ball especial mantém sua própria descrição e bônus: não é tratada silenciosamente como uma Poké Ball comum. O Narrador registra uma exceção quando necessário. Depois da captura, registre o Pokémon no PC e ajuste o inventário; o Histórico da aventura guarda o resultado.",
                 ]
             },
             {
@@ -273,7 +273,7 @@ export const RPG_RULE_SECTIONS = [
                     "Ao completar a meta de XP, suba um nível, atualize os atributos e zere a contagem. Uma aquisição sobe no máximo um nível; a sobra não passa para outro. Os EVs consideram toda a XP recebida. Subir de nível não revive um Pokémon com HP 0.",
                     "Evoluir pode depender de nível, item, amizade, troca, lugar, horário ou outra condição. Preserve a ideia dos jogos; o grupo pode transformá-la em um momento equivalente da história.",
                     "Evoluir não apaga apelido, vínculo, histórico, PP, condição ou escolhas registradas.",
-                    "Amizade muda pela decisão do Narrador, conforme Pokémon, Treinador e contexto. Ao fim da sessão, ele avalia se algo deve mudar; normalmente ajusta 5 ou 50 no valor original, para mais ou para menos. XP, nível e fim de sessão não mudam amizade automaticamente.",
+                    "Amizade muda pela decisão do Narrador, conforme Pokémon, Treinador e contexto. Ao fim da sessão, ele avalia se algo deve mudar; normalmente ajusta 5 para uma mudança pequena ou 50 para uma mudança grande, para mais ou para menos. XP, nível e fim de sessão não mudam amizade automaticamente.",
                 ]
             }
         ]
@@ -299,7 +299,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "6.2",
                 title: "Dano contínuo e indireto",
-                body: "Conte cada fonte de dano separadamente: condição, clima, terreno, armadilha, recuo e outras. A parte do HP usada por cada efeito segue sua regra original de arredondamento. Se o efeito causa dano, tira no mínimo 1 HP; imunidade ou efeito anulado tira 0.\n\nEncerrar rodada resolve queimadura, veneno, envenenamento grave e tempestade de areia. Também avança Yawn, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song. O Diário mostra as mudanças. Dano real pode acionar a proteção contra hit kill; tirar o próprio HP a encerra naquela batalha."
+                body: "Conte cada fonte de dano separadamente: condição, clima, terreno, armadilha, recuo e outras. A parte do HP usada por cada efeito segue sua regra original de arredondamento. Se o efeito causa dano, tira no mínimo 1 HP; imunidade ou efeito anulado tira 0.\n\nEncerrar rodada resolve queimadura, veneno, envenenamento grave e tempestade de areia. Também avança Yawn, Future Sight, Doom Desire, Wish, Leech Seed, Aqua Ring, Ingrain e Perish Song. O Histórico da aventura mostra as mudanças. Dano real pode acionar a proteção contra hit kill; tirar o próprio HP a encerra naquela batalha."
             },
             {
                 id: "6.3",
@@ -356,7 +356,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.6",
                 title: "Ordem de resolução conectada",
-                body: "Escolha o movimento e seu alvo; o jogo resolve uma vez, em ordem: permissões e condições, disputa quando houver, precisão e imunidades, cálculo e proteções, dano, efeitos secundários, contato, custos, cura e nocaute. O Diário guarda o resultado.\n\nAlvo, troca ou movimento chamado continuam sendo escolhas quando a própria regra permite. Um crítico só vale depois de acertar. Shield Dust, Covert Cloak e Sheer Force mexem nos efeitos secundários, não apagam efeitos principais nem custos do usuário."
+                body: "Escolha o movimento e seu alvo; o jogo resolve uma vez, em ordem: permissões e condições, disputa quando houver, precisão e imunidades, cálculo e proteções, dano, efeitos secundários, contato, custos, cura e nocaute. O Histórico da aventura guarda o resultado.\n\nAlvo, troca ou movimento chamado continuam sendo escolhas quando a própria regra permite. Um crítico só vale depois de acertar. Shield Dust, Covert Cloak e Sheer Force mexem nos efeitos secundários, não apagam efeitos principais nem custos do usuário."
             }
         ]
     },
@@ -374,7 +374,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "8.2",
                 title: "Ajuda sem tirar a liberdade",
-                body: "O jogo faz as contas e resolve o que tem resposta definida. Você continua escolhendo o que seu personagem tenta fazer. Ideias criativas e consequências da história ficam com o grupo. Combine antes de rolar e registre uma exceção no Diário para aplicá-la do mesmo jeito depois."
+                body: "O jogo faz as contas e resolve o que tem resposta definida. Você continua escolhendo o que seu personagem tenta fazer. Ideias criativas e consequências da história ficam com o grupo. Combine antes de rolar e registre uma exceção no Histórico da aventura para aplicá-la do mesmo jeito depois."
             },
             {
                 id: "8.3",

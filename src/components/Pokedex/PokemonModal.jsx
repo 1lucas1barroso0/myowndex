@@ -4,6 +4,7 @@ import { formatReferenceText, getPokedexRecord } from '../../core/pokedexRecord.
 import { getSpeciesRecordHistory, loadCatalogText } from '../../core/catalogText.js';
 import { getLearnsetGames, resolveLearnsetGame } from '../../core/referenceGames.js';
 import pokedexEntries from '../../data/pokedex-entries.json';
+import dexEntries from '../../data/dex-entries.json';
 import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
 import AbilityCard from './AbilityCard.jsx';
@@ -39,9 +40,10 @@ const organizeSpeciesFacts = facts => facts
             : { label: match[1], value, note };
     });
 
-export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose, isTTRPG, onAddToTeam }) {
+export default function PokemonModal({ speciesUrl, initialFormUrl = "", initialCatalogKey = "", onClose, isTTRPG, onAddToTeam }) {
     const [baseInfo, setBaseInfo] = useState(null);
     const [activeForm, setActiveForm] = useState(null);
+    const [catalogFormKey, setCatalogFormKey] = useState(initialCatalogKey);
     const [formData, setFormData] = useState(null);
     const [evoChain, setEvoChain] = useState([]);
     const [tab, setTab] = useState("stats");
@@ -66,6 +68,7 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose,
         let mounted = true;
         setBaseInfo(null);
         setActiveForm(null);
+        setCatalogFormKey(initialCatalogKey);
         setEvoChain([]);
         setFormData(null);
         setLoadError("");
@@ -108,7 +111,7 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose,
             }
         }).catch(() => mounted && setLoadError("Não foi possível abrir este Pokémon. Tente novamente."));
         return () => mounted = false;
-    }, [speciesUrl, initialFormUrl, retryAttempt]);
+    }, [speciesUrl, initialFormUrl, initialCatalogKey, retryAttempt]);
 
     useEffect(() => {
         let mounted = true;
@@ -227,6 +230,18 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose,
         document.getElementById(`${recordId}-tab-${RECORD_TABS[nextIndex].id}`)?.focus();
     };
 
+    const catalogForms = useMemo(() => baseInfo?.id
+        ? dexEntries.filter(entry => Number(entry.speciesId) === Number(baseInfo.id))
+        : [], [baseInfo?.id]);
+    const selectedCatalogForm = catalogForms.find(entry => entry.catalogFormKey === catalogFormKey) || null;
+    const persistentPokemonNames = useMemo(() => new Set(catalogForms.map(entry => entry.pokemonName)), [catalogForms]);
+    const temporaryVarieties = (baseInfo?.varieties || []).filter(value => !persistentPokemonNames.has(value.pokemon?.name));
+    const selectedFormLabel = selectedCatalogForm && Number(selectedCatalogForm.formCount) > 1 && selectedCatalogForm.form
+        ? formatName(selectedCatalogForm.form)
+        : activeForm?.name !== baseInfo?.name
+            ? formatName((activeForm?.name || "").replace(`${baseInfo?.name}-`, ""))
+            : "";
+
     const defenses = calculateDefenses(formData?.types || []);
     const bst = formData?.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
     const primaryColor = TYPE_COLORS[formData?.types?.[0]?.type?.name] || "#0EA5E9";
@@ -263,7 +278,7 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose,
                     <header className="record-header">
                         <div className="record-cartridge-label"><span aria-hidden="true" /><small>Pokédex nacional</small><b>No. {String(baseInfo.id).padStart(4, "0")}</b></div>
                         <h2 id={titleId}>{formatName(baseInfo.name)}</h2>
-                        {activeForm?.name !== baseInfo.name && <p className="record-form-label">Forma {formatName(activeForm.name.replace(`${baseInfo.name}-`, ""))}</p>}
+                        {selectedFormLabel && <p className="record-form-label">Forma {selectedFormLabel}</p>}
                     </header>
                     <div className="record-sprite-stage">
                         <span className="record-sprite-ground" aria-hidden="true" />
@@ -271,7 +286,8 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose,
                             <PokemonSprite
                                 src={sprite} 
                                 pokemonId={formData.id}
-                                alt={formatName(activeForm?.name || baseInfo.name)}
+                                spriteKey={selectedCatalogForm?.spriteKey || ""}
+                                alt={selectedFormLabel ? `${formatName(baseInfo.name)} · ${selectedFormLabel}` : formatName(activeForm?.name || baseInfo.name)}
                                 loading="eager"
                                 className="record-partner-sprite"
                             />
@@ -280,7 +296,7 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose,
                         )}
                     </div>
                     
-                    <button type="button" onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1); onClose(); }} className="record-add-partner">
+                    <button type="button" onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1, selectedCatalogForm?.storageFormKey || ""); onClose(); }} className="record-add-partner">
                         <span className="record-mini-ball" aria-hidden="true" /> Adicionar à equipe <span aria-hidden="true">＋</span>
                     </button>
 
@@ -383,22 +399,43 @@ export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose,
                                     <div className="record-abilities-list">{formData.abilities?.map((a, i) => <AbilityCard key={a.ability?.name || i} name={a.ability?.name} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
                                 </div>
                                 
-                                {baseInfo.varieties?.length > 1 && (
+                                {(catalogForms.length > 1 || temporaryVarieties.length > 0) && (
                                     <div>
                                         <h3 className="record-section-title">Formas</h3>
                                         <div className="record-form-options">
-                                            {baseInfo.varieties.map((v, index) => {
+                                            {catalogForms.map(entry => {
+                                                const btnName = Number(entry.formCount) > 1 && entry.form
+                                                    ? formatName(entry.form)
+                                                    : entry.isDefault ? "Forma base" : formatName(entry.pokemonName.replace(baseInfo.name + "-", ""));
+                                                const selected = catalogFormKey === entry.catalogFormKey;
+                                                return (
+                                                    <button
+                                                        key={entry.catalogFormKey}
+                                                        type="button"
+                                                        aria-pressed={selected}
+                                                        onClick={() => {
+                                                            setCatalogFormKey(entry.catalogFormKey);
+                                                            if (activeForm?.url !== entry.pokemonUrl) setActiveForm({ name: entry.pokemonName, url: entry.pokemonUrl });
+                                                        }}
+                                                        className={`record-form-button ${selected ? "is-selected" : ""}`}
+                                                    >
+                                                        {btnName}
+                                                    </button>
+                                                );
+                                            })}
+                                            {temporaryVarieties.map((v, index) => {
                                                 const formSlug = (v.pokemon?.name || "").replace(baseInfo.name + "-", "");
                                                 const btnName = v.pokemon?.name === baseInfo.name || !formSlug
                                                     ? "Forma base"
                                                     : formatName(formSlug);
+                                                const selected = !catalogFormKey && activeForm?.name === v.pokemon?.name;
                                                 return (
-                                                    <button 
-                                                        key={v.pokemon?.name || `form-${index}`}
+                                                    <button
+                                                        key={v.pokemon?.name || `temporary-form-${index}`}
                                                         type="button"
-                                                        aria-pressed={activeForm?.name === v.pokemon?.name}
-                                                        onClick={() => setActiveForm(v.pokemon)} 
-                                                        className={`record-form-button ${activeForm?.name === v.pokemon?.name ? "is-selected" : ""}`}
+                                                        aria-pressed={selected}
+                                                        onClick={() => { setCatalogFormKey(""); setActiveForm(v.pokemon); }}
+                                                        className={`record-form-button ${selected ? "is-selected" : ""}`}
                                                     >
                                                         {btnName}
                                                     </button>

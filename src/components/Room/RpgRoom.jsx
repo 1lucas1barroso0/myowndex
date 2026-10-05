@@ -223,7 +223,7 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                         </div>
                     </header>
                     <label>
-                        <span>Link ou convite da aventura</span>
+                        <span>Convite da aventura</span>
                         <textarea
                             value={invite}
                             rows={2}
@@ -1394,14 +1394,14 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     </summary>
                     <div>
                         {inviteUrl ? <>
-                        <p>Compartilhe o convite. Cada jogador informa seu nome ao entrar.</p>
+                        <p>Compartilhe este convite. Ele leva o jogador à aventura certa; cada pessoa informa o próprio nome ao entrar.</p>
                         <label>
-                            <span className="sr-only">Link de convite dos jogadores</span>
+                            <span className="sr-only">Link desta aventura para jogadores</span>
                             <input readOnly value={inviteUrl} onFocus={event => event.currentTarget.select()} />
                         </label>
                         <div className="room-invite-actions">
                             <button type="button" className="is-primary" onClick={() => void shareInvite(inviteUrl)}>Enviar convite</button>
-                            <button type="button" onClick={() => copy(inviteUrl, "Link da aventura")}>Copiar link</button>
+                            <button type="button" onClick={() => copy(inviteUrl, "Link desta aventura")}>Copiar link</button>
                             <button type="button" onClick={() => copy(inviteToken, "Convite curto")}>Copiar convite curto</button>
                         </div>
                         </> : <><p>Você retomou esta aventura pela conta. Gere um convite para chamar novos jogadores.</p><button type="button" className="room-primary-button" disabled={busy} onClick={() => setRenewingInvite(true)}>Gerar convite</button></>}

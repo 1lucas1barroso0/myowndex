@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildGeneratedPokemon, fetchGeneratorData, generatePokemon, GENERATOR_REQUEST_CONCURRENCY, getGeneratedHp, getGeneratorGameReference, getGeneratorGender, getGeneratorLearnset, getGeneratorSpeciesPool, getGeneratorSpeciesTypes, normalizeGeneratorOptions } from '../src/core/pokemonGenerator.js';
+import { buildGeneratedPokemon, fetchGeneratorData, generatePokemon, GENERATOR_REQUEST_CONCURRENCY, getGeneratedHp, getGeneratorGameReference, getGeneratorGender, getGeneratorLearnset, getGeneratorRandomCandidates, getGeneratorSpeciesPool, getGeneratorSpeciesTypes, normalizeGeneratorOptions } from '../src/core/pokemonGenerator.js';
 import { clearCatalogTextCache } from '../src/core/catalogText.js';
 import { STAT_KEYS } from '../src/core/team.js';
 import { decodeShare, encodePokemonBundle } from '../src/core/teamShare.js';
@@ -25,6 +25,27 @@ test('generator filters canonical species, types and real generation boundaries 
     assert.equal(normalized.level, 100);
     assert.equal(normalized.nature, 'random');
     assert.equal(normalized.type, '');
+});
+
+test('random generator gives each species one candidate regardless of how many persistent forms it owns', () => {
+    const pool = [
+        { id: 25, name: 'pikachu' },
+        { id: 869, name: 'alcremie' },
+        { id: 869, name: 'alcremie-ruby-cream', formKey: 'alcremie-ruby-cream' },
+        { id: 869, name: 'alcremie-rainbow-swirl', formKey: 'alcremie-rainbow-swirl' },
+    ];
+    const candidates = getGeneratorRandomCandidates(pool, () => 0);
+    assert.equal(candidates.length, 2);
+    assert.equal(new Set(candidates.map(entry => entry.id)).size, 2);
+});
+
+test('historical game generation excludes forms introduced after the selected game', () => {
+    const entries = [
+        { name: 'rattata', speciesId: 19, url: `${API}pokemon-species/19/` },
+        { name: 'rattata-alola', speciesId: 19, formKey: 'rattata-alola', generation: 7, types: ['dark', 'normal'], url: `${API}pokemon-species/19/` },
+    ];
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { experienceMode: 'game', versionGroup: 'red-blue' }).map(entry => entry.name), ['rattata']);
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { experienceMode: 'game', versionGroup: 'sun-moon' }).map(entry => entry.name), ['rattata', 'rattata-alola']);
 });
 
 test('generator learnset uses the latest actual game and only moves learned by the selected level', () => {

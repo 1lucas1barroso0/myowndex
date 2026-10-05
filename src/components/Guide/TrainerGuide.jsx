@@ -14,6 +14,7 @@ import {
 const ruleCount = RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0);
 const normalizeSearch = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 const formatRuleForReading = text => text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
+const rulePreview = rule => formatRuleForReading(String(rule.body || rule.bullets?.[0] || "").split(/(?<=[.!?])\s+/)[0]);
 
 function RuleBullet({ text }) {
     const readable = formatRuleForReading(text);
@@ -95,7 +96,7 @@ export default function TrainerGuide({ experienceMode }) {
                                         <details key={rule.id} ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
                                             <summary>
                                                 <span className="guide-rule-id">{rule.id}</span>
-                                                <strong>{rule.title}</strong>
+                                                <span className="guide-rule-summary-copy"><strong>{rule.title}</strong><small>{rulePreview(rule)}</small></span>
                                             </summary>
                                             <div className="guide-rule-body">
                                                 {rule.id !== "3.4" && rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
@@ -148,7 +149,7 @@ export default function TrainerGuide({ experienceMode }) {
                                         <div className="is-neutral"><dt>Normal <b>×1</b></dt><dd>O limite por hit é {formatNumberPtBr(normalizedLevel)}.</dd></div>
                                         <div className="is-effective"><dt>Superefetivo <b>×2 ou ×4</b></dt><dd>O dano e o limite aumentam. Neste nível, o teto vai a {formatNumberPtBr(normalizedLevel * 2)} ou {formatNumberPtBr(normalizedLevel * 4)}.</dd></div>
                                     </dl>
-                                    <p>Com vários tipos, as vantagens e resistências se combinam: duas vantagens dão ×4; vantagem e resistência dão ×1; duas resistências dão 25%. Uma imunidade mantém 0, salvo quando um efeito próprio a remove. Estágios positivos do atributo ofensivo também podem elevar o teto; críticos e movimentos de regra própria usam suas exceções.</p>
+                                    <p>Com vários tipos, fraquezas e resistências se combinam: duas fraquezas dão ×4; uma fraqueza e uma resistência dão ×1; duas resistências dão 25%. Uma imunidade mantém 0, salvo quando um efeito próprio a remove. Estágios positivos do atributo ofensivo também podem elevar o teto; críticos e movimentos de regra própria usam suas exceções.</p>
                                 </details>
                             </article>
                             <button type="button" className="guide-hit-kill-link room-secondary-button" onClick={showProtection}>Ver proteção contra hit kill</button>

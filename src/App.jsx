@@ -28,7 +28,7 @@ const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do
 const formatDexResultCount = (speciesCount, formCount) => {
     const parts = [];
     if (speciesCount) parts.push(`${speciesCount} ${speciesCount === 1 ? "espécie" : "espécies"}`);
-    if (formCount) parts.push(`${formCount} ${formCount === 1 ? "forma" : "formas"}`);
+    if (formCount) parts.push(`${formCount} ${formCount === 1 ? "variante" : "variantes"}`);
     return parts.join(" · ") || "0 resultados";
 };
 function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v204.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }
@@ -53,7 +53,7 @@ const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorit
                 <span className="dex-number">No. {String(dexNumber).padStart(4, "0")}</span>
                 <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={spriteId} spriteKey={species.spriteKey} alt="" className="pixelated" /></span>
                 <span className="pokemon-card-name">{displayName}</span>
-                <span className="dex-generation-mark">{formLabel ? `Forma · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional"}</span>
+                <span className="dex-generation-mark">{formLabel ? `${species.variantKind === "regional" ? "Regional" : "Variante"} · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional"}</span>
             </button>
             <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${identityName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
         </article>

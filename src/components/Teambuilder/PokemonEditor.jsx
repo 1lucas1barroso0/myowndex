@@ -244,6 +244,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 ability: currentPartner.ability || nextSpecies.abilities?.[0]?.ability?.name || "",
                 teraType: !currentPartner.teraType || currentPartner.teraType === oldPrimaryType ? nextPrimaryType : currentPartner.teraType,
                 canGMax: nextSpecies.name?.includes("-gmax") ? true : currentPartner.canGMax,
+                formKey: "",
+                formId: null,
             });
             setSpeciesProfile(profile || null);
         } catch {
@@ -383,19 +385,19 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         updatePk(next);
     };
     return (
-        <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatName(pk.species?.name)}`}>
+        <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatName(pk.formKey || pk.species?.name)}`}>
             <datalist id={itemListId}>{validItems.map(value => <option key={value} value={value} label={formatCanonicalItemName(value)} />)}</datalist>
             <datalist id={abilityListId}>{validAbs.map(ability => { const value = typeof ability === "string" ? ability : ability?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
             <datalist id={moveListId}>{validMoves.map(move => { const value = typeof move === "string" ? move : move?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
 
             <header className="editor-header">
-                <PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" />
+                <PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" />
                 <div className="editor-identity">
                     <label className="editor-field">
                         <span className="editor-label">Apelido</span>
                         <input type="text" value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, nickname: event.target.value })} className="editor-input editor-nickname" />
                     </label>
-                    <span className="editor-species-name">{formatName(pk.species?.name || "")}</span>
+                    <span className="editor-species-name">{formatName(pk.formKey || pk.species?.name || "")}</span>
                     {forms.length > 1 && <label className="editor-field form-switch">
                         <span className="editor-label">Forma</span>
                         <RoomSelect aria-label="Forma" className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>

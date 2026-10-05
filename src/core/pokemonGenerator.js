@@ -51,6 +51,7 @@ export const normalizeGeneratorOptions = (options = {}) => ({
     count: integerInRange(options.count, 1, 6, 1),
     level: integerInRange(options.level, 1, options.experienceMode === 'game' ? 100 : 200, 5),
     speciesId: integerInRange(options.speciesId, 0, 1025, 0),
+    formKey: typeof options.formKey === 'string' && /^[a-z0-9-]{1,120}$/.test(options.formKey) ? options.formKey : '',
     generation: integerInRange(options.generation, 0, 9, 0),
     type: TYPES.includes(options.type) && options.type !== 'stellar' ? options.type : '',
     versionGroup: typeof options.versionGroup === 'string' ? options.versionGroup : 'auto',
@@ -65,13 +66,29 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
     const normalized = normalizeGeneratorOptions(options);
     const range = GENERATION_RANGES[normalized.generation - 1];
     const gameGeneration = normalized.experienceMode === 'game' ? getReferenceGameGeneration(normalized.versionGroup) || 9 : 9;
-    return (Array.isArray(catalogue) ? catalogue : []).map(entry => ({ ...entry, id: Number(extractId(entry.url)) }))
-        .filter(entry => Number.isInteger(entry.id) && entry.id >= 1 && entry.id <= 1025
-            && (!normalized.speciesId || entry.id === normalized.speciesId)
-            && (!range || (entry.id >= range[0] && entry.id <= range[1]))
-            && (normalized.legendary === 'all' || !metadata[entry.id] || (normalized.legendary === 'only' ? metadata[entry.id].legendary || metadata[entry.id].mythical : !metadata[entry.id].legendary && !metadata[entry.id].mythical))
-            && (!normalized.type || !metadata[entry.id]?.types || getGeneratorSpeciesTypes(metadata[entry.id], gameGeneration).includes(normalized.type))
-            && (!typeIds || typeIds.has(entry.id)));
+    return (Array.isArray(catalogue) ? catalogue : []).map(entry => ({
+        ...entry,
+        id: Number(entry.speciesId || extractId(entry.url)),
+    })).filter(entry => {
+        if (!Number.isInteger(entry.id) || entry.id < 1 || entry.id > 1025) return false;
+        if (normalized.speciesId && entry.id !== normalized.speciesId) return false;
+        if (normalized.speciesId && normalized.formKey && entry.formKey !== normalized.formKey) return false;
+        if (normalized.speciesId && !normalized.formKey && entry.formKey) return false;
+        const entryGeneration = Number(entry.generation);
+        if (normalized.generation && Number.isInteger(entryGeneration) && entryGeneration !== normalized.generation) return false;
+        if (normalized.generation && !Number.isInteger(entryGeneration) && range && (entry.id < range[0] || entry.id > range[1])) return false;
+        const meta = metadata[entry.id];
+        if (normalized.legendary !== 'all' && meta) {
+            const special = Boolean(meta.legendary || meta.mythical);
+            if (normalized.legendary === 'only' ? !special : special) return false;
+        }
+        const pinnedTypes = Array.isArray(entry.types) && entry.types.length
+            ? entry.types
+            : getGeneratorSpeciesTypes(meta, gameGeneration);
+        if (normalized.type && pinnedTypes?.length && !pinnedTypes.includes(normalized.type)) return false;
+        if (typeIds && !entry.formKey && !typeIds.has(entry.id)) return false;
+        return true;
+    });
 };
 
 export const getGeneratorSpeciesTypes = (entry, generation = 9) => {
@@ -112,7 +129,7 @@ export const getGeneratedHp = (partner, experienceMode = 'rpg') => {
 
 export const getGeneratorGameReference = getPokemonAtGeneration;
 
-export const buildGeneratedPokemon = ({ pokemon, species, learnset, moveData = [], options = {}, random }) => {
+export const buildGeneratedPokemon = ({ pokemon, species, learnset, moveData = [], options = {}, formIdentity = null, random }) => {
     const normalized = normalizeGeneratorOptions(options);
     if (!pokemon?.name || !STAT_KEYS.every(stat => pokemon.stats?.some(entry => entry.stat?.name === stat && Number.isInteger(entry.base_stat) && entry.base_stat > 0)) || !species?.name || !learnset?.versionGroup) throw new Error('Este Pokémon não trouxe uma ficha completa para o jogo escolhido.');
     const validAbilities = (pokemon.abilities || []).filter(entry => entry.ability?.name);
@@ -132,6 +149,8 @@ export const buildGeneratedPokemon = ({ pokemon, species, learnset, moveData = [
         friendship: species.base_happiness,
         teraType: pokemon.types?.[0]?.type?.name || '',
         moves: learnset.moves.map(move => move.name),
+        formKey: formIdentity?.formKey || '',
+        formId: formIdentity?.formId || null,
         rpg: { xp: 0, pp: learnset.moves.map(move => moveData.find(data => data?.name === move.name)?.pp ?? null) },
     });
     partner.rpg.currentHp = getGeneratedHp(partner, normalized.experienceMode);
@@ -152,7 +171,8 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
     const request = url => fetchGeneratorData(url, { signal, fetcher });
     checkSignal(signal);
     let typeIds = null;
-    const hasPinnedTypes = Array.isArray(catalogue) && catalogue.every(entry => Array.isArray(metadata[Number(extractId(entry.url))]?.types));
+    const hasPinnedTypes = Array.isArray(catalogue) && catalogue.every(entry =>
+        Array.isArray(entry.types) || Array.isArray(metadata[Number(entry.speciesId || extractId(entry.url))]?.types));
     // A current type index cannot exclude old Normal Clefairy or pure Electric
     // Magnemite. Without the pinned index, inspect candidates in the real game.
     const historicalTypes = normalized.experienceMode === 'game' && getReferenceGameGeneration(normalized.versionGroup) < 6 && normalized.versionGroup !== 'auto';
@@ -175,8 +195,12 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
         const species = await request(entry.url);
         const legendary = species.is_legendary || species.is_mythical;
         if ((normalized.legendary === 'only' && !legendary) || (normalized.legendary === 'exclude' && legendary)) continue;
-        const defaultForm = species.varieties?.find(variety => variety.is_default)?.pokemon;
-        if (!defaultForm?.url) throw new Error('A Pokédex não trouxe a forma principal deste Pokémon.');
+        const requestedPokemonName = entry.pokemonName || null;
+        const selectedForm = requestedPokemonName
+            ? species.varieties?.find(variety => variety.pokemon?.name === requestedPokemonName)?.pokemon
+            : null;
+        const defaultForm = selectedForm || species.varieties?.find(variety => variety.is_default)?.pokemon;
+        if (!defaultForm?.url) throw new Error('A Pokédex não trouxe a forma escolhida deste Pokémon.');
         const currentPokemon = await request(defaultForm.url);
         const learnset = getGeneratorLearnset(currentPokemon, normalized.versionGroup, normalized.level);
         checked += 1;
@@ -193,7 +217,15 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
             // when the chosen game supplies an older Pokémon repertoire.
             moveData.push(getMoveReferenceForMode(data, { value: learnset.versionGroup, url: game?.url || `${API}version-group/${game?.id}/` }, normalized.experienceMode));
         }
-        const partner = buildGeneratedPokemon({ pokemon, species, learnset, moveData, options: normalized, random });
+        const partner = buildGeneratedPokemon({
+            pokemon,
+            species,
+            learnset,
+            moveData,
+            options: normalized,
+            formIdentity: entry.formKey ? { formKey: entry.formKey, formId: entry.formId } : null,
+            random,
+        });
         result.push({ pokemon: partner, versionGroup: learnset.versionGroup });
         onProgress?.({ completed: result.length, total: normalized.count, checked });
         if (result.length === normalized.count) break;

@@ -375,7 +375,7 @@ const SPECIES_PROFILES = Object.freeze({
     cramorant: speciesProfile("gulp-missile", "Surf ou Dive prepara a presa; o próximo dano recebido dispara o efeito correspondente.", "Surf, Dive e dano", "guided"),
     darmanitan: speciesProfile("zen-mode", "A forma muda conforme o HP e a habilidade; confirme a forma antes de usar tipos e atributos.", "HP atual", "guided"),
     zygarde: speciesProfile("power-construct", "Ao cair para metade do HP, pode assumir Complete Forme mantendo o HP proporcional.", "HP atual", "guided"),
-    shedinja: speciesProfile("wonder-guard", "Shedinja mantém 1 HP; golpes que não são super efetivos são barrados por Wonder Guard salvo quando uma habilidade ignora o bloqueio.", "Dano recebido", "automatic"),
+    shedinja: speciesProfile("wonder-guard", "Shedinja mantém 1 HP; golpes que não são superefetivos são barrados por Wonder Guard salvo quando uma habilidade ignora o bloqueio.", "Dano recebido", "automatic"),
     castform: speciesProfile("forecast", "O clima determina forma e tipo enquanto a habilidade estiver ativa.", "Mudança de clima", "guided"),
     cherrim: speciesProfile("flower-gift", "Sol forte revela Sunshine Form e fortalece aliados conforme a habilidade.", "Sol forte", "guided"),
     meloetta: speciesProfile("relic-song", "Relic Song alterna Aria e Pirouette Forme após o movimento acertar.", "Relic Song", "guided"),
@@ -625,7 +625,7 @@ export const getAbilityMoveBlock = ({ move, attacker, defender, effectiveness = 
         return { ability, reason: `${ability} anulou o movimento de tipo ${moveType}`, absorbed: true };
     }
     if (ability === "wonder-guard" && damaging && effectiveness <= 1 && moveName !== "struggle") {
-        return { ability, reason: "Wonder Guard só permite dano super efetivo", absorbed: false };
+        return { ability, reason: "Wonder Guard só permite dano superefetivo", absorbed: false };
     }
     const markers = normalizeSpecialState(defender.specialState).markers;
     if (ability === "disguise" && damaging && !markers.includes("disguise-broken")) {

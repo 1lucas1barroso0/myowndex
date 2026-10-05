@@ -17,6 +17,7 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
   nomeiam os papéis.
 - RPG, Jogos e Livre são os três estilos de jogo na interface.
 - Pokémon é invariável no plural.
+- “Pokémon lendários e míticos” nomeia essas classificações em português na interface. Os nomes próprios de cada Pokémon continuam no original; não alternar os rótulos com “Legendary” ou “Mythical”. Campos e fontes do catálogo mantêm seus identificadores oficiais.
 - movimento, habilidade, natureza, tipo, condição, equipe e parceiro usam
   minúsculas no meio de frases.
 - HP, PP, XP, EVs, IVs e STAB permanecem em maiúsculas.
@@ -47,7 +48,7 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
 - Proporções aparecem como porcentagens ou multiplicadores decimais, nunca
   como frações. HP, dano e atributos mostram o resultado inteiro do cálculo,
   obedecendo ao arredondamento da regra correspondente; não arredonde antes de
-  aplicar todos os modificadores. XP atual, recebida, dividida e metas de nível são inteiras e sempre arredondadas para baixo pela regra 2.5;
+  aplicar todos os modificadores. XP recebida já é inteira; metas e divisões de XP sempre arredondam para baixo pela regra 2.5;
   medidas oficiais como 0,7 m conservam sua precisão.
 - Botões começam com verbos diretos: “Criar”, “Entrar”, “Rolar”, “Adicionar”,
   “Compartilhar” e “Continuar”.

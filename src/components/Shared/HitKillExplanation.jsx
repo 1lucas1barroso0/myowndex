@@ -16,7 +16,7 @@ export default function HitKillExplanation({ expanded = false }) {
             </div>
             <ol className="guide-hit-kill-flow" aria-label="Condições para a proteção agir">
                 <li><span className="guide-hit-kill-step" aria-hidden="true">1</span><div><strong>HP cheio</strong><span>Antes de receber o dano.</span></div></li>
-                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>Dano fatal abaixo de 3× o HP máximo</strong><span>A proteção ainda está disponível.</span></div></li>
+                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>O golpe zeraria o HP</strong><span>O dano é menor que 3× o HP máximo.</span></div></li>
                 <li className="guide-hit-kill-outcome"><span className="guide-hit-kill-step" aria-hidden="true">3</span><div><strong>Continua com <b>1 HP</b></strong><span>A proteção é usada.</span></div></li>
             </ol>
             <p className="guide-hit-kill-example"><strong>Exemplo:</strong> com 20 HP cheios e a proteção disponível, um dano de 30 deixa 1 HP. Um dano de 60 ou mais atravessa a proteção, mesmo sem crítico.</p>

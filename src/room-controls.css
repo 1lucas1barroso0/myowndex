@@ -504,6 +504,13 @@ html .app-root.game-edition.handheld-edition .room-phase-options button {
   letter-spacing: 0;
   text-transform: none;
 }
+@media (max-width: 360px) {
+  html .app-root.game-edition.handheld-edition .room-phase-options button {
+    flex-direction: column;
+    min-height: 68px;
+    gap: .35rem;
+  }
+}
 html .app-root.game-edition.handheld-edition .room-phase-control .game-icon {
   width: 1.1rem;
   height: 1.1rem;

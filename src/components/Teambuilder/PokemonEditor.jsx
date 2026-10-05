@@ -7,7 +7,7 @@ import { getNextLevelXp } from '../../core/rpgRules.js';
 import { applyPokemonExperienceAward } from '../../core/experience.js';
 import { finiteNumberOrNull, integerInRange } from '../../core/math.js';
 import { randomChance, randomChoice, randomInt } from '../../core/random.js';
-import { RPG_STATUSES } from '../../core/team.js';
+import { getPokemonConsumedItem, replacePokemonHeldItem, RPG_STATUSES } from '../../core/team.js';
 import { getMoveReferenceForMode, resolveLearnsetGame } from '../../core/referenceGames.js';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
 import RoomSelect from '../Shared/RoomSelect.jsx';
@@ -84,6 +84,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const moveListId = `${fieldId}-moves`;
     const mountedRef = useRef(false);
     const partnerRef = useRef(pk);
+    const consumedItem = getPokemonConsumedItem(pk);
 
     useEffect(() => {
         mountedRef.current = true;
@@ -412,7 +413,14 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             {exceptionCount > 0 && <p className="editor-exception-note" role="status">{`${exceptionCount} ${exceptionCount === 1 ? "escolha fora do jogo de referência" : "escolhas fora do jogo de referência"}.`}</p>}
 
             <div className="editor-basics-grid">
-                <label className="editor-field"><span className="editor-label">Item segurado</span><input list={itemListId} value={pk.item || ""} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, item: (event.target.value || "").toLowerCase() })} className="editor-input" /></label>
+                <div className="editor-field">
+                    <label htmlFor={`${fieldId}-item`} className="editor-label">Item segurado</label>
+                    <input id={`${fieldId}-item`} list={itemListId} value={pk.item || ""} onKeyDown={handleEnter} onChange={event => updatePk(replacePokemonHeldItem(pk, event.target.value || ""))} className="editor-input" />
+                    {consumedItem && <>
+                        <span className="editor-field-note">Já foi usado ou perdido.</span>
+                        <button type="button" className="room-secondary-button" onClick={() => updatePk(replacePokemonHeldItem(pk, pk.item))} aria-label={`Repor ${formatCanonicalItemName(consumedItem)}`}>Repor item</button>
+                    </>}
+                </div>
                 <div className="editor-field">
                     <label htmlFor={`${fieldId}-ability`} className="editor-label">Habilidade</label>
                     <div className="editor-choice-control">

@@ -29,7 +29,7 @@ import { getCurrentMoveReference } from "../../core/championsMoves.js";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
-    if (value > 1) return `Super efetivo (${formatNumberPtBr(value)}×)`;
+    if (value > 1) return `Superefetivo (${formatNumberPtBr(value)}×)`;
     if (value < 1) return `Pouco efetivo (${formatNumberPtBr(value)}×)`;
     return "Efetividade normal";
 };

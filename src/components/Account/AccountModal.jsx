@@ -153,7 +153,7 @@ export default function AccountModal({ open, onClose, client }) {
                         <svg aria-hidden="true" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="32" cy="21" r="9" /><path d="M15 51v-5a17 17 0 0 1 34 0v5M12 55h40M23 12l-4-3M41 12l4-3" /></svg>
                         <div><h3>{client.account.displayName || client.account.username}</h3><p>@{client.account.username}</p><span className={`account-sync-label is-${client.status}`} role="status">{ACCOUNT_STATUS_LABELS[client.status]}</span></div>
                     </div>
-                    <p className="account-intro">Seu PC, favoritos, aventuras, dados locais e parceiros gerados acompanham esta conta em outros dispositivos.</p>
+                    <p className="account-intro">Seu PC, favoritos, aventuras, rolagens e Pokémon gerados acompanham esta conta em outros dispositivos.</p>
                     {client.updatedAt && <p className="account-last-saved">Última sincronização: <time dateTime={client.updatedAt}>{new Date(client.updatedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</time></p>}
                     <div className="account-actions">
                         <button type="button" disabled={busy || client.status === "syncing"} onClick={() => void run(async () => { const saved = await client.syncNow(); if (saved) setMessage("Conta atualizada."); })}>Sincronizar agora</button>

@@ -24,7 +24,7 @@ export default function TurnOrder({ snapshot, onSelect, onRoll, onAdvance, onDec
     return <section className={`turn-order ${local ? "room-tool local-pokemon-initiative" : "room-section room-initiative"}`} aria-labelledby={titleId}>
         <header className="turn-order-heading local-field-turn-heading">
             <Heading id={titleId}>Iniciativa</Heading>
-            <span className="turn-order-round local-field-round">Rodada <b>{snapshot.round}</b></span>
+            <span className="turn-order-round local-field-round">{local && !snapshot.battleStarted ? "Treino livre" : <>Rodada <b>{snapshot.round}</b></>}</span>
         </header>
         {order.length > 0 ? <>
             <p className="sr-only" role="status">{active ? `Turno de ${active.name}. Rodada ${snapshot.round}.` : `Rodada ${snapshot.round}.`}</p>

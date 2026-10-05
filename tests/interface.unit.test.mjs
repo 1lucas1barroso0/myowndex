@@ -412,10 +412,10 @@ test("the adventure exposes every modifier and explains movement resolution", as
   assert.match(combat, /resolution\.defenseTest\?\.fumble/);
   assert.match(combat, /resolveCombatAction/);
   assert.match(await read("server/authoritativeActions.js"), /hitKillSurvivalGrace/);
-  assert.match(rules, /Os sete modificadores/);
-  assert.match(rules, /Uma precisão numérica — inclusive 100%/);
-  assert.match(rules, /erro crítico do defensor/);
-  assert.match(rules, /Sturdy, Focus Sash e efeitos equivalentes continuam sendo proteções próprias e adicionais/);
+  assert.match(rules, /estágios de −6 a \+6 em Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão/);
+  assert.match(rules, /chance numérica, até 100%/);
+  assert.match(rules, /erro crítico da defesa/);
+  assert.match(rules, /Sturdy, Focus Sash e semelhantes são chances separadas/);
 });
 
 test("unique Pokémon and exceptional Moves expose state, narrative and automation level", async () => {
@@ -433,7 +433,7 @@ test("unique Pokémon and exceptional Moves expose state, narrative and automati
   assert.match(combat, /Movimento resultante/);
   assert.match(battlefield, /getBattleDisplayIdentity/);
   assert.match(rules, /Transform copia aparência/);
-  assert.match(rules, /Sketch troca permanentemente/);
+  assert.match(rules, /Sketch aprende permanentemente/);
   assert.match(mechanics, /O MyOwnDex resolve quando a condição acontece/);
   assert.match(mechanics, /imposter/);
   assert.match(mechanics, /illusion/);
@@ -488,8 +488,8 @@ test("Abilities and held items expose official context, lifecycle, narrative and
   assert.match(css, /Contrato de contraste 9\.5/);
   assert.match(css, /\.token-traits/);
   assert.match(css, /\.combat-trait-line/);
-  assert.match(rules, /Cada habilidade tem gatilho, estado e histórico/);
-  assert.match(rules, /Itens segurados possuem estado próprio na cena/);
+  assert.match(rules, /precisa estar ativa e cumprir seu gatilho/);
+  assert.match(rules, /Um item pode estar ativo, consumido, removido, trocado ou restaurado/);
 });
 
 test("the internal Guide is the canonical source and explains hit kill protection", async () => {
@@ -505,19 +505,19 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(guide, /Pesquisar regras/);
   assert.match(rules, /Proteção contra hit kill/);
   assert.match(rules, /três vezes o HP máximo/);
-  assert.match(rules, /uma única vez por batalha/);
-  assert.match(rules, /trocar o Pokémon, curá-lo ou levá-lo novamente ao HP máximo não restaura/);
-  assert.match(rules, /Movimentos de múltiplos acertos são resolvidos hit por hit/);
-  assert.match(rules, /Somente dano realmente causado conta/);
-  assert.match(rules, /reduz o próprio HP/);
-  assert.match(rules, /Acertos críticos.*superam o limite comum de dano/);
-  assert.match(rules, /implementação oficial mais recente e corrigida/);
+  assert.match(rules, /uma vez por Pokémon em cada batalha/);
+  assert.match(rules, /Depois de usada, curar, trocar ou voltar ao campo não a devolve/);
+  assert.match(rules, /Em um movimento de vários acertos, conte cada hit/);
+  assert.match(rules, /Só conta o dano que chega ao Pokémon/);
+  assert.match(rules, /tirar o próprio HP/);
+  assert.match(rules, /acerto crítico.*pode passar do limite comum/);
+  assert.match(rules, /regra oficial mais recente e corrigida/);
   assert.match(rules, /1 em 8 de chance de perder a ação/);
   assert.match(rules, /25% de chance de descongelar/);
   assert.match(localPanel, /lock\.current/);
   assert.match(localPanel, /entry\.id/);
-  assert.match(rules, /rola também a oposição/);
-  assert.match(rules, /ninguém precisa multiplicar ou trabalhar com totais grandes/);
+  assert.match(rules, /rola os dois lados/);
+  assert.match(rules, /sem precisar multiplicar números grandes/);
   assert.match(localPanel, /\["attribute","2d6","Teste"\]/);
   assert.doesNotMatch(localPanel, /Teste simples|Para testes simples/);
   assert.match(localPanel, /<LocalPokemonDice/);
@@ -526,7 +526,7 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(localPokemon, /"opponent","Oponente"/);
   assert.doesNotMatch(localPokemon, /Oponente selvagem/);
   assert.match(localPokemon, /CaptureAssistant/);
-  assert.match(rules, /aventura e os dados locais usam a mesma resolução/);
+  assert.match(rules, /Aventura e Dados seguem a mesma regra/);
   assert.match(guide, /Atributo ÷ 10/);
   assert.match(guide, /HP ÷ 10/);
   assert.doesNotMatch(guide, /÷ 20/);

@@ -212,6 +212,7 @@ export default function Battlefield({
             </div>}
 
             {!compact && <div className={`battlefield-board ${visibleTokens.length ? "has-pokemon" : "is-empty-field"} scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`} style={{ "--field-token-size": `${visibleTokens.length > 8 ? 4 : visibleTokens.length > 4 ? 5 : 7}rem` }}>
+                <img className="battlefield-scenery" src={`/scenes/${snapshot.scenario}.svg`} alt="" aria-hidden="true" draggable="false" />
                 {battle && <><div className="battlefield-center-line" /><div className="battlefield-side-label label-opponent">Oponentes</div><div className="battlefield-side-label label-ally">Aliados</div></>}
                 {visibleTokens.map(token => {
                     const position = drag?.tokenId === token.id ? drag : token;

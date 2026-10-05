@@ -163,3 +163,14 @@ test("secure dice reject the uneven uint32 tail instead of introducing modulo bi
   assert.equal(randomIntFromUint32(100, () => hundredValues[index++]), 99);
   assert.equal(index, 2, "d100 must use the same unbiased rejection sampling");
 });
+
+
+test("opposing percent advantages cancel without consuming an extra roll", () => {
+  const result = rollPercentTest({ chance: 50, advantage: true, disadvantage: true, random: sequence([0.3, 0.9]) });
+  assert.equal(result.mode, "normal");
+  assert.deepEqual(result.rolls, [31]);
+  assert.equal(result.success, true);
+  const explicit = rollPercentTest({ chance: 50, mode: "disadvantage", advantage: true, random: sequence([0.3, 0.9]) });
+  assert.equal(explicit.mode, "disadvantage");
+  assert.deepEqual(explicit.rolls, [31, 91]);
+});

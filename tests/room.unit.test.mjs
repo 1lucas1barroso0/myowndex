@@ -8,6 +8,7 @@ import {
   buildInitiative,
   calculateMoveResolution,
   changeRoomPhase,
+  startNewRoomBattle,
   createRoomSnapshot,
   mergeRoomConflictSnapshot,
   normalizeRoomSnapshot,
@@ -112,6 +113,7 @@ test("a new battle resets hit kill use while healing and other phases do not", (
   const battle = normalizeRoomSnapshot({
     ...createRoomSnapshot("Uso único"),
     phase: "batalha",
+    battleStarted: true,
     hitKillProtectionUsed: used,
     hitKillProtectionDisabled: disabled,
     hitKillSurvivalGrace: grace,
@@ -126,7 +128,11 @@ test("a new battle resets hit kill use while healing and other phases do not", (
   assert.deepEqual(interpretation.hitKillProtectionDisabled, disabled);
   assert.deepEqual(interpretation.hitKillSurvivalGrace, grace);
 
-  const nextBattle = changeRoomPhase(interpretation, "batalha");
+  const returnedBattle = changeRoomPhase(interpretation, "batalha");
+  assert.deepEqual(returnedBattle.hitKillProtectionUsed, used);
+  assert.deepEqual(returnedBattle.hitKillProtectionDisabled, disabled);
+  assert.deepEqual(returnedBattle.hitKillSurvivalGrace, grace);
+  const nextBattle = startNewRoomBattle(returnedBattle);
   assert.deepEqual(nextBattle.hitKillProtectionUsed, []);
   assert.deepEqual(nextBattle.hitKillProtectionDisabled, []);
   assert.deepEqual(nextBattle.hitKillSurvivalGrace, []);
@@ -225,7 +231,9 @@ test("a team keeps reserves off field and swaps them without resetting battle hi
   assert.deepEqual(firstSwap.room.hitKillProtectionUsed, before.hitKillProtectionUsed);
   assert.deepEqual(firstSwap.room.hitKillProtectionDisabled, before.hitKillProtectionDisabled);
 
-  const secondSwap = swapTeamPokemonInSnapshot(firstSwap.room, firstSwap.incoming.id, firstSwap.outgoing.id);
+  assert.equal(swapTeamPokemonInSnapshot(firstSwap.room, firstSwap.incoming.id, firstSwap.outgoing.id).swapped, false);
+  const nextRound = { ...firstSwap.room, round: firstSwap.room.round + 1, initiative: [firstSwap.incoming.id] };
+  const secondSwap = swapTeamPokemonInSnapshot(nextRound, firstSwap.incoming.id, firstSwap.outgoing.id);
   const returned = secondSwap.incoming;
   assert.equal(secondSwap.swapped, true);
   assert.equal(returned.pokemonId, "partner-one");

@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.1.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa nova numeração não modifica o formato dos dados, contas, Boxes ou aventuras.
+**Versão atual: 2.0.2.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa nova numeração não modifica o formato dos dados, contas, Boxes ou aventuras.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -43,6 +43,8 @@ Cada rodada oferece somente sua ação atual: escolher, rolar, avançar ou encer
 A revisão 2.0.1 inclui XP-base 1–3, fatores ×2/×4, reduções da base e mínimo 1 no final; cada aquisição gera EVs equivalentes ao dobro do XP recebido. Reservas e recibos limitados persistem nas Boxes, cenas, conta e códigos, com fusão e idempotência. Amizade continua manual, com apresentação RPG até 25. Veja `docs/REGRAS-2.0.1.md`. Não reintroduzir declarações implícitas, rerrolagem ativa, campos de fase na prática ou versões incompletas divergentes da proteção. Não remover as exceções de contenção de layout em TurnOrder e local-pokemon-status-tool: corrigem campos de tamanho zero no Blink após atualizar a rodada.
 
 As fases exibem ferramentas pertinentes, mantendo a ordem ativa intacta. Os sprites usam alturas oficiais locais; o HUD fica fora do campo. Áudio local é temporário, em memória, com um arquivo limitado e revogado ao trocar; biblioteca compartilhada permanece persistente. Downloads têm cancelamento, e os efeitos dos Dados respeitam o mesmo silêncio das aventuras. A aparência amarela do botão Dados existe somente com o diálogo aberto.
+
+A revisão 2.0.2 dá uma ilustração local própria aos nove cenários, com recorte legível também no celular, e simplifica a linguagem das mesmas 40 regras. Mudar de fase não renova proteções, turnos ou intervenções. O Campo começa em Treino livre; depois da primeira iniciativa, as rodadas exigem nova declaração e rolagem. Nova batalha requer confirmação, sem rodada ativa, e preserva HP, PP e itens. Recuo, drenagem, autolesão e itens consumidos seguem a mesma mecânica no Campo e na Aventura. O registro de progresso conserva a origem dos itens transferidos, sem transformar trocas temporárias em equipamentos novos das Boxes. Veja `docs/CENARIOS-E-REGRAS-2.0.2.md`.
 
 As 40 regras e as funções existentes são preservadas. A linguagem visual combina a clareza de Sword/Shield com o acabamento 2D de HGSS/BW/B2W2. A ação principal é imediatamente reconhecível; detalhes são consultáveis sem ocupar permanentemente a tela. Textos descrevem o que acontece no jogo, sem assumir que todo Pokémon é aliado. Nomes próprios permanecem no original, com explicações naturais em português e referências EN/PT quando disponíveis.
 

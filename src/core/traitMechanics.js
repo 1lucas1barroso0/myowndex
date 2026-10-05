@@ -12,6 +12,19 @@ const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
 export const traitSlug = value => asText(value).trim().toLowerCase().replace(/[\s_]+/g, "-");
 
+export const normalizeHeldItemOrigin = (value, item = "") => {
+    const itemId = traitSlug(value?.itemId).slice(0, 80);
+    const teamId = asText(value?.teamId).slice(0, 160);
+    const teamShareId = asText(value?.teamShareId).slice(0, 160);
+    const pokemonId = asText(value?.pokemonId).slice(0, 160);
+    if (!itemId || !pokemonId || (!teamId && !teamShareId) || (item && traitSlug(item) !== itemId)) return null;
+    return { teamId, teamShareId, pokemonId, itemId,
+        revision: asText(value?.revision).slice(0, 80),
+        sequence: integerInRange(value?.sequence, 0, Number.MAX_SAFE_INTEGER, 0) };
+};
+
+const nextItemOrigin = origin => origin ? { ...origin, sequence: Math.min(Number.MAX_SAFE_INTEGER, origin.sequence + 1) } : null;
+
 export const TRAIT_STATE_VERSION = 1;
 export const TRAIT_AUTOMATION_LABELS = Object.freeze({
     automatic: "O MyOwnDex resolve quando o gatilho acontece",
@@ -29,7 +42,26 @@ const normalizeHistoryEntry = value => {
         label: asText(value.label).slice(0, 80),
         detail: asText(value.detail).slice(0, 240),
         round: integerInRange(value.round, 0, 9999, 0),
+        ...(value.kind === "item" && ["consumed", "available"].includes(value.itemAvailability) && normalizeHeldItemOrigin(value.origin, sourceId)
+            ? { origin: normalizeHeldItemOrigin(value.origin, sourceId), itemAvailability: value.itemAvailability } : {}),
     };
+};
+
+const normalizeTraitHistory = value => {
+    const regular = [];
+    const availability = new Map();
+    for (const entry of asArray(value).map(normalizeHistoryEntry).filter(Boolean)) {
+        if (!entry.itemAvailability) { regular.push(entry); continue; }
+        const origin = entry.origin;
+        const key = JSON.stringify([origin.teamShareId || origin.teamId, origin.pokemonId, origin.itemId, origin.revision]);
+        const previous = availability.get(key);
+        if (previous && previous.origin.sequence > origin.sequence) continue;
+        availability.delete(key);
+        availability.set(key, entry);
+    }
+    // Reserve room for the 80 possible active/benched owners. Other ability
+    // events cannot evict a pending consumption before progress is recorded.
+    return [...[...availability.values()].slice(-80), ...regular.slice(-24)];
 };
 
 export const normalizeTraitState = (value, currentItem = "", currentAbility = "") => {
@@ -37,6 +69,7 @@ export const normalizeTraitState = (value, currentItem = "", currentAbility = ""
     const abilityId = traitSlug(currentAbility);
     const previousItemId = traitSlug(value?.item?.originalId);
     const sameRestoredItem = Boolean(itemId && itemId === previousItemId);
+    const origin = normalizeHeldItemOrigin(value?.item?.origin, itemId || previousItemId);
     return {
         version: TRAIT_STATE_VERSION,
         item: {
@@ -45,6 +78,7 @@ export const normalizeTraitState = (value, currentItem = "", currentAbility = ""
             consumedRound: itemId ? 0 : integerInRange(value?.item?.consumedRound, 0, 9999, 0),
             consumedReason: itemId ? "" : asText(value?.item?.consumedReason).slice(0, 160),
             restored: sameRestoredItem && Boolean(value?.item?.restored),
+            ...(origin ? { origin } : {}),
         },
         ability: {
             id: abilityId,
@@ -52,7 +86,7 @@ export const normalizeTraitState = (value, currentItem = "", currentAbility = ""
             suppressionReason: abilityId ? asText(value?.ability?.suppressionReason).slice(0, 160) : "",
         },
         markers: [...new Set(asArray(value?.markers).map(traitSlug).filter(Boolean))].slice(0, 24),
-        history: asArray(value?.history).map(normalizeHistoryEntry).filter(Boolean).slice(-24),
+        history: normalizeTraitHistory(value?.history),
     };
 };
 
@@ -64,7 +98,7 @@ export const recordTraitEvent = (token, entry) => {
         ...token,
         traitState: {
             ...state,
-            history: [...state.history, normalized].slice(-24),
+            history: normalizeTraitHistory([...state.history, normalized]),
         },
     };
 };
@@ -73,6 +107,7 @@ export const consumeHeldItem = (token, { reason = "O item foi consumido", round 
     const itemId = traitSlug(token?.item);
     const state = normalizeTraitState(token?.traitState, itemId, token?.ability);
     if (!itemId) return { applied: false, token: { ...token, traitState: state }, itemId: state.item.originalId };
+    const origin = nextItemOrigin(state.item.origin);
     const changed = {
         ...token,
         item: "",
@@ -84,6 +119,7 @@ export const consumeHeldItem = (token, { reason = "O item foi consumido", round 
                 consumedRound: integerInRange(round, 0, 9999, 0),
                 consumedReason: asText(reason).slice(0, 160),
                 restored: false,
+                ...(origin ? { origin } : {}),
             },
         },
     };
@@ -96,6 +132,7 @@ export const consumeHeldItem = (token, { reason = "O item foi consumido", round 
             label: "Item consumido",
             detail: reason,
             round,
+            ...(origin ? { origin, itemAvailability: "consumed" } : {}),
         }),
     };
 };
@@ -104,6 +141,7 @@ export const restoreHeldItem = (token, { round = 0, reason = "Item restaurado pe
     const state = normalizeTraitState(token?.traitState, token?.item, token?.ability);
     const itemId = traitSlug(token?.item) || state.item.originalId;
     if (!itemId || (token?.item && !state.item.consumed)) return { applied: false, token: { ...token, traitState: state } };
+    const origin = nextItemOrigin(state.item.origin);
     const changed = {
         ...token,
         item: itemId,
@@ -115,6 +153,7 @@ export const restoreHeldItem = (token, { round = 0, reason = "Item restaurado pe
                 consumedRound: 0,
                 consumedReason: "",
                 restored: true,
+                ...(origin ? { origin } : {}),
             },
         },
     };
@@ -127,16 +166,79 @@ export const restoreHeldItem = (token, { round = 0, reason = "Item restaurado pe
             label: "Item restaurado",
             detail: reason,
             round,
+            ...(origin ? { origin, itemAvailability: "available" } : {}),
         }),
     };
 };
 
-export const assignHeldItem = (token, item, { round = 0, reason = "Item recebido" } = {}) => {
+export const assignHeldItem = (token, item, { round = 0, reason = "Item recebido", origin: originInput } = {}) => {
     const itemId = traitSlug(item);
     const state = normalizeTraitState({}, itemId, token?.ability);
-    const changed = { ...token, item: itemId, traitState: { ...state, ability: normalizeTraitState(token?.traitState, itemId, token?.ability).ability } };
+    const previous = normalizeTraitState(token?.traitState, token?.item, token?.ability);
+    const previousOrigin = previous.item.origin;
+    const sameOwner = previousOrigin?.pokemonId === token?.pokemonId
+        && (previousOrigin.teamId === token?.teamId || (previousOrigin.teamShareId && previousOrigin.teamShareId === token?.teamShareId));
+    const origin = itemId ? normalizeHeldItemOrigin(originInput === undefined ? {
+        teamId: token?.teamId, teamShareId: token?.teamShareId, pokemonId: token?.pokemonId, itemId,
+        revision: sameOwner && previousOrigin.itemId === itemId ? previousOrigin.revision : "",
+        sequence: sameOwner && previousOrigin.itemId === itemId ? Math.min(Number.MAX_SAFE_INTEGER, previousOrigin.sequence + 1) : 0,
+    } : originInput, itemId) : null;
+    const changed = { ...token, item: itemId, traitState: { ...state,
+        item: { ...state.item, ...(origin ? { origin } : {}) },
+        ability: previous.ability, markers: previous.markers, history: previous.history } };
     if (!itemId) return changed;
-    return recordTraitEvent(changed, { kind: "item", sourceId: itemId, label: "Item equipado", detail: reason, round });
+    return recordTraitEvent(changed, { kind: "item", sourceId: itemId, label: "Item equipado", detail: reason, round,
+        ...(origin ? { origin, itemAvailability: "available" } : {}) });
+};
+
+const sameItemOrigin = (first, second) => Boolean(first && second
+    && first.pokemonId === second.pokemonId && first.itemId === second.itemId && first.revision === second.revision
+    && (first.teamId === second.teamId || (first.teamShareId && first.teamShareId === second.teamShareId)));
+
+/** A cached HP/notes edit cannot quietly recreate a spent item. */
+export const getHeldItemPatchBlockReason = (previousSnapshot, nextSnapshot) => {
+    const nextTokens = new Map([...asArray(nextSnapshot?.tokens), ...asArray(nextSnapshot?.benchTokens)].map(token => [token?.id, token]));
+    for (const previous of [...asArray(previousSnapshot?.tokens), ...asArray(previousSnapshot?.benchTokens)]) {
+        const before = normalizeTraitState(previous?.traitState, previous?.item, previous?.ability);
+        const next = nextTokens.get(previous?.id);
+        if (!next) continue;
+        const after = normalizeTraitState(Object.hasOwn(next, "traitState") ? next.traitState : previous.traitState, next.item, next.ability);
+        const newOrigin = after.item.origin;
+        const spentOrigins = [
+            ...before.history.filter(entry => entry.itemAvailability === "consumed").map(entry => entry.origin),
+            ...(before.item.consumed && before.item.origin ? [before.item.origin] : []),
+        ];
+        for (const oldOrigin of spentOrigins) {
+            const activeOriginal = traitSlug(next.item) === oldOrigin.itemId && (!newOrigin || sameItemOrigin(oldOrigin, newOrigin));
+            const stillSpent = !activeOriginal && ((after.item.consumed && sameItemOrigin(oldOrigin, newOrigin) && newOrigin.sequence >= oldOrigin.sequence)
+                || after.history.some(entry => entry.itemAvailability === "consumed" && sameItemOrigin(oldOrigin, entry.origin)
+                    && entry.origin.sequence >= oldOrigin.sequence));
+            const explicitRestore = after.item.restored && sameItemOrigin(oldOrigin, newOrigin)
+                && newOrigin.sequence > oldOrigin.sequence && after.history.some(entry => entry.label === "Item restaurado"
+                    && entry.itemAvailability === "available" && sameItemOrigin(oldOrigin, entry.origin)
+                    && entry.origin.sequence === newOrigin.sequence);
+            const freshOwnedCopy = newOrigin?.revision && newOrigin.revision !== oldOrigin.revision
+                && newOrigin.pokemonId === next.pokemonId && newOrigin.pokemonId === oldOrigin.pokemonId && newOrigin.sequence === 0
+                && (newOrigin.teamId === oldOrigin.teamId || (newOrigin.teamShareId && newOrigin.teamShareId === oldOrigin.teamShareId))
+                && (newOrigin.teamId === next.teamId || (newOrigin.teamShareId && newOrigin.teamShareId === next.teamShareId));
+            if (!stillSpent && !explicitRestore && !freshOwnedCopy) {
+                return `Para repor ${formatEnglishName(oldOrigin.itemId)}, use Restaurar item ou equipe uma cópia nova na Box.`;
+            }
+        }
+        if (before.item.consumed && !before.item.origin && before.item.originalId) {
+            const stillSpent = !next.item && after.item.consumed && after.item.originalId === before.item.originalId;
+            const explicitRestore = traitSlug(next.item) === before.item.originalId && after.item.restored
+                && after.history.some(entry => entry.kind === "item" && entry.sourceId === before.item.originalId && entry.label === "Item restaurado");
+            const freshOwnedCopy = newOrigin?.revision && newOrigin.sequence === 0
+                && newOrigin.pokemonId === previous.pokemonId && newOrigin.pokemonId === next.pokemonId
+                && (newOrigin.teamId === previous.teamId || (newOrigin.teamShareId && newOrigin.teamShareId === previous.teamShareId))
+                && (newOrigin.teamId === next.teamId || (newOrigin.teamShareId && newOrigin.teamShareId === next.teamShareId));
+            if (!stillSpent && !explicitRestore && !freshOwnedCopy) {
+                return `Para repor ${formatEnglishName(before.item.originalId)}, use Restaurar item ou equipe uma cópia nova na Box.`;
+            }
+        }
+    }
+    return "";
 };
 
 export const setAbilitySuppressed = (token, suppressed, reason = "Efeito da cena") => {
@@ -175,7 +277,7 @@ export const isHeldItemActive = token => {
 const profile = (id, summary, trigger, automation = "contextual") => ({ id, title: formatEnglishName(id), summary, trigger, automation });
 
 const ABILITY_PROFILES = Object.freeze({
-    adaptability: profile("adaptability", "Eleva o bônus de golpes dos próprios tipos e acompanha a Terastalização.", "Ao calcular dano de um tipo compatível", "automatic"),
+    adaptability: profile("adaptability", "Eleva o bônus de golpes dos próprios tipos e acompanha a Terastallization.", "Ao calcular dano de um tipo compatível", "automatic"),
     aftermath: profile("aftermath", "Fere quem nocauteia o usuário com contato direto.", "Ao desmaiar por contato", "automatic"),
     analytic: profile("analytic", "Fortalece o golpe quando o usuário age depois do alvo.", "Ordem de turno", "guided"),
     blaze: profile("blaze", "Aumenta o dano de Fire em 50% quando resta até ≈ 33,33% do HP máximo.", "HP crítico + golpe de Fire", "automatic"),
@@ -224,7 +326,7 @@ const ABILITY_PROFILES = Object.freeze({
 });
 
 const ITEM_PROFILES = Object.freeze({
-    "ability-shield": profile("ability-shield", "Protege a habilidade contra supressão, troca, substituição e ignorância externa.", "Tentativa de alterar ou ignorar a habilidade", "automatic"),
+    "ability-shield": profile("ability-shield", "Impede que outros efeitos suprimam, troquem, substituam ou ignorem a habilidade do portador.", "Tentativa de alterar ou ignorar a habilidade", "automatic"),
     "air-balloon": profile("air-balloon", "Concede imunidade a golpes de Ground até estourar ao sofrer dano.", "Golpe de Ground ou dano recebido", "automatic"),
     "assault-vest": profile("assault-vest", "Reduz dano especial, mas impede movimentos de estado.", "Golpe especial recebido ou movimento de estado", "automatic"),
     "black-sludge": profile("black-sludge", "Recupera Pokémon de Poison e fere os demais no fim da rodada.", "Fim da rodada", "automatic"),
@@ -232,7 +334,7 @@ const ITEM_PROFILES = Object.freeze({
     "choice-scarf": profile("choice-scarf", "Aumenta a Velocidade e registra o primeiro movimento para o bloqueio de escolha.", "Iniciativa e primeiro movimento", "contextual"),
     "choice-specs": profile("choice-specs", "Fortalece golpes especiais e registra o primeiro movimento para o bloqueio de escolha.", "Primeiro movimento ofensivo", "contextual"),
     "covert-cloak": profile("covert-cloak", "Impede efeitos secundários de golpes recebidos.", "Efeito secundário recebido", "automatic"),
-    "expert-belt": profile("expert-belt", "Fortalece golpes super efetivos.", "Golpe super efetivo", "automatic"),
+    "expert-belt": profile("expert-belt", "Fortalece golpes superefetivos.", "Golpe superefetivo", "automatic"),
     "flame-orb": profile("flame-orb", "Queima o portador no fim da rodada se isso for permitido.", "Fim da rodada", "automatic"),
     "focus-sash": profile("focus-sash", "É consumida para impedir um nocaute de um único golpe com HP cheio.", "Golpe fatal com HP cheio", "automatic"),
     "leftovers": profile("leftovers", "Recupera 6,25% do HP máximo no fim da rodada, arredondado para baixo.", "Fim da rodada", "automatic"),
@@ -246,7 +348,7 @@ const ITEM_PROFILES = Object.freeze({
     "shell-bell": profile("shell-bell", "Recupera HP proporcional ao dano causado.", "Dano direto causado", "automatic"),
     "sitrus-berry": profile("sitrus-berry", "Recupera um quarto do HP ao atingir metade da vida e é consumida.", "HP em 50% ou menos", "automatic"),
     "toxic-orb": profile("toxic-orb", "Envenena gravemente o portador no fim da rodada se isso for permitido.", "Fim da rodada", "automatic"),
-    "weakness-policy": profile("weakness-policy", "É consumido após dano super efetivo para elevar os dois ataques.", "Dano super efetivo", "automatic"),
+    "weakness-policy": profile("weakness-policy", "É consumido após dano superefetivo para elevar os dois ataques.", "Dano superefetivo", "automatic"),
     "white-herb": profile("white-herb", "É consumida para neutralizar modificadores negativos.", "Modificador negativo", "automatic"),
     "wide-lens": profile("wide-lens", "Aumenta a precisão dos movimentos.", "Teste de precisão", "automatic"),
     "wise-glasses": profile("wise-glasses", "Fortalece golpes especiais.", "Golpe especial", "automatic"),
@@ -381,7 +483,7 @@ export const getDamageTraitModifiers = ({ attacker, defender, move, effectivenes
     if (ability === "solar-power" && weather === "sol" && damageClass === "special") addModifier(entries, "ability", ability, 1.5, "Sol ativou Solar Power");
 
     if (item === "life-orb") addModifier(entries, "item", item, 1.3, "Life Orb fortaleceu o golpe");
-    if (item === "expert-belt" && effectiveness > 1) addModifier(entries, "item", item, 1.2, "Golpe super efetivo");
+    if (item === "expert-belt" && effectiveness > 1) addModifier(entries, "item", item, 1.2, "Golpe superefetivo");
     if (item === "muscle-band" && damageClass === "physical") addModifier(entries, "item", item, 1.1, "Golpe físico fortalecido");
     if (item === "wise-glasses" && damageClass === "special") addModifier(entries, "item", item, 1.1, "Golpe especial fortalecido");
     if (item === "choice-band" && damageClass === "physical") addModifier(entries, "item", item, 1.5, "Choice Band fortaleceu o golpe físico");
@@ -394,7 +496,7 @@ export const getDamageTraitModifiers = ({ attacker, defender, move, effectivenes
     if (["multiscale", "shadow-shield"].includes(defenderAbility) && asNumber(defender?.currentHp) >= asNumber(defender?.maxHp, 1)) {
         addModifier(entries, "ability", defenderAbility, 0.5, "HP cheio reduziu o dano");
     }
-    if (["filter", "solid-rock", "prism-armor"].includes(defenderAbility) && effectiveness > 1) addModifier(entries, "ability", defenderAbility, 0.75, "Dano super efetivo reduzido");
+    if (["filter", "solid-rock", "prism-armor"].includes(defenderAbility) && effectiveness > 1) addModifier(entries, "ability", defenderAbility, 0.75, "Dano superefetivo reduzido");
     if (defenderAbility === "thick-fat" && ["fire", "ice"].includes(moveType)) addModifier(entries, "ability", defenderAbility, 0.5, "Tipo amortecido");
     if (defenderAbility === "ice-scales" && damageClass === "special") addModifier(entries, "ability", defenderAbility, 0.5, "Dano especial reduzido");
     if (defenderAbility === "fur-coat" && damageClass === "physical") addModifier(entries, "ability", defenderAbility, 0.5, "Dano físico reduzido");

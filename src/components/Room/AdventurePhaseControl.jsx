@@ -1,12 +1,13 @@
 import React, { useRef } from "react";
 import { ROOM_PHASES } from "../../core/room.js";
 import GameIcon from "../Shared/GameIcon.jsx";
+import NewBattleButton from "../Shared/NewBattleButton.jsx";
 
 const phaseIcons = { exploracao: "adventure", interpretacao: "guide", batalha: "move", intervalo: "moon" };
 
 const movementKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
-export default function AdventurePhaseControl({ value, readOnly, onChange }) {
+export default function AdventurePhaseControl({ value, readOnly, onChange, onStartBattle, activeRound = false, busy = false, onError }) {
     const optionRefs = useRef([]);
     const selectedIndex = Math.max(0, ROOM_PHASES.findIndex(phase => phase.id === value));
     const selectedPhase = ROOM_PHASES[selectedIndex] || ROOM_PHASES[0];
@@ -60,7 +61,8 @@ export default function AdventurePhaseControl({ value, readOnly, onChange }) {
                 <div className="room-phase-help-content" role="note">
                     <strong>{selectedPhase.label}</strong>
                     <p>{selectedPhase.description}</p>
-                    <small>{readOnly ? "O Narrador escolhe a fase atual." : "Você pode mudar a fase quando a aventura pedir."}</small>
+                    <small>{readOnly ? "O Narrador escolhe a fase atual." : "Mudar a fase mantém a batalha e seus registros."}</small>
+                    {!readOnly && onStartBattle && <NewBattleButton onStart={onStartBattle} activeRound={activeRound} disabled={busy} onError={onError} />}
                 </div>
             </details>
         </section>

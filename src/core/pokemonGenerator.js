@@ -73,7 +73,7 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
         if (!Number.isInteger(entry.id) || entry.id < 1 || entry.id > 1025) return false;
         if (normalized.speciesId && entry.id !== normalized.speciesId) return false;
         if (normalized.speciesId && normalized.formKey && entry.formKey !== normalized.formKey) return false;
-        if (normalized.speciesId && !normalized.formKey && entry.formKey) return false;
+        if (normalized.speciesId && !normalized.formKey && entry.formKey && !entry.isPrimarySpecies) return false;
         const meta = metadata[entry.id];
         const entryGeneration = Number(entry.generation || meta?.generation);
         if (normalized.experienceMode === 'game' && normalized.versionGroup !== 'auto'

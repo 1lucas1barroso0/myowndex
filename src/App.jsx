@@ -1,6 +1,6 @@
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import bundledSpecies from "./data/species.json";
+import dexEntries from "./data/dex-entries.json";
 import { formatPokemonCount } from "./core/copy.js";
 import { integerInRange } from "./core/math.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
@@ -15,7 +15,7 @@ import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
 import PokemonCompanion from "./components/Shared/PokemonCompanion.jsx";
 import GameIcon from "./components/Shared/GameIcon.jsx";
-import { DEX_GENERATIONS, debutGeneration, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
+import { DEX_GENERATIONS, debutGeneration, getDexEntryIdentity, getDexEntryName, getDexPokemonId, getDexSpeciesId, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
@@ -31,16 +31,20 @@ const AccountModal = dynamic(() => import("./components/Account/AccountModal.jsx
 const LocalDiceDialog = dynamic(() => import("./components/Shared/LocalDiceDialog.jsx"), { loading: () => null });
 const GeneratorModal = dynamic(() => import("./components/Generator/GeneratorModal.jsx"), { loading: () => null });
 
-const PokemonCard = React.memo(function PokemonCard({ species, id, onSelect, favorite, onFavorite }) {
+const PokemonCard = React.memo(function PokemonCard({ entry, onSelect, favorite, onFavorite }) {
+    const speciesId = getDexSpeciesId(entry);
+    const pokemonId = getDexPokemonId(entry);
+    const displayName = formatName(getDexEntryName(entry));
+    const formLabel = entry?.isDefault === false && entry?.form ? formatName(entry.form) : "";
     return (
-        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={debutGeneration(id)?.id}>
-            <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${formatName(species.name)} na Pokédex`}>
-                <span className="dex-number">No. {id.padStart(4, "0")}</span>
-                <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={id} alt="" className="pixelated" /></span>
-                <span className="pokemon-card-name">{formatName(species.name)}</span>
-                <span className="dex-generation-mark">{debutGeneration(id) ? `Geração ${debutGeneration(id).label}` : "Nacional"}</span>
+        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={debutGeneration(speciesId)?.id} data-form={entry?.isDefault === false ? "alternate" : "default"}>
+            <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${displayName} na Pokédex`}>
+                <span className="dex-number">No. {String(speciesId).padStart(4, "0")}</span>
+                <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={pokemonId} alt="" className="pixelated" /></span>
+                <span className="pokemon-card-name">{displayName}</span>
+                <span className="dex-generation-mark">{formLabel ? `Forma · ${formLabel}` : debutGeneration(speciesId) ? `Geração ${debutGeneration(speciesId).label}` : "Nacional"}</span>
             </button>
-            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${formatName(species.name)} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
+            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${displayName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
         </article>
     );
 });
@@ -103,15 +107,13 @@ export default function App() {
 function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNavigation, receivedDocument }) {
     const scope = client.scope;
     const initialViewRef = useRef(initialView);
-    const [species, setSpecies] = useState(bundledSpecies);
-    const [dexError, setDexError] = useState("");
-    const [dexAttempt, setDexAttempt] = useState(0);
+    const species = dexEntries;
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [experienceMode, setExperienceMode] = useState("rpg");
     const [modeBooted, setModeBooted] = useState(false);
     const [limit, setLimit] = useState(60);
-    const [selectedUrl, setSelectedUrl] = useState(null);
+    const [selectedRecord, setSelectedRecord] = useState(null);
     const [diceOpen, setDiceOpen] = useState(false);
     const [diceRoomContext, setDiceRoomContext] = useState(null);
     const receiveDiceContext = useCallback(context => setDiceRoomContext(current => current?.snapshot === context?.snapshot && current?.role === context?.role && current?.playerId === context?.playerId && current?.remote === context?.remote ? current : context), []);
@@ -340,23 +342,6 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     }, [searchInput]);
 
     useEffect(() => {
-        let mounted = true;
-        setDexError("");
-        fetchCached("https://pokeapi.co/api/v2/pokemon-species?limit=1500", {
-            maxAgeMs: 24 * 60 * 60 * 1000,
-            forceRefresh: dexAttempt > 0
-        }).then(result => {
-            if (!mounted) return;
-            if (!result?.results?.length) {
-                setDexError("O catálogo incluído no MyOwnDex está disponível. Os detalhes serão consultados quando a conexão voltar.");
-                return;
-            }
-            setSpecies(result.results);
-        });
-        return () => { mounted = false; };
-    }, [dexAttempt]);
-
-    useEffect(() => {
         if (view !== "teambuilder" || envLoaded) return;
         let mounted = true;
         setEnvLoading(true);
@@ -562,10 +547,9 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                     <span>Geração</span>
                                     {DEX_GENERATIONS.map(gen => <button key={gen.id} type="button" aria-pressed={dexGeneration === gen.id} aria-label={gen.id === "all" ? "Todas as gerações" : `Geração ${gen.label}`} onClick={() => { setDexGeneration(gen.id); setLimit(60); }}>{gen.label}</button>)}
                                 </div>
-                                {dexError && <StatusNotice tone="amber" actionLabel="Tentar novamente" onAction={() => setDexAttempt(value => value + 1)}>{dexError}</StatusNotice>}
                                 {visible.length ? (
                                     <div className="dex-grid">
-                                        {visible.map(entry => <PokemonCard key={entry.name} species={entry} id={extractId(entry.url)} onSelect={() => setSelectedUrl(entry.url)} favorite={favorites.includes(extractId(entry.url))} onFavorite={() => toggleFavorite(extractId(entry.url))} />)}
+                                        {visible.map(entry => { const speciesId = String(getDexSpeciesId(entry)); return <PokemonCard key={getDexEntryIdentity(entry)} entry={entry} onSelect={() => setSelectedRecord({ speciesUrl: entry.url, formUrl: entry.pokemonUrl })} favorite={favorites.includes(speciesId)} onFavorite={() => toggleFavorite(speciesId)} />; })}
                                     </div>
                                 ) : (
                                     <div className="dex-empty"><PokemonCompanion place="pokedex-empty" /><p>{onlyFavorites && !favorites.length ? "Você ainda não tem favoritos. Toque na estrela de um Pokémon para adicioná-lo." : "Nenhum Pokémon corresponde aos filtros."}</p><button type="button" className="room-secondary-button" onClick={() => { setSearchInput(""); setSearchTerm(""); setOnlyFavorites(false); setDexGeneration("all"); setLimit(60); }}>Limpar filtros</button></div>
@@ -580,7 +564,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                 </div>
             </main>
             <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION_LABEL}</b></span><details className="game-credits"><summary>Créditos</summary><p>Projeto de fãs · <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></p></details></footer>
-            {selectedUrl && <PokemonModal speciesUrl={selectedUrl} onClose={() => setSelectedUrl(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
+            {selectedRecord && <PokemonModal speciesUrl={selectedRecord.speciesUrl} initialFormUrl={selectedRecord.formUrl} onClose={() => setSelectedRecord(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
             {diceOpen && <LocalDiceDialog open onClose={() => setDiceOpen(false)} context={diceRoomContext ? "aventura" : "central"} teams={teams} setTeams={setTeams} experienceMode={experienceMode} {...(diceRoomContext || {})} />}
             {generatorOpen && <GeneratorModal onClose={() => setGeneratorOpen(false)} teams={teams} experienceMode={experienceMode} onAddPokemon={addGeneratedPokemon} onAddBox={addGeneratedBox} />}
         </div>

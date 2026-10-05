@@ -30,7 +30,14 @@ export const accountContentEqual = (first, second) => accountValuesEqual(
     Object.fromEntries(["boxes", "dex", "preferences", "localAdventure", "localTools"].map(key => [key, first?.[key]])),
     Object.fromEntries(["boxes", "dex", "preferences", "localAdventure", "localTools"].map(key => [key, second?.[key]])),
 );
-const favoriteIds = value => [...new Set((Array.isArray(value) ? value : []).map(String).filter(id => /^\d+$/.test(id)))].sort((a, b) => Number(a) - Number(b));
+const favoriteIds = value => [...new Set((Array.isArray(value) ? value : []).map(String)
+    .filter(id => /^\d+$/.test(id) || /^form:[a-z0-9-]{1,120}$/.test(id)))].sort((a, b) => {
+        const leftNumber = /^\d+$/.test(a);
+        const rightNumber = /^\d+$/.test(b);
+        if (leftNumber && rightNumber) return Number(a) - Number(b);
+        if (leftNumber !== rightNumber) return leftNumber ? -1 : 1;
+        return a.localeCompare(b);
+    });
 const boundedRollClocks = value => Object.fromEntries(Object.entries(clockMap(value))
     .sort(([leftId, left], [rightId, right]) => right - left || leftId.localeCompare(rightId)).slice(0, 300));
 const normalizeTools = value => {

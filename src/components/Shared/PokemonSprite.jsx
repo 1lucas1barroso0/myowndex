@@ -16,9 +16,9 @@ const spriteUrls = ({ src, pokemonId, spriteKey = "", shiny = false, candidates 
         ? `/sprites/${id}.png`
         : "";
     return [...new Set([
-        (!src || src === frontUrl) ? localUrl : "",
-        src,
+        safeSpriteKey ? frontUrl : ((!src || src === frontUrl) ? localUrl : ""),
         ...candidates,
+        src,
         localUrl,
         frontUrl,
         Number.isInteger(id) && id > 0 && id <= 649

@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PIN = 'bc92d3b6029ef1abe9e7ad424c400b338f3c11fe'
 BASE = f'https://raw.githubusercontent.com/PokeAPI/pokeapi/{PIN}/data/v2/csv/'
 COLLAPSED_REVERSIBLE_FORMS = {
+    'shaymin-sky', 'hoopa-unbound',
     'eternatus-eternamax',
     'koraidon-limited-build', 'koraidon-sprinting-build', 'koraidon-swimming-build', 'koraidon-gliding-build',
     'miraidon-low-power-mode', 'miraidon-drive-mode', 'miraidon-aquatic-mode', 'miraidon-glide-mode',
@@ -46,14 +47,13 @@ def main():
         past_types_by_pokemon.setdefault(row['pokemon_id'], {}).setdefault(int(row['generation_id']), []).append(
             (int(row['slot']), type_name[row['type_id']]))
 
-    entries = []
+    eligible = []
+    by_species = {}
     for form in forms:
         p = pokemon_by_id.get(form['pokemon_id'])
         if not p:
             continue
         if form['is_battle_only'] == '1' or form['is_mega'] == '1':
-            continue
-        if p['is_default'] == '1' and form['is_default'] == '1':
             continue
         if form['identifier'] in COLLAPSED_REVERSIBLE_FORMS:
             continue
@@ -61,14 +61,24 @@ def main():
         form_types = [name for _, name in sorted(types_by_pokemon.get(p['id'], []))]
         if not generation or not form_types:
             continue
+        item = (form, p, generation, form_types)
+        eligible.append(item)
+        by_species[int(p['species_id'])] = by_species.get(int(p['species_id']), 0) + 1
+
+    defaults = []
+    entries = []
+    for form, p, generation, form_types in eligible:
+        main_default = p['is_default'] == '1' and form['is_default'] == '1'
+        form_identifier = form['form_identifier'] or ''
         entry = {
             'name': form['identifier'],
             'formId': int(form['id']),
-            'formIdentifier': form['form_identifier'] or '',
+            'formIdentifier': form_identifier,
             'pokemonName': p['identifier'],
             'pokemonId': int(p['id']),
             'speciesId': int(p['species_id']),
             'generation': generation,
+            'spriteKey': str(p['id']) if form['is_default'] == '1' else f'{p["id"]}-{form_identifier}',
             'types': form_types,
         }
         if p['id'] in past_types_by_pokemon:
@@ -76,16 +86,27 @@ def main():
                 {'generation': past_generation, 'types': [name for _, name in sorted(past_types)]}
                 for past_generation, past_types in sorted(past_types_by_pokemon[p['id']].items())
             ]
+        if main_default:
+            if by_species[entry['speciesId']] > 1 and form_identifier:
+                defaults.append(entry)
+            continue
         entries.append(entry)
 
+    defaults.sort(key=lambda entry: (entry['speciesId'], entry['generation'], entry['formId']))
     entries.sort(key=lambda entry: (entry['speciesId'], entry['generation'], entry['formId']))
     target = ROOT / 'src/data/forms.json'
     target.write_text(json.dumps({
         'schemaVersion': 1,
         'sourceCommit': PIN,
+        'defaults': defaults,
         'entries': entries,
     }, ensure_ascii=False, separators=(',', ':')) + '\n')
-    print(json.dumps({'forms': len(entries), 'target': str(target.relative_to(ROOT))}, ensure_ascii=False))
+    print(json.dumps({
+        'defaultNamedForms': len(defaults),
+        'alternateForms': len(entries),
+        'namedPersistentForms': len(defaults) + len(entries),
+        'target': str(target.relative_to(ROOT)),
+    }, ensure_ascii=False))
 
 
 if __name__ == '__main__':

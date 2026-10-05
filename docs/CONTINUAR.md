@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.3.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa nova numeração não modifica o formato dos dados, contas, Boxes ou aventuras.
+**Versão atual: 2.0.4.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa nova numeração não modifica o formato dos dados, contas, Boxes ou aventuras.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -49,6 +49,8 @@ A revisão 2.0.2 dá uma ilustração local própria aos nove cenários, com rec
 As 40 regras e as funções existentes são preservadas. A linguagem visual combina a clareza de Sword/Shield com o acabamento 2D de HGSS/BW/B2W2. A ação principal é imediatamente reconhecível; detalhes são consultáveis sem ocupar permanentemente a tela. Textos descrevem o que acontece no jogo, sem assumir que todo Pokémon é aliado. Nomes próprios permanecem no original, com explicações naturais em português e referências EN/PT quando disponíveis.
 
 A revisão 2.0.3 usa materiais visuais comuns em todas as áreas: painéis acolhedores, cantos confortáveis, controles táteis e sprites valorizados. A seleção permanece explícita, os detalhes continuam recolhidos e as proporções oficiais dos Pokémon são preservadas. Os temas Claro e Escuro compartilham a mesma hierarquia. Movimentos de interface respeitam a preferência por movimento reduzido; não há animações novas contínuas. Veja `docs/ESTETICA-2.0.3.md`.
+
+A revisão 2.0.4 recupera e conclui a rodada Dex48 interrompida no Codex Cloud. A Pokédex e o Gerador usam um catálogo local comum: 1.025 espécies mais formas persistentes próprias, enquanto Mega Evolution, Gigantamax, estados automáticos de batalha e outras transformações necessariamente temporárias continuam agrupados no registro da espécie. A busca entende nome, forma, número exato e intervalos inclusivos da National Dex. Selecionar uma forma abre a ficha exata; salvar, compartilhar e reabrir preserva essa identidade. Efetividade de tipos usa vocabulário próprio e não é chamada de Vantagem, termo reservado ao mecanismo de dados. Veja `docs/DEX48-2.0.4.md`.
 
 ## Documentos históricos
 

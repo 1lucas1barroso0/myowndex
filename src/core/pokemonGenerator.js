@@ -75,6 +75,8 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
         if (normalized.speciesId && normalized.formKey && entry.formKey !== normalized.formKey) return false;
         if (normalized.speciesId && !normalized.formKey && entry.formKey) return false;
         const entryGeneration = Number(entry.generation);
+        if (normalized.experienceMode === 'game' && normalized.versionGroup !== 'auto'
+            && Number.isInteger(entryGeneration) && entryGeneration > gameGeneration) return false;
         if (normalized.generation && Number.isInteger(entryGeneration) && entryGeneration !== normalized.generation) return false;
         if (normalized.generation && !Number.isInteger(entryGeneration) && range && (entry.id < range[0] || entry.id > range[1])) return false;
         const meta = metadata[entry.id];
@@ -166,6 +168,18 @@ const shuffled = (values, random) => {
     return result;
 };
 
+export const getGeneratorRandomCandidates = (values, random) => {
+    const bySpecies = new Map();
+    for (const entry of Array.isArray(values) ? values : []) {
+        const id = Number(entry?.id || entry?.speciesId || extractId(entry?.url));
+        if (!Number.isInteger(id)) continue;
+        if (!bySpecies.has(id)) bySpecies.set(id, []);
+        bySpecies.get(id).push(entry);
+    }
+    return shuffled([...bySpecies.values()], random)
+        .map(entries => entries[randomInt(entries.length, random)]);
+};
+
 export const generatePokemon = async (catalogue, options = {}, { signal, fetcher = fetchCached, random, onProgress, metadata = {} } = {}) => {
     const normalized = normalizeGeneratorOptions(options);
     const request = url => fetchGeneratorData(url, { signal, fetcher });
@@ -180,9 +194,12 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
         const type = await request(`${API}type/${normalized.type}/`);
         typeIds = new Set((type.pokemon || []).map(entry => Number(extractId(entry.pokemon?.url))).filter(id => id <= 1025));
     }
-    const pool = shuffled(getGeneratorSpeciesPool(catalogue, normalized, typeIds, metadata), random);
+    const pool = getGeneratorSpeciesPool(catalogue, normalized, typeIds, metadata);
     if (!pool.length) throw new Error('Nenhum Pokémon combina com essas escolhas. Mude os filtros e tente de novo.');
-    const candidates = normalized.speciesId ? Array.from({ length: normalized.count }, () => pool[0]) : pool;
+    const pinned = normalized.speciesId ? pool[0] : null;
+    const candidates = pinned
+        ? Array.from({ length: normalized.count }, () => pinned)
+        : getGeneratorRandomCandidates(pool, random);
     const result = [];
     let checked = 0;
     // Load the bundled rules once; historical PP must not depend on whether

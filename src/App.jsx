@@ -35,13 +35,13 @@ const PokemonCard = React.memo(function PokemonCard({ entry, onSelect, favorite,
     const speciesId = getDexSpeciesId(entry);
     const pokemonId = getDexPokemonId(entry);
     const displayName = formatName(entry?.speciesName || getDexEntryName(entry));
-    const formLabel = entry?.isDefault === false && entry?.form ? formatName(entry.form) : "";
+    const formLabel = Number(entry?.formCount) > 1 && entry?.form ? formatName(entry.form) : "";
     const accessibleName = formLabel ? `${displayName} · ${formLabel}` : displayName;
     return (
         <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={debutGeneration(speciesId)?.id} data-form={entry?.isDefault === false ? "alternate" : "default"}>
             <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${accessibleName} na Pokédex`}>
                 <span className="dex-number">No. {String(speciesId).padStart(4, "0")}</span>
-                <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={pokemonId} alt="" className="pixelated" /></span>
+                <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={pokemonId} spriteKey={entry?.spriteKey} alt="" className="pixelated" /></span>
                 <span className="pokemon-card-name">{displayName}</span>
                 <span className="dex-generation-mark">{formLabel ? `Forma · ${formLabel}` : debutGeneration(speciesId) ? `Geração ${debutGeneration(speciesId).label}` : "Nacional"}</span>
             </button>
@@ -381,7 +381,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
         setLimit(60);
     }, []);
 
-    const integrateTeam = useCallback((formData, genderRate) => {
+    const integrateTeam = useCallback((formData, genderRate, formKey = "") => {
         const resolvedRate = integerInRange(genderRate, -1, 8, -1);
         const targetTeam = teams.find(team => team.id === activeTeamId) || teams[0] || null;
         const legalMoves = filterMovesByLatestVersion(
@@ -400,6 +400,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
 
         const partner = normalizePokemon({
             species: { ...formData, gender_rate: resolvedRate },
+            formKey,
             level: 5,
             friendship: 70,
             ability: formData.abilities?.[0]?.ability?.name || "",
@@ -550,7 +551,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 </div>
                                 {visible.length ? (
                                     <div className="dex-grid">
-                                        {visible.map(entry => { const speciesId = String(getDexSpeciesId(entry)); return <PokemonCard key={getDexEntryIdentity(entry)} entry={entry} onSelect={() => setSelectedRecord({ speciesUrl: entry.url, formUrl: entry.pokemonUrl })} favorite={favorites.includes(speciesId)} onFavorite={() => toggleFavorite(speciesId)} />; })}
+                                        {visible.map(entry => { const speciesId = String(getDexSpeciesId(entry)); return <PokemonCard key={getDexEntryIdentity(entry)} entry={entry} onSelect={() => setSelectedRecord({ speciesUrl: entry.url, formUrl: entry.pokemonUrl, catalogKey: entry.catalogFormKey })} favorite={favorites.includes(speciesId)} onFavorite={() => toggleFavorite(speciesId)} />; })}
                                     </div>
                                 ) : (
                                     <div className="dex-empty"><PokemonCompanion place="pokedex-empty" /><p>{onlyFavorites && !favorites.length ? "Você ainda não tem favoritos. Toque na estrela de um Pokémon para adicioná-lo." : "Nenhum Pokémon corresponde aos filtros."}</p><button type="button" className="room-secondary-button" onClick={() => { setSearchInput(""); setSearchTerm(""); setOnlyFavorites(false); setDexGeneration("all"); setLimit(60); }}>Limpar filtros</button></div>
@@ -565,7 +566,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                 </div>
             </main>
             <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION_LABEL}</b></span><details className="game-credits"><summary>Créditos</summary><p>Projeto de fãs · <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></p></details></footer>
-            {selectedRecord && <PokemonModal speciesUrl={selectedRecord.speciesUrl} initialFormUrl={selectedRecord.formUrl} onClose={() => setSelectedRecord(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
+            {selectedRecord && <PokemonModal speciesUrl={selectedRecord.speciesUrl} initialFormUrl={selectedRecord.formUrl} initialCatalogKey={selectedRecord.catalogKey} onClose={() => setSelectedRecord(null)} isTTRPG={isTTRPG} onAddToTeam={integrateTeam} />}
             {diceOpen && <LocalDiceDialog open onClose={() => setDiceOpen(false)} context={diceRoomContext ? "aventura" : "central"} teams={teams} setTeams={setTeams} experienceMode={experienceMode} {...(diceRoomContext || {})} />}
             {generatorOpen && <GeneratorModal onClose={() => setGeneratorOpen(false)} teams={teams} experienceMode={experienceMode} onAddPokemon={addGeneratedPokemon} onAddBox={addGeneratedBox} />}
         </div>

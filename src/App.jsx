@@ -381,7 +381,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
         setLimit(60);
     }, []);
 
-    const integrateTeam = useCallback((formData, genderRate, formKey = "") => {
+    const integrateTeam = useCallback((formData, genderRate, formKey = "", formSpriteKey = "") => {
         const resolvedRate = integerInRange(genderRate, -1, 8, -1);
         const targetTeam = teams.find(team => team.id === activeTeamId) || teams[0] || null;
         const legalMoves = filterMovesByLatestVersion(
@@ -401,6 +401,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
         const partner = normalizePokemon({
             species: { ...formData, gender_rate: resolvedRate },
             formKey,
+            formSpriteKey,
             level: 5,
             friendship: 70,
             ability: formData.abilities?.[0]?.ability?.name || "",

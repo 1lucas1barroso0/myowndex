@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Regenerate the compact Pokédex/generator catalogue from pinned PokeAPI data.
 
-The catalogue has one entry for every National Dex species plus persistent
-alternate forms. Battle-only or necessarily temporary transformations stay
-inside the species record instead of becoming duplicate catalogue entries.
+The catalogue has one entry for every National Dex species plus every persistent
+form/style represented by PokeAPI's pokemon_forms table. Battle-only or
+necessarily temporary transformations stay inside the species record.
 
 This optional development command never runs during build or application use.
 """
@@ -28,9 +28,9 @@ SOURCES = {
 }
 
 # PokeAPI correctly marks ordinary battle transformations as battle-only.
-# These records are the known exceptions: their API row is non-battle-only,
-# but the state cannot be a lasting catalogue identity. Minior keeps its
-# persistent colour through the Meteor entries; Core is the reversible state.
+# These are known non-battle-only rows whose state still cannot be a lasting
+# identity. Minior's persistent colour is represented by its Meteor form; Core
+# is the reversible battle state. Vehicle states similarly remain grouped.
 TEMPORARY_FORM_NAMES = {
     'shaymin-sky',
     'hoopa-unbound',
@@ -67,7 +67,7 @@ def sorted_types(rows, type_names):
 def main():
     data = {name: download(name, checksum) for name, checksum in SOURCES.items()}
     species = {row['id']: row for row in data['pokemon_species']}
-    forms = {row['pokemon_id']: row for row in data['pokemon_forms']}
+    pokemon = {row['id']: row for row in data['pokemon']}
     type_names = {row['id']: row['identifier'] for row in data['types']}
     version_generations = {row['id']: int(row['generation_id']) for row in data['version_groups']}
 
@@ -80,42 +80,56 @@ def main():
         past_types.setdefault(row['pokemon_id'], {}).setdefault(int(row['generation_id']), []).append(row)
 
     entries = []
-    for pokemon in data['pokemon']:
-        species_id = int(pokemon['species_id'])
+    for form in data['pokemon_forms']:
+        pokemon_row = pokemon.get(form['pokemon_id'])
+        if not pokemon_row:
+            continue
+        species_id = int(pokemon_row['species_id'])
         if not 1 <= species_id <= 1025:
             continue
-        species_row = species[pokemon['species_id']]
-        form = forms.get(pokemon['id'])
-        is_default = pokemon['is_default'] == '1'
+        if form['is_battle_only'] != '0' or form['is_mega'] != '0':
+            continue
+        if form['identifier'] in TEMPORARY_FORM_NAMES:
+            continue
 
-        if not is_default:
-            if not form or form['is_battle_only'] != '0' or form['is_mega'] != '0':
-                continue
-            if pokemon['identifier'] in TEMPORARY_FORM_NAMES:
-                continue
-
-        types = sorted_types(current_types.get(pokemon['id'], []), type_names)
+        species_row = species[pokemon_row['species_id']]
+        types = sorted_types(current_types.get(pokemon_row['id'], []), type_names)
         if not types:
-            raise ValueError(f'Missing type data for {pokemon["identifier"]}')
+            raise ValueError(f'Missing type data for {form["identifier"]}')
+
+        pokemon_default = pokemon_row['is_default'] == '1'
+        form_default = form['is_default'] == '1'
+        main_default = pokemon_default and form_default
+        form_identifier = form['form_identifier'] or ''
 
         entry = {
             'speciesId': species_id,
-            'pokemonId': int(pokemon['id']),
+            'pokemonId': int(pokemon_row['id']),
+            'formId': int(form['id']),
             'speciesName': species_row['identifier'],
-            'pokemonName': pokemon['identifier'],
-            'form': '' if is_default else (form or {}).get('form_identifier', ''),
+            'pokemonName': pokemon_row['identifier'],
+            'catalogFormKey': form['identifier'],
+            'form': form_identifier,
             'generation': int(species_row['generation_id']),
-            'formGeneration': int(species_row['generation_id']) if is_default else version_generations.get(form['introduced_in_version_group_id'], int(species_row['generation_id'])),
+            'formGeneration': version_generations.get(
+                form['introduced_in_version_group_id'],
+                int(species_row['generation_id']),
+            ),
             'legendary': species_row['is_legendary'] == '1',
             'mythical': species_row['is_mythical'] == '1',
-            'isDefault': is_default,
+            'isDefault': main_default,
+            'isPokemonDefault': pokemon_default,
+            'isFormDefault': form_default,
+            'storageFormKey': '' if form_default else form['identifier'],
+            'spriteKey': str(pokemon_row['id']) if form_default else f'{pokemon_row["id"]}-{form_identifier}',
             'types': types,
             'url': f'https://pokeapi.co/api/v2/pokemon-species/{species_id}/',
-            'pokemonUrl': f'https://pokeapi.co/api/v2/pokemon/{pokemon["id"]}/',
+            'pokemonUrl': f'https://pokeapi.co/api/v2/pokemon/{pokemon_row["id"]}/',
+            'formUrl': f'https://pokeapi.co/api/v2/pokemon-form/{form["id"]}/',
         }
 
         history = []
-        for generation, rows in sorted(past_types.get(pokemon['id'], {}).items()):
+        for generation, rows in sorted(past_types.get(pokemon_row['id'], {}).items()):
             history.append({'generation': generation, 'types': sorted_types(rows, type_names)})
         if history:
             entry['pastTypes'] = history
@@ -125,22 +139,32 @@ def main():
     entries.sort(key=lambda entry: (
         entry['speciesId'],
         not entry['isDefault'],
+        not entry['isPokemonDefault'],
         entry['pokemonId'],
+        entry['formId'],
     ))
 
+    by_species = {}
+    for entry in entries:
+        by_species[entry['speciesId']] = by_species.get(entry['speciesId'], 0) + 1
+    for entry in entries:
+        entry['formCount'] = by_species[entry['speciesId']]
+
+    if len(by_species) != 1025:
+        raise ValueError(f'Incomplete National Dex: expected 1025 species, found {len(by_species)}')
     defaults = sum(1 for entry in entries if entry['isDefault'])
     if defaults != 1025:
-        raise ValueError(f'Incomplete National Dex: expected 1025 defaults, found {defaults}')
-    if len({entry['pokemonName'] for entry in entries}) != len(entries):
-        raise ValueError('Duplicate Pokémon form identity in catalogue')
+        raise ValueError(f'Expected 1025 primary species forms, found {defaults}')
+    if len({entry['catalogFormKey'] for entry in entries}) != len(entries):
+        raise ValueError('Duplicate catalogue form identity')
 
     target = ROOT / 'src/data/dex-entries.json'
     encoded = (json.dumps(entries, ensure_ascii=False, separators=(',', ':')) + '\n').encode()
     target.write_bytes(encoded)
     print(json.dumps({
         'entries': len(entries),
-        'species': defaults,
-        'persistentForms': len(entries) - defaults,
+        'species': len(by_species),
+        'persistentForms': len(entries) - len(by_species),
         'bytes': len(encoded),
         'sha256': hashlib.sha256(encoded).hexdigest(),
     }, ensure_ascii=False))

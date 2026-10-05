@@ -48,6 +48,17 @@ test('historical game generation excludes forms introduced after the selected ga
     assert.deepEqual(getGeneratorSpeciesPool(entries, { experienceMode: 'game', versionGroup: 'sun-moon' }).map(entry => entry.name), ['rattata', 'rattata-alola']);
 });
 
+test('form type filters use the selected historical game instead of current typing', () => {
+    const rotomWash = {
+        name: 'rotom-wash', speciesId: 479, formKey: 'rotom-wash', generation: 4,
+        types: ['electric', 'water'], pastTypes: [{ generation: 4, types: ['electric', 'ghost'] }],
+        url: `${API}pokemon-species/479/`,
+    };
+    assert.deepEqual(getGeneratorSpeciesPool([rotomWash], { type: 'ghost', experienceMode: 'game', versionGroup: 'platinum' }).map(entry => entry.name), ['rotom-wash']);
+    assert.deepEqual(getGeneratorSpeciesPool([rotomWash], { type: 'water', experienceMode: 'game', versionGroup: 'platinum' }), []);
+    assert.deepEqual(getGeneratorSpeciesPool([rotomWash], { type: 'water', experienceMode: 'game', versionGroup: 'black-white' }).map(entry => entry.name), ['rotom-wash']);
+});
+
 test('generator learnset uses the latest actual game and only moves learned by the selected level', () => {
     const latest = getGeneratorLearnset(pokemon, 'auto', 5);
     assert.equal(latest.versionGroup, 'scarlet-violet');

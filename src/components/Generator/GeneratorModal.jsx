@@ -1,7 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import speciesCatalogue from '../../data/species.json';
-import speciesMetadata from '../../data/generator-species.json';
+import speciesCatalogue from '../../data/dex-entries.json';
 import { formatName, formatType, NATURES, STAT_MAP, TYPE_COLORS, TYPE_TEXT_COLORS, TYPES, VERSION_GROUPS, VERSION_LABELS } from '../../core/mechanics.js';
 import { generatePokemon, GENERATOR_DRAFT_KEY, getGeneratedHp, normalizeGeneratorOptions } from '../../core/pokemonGenerator.js';
 import { getStorageScope, readDurableStorage, readStorage, writeDurableStorage } from '../../core/storage.js';
@@ -203,7 +202,6 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         try {
             const generated = await generatePokemon(speciesCatalogue, { ...options, experienceMode }, {
                 signal: controller.signal,
-                metadata: speciesMetadata,
                 onProgress: value => { if (sequenceRef.current === sequence) setProgress(value); },
             });
             if (sequenceRef.current !== sequence) return;
@@ -339,7 +337,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                     </div>
                     <label>Jogo<RoomSelect disabled={working} value={options.versionGroup} onChange={event => updateOption('versionGroup', event.target.value)} aria-label="Jogo dos Pokémon gerados">{VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}</RoomSelect></label>
                     <details className="generator-customize" ref={customizationRef}><summary>Personalizar o encontro</summary>
-                        <label>Pokémon<RoomSelect disabled={working} value={options.speciesId} onChange={event => updateOption('speciesId', Number(event.target.value))} aria-label="Espécie a gerar"><option value="0">Surpreenda-me</option>{speciesCatalogue.map(entry => <option key={entry.name} value={Number(entry.url.split('/').filter(Boolean).pop())}>{formatName(entry.name)}</option>)}</RoomSelect></label>
+                        <label>Pokémon<RoomSelect disabled={working} value={options.formName} onChange={event => updateOption('formName', event.target.value)} aria-label="Pokémon ou forma a gerar"><option value="">Surpreenda-me</option>{speciesCatalogue.map(entry => <option key={entry.pokemonName} value={entry.pokemonName}>{formatName(entry.isDefault ? entry.speciesName : entry.pokemonName)}</option>)}</RoomSelect></label>
                         <div className="generator-basic-fields">
                             <label>Tipo<RoomSelect disabled={working} value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo para o encontro"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
                             <label>Geração<RoomSelect disabled={working} value={options.generation} onChange={event => updateOption('generation', Number(event.target.value))} aria-label="Geração dos Pokémon"><option value="0">Todas</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(generation => <option key={generation} value={generation}>{generation}ª geração</option>)}</RoomSelect></label>

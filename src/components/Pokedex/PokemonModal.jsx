@@ -294,7 +294,13 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                         )}
                     </div>
                     
-                    <button type="button" onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1, formIdentity); onClose(); }} className="record-add-partner">
+                    <button type="button" onClick={() => {
+                        const selectedFormData = formAppearance?.sprites
+                            ? { ...formData, sprites: { ...(formData.sprites || {}), ...formAppearance.sprites } }
+                            : formData;
+                        onAddToTeam(selectedFormData, baseInfo?.gender_rate ?? -1, formIdentity);
+                        onClose();
+                    }} className="record-add-partner">
                         <span className="record-mini-ball" aria-hidden="true" /> Adicionar à equipe <span aria-hidden="true">＋</span>
                     </button>
 

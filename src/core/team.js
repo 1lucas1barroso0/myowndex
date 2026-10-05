@@ -195,6 +195,8 @@ export const normalizePokemon = input => {
         gender: normalizeGender(source.gender, genderRate),
         genderRate,
         genderLocked: Boolean(source.genderLocked),
+        formKey: asText(source.formKey).toLowerCase().slice(0, 120),
+        formId: source.formId == null ? null : integerInRange(source.formId, 1, 20000, 1),
         customStats,
         customTypes: asArray(source.customTypes).filter(Boolean).slice(0, 2).map(value => asText(value).toLowerCase()),
         rpg

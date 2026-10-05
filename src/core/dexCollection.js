@@ -48,10 +48,14 @@ export function selectDexSpecies(species, { query = "", favorites = [], onlyFavo
     const numericRange = parseDexNumberRange(query);
     const selected = new Set((Array.isArray(favorites) ? favorites : []).map(String));
     const generationRange = DEX_GENERATIONS.find(gen => gen.id === generation) || DEX_GENERATIONS[0];
+    const requestedGeneration = generationRange.id === "all" ? null : Number(generationRange.id);
 
     return (Array.isArray(species) ? species : []).filter(entry => {
         const id = getDexSpeciesId(entry);
-        if (id < generationRange.start || id > generationRange.end) return false;
+        const entryGeneration = Number(entry?.formGeneration || entry?.generation) || null;
+        if (requestedGeneration != null) {
+            if (entryGeneration != null ? entryGeneration !== requestedGeneration : id < generationRange.start || id > generationRange.end) return false;
+        }
         if (onlyFavorites && !selected.has(String(id))) return false;
         if (!String(query ?? "").trim()) return true;
         if (numericRange) return id >= numericRange.start && id <= numericRange.end;

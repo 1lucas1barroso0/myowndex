@@ -39,10 +39,12 @@ const organizeSpeciesFacts = facts => facts
             : { label: match[1], value, note };
     });
 
-export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam }) {
+export default function PokemonModal({ speciesUrl, initialForm = null, onClose, isTTRPG, onAddToTeam }) {
     const [baseInfo, setBaseInfo] = useState(null);
     const [activeForm, setActiveForm] = useState(null);
     const [formData, setFormData] = useState(null);
+    const [formIdentity, setFormIdentity] = useState(initialForm);
+    const [formAppearance, setFormAppearance] = useState(null);
     const [evoChain, setEvoChain] = useState([]);
     const [tab, setTab] = useState("stats");
     const [recordLanguage, setRecordLanguage] = useState('en');
@@ -66,6 +68,8 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
         let mounted = true;
         setBaseInfo(null);
         setActiveForm(null);
+        setFormIdentity(initialForm);
+        setFormAppearance(null);
         setEvoChain([]);
         setFormData(null);
         setLoadError("");
@@ -82,7 +86,10 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 return;
             }
             setBaseInfo(data);
-            const defVar = data.varieties?.find(v => v.is_default)?.pokemon || data.varieties?.[0]?.pokemon;
+            const requestedVariety = initialForm?.pokemonName
+                ? data.varieties?.find(v => v.pokemon?.name === initialForm.pokemonName)?.pokemon
+                : null;
+            const defVar = requestedVariety || data.varieties?.find(v => v.is_default)?.pokemon || data.varieties?.[0]?.pokemon;
             if (defVar?.url) setActiveForm(defVar);
             else setLoadError("Não foi possível abrir as formas deste Pokémon. Tente novamente.");
 
@@ -105,7 +112,17 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             }
         }).catch(() => mounted && setLoadError("Não foi possível abrir este Pokémon. Tente novamente."));
         return () => mounted = false;
-    }, [speciesUrl, retryAttempt]);
+    }, [speciesUrl, initialForm, retryAttempt]);
+
+    useEffect(() => {
+        let mounted = true;
+        setFormAppearance(null);
+        if (!formIdentity?.formId) return () => { mounted = false; };
+        fetchCached(`https://pokeapi.co/api/v2/pokemon-form/${formIdentity.formId}/`, { forceRefresh: retryAttempt > 0 })
+            .then(data => { if (mounted && data) setFormAppearance(data); })
+            .catch(() => {});
+        return () => { mounted = false; };
+    }, [formIdentity?.formId, retryAttempt]);
 
     useEffect(() => {
         let mounted = true;
@@ -227,7 +244,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
     const defenses = calculateDefenses(formData?.types || []);
     const bst = formData?.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
     const primaryColor = TYPE_COLORS[formData?.types?.[0]?.type?.name] || "#0EA5E9";
-    const sprite = formData?.sprites?.other?.["official-artwork"]?.front_default || formData?.sprites?.front_default;
+    const sprite = formAppearance?.sprites?.front_default || formData?.sprites?.other?.["official-artwork"]?.front_default || formData?.sprites?.front_default;
     const speciesDescription = phase === "ready" ? describeSpecies(baseInfo, formData) : null;
     const speciesFacts = speciesDescription ? organizeSpeciesFacts(speciesDescription.facts) : [];
     const profileFacts = speciesFacts.filter(fact => !fact.scale);
@@ -260,7 +277,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                     <header className="record-header">
                         <div className="record-cartridge-label"><span aria-hidden="true" /><small>Pokédex nacional</small><b>No. {String(baseInfo.id).padStart(4, "0")}</b></div>
                         <h2 id={titleId}>{formatName(baseInfo.name)}</h2>
-                        {activeForm?.name !== baseInfo.name && <p className="record-form-label">Forma {formatName(activeForm.name.replace(`${baseInfo.name}-`, ""))}</p>}
+                        {(formIdentity?.formKey || activeForm?.name !== baseInfo.name) && <p className="record-form-label">Forma {formatName((formIdentity?.formKey || activeForm.name).replace(`${baseInfo.name}-`, ""))}</p>}
                     </header>
                     <div className="record-sprite-stage">
                         <span className="record-sprite-ground" aria-hidden="true" />
@@ -277,7 +294,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                         )}
                     </div>
                     
-                    <button type="button" onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1); onClose(); }} className="record-add-partner">
+                    <button type="button" onClick={() => { onAddToTeam(formData, baseInfo?.gender_rate ?? -1, formIdentity); onClose(); }} className="record-add-partner">
                         <span className="record-mini-ball" aria-hidden="true" /> Adicionar à equipe <span aria-hidden="true">＋</span>
                     </button>
 

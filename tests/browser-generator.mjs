@@ -60,7 +60,7 @@ try {
     await page.getByRole('button', { name: 'Gerar Pokémon', exact: true }).waitFor({ timeout: 60000 });
     await open();
     await dialog.getByText('Personalizar o encontro', { exact: true }).click();
-    await dialog.getByRole('combobox', { name: 'Espécie a gerar' }).selectOption('1');
+    await dialog.getByRole('combobox', { name: 'Pokémon ou forma a gerar' }).selectOption('species:1');
     await dialog.getByRole('combobox', { name: 'Quantidade de Pokémon' }).selectOption('2');
     await dialog.getByRole('combobox', { name: 'Jogo dos Pokémon gerados' }).selectOption('scarlet-violet');
     await dialog.getByRole('button', { name: 'Gerar Pokémon', exact: true }).click();
@@ -97,7 +97,7 @@ try {
     report.push('closed/reopened preview and PC both preserve partners');
     await dialog.getByRole('combobox', { name: 'Quantidade de Pokémon' }).selectOption('1');
     await dialog.getByText('Personalizar o encontro', { exact: true }).click();
-    await dialog.getByRole('combobox', { name: 'Espécie a gerar' }).selectOption('1');
+    await dialog.getByRole('combobox', { name: 'Pokémon ou forma a gerar' }).selectOption('species:1');
     await dialog.getByRole('button', { name: 'Gerar outros Pokémon' }).click();
     await page.waitForFunction(() => document.querySelectorAll('.generator-partner').length === 1 && !document.querySelector('.generator-partner.is-saved'), { timeout: 60000 });
     const existingTarget = await dialog.getByRole('combobox', { name: 'Box de destino dos Pokémon gerados' }).locator('option').allTextContents();
@@ -125,7 +125,7 @@ try {
     assert.equal(await dialog.locator('.generator-partner.is-saved').count(), 1);
     report.push('scoped durable draft survives page reload');
     await dialog.getByText('Personalizar o encontro', { exact: true }).click();
-    await dialog.getByRole('combobox', { name: 'Espécie a gerar' }).selectOption('1');
+    await dialog.getByRole('combobox', { name: 'Pokémon ou forma a gerar' }).selectOption('species:1');
     await dialog.getByRole('button', { name: 'Gerar outros Pokémon' }).click();
     await page.waitForFunction(() => document.querySelectorAll('.generator-partner').length === 1 && !document.querySelector('.generator-partner.is-saved'));
     await dialog.getByRole('button', { name: 'Gerar outros Pokémon' }).click();

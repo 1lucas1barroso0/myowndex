@@ -195,6 +195,8 @@ export const normalizePokemon = input => {
         gender: normalizeGender(source.gender, genderRate),
         genderRate,
         genderLocked: Boolean(source.genderLocked),
+        formKey: asText(source.formKey).toLowerCase().slice(0, 120),
+        formId: source.formId == null ? null : integerInRange(source.formId, 1, 20000, 1),
         customStats,
         customTypes: asArray(source.customTypes).filter(Boolean).slice(0, 2).map(value => asText(value).toLowerCase()),
         rpg
@@ -377,9 +379,21 @@ const hydratePokemonData = async (pokemon, { signal, experienceMode = "rpg", ver
     if (!data) return stored;
     const speciesData = data.species?.url ? await fetchCached(data.species.url) : null;
     if (signal?.aborted) return stored;
+    let hydratedSpecies = data;
+    if (stored.formId) {
+        const appearance = await fetchCached(`https://pokeapi.co/api/v2/pokemon-form/${stored.formId}/`);
+        if (signal?.aborted) return stored;
+        const spriteSource = appearance?.sprites || stored.species?.sprites;
+        const formSprites = spriteSource
+            ? Object.fromEntries(Object.entries(spriteSource).filter(([, value]) => Boolean(value)))
+            : null;
+        if (formSprites && Object.keys(formSprites).length) {
+            hydratedSpecies = { ...data, sprites: { ...(data.sprites || {}), ...formSprites } };
+        }
+    }
     const genderRate = finiteNumberOrNull(speciesData?.gender_rate);
     const enriched = getPokemonReferenceForMode({
-        ...data,
+        ...hydratedSpecies,
         gender_rate: genderRate == null ? stored.genderRate : integerInRange(genderRate, -1, 8, stored.genderRate)
     }, versionGroup, { experienceMode });
     return normalizePokemon({

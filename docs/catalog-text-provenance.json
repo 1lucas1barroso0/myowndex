@@ -91,22 +91,22 @@
   "mechanicsSources": {
     "ability": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/text/abilities.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/text/abilities.ts",
       "sha256": "f6f2a0d4fc8be06cc6051d39e11f5f0a3d3d9d11020d5855b09c9b2f34a00568",
       "bytes": 150575
     },
     "move": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/text/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/text/moves.ts",
       "sha256": "811028921074d1fd8ea8798bc0f0e29602a59f639e58bdf53b0eedf3fdcf54e5",
       "bytes": 549098
     },
     "item": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/text/items.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/text/items.ts",
       "sha256": "7ddfd9f71f4a957c97be72b5eb8c3619826bb8f551bb84cfc8cd10b3dac75409",
       "bytes": 82672
     }
@@ -114,94 +114,94 @@
   "moveMetadataSources": {
     "base": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/moves.ts",
       "sha256": "738b8cfc1ca491537c0188546ab697942aaa313c5e6be83a5432edd5dd8997f7",
       "bytes": 484848
     },
     "gen1": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen1/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen1/moves.ts",
       "sha256": "c95e355731cc2790cff2489fb5cc7c0e59c8e8af596705fc675fdf54cb6b5a07",
       "bytes": 27100
     },
     "gen2": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen2/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen2/moves.ts",
       "sha256": "54f34ef670fda525b256ac955983bdd4c725dc5298426c0d66cc45797b1c13d4",
       "bytes": 20741
     },
     "gen3": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen3/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen3/moves.ts",
       "sha256": "18e9fdff5894f1280e69b5da5319e7f3ec1878c53d2c6d37cd74bc07db4df8e1",
       "bytes": 16878
     },
     "gen4": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen4/moves.ts",
-      "sha256": "8f4e62e7b9a1075c2e56a6288b22e22511e4a8c7cfe7853ae4fb2923dad45d99",
-      "bytes": 38717
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen4/moves.ts",
+      "sha256": "0dd0c8c05ccf80a93e4d5dd95cd8577655275fbad2a77a51fc25fcce25ea9ffc",
+      "bytes": 39020
     },
     "gen5": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen5/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen5/moves.ts",
       "sha256": "b7f2146ad3b81a5f17a05fdb87bc3fb9b19e891ac2a44ec8f7b4ca94252e8010",
       "bytes": 21610
     },
     "gen6": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen6/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen6/moves.ts",
       "sha256": "2253b9dd1ed8cde982cb5e4c5057a75f6fdebba2053af27c7fe61769979b8adb",
       "bytes": 4196
     },
     "gen7": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen7/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen7/moves.ts",
       "sha256": "d043fc23b4a812ba8734d3520c8f4d7ee629b42b24d005382a447b050db9f8bc",
       "bytes": 21167
     },
     "gen8": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen8/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen8/moves.ts",
       "sha256": "d75a2e25ce019c8619a71bd271ebb3521d8ed54b33540a0961f67320f5231f2e",
       "bytes": 12508
     },
     "champions": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/champions/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/champions/moves.ts",
       "sha256": "4471bcc8eb98f4697d040953008330d7951d0bcc70688f3c85e77099b28ea228",
       "bytes": 18642
     },
     "letsgo": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen7letsgo/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen7letsgo/moves.ts",
       "sha256": "b3355fc0c36ae170d37cfde9b81d5208b4647220637c9d98fd3f3f7debe3a3cc",
       "bytes": 1675
     },
     "bdsp": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen8bdsp/moves.ts",
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen8bdsp/moves.ts",
       "sha256": "8c292719fa5d2ea310608f8c63831495821e74ae9871a54e114534c0917958f5",
       "bytes": 14209
     },
     "legacyCategory": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/gen3/scripts.ts",
-      "sha256": "e091055adc3c5886e79ad0642e13a0aaafa7f60c6eddffe418f262bacce5cf21",
-      "bytes": 16446
+      "commit": "68e5f9bc901b88477c8e9aff79b5a654fc3438a7",
+      "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/68e5f9bc901b88477c8e9aff79b5a654fc3438a7/data/mods/gen3/scripts.ts",
+      "sha256": "084fd685f7dca414cbf7d463d169a173bd3e95e3c2a38218a41140a789f078fa",
+      "bytes": 16426
     }
   },
   "englishTexts": 20738,

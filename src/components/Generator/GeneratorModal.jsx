@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import speciesCatalogue from '../../data/species.json';
+import fixedFormCatalogue from '../../data/forms.json';
 import speciesMetadata from '../../data/generator-species.json';
 import { formatName, formatType, NATURES, STAT_MAP, TYPE_COLORS, TYPE_TEXT_COLORS, TYPES, VERSION_GROUPS, VERSION_LABELS } from '../../core/mechanics.js';
 import { generatePokemon, GENERATOR_DRAFT_KEY, getGeneratedHp, normalizeGeneratorOptions } from '../../core/pokemonGenerator.js';
@@ -31,6 +32,46 @@ const downloadText = (text, filename) => {
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
+const generatorSpeciesNames = new Map(speciesCatalogue.map(entry => [
+    Number(entry.url.split('/').filter(Boolean).pop()), entry.name,
+]));
+const generatorDefaultForms = new Map((fixedFormCatalogue.defaults || []).map(entry => [entry.speciesId, entry]));
+const generatorCatalogue = [
+    ...speciesCatalogue.map(entry => {
+        const speciesId = Number(entry.url.split('/').filter(Boolean).pop());
+        const form = generatorDefaultForms.get(speciesId);
+        const formKey = form?.name || '';
+        return {
+            ...entry,
+            speciesId,
+            pokemonId: speciesId,
+            pokemonName: entry.name,
+            speciesName: entry.name,
+            isPrimarySpecies: true,
+            formKey,
+            formId: form?.formId || null,
+            formIdentifier: form?.formIdentifier || '',
+            spriteKey: form?.spriteKey || String(speciesId),
+            ...(form?.generation ? { generation: form.generation } : {}),
+            ...(form?.types ? { types: form.types, pastTypes: form.pastTypes } : {}),
+            choiceKey: formKey ? `form:${formKey}` : `species:${speciesId}`,
+        };
+    }),
+    ...(fixedFormCatalogue.entries || []).map(entry => ({
+        ...entry,
+        speciesName: generatorSpeciesNames.get(entry.speciesId) || entry.pokemonName,
+        isPrimarySpecies: false,
+        formKey: entry.name,
+        choiceKey: `form:${entry.name}`,
+        url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
+    })),
+];
+
+const generatorChoiceName = entry => entry.formIdentifier
+    ? `${formatName(entry.speciesName || entry.name)} · ${formatName(entry.formIdentifier)}`
+    : formatName(entry.speciesName || entry.name);
+const generatedName = partner => formatName(partner?.formKey || partner?.species?.name);
+
 const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), summary, [tabindex="0"]';
 
 export default function GeneratorModal({ onClose, teams = [], experienceMode = 'rpg', onAddPokemon, onAddBox }) {
@@ -71,6 +112,18 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     const targetBox = teams.find(team => team.id === target);
     const freeSlots = target === 'new' ? 6 : Math.max(0, 6 - (targetBox?.pokemon?.length || 0));
     const updateOption = (key, value) => setOptions(current => ({ ...current, [key]: value }));
+    const choosePokemon = value => {
+        if (value === 'random') {
+            setOptions(current => ({ ...current, speciesId: 0, formKey: '' }));
+            return;
+        }
+        const selected = generatorCatalogue.find(entry => entry.choiceKey === value);
+        if (!selected) return;
+        setOptions(current => ({ ...current, speciesId: selected.speciesId, formKey: selected.formKey || '' }));
+    };
+    const selectedPokemonChoice = options.speciesId
+        ? (options.formKey ? `form:${options.formKey}` : `species:${options.speciesId}`)
+        : 'random';
 
     useEffect(() => { closeCallback.current = onClose; }, [onClose]);
     useEffect(() => { draftRef.current = results; }, [results]);
@@ -201,7 +254,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         setNotice('');
         setProgress({ completed: 0, total: Number(options.count) });
         try {
-            const generated = await generatePokemon(speciesCatalogue, { ...options, experienceMode }, {
+            const generated = await generatePokemon(generatorCatalogue, { ...options, experienceMode }, {
                 signal: controller.signal,
                 metadata: speciesMetadata,
                 onProgress: value => { if (sequenceRef.current === sequence) setProgress(value); },
@@ -339,7 +392,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                     </div>
                     <label>Jogo<RoomSelect disabled={working} value={options.versionGroup} onChange={event => updateOption('versionGroup', event.target.value)} aria-label="Jogo dos Pokémon gerados">{VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}</RoomSelect></label>
                     <details className="generator-customize" ref={customizationRef}><summary>Personalizar o encontro</summary>
-                        <label>Pokémon<RoomSelect disabled={working} value={options.speciesId} onChange={event => updateOption('speciesId', Number(event.target.value))} aria-label="Espécie a gerar"><option value="0">Surpreenda-me</option>{speciesCatalogue.map(entry => <option key={entry.name} value={Number(entry.url.split('/').filter(Boolean).pop())}>{formatName(entry.name)}</option>)}</RoomSelect></label>
+                        <label>Pokémon ou forma<RoomSelect disabled={working} value={selectedPokemonChoice} onChange={event => choosePokemon(event.target.value)} aria-label="Pokémon ou forma a gerar"><option value="random">Surpreenda-me</option>{generatorCatalogue.map(entry => <option key={entry.choiceKey} value={entry.choiceKey}>{generatorChoiceName(entry)}</option>)}</RoomSelect></label>
                         <div className="generator-basic-fields">
                             <label>Tipo<RoomSelect disabled={working} value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo para o encontro"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
                             <label>Geração<RoomSelect disabled={working} value={options.generation} onChange={event => updateOption('generation', Number(event.target.value))} aria-label="Geração dos Pokémon"><option value="0">Todas</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(generation => <option key={generation} value={generation}>{generation}ª geração</option>)}</RoomSelect></label>
@@ -362,12 +415,12 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                         <div className="generator-partners">{results.map(entry => {
                             const partner = entry.pokemon;
                             return <article key={partner.id} className={`generator-partner${entry.saved ? ' is-saved' : ''}`}>
-                                <div className="generator-partner-heading"><label className="generator-partner-choice"><input type="checkbox" checked={selected.has(partner.id)} onChange={() => toggleSelected(partner.id)} aria-label={`Selecionar ${formatName(partner.species.name)}`} disabled={working} /><PokemonSprite pokemonId={partner.species.id} src={partner.shiny ? partner.species.sprites?.front_shiny : partner.species.sprites?.front_default} shiny={partner.shiny} alt="" loading="eager" /><span><strong>{formatName(partner.species.name)}</strong><small>Nv. {partner.level}{partner.shiny ? ' · Shiny' : ''}{entry.saved ? ' · Guardado' : ''}</small></span></label><button type="button" disabled={working} onClick={() => void exportResults([entry])} aria-label={`Exportar ${formatName(partner.species.name)}`}>Exportar</button></div>
+                                <div className="generator-partner-heading"><label className="generator-partner-choice"><input type="checkbox" checked={selected.has(partner.id)} onChange={() => toggleSelected(partner.id)} aria-label={`Selecionar ${generatedName(partner)}`} disabled={working} /><PokemonSprite pokemonId={partner.species.id} src={partner.shiny ? partner.species.sprites?.front_shiny : partner.species.sprites?.front_default} shiny={partner.shiny} alt="" loading="eager" /><span><strong>{generatedName(partner)}</strong><small>Nv. {partner.level}{partner.shiny ? ' · Shiny' : ''}{entry.saved ? ' · Guardado' : ''}</small></span></label><button type="button" disabled={working} onClick={() => void exportResults([entry])} aria-label={`Exportar ${generatedName(partner)}`}>Exportar</button></div>
                                 <div className="generator-types">{partner.species.types?.map(type => <span key={type.type.name} style={{ background: TYPE_COLORS[type.type.name], color: TYPE_TEXT_COLORS[type.type.name] }}>{formatType(type.type.name)}</span>)}</div>
                                 <dl className="generator-partner-facts"><div><dt>Natureza</dt><dd>{formatName(partner.nature)}</dd></div><div><dt>Habilidade</dt><dd>{formatName(partner.ability) || 'Sem habilidade'}</dd></div></dl>
-                                <ul className="generator-moves" aria-label={`Movimentos de ${formatName(partner.species.name)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
+                                <ul className="generator-moves" aria-label={`Movimentos de ${generatedName(partner)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
                                 {!partner.moves.some(Boolean) && <p className="generator-small">Neste jogo, ainda não aprende movimentos por nível.</p>}
-                                <details className="generator-partner-details"><summary>Ficha do Pokémon</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => setPendingRemoval(partner.id)} aria-label={`Remover ${formatName(partner.species.name)} da prévia`}>Remover da prévia</button></details>
+                                <details className="generator-partner-details"><summary>Ficha do Pokémon</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => setPendingRemoval(partner.id)} aria-label={`Remover ${generatedName(partner)} da prévia`}>Remover da prévia</button></details>
                             </article>;
                         })}</div>
                         <section className="generator-save" aria-label="Guardar os Pokémon selecionados"><h3>Guardar no PC</h3><label>Destino<RoomSelect disabled={working} value={target} onChange={event => setTarget(event.target.value)} aria-label="Box de destino dos Pokémon gerados"><option value="new">Criar uma nova Box</option>{teams.map(team => <option key={team.id} value={team.id} disabled={team.pokemon.length >= 6}>{team.name} · {6 - team.pokemon.length} vaga{team.pokemon.length === 5 ? '' : 's'}</option>)}</RoomSelect></label>{target === 'new' && <label>Nome da Box<input type="text" maxLength="80" value={boxName} onChange={event => setBoxName(event.target.value)} disabled={working} /></label>}<div className="generator-save-actions"><button type="button" className="generator-primary" disabled={!selectedResults.length || selectedResults.length > freeSlots || working} onClick={() => void saveSelected()}>{saving ? 'Guardando…' : selectedResults.length ? `Guardar ${selectedResults.length} no PC` : 'Guardar no PC'}</button><button type="button" disabled={!exportSelection.length || working} onClick={() => void exportResults(exportSelection, true)}>Exportar Box</button></div>{selectedResults.length > freeSlots && <p className="generator-small">Esta Box tem {freeSlots} vaga{freeSlots === 1 ? '' : 's'}. Selecione menos Pokémon ou crie outra Box.</p>}</section>

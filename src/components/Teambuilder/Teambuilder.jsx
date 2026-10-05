@@ -7,6 +7,7 @@ import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
+import GameIcon from "../Shared/GameIcon.jsx";
 import PokemonEditor from "./PokemonEditor.jsx";
 import "../../pc-retro.css";
 
@@ -23,6 +24,8 @@ const handleRadioNavigation = event => {
     choices[next].focus();
     choices[next].click();
 };
+const partnerFormName = partner => formatName(partner?.formKey || partner?.species?.name);
+
 const getPartnerSprite = partner => partner?.shiny
     ? partner.species?.sprites?.front_shiny
     : partner?.species?.sprites?.front_default;
@@ -356,7 +359,7 @@ export default function Teambuilder({ envProps }) {
         setPendingPartnerDelete(null);
         setNotice?.({
             tone: "amber",
-            text: `${partner.nickname || formatName(partner.species?.name)} saiu da Box.`,
+            text: `${partner.nickname || partnerFormName(partner)} saiu da Box.`,
             actionLabel: "Desfazer",
             onAction: () => {
                 setTeams(current => current.map(team => {
@@ -367,7 +370,7 @@ export default function Teambuilder({ envProps }) {
                 }));
                 setActiveTeamId(teamId);
                 setEditingSlot(index);
-                setNotice?.({ tone: "blue", text: `${partner.nickname || formatName(partner.species?.name)} voltou para a Box.` });
+                setNotice?.({ tone: "blue", text: `${partner.nickname || partnerFormName(partner)} voltou para a Box.` });
             },
         });
     };
@@ -407,7 +410,7 @@ export default function Teambuilder({ envProps }) {
 
                 <div className="pc-import-region">
                     <button type="button" onClick={() => setImporting(true)} aria-haspopup="dialog" className="pc-import-button">
-                        <span aria-hidden="true">⇩</span>
+                        <GameIcon name="receive" />
                         <span>Importar Pokémon ou Box</span>
                     </button>
                 </div>
@@ -437,7 +440,7 @@ export default function Teambuilder({ envProps }) {
 
                             <div className="pc-toolbar-actions" role="group" aria-label="Ações da Box">
                                 <button type="button" onClick={openShare} disabled={isProcessing} aria-haspopup="dialog" title="Compartilhar Box ou Pokémon" className="pc-action-button is-share">
-                                    <span aria-hidden="true">↗</span><span className="pc-action-label">Compartilhar</span>
+                                    <GameIcon name="share" /><span className="pc-action-label">Compartilhar</span>
                                 </button>
                                 <button type="button" onClick={cloneTeam} title="Duplicar Box" className="pc-action-button is-duplicate"><span aria-hidden="true">⧉</span><span className="pc-action-label">Duplicar</span></button>
                                 <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="pc-action-button is-delete"><span aria-hidden="true">⌫</span><span className="pc-action-label">Apagar</span></button>
@@ -460,7 +463,7 @@ export default function Teambuilder({ envProps }) {
                                 const sprite = getPartnerSprite(partner);
                                 const types = (partner.species?.types || []).map(entry => entry.type?.name).filter(Boolean);
                                 return (
-                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => selectPartner(index)} aria-pressed={editingSlot === index} aria-label={`Abrir ficha de ${partner.nickname || formatName(partner.species?.name)}, nível ${partner.level || 1}${partner.shiny ? ", Shiny" : ""}`} style={{ "--pc-partner-type": TYPE_COLORS[types[0]] || "var(--ui-line)" }} className={`pc-partner-card ${editingSlot === index ? "is-selected" : ""}`} ref={element => { partnerButtonRefs.current[index] = element; }}>
+                                    <button type="button" key={partner.id || `${partner.species?.name}-${index}`} onClick={() => selectPartner(index)} aria-pressed={editingSlot === index} aria-label={`Abrir ficha de ${partner.nickname || partnerFormName(partner)}, nível ${partner.level || 1}${partner.shiny ? ", Shiny" : ""}`} style={{ "--pc-partner-type": TYPE_COLORS[types[0]] || "var(--ui-line)" }} className={`pc-partner-card ${editingSlot === index ? "is-selected" : ""}`} ref={element => { partnerButtonRefs.current[index] = element; }}>
 
                                         <span className="pc-card-position" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                                         <span className="pc-partner-sprite">
@@ -469,10 +472,10 @@ export default function Teambuilder({ envProps }) {
                                         </span>
                                         <span className="pc-partner-info">
                                             <span className="pc-partner-heading">
-                                                <span className="pc-partner-name">{partner.nickname || formatName(partner.species?.name)}</span>
+                                                <span className="pc-partner-name">{partner.nickname || partnerFormName(partner)}</span>
                                                 <span role="img" aria-label={partner.gender === "M" ? "Macho" : partner.gender === "F" ? "Fêmea" : "Sem gênero definido"} className="pc-partner-gender">{partner.gender === "M" ? "♂" : partner.gender === "F" ? "♀" : "⚲"}</span>
                                             </span>
-                                            {partner.nickname && <span className="pc-partner-species">{formatName(partner.species?.name)}</span>}
+                                            {partner.nickname && <span className="pc-partner-species">{partnerFormName(partner)}</span>}
                                             <span className="pc-partner-meta"><span>Nv. {partner.level || 1}</span><span>{partner.item ? formatCanonicalItemName(partner.item) : "Sem item"}</span></span>
                                             <span className="pc-partner-types">
                                                 {types.map(type => <span key={type} style={{ backgroundColor: TYPE_COLORS[type], color: TYPE_TEXT_COLORS[type] }}>{formatType(type)}</span>)}
@@ -489,7 +492,7 @@ export default function Teambuilder({ envProps }) {
                         {editingSlot !== null && active.pokemon?.[editingSlot] && (
                             <div className="pc-editor-region">
                                 <header className="pc-editor-heading">
-                                    <h3 ref={editorHeadingRef} tabIndex={-1}>Ficha de {active.pokemon[editingSlot].nickname || formatName(active.pokemon[editingSlot].species?.name)}</h3>
+                                    <h3 ref={editorHeadingRef} tabIndex={-1}>Ficha de {active.pokemon[editingSlot].nickname || partnerFormName(active.pokemon[editingSlot])}</h3>
                                     <div className="pc-editor-actions" role="group" aria-label="Ações da ficha">
                                         <button type="button" onClick={() => { partnerButtonRefs.current[editingSlot]?.focus(); setEditingSlot(null); }} className="pc-close-editor">Fechar ficha <span aria-hidden="true">×</span></button>
                                         <button type="button" onClick={() => { dismissKeyboard(); setPendingPartnerDelete({ teamId: active.id, partner: active.pokemon[editingSlot], index: editingSlot }); }} className="pokemon-remove-button">Remover da Box</button>
@@ -524,7 +527,7 @@ export default function Teambuilder({ envProps }) {
                         <button type="button" className="link-cable-close" onClick={() => { setSharing(false); setShareCode(""); }} aria-label="Fechar compartilhamento">×</button>
                         <span className="link-cable-kicker">Link Cable</span>
                         <h2 id="share-dialog-title">Compartilhar equipe</h2>
-                        <p className="link-cable-intro">Escolha os Pokémon ou a Box inteira para enviar a outro treinador.</p>
+                        <p className="link-cable-intro">Escolha os Pokémon ou a Box inteira para enviar a outro treinador. Espécie, forma e progresso acompanham o código.</p>
 
                         {!shareCode ? (
                             <>
@@ -556,7 +559,7 @@ export default function Teambuilder({ envProps }) {
                                                 >
                                                     <span className="link-cable-check" aria-hidden="true">{selected ? "✓" : ""}</span>
                                                     <PokemonSprite src={sprite} pokemonId={partner.species?.id} shiny={partner.shiny} alt="" className="pixelated" fallbackClassName="link-cable-sprite-fallback" />
-                                                    <span><strong>{partner.nickname || formatName(partner.species?.name)}</strong><small>{formatName(partner.species?.name)} • Nv. {partner.level}</small></span>
+                                                    <span><strong>{partner.nickname || partnerFormName(partner)}</strong><small>{partnerFormName(partner)} • Nv. {partner.level}</small></span>
                                                 </button>
                                             );
                                         })}
@@ -621,7 +624,7 @@ export default function Teambuilder({ envProps }) {
                                         return (
                                             <span key={partner.id || index}>
                                                 <PokemonSprite src={sprite} pokemonId={partner.species?.id} shiny={partner.shiny} alt="" className="pixelated" fallbackClassName="link-cable-sprite-fallback" />
-                                                <b>{partner.nickname || formatName(partner.species?.name)}</b>
+                                                <b>{partner.nickname || partnerFormName(partner)}</b>
                                                 <small>Nv. {partner.level}</small>
                                             </span>
                                         );
@@ -676,7 +679,7 @@ export default function Teambuilder({ envProps }) {
             <ConfirmDialog
                 open={Boolean(pendingPartnerDelete)}
                 title="Remover este parceiro?"
-                description={pendingPartnerDelete ? `${pendingPartnerDelete.partner.nickname || formatName(pendingPartnerDelete.partner.species?.name)} sairá desta Box. Se mudar de ideia, você poderá desfazer logo depois.` : ""}
+                description={pendingPartnerDelete ? `${pendingPartnerDelete.partner.nickname || partnerFormName(pendingPartnerDelete.partner)} sairá desta Box. Se mudar de ideia, você poderá desfazer logo depois.` : ""}
                 confirmLabel="Remover parceiro"
                 onConfirm={confirmDeletePartner}
                 onCancel={() => setPendingPartnerDelete(null)}

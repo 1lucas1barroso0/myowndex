@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildGeneratedPokemon, fetchGeneratorData, generatePokemon, GENERATOR_REQUEST_CONCURRENCY, getGeneratedHp, getGeneratorGameReference, getGeneratorGender, getGeneratorLearnset, getGeneratorSpeciesPool, getGeneratorSpeciesTypes, normalizeGeneratorOptions } from '../src/core/pokemonGenerator.js';
+import { buildGeneratedPokemon, fetchGeneratorData, generatePokemon, GENERATOR_REQUEST_CONCURRENCY, getGeneratedHp, getGeneratorGameReference, getGeneratorGender, getGeneratorLearnset, getGeneratorRandomCandidates, getGeneratorSpeciesPool, getGeneratorSpeciesTypes, normalizeGeneratorOptions } from '../src/core/pokemonGenerator.js';
 import { clearCatalogTextCache } from '../src/core/catalogText.js';
 import { STAT_KEYS } from '../src/core/team.js';
 import { decodeShare, encodePokemonBundle } from '../src/core/teamShare.js';
@@ -25,6 +25,52 @@ test('generator filters canonical species, types and real generation boundaries 
     assert.equal(normalized.level, 100);
     assert.equal(normalized.nature, 'random');
     assert.equal(normalized.type, '');
+});
+
+test('random generator gives each species one candidate regardless of how many persistent forms it owns', () => {
+    const pool = [
+        { id: 25, name: 'pikachu' },
+        { id: 869, name: 'alcremie' },
+        { id: 869, name: 'alcremie-ruby-cream', formKey: 'alcremie-ruby-cream' },
+        { id: 869, name: 'alcremie-rainbow-swirl', formKey: 'alcremie-rainbow-swirl' },
+    ];
+    const candidates = getGeneratorRandomCandidates(pool, () => 0);
+    assert.equal(candidates.length, 2);
+    assert.equal(new Set(candidates.map(entry => entry.id)).size, 2);
+});
+
+test('historical game generation excludes forms introduced after the selected game', () => {
+    const entries = [
+        { name: 'rattata', speciesId: 19, url: `${API}pokemon-species/19/` },
+        { name: 'rattata-alola', speciesId: 19, formKey: 'rattata-alola', generation: 7, types: ['dark', 'normal'], url: `${API}pokemon-species/19/` },
+    ];
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { experienceMode: 'game', versionGroup: 'red-blue' }).map(entry => entry.name), ['rattata']);
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { experienceMode: 'game', versionGroup: 'sun-moon' }).map(entry => entry.name), ['rattata', 'rattata-alola']);
+});
+
+test('form type filters use the selected historical game instead of current typing', () => {
+    const rotomWash = {
+        name: 'rotom-wash', speciesId: 479, formKey: 'rotom-wash', generation: 4,
+        types: ['electric', 'water'], pastTypes: [{ generation: 4, types: ['electric', 'ghost'] }],
+        url: `${API}pokemon-species/479/`,
+    };
+    assert.deepEqual(getGeneratorSpeciesPool([rotomWash], { type: 'ghost', experienceMode: 'game', versionGroup: 'platinum' }).map(entry => entry.name), ['rotom-wash']);
+    assert.deepEqual(getGeneratorSpeciesPool([rotomWash], { type: 'water', experienceMode: 'game', versionGroup: 'platinum' }), []);
+    assert.deepEqual(getGeneratorSpeciesPool([rotomWash], { type: 'water', experienceMode: 'game', versionGroup: 'black-white' }).map(entry => entry.name), ['rotom-wash']);
+});
+
+test('a named primary persistent form remains the species choice instead of being rejected as an alternate', () => {
+    const unownA = {
+        id: 201,
+        speciesId: 201,
+        name: 'unown',
+        formKey: 'unown-a',
+        isPrimarySpecies: true,
+        generation: 2,
+        types: ['psychic'],
+        url: `${API}pokemon-species/201/`,
+    };
+    assert.deepEqual(getGeneratorSpeciesPool([unownA], { speciesId: 201 }).map(entry => entry.formKey), ['unown-a']);
 });
 
 test('generator learnset uses the latest actual game and only moves learned by the selected level', () => {
@@ -145,6 +191,39 @@ test('generator end-to-end preserves actual forms, correct game PP, progress and
     assert.equal(decoded.pokemon[0].speciesName, 'bulbasaur');
     assert.equal(decoded.pokemon[0].moves[0], 'tackle');
     assert.equal(decoded.pokemon[0].rpg.xp, 0);
+});
+
+test('generator can pin a persistent form and keeps its identity in the generated partner', async () => {
+    const entry = {
+        name: 'bulbasaur-spring-style',
+        speciesId: 1,
+        pokemonId: 1,
+        pokemonName: 'bulbasaur',
+        formKey: 'bulbasaur-spring-style',
+        formId: 12000,
+        generation: 1,
+        types: ['grass'],
+        url: `${API}pokemon-species/1/`,
+    };
+    const generated = await generatePokemon([entry], {
+        speciesId: 1,
+        formKey: entry.formKey,
+        count: 1,
+        versionGroup: 'scarlet-violet',
+        level: 5,
+    }, {
+        fetcher: async url => url === `${API}pokemon-form/${entry.formId}/`
+            ? { sprites: { front_default: '/sprites/spring.png' } }
+            : fixtureFetcher(url),
+        random: () => 0,
+    });
+    assert.equal(generated.length, 1);
+    assert.equal(generated[0].pokemon.species.name, 'bulbasaur');
+    assert.equal(generated[0].pokemon.formKey, entry.formKey);
+    assert.equal(generated[0].pokemon.formId, entry.formId);
+    assert.equal(generated[0].pokemon.species.sprites.front_default, '/sprites/spring.png');
+    assert.deepEqual(getGeneratorSpeciesPool([entry], { speciesId: 1, formKey: entry.formKey }).map(value => value.formKey), [entry.formKey]);
+    assert.deepEqual(getGeneratorSpeciesPool([entry], { speciesId: 1 }), [], 'selecting the base form never silently picks a styled form');
 });
 
 test('generator rejects incomplete API data instead of inventing a partner and aborts before any request', async () => {

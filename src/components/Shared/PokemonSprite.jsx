@@ -4,23 +4,30 @@ import { getPokemonSpriteScale } from "../../core/pokemonHeights.js";
 
 const EMPTY_CANDIDATES = Object.freeze([]);
 
-const spriteUrls = ({ src, pokemonId, shiny = false, candidates = [] }) => {
+const spriteUrls = ({ src, pokemonId, spriteKey = "", shiny = false, candidates = [] }) => {
     const id = finiteNumberOrNull(pokemonId);
     const regularPath = shiny ? "shiny/" : "";
-    const frontUrl = Number.isFinite(id) && id > 0
-        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${regularPath}${id}.png`
+    const safeSpriteKey = /^[0-9]+(?:-[a-z0-9-]+)?$/.test(String(spriteKey || "")) ? String(spriteKey) : "";
+    const remoteKey = safeSpriteKey || (Number.isFinite(id) && id > 0 ? String(id) : "");
+    const hasVariantSprite = Boolean(safeSpriteKey && safeSpriteKey !== String(id || ""));
+    const frontUrl = remoteKey
+        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${regularPath}${remoteKey}.png`
         : "";
-    const localUrl = Number.isInteger(id) && ((id >= 1 && id <= 151) || id === 479) && !shiny
+    const variantRegularUrl = hasVariantSprite
+        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${remoteKey}.png`
+        : "";
+    const localUrl = !hasVariantSprite && Number.isInteger(id) && ((id >= 1 && id <= 151) || id === 479) && !shiny
         ? `/sprites/${id}.png`
         : "";
     return [...new Set([
-        (!src || src === frontUrl) ? localUrl : "",
-        src,
+        hasVariantSprite ? frontUrl : ((!src || src === frontUrl) ? localUrl : ""),
+        variantRegularUrl,
         ...candidates,
+        src,
         localUrl,
         frontUrl,
         Number.isInteger(id) && id > 0 && id <= 649
-            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/${regularPath}${id}.png`
+            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/${regularPath}${remoteKey || id}.png`
             : "",
     ].filter(Boolean))];
 };
@@ -28,6 +35,7 @@ const spriteUrls = ({ src, pokemonId, shiny = false, candidates = [] }) => {
 export default function PokemonSprite({
     src = "",
     pokemonId = 0,
+    spriteKey = "",
     shiny = false,
     height,
     candidates = EMPTY_CANDIDATES,
@@ -37,8 +45,8 @@ export default function PokemonSprite({
     loading = "lazy",
 }) {
     const sources = useMemo(
-        () => spriteUrls({ src, pokemonId, shiny, candidates }),
-        [src, pokemonId, shiny, candidates],
+        () => spriteUrls({ src, pokemonId, spriteKey, shiny, candidates }),
+        [src, pokemonId, spriteKey, shiny, candidates],
     );
     const [sourceIndex, setSourceIndex] = useState(0);
 

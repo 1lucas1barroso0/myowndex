@@ -21,6 +21,7 @@ SOURCES = {
     'pokemon_species': 'e66e2eeb25fd3836b0ebab6bf87bbf01960aa3c0555e2bac495fa8393c5e0c45',
     'pokemon': '16c81c33188b0eac403aa2f759fcbe9e42c611f722d263f5b5a6a5bff9f8ce6b',
     'pokemon_forms': '99bf8f7ad4dc1f2e291357a090cef6a575623ec3cbf9030d0e33656e6e608ae2',
+    'version_groups': '28da8d89d8eb4966941f81a9e62b3990510ed4d76dd774158246551a8e7707a7',
     'types': '37f039c8d722f47d51ba1c5c5ecf9b7007235b1a9a1af2827645c777b70307c8',
     'pokemon_types': 'f1fc4bfd657a034ea3bf6972423b10276424aa068577b304a78a08996425ba05',
     'pokemon_types_past': '02553c38e3871f99c7ed809b944066fea3f42ef6bccd4daba19274aca01fbff0',
@@ -68,6 +69,7 @@ def main():
     species = {row['id']: row for row in data['pokemon_species']}
     forms = {row['pokemon_id']: row for row in data['pokemon_forms']}
     type_names = {row['id']: row['identifier'] for row in data['types']}
+    version_generations = {row['id']: int(row['generation_id']) for row in data['version_groups']}
 
     current_types = {}
     for row in data['pokemon_types']:
@@ -103,6 +105,7 @@ def main():
             'pokemonName': pokemon['identifier'],
             'form': '' if is_default else (form or {}).get('form_identifier', ''),
             'generation': int(species_row['generation_id']),
+            'formGeneration': int(species_row['generation_id']) if is_default else version_generations.get(form['introduced_in_version_group_id'], int(species_row['generation_id'])),
             'legendary': species_row['is_legendary'] == '1',
             'mythical': species_row['is_mythical'] == '1',
             'isDefault': is_default,

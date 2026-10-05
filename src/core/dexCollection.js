@@ -33,21 +33,42 @@ export const urlForView = (url, view) => {
 export const normalizeDexSearch = value => String(value ?? "").normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/♀/g, "f").replace(/♂/g, "m").replace(/[^a-z0-9]/g, "");
 
-const parseDexRange = value => {
+export const parseDexRange = value => {
     const raw = String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-    const match = raw.match(/^#?0*(\d{1,4})\s*(?:-|–|—|\.\.|\ba\b|\bate\b|\bto\b)\s*#?0*(\d{1,4})$/i);
-    if (!match) return null;
-    const left = Number(match[1]);
-    const right = Number(match[2]);
-    if (!Number.isInteger(left) || !Number.isInteger(right) || left < 1 || right < 1 || left > 1025 || right > 1025) return null;
-    return [Math.min(left, right), Math.max(left, right)];
+    const bounded = number => Number.isInteger(number) && number >= 1 && number <= 1025 ? number : null;
+    const closed = raw.match(/^#?0*(\d{1,4})\s*(?:-|–|—|\.\.|\ba\b|\bate\b|\bto\b)\s*#?0*(\d{1,4})$/i);
+    if (closed) {
+        const left = bounded(Number(closed[1]));
+        const right = bounded(Number(closed[2]));
+        if (left == null || right == null) return null;
+        return [Math.min(left, right), Math.max(left, right)];
+    }
+    const from = raw.match(/^(?:a\s+partir\s+de|desde|>=?)\s*#?0*(\d{1,4})$/i) || raw.match(/^#?0*(\d{1,4})\s*\+$/);
+    if (from) {
+        const start = bounded(Number(from[1]));
+        return start == null ? null : [start, 1025];
+    }
+    const until = raw.match(/^(?:ate|<=?)\s*#?0*(\d{1,4})$/i);
+    if (until) {
+        const end = bounded(Number(until[1]));
+        return end == null ? null : [1, end];
+    }
+    return null;
 };
 
-export function selectDexSpecies(species, { query = "", favorites = [], onlyFavorites = false, order = "number", generation = "all" } = {}) {
+export function selectDexSpecies(species, {
+    query = "", favorites = [], onlyFavorites = false, order = "number", generation = "all",
+    types = [], minNumber = "", maxNumber = "", variantView = "grouped",
+} = {}) {
     const normalized = normalizeDexSearch(query);
     const numericRange = parseDexRange(query);
     const numericQuery = !numericRange && /^\d+$/.test(normalized) ? Number(normalized) : null;
     const selected = new Set(favorites);
+    const selectedTypes = new Set((Array.isArray(types) ? types : []).filter(Boolean));
+    const minimum = Number(minNumber);
+    const maximum = Number(maxNumber);
+    const hasMinimum = Number.isInteger(minimum) && minimum >= 1 && minimum <= 1025;
+    const hasMaximum = Number.isInteger(maximum) && maximum >= 1 && maximum <= 1025;
     const range = DEX_GENERATIONS.find(gen => gen.id === generation) || DEX_GENERATIONS[0];
     return species.filter(entry => {
         const id = dexEntryNumber(entry);
@@ -58,9 +79,22 @@ export function selectDexSpecies(species, { query = "", favorites = [], onlyFavo
         const matchesQuery = !String(query ?? "").trim()
             || (numericRange ? id >= numericRange[0] && id <= numericRange[1]
                 : numericQuery !== null ? id === numericQuery
-                    : [entry?.name, entry?.speciesName, entry?.pokemonName, entry?.formKey, entry?.formIdentifier]
+                    : [entry?.name, entry?.speciesName, entry?.pokemonName, entry?.formKey, entry?.formIdentifier, entry?.regionLabel]
                         .filter(Boolean).some(value => normalizeDexSearch(value).includes(normalized)));
-        return inGeneration && (!onlyFavorites || selected.has(dexEntryFavoriteKey(entry))) && matchesQuery;
+        const entryTypes = Array.isArray(entry?.types) ? entry.types : [];
+        const matchesTypes = [...selectedTypes].every(type => entryTypes.includes(type));
+        const matchesBounds = (!hasMinimum || id >= minimum) && (!hasMaximum || id <= maximum);
+        const matchesVariantView = variantView === "split"
+            ? true
+            : variantView === "regional"
+                ? entry?.variantKind === "regional"
+                : entry?.isPrimarySpecies !== false;
+        return inGeneration
+            && matchesTypes
+            && matchesBounds
+            && matchesVariantView
+            && (!onlyFavorites || selected.has(dexEntryFavoriteKey(entry)))
+            && matchesQuery;
     }).sort((a, b) => {
         if (order === "name") return a.name.localeCompare(b.name, "pt-BR");
         const numberDifference = dexEntryNumber(a) - dexEntryNumber(b);

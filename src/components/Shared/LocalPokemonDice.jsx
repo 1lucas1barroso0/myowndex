@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { applyStageChange, STAGE_LABELS } from "../../core/automation.js";
-import { formatName } from "../../core/mechanics.js";
+import { formatName, formatPokemonIdentity } from "../../core/mechanics.js";
 import { createRoomSnapshot, addTeamToSnapshot, declareRoomMove, normalizeRoomToken, ROOM_WEATHERS, ROOM_TERRAINS, STATUS_LABELS, syncTeamsWithRoomProgress } from "../../core/room.js";
 import { hydratePokemon } from "../../core/team.js";
 import { createScheduledSave } from "../../core/scheduledSave.js";
@@ -284,9 +284,9 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             {sources.length ? <div className="local-field-source">
                 <div className="local-dice-fields">
                     <label>Box<RoomSelect aria-label="Box de origem" value={sourceBox?.id || ""} onChange={event=>{setSelectedBoxId(event.target.value);setSelectedSource("");}}>{sourceBoxes.map(team=><option key={team.id} value={team.id}>{team.name}</option>)}</RoomSelect></label>
-                    <label>Pokémon<RoomSelect aria-label="Pokémon da Box" value={currentSource?.key || ""} onChange={event=>setSelectedSource(event.target.value)}><option value="">Escolha um Pokémon</option>{boxSources.map(source=><option key={source.key} value={source.key}>{source.pokemon.nickname || formatName(source.pokemon.species?.name)}</option>)}</RoomSelect></label>
+                    <label>Pokémon<RoomSelect aria-label="Pokémon da Box" value={currentSource?.key || ""} onChange={event=>setSelectedSource(event.target.value)}><option value="">Escolha um Pokémon</option>{boxSources.map(source=><option key={source.key} value={source.key}>{source.pokemon.nickname || formatPokemonIdentity(source.pokemon)}</option>)}</RoomSelect></label>
                 </div>
-                {currentSource && <div className="local-field-preview"><PokemonSprite src={currentSource.pokemon.shiny?currentSource.pokemon.species?.sprites?.front_shiny:currentSource.pokemon.species?.sprites?.front_default} pokemonId={currentSource.pokemon.species?.id} shiny={currentSource.pokemon.shiny} alt="" /><span><strong>{currentSource.pokemon.nickname || formatName(currentSource.pokemon.species?.name)}</strong><small>{currentSource.pokemon.nickname && `${formatName(currentSource.pokemon.species?.name)} · `}Nv. {currentSource.pokemon.level}</small></span></div>}
+                {currentSource && <div className="local-field-preview"><PokemonSprite src={currentSource.pokemon.shiny?currentSource.pokemon.species?.sprites?.front_shiny:currentSource.pokemon.species?.sprites?.front_default} pokemonId={currentSource.pokemon.species?.id} shiny={currentSource.pokemon.shiny} alt="" /><span><strong>{currentSource.pokemon.nickname || formatPokemonIdentity(currentSource.pokemon)}</strong><small>{currentSource.pokemon.nickname && `${formatPokemonIdentity(currentSource.pokemon)} · `}Nv. {currentSource.pokemon.level}</small></span></div>}
                 <div className="local-field-side"><span id={sideLabelId}>Posição</span><div role="group" aria-labelledby={sideLabelId}>{[["ally","Aliado"],["opponent","Oponente"]].map(([value,label])=><button type="button" key={value} aria-pressed={side===value} data-side={value} onClick={()=>setSide(value)}>{label}</button>)}</div></div>
                 <button type="button" className="room-primary-button" disabled={!currentSource || adding || snapshot.tokens.length>=LOCAL_DICE_TOKEN_LIMIT} onClick={()=>void addPartner()}>{adding?"Preparando…":"Trazer para o campo"}</button>
             </div> : <p>Escolha ou gere Pokémon no PC para montar o campo.</p>}

@@ -826,7 +826,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 await refresh(session);
             }
             setDeletingJournal(null);
-            setNotice?.({ tone: "blue", text: selection.all ? "Diário limpo." : "Registro apagado." });
+            setNotice?.({ tone: "blue", text: selection.all ? "Histórico limpo." : "Registro apagado." });
         } catch (value) {
             showError(value);
         } finally {
@@ -1783,18 +1783,18 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     <details className="room-tool">
                         <summary>
                             <span>
-                                <strong>Diário da aventura</strong>
+                                <strong>Histórico da aventura</strong>
                             </span>
                             <span className="room-tool-badge">{events.length}</span>
                         </summary>
                         <div className="room-tool-body">
                             {events.some(event => role === "narrator" || event.playerId === session.playerId) && <details className="journal-options">
-                                <summary>Opções do Diário</summary>
+                                <summary>Opções do histórico</summary>
                                 <button type="button" disabled={journalBusy} onClick={() => setDeletingJournal({ all: true, through: {
                                     events: Math.max(0, ...events.filter(event => Number.isSafeInteger(event.id)).map(event => event.id)),
                                     rolls: Math.max(0, ...events.filter(event => /^authority-\d+$/.test(String(event.id))).map(event => Number(String(event.id).slice(10)))),
                                 } })}>
-                                    {role === "narrator" ? "Limpar Diário" : "Apagar meus registros"}
+                                    {role === "narrator" ? "Limpar histórico" : "Apagar meus registros"}
                                 </button>
                             </details>}
                             <div className="event-log" aria-live="polite">
@@ -1863,8 +1863,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             <ConfirmDialog
                 open={Boolean(deletingJournal)}
                 title={deletingJournal?.all ? role === "narrator" ? "Limpar o Diário?" : "Apagar seus registros?" : "Apagar este registro?"}
-                description="Remove os registros do Diário. HP, PP, turnos e resultados já aplicados continuam como estão."
-                confirmLabel={journalBusy ? "Apagando…" : deletingJournal?.all ? role === "narrator" ? "Limpar Diário" : "Apagar meus registros" : "Apagar registro"}
+                description="Remove os registros do histórico. HP, PP, turnos e resultados já aplicados continuam como estão."
+                confirmLabel={journalBusy ? "Apagando…" : deletingJournal?.all ? role === "narrator" ? "Limpar histórico" : "Apagar meus registros" : "Apagar registro"}
                 cancelLabel="Manter registros"
                 onConfirm={() => void deleteJournal()}
                 onCancel={() => !journalBusy && setDeletingJournal(null)}
@@ -1881,7 +1881,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             <ConfirmDialog
                 open={ending}
                 title="Encerrar esta aventura?"
-                description="Antes de encerrar, o Narrador avalia a Amizade pela história da sessão. A aventura, o diário e as trilhas serão apagados; suas Boxes continuam no PC."
+                description="Antes de encerrar, o Narrador avalia a Amizade pela história da sessão. A aventura, o histórico e as trilhas serão apagados; suas Boxes continuam no PC."
                 confirmLabel={busy ? "Encerrando…" : "Encerrar aventura"}
                 cancelLabel="Continuar aventura"
                 danger

@@ -420,7 +420,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                                         key={v.pokemon?.name || `form-${index}`}
                                                         type="button"
                                                         aria-pressed={activeForm?.name === v.pokemon?.name}
-                                                        onClick={() => setActiveForm(v.pokemon)} 
+                                                        onClick={() => { setFormIdentity(null); setFormAppearance(null); setActiveForm(v.pokemon); }} 
                                                         className={`record-form-button ${activeForm?.name === v.pokemon?.name ? "is-selected" : ""}`}
                                                     >
                                                         {btnName}

@@ -135,6 +135,10 @@ const withStoredFormSprites = (species, spriteKey) => {
     const currentOther = currentSprites.other && typeof currentSprites.other === "object" ? currentSprites.other : {};
     const currentArtwork = currentOther["official-artwork"] && typeof currentOther["official-artwork"] === "object"
         ? currentOther["official-artwork"] : {};
+    const currentVersions = currentSprites.versions && typeof currentSprites.versions === "object" ? currentSprites.versions : {};
+    const currentGenFive = currentVersions["generation-v"] && typeof currentVersions["generation-v"] === "object" ? currentVersions["generation-v"] : {};
+    const currentBlackWhite = currentGenFive["black-white"] && typeof currentGenFive["black-white"] === "object" ? currentGenFive["black-white"] : {};
+    const currentAnimated = currentBlackWhite.animated && typeof currentBlackWhite.animated === "object" ? currentBlackWhite.animated : {};
     return {
         ...species,
         sprites: {
@@ -147,6 +151,20 @@ const withStoredFormSprites = (species, spriteKey) => {
                     ...currentArtwork,
                     front_default: artwork,
                     front_shiny: shinyArtwork,
+                },
+            },
+            versions: {
+                ...currentVersions,
+                "generation-v": {
+                    ...currentGenFive,
+                    "black-white": {
+                        ...currentBlackWhite,
+                        animated: {
+                            ...currentAnimated,
+                            front_default: regular,
+                            front_shiny: shiny,
+                        },
+                    },
                 },
             },
         },

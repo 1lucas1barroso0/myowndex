@@ -51,7 +51,8 @@ export const normalizeGeneratorOptions = (options = {}) => ({
     count: integerInRange(options.count, 1, 6, 1),
     level: integerInRange(options.level, 1, options.experienceMode === 'game' ? 100 : 200, 5),
     speciesId: integerInRange(options.speciesId, 0, 1025, 0),
-    formName: typeof options.formName === 'string' && /^[a-z0-9-]{0,80}$/.test(options.formName) ? options.formName : '',
+    catalogKey: typeof options.catalogKey === 'string' && /^[a-z0-9-]{0,120}$/.test(options.catalogKey) ? options.catalogKey : '',
+    formName: typeof options.formName === 'string' && /^[a-z0-9-]{0,120}$/.test(options.formName) ? options.formName : '',
     generation: integerInRange(options.generation, 0, 9, 0),
     type: TYPES.includes(options.type) && options.type !== 'stellar' ? options.type : '',
     versionGroup: typeof options.versionGroup === 'string' ? options.versionGroup : 'auto',
@@ -74,6 +75,7 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
         return { ...entry, id: speciesId, pokemonId, pinned };
     }).filter(entry => Number.isInteger(entry.id) && entry.id >= 1 && entry.id <= 1025
         && (!normalized.speciesId || entry.id === normalized.speciesId)
+        && (!normalized.catalogKey || entry.catalogFormKey === normalized.catalogKey)
         && (!normalized.formName || (entry.pokemonName || entry.name) === normalized.formName)
         && (!entry.formGeneration || entry.formGeneration <= referenceGeneration)
         && (!range || (entry.id >= range[0] && entry.id <= range[1]))
@@ -122,7 +124,7 @@ export const getGeneratedHp = (partner, experienceMode = 'rpg') => {
 
 export const getGeneratorGameReference = getPokemonAtGeneration;
 
-export const buildGeneratedPokemon = ({ pokemon, species, learnset, moveData = [], options = {}, random }) => {
+export const buildGeneratedPokemon = ({ pokemon, species, learnset, moveData = [], options = {}, random, formKey = '', formSpriteKey = '' }) => {
     const normalized = normalizeGeneratorOptions(options);
     if (!pokemon?.name || !STAT_KEYS.every(stat => pokemon.stats?.some(entry => entry.stat?.name === stat && Number.isInteger(entry.base_stat) && entry.base_stat > 0)) || !species?.name || !learnset?.versionGroup) throw new Error('Este Pokémon não trouxe uma ficha completa para o jogo escolhido.');
     const validAbilities = (pokemon.abilities || []).filter(entry => entry.ability?.name);
@@ -131,6 +133,8 @@ export const buildGeneratedPokemon = ({ pokemon, species, learnset, moveData = [
     const nature = normalized.nature === 'random' ? Object.keys(NATURES)[randomInt(Object.keys(NATURES).length, random)] : normalized.nature;
     const partner = normalizePokemon({
         species: { ...pokemon, gender_rate: species.gender_rate },
+        formKey,
+        formSpriteKey,
         genderRate: species.gender_rate,
         gender: getGeneratorGender(species.gender_rate, random),
         level: normalized.level,
@@ -184,9 +188,11 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
     }
     const pool = getGeneratorSpeciesPool(catalogue, normalized, typeIds, metadata);
     if (!pool.length) throw new Error('Nenhum Pokémon combina com essas escolhas. Mude os filtros e tente de novo.');
-    const pinned = normalized.formName
-        ? pool.find(entry => (entry.pokemonName || entry.name) === normalized.formName)
-        : normalized.speciesId
+    const pinned = normalized.catalogKey
+        ? pool.find(entry => entry.catalogFormKey === normalized.catalogKey)
+        : normalized.formName
+            ? pool.find(entry => (entry.pokemonName || entry.name) === normalized.formName)
+            : normalized.speciesId
             ? pool.find(entry => entry.isDefault) || pool[0]
             : null;
     const candidates = pinned
@@ -224,7 +230,16 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
             // when the chosen game supplies an older Pokémon repertoire.
             moveData.push(getMoveReferenceForMode(data, { value: learnset.versionGroup, url: game?.url || `${API}version-group/${game?.id}/` }, normalized.experienceMode));
         }
-        const partner = buildGeneratedPokemon({ pokemon, species, learnset, moveData, options: normalized, random });
+        const partner = buildGeneratedPokemon({
+            pokemon,
+            species,
+            learnset,
+            moveData,
+            options: normalized,
+            random,
+            formKey: entry.storageFormKey || '',
+            formSpriteKey: entry.storageFormKey ? entry.spriteKey || '' : '',
+        });
         result.push({ pokemon: partner, versionGroup: learnset.versionGroup });
         onProgress?.({ completed: result.length, total: normalized.count, checked });
         if (result.length === normalized.count) break;

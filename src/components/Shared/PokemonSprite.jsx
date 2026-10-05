@@ -9,14 +9,19 @@ const spriteUrls = ({ src, pokemonId, spriteKey = "", shiny = false, candidates 
     const regularPath = shiny ? "shiny/" : "";
     const safeSpriteKey = /^[0-9]+(?:-[a-z0-9-]+)?$/.test(String(spriteKey || "")) ? String(spriteKey) : "";
     const remoteKey = safeSpriteKey || (Number.isFinite(id) && id > 0 ? String(id) : "");
+    const hasVariantSprite = Boolean(safeSpriteKey && safeSpriteKey !== String(id || ""));
     const frontUrl = remoteKey
         ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${regularPath}${remoteKey}.png`
         : "";
-    const localUrl = !safeSpriteKey && Number.isInteger(id) && ((id >= 1 && id <= 151) || id === 479) && !shiny
+    const variantRegularUrl = hasVariantSprite
+        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${remoteKey}.png`
+        : "";
+    const localUrl = !hasVariantSprite && Number.isInteger(id) && ((id >= 1 && id <= 151) || id === 479) && !shiny
         ? `/sprites/${id}.png`
         : "";
     return [...new Set([
-        safeSpriteKey ? frontUrl : ((!src || src === frontUrl) ? localUrl : ""),
+        hasVariantSprite ? frontUrl : ((!src || src === frontUrl) ? localUrl : ""),
+        variantRegularUrl,
         ...candidates,
         src,
         localUrl,

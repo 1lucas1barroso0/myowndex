@@ -15,6 +15,12 @@ export const DEX_GENERATIONS = Object.freeze([
     { id: "9", label: "IX", start: 906, end: 1025 },
 ]);
 export const debutGeneration = id => DEX_GENERATIONS.slice(1).find(gen => Number(id) >= gen.start && Number(id) <= gen.end);
+export const dexEntryNumber = entry => Number(entry?.speciesId || extractId(entry?.url));
+export const dexEntryGeneration = entry => {
+    const explicit = Number(entry?.generation);
+    if (Number.isInteger(explicit) && explicit >= 1 && explicit <= 9) return DEX_GENERATIONS.find(gen => gen.id === String(explicit));
+    return debutGeneration(dexEntryNumber(entry));
+};
 export const viewFromUrl = url => Object.keys(VIEW_LINKS).find(view => VIEW_LINKS[view] === new URL(url).searchParams.get("abrir"));
 export const urlForView = (url, view) => {
     const next = new URL(url);
@@ -26,16 +32,39 @@ export const urlForView = (url, view) => {
 export const normalizeDexSearch = value => String(value ?? "").normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/♀/g, "f").replace(/♂/g, "m").replace(/[^a-z0-9]/g, "");
 
+const parseDexRange = value => {
+    const raw = String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    const match = raw.match(/^#?0*(\d{1,4})\s*(?:-|–|—|\.\.|\ba\b|\bate\b|\bto\b)\s*#?0*(\d{1,4})$/i);
+    if (!match) return null;
+    const left = Number(match[1]);
+    const right = Number(match[2]);
+    if (!Number.isInteger(left) || !Number.isInteger(right) || left < 1 || right < 1 || left > 1025 || right > 1025) return null;
+    return [Math.min(left, right), Math.max(left, right)];
+};
+
 export function selectDexSpecies(species, { query = "", favorites = [], onlyFavorites = false, order = "number", generation = "all" } = {}) {
     const normalized = normalizeDexSearch(query);
-    const numericQuery = /^\d+$/.test(normalized) ? Number(normalized) : null;
+    const numericRange = parseDexRange(query);
+    const numericQuery = !numericRange && /^\d+$/.test(normalized) ? Number(normalized) : null;
     const selected = new Set(favorites);
     const range = DEX_GENERATIONS.find(gen => gen.id === generation) || DEX_GENERATIONS[0];
     return species.filter(entry => {
-        const id = extractId(entry?.url);
-        return Number(id) >= range.start && Number(id) <= range.end && (!onlyFavorites || selected.has(id)) && (!normalized ||
-            (numericQuery !== null ? Number(id) === numericQuery : normalizeDexSearch(entry?.name).includes(normalized)));
-    }).sort((a, b) => order === "name"
-        ? a.name.localeCompare(b.name, "pt-BR")
-        : (Number(extractId(a.url)) - Number(extractId(b.url))) * (order === "reverse" ? -1 : 1));
+        const id = dexEntryNumber(entry);
+        const entryGeneration = dexEntryGeneration(entry);
+        const inGeneration = generation === "all"
+            || entryGeneration?.id === generation
+            || (!entry?.generation && id >= range.start && id <= range.end);
+        const matchesQuery = !String(query ?? "").trim()
+            || (numericRange ? id >= numericRange[0] && id <= numericRange[1]
+                : numericQuery !== null ? id === numericQuery
+                    : normalizeDexSearch(entry?.name).includes(normalized));
+        return inGeneration && (!onlyFavorites || selected.has(String(id))) && matchesQuery;
+    }).sort((a, b) => {
+        if (order === "name") return a.name.localeCompare(b.name, "pt-BR");
+        const numberDifference = dexEntryNumber(a) - dexEntryNumber(b);
+        if (numberDifference) return numberDifference * (order === "reverse" ? -1 : 1);
+        const formDifference = Number(Boolean(a.formKey)) - Number(Boolean(b.formKey));
+        if (formDifference) return formDifference;
+        return a.name.localeCompare(b.name, "pt-BR");
+    });
 }

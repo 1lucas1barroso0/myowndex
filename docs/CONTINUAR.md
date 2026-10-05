@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.4.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. A 2.0.4 acrescenta apenas campos opcionais de identidade de forma aos Pokémon que precisam deles.
+**Versão atual: 2.0.5.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -53,6 +53,8 @@ A revisão 2.0.3 usa materiais visuais comuns em todas as áreas: painéis acolh
 A revisão 2.0.4 conclui a recuperação Dex48. A Pokédex entende intervalos numéricos e indexa formas persistentes oficiais separadamente quando elas representam uma identidade que pode ser mantida fora de uma transformação de batalha. Formas regionais, estilos, tamanhos e equivalentes usam sua própria entrada; Mega Evolution, Gigantamax e demais estados estritamente de batalha continuam ligados à forma de origem. O Gerador usa o mesmo catálogo e guarda `formKey`/`formId` sem substituir a forma mecânica consultada na PokéAPI. Boxes, Link Cable e reabertura preservam essa identidade e, quando disponível, o sprite da forma. Mudar manualmente a forma mecânica na ficha limpa uma identidade visual antiga para impedir combinações impossíveis.
 
 A busca por geração usa a estreia da forma quando ela é conhecida, sem reescrever o número nacional da espécie. A revisão das 40 regras é editorial: efetividade de tipos usa linguagem própria, enquanto Vantagem continua reservada ao mecanismo de dados. As fontes versionadas incluem agora o catálogo de formas; a referência do Pokémon Showdown foi atualizada após mudanças históricas em Gen III/IV sem alterar os campos literais consumidos pelo MyOwnDex. Veja `docs/DEX48-2.0.4.md`.
+
+A revisão 2.0.5 conclui a atualização de descoberta da Pokédex sem tornar variantes uma listagem permanente. A tela normal mostra uma entrada principal por número nacional; **Refinar Pokédex** permite separar variantes, filtrar Alola/Galar/Hisui/Paldea, escolher até dois tipos e limitar números com início e/ou fim. Busca textual por variante também pode revelá-la diretamente. O Gerador acompanha o filtro regional sem dar peso extra a espécies com muitas variantes. Esta organização é exclusivamente de navegação do MyOwnDex e não importa classificações externas. As 40 regras mantêm IDs e cálculos, mas começam com uma explicação simples; termos de efetividade não usam “Vantagem” como sinônimo de fraqueza. O Diário continua identificado como **Diário da aventura**. Amizade mantém ajustes manuais de 5 para mudanças pequenas e 50 para mudanças grandes. Os SVGs principais usam fundo até as bordas para evitar cantos brancos. Veja `docs/POKEDEX-CLARA-2.0.5.md`.
 
 ## Documentos históricos
 

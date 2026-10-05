@@ -95,7 +95,7 @@ try {
     await open();
     assert.equal(await dialog.locator('.generator-partner.is-saved').count(), 2);
     report.push('closed/reopened preview and PC both preserve partners');
-    await dialog.getByRole('combobox', { name: 'Quantidade de Pokémon' }).selectOption('species:1');
+    await dialog.getByRole('combobox', { name: 'Quantidade de Pokémon' }).selectOption('1');
     await dialog.getByText('Personalizar o encontro', { exact: true }).click();
     await dialog.getByRole('combobox', { name: 'Pokémon ou forma a gerar' }).selectOption('species:1');
     await dialog.getByRole('button', { name: 'Gerar outros Pokémon' }).click();

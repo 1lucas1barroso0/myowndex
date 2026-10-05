@@ -202,13 +202,17 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
         const defaultForm = selectedForm || species.varieties?.find(variety => variety.is_default)?.pokemon;
         if (!defaultForm?.url) throw new Error('A Pokédex não trouxe a forma escolhida deste Pokémon.');
         const currentPokemon = await request(defaultForm.url);
+        const formAppearance = entry.formId ? await request(`${API}pokemon-form/${entry.formId}/`) : null;
+        const pokemonWithAppearance = formAppearance?.sprites
+            ? { ...currentPokemon, sprites: { ...(currentPokemon.sprites || {}), ...formAppearance.sprites } }
+            : currentPokemon;
         const learnset = getGeneratorLearnset(currentPokemon, normalized.versionGroup, normalized.level);
         checked += 1;
         onProgress?.({ completed: result.length, total: normalized.count, checked });
         if (!learnset.versionGroup) continue;
         const game = normalized.experienceMode === 'game' ? await request(`${API}version-group/${learnset.versionGroup}/`) : null;
         if (game && !Number(extractId(game.generation?.url))) throw new Error('A Pokédex não trouxe a geração do jogo escolhido.');
-        const pokemon = getPokemonReferenceForMode(currentPokemon, game || learnset.versionGroup, { experienceMode: normalized.experienceMode });
+        const pokemon = getPokemonReferenceForMode(pokemonWithAppearance, game || learnset.versionGroup, { experienceMode: normalized.experienceMode });
         if (normalized.type && !pokemon.types?.some(value => value.type?.name === normalized.type)) continue;
         const moveData = [];
         for (const move of learnset.moves) {

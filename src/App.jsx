@@ -36,15 +36,18 @@ const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorit
     const dexNumber = dexEntryNumber(species);
     const generation = dexEntryGeneration(species);
     const spriteId = Number(species.pokemonId || dexNumber);
+    const displayName = formatName(species.speciesName || species.name);
+    const formLabel = species.formIdentifier ? formatName(species.formIdentifier) : "";
+    const identityName = formLabel ? `${displayName} · ${formLabel}` : displayName;
     return (
-        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={generation?.id}>
-            <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${formatName(species.name)} na Pokédex`}>
+        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={generation?.id} data-form={formLabel ? "named" : "base"}>
+            <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${identityName} na Pokédex`}>
                 <span className="dex-number">No. {String(dexNumber).padStart(4, "0")}</span>
-                <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={spriteId} alt="" className="pixelated" /></span>
-                <span className="pokemon-card-name">{formatName(species.name)}</span>
-                <span className="dex-generation-mark">{generation ? `Geração ${generation.label}` : "Nacional"}</span>
+                <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={spriteId} spriteKey={species.spriteKey} alt="" className="pixelated" /></span>
+                <span className="pokemon-card-name">{displayName}</span>
+                <span className="dex-generation-mark">{formLabel ? `Forma · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional"}</span>
             </button>
-            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${formatName(species.name)} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
+            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${identityName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
         </article>
     );
 });
@@ -105,13 +108,29 @@ export default function App() {
 }
 
 const attachFixedForms = catalogue => {
-    const base = Array.isArray(catalogue) ? catalogue.map(entry => ({
-        ...entry,
-        speciesId: Number(extractId(entry.url)),
-        pokemonId: Number(extractId(entry.url)),
-    })) : [];
+    const source = Array.isArray(catalogue) ? catalogue : [];
+    const names = new Map(source.map(entry => [Number(extractId(entry.url)), entry.name]));
+    const defaults = new Map((fixedFormCatalogue.defaults || []).map(entry => [entry.speciesId, entry]));
+    const base = source.map(entry => {
+        const speciesId = Number(extractId(entry.url));
+        const form = defaults.get(speciesId);
+        return {
+            ...entry,
+            speciesId,
+            pokemonId: speciesId,
+            speciesName: entry.name,
+            isPrimarySpecies: true,
+            formKey: form?.name || "",
+            formId: form?.formId || null,
+            formIdentifier: form?.formIdentifier || "",
+            spriteKey: form?.spriteKey || String(speciesId),
+            ...(form?.generation ? { generation: form.generation } : {}),
+        };
+    });
     const forms = (fixedFormCatalogue.entries || []).map(entry => ({
         ...entry,
+        speciesName: names.get(entry.speciesId) || entry.pokemonName,
+        isPrimarySpecies: false,
         formKey: entry.name,
         url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
     }));
@@ -401,7 +420,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     }, [view, envLoaded]);
 
     const filteredSpecies = useMemo(() => selectDexSpecies(species, { query: deferredSearchTerm, favorites, onlyFavorites, order: dexOrder, generation: dexGeneration }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder, dexGeneration]);
-    const filteredSpeciesCount = useMemo(() => filteredSpecies.filter(entry => !entry.formKey).length, [filteredSpecies]);
+    const filteredSpeciesCount = useMemo(() => filteredSpecies.filter(entry => entry.isPrimarySpecies !== false).length, [filteredSpecies]);
     const filteredFormCount = filteredSpecies.length - filteredSpeciesCount;
 
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);

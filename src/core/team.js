@@ -125,13 +125,44 @@ const speciesShell = input => {
     };
 };
 
+const withStoredFormSprites = (species, spriteKey) => {
+    if (!species || !spriteKey) return species;
+    const regular = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spriteKey}.png`;
+    const shiny = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${spriteKey}.png`;
+    const artwork = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${spriteKey}.png`;
+    const shinyArtwork = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${spriteKey}.png`;
+    const currentSprites = species.sprites && typeof species.sprites === "object" ? species.sprites : {};
+    const currentOther = currentSprites.other && typeof currentSprites.other === "object" ? currentSprites.other : {};
+    const currentArtwork = currentOther["official-artwork"] && typeof currentOther["official-artwork"] === "object"
+        ? currentOther["official-artwork"] : {};
+    return {
+        ...species,
+        sprites: {
+            ...currentSprites,
+            front_default: regular,
+            front_shiny: shiny,
+            other: {
+                ...currentOther,
+                "official-artwork": {
+                    ...currentArtwork,
+                    front_default: artwork,
+                    front_shiny: shinyArtwork,
+                },
+            },
+        },
+    };
+};
+
 export const normalizePokemon = input => {
     const source = input && typeof input === "object" ? input : {};
-    const species = speciesShell(source);
+    let species = speciesShell(source);
     const rawRate = finiteNumberOrNull(source.genderRate ?? species.gender_rate);
     const genderRate = rawRate == null ? -1 : integerInRange(rawRate, -1, 8, -1);
     const rawFormKey = asText(source.formKey || source.catalogForm).toLowerCase();
     const formKey = /^[a-z0-9-]{1,120}$/.test(rawFormKey) ? rawFormKey : "";
+    const rawFormSpriteKey = asText(source.formSpriteKey || source.spriteKey).toLowerCase();
+    const formSpriteKey = /^[0-9]+(?:-[a-z0-9-]+)?$/.test(rawFormSpriteKey) ? rawFormSpriteKey : "";
+    species = withStoredFormSprites(species, formSpriteKey);
     const customStatEntries = source.customStats && typeof source.customStats === "object"
         ? STAT_KEYS
             .filter(stat => Object.prototype.hasOwnProperty.call(source.customStats, stat))
@@ -182,6 +213,7 @@ export const normalizePokemon = input => {
         id: asText(source.id) || createId("partner"),
         species,
         formKey,
+        formSpriteKey,
         nickname: asText(source.nickname),
         level: clampInteger(source.level, 1, 200, 5),
         item: asText(source.item).toLowerCase(),

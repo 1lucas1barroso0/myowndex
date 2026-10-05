@@ -12,6 +12,8 @@ const paths = {
     moon: <path d="M11 3H7v3H4v12h3v3h10v-3h3v-4h-6v-3h-3Z" />,
     types: <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9Z" /><path d="m12 8 4 2.5v5L12 18l-4-2.5v-5ZM12 3v5M20 16.5l-4-1M4 16.5l4-1" /></>,
     move: <><path d="m14 3-8 10h6l-2 8 9-11h-6Z" /><path d="M3 6h4M2 10h3M18 18h3" /></>,
+    link: <><path d="M9.5 14.5 14.5 9.5" /><path d="M7.5 16.5 5 19a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0" transform="translate(3 -3)" /><path d="M16.5 7.5 19 5a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0" transform="translate(-3 3)" /></>,
+    receive: <><path d="M12 3v12M7 10l5 5 5-5" /><path d="M5 18v3h14v-3" /></>,
 };
 
 export default function GameIcon({ name, className = "" }) {

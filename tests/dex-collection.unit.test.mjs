@@ -28,6 +28,19 @@ test("dex search understands padded numbers, accents, punctuation and gender", (
   assert.deepEqual(selectDexSpecies(species, { query: "0000" }), []);
 });
 
+test("dex search accepts explicit National Dex intervals and keeps fixed forms with their species number", () => {
+  const catalogue = [
+    { name: "rattata", url: "https://pokeapi.co/api/v2/pokemon-species/19/" },
+    { name: "rattata-alola", url: "https://pokeapi.co/api/v2/pokemon-species/19/", speciesId: 19, pokemonId: 10091, formKey: "rattata-alola", generation: 7 },
+    { name: "raichu", url: "https://pokeapi.co/api/v2/pokemon-species/26/" },
+    { name: "sandshrew", url: "https://pokeapi.co/api/v2/pokemon-species/27/" },
+  ];
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "#0026 a #0019" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "19..26", generation: "7" }).map(p => p.name), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "1026-1030" }), []);
+});
+
 test("favorites combine with search and sorting without mutating the catalogue", () => {
   const original = structuredClone(species);
   assert.deepEqual(selectDexSpecies(species, { favorites: ["25", "1"], onlyFavorites: true }).map(p => p.name), ["bulbasaur", "pikachu"]);

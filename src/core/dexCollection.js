@@ -16,6 +16,7 @@ export const DEX_GENERATIONS = Object.freeze([
 ]);
 export const debutGeneration = id => DEX_GENERATIONS.slice(1).find(gen => Number(id) >= gen.start && Number(id) <= gen.end);
 export const dexEntryNumber = entry => Number(entry?.speciesId || extractId(entry?.url));
+export const dexEntryFavoriteKey = entry => entry?.formKey ? `form:${entry.formKey}` : String(dexEntryNumber(entry));
 export const dexEntryGeneration = entry => {
     const explicit = Number(entry?.generation);
     if (Number.isInteger(explicit) && explicit >= 1 && explicit <= 9) return DEX_GENERATIONS.find(gen => gen.id === String(explicit));
@@ -58,7 +59,7 @@ export function selectDexSpecies(species, { query = "", favorites = [], onlyFavo
             || (numericRange ? id >= numericRange[0] && id <= numericRange[1]
                 : numericQuery !== null ? id === numericQuery
                     : normalizeDexSearch(entry?.name).includes(normalized));
-        return inGeneration && (!onlyFavorites || selected.has(String(id))) && matchesQuery;
+        return inGeneration && (!onlyFavorites || selected.has(dexEntryFavoriteKey(entry))) && matchesQuery;
     }).sort((a, b) => {
         if (order === "name") return a.name.localeCompare(b.name, "pt-BR");
         const numberDifference = dexEntryNumber(a) - dexEntryNumber(b);

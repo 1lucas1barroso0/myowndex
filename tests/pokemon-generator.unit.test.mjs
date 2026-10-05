@@ -165,11 +165,17 @@ test('generator can pin a persistent form and keeps its identity in the generate
         count: 1,
         versionGroup: 'scarlet-violet',
         level: 5,
-    }, { fetcher: fixtureFetcher, random: () => 0 });
+    }, {
+        fetcher: async url => url === `${API}pokemon-form/${entry.formId}/`
+            ? { sprites: { front_default: '/sprites/spring.png' } }
+            : fixtureFetcher(url),
+        random: () => 0,
+    });
     assert.equal(generated.length, 1);
     assert.equal(generated[0].pokemon.species.name, 'bulbasaur');
     assert.equal(generated[0].pokemon.formKey, entry.formKey);
     assert.equal(generated[0].pokemon.formId, entry.formId);
+    assert.equal(generated[0].pokemon.species.sprites.front_default, '/sprites/spring.png');
     assert.deepEqual(getGeneratorSpeciesPool([entry], { speciesId: 1, formKey: entry.formKey }).map(value => value.formKey), [entry.formKey]);
     assert.deepEqual(getGeneratorSpeciesPool([entry], { speciesId: 1 }), [], 'selecting the base form never silently picks a styled form');
 });

@@ -84,11 +84,17 @@ export function selectDexSpecies(species, {
         const entryTypes = Array.isArray(entry?.types) ? entry.types : [];
         const matchesTypes = [...selectedTypes].every(type => entryTypes.includes(type));
         const matchesBounds = (!hasMinimum || id >= minimum) && (!hasMaximum || id <= maximum);
+        const variantSearchMatch = entry?.isPrimarySpecies === false
+            && !numericRange
+            && numericQuery === null
+            && Boolean(String(query ?? "").trim())
+            && [entry?.formKey, entry?.formIdentifier, entry?.regionLabel]
+                .filter(Boolean).some(value => normalizeDexSearch(value).includes(normalized));
         const matchesVariantView = variantView === "split"
             ? true
             : variantView === "regional"
                 ? entry?.variantKind === "regional"
-                : entry?.isPrimarySpecies !== false;
+                : entry?.isPrimarySpecies !== false || variantSearchMatch;
         return inGeneration
             && matchesTypes
             && matchesBounds

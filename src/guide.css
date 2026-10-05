@@ -105,3 +105,24 @@ html .app-root.game-edition.handheld-edition .guide-empty { padding: .5rem 0 1re
   html .app-root.game-edition.handheld-edition .guide-hit-kill-flow { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
   html .app-root.game-edition.handheld-edition .guide-hit-kill-flow li { flex-direction: column !important; gap: .65rem !important; }
 }
+
+html .app-root.game-edition.handheld-edition .guide-rule-summary-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: .2rem;
+}
+html .app-root.game-edition.handheld-edition .guide-rule-summary-copy > strong {
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 760;
+}
+html .app-root.game-edition.handheld-edition .guide-rule-summary-copy > small {
+  color: var(--ui-muted);
+  font-size: .82rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+html .app-root.game-edition.handheld-edition .guide-rule-card[open] .guide-rule-summary-copy > small {
+  color: var(--ui-muted);
+}

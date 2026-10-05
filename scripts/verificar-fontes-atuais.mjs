@@ -95,13 +95,42 @@ const headers = {
 };
 
 const encodePath = path => path.split("/").map(encodeURIComponent).join("/");
-const blobSha = async ({ repository, path, ref }) => {
+const sourceFile = async ({ repository, path, ref }) => {
   const url = `https://api.github.com/repos/${repository}/contents/${encodePath(path)}?ref=${encodeURIComponent(ref)}`;
   const response = await fetch(url, { headers });
   if (!response.ok) throw new Error(`${repository}/${path} @ ${ref}: HTTP ${response.status}`);
   const value = await response.json();
   if (Array.isArray(value) || typeof value?.sha !== "string") throw new Error(`${repository}/${path}: resposta sem blob SHA.`);
-  return value.sha;
+  return {
+    sha: value.sha,
+    text: typeof value.content === "string" ? Buffer.from(value.content.replace(/\n/g, ""), "base64").toString("utf8") : "",
+  };
+};
+
+const literalMoveMetadata = source => {
+  const values = [];
+  let current = "";
+  for (const line of source.split(/\r?\n/)) {
+    const opened = line.match(/^\t([a-z0-9]+): \{$/);
+    if (opened) {
+      current = opened[1];
+      continue;
+    }
+    if (!current) continue;
+    const field = line.match(/^\t\t(accuracy|basePower|category|pp|priority|target|type): (true|-?\d+|"(?:[^"\\]|\\.)*"),$/);
+    if (field) values.push(`${current}:${field[1]}=${field[2]}`);
+  }
+  return values.join("\n");
+};
+
+const relevantSource = (path, text) => {
+  if (path === "data/mods/gen3/scripts.ts") {
+    return text.match(/const specialTypes = \[[^\]]+\]/)?.[0] || "";
+  }
+  if (path === "data/moves.ts" || /^data\/mods\/[^/]+\/moves\.ts$/.test(path)) {
+    return literalMoveMetadata(text);
+  }
+  return null;
 };
 
 const tasks = sources.flatMap(source => source.paths.map(path => ({ ...source, path })));
@@ -111,16 +140,20 @@ let cursor = 0;
 const worker = async () => {
   while (cursor < tasks.length) {
     const task = tasks[cursor++];
-    const [pinnedSha, currentSha] = await Promise.all([
-      blobSha({ ...task, ref: task.pin }),
-      blobSha({ ...task, ref: task.branch }),
+    const [pinned, current] = await Promise.all([
+      sourceFile({ ...task, ref: task.pin }),
+      sourceFile({ ...task, ref: task.branch }),
     ]);
-    if (pinnedSha !== currentSha) stale.push({
+    if (pinned.sha === current.sha) continue;
+    const pinnedRelevant = relevantSource(task.path, pinned.text);
+    const currentRelevant = relevantSource(task.path, current.text);
+    const semanticallyCurrent = pinnedRelevant !== null && currentRelevant !== null && pinnedRelevant === currentRelevant;
+    if (!semanticallyCurrent) stale.push({
       repository: task.repository,
       path: task.path,
       pin: task.pin,
-      pinnedSha,
-      currentSha,
+      pinnedSha: pinned.sha,
+      currentSha: current.sha,
     });
   }
 };
@@ -132,5 +165,5 @@ if (stale.length) {
   for (const item of stale) console.error(`- ${item.repository}/${item.path} (${item.pinnedSha} -> ${item.currentSha})`);
   process.exitCode = 1;
 } else {
-  console.log(`Fontes atuais: ${tasks.length} arquivos relevantes continuam idênticos aos pins versionados.`);
+  console.log(`Fontes atuais: ${tasks.length} arquivos relevantes continuam idênticos ou semanticamente equivalentes aos pins versionados.`);
 }

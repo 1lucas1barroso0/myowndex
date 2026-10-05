@@ -34,17 +34,18 @@ const GeneratorModal = dynamic(() => import("./components/Generator/GeneratorMod
 const PokemonCard = React.memo(function PokemonCard({ entry, onSelect, favorite, onFavorite }) {
     const speciesId = getDexSpeciesId(entry);
     const pokemonId = getDexPokemonId(entry);
-    const displayName = formatName(getDexEntryName(entry));
+    const displayName = formatName(entry?.speciesName || getDexEntryName(entry));
     const formLabel = entry?.isDefault === false && entry?.form ? formatName(entry.form) : "";
+    const accessibleName = formLabel ? `${displayName} · ${formLabel}` : displayName;
     return (
         <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={debutGeneration(speciesId)?.id} data-form={entry?.isDefault === false ? "alternate" : "default"}>
-            <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${displayName} na Pokédex`}>
+            <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${accessibleName} na Pokédex`}>
                 <span className="dex-number">No. {String(speciesId).padStart(4, "0")}</span>
                 <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={pokemonId} alt="" className="pixelated" /></span>
                 <span className="pokemon-card-name">{displayName}</span>
                 <span className="dex-generation-mark">{formLabel ? `Forma · ${formLabel}` : debutGeneration(speciesId) ? `Geração ${debutGeneration(speciesId).label}` : "Nacional"}</span>
             </button>
-            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${displayName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
+            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${accessibleName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
         </article>
     );
 });

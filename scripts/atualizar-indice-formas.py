@@ -32,14 +32,19 @@ def main():
     forms = load('pokemon_forms')
     version_groups = load('version_groups')
     pokemon_types = load('pokemon_types')
+    pokemon_types_past = load('pokemon_types_past')
     types = load('types')
 
     pokemon_by_id = {row['id']: row for row in pokemon}
     generation_by_version_group = {row['id']: int(row['generation_id']) for row in version_groups}
     type_name = {row['id']: row['identifier'] for row in types}
     types_by_pokemon = {}
+    past_types_by_pokemon = {}
     for row in pokemon_types:
         types_by_pokemon.setdefault(row['pokemon_id'], []).append((int(row['slot']), type_name[row['type_id']]))
+    for row in pokemon_types_past:
+        past_types_by_pokemon.setdefault(row['pokemon_id'], {}).setdefault(int(row['generation_id']), []).append(
+            (int(row['slot']), type_name[row['type_id']]))
 
     entries = []
     for form in forms:
@@ -56,7 +61,7 @@ def main():
         form_types = [name for _, name in sorted(types_by_pokemon.get(p['id'], []))]
         if not generation or not form_types:
             continue
-        entries.append({
+        entry = {
             'name': form['identifier'],
             'formId': int(form['id']),
             'formIdentifier': form['form_identifier'] or '',
@@ -65,7 +70,13 @@ def main():
             'speciesId': int(p['species_id']),
             'generation': generation,
             'types': form_types,
-        })
+        }
+        if p['id'] in past_types_by_pokemon:
+            entry['pastTypes'] = [
+                {'generation': past_generation, 'types': [name for _, name in sorted(past_types)]}
+                for past_generation, past_types in sorted(past_types_by_pokemon[p['id']].items())
+            ]
+        entries.append(entry)
 
     entries.sort(key=lambda entry: (entry['speciesId'], entry['generation'], entry['formId']))
     target = ROOT / 'src/data/forms.json'

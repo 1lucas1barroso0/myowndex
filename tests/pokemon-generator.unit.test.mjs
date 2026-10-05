@@ -30,18 +30,31 @@ test('generator filters canonical species, types and real generation boundaries 
 });
 
 
-test('persistent forms are first-class generator choices while sharing their National Dex species number', () => {
+test('persistent forms, sizes and styles are first-class generator choices without changing National Dex identity', () => {
+    assert.equal(dexCatalogue.length, 1404);
+    assert.equal(new Set(dexCatalogue.map(entry => entry.speciesId)).size, 1025);
+    assert.equal(dexCatalogue.filter(entry => entry.speciesId === 869).length, 63, 'all persistent Alcremie cream/sweet styles are catalogued');
+    assert.equal(dexCatalogue.filter(entry => entry.speciesId === 201).length, 28, 'all Unown symbols are catalogued');
+    assert.deepEqual(dexCatalogue.filter(entry => entry.speciesId === 422).map(entry => entry.catalogFormKey), ['shellos-west', 'shellos-east']);
+
     const rattata = dexCatalogue.filter(entry => entry.speciesId === 19);
     assert.deepEqual(rattata.map(entry => entry.pokemonName), ['rattata', 'rattata-alola']);
-    const alola = getGeneratorSpeciesPool(dexCatalogue, { formName: 'rattata-alola' });
+    const alola = getGeneratorSpeciesPool(dexCatalogue, { catalogKey: 'rattata-alola' });
     assert.equal(alola.length, 1);
     assert.equal(alola[0].id, 19);
     assert.equal(alola[0].pokemonId, 10091);
     assert.deepEqual(alola[0].types, ['dark', 'normal']);
-    assert.deepEqual(getGeneratorSpeciesPool(dexCatalogue, { formName: 'rattata-alola', versionGroup: 'red-blue' }), [], 'a later form cannot appear in an earlier game repertoire');
-    assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'charizard-mega-x'), false, 'battle transformations stay inside the species record');
-    assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'minior-orange'), false, 'temporary battle states do not duplicate a persistent colour');
-    assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'minior-orange-meteor'), true);
+    assert.deepEqual(getGeneratorSpeciesPool(dexCatalogue, { catalogKey: 'rattata-alola', versionGroup: 'red-blue' }), [], 'a later form cannot appear in an earlier game repertoire');
+
+    const unownB = getGeneratorSpeciesPool(dexCatalogue, { catalogKey: 'unown-b' });
+    assert.equal(unownB.length, 1);
+    assert.equal(unownB[0].pokemonId, 201);
+    assert.equal(unownB[0].storageFormKey, 'unown-b');
+    assert.equal(unownB[0].spriteKey, '201-b');
+
+    assert.equal(dexCatalogue.some(entry => entry.catalogFormKey === 'charizard-mega-x'), false, 'battle transformations stay inside the species record');
+    assert.equal(dexCatalogue.some(entry => entry.catalogFormKey === 'minior-orange'), false, 'temporary battle states do not duplicate a persistent colour');
+    assert.equal(dexCatalogue.some(entry => entry.catalogFormKey === 'minior-orange-meteor'), true);
 });
 
 test('generator learnset uses the latest actual game and only moves learned by the selected level', () => {

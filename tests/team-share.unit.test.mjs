@@ -100,6 +100,28 @@ test("legacy scale preserves HP proportion when a saved partner migrates", () =>
   assert.equal(migrated.rpg.currentHp, 2, "a legacy 1/1 partner must become 2/2, not 1/2");
 });
 
+test("cosmetic form identity and sprite survive Box and Link Cable round trips", async () => {
+  const source = normalizeTeam({
+    id: "styled-forms",
+    pokemon: [{
+      species: {
+        id: 201,
+        name: "unown",
+        species: { name: "unown", url: "https://pokeapi.co/api/v2/pokemon-species/201/" },
+        sprites: { front_default: "https://example.test/unown-a.png" },
+      },
+      formKey: "unown-b",
+      formSpriteKey: "201-b",
+    }],
+  });
+  assert.equal(source.pokemon[0].formKey, "unown-b");
+  assert.equal(source.pokemon[0].species.sprites.front_default.endsWith("/201-b.png"), true);
+  const decoded = await decodeTeam(await encodeTeam(source));
+  assert.equal(decoded.pokemon[0].formKey, "unown-b");
+  assert.equal(decoded.pokemon[0].formSpriteKey, "201-b");
+  assert.equal(decoded.pokemon[0].species.name, "unown");
+});
+
 test("shared teams preserve current sleep and freeze counters", async () => {
   const source = normalizeTeam({
     id: "condition-counters",

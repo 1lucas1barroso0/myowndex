@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "MyOwnDex — Central da Aventura",
     short_name: "MyOwnDex",
-    description: "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura reunidos para acompanhar toda a sua jornada Pokémon.",
+    description: "Pokédex nacional com formas, PC do Bill, Guia do Treinador e Central da Aventura em um só lugar.",
     id: "/",
     start_url: "/",
     scope: "/",

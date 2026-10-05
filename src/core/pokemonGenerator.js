@@ -4,6 +4,7 @@ import { randomInt } from './random.js';
 import { compactPokemon, normalizePokemon, STAT_KEYS } from './team.js';
 import { getMoveReferenceForMode, getPokemonAtGeneration, getPokemonReferenceForMode, getReferenceGameGeneration } from './referenceGames.js';
 import { loadCatalogText } from './catalogText.js';
+import { dexEntryRegion } from './dexCollection.js';
 
 export const GENERATOR_REQUEST_CONCURRENCY = 3;
 export const GENERATOR_DRAFT_KEY = 'myowndex_generator_v1';
@@ -54,6 +55,7 @@ export const normalizeGeneratorOptions = (options = {}) => ({
     formKey: typeof options.formKey === 'string' && /^[a-z0-9-]{1,120}$/.test(options.formKey) ? options.formKey : '',
     generation: integerInRange(options.generation, 0, 9, 0),
     type: TYPES.includes(options.type) && options.type !== 'stellar' ? options.type : '',
+    region: ['alola', 'galar', 'hisui', 'paldea'].includes(options.region) ? options.region : '',
     versionGroup: typeof options.versionGroup === 'string' ? options.versionGroup : 'auto',
     experienceMode: ['game', 'rpg', 'free'].includes(options.experienceMode) ? options.experienceMode : 'rpg',
     shiny: Boolean(options.shiny),
@@ -80,6 +82,7 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
             && Number.isInteger(entryGeneration) && entryGeneration > gameGeneration) return false;
         if (normalized.generation && Number.isInteger(entryGeneration) && entryGeneration !== normalized.generation) return false;
         if (normalized.generation && !Number.isInteger(entryGeneration) && range && (entry.id < range[0] || entry.id > range[1])) return false;
+        if (normalized.region && dexEntryRegion(entry) !== normalized.region) return false;
         if (normalized.legendary !== 'all' && meta) {
             const special = Boolean(meta.legendary || meta.mythical);
             if (normalized.legendary === 'only' ? !special : special) return false;

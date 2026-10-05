@@ -38,6 +38,7 @@ test('persistent forms are first-class generator choices while sharing their Nat
     assert.equal(alola[0].id, 19);
     assert.equal(alola[0].pokemonId, 10091);
     assert.deepEqual(alola[0].types, ['dark', 'normal']);
+    assert.deepEqual(getGeneratorSpeciesPool(dexCatalogue, { formName: 'rattata-alola', versionGroup: 'red-blue' }), [], 'a later form cannot appear in an earlier game repertoire');
     assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'charizard-mega-x'), false, 'battle transformations stay inside the species record');
     assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'minior-orange'), false, 'temporary battle states do not duplicate a persistent colour');
     assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'minior-orange-meteor'), true);

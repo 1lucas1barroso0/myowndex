@@ -13,6 +13,8 @@ const detail = (game, level, method = 'level-up', id = game === 'red-blue' ? 1 :
 const move = (name, details) => ({ move: { name, url: `${API}move/${name}/` }, version_group_details: details });
 const pokemon = { id: 1, name: 'bulbasaur', species: { name: 'bulbasaur', url: `${API}pokemon-species/1/` }, types: [{ slot: 1, type: { name: 'grass' } }], stats: STAT_KEYS.map(stat => ({ stat: { name: stat }, base_stat: 45 })), abilities: [{ is_hidden: false, slot: 1, ability: { name: 'overgrow' } }, { is_hidden: true, slot: 3, ability: { name: 'chlorophyll' } }], moves: [move('tackle', [detail('red-blue', 1), detail('scarlet-violet', 1)]), move('growl', [detail('scarlet-violet', 1)]), move('vine-whip', [detail('scarlet-violet', 3)]), move('growth', [detail('scarlet-violet', 6)]), move('razor-leaf', [detail('scarlet-violet', 12)]), move('solar-beam', [detail('scarlet-violet', 0, 'machine')])], sprites: { front_default: '/sprites/1.png' } };
 const catalogue = [1, 25, 151, 152, 251, 252, 386, 387, 493, 494, 649, 650, 721, 722, 809, 810, 905, 906, 1025].map(id => ({ name: `species-${id}`, url: `${API}pokemon-species/${id}/` }));
+const dexCatalogue = JSON.parse(readFileSync(new URL('../src/data/dex-entries.json', import.meta.url), 'utf8'));
+const speciesMetadata = Object.fromEntries(dexCatalogue.filter(entry => entry.isDefault).map(entry => [String(entry.speciesId), entry]));
 
 test('generator filters canonical species, types and real generation boundaries without changing catalogue', () => {
     const original = JSON.stringify(catalogue);
@@ -25,6 +27,20 @@ test('generator filters canonical species, types and real generation boundaries 
     assert.equal(normalized.level, 100);
     assert.equal(normalized.nature, 'random');
     assert.equal(normalized.type, '');
+});
+
+
+test('persistent forms are first-class generator choices while sharing their National Dex species number', () => {
+    const rattata = dexCatalogue.filter(entry => entry.speciesId === 19);
+    assert.deepEqual(rattata.map(entry => entry.pokemonName), ['rattata', 'rattata-alola']);
+    const alola = getGeneratorSpeciesPool(dexCatalogue, { formName: 'rattata-alola' });
+    assert.equal(alola.length, 1);
+    assert.equal(alola[0].id, 19);
+    assert.equal(alola[0].pokemonId, 10091);
+    assert.deepEqual(alola[0].types, ['dark', 'normal']);
+    assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'charizard-mega-x'), false, 'battle transformations stay inside the species record');
+    assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'minior-orange'), false, 'temporary battle states do not duplicate a persistent colour');
+    assert.equal(dexCatalogue.some(entry => entry.pokemonName === 'minior-orange-meteor'), true);
 });
 
 test('generator learnset uses the latest actual game and only moves learned by the selected level', () => {
@@ -62,7 +78,7 @@ test('generated partner has valid IVs, zero EVs/XP, official ability and nature,
 });
 
 test('generator filters historical types from pinned data instead of the current type index', () => {
-    const metadata = JSON.parse(readFileSync(new URL('../src/data/generator-species.json', import.meta.url), 'utf8'));
+    const metadata = speciesMetadata;
     const changed = [35, 81, 122, 183].map(id => ({ name: `species-${id}`, url: `${API}pokemon-species/${id}/` }));
     assert.deepEqual(getGeneratorSpeciesPool(changed, { type: 'normal', versionGroup: 'red-blue', experienceMode: 'game' }, null, metadata).map(entry => entry.id), [35]);
     assert.deepEqual(getGeneratorSpeciesPool(changed, { type: 'fairy', versionGroup: 'scarlet-violet' }, null, metadata).map(entry => entry.id), [35, 122, 183]);
@@ -114,7 +130,7 @@ test('partial official stat/ability histories retain unchanged slots and combine
 });
 
 test('generator uses official pinned Legendary/Mythical flags before catalogue requests', () => {
-    const metadata = JSON.parse(readFileSync(new URL('../src/data/generator-species.json', import.meta.url), 'utf8'));
+    const metadata = speciesMetadata;
     assert.equal(Object.keys(metadata).length, 1025);
     assert.equal(metadata['1'].legendary, false);
     assert.equal(metadata['150'].legendary, true);
@@ -182,7 +198,7 @@ test('generator loads bundled historical move metadata before the first generati
 
 test('PR23: old-game repertoire keeps current canonical abilities, types and PP in RPG/Livre', async () => {
     const previousFetch = globalThis.fetch;
-    const metadata = JSON.parse(readFileSync(new URL('../src/data/generator-species.json', import.meta.url), 'utf8'));
+    const metadata = speciesMetadata;
     const catalog = readFileSync(new URL('../public/catalog/v1/move.json', import.meta.url), 'utf8');
     clearCatalogTextCache();
     globalThis.fetch = async () => ({ ok: true, text: async () => catalog });

@@ -5,6 +5,7 @@ import fixedFormCatalogue from '../../data/forms.json';
 import speciesMetadata from '../../data/generator-species.json';
 import { formatName, formatType, NATURES, STAT_MAP, TYPE_COLORS, TYPE_TEXT_COLORS, TYPES, VERSION_GROUPS, VERSION_LABELS } from '../../core/mechanics.js';
 import { generatePokemon, GENERATOR_DRAFT_KEY, getGeneratedHp, normalizeGeneratorOptions } from '../../core/pokemonGenerator.js';
+import { DEX_REGIONS } from '../../core/dexCollection.js';
 import { getStorageScope, readDurableStorage, readStorage, writeDurableStorage } from '../../core/storage.js';
 import { compactPokemon, createTeam, normalizePokemon } from '../../core/team.js';
 import { encodePokemonBundle, encodeTeam } from '../../core/teamShare.js';
@@ -397,6 +398,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                             <label>Tipo<RoomSelect disabled={working} value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo para o encontro"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
                             <label>Geração<RoomSelect disabled={working} value={options.generation} onChange={event => updateOption('generation', Number(event.target.value))} aria-label="Geração dos Pokémon"><option value="0">Todas</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(generation => <option key={generation} value={generation}>{generation}ª geração</option>)}</RoomSelect></label>
                         </div>
+                        <label>Variante regional<RoomSelect disabled={working} value={options.region} onChange={event => updateOption('region', event.target.value)} aria-label="Região da variante"><option value="">Qualquer região</option>{DEX_REGIONS.map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</RoomSelect></label>
                         <label>Pokémon lendários e míticos<RoomSelect disabled={working} value={options.legendary} onChange={event => updateOption('legendary', event.target.value)} aria-label="Pokémon lendários e míticos"><option value="all">Podem aparecer</option><option value="exclude">Não incluir</option><option value="only">Somente eles</option></RoomSelect></label>
                         <label>Natureza<RoomSelect disabled={working} value={options.nature} onChange={event => updateOption('nature', event.target.value)} aria-label="Natureza a gerar"><option value="random">Aleatória</option>{Object.keys(NATURES).map(nature => <option key={nature} value={nature}>{formatName(nature)}</option>)}</RoomSelect></label>
                         <label className="generator-checkbox"><input type="checkbox" checked={options.shiny} onChange={event => updateOption('shiny', event.target.checked)} disabled={working} />Shiny</label>

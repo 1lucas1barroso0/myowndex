@@ -9,10 +9,10 @@ export const metadata: Metadata = {
   applicationName: "MyOwnDex",
   icons: {
     icon: [
-      { url: "/favicon-v91.svg", type: "image/svg+xml" },
+      { url: "/favicon-v204.svg", type: "image/svg+xml" },
       { url: "/icons/myowndex-app-192-v91.png", sizes: "192x192", type: "image/png" },
     ],
-    shortcut: "/icons/myowndex-shortcut-96-v91.png",
+    shortcut: "/favicon-v204.svg",
     apple: [{ url: "/icons/apple-touch-icon-v91.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {

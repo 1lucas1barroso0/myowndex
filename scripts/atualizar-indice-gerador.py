@@ -120,7 +120,7 @@ def main():
             'isDefault': main_default,
             'isPokemonDefault': pokemon_default,
             'isFormDefault': form_default,
-            'storageFormKey': '' if form_default else form['identifier'],
+            'storageFormKey': '',
             'spriteKey': str(pokemon_row['id']) if form_default else f'{pokemon_row["id"]}-{form_identifier}',
             'types': types,
             'url': f'https://pokeapi.co/api/v2/pokemon-species/{species_id}/',
@@ -149,6 +149,7 @@ def main():
         by_species[entry['speciesId']] = by_species.get(entry['speciesId'], 0) + 1
     for entry in entries:
         entry['formCount'] = by_species[entry['speciesId']]
+        entry['storageFormKey'] = entry['catalogFormKey'] if entry['formCount'] > 1 and entry['form'] else ''
 
     if len(by_species) != 1025:
         raise ValueError(f'Incomplete National Dex: expected 1025 species, found {len(by_species)}')

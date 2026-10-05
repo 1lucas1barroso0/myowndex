@@ -265,6 +265,15 @@ export const calculateStat = (base, ev, iv, level, natureMulti, isHp, speciesNam
 };
 
 export const formatName = formatEnglishName;
+export const formatPokemonIdentity = pokemon => {
+    const currentName = pokemon?.species?.name || pokemon?.formName || pokemon?.speciesName || "";
+    const baseName = pokemon?.species?.species?.name || pokemon?.speciesName || currentName;
+    const formKey = typeof pokemon?.formKey === "string" ? pokemon.formKey : "";
+    if (!formKey) return formatEnglishName(currentName);
+    const prefix = baseName ? `${baseName}-` : "";
+    const formName = prefix && formKey.startsWith(prefix) ? formKey.slice(prefix.length) : formKey;
+    return `${formatEnglishName(baseName || currentName)} · ${formatEnglishName(formName)}`;
+};
 const PT_BR_NUMBER_FORMAT = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
 export const formatNumberPtBr = value => {
     const numericValue = finiteNumberOrNull(value);

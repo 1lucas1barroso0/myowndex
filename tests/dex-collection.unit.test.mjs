@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { DEX_GENERATIONS, debutGeneration, normalizeDexSearch, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
+import { DEX_GENERATIONS, debutGeneration, getDexEntryIdentity, getDexEntryName, getDexPokemonId, getDexSpeciesId, normalizeDexSearch, parseDexNumberRange, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
 const species = [[25, "pikachu"], [122, "mr-mime"], [29, "nidoran-f"], [83, "farfetchd"], [1, "bulbasaur"]].map(([id, name]) => ({ name, url: `https://pokeapi.co/api/v2/pokemon-species/${id}/` }));
 
 test("generation filters respect every National Dex debut boundary, including Hisui and Pecharunt", () => {
@@ -26,6 +26,25 @@ test("dex search understands padded numbers, accents, punctuation and gender", (
   }
   assert.equal(normalizeDexSearch("Pokémon"), "pokemon");
   assert.deepEqual(selectDexSpecies(species, { query: "0000" }), []);
+});
+
+
+test("dex search accepts inclusive National Dex intervals without confusing forms with new numbers", () => {
+  const catalogue = [
+    { speciesId: 19, pokemonId: 19, speciesName: "rattata", pokemonName: "rattata", isDefault: true, url: "https://pokeapi.co/api/v2/pokemon-species/19/" },
+    { speciesId: 19, pokemonId: 10091, speciesName: "rattata", pokemonName: "rattata-alola", form: "alola", isDefault: false, url: "https://pokeapi.co/api/v2/pokemon-species/19/", pokemonUrl: "https://pokeapi.co/api/v2/pokemon/10091/" },
+    { speciesId: 20, pokemonId: 20, speciesName: "raticate", pokemonName: "raticate", isDefault: true, url: "https://pokeapi.co/api/v2/pokemon-species/20/" },
+    { speciesId: 25, pokemonId: 25, speciesName: "pikachu", pokemonName: "pikachu", isDefault: true, url: "https://pokeapi.co/api/v2/pokemon-species/25/" },
+  ];
+  assert.deepEqual(parseDexNumberRange("20-19"), { start: 19, end: 20 });
+  assert.deepEqual(parseDexNumberRange("#0019 até #0020"), { start: 19, end: 20 });
+  assert.equal(parseDexNumberRange("19"), null);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-20" }).map(getDexEntryIdentity), ["rattata", "rattata-alola", "raticate"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "alola" }).map(getDexEntryIdentity), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "0019" }).map(getDexEntryIdentity), ["rattata", "rattata-alola"]);
+  assert.equal(getDexSpeciesId(catalogue[1]), 19);
+  assert.equal(getDexPokemonId(catalogue[1]), 10091);
+  assert.equal(getDexEntryName(catalogue[1]), "rattata-alola");
 });
 
 test("favorites combine with search and sorting without mutating the catalogue", () => {

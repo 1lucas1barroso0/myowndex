@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://myowndex.vercel.app"),
   title: "MyOwnDex",
-  description: "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura reunidos em um só lugar.",
+  description: "Pokédex nacional com formas, PC do Bill, Guia do Treinador e Central da Aventura em um só lugar.",
   manifest: "/manifest.webmanifest",
   applicationName: "MyOwnDex",
   icons: {
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "MyOwnDex",
-    description: "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura reunidos em um só lugar.",
+    description: "Pokédex nacional com formas, PC do Bill, Guia do Treinador e Central da Aventura em um só lugar.",
     images: [{ url: "/icons/myowndex-app-512-v91.png", width: 512, height: 512, alt: "Ícone do MyOwnDex" }],
   },
   twitter: {
     card: "summary",
     title: "MyOwnDex",
-    description: "Sua Pokédex, suas Boxes e sua aventura Pokémon em um só lugar.",
+    description: "Pokédex nacional com formas, PC do Bill, Guia do Treinador e Central da Aventura em um só lugar.",
     images: ["/icons/myowndex-app-512-v91.png"],
   },
   appleWebApp: {

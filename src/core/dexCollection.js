@@ -17,10 +17,8 @@ export const DEX_GENERATIONS = Object.freeze([
 
 export const getDexSpeciesId = entry => Number(entry?.speciesId || extractId(entry?.url)) || 0;
 export const getDexPokemonId = entry => Number(entry?.pokemonId || extractId(entry?.pokemonUrl) || getDexSpeciesId(entry)) || 0;
-export const getDexEntryName = entry => entry?.isDefault === false
-    ? (entry?.pokemonName || entry?.name || entry?.speciesName || "")
-    : (entry?.speciesName || entry?.name || entry?.pokemonName || "");
-export const getDexEntryIdentity = entry => String(entry?.pokemonName || entry?.name || getDexPokemonId(entry));
+export const getDexEntryName = entry => entry?.catalogFormKey || entry?.pokemonName || entry?.name || entry?.speciesName || "";
+export const getDexEntryIdentity = entry => String(entry?.catalogFormKey || entry?.pokemonName || entry?.name || getDexPokemonId(entry));
 
 export const debutGeneration = id => DEX_GENERATIONS.slice(1).find(gen => Number(id) >= gen.start && Number(id) <= gen.end);
 export const viewFromUrl = url => Object.keys(VIEW_LINKS).find(view => VIEW_LINKS[view] === new URL(url).searchParams.get("abrir"));
@@ -61,6 +59,7 @@ export function selectDexSpecies(species, { query = "", favorites = [], onlyFavo
         const searchable = [
             entry?.speciesName,
             entry?.pokemonName,
+            entry?.catalogFormKey,
             entry?.form,
             entry?.name,
         ].filter(Boolean).map(normalizeDexSearch);
@@ -70,11 +69,11 @@ export function selectDexSpecies(species, { query = "", favorites = [], onlyFavo
         const rightId = getDexSpeciesId(right);
         if (order === "name") {
             const byName = getDexEntryName(left).localeCompare(getDexEntryName(right), "pt-BR");
-            return byName || leftId - rightId || getDexPokemonId(left) - getDexPokemonId(right);
+            return byName || leftId - rightId || getDexPokemonId(left) - getDexPokemonId(right) || Number(left?.formId || 0) - Number(right?.formId || 0);
         }
         const byNumber = (leftId - rightId) * (order === "reverse" ? -1 : 1);
         if (byNumber) return byNumber;
         if (Boolean(left?.isDefault) !== Boolean(right?.isDefault)) return left?.isDefault ? -1 : 1;
-        return getDexPokemonId(left) - getDexPokemonId(right);
+        return getDexPokemonId(left) - getDexPokemonId(right) || Number(left?.formId || 0) - Number(right?.formId || 0);
     });
 }

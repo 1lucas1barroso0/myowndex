@@ -7,6 +7,7 @@ import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
+import GameIcon from "../Shared/GameIcon.jsx";
 import PokemonEditor from "./PokemonEditor.jsx";
 import "../../pc-retro.css";
 
@@ -407,7 +408,7 @@ export default function Teambuilder({ envProps }) {
 
                 <div className="pc-import-region">
                     <button type="button" onClick={() => setImporting(true)} aria-haspopup="dialog" className="pc-import-button">
-                        <span aria-hidden="true">⇩</span>
+                        <GameIcon name="receive" />
                         <span>Importar Pokémon ou Box</span>
                     </button>
                 </div>
@@ -437,7 +438,7 @@ export default function Teambuilder({ envProps }) {
 
                             <div className="pc-toolbar-actions" role="group" aria-label="Ações da Box">
                                 <button type="button" onClick={openShare} disabled={isProcessing} aria-haspopup="dialog" title="Compartilhar Box ou Pokémon" className="pc-action-button is-share">
-                                    <span aria-hidden="true">↗</span><span className="pc-action-label">Compartilhar</span>
+                                    <GameIcon name="share" /><span className="pc-action-label">Compartilhar</span>
                                 </button>
                                 <button type="button" onClick={cloneTeam} title="Duplicar Box" className="pc-action-button is-duplicate"><span aria-hidden="true">⧉</span><span className="pc-action-label">Duplicar</span></button>
                                 <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="pc-action-button is-delete"><span aria-hidden="true">⌫</span><span className="pc-action-label">Apagar</span></button>
@@ -524,7 +525,7 @@ export default function Teambuilder({ envProps }) {
                         <button type="button" className="link-cable-close" onClick={() => { setSharing(false); setShareCode(""); }} aria-label="Fechar compartilhamento">×</button>
                         <span className="link-cable-kicker">Link Cable</span>
                         <h2 id="share-dialog-title">Compartilhar equipe</h2>
-                        <p className="link-cable-intro">Escolha os Pokémon ou a Box inteira para enviar a outro treinador.</p>
+                        <p className="link-cable-intro">Escolha os Pokémon ou a Box inteira para enviar a outro treinador. Espécie, forma e progresso acompanham o código.</p>
 
                         {!shareCode ? (
                             <>

@@ -16,11 +16,11 @@ import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
 import PokemonCompanion from "./components/Shared/PokemonCompanion.jsx";
 import GameIcon from "./components/Shared/GameIcon.jsx";
-import { DEX_GENERATIONS, dexEntryGeneration, dexEntryNumber, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
+import { DEX_GENERATIONS, dexEntryFavoriteKey, dexEntryGeneration, dexEntryNumber, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.3";
+const APP_VERSION = "2.0.4";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }
@@ -213,7 +213,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
             const nextView = initialViewRef.current || viewFromUrl(window.location.href) || (new URL(window.location.href).searchParams.has("room") ? "room" : (["room", "pokedex", "teambuilder", "guide"].includes(preferences?.view) ? preferences.view : "pokedex"));
             setViewState(nextView);
             window.history.replaceState({}, "", urlForView(window.location.href, nextView));
-            setFavorites(Array.isArray(storedFavorites) ? storedFavorites.filter(id => typeof id === "string" && /^\d+$/.test(id)) : []);
+            setFavorites(Array.isArray(storedFavorites) ? storedFavorites.filter(id => typeof id === "string" && (/^\d+$/.test(id) || /^form:[a-z0-9-]{1,120}$/.test(id))) : []);
             setModeBooted(true);
         });
         const onPop = () => setViewState(viewFromUrl(window.location.href) || "pokedex");
@@ -401,6 +401,8 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     }, [view, envLoaded]);
 
     const filteredSpecies = useMemo(() => selectDexSpecies(species, { query: deferredSearchTerm, favorites, onlyFavorites, order: dexOrder, generation: dexGeneration }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder, dexGeneration]);
+    const filteredSpeciesCount = useMemo(() => filteredSpecies.filter(entry => !entry.formKey).length, [filteredSpecies]);
+    const filteredFormCount = filteredSpecies.length - filteredSpeciesCount;
 
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 
@@ -451,7 +453,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
             targetId = first.id;
             setTeams([{ ...first, pokemon: [partner] }]);
             setActiveTeamId(first.id);
-            setNotice({ tone: "blue", text: `${formatName(formData.name)} foi para a Box 1.` });
+            setNotice({ tone: "blue", text: `${formatName(formIdentity?.formKey || formData.name)} foi para a Box 1.` });
         } else {
             const target = targetTeam;
             targetId = target.id;
@@ -465,7 +467,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                 : team
             ));
             setActiveTeamId(targetId);
-            setNotice({ tone: "blue", text: `${formatName(formData.name)} agora faz parte de ${target.name}.` });
+            setNotice({ tone: "blue", text: `${formatName(formIdentity?.formKey || formData.name)} agora faz parte de ${target.name}.` });
         }
         setView("teambuilder");
     }, [activeTeamId, teams, setView]);
@@ -571,7 +573,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 <header className="dex-heading">
                                     <div className="dex-title"><h2>Pokédex Nacional</h2></div>
                                     <PokemonCompanion place="pokedex" className="dex-companion" eager />
-                                    <span className="dex-count" role="status">{formatPokemonCount(filteredSpecies.length)}</span>
+                                    <span className="dex-count" role="status">{formatPokemonCount(filteredSpeciesCount)}{filteredFormCount ? ` · ${filteredFormCount} ${filteredFormCount === 1 ? "forma" : "formas"}` : ""}</span>
                                 </header>
                                 <div className="dex-toolbar">
                                     <label className="dex-search"><span className="dex-search-label">Nome, número ou intervalo</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} inputMode="search" /></label>
@@ -586,8 +588,8 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 {visible.length ? (
                                     <div className="dex-grid">
                                         {visible.map(entry => {
-                                            const number = String(dexEntryNumber(entry));
-                                            return <PokemonCard key={entry.formKey || entry.name} species={entry} onSelect={() => setSelectedEntry(entry)} favorite={favorites.includes(number)} onFavorite={() => toggleFavorite(number)} />;
+                                            const favoriteKey = dexEntryFavoriteKey(entry);
+                                            return <PokemonCard key={entry.formKey || entry.name} species={entry} onSelect={() => setSelectedEntry(entry)} favorite={favorites.includes(favoriteKey)} onFavorite={() => toggleFavorite(favoriteKey)} />;
                                         })}
                                     </div>
                                 ) : (

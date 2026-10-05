@@ -2,7 +2,7 @@ import React, { useState, useEffect, useId, useMemo, useRef } from 'react';
 import { formatCanonicalItemName, RPG_STATUS_LABELS } from '../../core/copy.js';
 import { describeMove } from '../../core/descriptions.js';
 import { getCatalogText, loadCatalogText } from '../../core/catalogText.js';
-import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, TYPE_COLORS, TYPE_TEXT_COLORS, filterMovesByLatestVersion } from '../../core/mechanics.js';
+import { fetchCached, calculateStat, formatName, formatPokemonIdentity, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, TYPE_COLORS, TYPE_TEXT_COLORS, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
 import { applyPokemonExperienceAward } from '../../core/experience.js';
 import { finiteNumberOrNull, integerInRange } from '../../core/math.js';
@@ -383,17 +383,17 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         updatePk(next);
     };
     return (
-        <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatName(pk.species?.name)}`}>
+        <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatPokemonIdentity(pk)}`}>
             <datalist id={itemListId}>{validItems.map(value => <option key={value} value={value} label={formatCanonicalItemName(value)} />)}</datalist>
             <datalist id={abilityListId}>{validAbs.map(ability => { const value = typeof ability === "string" ? ability : ability?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
             <datalist id={moveListId}>{validMoves.map(move => { const value = typeof move === "string" ? move : move?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
 
             <header className="editor-header">
-                <PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" />
+                <PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatPokemonIdentity(pk)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" />
                 <div className="editor-identity">
                     <label className="editor-field">
                         <span className="editor-label">Apelido</span>
-                        <input type="text" value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, nickname: event.target.value })} className="editor-input editor-nickname" />
+                        <input type="text" value={pk.nickname !== undefined ? pk.nickname : formatPokemonIdentity(pk)} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, nickname: event.target.value })} className="editor-input editor-nickname" />
                     </label>
                     <span className="editor-species-name">{formatName(pk.species?.name || "")}</span>
                     {forms.length > 1 && <label className="editor-field form-switch">

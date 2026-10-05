@@ -203,8 +203,11 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
         if (!defaultForm?.url) throw new Error('A Pokédex não trouxe a forma escolhida deste Pokémon.');
         const currentPokemon = await request(defaultForm.url);
         const formAppearance = entry.formId ? await request(`${API}pokemon-form/${entry.formId}/`) : null;
-        const pokemonWithAppearance = formAppearance?.sprites
-            ? { ...currentPokemon, sprites: { ...(currentPokemon.sprites || {}), ...formAppearance.sprites } }
+        const formSprites = formAppearance?.sprites
+            ? Object.fromEntries(Object.entries(formAppearance.sprites).filter(([, value]) => Boolean(value)))
+            : null;
+        const pokemonWithAppearance = formSprites && Object.keys(formSprites).length
+            ? { ...currentPokemon, sprites: { ...(currentPokemon.sprites || {}), ...formSprites } }
             : currentPokemon;
         const learnset = getGeneratorLearnset(currentPokemon, normalized.versionGroup, normalized.level);
         checked += 1;

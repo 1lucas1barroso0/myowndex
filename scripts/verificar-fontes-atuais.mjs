@@ -28,6 +28,7 @@ const sources = [
     paths: [
       "data/v2/csv/pokemon_species.csv",
       "data/v2/csv/pokemon.csv",
+      "data/v2/csv/pokemon_forms.csv",
       "data/v2/csv/types.csv",
       "data/v2/csv/pokemon_types.csv",
       "data/v2/csv/pokemon_types_past.csv",

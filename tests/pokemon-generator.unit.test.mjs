@@ -48,6 +48,17 @@ test('historical game generation excludes forms introduced after the selected ga
     assert.deepEqual(getGeneratorSpeciesPool(entries, { experienceMode: 'game', versionGroup: 'sun-moon' }).map(entry => entry.name), ['rattata', 'rattata-alola']);
 });
 
+test('generator can restrict random encounters to a regional variant family', () => {
+    const entries = [
+        { name: 'rattata', speciesId: 19, types: ['normal'], url: `${API}pokemon-species/19/` },
+        { name: 'rattata-alola', speciesId: 19, formKey: 'rattata-alola', formIdentifier: 'alola', generation: 7, types: ['dark', 'normal'], url: `${API}pokemon-species/19/` },
+        { name: 'zigzagoon-galar', speciesId: 263, formKey: 'zigzagoon-galar', formIdentifier: 'galar', generation: 8, types: ['dark', 'normal'], url: `${API}pokemon-species/263/` },
+    ];
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { region: 'alola' }).map(entry => entry.name), ['rattata-alola']);
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { region: 'galar' }).map(entry => entry.name), ['zigzagoon-galar']);
+    assert.equal(normalizeGeneratorOptions({ region: 'invented' }).region, '');
+});
+
 test('form type filters use the selected historical game instead of current typing', () => {
     const rotomWash = {
         name: 'rotom-wash', speciesId: 479, formKey: 'rotom-wash', generation: 4,

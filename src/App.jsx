@@ -38,7 +38,7 @@ const PokemonCard = React.memo(function PokemonCard({ entry, onSelect, favorite,
     const formLabel = Number(entry?.formCount) > 1 && entry?.form ? formatName(entry.form) : "";
     const accessibleName = formLabel ? `${displayName} · ${formLabel}` : displayName;
     return (
-        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={debutGeneration(speciesId)?.id} data-form={entry?.isDefault === false ? "alternate" : "default"}>
+        <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={entry?.formGeneration || entry?.generation || debutGeneration(speciesId)?.id} data-form={entry?.isDefault === false ? "alternate" : "default"}>
             <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${accessibleName} na Pokédex`}>
                 <span className="dex-number">No. {String(speciesId).padStart(4, "0")}</span>
                 <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={pokemonId} spriteKey={entry?.spriteKey} alt="" className="pixelated" /></span>

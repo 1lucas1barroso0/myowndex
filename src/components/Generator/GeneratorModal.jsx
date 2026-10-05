@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import speciesCatalogue from '../../data/species.json';
 import fixedFormCatalogue from '../../data/forms.json';
 import speciesMetadata from '../../data/generator-species.json';
+import { getDexVariantMeta } from '../../core/dexVariants.js';
 import { formatName, formatType, NATURES, STAT_MAP, TYPE_COLORS, TYPE_TEXT_COLORS, TYPES, VERSION_GROUPS, VERSION_LABELS } from '../../core/mechanics.js';
 import { generatePokemon, GENERATOR_DRAFT_KEY, getGeneratedHp, normalizeGeneratorOptions } from '../../core/pokemonGenerator.js';
 import { getStorageScope, readDurableStorage, readStorage, writeDurableStorage } from '../../core/storage.js';
@@ -35,12 +36,10 @@ const downloadText = (text, filename) => {
 const generatorSpeciesNames = new Map(speciesCatalogue.map(entry => [
     Number(entry.url.split('/').filter(Boolean).pop()), entry.name,
 ]));
-const generatorDefaultForms = new Map((fixedFormCatalogue.defaults || []).map(entry => [entry.speciesId, entry]));
 const generatorCatalogue = [
     ...speciesCatalogue.map(entry => {
         const speciesId = Number(entry.url.split('/').filter(Boolean).pop());
-        const form = generatorDefaultForms.get(speciesId);
-        const formKey = form?.name || '';
+        const metadata = speciesMetadata[String(speciesId)] || {};
         return {
             ...entry,
             speciesId,
@@ -48,23 +47,28 @@ const generatorCatalogue = [
             pokemonName: entry.name,
             speciesName: entry.name,
             isPrimarySpecies: true,
-            formKey,
-            formId: form?.formId || null,
-            formIdentifier: form?.formIdentifier || '',
-            spriteKey: form?.spriteKey || String(speciesId),
-            ...(form?.generation ? { generation: form.generation } : {}),
-            ...(form?.types ? { types: form.types, pastTypes: form.pastTypes } : {}),
-            choiceKey: formKey ? `form:${formKey}` : `species:${speciesId}`,
+            formKey: '',
+            formId: null,
+            formIdentifier: '',
+            spriteKey: String(speciesId),
+            generation: metadata.generation,
+            types: metadata.types || [],
+            pastTypes: metadata.pastTypes,
+            choiceKey: `species:${speciesId}`,
         };
     }),
-    ...(fixedFormCatalogue.entries || []).map(entry => ({
-        ...entry,
-        speciesName: generatorSpeciesNames.get(entry.speciesId) || entry.pokemonName,
-        isPrimarySpecies: false,
-        formKey: entry.name,
-        choiceKey: `form:${entry.name}`,
-        url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
-    })),
+    ...[...(fixedFormCatalogue.defaults || []), ...(fixedFormCatalogue.entries || [])]
+        .map(entry => ({ entry, variant: getDexVariantMeta(entry) }))
+        .filter(({ variant }) => variant.separable)
+        .map(({ entry, variant }) => ({
+            ...entry,
+            ...variant,
+            speciesName: generatorSpeciesNames.get(entry.speciesId) || entry.pokemonName,
+            isPrimarySpecies: false,
+            formKey: entry.name,
+            choiceKey: `form:${entry.name}`,
+            url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
+        })),
 ];
 
 const generatorChoiceName = entry => entry.formIdentifier

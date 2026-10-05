@@ -147,6 +147,33 @@ test('generator end-to-end preserves actual forms, correct game PP, progress and
     assert.equal(decoded.pokemon[0].rpg.xp, 0);
 });
 
+test('generator can pin a persistent form and keeps its identity in the generated partner', async () => {
+    const entry = {
+        name: 'bulbasaur-spring-style',
+        speciesId: 1,
+        pokemonId: 1,
+        pokemonName: 'bulbasaur',
+        formKey: 'bulbasaur-spring-style',
+        formId: 12000,
+        generation: 1,
+        types: ['grass'],
+        url: `${API}pokemon-species/1/`,
+    };
+    const generated = await generatePokemon([entry], {
+        speciesId: 1,
+        formKey: entry.formKey,
+        count: 1,
+        versionGroup: 'scarlet-violet',
+        level: 5,
+    }, { fetcher: fixtureFetcher, random: () => 0 });
+    assert.equal(generated.length, 1);
+    assert.equal(generated[0].pokemon.species.name, 'bulbasaur');
+    assert.equal(generated[0].pokemon.formKey, entry.formKey);
+    assert.equal(generated[0].pokemon.formId, entry.formId);
+    assert.deepEqual(getGeneratorSpeciesPool([entry], { speciesId: 1, formKey: entry.formKey }).map(value => value.formKey), [entry.formKey]);
+    assert.deepEqual(getGeneratorSpeciesPool([entry], { speciesId: 1 }), [], 'selecting the base form never silently picks a styled form');
+});
+
 test('generator rejects incomplete API data instead of inventing a partner and aborts before any request', async () => {
     assert.throws(() => buildGeneratedPokemon({ pokemon: { ...pokemon, stats: [] }, species, learnset: getGeneratorLearnset(pokemon, 'auto', 5) }), /ficha completa/);
     const controller = new AbortController();

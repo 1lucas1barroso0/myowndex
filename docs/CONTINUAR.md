@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.4.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa nova numeração não modifica o formato dos dados, contas, Boxes ou aventuras.
+**Versão atual: 2.0.4.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. A 2.0.4 acrescenta apenas campos opcionais de identidade de forma aos Pokémon que precisam deles.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 

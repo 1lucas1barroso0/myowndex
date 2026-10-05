@@ -46,7 +46,7 @@ export default function AppearanceControl() {
         document.documentElement.dataset.theme = resolved;
         document.documentElement.dataset.themePreference = preference;
         document.documentElement.style.colorScheme = resolved === "night" ? "dark" : "light";
-        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "night" ? "#17283e" : "#da3041");
+        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "night" ? "#142939" : "#cf2844");
         writeStorage(APPEARANCE_KEY, preference);
     }, [preference, ready]);
 

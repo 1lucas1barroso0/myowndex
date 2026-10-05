@@ -19,7 +19,7 @@ import { DEX_GENERATIONS, debutGeneration, selectDexSpecies, urlForView, viewFro
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.2";
+const APP_VERSION = "2.0.3";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }
@@ -556,7 +556,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 <div className="dex-toolbar">
                                     <label className="dex-search"><span className="dex-search-label">Nome ou número</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} /></label>
                                     <button type="button" className={`dex-filter ${onlyFavorites ? "is-active" : ""}`} aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setLimit(60); }}><GameIcon name="star" />Favoritos <span>{favorites.length}</span></button>
-                                    <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(60); }}><option value="number">Número crescente</option><option value="reverse">Número decrescente</option><option value="name">Nome de A a Z</option></select></label>
+                                    <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(60); }}><option value="number" aria-label="Número crescente">Número ↑</option><option value="reverse" aria-label="Número decrescente">Número ↓</option><option value="name" aria-label="Nome de A a Z">Nome A–Z</option></select></label>
                                 </div>
                                 <div className="dex-generations" role="group" aria-label="Filtrar por geração de estreia">
                                     <span>Geração</span>

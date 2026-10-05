@@ -3,22 +3,25 @@
 /* One presentation system. index.css retains the adventure's spatial rules;
    these tokens also serve older controls so modules never invent a palette. */
 html:root {
-  --ui-canvas: #e8eced;
-  --ui-panel: #fbfaf3;
-  --ui-raised: #f0f1e9;
-  --ui-ink: #222b30;
-  --ui-muted: #526068;
-  --ui-line: #adb8b6;
-  --ui-control-line: #73838a;
-  --ui-accent: #b9233b;
-  --ui-blue: #226cae;
-  --ui-selected: #e0edf5;
-  --ui-shadow: 0 3px 0 #222b301a;
-  --journey-red: #da3041;
-  --journey-dark: #222b30;
+  --ui-canvas: #edf4f3;
+  --ui-panel: #fffdf6;
+  --ui-raised: #f0f5ee;
+  --ui-ink: #243b40;
+  --ui-muted: #52666a;
+  --ui-line: #b5c8c8;
+  --ui-control-line: #748e91;
+  --ui-accent: #bb2444;
+  --ui-blue: #17689f;
+  --ui-selected: #e5f3fc;
+  --ui-shadow: 0 4px 0 #20373c12, 0 10px 24px #20373c08;
+  --play-radius: 1rem;
+  --play-control-radius: .65rem;
+  --play-shadow: var(--ui-shadow);
+  --journey-red: #cf2844;
+  --journey-dark: #243b40;
   --journey-white: #ffffff;
   --journey-gold: #f2c655;
-  --journey-teal: #117870;
+  --journey-teal: #127566;
   --journey-focus: #226cae;
   --dex-bezel: var(--ui-ink);
   --dex-screen-highlight: var(--ui-panel);
@@ -34,18 +37,18 @@ html:root {
   --line: var(--ui-line);
 }
 html[data-theme="night"] {
-  --ui-canvas: #17283e;
-  --ui-panel: #21344a;
-  --ui-raised: #2a4057;
-  --ui-ink: #f3f5ef;
-  --ui-muted: #bfced8;
-  --ui-line: #60788e;
-  --ui-control-line: #8297aa;
+  --ui-canvas: #142939;
+  --ui-panel: #203847;
+  --ui-raised: #294454;
+  --ui-ink: #f5f9f3;
+  --ui-muted: #c2d6dc;
+  --ui-line: #587584;
+  --ui-control-line: #88a3b0;
   --ui-accent: #f894a5;
   --ui-blue: #91cdf7;
-  --ui-selected: #304f69;
-  --ui-shadow: 0 3px 0 #0e1c2c;
-  --journey-teal: #88d9c4;
+  --ui-selected: #294d65;
+  --ui-shadow: 0 4px 0 #091a25, 0 12px 28px #06131d26;
+  --journey-teal: #91ddca;
   --journey-focus: #f2c655;
 }
 html { scroll-padding-top: 1rem !important; }

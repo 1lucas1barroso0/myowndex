@@ -130,6 +130,8 @@ export const normalizePokemon = input => {
     const species = speciesShell(source);
     const rawRate = finiteNumberOrNull(source.genderRate ?? species.gender_rate);
     const genderRate = rawRate == null ? -1 : integerInRange(rawRate, -1, 8, -1);
+    const rawFormKey = asText(source.formKey || source.catalogForm).toLowerCase();
+    const formKey = /^[a-z0-9-]{1,120}$/.test(rawFormKey) ? rawFormKey : "";
     const customStatEntries = source.customStats && typeof source.customStats === "object"
         ? STAT_KEYS
             .filter(stat => Object.prototype.hasOwnProperty.call(source.customStats, stat))
@@ -179,6 +181,7 @@ export const normalizePokemon = input => {
     return {
         id: asText(source.id) || createId("partner"),
         species,
+        formKey,
         nickname: asText(source.nickname),
         level: clampInteger(source.level, 1, 200, 5),
         item: asText(source.item).toLowerCase(),

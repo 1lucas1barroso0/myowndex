@@ -6,6 +6,7 @@ import { decodeShare, encodePokemonBundle, encodeTeam } from "../../core/teamSha
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
+import GameIcon from "../Shared/GameIcon.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import PokemonEditor from "./PokemonEditor.jsx";
 import "../../pc-retro.css";
@@ -407,7 +408,7 @@ export default function Teambuilder({ envProps }) {
 
                 <div className="pc-import-region">
                     <button type="button" onClick={() => setImporting(true)} aria-haspopup="dialog" className="pc-import-button">
-                        <span aria-hidden="true">⇩</span>
+                        <GameIcon name="receive" />
                         <span>Importar Pokémon ou Box</span>
                     </button>
                 </div>
@@ -437,7 +438,7 @@ export default function Teambuilder({ envProps }) {
 
                             <div className="pc-toolbar-actions" role="group" aria-label="Ações da Box">
                                 <button type="button" onClick={openShare} disabled={isProcessing} aria-haspopup="dialog" title="Compartilhar Box ou Pokémon" className="pc-action-button is-share">
-                                    <span aria-hidden="true">↗</span><span className="pc-action-label">Compartilhar</span>
+                                    <GameIcon name="link" /><span className="pc-action-label">Compartilhar</span>
                                 </button>
                                 <button type="button" onClick={cloneTeam} title="Duplicar Box" className="pc-action-button is-duplicate"><span aria-hidden="true">⧉</span><span className="pc-action-label">Duplicar</span></button>
                                 <button type="button" onClick={() => setPendingDelete(active)} title="Apagar Box" className="pc-action-button is-delete"><span aria-hidden="true">⌫</span><span className="pc-action-label">Apagar</span></button>

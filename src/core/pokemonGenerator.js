@@ -74,18 +74,18 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
         if (normalized.speciesId && entry.id !== normalized.speciesId) return false;
         if (normalized.speciesId && normalized.formKey && entry.formKey !== normalized.formKey) return false;
         if (normalized.speciesId && !normalized.formKey && entry.formKey) return false;
-        const entryGeneration = Number(entry.generation);
+        const meta = metadata[entry.id];
+        const entryGeneration = Number(entry.generation || meta?.generation);
         if (normalized.experienceMode === 'game' && normalized.versionGroup !== 'auto'
             && Number.isInteger(entryGeneration) && entryGeneration > gameGeneration) return false;
         if (normalized.generation && Number.isInteger(entryGeneration) && entryGeneration !== normalized.generation) return false;
         if (normalized.generation && !Number.isInteger(entryGeneration) && range && (entry.id < range[0] || entry.id > range[1])) return false;
-        const meta = metadata[entry.id];
         if (normalized.legendary !== 'all' && meta) {
             const special = Boolean(meta.legendary || meta.mythical);
             if (normalized.legendary === 'only' ? !special : special) return false;
         }
         const pinnedTypes = Array.isArray(entry.types) && entry.types.length
-            ? entry.types
+            ? getGeneratorSpeciesTypes(entry, gameGeneration)
             : getGeneratorSpeciesTypes(meta, gameGeneration);
         if (normalized.type && pinnedTypes?.length && !pinnedTypes.includes(normalized.type)) return false;
         if (typeIds && !entry.formKey && !typeIds.has(entry.id)) return false;

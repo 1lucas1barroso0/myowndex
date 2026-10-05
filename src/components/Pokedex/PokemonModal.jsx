@@ -39,7 +39,7 @@ const organizeSpeciesFacts = facts => facts
             : { label: match[1], value, note };
     });
 
-export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam }) {
+export default function PokemonModal({ speciesUrl, initialFormUrl = "", onClose, isTTRPG, onAddToTeam }) {
     const [baseInfo, setBaseInfo] = useState(null);
     const [activeForm, setActiveForm] = useState(null);
     const [formData, setFormData] = useState(null);
@@ -82,7 +82,10 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
                 return;
             }
             setBaseInfo(data);
-            const defVar = data.varieties?.find(v => v.is_default)?.pokemon || data.varieties?.[0]?.pokemon;
+            const requestedForm = initialFormUrl
+                ? data.varieties?.find(value => value.pokemon?.url === initialFormUrl)?.pokemon
+                : null;
+            const defVar = requestedForm || data.varieties?.find(v => v.is_default)?.pokemon || data.varieties?.[0]?.pokemon;
             if (defVar?.url) setActiveForm(defVar);
             else setLoadError("Não foi possível abrir as formas deste Pokémon. Tente novamente.");
 
@@ -105,7 +108,7 @@ export default function PokemonModal({ speciesUrl, onClose, isTTRPG, onAddToTeam
             }
         }).catch(() => mounted && setLoadError("Não foi possível abrir este Pokémon. Tente novamente."));
         return () => mounted = false;
-    }, [speciesUrl, retryAttempt]);
+    }, [speciesUrl, initialFormUrl, retryAttempt]);
 
     useEffect(() => {
         let mounted = true;

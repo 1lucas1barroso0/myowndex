@@ -148,7 +148,7 @@ export default function TrainerGuide({ experienceMode }) {
                                         <div className="is-neutral"><dt>Normal <b>×1</b></dt><dd>O limite por hit é {formatNumberPtBr(normalizedLevel)}.</dd></div>
                                         <div className="is-effective"><dt>Superefetivo <b>×2 ou ×4</b></dt><dd>O dano e o limite aumentam. Neste nível, o teto vai a {formatNumberPtBr(normalizedLevel * 2)} ou {formatNumberPtBr(normalizedLevel * 4)}.</dd></div>
                                     </dl>
-                                    <p>Com vários tipos, as vantagens e resistências se combinam: duas vantagens dão ×4; vantagem e resistência dão ×1; duas resistências dão 25%. Uma imunidade mantém 0, salvo quando um efeito próprio a remove. Estágios positivos do atributo ofensivo também podem elevar o teto; críticos e movimentos de regra própria usam suas exceções.</p>
+                                    <p>Com vários tipos, as vantagens e resistências se combinam: duas fraquezas dão ×4; fraqueza e resistência dão ×1; duas resistências dão 25%. Uma imunidade mantém 0, salvo quando um efeito próprio a remove. Estágios positivos do atributo ofensivo também podem elevar o teto; críticos e movimentos de regra própria usam suas exceções.</p>
                                 </details>
                             </article>
                             <button type="button" className="guide-hit-kill-link room-secondary-button" onClick={showProtection}>Ver proteção contra hit kill</button>

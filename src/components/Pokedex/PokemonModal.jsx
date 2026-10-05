@@ -295,8 +295,11 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                     </div>
                     
                     <button type="button" onClick={() => {
-                        const selectedFormData = formAppearance?.sprites
-                            ? { ...formData, sprites: { ...(formData.sprites || {}), ...formAppearance.sprites } }
+                        const formSprites = formAppearance?.sprites
+                            ? Object.fromEntries(Object.entries(formAppearance.sprites).filter(([, value]) => Boolean(value)))
+                            : null;
+                        const selectedFormData = formSprites && Object.keys(formSprites).length
+                            ? { ...formData, sprites: { ...(formData.sprites || {}), ...formSprites } }
                             : formData;
                         onAddToTeam(selectedFormData, baseInfo?.gender_rate ?? -1, formIdentity);
                         onClose();

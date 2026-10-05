@@ -32,19 +32,44 @@ const downloadText = (text, filename) => {
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
+const generatorSpeciesNames = new Map(speciesCatalogue.map(entry => [
+    Number(entry.url.split('/').filter(Boolean).pop()), entry.name,
+]));
+const generatorDefaultForms = new Map((fixedFormCatalogue.defaults || []).map(entry => [entry.speciesId, entry]));
 const generatorCatalogue = [
     ...speciesCatalogue.map(entry => {
         const speciesId = Number(entry.url.split('/').filter(Boolean).pop());
-        return { ...entry, speciesId, pokemonId: speciesId, pokemonName: entry.name, formKey: '', choiceKey: `species:${speciesId}` };
+        const form = generatorDefaultForms.get(speciesId);
+        const formKey = form?.name || '';
+        return {
+            ...entry,
+            speciesId,
+            pokemonId: speciesId,
+            pokemonName: entry.name,
+            speciesName: entry.name,
+            isPrimarySpecies: true,
+            formKey,
+            formId: form?.formId || null,
+            formIdentifier: form?.formIdentifier || '',
+            spriteKey: form?.spriteKey || String(speciesId),
+            ...(form?.generation ? { generation: form.generation } : {}),
+            ...(form?.types ? { types: form.types, pastTypes: form.pastTypes } : {}),
+            choiceKey: formKey ? `form:${formKey}` : `species:${speciesId}`,
+        };
     }),
     ...(fixedFormCatalogue.entries || []).map(entry => ({
         ...entry,
+        speciesName: generatorSpeciesNames.get(entry.speciesId) || entry.pokemonName,
+        isPrimarySpecies: false,
         formKey: entry.name,
         choiceKey: `form:${entry.name}`,
         url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
     })),
 ];
 
+const generatorChoiceName = entry => entry.formIdentifier
+    ? `${formatName(entry.speciesName || entry.name)} · ${formatName(entry.formIdentifier)}`
+    : formatName(entry.speciesName || entry.name);
 const generatedName = partner => formatName(partner?.formKey || partner?.species?.name);
 
 const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), summary, [tabindex="0"]';
@@ -367,7 +392,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                     </div>
                     <label>Jogo<RoomSelect disabled={working} value={options.versionGroup} onChange={event => updateOption('versionGroup', event.target.value)} aria-label="Jogo dos Pokémon gerados">{VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}</RoomSelect></label>
                     <details className="generator-customize" ref={customizationRef}><summary>Personalizar o encontro</summary>
-                        <label>Pokémon ou forma<RoomSelect disabled={working} value={selectedPokemonChoice} onChange={event => choosePokemon(event.target.value)} aria-label="Pokémon ou forma a gerar"><option value="random">Surpreenda-me</option>{generatorCatalogue.map(entry => <option key={entry.choiceKey} value={entry.choiceKey}>{formatName(entry.name)}</option>)}</RoomSelect></label>
+                        <label>Pokémon ou forma<RoomSelect disabled={working} value={selectedPokemonChoice} onChange={event => choosePokemon(event.target.value)} aria-label="Pokémon ou forma a gerar"><option value="random">Surpreenda-me</option>{generatorCatalogue.map(entry => <option key={entry.choiceKey} value={entry.choiceKey}>{generatorChoiceName(entry)}</option>)}</RoomSelect></label>
                         <div className="generator-basic-fields">
                             <label>Tipo<RoomSelect disabled={working} value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo para o encontro"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
                             <label>Geração<RoomSelect disabled={working} value={options.generation} onChange={event => updateOption('generation', Number(event.target.value))} aria-label="Geração dos Pokémon"><option value="0">Todas</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(generation => <option key={generation} value={generation}>{generation}ª geração</option>)}</RoomSelect></label>

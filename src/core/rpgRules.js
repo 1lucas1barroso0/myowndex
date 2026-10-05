@@ -351,7 +351,7 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "7.5",
                 title: "Tipos, STAB e Terastallization",
-                body: "Tipos mostram como o alvo recebe o movimento: imune causa 0; uma resistência aplica 50%; duas resistências, 25%; normal, ×1; uma vantagem, ×2; duas vantagens, ×4. Uma vantagem e uma resistência juntas dão ×1. Use os tipos atuais do alvo. Uma imunidade continua em 0, salvo um efeito que a remova.\n\nSTAB é o bônus de usar um movimento do próprio tipo: normalmente 1,5×. Com Terastallization ativa, vale para um tipo original ou o Tera Type; se corresponder aos dois, é 2×. Adaptability ajusta esse bônus quando ativa. Sol, chuva e terrenos têm seus próprios efeitos, mostrados separadamente no resultado."
+                body: "Tipos mostram a efetividade do movimento contra o alvo: imune causa 0; uma resistência aplica 50%; duas resistências, 25%; neutro vale ×1; superefetivo contra um tipo vale ×2; superefetivo contra os dois tipos vale ×4. Uma fraqueza e uma resistência juntas dão ×1. Use os tipos atuais do alvo. Uma imunidade continua em 0, salvo um efeito que a remova.\n\nSTAB é o bônus de usar um movimento do próprio tipo: normalmente 1,5×. Com Terastallization ativa, vale para um tipo original ou o Tera Type; se corresponder aos dois, é 2×. Adaptability ajusta esse bônus quando ativa. Sol, chuva e terrenos têm seus próprios efeitos, mostrados separadamente no resultado."
             },
             {
                 id: "7.6",

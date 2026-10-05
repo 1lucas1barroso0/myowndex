@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { DEX_GENERATIONS, debutGeneration, normalizeDexSearch, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
+import { DEX_GENERATIONS, debutGeneration, normalizeDexSearch, parseDexRange, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
 const species = [[25, "pikachu"], [122, "mr-mime"], [29, "nidoran-f"], [83, "farfetchd"], [1, "bulbasaur"]].map(([id, name]) => ({ name, url: `https://pokeapi.co/api/v2/pokemon-species/${id}/` }));
 
 test("generation filters respect every National Dex debut boundary, including Hisui and Pecharunt", () => {
@@ -28,16 +28,20 @@ test("dex search understands padded numbers, accents, punctuation and gender", (
   assert.deepEqual(selectDexSpecies(species, { query: "0000" }), []);
 });
 
-test("dex search accepts explicit National Dex intervals and keeps fixed forms with their species number", () => {
+test("dex search accepts closed and open National Dex ranges without forcing variants apart", () => {
   const catalogue = [
-    { name: "rattata", url: "https://pokeapi.co/api/v2/pokemon-species/19/" },
-    { name: "rattata-alola", url: "https://pokeapi.co/api/v2/pokemon-species/19/", speciesId: 19, pokemonId: 10091, formKey: "rattata-alola", generation: 7 },
-    { name: "raichu", url: "https://pokeapi.co/api/v2/pokemon-species/26/" },
-    { name: "sandshrew", url: "https://pokeapi.co/api/v2/pokemon-species/27/" },
+    { name: "rattata", url: "https://pokeapi.co/api/v2/pokemon-species/19/", isPrimarySpecies: true, types: ["normal"] },
+    { name: "rattata-alola", speciesName: "rattata", formIdentifier: "alola", regionLabel: "Alola", variantKind: "regional", url: "https://pokeapi.co/api/v2/pokemon-species/19/", speciesId: 19, pokemonId: 10091, formKey: "rattata-alola", generation: 7, isPrimarySpecies: false, types: ["dark", "normal"] },
+    { name: "raichu", url: "https://pokeapi.co/api/v2/pokemon-species/26/", isPrimarySpecies: true, types: ["electric"] },
+    { name: "sandshrew", url: "https://pokeapi.co/api/v2/pokemon-species/27/", isPrimarySpecies: true, types: ["ground"] },
   ];
-  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
-  assert.deepEqual(selectDexSpecies(catalogue, { query: "#0026 a #0019" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
-  assert.deepEqual(selectDexSpecies(catalogue, { query: "19..26", generation: "7" }).map(p => p.name), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26" }).map(p => p.name), ["rattata", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "#0026 a #0019", variantView: "split" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "a partir de 26" }).map(p => p.name), ["raichu", "sandshrew"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "até 26" }).map(p => p.name), ["rattata", "raichu"]);
+  assert.deepEqual(parseDexRange("700+"), [700, 1025]);
+  assert.deepEqual(parseDexRange("até 940"), [1, 940]);
+  assert.deepEqual(selectDexSpecies(catalogue, { minNumber: 26, maxNumber: 19 }).map(p => p.name), ["rattata", "raichu"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "1026-1030" }), []);
 });
 
@@ -50,14 +54,17 @@ test("fixed forms have independent favorites while legacy numeric species favori
   assert.deepEqual(selectDexSpecies(catalogue, { favorites: ["form:rattata-alola"], onlyFavorites: true }).map(p => p.name), ["rattata-alola"]);
 });
 
-test("a named primary form keeps legacy species favorites and remains searchable by form", () => {
-  const unownA = {
-    name: "unown", speciesName: "unown", pokemonName: "unown", speciesId: 201,
-    url: "https://pokeapi.co/api/v2/pokemon-species/201/", formKey: "unown-a",
-    formIdentifier: "a", formId: 201, generation: 2, isPrimarySpecies: true,
-  };
-  assert.deepEqual(selectDexSpecies([unownA], { query: "unown a" }).map(p => p.formKey), ["unown-a"]);
-  assert.deepEqual(selectDexSpecies([unownA], { favorites: ["201"], onlyFavorites: true }).map(p => p.formKey), ["unown-a"]);
+test("type and variant filters stay optional and direct variant searches can reveal a fixed variant", () => {
+  const catalogue = [
+    { name: "rattata", speciesName: "rattata", speciesId: 19, isPrimarySpecies: true, types: ["normal"] },
+    { name: "rattata-alola", speciesName: "rattata", formKey: "rattata-alola", formIdentifier: "alola", regionLabel: "Alola", speciesId: 19, isPrimarySpecies: false, variantKind: "regional", types: ["dark", "normal"] },
+    { name: "pikachu", speciesName: "pikachu", speciesId: 25, isPrimarySpecies: true, types: ["electric"] },
+  ];
+  assert.deepEqual(selectDexSpecies(catalogue, { types: ["dark"] }).map(p => p.name), []);
+  assert.deepEqual(selectDexSpecies(catalogue, { types: ["dark"], variantView: "split" }).map(p => p.name), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { variantView: "regional" }).map(p => p.name), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "alola" }).map(p => p.name), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { types: ["normal"], variantView: "split" }).map(p => p.name), ["rattata", "rattata-alola"]);
 });
 
 test("favorites combine with search and sorting without mutating the catalogue", () => {

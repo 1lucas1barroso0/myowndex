@@ -105,6 +105,7 @@ const unpackStats = (stats, fallback) => Object.fromEntries(
 const packPokemon = pokemon => ({
     s: pokemon.species?.species?.name || pokemon.species?.name || "",
     f: pokemon.species?.name || "",
+    u: pokemon.formKey || "",
     n: pokemon.nickname || "",
     l: pokemon.level,
     i: pokemon.item || "",
@@ -150,6 +151,7 @@ const packPokemon = pokemon => ({
 const unpackPokemon = pokemon => ({
     speciesName: pokemon.s || pokemon.f || "",
     formName: pokemon.f || pokemon.s || "",
+    formKey: pokemon.u || "",
     nickname: pokemon.n || "",
     level: pokemon.l,
     item: pokemon.i || "",

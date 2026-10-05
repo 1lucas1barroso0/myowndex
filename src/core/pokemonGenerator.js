@@ -51,6 +51,7 @@ export const normalizeGeneratorOptions = (options = {}) => ({
     count: integerInRange(options.count, 1, 6, 1),
     level: integerInRange(options.level, 1, options.experienceMode === 'game' ? 100 : 200, 5),
     speciesId: integerInRange(options.speciesId, 0, 1025, 0),
+    formName: typeof options.formName === 'string' && /^[a-z0-9-]{0,80}$/.test(options.formName) ? options.formName : '',
     generation: integerInRange(options.generation, 0, 9, 0),
     type: TYPES.includes(options.type) && options.type !== 'stellar' ? options.type : '',
     versionGroup: typeof options.versionGroup === 'string' ? options.versionGroup : 'auto',
@@ -65,13 +66,20 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
     const normalized = normalizeGeneratorOptions(options);
     const range = GENERATION_RANGES[normalized.generation - 1];
     const gameGeneration = normalized.experienceMode === 'game' ? getReferenceGameGeneration(normalized.versionGroup) || 9 : 9;
-    return (Array.isArray(catalogue) ? catalogue : []).map(entry => ({ ...entry, id: Number(extractId(entry.url)) }))
-        .filter(entry => Number.isInteger(entry.id) && entry.id >= 1 && entry.id <= 1025
-            && (!normalized.speciesId || entry.id === normalized.speciesId)
-            && (!range || (entry.id >= range[0] && entry.id <= range[1]))
-            && (normalized.legendary === 'all' || !metadata[entry.id] || (normalized.legendary === 'only' ? metadata[entry.id].legendary || metadata[entry.id].mythical : !metadata[entry.id].legendary && !metadata[entry.id].mythical))
-            && (!normalized.type || !metadata[entry.id]?.types || getGeneratorSpeciesTypes(metadata[entry.id], gameGeneration).includes(normalized.type))
-            && (!typeIds || typeIds.has(entry.id)));
+    return (Array.isArray(catalogue) ? catalogue : []).map(entry => {
+        const speciesId = Number(entry?.speciesId || extractId(entry?.url));
+        const pokemonId = Number(entry?.pokemonId || extractId(entry?.pokemonUrl) || speciesId);
+        const pinned = Array.isArray(entry?.types) ? entry : metadata[speciesId];
+        return { ...entry, id: speciesId, pokemonId, pinned };
+    }).filter(entry => Number.isInteger(entry.id) && entry.id >= 1 && entry.id <= 1025
+        && (!normalized.speciesId || entry.id === normalized.speciesId)
+        && (!normalized.formName || (entry.pokemonName || entry.name) === normalized.formName)
+        && (!range || (entry.id >= range[0] && entry.id <= range[1]))
+        && (normalized.legendary === 'all' || !entry.pinned || (normalized.legendary === 'only'
+            ? entry.pinned.legendary || entry.pinned.mythical
+            : !entry.pinned.legendary && !entry.pinned.mythical))
+        && (!normalized.type || !entry.pinned?.types || getGeneratorSpeciesTypes(entry.pinned, gameGeneration).includes(normalized.type))
+        && (!typeIds || typeIds.has(entry.pokemonId)));
 };
 
 export const getGeneratorSpeciesTypes = (entry, generation = 9) => {
@@ -147,22 +155,41 @@ const shuffled = (values, random) => {
     return result;
 };
 
+const shuffledSpeciesCandidates = (values, random) => {
+    const bySpecies = new Map();
+    for (const entry of values) {
+        const group = bySpecies.get(entry.id) || [];
+        group.push(entry);
+        bySpecies.set(entry.id, group);
+    }
+    return shuffled([...bySpecies.values()], random)
+        .map(forms => forms[randomInt(forms.length, random)]);
+};
+
 export const generatePokemon = async (catalogue, options = {}, { signal, fetcher = fetchCached, random, onProgress, metadata = {} } = {}) => {
     const normalized = normalizeGeneratorOptions(options);
     const request = url => fetchGeneratorData(url, { signal, fetcher });
     checkSignal(signal);
     let typeIds = null;
-    const hasPinnedTypes = Array.isArray(catalogue) && catalogue.every(entry => Array.isArray(metadata[Number(extractId(entry.url))]?.types));
+    const hasPinnedTypes = Array.isArray(catalogue) && catalogue.every(entry =>
+        Array.isArray(entry?.types) || Array.isArray(metadata[Number(entry?.speciesId || extractId(entry?.url))]?.types));
     // A current type index cannot exclude old Normal Clefairy or pure Electric
     // Magnemite. Without the pinned index, inspect candidates in the real game.
     const historicalTypes = normalized.experienceMode === 'game' && getReferenceGameGeneration(normalized.versionGroup) < 6 && normalized.versionGroup !== 'auto';
     if (normalized.type && !hasPinnedTypes && !historicalTypes) {
         const type = await request(`${API}type/${normalized.type}/`);
-        typeIds = new Set((type.pokemon || []).map(entry => Number(extractId(entry.pokemon?.url))).filter(id => id <= 1025));
+        typeIds = new Set((type.pokemon || []).map(entry => Number(extractId(entry.pokemon?.url))).filter(Number.isInteger));
     }
-    const pool = shuffled(getGeneratorSpeciesPool(catalogue, normalized, typeIds, metadata), random);
+    const pool = getGeneratorSpeciesPool(catalogue, normalized, typeIds, metadata);
     if (!pool.length) throw new Error('Nenhum Pokémon combina com essas escolhas. Mude os filtros e tente de novo.');
-    const candidates = normalized.speciesId ? Array.from({ length: normalized.count }, () => pool[0]) : pool;
+    const pinned = normalized.formName
+        ? pool.find(entry => (entry.pokemonName || entry.name) === normalized.formName)
+        : normalized.speciesId
+            ? pool.find(entry => entry.isDefault) || pool[0]
+            : null;
+    const candidates = pinned
+        ? Array.from({ length: normalized.count }, () => pinned)
+        : shuffledSpeciesCandidates(pool, random);
     const result = [];
     let checked = 0;
     // Load the bundled rules once; historical PP must not depend on whether
@@ -175,9 +202,11 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
         const species = await request(entry.url);
         const legendary = species.is_legendary || species.is_mythical;
         if ((normalized.legendary === 'only' && !legendary) || (normalized.legendary === 'exclude' && legendary)) continue;
-        const defaultForm = species.varieties?.find(variety => variety.is_default)?.pokemon;
-        if (!defaultForm?.url) throw new Error('A Pokédex não trouxe a forma principal deste Pokémon.');
-        const currentPokemon = await request(defaultForm.url);
+        const chosenForm = entry.pokemonUrl
+            ? { name: entry.pokemonName || entry.name, url: entry.pokemonUrl }
+            : species.varieties?.find(variety => variety.is_default)?.pokemon;
+        if (!chosenForm?.url) throw new Error('A Pokédex não trouxe a forma escolhida deste Pokémon.');
+        const currentPokemon = await request(chosenForm.url);
         const learnset = getGeneratorLearnset(currentPokemon, normalized.versionGroup, normalized.level);
         checked += 1;
         onProgress?.({ completed: result.length, total: normalized.count, checked });

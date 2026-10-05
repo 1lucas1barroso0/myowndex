@@ -23,6 +23,9 @@ test("persistent-form catalogue is complete, deterministic and excludes collapse
     "miraidon-drive-mode",
     "minior-red",
   ]) assert.equal(names.has(name), false, `${name} must remain grouped with its reversible state`);
+  const rotomWash = forms.entries.find(entry => entry.name === "rotom-wash");
+  assert.deepEqual(rotomWash?.pastTypes, [{ generation: 4, types: ["electric", "ghost"] }]);
+
   for (const name of [
     "rattata-alola",
     "deoxys-attack",

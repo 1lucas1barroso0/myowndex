@@ -4,22 +4,22 @@ A 2.0.5 conclui a atualização de identificação, listagem, busca e leitura qu
 
 ## Pokédex
 
-A visualização normal continua com uma entrada principal por número da National Dex. Variantes que compartilham esse número não precisam ficar permanentemente abertas ao lado dela.
+A visualização normal continua com uma entrada principal por número da National Dex. Quando existem Pokémon diferentes e não intercambiáveis sob o mesmo número, o jogador pode separá-los para identificar e comparar. Formas que o mesmo indivíduo pode alternar continuam dentro da ficha e não viram linhas extras na lista.
 
 Em **Refinar Pokédex**, o jogador pode:
 
 - filtrar pela geração de estreia;
 - escolher um ou dois tipos;
 - limitar a National Dex com **A partir de** e **Até**, usando os dois campos ou somente um;
-- separar variantes quando quiser compará-las;
+- separar variantes fixas quando quiser comparar linhas diferentes do mesmo número;
 - filtrar diretamente variantes de Alola, Galar, Hisui ou Paldea;
 - combinar esses filtros com busca, favoritos e ordenação.
 
 A busca também entende intervalos fechados, como `310-560`, e expressões abertas, como `a partir de 700` e `até 940`.
 
-A lista fica agrupada por padrão. Uma busca textual por uma variante, um filtro regional ou a opção **Separadas** revela as entradas específicas somente quando isso ajuda a responder à procura. Variantes favoritas continuam acessíveis sem invalidar favoritos antigos salvos apenas pelo número nacional.
+A lista fica agrupada por padrão. Uma busca textual por uma variante fixa, um filtro regional ou a opção **Separar variantes fixas** revela essas entradas somente quando isso ajuda a responder à procura. Formas intercambiáveis permanecem na ficha da espécie. Variantes favoritas continuam acessíveis sem invalidar favoritos antigos salvos apenas pelo número nacional.
 
-Essa organização é uma regra de navegação do próprio MyOwnDex. Ela não cria categorias externas nem importa classificações de outros projetos.
+Essa organização é uma regra de navegação do próprio MyOwnDex. Ela não cria categorias externas, não usa critérios da megafauna e não importa classificações de nenhum outro projeto.
 
 ## Tipos e variantes
 
@@ -29,7 +29,7 @@ Variantes regionais são identificadas pela região quando aparecem separadament
 
 ## Gerador
 
-O Gerador recebe o mesmo filtro de região. Tipo, geração, região e forma explícita podem trabalhar juntos. O sorteio aleatório continua equilibrado por espécie para que uma espécie com muitas variantes não domine os encontros.
+O Gerador recebe o mesmo filtro de região. Tipo, geração, região e variante fixa explícita podem trabalhar juntos; formas intercambiáveis continuam tratadas dentro da espécie. O sorteio aleatório continua equilibrado por espécie para que uma espécie com muitas variantes não domine os encontros.
 
 ## Guia do Treinador
 

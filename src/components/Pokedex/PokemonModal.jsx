@@ -92,7 +92,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                 : null;
             const defVar = requestedVariety || data.varieties?.find(v => v.is_default)?.pokemon || data.varieties?.[0]?.pokemon;
             if (defVar?.url) setActiveForm(defVar);
-            else setLoadError("Não foi possível abrir as formas deste Pokémon. Tente novamente.");
+            else setLoadError("Não foi possível abrir os dados deste Pokémon. Tente novamente.");
 
             if (data.evolution_chain?.url) {
                 const evo = await fetchCached(data.evolution_chain.url).catch(() => null);
@@ -135,7 +135,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
             fetchCached(activeForm.url, { forceRefresh: retryAttempt > 0 }).then(async data => {
                 if (!mounted) return;
                 if (!data) {
-                    setLoadError("A Pokédex não conseguiu abrir esta forma agora. Tente novamente em instantes.");
+                    setLoadError("A Pokédex não conseguiu abrir este Pokémon agora. Tente novamente em instantes.");
                     return;
                 }
                 let moves = data.moves || [];
@@ -148,7 +148,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                 }
                 
                 if (mounted) setFormData({ ...data, moves });
-            }).catch(() => mounted && setLoadError("A Pokédex não conseguiu abrir esta forma agora. Tente novamente em instantes."));
+            }).catch(() => mounted && setLoadError("A Pokédex não conseguiu abrir este Pokémon agora. Tente novamente em instantes."));
         }
         return () => mounted = false;
     }, [activeForm, baseInfo, retryAttempt]);
@@ -392,7 +392,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                         <dd>{fact.value}{fact.note && <small>{fact.note}</small>}</dd>
                                     </div>)}
                                 </dl>
-                                <dl className="record-measurements" aria-label="Medidas desta forma">
+                                <dl className="record-measurements" aria-label="Medidas deste Pokémon">
                                     <div><dt>Altura</dt><dd>{formatNumberPtBr((formData.height || 0) / 10)} m</dd></div>
                                     <div><dt>Peso</dt><dd>{formatNumberPtBr((formData.weight || 0) / 10)} kg</dd></div>
                                 </dl>
@@ -501,7 +501,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                 </div>
                                 <div className="record-moves-list">
                                     {legalMoves.map(move => <MoveAccordion key={`${moveVersion}-${move.move?.name}`} moveData={move} versionGroup={selectedMoveGame} isTTRPG={isTTRPG} />)}
-                                    {!legalMoves.length && <p className="record-section-note">A Pokédex ainda não tem movimentos registrados para esta forma.</p>}
+                                    {!legalMoves.length && <p className="record-section-note">A Pokédex ainda não tem movimentos registrados para este Pokémon.</p>}
                                 </div>
                             </div>
                         )}

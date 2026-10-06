@@ -45,5 +45,5 @@ test("persistent-form catalogue is complete, deterministic and excludes collapse
     "furfrou-heart",
     "alcremie-rainbow-swirl-star-sweet",
     "ursaluna-bloodmoon",
-  ]) assert.equal(names.has(name), true, `${name} must be independently selectable`);
+  ]) assert.equal(names.has(name), true, `${name} must remain available in the technical form catalogue`);
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { DEX_GENERATIONS, debutGeneration, dexEntryRegion, normalizeDexSearch, parseDexRange, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
+import { DEX_GENERATIONS, debutGeneration, dexEntryGeneration, dexEntryRegion, normalizeDexSearch, parseDexRange, selectDexSpecies, urlForView, viewFromUrl } from "../src/core/dexCollection.js";
 const species = [[25, "pikachu"], [122, "mr-mime"], [29, "nidoran-f"], [83, "farfetchd"], [1, "bulbasaur"]].map(([id, name]) => ({ name, url: `https://pokeapi.co/api/v2/pokemon-species/${id}/` }));
 
 test("generation filters respect every National Dex debut boundary, including Hisui and Pecharunt", () => {
@@ -35,8 +35,9 @@ test("dex search accepts explicit National Dex intervals and keeps fixed forms w
     { name: "raichu", url: "https://pokeapi.co/api/v2/pokemon-species/26/" },
     { name: "sandshrew", url: "https://pokeapi.co/api/v2/pokemon-species/27/" },
   ];
-  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
-  assert.deepEqual(selectDexSpecies(catalogue, { query: "#0026 a #0019" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26" }).map(p => p.name), ["rattata", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26", variantMode: "separate" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "#0026 a #0019" }).map(p => p.name), ["rattata", "raichu"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "19..26", generation: "7" }).map(p => p.name), ["rattata-alola"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "1026-1030" }), []);
 });
@@ -58,6 +59,41 @@ test("dex filters support open ranges, multiple types and optional regional segr
   assert.deepEqual(selectDexSpecies(catalogue, { variantMode: "separate", regions: ["alola"] }).map(p => p.name), ["rattata-alola"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "alola" }).map(p => p.name), ["rattata-alola"]);
   assert.equal(dexEntryRegion(catalogue[1]), "alola");
+});
+
+test("generation of debut belongs to the entry or variant actually shown", () => {
+  const catalogue = [
+    { name: "basculin", speciesName: "basculin", speciesId: 550, isPrimarySpecies: true, generation: 5, types: ["water"] },
+    { name: "basculin-white-striped", speciesName: "basculin", speciesId: 550, isPrimarySpecies: false, formKey: "basculin-white-striped", formIdentifier: "white-striped", generation: 8, types: ["water"] },
+    { name: "ursaluna", speciesName: "ursaluna", speciesId: 901, isPrimarySpecies: true, generation: 8, types: ["ground", "normal"] },
+    { name: "ursaluna-bloodmoon", speciesName: "ursaluna", speciesId: 901, isPrimarySpecies: false, formKey: "ursaluna-bloodmoon", formIdentifier: "bloodmoon", generation: 9, types: ["ground", "normal"] },
+  ];
+
+  assert.equal(dexEntryGeneration(catalogue[0]).id, "5");
+  assert.equal(dexEntryGeneration(catalogue[1]).id, "8");
+  assert.equal(dexEntryGeneration(catalogue[2]).id, "8");
+  assert.equal(dexEntryGeneration(catalogue[3]).id, "9");
+
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "5" }).map(p => p.name), ["basculin"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "8" }).map(p => p.name), ["basculin-white-striped", "ursaluna"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "9" }).map(p => p.name), ["ursaluna-bloodmoon"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "8", variantMode: "separate" }).map(p => p.name), ["basculin-white-striped", "ursaluna"]);
+});
+
+test("region means the region of a regional variant, never every Pokemon associated with that region", () => {
+  const catalogue = [
+    { name: "rattata", speciesName: "rattata", speciesId: 19, isPrimarySpecies: true, generation: 1 },
+    { name: "rattata-alola", speciesName: "rattata", speciesId: 19, isPrimarySpecies: false, formKey: "rattata-alola", generation: 7 },
+    { name: "rowlet", speciesName: "rowlet", speciesId: 722, isPrimarySpecies: true, generation: 7 },
+    { name: "pikachu-alola-cap", speciesName: "pikachu", speciesId: 25, isPrimarySpecies: false, formKey: "pikachu-alola-cap", generation: 7 },
+    { name: "raticate-totem-alola", speciesName: "raticate", speciesId: 20, isPrimarySpecies: false, formKey: "raticate-totem-alola", generation: 7 },
+  ];
+  assert.equal(dexEntryRegion(catalogue[0]), "");
+  assert.equal(dexEntryRegion(catalogue[1]), "alola");
+  assert.equal(dexEntryRegion(catalogue[2]), "");
+  assert.equal(dexEntryRegion(catalogue[3]), "");
+  assert.equal(dexEntryRegion(catalogue[4]), "");
+  assert.deepEqual(selectDexSpecies(catalogue, { regions: ["alola"] }).map(p => p.name), ["rattata-alola"]);
 });
 
 test("fixed forms have independent favorites while legacy numeric species favorites remain valid", () => {

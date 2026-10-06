@@ -30,6 +30,7 @@ test("forms that function as different Pokemon can be listed separately", () => 
     { name: "ursaluna-bloodmoon", speciesId: 901 },
     { name: "basculegion-female", speciesId: 902 },
     { name: "oinkologne-female", speciesId: 916 },
+    { name: "squawkabilly-yellow-plumage", speciesId: 931 },
     { name: "tatsugiri-droopy", speciesId: 978 },
     { name: "gimmighoul-roaming", speciesId: 999 },
     { name: "pikachu-starter", speciesId: 25 },

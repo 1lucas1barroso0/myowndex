@@ -94,11 +94,9 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         return ()=>{ alive.current=false; clearTimeout(unlockTimer.current); window.removeEventListener("storage",sync); window.removeEventListener("myowndex:storage",syncHere);window.removeEventListener("myowndex:account-document",accountDocumentChanged);window.removeEventListener("myowndex:account-apply-start",accountApplyChanged);window.removeEventListener("myowndex:account-apply-end",accountApplyChanged); };
     },[inAdventure]);
     const configuration=useMemo(()=>{ try { return {spec:localRollSpec(draft)}; } catch(e) { return {error:e.message}; } },[draft]);
-    const successOdds=useMemo(()=>{
-        if(!configuration.spec)return null;
-        const odds=localRollOdds(configuration.spec);
-        return typeof odds.success==="number" ? odds.success : null;
-    },[configuration]);
+    const successOdds=configuration.spec
+        ? (() => { const odds=localRollOdds(configuration.spec); return typeof odds.success==="number" ? odds.success : null; })()
+        : null;
     useEffect(()=>{ if(ready && configuration.spec) writeStorage(preferenceKey,configuration.spec); },[configuration,ready]);
     const update=(key,value)=>setDraft(current=>({...current,[key]:value}));
     const roll=async event=>{

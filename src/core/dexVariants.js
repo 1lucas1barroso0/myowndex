@@ -81,3 +81,21 @@ export const getDexVariantMeta = entry => {
 };
 
 export const shouldSeparateDexVariant = entry => getDexVariantMeta(entry).separable;
+
+export const getSamePokemonForms = (varieties, speciesId, { currentName = "", currentFormKey = "" } = {}) => {
+    const values = Array.isArray(varieties) ? varieties : [];
+    const id = Number(speciesId);
+    if (!Number.isInteger(id) || id < 1) return [];
+
+    const current = values.find(entry => entry?.pokemon?.name === currentName);
+    const currentIdentity = currentFormKey || current?.pokemon?.name || currentName;
+    const currentIsSeparateVariant = Boolean(
+        currentIdentity
+        && getDexVariantMeta({ name: currentIdentity, speciesId: id }).separable
+        && (currentFormKey || current?.is_default === false)
+    );
+    if (currentIsSeparateVariant) return current ? [current] : [];
+
+    return values.filter(entry => entry?.is_default
+        || !getDexVariantMeta({ name: entry?.pokemon?.name, speciesId: id }).separable);
+};

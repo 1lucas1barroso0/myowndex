@@ -31,6 +31,7 @@ const DISTINCT_VARIANT_SPECIES = new Set([
 
 // Individual exceptional forms whose species also has ordinary/cosmetic forms.
 const DISTINCT_SPECIAL_NAMES = new Set([
+    "pikachu-starter",
     "eevee-starter",
     "pichu-spiky-eared",
     "rockruff-own-tempo",
@@ -39,7 +40,7 @@ const DISTINCT_SPECIAL_NAMES = new Set([
 
 const REGIONAL_PATTERNS = Object.freeze([
     ["alola", /-alola$/],
-    ["galar", /-galar$/],
+    ["galar", /-galar(?:-standard)?$/],
     ["hisui", /-hisui$/],
     ["paldea", /-paldea$/],
     ["paldea", /^tauros-paldea-(?:combat|blaze|aqua)-breed$/],

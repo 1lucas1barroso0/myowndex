@@ -6,7 +6,7 @@ import { getLearnsetGames, resolveLearnsetGame } from '../../core/referenceGames
 import pokedexEntries from '../../data/pokedex-entries.json';
 import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
-import { getDexVariantMeta } from '../../core/dexVariants.js';
+import { getDexVariantMeta, getSamePokemonForms } from '../../core/dexVariants.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
@@ -229,16 +229,11 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
         baseInfo?.id && formIdentity?.formKey
         && getDexVariantMeta({ name: formIdentity.formKey, speciesId: baseInfo.id }).separable
     ), [baseInfo?.id, formIdentity?.formKey]);
-    const visibleVarieties = useMemo(() => {
-        const varieties = Array.isArray(baseInfo?.varieties) ? baseInfo.varieties : [];
-        if (!baseInfo?.id) return varieties;
-        if (selectedIdentityIsVariant) {
-            const selectedName = formIdentity?.pokemonName || activeForm?.name;
-            return varieties.filter(variety => variety.pokemon?.name === selectedName);
-        }
-        return varieties.filter(variety => variety.is_default
-            || !getDexVariantMeta({ name: variety.pokemon?.name, speciesId: baseInfo.id }).separable);
-    }, [baseInfo?.id, baseInfo?.varieties, selectedIdentityIsVariant, formIdentity?.pokemonName, activeForm?.name]);
+    const visibleVarieties = useMemo(() => getSamePokemonForms(
+        baseInfo?.varieties,
+        baseInfo?.id,
+        { currentName: formIdentity?.pokemonName || activeForm?.name || "", currentFormKey: formIdentity?.formKey || "" },
+    ), [baseInfo?.id, baseInfo?.varieties, formIdentity?.pokemonName, formIdentity?.formKey, activeForm?.name]);
 
     const learnsetGames = useMemo(() => getLearnsetGames(formData?.moves || []), [formData?.moves]);
     const moveVersion = resolveLearnsetGame(formData?.moves || [], learnsetVersion);

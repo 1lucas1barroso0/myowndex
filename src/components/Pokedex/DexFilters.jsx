@@ -45,12 +45,12 @@ export default function DexFilters({
         </div>
 
         <details className="dex-more-filters">
-            <summary>Refinar Pokédex{activeCount ? <span>{activeCount}</span> : null}</summary>
+            <summary>Mais filtros{activeCount ? <span>{activeCount}</span> : null}</summary>
             <div className="dex-filter-body">
                 <section className="dex-filter-section" aria-labelledby="dex-types-title">
                     <div className="dex-filter-heading">
                         <strong id="dex-types-title">Tipos</strong>
-                        <small>Escolha um ou dois. Com dois, o Pokémon precisa ter ambos.</small>
+                        <small>Escolha até dois tipos. Se escolher dois, o Pokémon precisa ter os dois.</small>
                     </div>
                     <div className="dex-type-grid" role="group" aria-label="Filtrar por tipos">
                         {TYPES.filter(type => type !== "stellar").map(type => <button
@@ -66,13 +66,13 @@ export default function DexFilters({
                 <section className="dex-filter-section" aria-labelledby="dex-variants-title">
                     <div className="dex-filter-heading">
                         <strong id="dex-variants-title">Variantes</strong>
-                        <small>A Pokédex fica agrupada por padrão. Separe somente variantes não intercambiáveis que funcionam como Pokémon diferentes. Formas trocáveis e diferenças apenas visuais continuam na ficha.</small>
+                        <small>Normalmente, cada Pokémon aparece uma vez. Separe apenas as variantes que são Pokémon diferentes.</small>
                     </div>
                     <div className="dex-segmented" role="group" aria-label="Como mostrar variantes">
-                        <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => { onVariantModeChange("grouped"); onRegionsChange([]); }}>Agrupadas</button>
-                        <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Separar variantes distintas</button>
+                        <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => { onVariantModeChange("grouped"); onRegionsChange([]); }}>Juntas</button>
+                        <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Separar variantes</button>
                     </div>
-                    <p className="dex-filter-note">Formas intercambiáveis nunca viram entradas extras, mesmo quando a troca altera mecânicas. Diferenças puramente estéticas também continuam dentro da ficha.</p><div className="dex-region-grid" role="group" aria-label="Filtrar variantes regionais">
+                    <p className="dex-filter-note">Se o mesmo Pokémon pode trocar de forma, ela continua na mesma ficha. Mudanças só de aparência também ficam juntas.</p><div className="dex-region-grid" role="group" aria-label="Filtrar variantes regionais">
                         {DEX_REGIONS.map(region => <button
                             key={region.id}
                             type="button"
@@ -83,7 +83,7 @@ export default function DexFilters({
                 </section>
 
                 <fieldset className="dex-range-fields">
-                    <legend>Número na National Dex</legend>
+                    <legend>Número na Pokédex Nacional</legend>
                     <label><span>A partir de</span><input type="number" inputMode="numeric" min="1" max="1025" step="1" value={minNumber} onChange={event => onMinNumberChange(event.target.value)} /></label>
                     <label><span>Até</span><input type="number" inputMode="numeric" min="1" max="1025" step="1" value={maxNumber} onChange={event => onMaxNumberChange(event.target.value)} /></label>
                 </fieldset>

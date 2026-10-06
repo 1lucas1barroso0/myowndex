@@ -4,7 +4,7 @@ A 2.0.5 conclui a atualização de identificação, listagem, busca e leitura qu
 
 ## Pokédex
 
-A visualização normal continua com uma entrada principal por número da National Dex. A segregação adicionada nesta fase foi refinada na 2.0.6: apenas variantes que funcionam como Pokémon distintos em mecânica e identidade podem ser separadas. Diferenças apenas estéticas permanecem dentro da entrada da espécie, independentemente de serem intercambiáveis.
+A visualização normal continua com uma entrada principal por número da National Dex. A segregação adicionada nesta fase foi refinada na 2.0.6: apenas variantes **não intercambiáveis** que funcionam como Pokémon distintos em mecânica e identidade podem ser separadas. Formas intercambiáveis e diferenças apenas estéticas permanecem dentro da entrada da espécie.
 
 Em **Refinar Pokédex**, o jogador pode:
 

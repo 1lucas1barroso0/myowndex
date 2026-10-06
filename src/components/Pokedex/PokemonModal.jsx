@@ -6,6 +6,7 @@ import { getLearnsetGames, resolveLearnsetGame } from '../../core/referenceGames
 import pokedexEntries from '../../data/pokedex-entries.json';
 import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
+import { getDexVariantMeta } from '../../core/dexVariants.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
@@ -224,6 +225,21 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
         if (!dialogRef.current?.contains(document.activeElement)) closeRef.current?.focus({ preventScroll: true });
     }, [phase]);
 
+    const selectedIdentityIsVariant = useMemo(() => Boolean(
+        baseInfo?.id && formIdentity?.formKey
+        && getDexVariantMeta({ name: formIdentity.formKey, speciesId: baseInfo.id }).separable
+    ), [baseInfo?.id, formIdentity?.formKey]);
+    const visibleVarieties = useMemo(() => {
+        const varieties = Array.isArray(baseInfo?.varieties) ? baseInfo.varieties : [];
+        if (!baseInfo?.id) return varieties;
+        if (selectedIdentityIsVariant) {
+            const selectedName = formIdentity?.pokemonName || activeForm?.name;
+            return varieties.filter(variety => variety.pokemon?.name === selectedName);
+        }
+        return varieties.filter(variety => variety.is_default
+            || !getDexVariantMeta({ name: variety.pokemon?.name, speciesId: baseInfo.id }).separable);
+    }, [baseInfo?.id, baseInfo?.varieties, selectedIdentityIsVariant, formIdentity?.pokemonName, activeForm?.name]);
+
     const learnsetGames = useMemo(() => getLearnsetGames(formData?.moves || []), [formData?.moves]);
     const moveVersion = resolveLearnsetGame(formData?.moves || [], learnsetVersion);
     const legalMoves = useMemo(() => filterMovesByLatestVersion(formData?.moves || [], learnsetVersion), [formData?.moves, learnsetVersion]);
@@ -275,9 +291,9 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                 <div className="pokemon-modal-overview record-overview">
                     
                     <header className="record-header">
-                        <div className="record-cartridge-label"><span aria-hidden="true" /><small>Pokédex nacional</small><b>No. {String(baseInfo.id).padStart(4, "0")}</b></div>
+                        <div className="record-cartridge-label"><span aria-hidden="true" /><small>Pokédex Nacional</small><b>No. {String(baseInfo.id).padStart(4, "0")}</b></div>
                         <h2 id={titleId}>{formatName(baseInfo.name)}</h2>
-                        {(formIdentity?.formKey || activeForm?.name !== baseInfo.name) && <p className="record-form-label">Forma {formatName((formIdentity?.formKey || activeForm.name).replace(`${baseInfo.name}-`, ""))}</p>}
+                        {(formIdentity?.formKey || activeForm?.name !== baseInfo.name) && <p className="record-form-label">{selectedIdentityIsVariant ? "Variante" : "Forma"} {formatName((formIdentity?.formKey || activeForm.name).replace(`${baseInfo.name}-`, ""))}</p>}
                     </header>
                     <div className="record-sprite-stage">
                         <span className="record-sprite-ground" aria-hidden="true" />
@@ -406,11 +422,11 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                     <div className="record-abilities-list">{formData.abilities?.map((a, i) => <AbilityCard key={a.ability?.name || i} name={a.ability?.name} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
                                 </div>
                                 
-                                {baseInfo.varieties?.length > 1 && (
+                                {visibleVarieties.length > 1 && (
                                     <div>
-                                        <h3 className="record-section-title">Formas</h3>
+                                        <h3 className="record-section-title">Formas do mesmo Pokémon</h3>
                                         <div className="record-form-options">
-                                            {baseInfo.varieties.map((v, index) => {
+                                            {visibleVarieties.map((v, index) => {
                                                 const formSlug = (v.pokemon?.name || "").replace(baseInfo.name + "-", "");
                                                 const btnName = v.pokemon?.name === baseInfo.name || !formSlug
                                                     ? "Forma base"

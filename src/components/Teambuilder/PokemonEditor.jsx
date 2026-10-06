@@ -9,7 +9,7 @@ import { finiteNumberOrNull, integerInRange } from '../../core/math.js';
 import { randomChance, randomChoice, randomInt } from '../../core/random.js';
 import { getPokemonConsumedItem, replacePokemonHeldItem, RPG_STATUSES } from '../../core/team.js';
 import { getMoveReferenceForMode, resolveLearnsetGame } from '../../core/referenceGames.js';
-import { getDexVariantMeta } from '../../core/dexVariants.js';
+import { getSamePokemonForms } from '../../core/dexVariants.js';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
 import RoomSelect from '../Shared/RoomSelect.jsx';
 import ReferenceText from '../Shared/ReferenceText.jsx';
@@ -198,19 +198,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         () => new Set(validAbs.map(ability => typeof ability === "string" ? ability : ability?.name).filter(Boolean)),
         [validAbs],
     );
-    const forms = useMemo(() => {
-        const varieties = Array.isArray(speciesProfile?.varieties) ? speciesProfile.varieties : [];
-        const speciesId = Number(speciesProfile?.id);
-        if (!Number.isInteger(speciesId)) return varieties;
-        const current = varieties.find(entry => entry.pokemon?.name === pk.species?.name);
-        const currentIdentity = pk.formKey || current?.pokemon?.name || pk.species?.name || "";
-        const currentIsSeparateVariant = Boolean(currentIdentity
-            && getDexVariantMeta({ name: currentIdentity, speciesId }).separable
-            && (pk.formKey || current?.is_default === false));
-        if (currentIsSeparateVariant) return current ? [current] : [];
-        return varieties.filter(entry => entry.is_default
-            || !getDexVariantMeta({ name: entry.pokemon?.name, speciesId }).separable);
-    }, [speciesProfile, pk.species?.name, pk.formKey]);
+    const forms = useMemo(() => getSamePokemonForms(
+        speciesProfile?.varieties,
+        speciesProfile?.id,
+        { currentName: pk.species?.name || "", currentFormKey: pk.formKey || "" },
+    ), [speciesProfile?.varieties, speciesProfile?.id, pk.species?.name, pk.formKey]);
 
     useEffect(() => {
         const defaultAbility = pk.species?.abilities?.[0]?.ability?.name || "";

@@ -34,7 +34,7 @@ export default function DexFilters({
 
     return <section className="dex-filters-panel" aria-label="Filtros da Pokédex">
         <div className="dex-generations" role="group" aria-label="Filtrar por geração de estreia">
-            <span>Geração</span>
+            <span>Geração de estreia</span>
             {DEX_GENERATIONS.map(gen => <button
                 key={gen.id}
                 type="button"
@@ -66,13 +66,13 @@ export default function DexFilters({
                 <section className="dex-filter-section" aria-labelledby="dex-variants-title">
                     <div className="dex-filter-heading">
                         <strong id="dex-variants-title">Variantes</strong>
-                        <small>Escolha como a lista mostra variantes que o MyOwnDex trata como Pokémon diferentes.</small>
+                        <small>Variantes são alternativas que o MyOwnDex trata como Pokémon diferentes.</small>
                     </div>
                     <div className="dex-segmented" role="group" aria-label="Como mostrar variantes">
                         <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => { onVariantModeChange("grouped"); onRegionsChange([]); }}>Uma entrada</button>
                         <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Mostrar variantes</button>
                     </div>
-                    <p className="dex-filter-note">Uma entrada evita repetição na lista. Formas que o mesmo Pokémon pode trocar e mudanças só de aparência continuam sempre na mesma ficha.</p><div className="dex-region-grid" role="group" aria-label="Filtrar variantes regionais">
+                    <p className="dex-filter-note">Uma entrada mantém a lista compacta. Formas que o mesmo Pokémon pode trocar e mudanças só de aparência continuam sempre na mesma ficha.</p><div className="dex-filter-heading"><strong>Região da variante</strong><small>Só vale para variantes regionais. Um Pokémon comum não entra só por ter estreado nessa região.</small></div><div className="dex-region-grid" role="group" aria-label="Filtrar por região da variante">
                         {DEX_REGIONS.map(region => <button
                             key={region.id}
                             type="button"

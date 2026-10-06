@@ -41,6 +41,7 @@ export default function DexFilters({
                 onClick={() => onGenerationChange(gen.id)}
             >{gen.label}</button>)}
         </div>
+        <p className="dex-generation-note">A geração de estreia é a primeira geração desta entrada ou variante. Uma variante pode ter estreado depois da entrada original.</p>
 
         <details className="dex-more-filters">
             <summary>Mais filtros{activeCount ? <span>{activeCount}</span> : null}</summary>

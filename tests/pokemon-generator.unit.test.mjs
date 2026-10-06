@@ -71,6 +71,20 @@ test('generator can restrict random encounters to a regional variant family', ()
     assert.equal(normalizeGeneratorOptions({ region: 'invented' }).region, '');
 });
 
+test('generator debut generation follows the entry or eligible variant, and region means regional variant only', () => {
+    const entries = [
+        { name: 'basculin', speciesId: 550, generation: 5, types: ['water'], url: `${API}pokemon-species/550/` },
+        { name: 'basculin-white-striped', speciesId: 550, formKey: 'basculin-white-striped', formIdentifier: 'white-striped', generation: 8, types: ['water'], url: `${API}pokemon-species/550/` },
+        { name: 'rattata-alola', speciesId: 19, formKey: 'rattata-alola', formIdentifier: 'alola', generation: 7, types: ['dark', 'normal'], url: `${API}pokemon-species/19/` },
+        { name: 'rowlet', speciesId: 722, generation: 7, types: ['grass', 'flying'], url: `${API}pokemon-species/722/` },
+        { name: 'pikachu-alola-cap', speciesId: 25, formKey: 'pikachu-alola-cap', formIdentifier: 'alola-cap', generation: 7, types: ['electric'], url: `${API}pokemon-species/25/` },
+    ];
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { generation: 5 }).map(entry => entry.name), ['basculin']);
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { generation: 8 }).map(entry => entry.name), ['basculin-white-striped']);
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { generation: 7, region: 'alola' }).map(entry => entry.name), ['rattata-alola']);
+    assert.deepEqual(getGeneratorSpeciesPool(entries, { region: 'alola' }).map(entry => entry.name), ['rattata-alola']);
+});
+
 test('form type filters use the selected historical game instead of current typing', () => {
     const rotomWash = {
         name: 'rotom-wash', speciesId: 479, formKey: 'rotom-wash', generation: 4,

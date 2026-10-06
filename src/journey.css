@@ -109,7 +109,8 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame { displa
 html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame img { width: 112px !important; height: 112px !important; object-fit: contain !important; }
 html .app-root.game-edition.handheld-edition .dex-entry-main:hover img { animation: journey-partner-hop .7s steps(2,end) infinite !important; }
 html .app-root.game-edition.handheld-edition .pokemon-card-name { font-size: 1rem !important; font-weight: 800 !important; text-transform: capitalize !important; }
-html .app-root.game-edition.handheld-edition .dex-generation-mark { font-size: .875rem !important; color: var(--ui-muted) !important; margin-top: .35rem !important; }
+html .app-root.game-edition.handheld-edition .dex-variant-mark { display:block; margin-top:.3rem; color:var(--ui-blue); font-size:.78rem; font-weight:750; line-height:1.3; text-wrap:pretty; }
+html .app-root.game-edition.handheld-edition .dex-generation-mark { display:block; font-size:.8rem !important; line-height:1.3; color:var(--ui-muted) !important; margin-top:.2rem !important; text-wrap:pretty; }
 html .app-root.game-edition.handheld-edition .dex-favorite { position: absolute !important; right: .25rem !important; top: .25rem !important; display: grid !important; place-items: center !important; width: 44px !important; height: 44px !important; border: 0 !important; border-radius: .25rem !important; background: transparent !important; color: var(--ui-muted) !important; }
 html .app-root.game-edition.handheld-edition .dex-favorite[aria-pressed="true"] svg { fill: #f2c655 !important; color: #815c00 !important; }
 html .app-root.game-edition.handheld-edition .dex-empty { display: grid !important; justify-items: center !important; gap: 1rem !important; padding: 3rem 1rem !important; text-align: center !important; }

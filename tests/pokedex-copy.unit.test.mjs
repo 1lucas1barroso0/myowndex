@@ -16,6 +16,11 @@ test("Pokédex filter instructions stay simple and player-facing", async () => {
   assert.match(filters, />Mostrar variantes<\/button>/);
   assert.match(filters, /Número na Pokédex Nacional/);
   assert.doesNotMatch(filters, /intercambi[aá]vel|segrega(?:ção|r)|identidade narrativa|mecânicas próprias/i);
+  const regionToggle = filters.slice(filters.indexOf("const toggleRegion"), filters.indexOf("return <section"));
+  assert.doesNotMatch(regionToggle, /onVariantModeChange/, "region is a filter, not a display mode");
+  const compactButton = filters.match(/<button type="button" aria-pressed=\{variantMode === "grouped"\}[^>]*>Uma entrada<\/button>/)?.[0] || "";
+  assert.ok(compactButton);
+  assert.doesNotMatch(compactButton, /onRegionsChange/, "display mode never clears a real filter");
 
   assert.match(app, /Buscar por nome, número ou intervalo/);
   assert.match(app, /Geração de estreia/);

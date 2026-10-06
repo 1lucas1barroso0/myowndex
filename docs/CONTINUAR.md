@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.6.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.7.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -57,6 +57,8 @@ A busca por geração usa a estreia da forma quando ela é conhecida, sem reescr
 A revisão 2.0.5 concluiu a atualização de descoberta da Pokédex: filtros por tipo, região e intervalo, busca de variantes, explicações simples nas 40 regras, Diário da aventura, Amizade ±5/±50 e ícones sem cantos transparentes. Veja `docs/POKEDEX-CLARA-2.0.5.md`.
 
 A revisão 2.0.6 fixa a regra atual de variantes com **duas travas obrigatórias**. Uma forma só pode receber a nova segregação quando é **não intercambiável** e também funciona como um Pokémon distinto para o jogo e para a identidade narrativa, com diferenças mecânicas próprias relevantes. Se o mesmo indivíduo pode trocar entre as formas, elas permanecem agrupadas mesmo quando a troca altera mecânicas. Diferenças puramente estéticas também permanecem agrupadas, sejam permanentes ou não. Variantes regionais continuam separáveis. O Gerador usa a mesma fronteira. Nenhuma migração de Boxes, favoritos, contas, códigos ou aventuras é necessária. Veja `docs/VARIANTES-2.0.6.md`.
+
+A revisão 2.0.7 fecha a camada de confiabilidade dos filtros da Pokédex. Busca, favoritos, ordem, geração, até dois tipos, regiões, variantes e intervalos são exercitados em uma matriz de combinações. A interface usa frases curtas e evita termos técnicos quando fala diretamente com o jogador. Estados antigos ou inválidos de geração, região e ordem voltam a valores seguros. O release também corrige versões de dependências que haviam sido alteradas por engano no `package-lock.json` e adiciona uma verificação para impedir nova divergência entre pacote, lockfile, aplicativo, cache offline e documentação. Veja `docs/FILTROS-E-CLAREZA-2.0.7.md`.
 
 ## Documentos históricos
 

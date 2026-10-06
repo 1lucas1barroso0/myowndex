@@ -49,17 +49,17 @@ const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorit
     const formLabel = species.formIdentifier ? formatName(species.formIdentifier) : "";
     const identityName = formLabel ? `${displayName} · ${formLabel}` : displayName;
     const variantLabel = region
-        ? `Variante regional · ${formatName(region)} · Geração de estreia ${generation?.label || "?"}`
-        : species.isPrimarySpecies === false
-            ? `Variante · ${formLabel || displayName} · Geração de estreia ${generation?.label || "?"}`
-            : generation ? `Geração de estreia ${generation.label}` : "Pokédex Nacional";
+        ? `Variante regional · ${formatName(region)}`
+        : species.isPrimarySpecies === false ? `Variante · ${formLabel || displayName}` : "";
+    const debutLabel = generation ? `Geração de estreia ${generation.label}` : "Pokédex Nacional";
     return (
         <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={generation?.id} data-form={formLabel ? "named" : "base"}>
             <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${identityName} na Pokédex`}>
                 <span className="dex-number">No. {String(dexNumber).padStart(4, "0")}</span>
                 <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={spriteId} spriteKey={species.spriteKey} alt="" className="pixelated" /></span>
                 <span className="pokemon-card-name">{displayName}</span>
-                <span className="dex-generation-mark">{variantLabel}</span>
+                {variantLabel && <span className="dex-variant-mark">{variantLabel}</span>}
+                <span className="dex-generation-mark">{debutLabel}</span>
             </button>
             <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${identityName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
         </article>

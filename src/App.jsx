@@ -2,6 +2,7 @@ import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useSt
 import dynamic from "next/dynamic";
 import bundledSpecies from "./data/species.json";
 import fixedFormCatalogue from "./data/forms.json";
+import speciesMetadata from "./data/generator-species.json";
 import { integerInRange } from "./core/math.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { compactSpecies, createTeam, hydrateTeam, loadTeamsDurable, mergeHydratedTeams, normalizePokemon, saveTeamsDurable, touchTeam } from "./core/team.js";
@@ -15,11 +16,13 @@ import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
 import PokemonCompanion from "./components/Shared/PokemonCompanion.jsx";
 import GameIcon from "./components/Shared/GameIcon.jsx";
-import { DEX_GENERATIONS, dexEntryFavoriteKey, dexEntryGeneration, dexEntryNumber, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
+import DexFilters from "./components/Pokedex/DexFilters.jsx";
+import { dexEntryFavoriteKey, dexEntryGeneration, dexEntryNumber, dexEntryRegion, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
+import { getDexVariantMeta } from "./core/dexVariants.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.4";
+const APP_VERSION = "2.0.5";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 const formatDexResultCount = (speciesCount, formCount) => {
@@ -42,15 +45,17 @@ const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorit
     const generation = dexEntryGeneration(species);
     const spriteId = Number(species.pokemonId || dexNumber);
     const displayName = formatName(species.speciesName || species.name);
+    const region = dexEntryRegion(species);
     const formLabel = species.formIdentifier ? formatName(species.formIdentifier) : "";
     const identityName = formLabel ? `${displayName} · ${formLabel}` : displayName;
+    const variantLabel = region ? `Regional · ${formatName(region)}` : formLabel ? `Variante · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional";
     return (
         <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={generation?.id} data-form={formLabel ? "named" : "base"}>
             <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${identityName} na Pokédex`}>
                 <span className="dex-number">No. {String(dexNumber).padStart(4, "0")}</span>
                 <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={spriteId} spriteKey={species.spriteKey} alt="" className="pixelated" /></span>
                 <span className="pokemon-card-name">{displayName}</span>
-                <span className="dex-generation-mark">{formLabel ? `Forma · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional"}</span>
+                <span className="dex-generation-mark">{variantLabel}</span>
             </button>
             <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${identityName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
         </article>
@@ -115,31 +120,35 @@ export default function App() {
 const attachFixedForms = catalogue => {
     const source = Array.isArray(catalogue) ? catalogue : [];
     const names = new Map(source.map(entry => [Number(extractId(entry.url)), entry.name]));
-    const defaults = new Map((fixedFormCatalogue.defaults || []).map(entry => [entry.speciesId, entry]));
     const base = source.map(entry => {
         const speciesId = Number(extractId(entry.url));
-        const form = defaults.get(speciesId);
+        const meta = speciesMetadata[speciesId] || {};
         return {
             ...entry,
             speciesId,
             pokemonId: speciesId,
             speciesName: entry.name,
             isPrimarySpecies: true,
-            formKey: form?.name || "",
-            formId: form?.formId || null,
-            formIdentifier: form?.formIdentifier || "",
-            spriteKey: form?.spriteKey || String(speciesId),
-            ...(form?.generation ? { generation: form.generation } : {}),
+            types: meta.types || [],
+            pastTypes: meta.pastTypes || [],
+            formKey: "",
+            formId: null,
+            formIdentifier: "",
+            spriteKey: String(speciesId),
         };
     });
-    const forms = (fixedFormCatalogue.entries || []).map(entry => ({
-        ...entry,
-        speciesName: names.get(entry.speciesId) || entry.pokemonName,
-        isPrimarySpecies: false,
-        formKey: entry.name,
-        url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
-    }));
-    return [...base, ...forms];
+    const variants = [...(fixedFormCatalogue.defaults || []), ...(fixedFormCatalogue.entries || [])]
+        .map(entry => ({ entry, variant: getDexVariantMeta(entry) }))
+        .filter(({ variant }) => variant.separable)
+        .map(({ entry, variant }) => ({
+            ...entry,
+            ...variant,
+            speciesName: names.get(entry.speciesId) || entry.pokemonName,
+            isPrimarySpecies: false,
+            formKey: entry.name,
+            url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
+        }));
+    return [...base, ...variants];
 };
 
 function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNavigation, receivedDocument }) {
@@ -163,6 +172,11 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const [onlyFavorites, setOnlyFavorites] = useState(false);
     const [dexOrder, setDexOrder] = useState("number");
     const [dexGeneration, setDexGeneration] = useState("all");
+    const [dexTypes, setDexTypes] = useState([]);
+    const [dexRegions, setDexRegions] = useState([]);
+    const [dexVariantMode, setDexVariantMode] = useState("grouped");
+    const [dexMinNumber, setDexMinNumber] = useState("");
+    const [dexMaxNumber, setDexMaxNumber] = useState("");
     const setView = useCallback(next => {
         setViewState(next);
         if (viewFromUrl(window.location.href) !== next) window.history.pushState({}, "", urlForView(window.location.href, next));
@@ -424,7 +438,18 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
         return () => { mounted = false; };
     }, [view, envLoaded]);
 
-    const filteredSpecies = useMemo(() => selectDexSpecies(species, { query: deferredSearchTerm, favorites, onlyFavorites, order: dexOrder, generation: dexGeneration }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder, dexGeneration]);
+    const filteredSpecies = useMemo(() => selectDexSpecies(species, {
+        query: deferredSearchTerm,
+        favorites,
+        onlyFavorites,
+        order: dexOrder,
+        generation: dexGeneration,
+        types: dexTypes,
+        regions: dexRegions,
+        variantMode: dexVariantMode,
+        minNumber: dexMinNumber,
+        maxNumber: dexMaxNumber,
+    }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder, dexGeneration, dexTypes, dexRegions, dexVariantMode, dexMinNumber, dexMaxNumber]);
     const filteredSpeciesCount = useMemo(() => filteredSpecies.filter(entry => entry.isPrimarySpecies !== false).length, [filteredSpecies]);
     const filteredFormCount = filteredSpecies.length - filteredSpeciesCount;
 
@@ -604,10 +629,29 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                     <button type="button" className={`dex-filter ${onlyFavorites ? "is-active" : ""}`} aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setLimit(60); }}><GameIcon name="star" />Favoritos <span>{favorites.length}</span></button>
                                     <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(60); }}><option value="number" aria-label="Número crescente">Número ↑</option><option value="reverse" aria-label="Número decrescente">Número ↓</option><option value="name" aria-label="Nome de A a Z">Nome A–Z</option></select></label>
                                 </div>
-                                <div className="dex-generations" role="group" aria-label="Filtrar por geração de estreia">
-                                    <span>Geração</span>
-                                    {DEX_GENERATIONS.map(gen => <button key={gen.id} type="button" aria-pressed={dexGeneration === gen.id} aria-label={gen.id === "all" ? "Todas as gerações" : `Geração ${gen.label}`} onClick={() => { setDexGeneration(gen.id); setLimit(60); }}>{gen.label}</button>)}
-                                </div>
+                                <DexFilters
+                                    generation={dexGeneration}
+                                    onGenerationChange={value => { setDexGeneration(value); setLimit(60); }}
+                                    types={dexTypes}
+                                    onTypesChange={value => { setDexTypes(value); setLimit(60); }}
+                                    regions={dexRegions}
+                                    onRegionsChange={value => { setDexRegions(value); setLimit(60); }}
+                                    variantMode={dexVariantMode}
+                                    onVariantModeChange={value => { setDexVariantMode(value); setLimit(60); }}
+                                    minNumber={dexMinNumber}
+                                    onMinNumberChange={value => { setDexMinNumber(value); setLimit(60); }}
+                                    maxNumber={dexMaxNumber}
+                                    onMaxNumberChange={value => { setDexMaxNumber(value); setLimit(60); }}
+                                    onReset={() => {
+                                        setDexGeneration("all");
+                                        setDexTypes([]);
+                                        setDexRegions([]);
+                                        setDexVariantMode("grouped");
+                                        setDexMinNumber("");
+                                        setDexMaxNumber("");
+                                        setLimit(60);
+                                    }}
+                                />
                                 {dexError && <StatusNotice tone="amber" actionLabel="Tentar novamente" onAction={() => setDexAttempt(value => value + 1)}>{dexError}</StatusNotice>}
                                 {visible.length ? (
                                     <div className="dex-grid">
@@ -617,7 +661,18 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="dex-empty"><PokemonCompanion place="pokedex-empty" /><p>{onlyFavorites && !favorites.length ? "Você ainda não tem favoritos. Toque na estrela de um Pokémon para adicioná-lo." : "Nenhum Pokémon corresponde aos filtros."}</p><button type="button" className="room-secondary-button" onClick={() => { setSearchInput(""); setSearchTerm(""); setOnlyFavorites(false); setDexGeneration("all"); setLimit(60); }}>Limpar filtros</button></div>
+                                    <div className="dex-empty"><PokemonCompanion place="pokedex-empty" /><p>{onlyFavorites && !favorites.length ? "Você ainda não tem favoritos. Toque na estrela de um Pokémon para adicioná-lo." : "Nenhum Pokémon corresponde aos filtros."}</p><button type="button" className="room-secondary-button" onClick={() => {
+                                        setSearchInput("");
+                                        setSearchTerm("");
+                                        setOnlyFavorites(false);
+                                        setDexGeneration("all");
+                                        setDexTypes([]);
+                                        setDexRegions([]);
+                                        setDexVariantMode("grouped");
+                                        setDexMinNumber("");
+                                        setDexMaxNumber("");
+                                        setLimit(60);
+                                    }}>Limpar filtros</button></div>
                                 )}
                                 {limit < filteredSpecies.length && (
                                     <button type="button" onClick={() => setLimit(value => value + 60)} className="dex-load-more room-secondary-button">

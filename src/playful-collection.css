@@ -23,6 +23,102 @@ html .app-root.game-edition.handheld-edition :is(.dex-filter,.dex-generations bu
 html .app-root.game-edition.handheld-edition .dex-generations {
   gap: .5rem !important;
 }
+html .app-root.game-edition.handheld-edition .dex-filters-panel {
+  display: grid;
+  gap: .65rem;
+  margin-bottom: 1rem;
+}
+html .app-root.game-edition.handheld-edition .dex-more-filters {
+  border: 1px solid var(--ui-line);
+  border-radius: var(--play-radius);
+  background: var(--ui-panel);
+  box-shadow: var(--play-shadow);
+}
+html .app-root.game-edition.handheld-edition .dex-more-filters > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 44px;
+  padding: .7rem .9rem;
+  cursor: pointer;
+  font-weight: 800;
+}
+html .app-root.game-edition.handheld-edition .dex-more-filters > summary::marker { content: ""; }
+html .app-root.game-edition.handheld-edition .dex-more-filters > summary span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.6rem;
+  min-height: 1.6rem;
+  padding-inline: .35rem;
+  border-radius: 999px;
+  background: var(--ui-selected);
+  color: var(--ui-blue);
+  font-size: .8rem;
+}
+html .app-root.game-edition.handheld-edition .dex-filter-body {
+  display: grid;
+  gap: 1rem;
+  padding: .2rem .9rem 1rem;
+}
+html .app-root.game-edition.handheld-edition .dex-filter-section {
+  display: grid;
+  gap: .55rem;
+}
+html .app-root.game-edition.handheld-edition .dex-filter-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .25rem .75rem;
+}
+html .app-root.game-edition.handheld-edition .dex-filter-heading small {
+  color: var(--ui-muted);
+}
+html .app-root.game-edition.handheld-edition :is(.dex-type-grid,.dex-region-grid,.dex-segmented) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+html .app-root.game-edition.handheld-edition :is(.dex-type-grid,.dex-region-grid,.dex-segmented) button {
+  min-height: 40px;
+  padding: .45rem .7rem;
+  border: 1px solid var(--ui-line);
+  border-radius: var(--play-control-radius);
+  background: var(--ui-raised);
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+html .app-root.game-edition.handheld-edition :is(.dex-type-grid,.dex-region-grid,.dex-segmented) button[aria-pressed="true"] {
+  border-color: var(--ui-blue);
+  background: var(--ui-selected);
+  color: var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .dex-range-fields {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: .55rem .75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+html .app-root.game-edition.handheld-edition .dex-range-fields legend {
+  grid-column: 1 / -1;
+  padding: 0;
+  font-weight: 800;
+}
+html .app-root.game-edition.handheld-edition .dex-range-fields label {
+  display: grid;
+  gap: .3rem;
+  min-width: 0;
+}
+html .app-root.game-edition.handheld-edition .dex-range-fields input {
+  width: 100%;
+  min-height: 44px;
+}
+html .app-root.game-edition.handheld-edition .dex-reset-filters {
+  justify-self: start;
+}
 @media (max-width: 540px) {
   html .app-root.game-edition.handheld-edition .dex-heading {
     gap: .5rem !important;
@@ -56,7 +152,13 @@ html .app-root.game-edition.handheld-edition .dex-generations {
   }
   html .app-root.game-edition.handheld-edition .dex-generations {
     gap: .35rem !important;
-    margin-bottom: .85rem !important;
+    margin-bottom: 0 !important;
+  }
+  html .app-root.game-edition.handheld-edition .dex-filter-heading {
+    display: grid;
+  }
+  html .app-root.game-edition.handheld-edition .dex-range-fields {
+    grid-template-columns: 1fr;
   }
 }
 html .app-root.game-edition.handheld-edition .dex-entry-main {

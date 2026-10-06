@@ -26,7 +26,10 @@ test("trainer guide contains exactly 40 distinct rules across every canonical ch
   assert.equal(new Set(rules.map(rule => rule.id)).size, 40);
   assert.equal(new Set(rules.map(rule => rule.title)).size, 40);
   assert.deepEqual(rules.map(rule => rule.id), expectedIds);
-  for (const rule of rules) assert.ok(rule.body || rule.bullets?.length, `${rule.id} must contain its rule`);
+  for (const rule of rules) {
+    assert.ok(rule.body || rule.bullets?.length, `${rule.id} must contain its rule`);
+    assert.ok(typeof rule.plain === "string" && rule.plain.length >= 40, `${rule.id} must start with a plain-language explanation`);
+  }
   assert.equal(RPG_RULE_SECTIONS[2].rules.some(rule => rule.title === "Proteção contra hit kill"), true);
 });
 

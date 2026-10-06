@@ -136,6 +136,15 @@ html .app-root.game-edition.handheld-edition .guide-rule-card > summary {
   padding-left: .5rem !important;
   padding-right: .5rem !important;
 }
+html .app-root.game-edition.handheld-edition .guide-rule-lead {
+  margin: 0 0 .75rem;
+  padding: .7rem .8rem;
+  border-left: 3px solid var(--module-color);
+  border-radius: 0 var(--play-control-radius) var(--play-control-radius) 0;
+  background: color-mix(in srgb,var(--module-color) 8%,var(--ui-panel));
+  font-weight: 700;
+  line-height: 1.5;
+}
 html .app-root.game-edition.handheld-edition .guide-rule-card[open] > summary {
   background: color-mix(in srgb, var(--journey-teal) 8%, var(--ui-panel)) !important;
 }

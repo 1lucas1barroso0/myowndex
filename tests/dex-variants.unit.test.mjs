@@ -66,7 +66,7 @@ test("purely aesthetic forms remain grouped exactly like before the segregation 
   }
 });
 
-test("interchangeable or temporary states remain grouped with the same Pokemon", () => {
+test("interchangeable forms never receive the new segregation, even with mechanical changes", () => {
   for (const entry of [
     { name: "deoxys-attack", speciesId: 386 },
     { name: "rotom-wash", speciesId: 479 },
@@ -78,7 +78,9 @@ test("interchangeable or temporary states remain grouped with the same Pokemon",
     { name: "silvally-fire", speciesId: 773 },
     { name: "ogerpon-wellspring-mask", speciesId: 1017 },
   ]) {
-    assert.equal(getDexVariantMeta(entry).separable, false, entry.name);
+    const meta = getDexVariantMeta(entry);
+    assert.equal(meta.separable, false, entry.name);
+    assert.equal(meta.kind, "grouped", entry.name);
   }
 });
 

@@ -17,6 +17,14 @@ manual técnico e comemora avanços sem exagerar nas exclamações.
   nomeiam os papéis.
 - RPG, Jogos e Livre são os três estilos de jogo na interface.
 - Pokémon é invariável no plural.
+- **entrada da Pokédex** é o termo para uma entrada numerada da Pokédex Nacional. Ela mantém seu número mesmo quando possui variantes.
+- **variante** é uma alternativa que o MyOwnDex trata como um Pokémon diferente dentro de uma entrada já existente. Use “variante” na Pokédex, no Gerador e no PC quando essa identidade é separada; não a chame de “forma”.
+- **variante regional** é uma variante ligada a Alola, Galar, Hisui ou Paldea. **região da variante** significa somente isso: não significa “todos os Pokémon daquela região”.
+- **forma** fica reservada às formas do mesmo Pokémon que permanecem dentro da mesma ficha, inclusive formas intercambiáveis e diferenças apenas visuais. Uma forma não ganha entrada separada só por mudar aparência ou mecânica.
+- **geração de estreia** é a primeira geração da entrada ou da variante que está sendo mostrada. Uma entrada antiga pode ter uma variante que estreou em uma geração posterior; nesse caso, cada uma conserva sua própria geração de estreia.
+- **jogo de referência** escolhe os dados históricos e o repertório aplicável; não é sinônimo de geração de estreia.
+- **encontro** é o conjunto atual criado pelo Gerador. Não usar “prévia” para esse resultado.
+- Esses termos não variam entre telas. Evite usar “espécie”, “versão”, “tipo de forma” ou outro sinônimo quando a interface estiver falando de entrada da Pokédex, variante, forma, geração de estreia, região da variante, jogo de referência ou encontro.
 - “Pokémon lendários e míticos” nomeia essas classificações em português na interface. Os nomes próprios de cada Pokémon continuam no original; não alternar os rótulos com “Legendary” ou “Mythical”. Campos e fontes do catálogo mantêm seus identificadores oficiais.
 - movimento, habilidade, natureza, tipo, condição, equipe e parceiro usam
   minúsculas no meio de frases.

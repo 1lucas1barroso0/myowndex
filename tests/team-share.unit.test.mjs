@@ -131,7 +131,7 @@ test("V4 share code round-trips Unicode and every editable factor", async () => 
   assert.deepEqual(decoded.pokemon[0].rpg.pp, [10, 15, 20, 5]);
 });
 
-test("Link Cable preserves a fixed visual form independently from the mechanical Pokémon form", async () => {
+test("legacy cosmetic form identity remains round-trip compatible without requiring Pokédex segregation", async () => {
   const source = normalizeTeam({
     id: "styled-form",
     pokemon: [{

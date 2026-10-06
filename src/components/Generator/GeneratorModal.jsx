@@ -124,7 +124,15 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         }
         const selected = generatorCatalogue.find(entry => entry.choiceKey === value);
         if (!selected) return;
-        setOptions(current => ({ ...current, speciesId: selected.speciesId, formKey: selected.formKey || '' }));
+        setOptions(current => ({
+            ...current,
+            speciesId: selected.speciesId,
+            formKey: selected.formKey || '',
+            type: '',
+            generation: 0,
+            region: '',
+            legendary: 'all',
+        }));
     };
     const selectedPokemonChoice = options.speciesId
         ? (options.formKey ? `form:${options.formKey}` : `species:${options.speciesId}`)
@@ -163,7 +171,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             setResults(incoming);
             setSelected(new Set(incoming.map(entry => entry.pokemon.id)));
             setRemoteDraft(null);
-            setNotice('Sua prévia foi atualizada.');
+            setNotice('Seu encontro foi atualizado.');
         };
         window.addEventListener('myowndex:account-document', receive);
         return () => window.removeEventListener('myowndex:account-document', receive);
@@ -206,7 +214,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             const draft = serializeDraft(results);
             void writeDurableStorage(GENERATOR_DRAFT_KEY, draft, { scope }).then(saved => {
                 if (saved) savedDraftRef.current = JSON.stringify(draft);
-                if (!saved && mountedRef.current) setError('O armazenamento deste dispositivo não conseguiu guardar a prévia. Exporte os Pokémon ou salve em uma Box antes de fechar.');
+                if (!saved && mountedRef.current) setError('O armazenamento deste dispositivo não conseguiu guardar o encontro. Exporte os Pokémon ou salve em uma Box antes de fechar.');
             });
         }, 100);
         draftTimerRef.current = timer;
@@ -229,7 +237,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         try {
             if (!await writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(next), { scope })) {
                 draftRef.current = previous;
-                if (mountedRef.current) setError('Não foi possível limpar a prévia. Os Pokémon continuam aqui.');
+                if (mountedRef.current) setError('Não foi possível limpar o encontro. Os Pokémon continuam aqui.');
                 return;
             }
             savedDraftRef.current = draftFingerprint(next);
@@ -237,7 +245,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 setResults(next);
                 setSelected(current => new Set([...current].filter(id => next.some(entry => entry.pokemon.id === id))));
                 setRemoteDraft(null);
-                setNotice(next.length ? 'Pokémon removido da prévia.' : 'Prévia limpa. Os Pokémon guardados continuam no PC.');
+                setNotice(next.length ? 'Pokémon removido do encontro.' : 'Encontro limpo. Os Pokémon guardados continuam no PC.');
                 window.requestAnimationFrame(() => (next.length ? resultsRef.current : generateRef.current)?.focus());
             }
         } finally {
@@ -310,9 +318,9 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             }
             if (mountedRef.current) {
                 if (savedIds.size) setNotice(`${savedIds.size} Pokémon guardado${savedIds.size === 1 ? '' : 's'} no PC.`);
-                if (savedIds.size !== selectedResults.length) setError('Alguns Pokémon continuam na prévia. Confira o espaço da Box e tente novamente.');
+                if (savedIds.size !== selectedResults.length) setError('Alguns Pokémon continuam neste encontro. Confira o espaço da Box e tente novamente.');
             }
-        } catch (cause) { if (mountedRef.current) setError(cause.message || 'Não foi possível guardar agora. A prévia continua aqui.'); }
+        } catch (cause) { if (mountedRef.current) setError(cause.message || 'Não foi possível guardar agora. O encontro continua aqui.'); }
         finally { activityRef.current.saving = false; if (mountedRef.current) { setResults(current => current.map(entry => savedIds.has(entry.pokemon.id) ? { ...entry, saved: true } : entry)); setSaving(false); } }
     };
     const exportResults = async (entries, asBox = false) => {
@@ -345,7 +353,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         setSaving(true);
         try {
             if (!await writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(remoteDraft), { scope })) {
-                if (mountedRef.current) setError('Não foi possível abrir a outra prévia. As duas continuam disponíveis.');
+                if (mountedRef.current) setError('Não foi possível abrir o outro encontro. Os dois continuam disponíveis.');
                 return;
             }
             draftRef.current = remoteDraft;
@@ -354,7 +362,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 setResults(remoteDraft);
                 setSelected(new Set(remoteDraft.map(entry => entry.pokemon.id)));
                 setRemoteDraft(null);
-                setNotice('Outra prévia aberta.');
+                setNotice('Outro encontro aberto.');
             }
         } finally {
             activityRef.current.saving = false;
@@ -367,13 +375,13 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         setSaving(true);
         try {
             if (!await writeDurableStorage(GENERATOR_DRAFT_KEY, serializeDraft(draftRef.current), { scope })) {
-                if (mountedRef.current) setError('Não foi possível guardar a prévia atual. Exporte os Pokémon para preservá-los.');
+                if (mountedRef.current) setError('Não foi possível guardar o encontro atual. Exporte os Pokémon para preservá-los.');
                 return;
             }
             savedDraftRef.current = draftFingerprint(draftRef.current);
             if (mountedRef.current) {
                 setRemoteDraft(null);
-                setNotice('Esta prévia foi mantida.');
+                setNotice('Este encontro foi mantido.');
             }
         } finally {
             activityRef.current.saving = false;
@@ -389,35 +397,65 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 <PokemonCompanion place="generator" className="companion-compact" eager />
                 <button type="button" ref={closeRef} className="generator-close" onClick={onClose} aria-label="Fechar gerador">×</button>
             </header>
-            {!draftReady ? <p role="status" className="generator-notice">Abrindo sua prévia…</p> : <div className="generator-content">
+            {!draftReady ? <p role="status" className="generator-notice">Abrindo seu encontro…</p> : <div className="generator-content">
                 <form className={`generator-options${results.length ? '' : ' generator-empty'}`} onSubmit={requestGeneration} aria-busy={busy}>
-                    <div className="generator-basic-fields">
-                        <label>Quantidade<RoomSelect disabled={working} value={options.count} onChange={event => updateOption('count', Number(event.target.value))} aria-label="Quantidade de Pokémon">{[1, 2, 3, 4, 5, 6].map(count => <option key={count} value={count}>{count} Pokémon</option>)}</RoomSelect></label>
-                        <label>Nível<input type="number" min="1" max={experienceMode === 'game' ? 100 : 200} step="1" value={options.level} onChange={event => updateOption('level', event.target.value)} required disabled={working} /></label>
-                    </div>
-                    <label>Jogo<RoomSelect disabled={working} value={options.versionGroup} onChange={event => updateOption('versionGroup', event.target.value)} aria-label="Jogo dos Pokémon gerados">{VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}</RoomSelect></label>
-                    <details className="generator-customize" ref={customizationRef}><summary>Personalizar o encontro</summary>
-                        <label>Pokémon ou forma<RoomSelect disabled={working} value={selectedPokemonChoice} onChange={event => choosePokemon(event.target.value)} aria-label="Pokémon ou forma a gerar"><option value="random">Surpreenda-me</option>{generatorCatalogue.map(entry => <option key={entry.choiceKey} value={entry.choiceKey}>{generatorChoiceName(entry)}</option>)}</RoomSelect></label>
-                        <div className="generator-basic-fields">
-                            <label>Tipo<RoomSelect disabled={working} value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo para o encontro"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
-                            <label>Geração<RoomSelect disabled={working} value={options.generation} onChange={event => updateOption('generation', Number(event.target.value))} aria-label="Geração dos Pokémon"><option value="0">Todas</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(generation => <option key={generation} value={generation}>{generation}ª geração</option>)}</RoomSelect></label>
+                    <p className="generator-intro">Monte o sorteio do seu jeito. Cada entrada da Pokédex tem a mesma chance de ser escolhida; se ela tiver formas possíveis, o MyOwnDex sorteia a forma só depois.</p>
+
+                    <section className="generator-setting-group" aria-labelledby="generator-encounter-title">
+                        <div className="generator-setting-heading">
+                            <h3 id="generator-encounter-title">Encontro</h3>
+                            <small>Estas escolhas dizem quantos Pokémon serão criados e em qual nível.</small>
                         </div>
-                        <label>Variante regional<RoomSelect disabled={working} value={options.region} onChange={event => updateOption('region', event.target.value)} aria-label="Região da variante"><option value="">Qualquer região</option>{DEX_REGIONS.map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</RoomSelect></label>
-                        <label>Pokémon lendários e míticos<RoomSelect disabled={working} value={options.legendary} onChange={event => updateOption('legendary', event.target.value)} aria-label="Pokémon lendários e míticos"><option value="all">Podem aparecer</option><option value="exclude">Não incluir</option><option value="only">Somente eles</option></RoomSelect></label>
-                        <label>Natureza<RoomSelect disabled={working} value={options.nature} onChange={event => updateOption('nature', event.target.value)} aria-label="Natureza a gerar"><option value="random">Aleatória</option>{Object.keys(NATURES).map(nature => <option key={nature} value={nature}>{formatName(nature)}</option>)}</RoomSelect></label>
-                        <label className="generator-checkbox"><input type="checkbox" checked={options.shiny} onChange={event => updateOption('shiny', event.target.checked)} disabled={working} />Shiny</label>
-                        <label className="generator-checkbox"><input type="checkbox" checked={options.hiddenAbility} onChange={event => updateOption('hiddenAbility', event.target.checked)} disabled={working} />Permitir Hidden Ability</label>
+                        <div className="generator-basic-fields">
+                            <label>Quantidade<RoomSelect disabled={working} value={options.count} onChange={event => updateOption('count', Number(event.target.value))} aria-label="Quantidade de Pokémon">{[1, 2, 3, 4, 5, 6].map(count => <option key={count} value={count}>{count} Pokémon</option>)}</RoomSelect></label>
+                            <label>Nível<input type="number" min="1" max={experienceMode === 'game' ? 100 : 200} step="1" value={options.level} onChange={event => updateOption('level', event.target.value)} required disabled={working} /></label>
+                        </div>
+                    </section>
+
+                    <section className="generator-setting-group" aria-labelledby="generator-game-title">
+                        <div className="generator-setting-heading">
+                            <h3 id="generator-game-title">Jogo de referência</h3>
+                            <small>Define os golpes disponíveis. No modo Jogos, também respeita o que existia naquela época.</small>
+                        </div>
+                        <label><span className="sr-only">Jogo de referência</span><RoomSelect disabled={working} value={options.versionGroup} onChange={event => updateOption('versionGroup', event.target.value)} aria-label="Jogo de referência dos Pokémon gerados">{VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}</RoomSelect></label>
+                    </section>
+
+                    <details className="generator-customize" ref={customizationRef}><summary>Escolher quem pode aparecer</summary>
+                        <div className="generator-setting-heading">
+                            <h3>Pokémon ou forma</h3>
+                            <small>Você pode escolher um Pokémon exato ou deixar o MyOwnDex sortear usando os filtros. As duas formas de escolher não se misturam.</small>
+                        </div>
+                        <label>Escolha direta<RoomSelect disabled={working} value={selectedPokemonChoice} onChange={event => choosePokemon(event.target.value)} aria-label="Escolher um Pokémon ou forma específicos"><option value="random">Sortear pela Pokédex</option>{generatorCatalogue.map(entry => <option key={entry.choiceKey} value={entry.choiceKey}>{generatorChoiceName(entry)}</option>)}</RoomSelect></label>
+                        {selectedPokemonChoice !== 'random' ? <p className="generator-choice-note">Pokémon definido. Os filtros de sorteio abaixo ficam fora da escolha porque este encontro já tem um Pokémon específico.</p> : <>
+                            <p className="generator-choice-note">Os filtros abaixo trabalham juntos. Eles só diminuem a lista de Pokémon que podem ser sorteados.</p>
+                            <div className="generator-filter-grid">
+                                <label>Tipo<span className="generator-field-help">Mostra apenas Pokémon que tenham este tipo.</span><RoomSelect disabled={working} value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo que pode aparecer"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
+                                <label>Geração de estreia<span className="generator-field-help">Usa a geração em que o Pokémon ou a variante apareceu pela primeira vez. Não escolhe um jogo.</span><RoomSelect disabled={working} value={options.generation} onChange={event => updateOption('generation', Number(event.target.value))} aria-label="Geração de estreia dos Pokémon"><option value="0">Qualquer geração</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(generation => <option key={generation} value={generation}>{generation}ª geração</option>)}</RoomSelect></label>
+                                <label>Variante regional<span className="generator-field-help">Limita o sorteio às variantes de uma região. Não transforma um Pokémon comum em variante.</span><RoomSelect disabled={working} value={options.region} onChange={event => updateOption('region', event.target.value)} aria-label="Região da variante que pode aparecer"><option value="">Não limitar por região</option>{DEX_REGIONS.map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</RoomSelect></label>
+                                <label>Lendários e míticos<span className="generator-field-help">Decide se eles entram ou não no sorteio.</span><RoomSelect disabled={working} value={options.legendary} onChange={event => updateOption('legendary', event.target.value)} aria-label="Pokémon lendários e míticos no sorteio"><option value="all">Podem aparecer</option><option value="exclude">Não incluir</option><option value="only">Somente eles</option></RoomSelect></label>
+                            </div>
+                        </>}
                     </details>
-                    <button ref={generateRef} type="submit" className="generator-primary" disabled={working}>{busy ? <span role="status">Gerando {progress.completed} de {progress.total}…</span> : results.length ? 'Gerar outros Pokémon' : 'Gerar Pokémon'}</button>
+
+                    <details className="generator-customize"><summary>Escolher como vem a ficha</summary>
+                        <p className="generator-choice-note">Estas opções mudam o Pokémon depois do sorteio. Elas não aumentam nem diminuem a chance de uma entrada da Pokédex aparecer.</p>
+                        <label>Natureza<RoomSelect disabled={working} value={options.nature} onChange={event => updateOption('nature', event.target.value)} aria-label="Natureza a gerar"><option value="random">Aleatória</option>{Object.keys(NATURES).map(nature => <option key={nature} value={nature}>{formatName(nature)}</option>)}</RoomSelect></label>
+                        <div className="generator-check-grid">
+                            <label className="generator-checkbox"><input type="checkbox" checked={options.shiny} onChange={event => updateOption('shiny', event.target.checked)} disabled={working} /><span><strong>Shiny</strong><small>O Pokémon gerado já vem Shiny.</small></span></label>
+                            <label className="generator-checkbox"><input type="checkbox" checked={options.hiddenAbility} onChange={event => updateOption('hiddenAbility', event.target.checked)} disabled={working} /><span><strong>Permitir Hidden Ability</strong><small>Se houver, ela entra entre as habilidades que podem ser sorteadas.</small></span></label>
+                        </div>
+                    </details>
+
+                    <button ref={generateRef} type="submit" className="generator-primary" disabled={working}>{busy ? <span role="status">Gerando {progress.completed} de {progress.total}…</span> : results.length ? 'Criar novo encontro' : 'Gerar Pokémon'}</button>
                     {busy && <button type="button" onClick={() => { requestRef.current?.abort(); sequenceRef.current += 1; activityRef.current.busy = false; setBusy(false); window.requestAnimationFrame(() => generateRef.current?.focus({ preventScroll: true })); }}>Cancelar geração</button>}
-                    <details className="generator-customize"><summary>O que vem na ficha</summary><small>Até quatro movimentos aprendidos por nível no jogo escolhido. IVs sorteados; EVs e XP começam em zero.</small>{experienceMode !== 'game' && options.versionGroup !== 'auto' && <small>O jogo escolhido define os movimentos. Os cálculos seguem as regras atuais.</small>}</details>
+                    <details className="generator-customize"><summary>Como a ficha é montada</summary><small>O Pokémon vem no nível escolhido, com natureza, habilidade, IVs, HP e até quatro golpes aprendidos por nível no jogo de referência. EVs e XP começam em zero.</small>{experienceMode !== 'game' && options.versionGroup !== 'auto' && <small>O jogo de referência escolhe o repertório de golpes. Os demais cálculos seguem as regras atuais do MyOwnDex.</small>}</details>
                 </form>
                 <div className="generator-results" ref={resultsRef} tabIndex={-1} role="region" aria-label="Pokémon gerados" aria-busy={saving || exporting}>
                     {error && <p className="generator-error" role="alert">{error}</p>}
                     {notice && <p className="generator-notice" role="status">{notice}</p>}
-                    {remoteDraft && <div className="generator-notice generator-sync-choice" role="status"><p>Há outra prévia na sua conta. Esta continua aqui.</p><div className="generator-save-actions"><button type="button" disabled={working} onClick={() => void chooseRemoteDraft()}>{results.some(entry => !entry.saved && !entry.exported) ? 'Exportar esta e abrir outra' : 'Ver outra prévia'}</button><button type="button" disabled={working} onClick={() => void keepCurrentDraft()}>Manter esta prévia</button></div></div>}
+                    {remoteDraft && <div className="generator-notice generator-sync-choice" role="status"><p>Há outro encontro salvo na sua conta. Este continua aqui.</p><div className="generator-save-actions"><button type="button" disabled={working} onClick={() => void chooseRemoteDraft()}>{results.some(entry => !entry.saved && !entry.exported) ? 'Exportar este e abrir o outro' : 'Ver outro encontro'}</button><button type="button" disabled={working} onClick={() => void keepCurrentDraft()}>Manter este encontro</button></div></div>}
                     {results.length > 0 && <>
-                        <div className="generator-result-heading"><h3>Encontro <span>{results.length} Pokémon</span></h3><button type="button" className="generator-clear-preview" disabled={working} onClick={() => setPendingRemoval('all')}>Limpar prévia</button></div>
+                        <div className="generator-result-heading"><h3>Encontro <span>{results.length} Pokémon</span></h3><button type="button" className="generator-clear-preview" disabled={working} onClick={() => setPendingRemoval('all')}>Limpar encontro</button></div>
                         <div className="generator-partners">{results.map(entry => {
                             const partner = entry.pokemon;
                             return <article key={partner.id} className={`generator-partner${entry.saved ? ' is-saved' : ''}`}>
@@ -426,7 +464,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                                 <dl className="generator-partner-facts"><div><dt>Natureza</dt><dd>{formatName(partner.nature)}</dd></div><div><dt>Habilidade</dt><dd>{formatName(partner.ability) || 'Sem habilidade'}</dd></div></dl>
                                 <ul className="generator-moves" aria-label={`Movimentos de ${generatedName(partner)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
                                 {!partner.moves.some(Boolean) && <p className="generator-small">Neste jogo, ainda não aprende movimentos por nível.</p>}
-                                <details className="generator-partner-details"><summary>Ficha do Pokémon</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => setPendingRemoval(partner.id)} aria-label={`Remover ${generatedName(partner)} da prévia`}>Remover da prévia</button></details>
+                                <details className="generator-partner-details"><summary>Ficha do Pokémon</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => setPendingRemoval(partner.id)} aria-label={`Remover ${generatedName(partner)} do encontro`}>Remover do encontro</button></details>
                             </article>;
                         })}</div>
                         <section className="generator-save" aria-label="Guardar os Pokémon selecionados"><h3>Guardar no PC</h3><label>Destino<RoomSelect disabled={working} value={target} onChange={event => setTarget(event.target.value)} aria-label="Box de destino dos Pokémon gerados"><option value="new">Criar uma nova Box</option>{teams.map(team => <option key={team.id} value={team.id} disabled={team.pokemon.length >= 6}>{team.name} · {6 - team.pokemon.length} vaga{team.pokemon.length === 5 ? '' : 's'}</option>)}</RoomSelect></label>{target === 'new' && <label>Nome da Box<input type="text" maxLength="80" value={boxName} onChange={event => setBoxName(event.target.value)} disabled={working} /></label>}<div className="generator-save-actions"><button type="button" className="generator-primary" disabled={!selectedResults.length || selectedResults.length > freeSlots || working} onClick={() => void saveSelected()}>{saving ? 'Guardando…' : selectedResults.length ? `Guardar ${selectedResults.length} no PC` : 'Guardar no PC'}</button><button type="button" disabled={!exportSelection.length || working} onClick={() => void exportResults(exportSelection, true)}>Exportar Box</button></div>{selectedResults.length > freeSlots && <p className="generator-small">Esta Box tem {freeSlots} vaga{freeSlots === 1 ? '' : 's'}. Selecione menos Pokémon ou crie outra Box.</p>}</section>
@@ -434,7 +472,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 </div>
             </div>}
         </section>
-        <ConfirmDialog open={replaceConfirm} title="Gerar outros Pokémon?" description="Ainda há Pokémon que você não guardou nem exportou. A nova geração substitui esta prévia." confirmLabel="Gerar novos" cancelLabel="Voltar à prévia" onConfirm={() => void runGeneration()} onCancel={() => setReplaceConfirm(false)} />
-        <ConfirmDialog open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar esta prévia?' : 'Remover este Pokémon da prévia?'} description="Os Pokémon escolhidos saem da prévia. Suas Boxes e os arquivos exportados continuam como estão." confirmLabel={pendingRemoval === 'all' ? 'Limpar prévia' : 'Remover da prévia'} cancelLabel="Voltar à prévia" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
+        <ConfirmDialog open={replaceConfirm} title="Criar um novo encontro?" description="Há Pokémon neste encontro que ainda não foram guardados no PC nem exportados. Se continuar, eles serão substituídos aqui." confirmLabel="Criar novo encontro" cancelLabel="Continuar neste encontro" onConfirm={() => void runGeneration()} onCancel={() => setReplaceConfirm(false)} />
+        <ConfirmDialog open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar este encontro?' : 'Remover este Pokémon do encontro?'} description="Os Pokémon escolhidos saem do encontro. Suas Boxes e os arquivos exportados continuam como estão." confirmLabel={pendingRemoval === 'all' ? 'Limpar encontro' : 'Remover do encontro'} cancelLabel="Voltar ao encontro" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
     </div>, document.body);
 }

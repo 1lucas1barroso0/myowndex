@@ -66,13 +66,13 @@ export default function DexFilters({
                 <section className="dex-filter-section" aria-labelledby="dex-variants-title">
                     <div className="dex-filter-heading">
                         <strong id="dex-variants-title">Variantes</strong>
-                        <small>Normalmente, cada Pokémon aparece uma vez. Separe apenas as variantes que são Pokémon diferentes.</small>
+                        <small>Escolha como a lista mostra variantes que o MyOwnDex trata como Pokémon diferentes.</small>
                     </div>
                     <div className="dex-segmented" role="group" aria-label="Como mostrar variantes">
-                        <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => { onVariantModeChange("grouped"); onRegionsChange([]); }}>Juntas</button>
-                        <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Separar variantes</button>
+                        <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => { onVariantModeChange("grouped"); onRegionsChange([]); }}>Uma entrada</button>
+                        <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Mostrar variantes</button>
                     </div>
-                    <p className="dex-filter-note">Se o mesmo Pokémon pode trocar de forma, ela continua na mesma ficha. Mudanças só de aparência também ficam juntas.</p><div className="dex-region-grid" role="group" aria-label="Filtrar variantes regionais">
+                    <p className="dex-filter-note">Uma entrada evita repetição na lista. Formas que o mesmo Pokémon pode trocar e mudanças só de aparência continuam sempre na mesma ficha.</p><div className="dex-region-grid" role="group" aria-label="Filtrar variantes regionais">
                         {DEX_REGIONS.map(region => <button
                             key={region.id}
                             type="button"

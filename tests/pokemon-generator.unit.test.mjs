@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildGeneratedPokemon, fetchGeneratorData, generatePokemon, GENERATOR_REQUEST_CONCURRENCY, getGeneratedHp, getGeneratorGameReference, getGeneratorGender, getGeneratorLearnset, getGeneratorRandomCandidates, getGeneratorSpeciesPool, getGeneratorSpeciesTypes, normalizeGeneratorOptions } from '../src/core/pokemonGenerator.js';
+import { buildGeneratedPokemon, fetchGeneratorData, generatePokemon, GENERATOR_REQUEST_CONCURRENCY, getGeneratedHp, getGeneratorGameReference, getGeneratorGender, getGeneratorLearnset, getGeneratorDexEntryGroups, getGeneratorRandomCandidates, getGeneratorSpeciesPool, getGeneratorSpeciesTypes, normalizeGeneratorOptions } from '../src/core/pokemonGenerator.js';
 import { clearCatalogTextCache } from '../src/core/catalogText.js';
 import { STAT_KEYS } from '../src/core/team.js';
 import { decodeShare, encodePokemonBundle } from '../src/core/teamShare.js';
@@ -27,16 +27,28 @@ test('generator filters canonical species, types and real generation boundaries 
     assert.equal(normalized.type, '');
 });
 
-test('random generator gives each species one candidate regardless of how many persistent forms it owns', () => {
+test('random generator gives each National Dex entry one ticket and draws its form only afterwards', () => {
     const pool = [
         { id: 25, name: 'pikachu' },
         { id: 869, name: 'alcremie' },
         { id: 869, name: 'alcremie-ruby-cream', formKey: 'alcremie-ruby-cream' },
         { id: 869, name: 'alcremie-rainbow-swirl', formKey: 'alcremie-rainbow-swirl' },
+        { id: 869, name: 'alcremie-matcha-cream', formKey: 'alcremie-matcha-cream' },
+        { id: 1008, name: 'miraidon' },
     ];
+    const groups = getGeneratorDexEntryGroups(pool);
+    assert.equal(groups.length, 3);
+    assert.deepEqual(groups.map(group => Number(group[0].id)), [25, 869, 1008]);
+    assert.equal(groups.find(group => Number(group[0].id) === 869).length, 4);
+
     const candidates = getGeneratorRandomCandidates(pool, () => 0);
-    assert.equal(candidates.length, 2);
-    assert.equal(new Set(candidates.map(entry => entry.id)).size, 2);
+    assert.equal(candidates.length, 3);
+    assert.equal(new Set(candidates.map(entry => entry.id)).size, 3);
+
+    const withoutExtraAlcremieForms = pool.filter(entry => !entry.formKey);
+    const speciesOrderWithForms = getGeneratorRandomCandidates(pool, () => 0.42).map(entry => entry.id);
+    const speciesOrderWithoutForms = getGeneratorRandomCandidates(withoutExtraAlcremieForms, () => 0.42).map(entry => entry.id);
+    assert.deepEqual(speciesOrderWithForms, speciesOrderWithoutForms, 'extra forms never change the entry-level draw order');
 });
 
 test('historical game generation excludes forms introduced after the selected game', () => {

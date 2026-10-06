@@ -83,3 +83,121 @@ body:has(.generator-overlay) > .confirm-dialog-overlay { z-index:1200 !important
   .generator-save-actions button { width:100%; }
 }
 @media(prefers-reduced-motion:reduce) { .generator-dialog * { animation:none !important; transition:none !important; } }
+
+
+/* 2.0.8: the generator separates "who can appear" from "how the sheet is built". */
+.generator-intro {
+  margin: 0;
+  padding: .9rem 1rem;
+  border: 1px solid color-mix(in srgb,var(--journey-teal) 42%,var(--ui-line));
+  border-radius: var(--play-control-radius,.65rem);
+  background: color-mix(in srgb,var(--journey-teal) 7%,var(--ui-panel));
+  color: var(--ui-ink);
+  font-size: .9rem;
+  line-height: 1.55;
+}
+.generator-setting-group {
+  display: grid;
+  gap: .75rem;
+  padding: .95rem;
+  border: 1px solid var(--ui-line);
+  border-radius: var(--play-radius,1rem);
+  background: var(--ui-panel);
+}
+.generator-setting-heading {
+  display: grid;
+  gap: .2rem;
+}
+.generator-setting-heading h3 {
+  margin: 0;
+  color: var(--ui-ink);
+  font-size: 1rem;
+  line-height: 1.3;
+}
+.generator-setting-heading small,
+.generator-field-help {
+  color: var(--ui-muted);
+  font-size: .82rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.generator-field-help {
+  display: block;
+  min-height: 2.35em;
+}
+.generator-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 1rem;
+}
+.generator-choice-note {
+  margin: 0;
+  padding: .75rem .85rem;
+  border-left: 3px solid var(--ui-blue);
+  border-radius: 0 var(--play-control-radius,.65rem) var(--play-control-radius,.65rem) 0;
+  background: var(--ui-selected);
+  color: var(--ui-ink);
+  font-size: .85rem;
+  line-height: 1.5;
+}
+.generator-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: .7rem;
+}
+.generator-dialog .generator-check-grid .generator-checkbox {
+  align-items: flex-start;
+  padding: .8rem;
+  border: 1px solid var(--ui-line);
+  border-radius: var(--play-control-radius,.65rem);
+  background: var(--ui-raised);
+}
+.generator-dialog .generator-checkbox > span {
+  display: grid;
+  gap: .12rem;
+}
+.generator-dialog .generator-checkbox strong {
+  color: var(--ui-ink);
+  font-size: .9rem;
+}
+.generator-dialog .generator-checkbox small {
+  color: var(--ui-muted);
+  font-size: .78rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.generator-options > .generator-primary {
+  min-height: 52px;
+  border-radius: var(--play-control-radius,.65rem);
+  font-size: 1rem;
+}
+.generator-customize {
+  border: 1px solid var(--ui-line);
+  border-radius: var(--play-radius,1rem);
+  background: var(--ui-panel);
+  overflow: clip;
+}
+.generator-dialog .generator-customize > summary {
+  padding: .8rem .95rem;
+  background: var(--ui-raised);
+}
+.generator-customize[open] {
+  gap: .85rem;
+  padding: 0 .95rem .95rem;
+}
+.generator-customize[open] > summary {
+  margin: 0 -.95rem;
+  border-bottom: 1px solid var(--ui-line);
+}
+.generator-dialog.has-results .generator-options {
+  gap: .85rem;
+}
+@media(max-width:640px) {
+  .generator-dialog { border-radius: var(--play-radius,1rem); }
+  .generator-options { padding: .85rem; gap: .85rem; }
+  .generator-setting-group { padding: .8rem; }
+  .generator-filter-grid,
+  .generator-check-grid { grid-template-columns: minmax(0,1fr); gap: .75rem; }
+  .generator-field-help { min-height: 0; }
+  .generator-intro { font-size: .85rem; }
+}

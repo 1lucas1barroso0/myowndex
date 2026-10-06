@@ -171,16 +171,24 @@ const shuffled = (values, random) => {
     return result;
 };
 
-export const getGeneratorRandomCandidates = (values, random) => {
-    const bySpecies = new Map();
+export const getGeneratorDexEntryGroups = values => {
+    const byDexEntry = new Map();
     for (const entry of Array.isArray(values) ? values : []) {
         const id = Number(entry?.id || entry?.speciesId || extractId(entry?.url));
-        if (!Number.isInteger(id)) continue;
-        if (!bySpecies.has(id)) bySpecies.set(id, []);
-        bySpecies.get(id).push(entry);
+        if (!Number.isInteger(id) || id < 1 || id > 1025) continue;
+        if (!byDexEntry.has(id)) byDexEntry.set(id, []);
+        byDexEntry.get(id).push(entry);
     }
-    return shuffled([...bySpecies.values()], random)
-        .map(entries => entries[randomInt(entries.length, random)]);
+    return [...byDexEntry.values()];
+};
+
+export const getGeneratorRandomCandidates = (values, random) => {
+    // Fairness happens in two separate draws:
+    // 1) shuffle National Dex entries, so every entry has the same weight;
+    // 2) only after an entry is chosen, draw one eligible mutually-exclusive
+    //    form inside that entry. Extra forms can never buy extra lottery tickets.
+    const dexEntries = shuffled(getGeneratorDexEntryGroups(values), random);
+    return dexEntries.map(forms => forms[randomInt(forms.length, random)]);
 };
 
 export const generatePokemon = async (catalogue, options = {}, { signal, fetcher = fetchCached, random, onProgress, metadata = {} } = {}) => {

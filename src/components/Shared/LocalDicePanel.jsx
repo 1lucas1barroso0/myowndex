@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { getStorageScope, readStorage, resolveStorageKey, writeStorage } from "../../core/storage.js";
-import { authoritativeLocalRollReceipt, clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRollDurable } from "../../core/localRolls.js";
+import { authoritativeLocalRollReceipt, clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollOdds, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRollDurable } from "../../core/localRolls.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import LocalPokemonDice from "./LocalPokemonDice.jsx";
 import RoomSelect from "./RoomSelect.jsx";
@@ -16,6 +16,7 @@ const modeHelp = spec => {
     return spec.mode === "advantage" ? "Mantém os dois dados mais altos." : "Mantém os dois mais baixos.";
 };
 const rollTime = new Intl.DateTimeFormat("pt-BR", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+const chanceFormat = new Intl.NumberFormat("pt-BR", { style:"percent", maximumFractionDigits:1 });
 const rollOutcome = record => record.fumble ? "Erro crítico" : record.critical ? "Crítico potencial" : record.success == null ? "" : record.success ? "Sucesso" : "Falha";
 
 function RollTimestamp({ value }) {
@@ -93,6 +94,11 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         return ()=>{ alive.current=false; clearTimeout(unlockTimer.current); window.removeEventListener("storage",sync); window.removeEventListener("myowndex:storage",syncHere);window.removeEventListener("myowndex:account-document",accountDocumentChanged);window.removeEventListener("myowndex:account-apply-start",accountApplyChanged);window.removeEventListener("myowndex:account-apply-end",accountApplyChanged); };
     },[inAdventure]);
     const configuration=useMemo(()=>{ try { return {spec:localRollSpec(draft)}; } catch(e) { return {error:e.message}; } },[draft]);
+    const successOdds=useMemo(()=>{
+        if(!configuration.spec)return null;
+        const odds=localRollOdds(configuration.spec);
+        return typeof odds.success==="number" ? odds.success : null;
+    },[configuration]);
     useEffect(()=>{ if(ready && configuration.spec) writeStorage(preferenceKey,configuration.spec); },[configuration,ready]);
     const update=(key,value)=>setDraft(current=>({...current,[key]:value}));
     const roll=async event=>{
@@ -173,6 +179,7 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
                     {draft.kind==="percent" && <label className="local-dice-chance">Chance base (%)<input type="number" step="1" min="0" max="100" value={draft.chance} required onChange={e=>update("chance",e.target.value)} /><input aria-label="Ajustar chance percentual" type="range" min="0" max="100" value={draft.chance || 0} onChange={e=>update("chance",e.target.value)} /></label>}
                     {draft.kind==="free" && <><label>Quantidade<input type="number" step="1" min="1" max="20" value={draft.quantity} required onChange={e=>update("quantity",e.target.value)} /></label><label>Dado<RoomSelect value={draft.sides} onChange={e=>update("sides",e.target.value)}>{LOCAL_DICE_SIDES.map(sides=><option key={sides} value={sides}>d{sides}</option>)}</RoomSelect></label><label>Modificador<input type="number" step="1" min="-99999" max="99999" value={draft.modifier} required onChange={e=>update("modifier",e.target.value)} /></label></>}
                 </div>
+                {successOdds!==null && <p className="local-dice-odds">Chance de sucesso com estas escolhas: <strong>{chanceFormat.format(successOdds)}</strong></p>}
                 <details className="local-dice-options" open={Boolean((draft.kind==="attribute" && draft.opposition!=null && draft.opposition!=="") || draft.label)}>
                     <summary>Mais opções</summary>
                     <div className="local-dice-fields">

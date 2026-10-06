@@ -5,14 +5,18 @@ const REGION_LABELS = Object.freeze({
     paldea: "Paldea",
 });
 
-// Segregation is deliberately conservative. It exists only when a form is,
-// for practical gameplay and narrative purposes, a distinct Pokémon identity.
-// Cosmetic differences stay inside the ordinary species record even when they
-// are permanent or cannot be freely swapped.
+// Segregation is deliberately conservative and has two mandatory gates:
+// 1) the same individual cannot freely change into/out of the form;
+// 2) the difference is not merely cosmetic: the form behaves as a distinct
+//    Pokémon identity in gameplay and narrative terms.
 //
-// Species below have non-regional forms with durable mechanical differences
-// such as stats, abilities, typing, movepools, evolution identity or a unique
-// battle interaction that belongs to that form itself.
+// Failing either gate keeps the form inside the ordinary species record.
+// This means interchangeable forms NEVER receive the new segregation, even
+// when switching form changes typing, abilities, stats or moves.
+//
+// Species below have non-regional, non-interchangeable forms with durable
+// mechanical differences such as stats, abilities, typing, movepools,
+// evolution identity or another rule intrinsic to that identity.
 const DISTINCT_VARIANT_SPECIES = new Set([
     413, // Wormadam cloaks
     550, // Basculin stripes
@@ -31,6 +35,7 @@ const DISTINCT_VARIANT_SPECIES = new Set([
 ]);
 
 // Individual exceptional forms whose species also has ordinary/cosmetic forms.
+// These exceptional identities are also non-interchangeable.
 const DISTINCT_SPECIAL_NAMES = new Set([
     "pikachu-starter",
     "eevee-starter",

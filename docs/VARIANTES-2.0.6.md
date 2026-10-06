@@ -4,9 +4,12 @@ A 2.0.6 fixa a fronteira da atualização de variantes sem alterar o comportamen
 
 ## Regra principal
 
-O novo meio de segregação da Pokédex existe somente quando duas formas podem ser tratadas, para o uso do MyOwnDex, como Pokémon realmente distintos em identidade e funcionamento.
+O novo meio de segregação da Pokédex existe somente quando **as duas condições abaixo são verdadeiras ao mesmo tempo**:
 
-Isso exige diferença mecânica própria relevante e uma identidade narrativa que faça sentido preservar separadamente. O simples fato de uma forma ser permanente, rara, não intercambiável ou visualmente diferente não basta.
+1. a forma é **não intercambiável**: o mesmo indivíduo não pode simplesmente trocar para a outra forma;
+2. a forma representa, para o uso do MyOwnDex, um Pokémon realmente distinto em identidade e funcionamento, com diferença mecânica própria relevante e identidade narrativa que faça sentido preservar separadamente.
+
+Se qualquer uma das duas condições falhar, não há nova segregação.
 
 ## O que continua agrupado
 
@@ -19,13 +22,15 @@ Isso vale mesmo quando a aparência:
 - é rara ou vinculada a uma condição de obtenção;
 - possui um nome próprio na fonte de dados.
 
+**Formas intercambiáveis também nunca recebem essa segregação.** Se o mesmo Pokémon pode mudar de uma forma para outra, continua sendo o mesmo indivíduo para essa organização, ainda que a mudança altere tipo, habilidade, atributos, golpes ou outra mecânica.
+
 Estados temporários, transformações e modos do mesmo indivíduo também continuam dentro da ficha da espécie.
 
 O catálogo técnico de formas permanece disponível internamente para sprites, referências e compatibilidade. Estar nesse catálogo não significa que a forma deva aparecer como entrada separada na Pokédex.
 
 ## O que pode ser separado
 
-Variantes regionais continuam separáveis. Outras variantes só entram quando a diferença não é meramente visual e a própria forma carrega uma identidade mecânica estável, por exemplo mudanças próprias de atributos, tipos, habilidades, repertório, evolução ou outra regra que faça aquela variante funcionar como um Pokémon diferente.
+Variantes regionais continuam separáveis. Outras variantes só entram quando são **não intercambiáveis** e quando a diferença não é meramente visual, com uma identidade mecânica estável própria, por exemplo mudanças próprias de atributos, tipos, habilidades, repertório, evolução ou outra regra que faça aquela variante funcionar como um Pokémon diferente.
 
 A classificação é conservadora: na dúvida, a forma permanece agrupada.
 

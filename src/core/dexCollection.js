@@ -1,4 +1,5 @@
 import { extractId } from "./mechanics.js";
+import { getDexVariantRegion } from "./dexVariants.js";
 
 export const VIEW_LINKS = Object.freeze({ room: "aventura", pokedex: "pokedex", teambuilder: "pc", guide: "guia" });
 // National numbers describe debut generations, not a regional Pokédex membership.
@@ -24,8 +25,13 @@ export const debutGeneration = id => DEX_GENERATIONS.slice(1).find(gen => Number
 export const dexEntryNumber = entry => Number(entry?.speciesId || extractId(entry?.url));
 export const dexEntryFavoriteKey = entry => entry?.formKey && !entry?.isPrimarySpecies ? `form:${entry.formKey}` : String(dexEntryNumber(entry));
 export const dexEntryRegion = entry => {
-    const value = normalizeDexSearch([entry?.formKey, entry?.formIdentifier, entry?.pokemonName, entry?.name].filter(Boolean).join(" "));
-    return DEX_REGIONS.find(region => value.includes(region.id))?.id || "";
+    const explicit = String(entry?.region || "").trim().toLowerCase();
+    if (DEX_REGIONS.some(region => region.id === explicit)) return explicit;
+    const canonical = getDexVariantRegion({
+        name: entry?.formKey || entry?.pokemonName || entry?.name,
+        speciesId: dexEntryNumber(entry),
+    });
+    return canonical?.key || "";
 };
 export const dexEntryTypes = entry => (Array.isArray(entry?.types) ? entry.types : [])
     .map(type => typeof type === "string" ? type : type?.type?.name)
@@ -93,20 +99,18 @@ export function selectDexSpecies(species, {
     const range = DEX_GENERATIONS.find(gen => gen.id === String(generation)) || DEX_GENERATIONS[0];
     const selectedGeneration = range.id;
     const selectedOrder = ["number", "reverse", "name"].includes(order) ? order : "number";
+    const selectedVariantMode = variantMode === "separate" ? "separate" : "grouped";
     const minimum = Number.isInteger(Number(minNumber)) && Number(minNumber) >= 1 ? Math.min(1025, Number(minNumber)) : 1;
     const maximum = Number.isInteger(Number(maxNumber)) && Number(maxNumber) >= 1 ? Math.min(1025, Number(maxNumber)) : 1025;
     const lower = Math.min(minimum, maximum);
     const upper = Math.max(minimum, maximum);
-    const textQuery = Boolean(rawQuery && numericQuery === null && !numericRange);
 
-    return (Array.isArray(species) ? species : []).filter(entry => {
+    const matching = (Array.isArray(species) ? species : []).filter(entry => {
         const id = dexEntryNumber(entry);
         if (!Number.isInteger(id) || id < lower || id > upper) return false;
+
         const entryGeneration = dexEntryGeneration(entry);
-        const inGeneration = selectedGeneration === "all"
-            || entryGeneration?.id === selectedGeneration
-            || (!entry?.generation && id >= range.start && id <= range.end);
-        if (!inGeneration) return false;
+        if (selectedGeneration !== "all" && entryGeneration?.id !== selectedGeneration) return false;
 
         const searchable = [entry?.name, entry?.speciesName, entry?.pokemonName, entry?.formKey, entry?.formIdentifier]
             .filter(Boolean).map(value => normalizeDexSearch(value));
@@ -125,10 +129,24 @@ export function selectDexSpecies(species, {
         const entryTypes = dexEntryTypes(entry);
         if (selectedTypes.length && !selectedTypes.every(type => entryTypes.includes(type))) return false;
 
-        if (entry?.isPrimarySpecies === false && variantMode !== "separate" && !selectedRegions.size
-            && !(textQuery && matchesQuery) && !(onlyFavorites && selected.has(favoriteKey))) return false;
         return true;
-    }).sort((a, b) => {
+    });
+
+    // "Uma entrada" is a display choice, never a hidden extra filter.
+    // If only a later variant matches (for example Alolan Rattata in Gen VII
+    // or Bloodmoon Ursaluna in Gen IX), that matching variant represents the
+    // National Dex entry instead of disappearing. When the primary entry also
+    // matches, prefer it so the compact list remains stable.
+    const displayed = selectedVariantMode === "separate"
+        ? matching
+        : [...matching.reduce((groups, entry) => {
+            const id = dexEntryNumber(entry);
+            const current = groups.get(id);
+            if (!current || (current?.isPrimarySpecies === false && entry?.isPrimarySpecies !== false)) groups.set(id, entry);
+            return groups;
+        }, new Map()).values()];
+
+    return displayed.sort((a, b) => {
         if (selectedOrder === "name") {
             const left = String(a.speciesName || a.name);
             const right = String(b.speciesName || b.name);
@@ -136,7 +154,7 @@ export function selectDexSpecies(species, {
             if (difference) return difference;
         }
         const numberDifference = dexEntryNumber(a) - dexEntryNumber(b);
-        if (numberDifference) return numberDifference * (order === "reverse" ? -1 : 1);
+        if (numberDifference) return numberDifference * (selectedOrder === "reverse" ? -1 : 1);
         const primaryDifference = Number(a?.isPrimarySpecies === false) - Number(b?.isPrimarySpecies === false);
         if (primaryDifference) return primaryDifference;
         return String(a.formKey || a.name).localeCompare(String(b.formKey || b.name), "pt-BR");

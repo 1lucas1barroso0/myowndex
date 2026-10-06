@@ -9,11 +9,16 @@ test("Pokédex filter instructions stay simple and player-facing", async () => {
   assert.match(filters, /Escolha até dois tipos\. Se escolher dois, o Pokémon precisa ter os dois\./);
   assert.match(filters, /Variantes são alternativas que o MyOwnDex trata como Pokémon diferentes\./);
   assert.match(filters, /Uma entrada mantém a lista compacta\./);
-  assert.match(filters, /Geração de estreia/);\n  assert.match(filters, /Região da variante/);\n  assert.match(filters, /Um Pokémon comum não entra só por ter estreado nessa região/);\n  assert.match(filters, />Uma entrada<\/button>/);
+  assert.match(filters, /Geração de estreia/);
+  assert.match(filters, /Região da variante/);
+  assert.match(filters, /Um Pokémon comum não entra só por ter estreado nessa região/);
+  assert.match(filters, />Uma entrada<\/button>/);
   assert.match(filters, />Mostrar variantes<\/button>/);
   assert.match(filters, /Número na Pokédex Nacional/);
   assert.doesNotMatch(filters, /intercambi[aá]vel|segrega(?:ção|r)|identidade narrativa|mecânicas próprias/i);
 
-  assert.match(app, /Buscar por nome, número ou intervalo/);\n  assert.match(app, /Geração de estreia/);\n  assert.match(app, /Variante regional/);
+  assert.match(app, /Buscar por nome, número ou intervalo/);
+  assert.match(app, /Geração de estreia/);
+  assert.match(app, /Variante regional/);
   assert.match(app, /Nenhum Pokémon foi encontrado\. Tente mudar os filtros\./);
 });

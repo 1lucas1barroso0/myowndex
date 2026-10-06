@@ -15,7 +15,7 @@ test("generation filters respect every National Dex debut boundary, including Hi
   assert.equal(debutGeneration(905).label, "VIII");
   assert.equal(debutGeneration(1025).label, "IX");
   assert.equal(debutGeneration(1026), undefined);
-  assert.equal(selectDexSpecies(catalogue).length, 1026);
+  assert.equal(selectDexSpecies(catalogue).length, 1025);
   assert.deepEqual(selectDexSpecies(catalogue, { generation: "2", query: "0025" }), []);
   assert.deepEqual(selectDexSpecies(catalogue, { generation: "1", favorites: ["25"], onlyFavorites: true }).map(p => p.name), ["pokemon-25"]);
 });

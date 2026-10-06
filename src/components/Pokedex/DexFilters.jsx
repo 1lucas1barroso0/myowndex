@@ -37,7 +37,7 @@ export default function DexFilters({
                 key={gen.id}
                 type="button"
                 aria-pressed={generation === gen.id}
-                aria-label={gen.id === "all" ? "Todas as gerações" : `Geração ${gen.label}`}
+                aria-label={gen.id === "all" ? "Todas as gerações de estreia" : `Geração de estreia ${gen.label}`}
                 onClick={() => onGenerationChange(gen.id)}
             >{gen.label}</button>)}
         </div>

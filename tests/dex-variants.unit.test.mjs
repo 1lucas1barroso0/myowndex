@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getDexVariantMeta } from "../src/core/dexVariants.js";
+import { getDexVariantMeta, getSamePokemonForms } from "../src/core/dexVariants.js";
 
 test("regional variants are separable without changing their National Dex number", () => {
   for (const [name, speciesId] of [
@@ -92,4 +92,42 @@ test("region words inside costumes or Totem states do not create false regional 
   ]) {
     assert.equal(getDexVariantMeta(entry).separable, false, entry.name);
   }
+});
+
+
+test("Pokédex and PC expose only forms of the same Pokemon in form switchers", () => {
+  const rattata = [
+    { is_default: true, pokemon: { name: "rattata", url: "rattata" } },
+    { is_default: false, pokemon: { name: "rattata-alola", url: "rattata-alola" } },
+  ];
+  assert.deepEqual(
+    getSamePokemonForms(rattata, 19, { currentName: "rattata" }).map(entry => entry.pokemon.name),
+    ["rattata"],
+  );
+  assert.deepEqual(
+    getSamePokemonForms(rattata, 19, { currentName: "rattata-alola", currentFormKey: "rattata-alola" }).map(entry => entry.pokemon.name),
+    ["rattata-alola"],
+  );
+
+  const deoxys = [
+    { is_default: true, pokemon: { name: "deoxys-normal", url: "normal" } },
+    { is_default: false, pokemon: { name: "deoxys-attack", url: "attack" } },
+    { is_default: false, pokemon: { name: "deoxys-defense", url: "defense" } },
+  ];
+  assert.deepEqual(
+    getSamePokemonForms(deoxys, 386, { currentName: "deoxys-normal" }).map(entry => entry.pokemon.name),
+    ["deoxys-normal", "deoxys-attack", "deoxys-defense"],
+    "interchangeable forms remain choices inside the same Pokemon",
+  );
+
+  const lycanroc = [
+    { is_default: true, pokemon: { name: "lycanroc-midday", url: "midday" } },
+    { is_default: false, pokemon: { name: "lycanroc-midnight", url: "midnight" } },
+    { is_default: false, pokemon: { name: "lycanroc-dusk", url: "dusk" } },
+  ];
+  assert.deepEqual(
+    getSamePokemonForms(lycanroc, 745, { currentName: "lycanroc-midday" }).map(entry => entry.pokemon.name),
+    ["lycanroc-midday"],
+    "distinct variants do not appear as if they were switchable forms",
+  );
 });

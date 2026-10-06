@@ -22,7 +22,7 @@ import { getDexVariantMeta } from "./core/dexVariants.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.5";
+const APP_VERSION = "2.0.6";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 const formatDexResultCount = (speciesCount, formCount) => {

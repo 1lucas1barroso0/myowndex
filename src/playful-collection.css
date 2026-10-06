@@ -23,6 +23,12 @@ html .app-root.game-edition.handheld-edition :is(.dex-filter,.dex-generations bu
 html .app-root.game-edition.handheld-edition .dex-generations {
   gap: .5rem !important;
 }
+html .app-root.game-edition.handheld-edition .dex-generation-note {
+  margin: -.15rem 0 .35rem;
+  color: var(--ui-muted);
+  font-size: .8rem;
+  line-height: 1.45;
+}
 html .app-root.game-edition.handheld-edition .dex-filters-panel {
   display: grid;
   gap: .65rem;

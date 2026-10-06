@@ -25,6 +25,7 @@ const DISTINCT_VARIANT_SPECIES = new Set([
     901, // Ursaluna / Bloodmoon
     902, // Basculegion sexes
     916, // Oinkologne sexes
+    931, // Squawkabilly plumages have different ability sets
     978, // Tatsugiri forms
     999, // Gimmighoul forms
 ]);

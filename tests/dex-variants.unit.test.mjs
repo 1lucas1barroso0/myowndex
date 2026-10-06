@@ -6,6 +6,7 @@ test("regional variants are separable without changing their National Dex number
   for (const [name, speciesId] of [
     ["rattata-alola", 19],
     ["meowth-galar", 52],
+    ["darmanitan-galar-standard", 555],
     ["growlithe-hisui", 58],
     ["wooper-paldea", 194],
     ["tauros-paldea-aqua-breed", 128],
@@ -31,6 +32,7 @@ test("forms that function as different Pokemon can be listed separately", () => 
     { name: "oinkologne-female", speciesId: 916 },
     { name: "tatsugiri-droopy", speciesId: 978 },
     { name: "gimmighoul-roaming", speciesId: 999 },
+    { name: "pikachu-starter", speciesId: 25 },
     { name: "rockruff-own-tempo", speciesId: 744 },
     { name: "floette-eternal", speciesId: 670 },
   ]) {

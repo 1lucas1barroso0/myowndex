@@ -371,9 +371,9 @@ export const RPG_RULE_SECTIONS = [
             },
             {
                 id: "7.3",
-                title: "Formas e transformações",
-                plain: "Formas e transformações seguem suas condições próprias; mudar de forma não cria um Pokémon novo nem apaga seu progresso.",
-                body: "Formas regionais, Mega Evolution, Dynamax, Gigantamax e Terastallization mudam somente o que sua regra permite. Transformar não dá outra ação nem recupera recursos por conta própria.\n\nTransform copia aparência, tipos atuais, habilidade, atributos que não são HP, estágios e movimentos com 5 PP. Mantém HP, nível, item e progresso do usuário. Reverter não apaga sua ficha original.\n\nStance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast têm gatilhos próprios. O painel mostra o que muda e o que permanece."
+                title: "Variantes, formas e transformações",
+                plain: "Uma variante define qual Pokémon está na ficha. Formas e transformações do mesmo Pokémon seguem suas próprias condições e não apagam o progresso.",
+                body: "Uma variante regional ou outra variante separada é uma identidade do Pokémon na Pokédex; ela não vira outra variante livremente só por mudar de forma. Formas do mesmo Pokémon, Mega Evolution, Dynamax, Gigantamax e Terastallization mudam somente o que sua regra permite. Transformar não dá outra ação nem recupera recursos por conta própria.\n\nTransform copia aparência, tipos atuais, habilidade, atributos que não são HP, estágios e movimentos com 5 PP. Mantém HP, nível, item e progresso do usuário. Reverter não apaga sua ficha original.\n\nStance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast têm gatilhos próprios. O painel mostra o que muda e o que permanece."
             },
             {
                 id: "7.4",

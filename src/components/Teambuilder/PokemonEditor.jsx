@@ -9,6 +9,7 @@ import { finiteNumberOrNull, integerInRange } from '../../core/math.js';
 import { randomChance, randomChoice, randomInt } from '../../core/random.js';
 import { getPokemonConsumedItem, replacePokemonHeldItem, RPG_STATUSES } from '../../core/team.js';
 import { getMoveReferenceForMode, resolveLearnsetGame } from '../../core/referenceGames.js';
+import { getDexVariantMeta } from '../../core/dexVariants.js';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
 import RoomSelect from '../Shared/RoomSelect.jsx';
 import ReferenceText from '../Shared/ReferenceText.jsx';
@@ -197,7 +198,19 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         () => new Set(validAbs.map(ability => typeof ability === "string" ? ability : ability?.name).filter(Boolean)),
         [validAbs],
     );
-    const forms = useMemo(() => speciesProfile?.varieties || [], [speciesProfile]);
+    const forms = useMemo(() => {
+        const varieties = Array.isArray(speciesProfile?.varieties) ? speciesProfile.varieties : [];
+        const speciesId = Number(speciesProfile?.id);
+        if (!Number.isInteger(speciesId)) return varieties;
+        const current = varieties.find(entry => entry.pokemon?.name === pk.species?.name);
+        const currentIdentity = pk.formKey || current?.pokemon?.name || pk.species?.name || "";
+        const currentIsSeparateVariant = Boolean(currentIdentity
+            && getDexVariantMeta({ name: currentIdentity, speciesId }).separable
+            && (pk.formKey || current?.is_default === false));
+        if (currentIsSeparateVariant) return current ? [current] : [];
+        return varieties.filter(entry => entry.is_default
+            || !getDexVariantMeta({ name: entry.pokemon?.name, speciesId }).separable);
+    }, [speciesProfile, pk.species?.name, pk.formKey]);
 
     useEffect(() => {
         const defaultAbility = pk.species?.abilities?.[0]?.ability?.name || "";
@@ -215,6 +228,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const changeForm = async formUrl => {
         if (!formUrl || switchingForm) return;
+        const targetForm = forms.find(entry => entry.pokemon?.url === formUrl);
+        if (!targetForm) {
+            setFormError("Essa variante aparece como um Pokémon separado na Pokédex.");
+            return;
+        }
         const current = forms.find(entry => entry.pokemon?.name === pk.species?.name);
         if (current?.pokemon?.url === formUrl) return;
         setSwitchingForm(true);
@@ -399,8 +417,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </label>
                     <span className="editor-species-name">{formatName(pk.formKey || pk.species?.name || "")}</span>
                     {forms.length > 1 && <label className="editor-field form-switch">
-                        <span className="editor-label">Forma</span>
-                        <RoomSelect aria-label="Forma" className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
+                        <span className="editor-label">Forma do mesmo Pokémon</span>
+                        <RoomSelect aria-label="Forma do mesmo Pokémon" className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
                             {forms.map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}{entry.is_default ? " · padrão" : ""}</option>)}
                         </RoomSelect>
                     </label>}

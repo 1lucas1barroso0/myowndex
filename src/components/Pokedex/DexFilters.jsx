@@ -66,13 +66,13 @@ export default function DexFilters({
                 <section className="dex-filter-section" aria-labelledby="dex-variants-title">
                     <div className="dex-filter-heading">
                         <strong id="dex-variants-title">Variantes</strong>
-                        <small>A Pokédex fica agrupada por padrão. Separe quando quiser comparar linhas diferentes da mesma entrada.</small>
+                        <small>A Pokédex fica agrupada por padrão. Separe somente variantes que representam linhas diferentes do mesmo número nacional.</small>
                     </div>
                     <div className="dex-segmented" role="group" aria-label="Como mostrar variantes">
                         <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => { onVariantModeChange("grouped"); onRegionsChange([]); }}>Agrupadas</button>
-                        <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Separadas</button>
+                        <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Separar variantes fixas</button>
                     </div>
-                    <div className="dex-region-grid" role="group" aria-label="Filtrar variantes regionais">
+                    <p className="dex-filter-note">Formas que o mesmo Pokémon pode trocar continuam dentro da ficha, sem virar entradas extras na lista.</p><div className="dex-region-grid" role="group" aria-label="Filtrar variantes regionais">
                         {DEX_REGIONS.map(region => <button
                             key={region.id}
                             type="button"

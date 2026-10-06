@@ -4,6 +4,7 @@ import bundledSpecies from "./data/species.json";
 import fixedFormCatalogue from "./data/forms.json";
 import speciesMetadata from "./data/generator-species.json";
 import { integerInRange } from "./core/math.js";
+import { formatDexEntryCount, formatDexVariantCount } from "./core/copy.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { compactSpecies, createTeam, hydrateTeam, loadTeamsDurable, mergeHydratedTeams, normalizePokemon, saveTeamsDurable, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
@@ -22,14 +23,13 @@ import { getDexVariantMeta } from "./core/dexVariants.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.8";
+const APP_VERSION = "2.0.9";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
-const formatDexResultCount = (speciesCount, formCount) => {
-    const parts = [];
-    if (speciesCount) parts.push(`${speciesCount} ${speciesCount === 1 ? "espécie" : "espécies"}`);
-    if (formCount) parts.push(`${formCount} ${formCount === 1 ? "forma" : "formas"}`);
-    return parts.join(" · ") || "0 resultados";
+const formatDexResultCount = (entryCount, variantCount, variantMode) => {
+    const parts = [formatDexEntryCount(entryCount)];
+    if (variantMode === "separate" && variantCount) parts.push(formatDexVariantCount(variantCount));
+    return parts.join(" · ");
 };
 function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
@@ -48,7 +48,11 @@ const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorit
     const region = dexEntryRegion(species);
     const formLabel = species.formIdentifier ? formatName(species.formIdentifier) : "";
     const identityName = formLabel ? `${displayName} · ${formLabel}` : displayName;
-    const variantLabel = region ? `Regional · ${formatName(region)}` : formLabel ? `Variante · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional";
+    const variantLabel = region
+        ? `Variante regional · ${formatName(region)} · Geração de estreia ${generation?.label || "?"}`
+        : species.isPrimarySpecies === false
+            ? `Variante · ${formLabel || displayName} · Geração de estreia ${generation?.label || "?"}`
+            : generation ? `Geração de estreia ${generation.label}` : "Pokédex Nacional";
     return (
         <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={generation?.id} data-form={formLabel ? "named" : "base"}>
             <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${identityName} na Pokédex`}>
@@ -450,8 +454,8 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
         minNumber: dexMinNumber,
         maxNumber: dexMaxNumber,
     }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder, dexGeneration, dexTypes, dexRegions, dexVariantMode, dexMinNumber, dexMaxNumber]);
-    const filteredSpeciesCount = useMemo(() => filteredSpecies.filter(entry => entry.isPrimarySpecies !== false).length, [filteredSpecies]);
-    const filteredFormCount = filteredSpecies.length - filteredSpeciesCount;
+    const filteredEntryCount = useMemo(() => new Set(filteredSpecies.map(dexEntryNumber)).size, [filteredSpecies]);
+    const filteredVariantCount = useMemo(() => filteredSpecies.filter(entry => entry.isPrimarySpecies === false).length, [filteredSpecies]);
 
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 
@@ -622,7 +626,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 <header className="dex-heading">
                                     <div className="dex-title"><h2>Pokédex Nacional</h2></div>
                                     <PokemonCompanion place="pokedex" className="dex-companion" eager />
-                                    <span className="dex-count" role="status">{formatDexResultCount(filteredSpeciesCount, filteredFormCount)}</span>
+                                    <span className="dex-count" role="status">{formatDexResultCount(filteredEntryCount, filteredVariantCount, dexVariantMode)}</span>
                                 </header>
                                 <div className="dex-toolbar">
                                     <label className="dex-search"><span className="dex-search-label">Buscar por nome, número ou intervalo</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} inputMode="search" /></label>

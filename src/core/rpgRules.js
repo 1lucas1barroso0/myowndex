@@ -183,7 +183,7 @@ export const RPG_RULE_SECTIONS = [
                     "Pagar HP, sofrer recuo ou tirar o próprio HP com um movimento, habilidade ou item encerra essa proteção até o fim da batalha. Cura e troca não desfazem essa perda.",
                     "Mudar de fase não começa outra batalha, mesmo entre rodadas. Só Nova batalha, confirmada pelo Narrador e sem rodada em curso, renova a proteção geral. O jogo não recupera HP, PP ou itens por causa disso. Sair e voltar à cena durante o mesmo combate conserva o uso anterior.",
                     "Um movimento de nocaute direto passa pela proteção geral. Um crítico ou erro crítico não passa só por ser crítico: o dano precisa chegar a três vezes o HP máximo ou mais.",
-                    "Shedinja e outras espécies ou formas com HP máximo 1 por regra própria não recebem a proteção geral. Sturdy, Focus Sash e semelhantes são chances separadas. Quando a proteção geral age primeiro, ela não gasta essas chances e guarda a condição que permitia usá-las antes do golpe.",
+                    "Shedinja e outros Pokémon com HP máximo 1 por regra própria não recebem a proteção geral. Sturdy, Focus Sash e semelhantes são chances separadas. Quando a proteção geral age primeiro, ela não gasta essas chances e guarda a condição que permitia usá-las antes do golpe.",
                     "Essa chance extra guardada dura até o próximo dano que alcançar o Pokémon. Nesse dano, a habilidade ou o item pode deixá-lo com 1 HP, se sua própria regra permitir. O próximo dano encerra essa reserva, tenha ela sido usada ou não. Cura e troca não recriam a proteção geral.",
                     "Se o dano já deixaria pelo menos 1 HP sem ajuda, a proteção geral não age e não guarda uma chance extra de Sturdy ou Focus Sash.",
                     "Em um movimento de vários acertos, conte cada hit. Um pode gastar a proteção geral; outro pode ativar uma habilidade ou item ainda apto; um seguinte pode derrotar o Pokémon.",
@@ -234,10 +234,10 @@ export const RPG_RULE_SECTIONS = [
             {
                 id: "4.2",
                 title: "Capturas",
-                plain: "Captura usa a taxa da espécie, HP, condição e Poké Ball; o MyOwnDex calcula a chance e registra o resultado.",
+                plain: "Captura usa a taxa de captura do Pokémon, HP, condição e Poké Ball; o MyOwnDex calcula a chance e registra o resultado.",
                 body: "Só capture um Pokémon selvagem, consciente e permitido na cena. Uma tentativa gasta a Poké Ball e a intervenção do Treinador em batalha, mesmo se falhar; não gasta a ação do Pokémon. O jogo calcula a chance adaptada do RPG.",
                 bullets: [
-                    "Chance = 100 × taxa da espécie ÷ 255 × (3 × HP máximo − 2 × HP atual) ÷ (3 × HP máximo) × bônus da Ball × bônus da condição. O jogo arredonda para baixo e mantém de 1% a 100% quando a taxa é positiva. Taxa 0 não permite captura comum.",
+                    "Chance = 100 × taxa de captura ÷ 255 × (3 × HP máximo − 2 × HP atual) ÷ (3 × HP máximo) × bônus da Ball × bônus da condição. O jogo arredonda para baixo e mantém de 1% a 100% quando a taxa é positiva. Taxa 0 não permite captura comum.",
                     "Poké Ball, Premier Ball, Luxury Ball e Heal Ball: ×1; Great Ball: ×1,5; Ultra Ball: ×2. Sono ou congelamento: ×2,5; queimadura, paralisia ou veneno: ×1,5. Master Ball dispensa o teste, mas não permite capturar o Pokémon de outro Treinador.",
                     "No d100, igual ou menor que a chance é captura. A taxa vem da Pokédex; HP e condição vêm da cena. A vantagem de um ataque não passa para a captura.",
                     "Uma Ball especial mantém sua própria descrição e bônus: não é tratada silenciosamente como uma Poké Ball comum. O Narrador registra uma exceção quando necessário. Depois da captura, registre o Pokémon no PC e ajuste o inventário; o Diário da aventura guarda o resultado.",
@@ -278,7 +278,7 @@ export const RPG_RULE_SECTIONS = [
                 plain: "Um Pokémon pode ser montado manualmente ou pelo Gerador, sempre com uma ficha que continue editável.",
                 body: "Monte a ficha ou use o Gerador para começar.",
                 bullets: [
-                    "Escolha espécie e forma, nível, natureza, habilidade, gênero, tipos, IVs, EVs e até quatro movimentos. Em Jogos, use as opções daquela edição. No RPG, o jogo escolhido define os movimentos; atributos, tipos e habilidades seguem a referência atual. Livre permite criar exceções de propósito.",
+                    "Escolha o Pokémon e, quando houver, sua variante ou forma, além de nível, natureza, habilidade, gênero, tipos, IVs, EVs e até quatro movimentos. Em Jogos, use as opções daquela edição. No RPG, o jogo de referência define os movimentos; atributos, tipos e habilidades seguem a referência atual. Livre permite criar exceções de propósito.",
                     "Anote o que acompanha o Pokémon: item, Poké Ball, Treinador original, amizade e notas da jornada.",
                     "O MyOwnDex calcula os atributos. Se o grupo combinar um valor personalizado, registre essa escolha claramente. Uma transformação de batalha não deve apagar a ficha de origem.",
                 ]

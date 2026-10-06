@@ -56,7 +56,7 @@ A busca por geração usa a estreia da forma quando ela é conhecida, sem reescr
 
 A revisão 2.0.5 concluiu a atualização de descoberta da Pokédex: filtros por tipo, região e intervalo, busca de variantes, explicações simples nas 40 regras, Diário da aventura, Amizade ±5/±50 e ícones sem cantos transparentes. Veja `docs/POKEDEX-CLARA-2.0.5.md`.
 
-A revisão 2.0.6 fixa a regra atual de variantes. **Intercambiabilidade não é o critério.** Uma forma apenas estética permanece agrupada exatamente como antes da atualização, seja ou não permanente. A segregação só é oferecida quando a variante funciona como um Pokémon distinto para o jogo e para a identidade narrativa, com diferenças mecânicas próprias relevantes. Variantes regionais continuam separáveis; estados temporários, transformações do mesmo indivíduo e diferenças puramente visuais não criam entradas novas. O Gerador usa a mesma fronteira. Nenhuma migração de Boxes, favoritos, contas, códigos ou aventuras é necessária. Veja `docs/VARIANTES-2.0.6.md`.
+A revisão 2.0.6 fixa a regra atual de variantes com **duas travas obrigatórias**. Uma forma só pode receber a nova segregação quando é **não intercambiável** e também funciona como um Pokémon distinto para o jogo e para a identidade narrativa, com diferenças mecânicas próprias relevantes. Se o mesmo indivíduo pode trocar entre as formas, elas permanecem agrupadas mesmo quando a troca altera mecânicas. Diferenças puramente estéticas também permanecem agrupadas, sejam permanentes ou não. Variantes regionais continuam separáveis. O Gerador usa a mesma fronteira. Nenhuma migração de Boxes, favoritos, contas, códigos ou aventuras é necessária. Veja `docs/VARIANTES-2.0.6.md`.
 
 ## Documentos históricos
 

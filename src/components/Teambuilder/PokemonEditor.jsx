@@ -198,11 +198,11 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         () => new Set(validAbs.map(ability => typeof ability === "string" ? ability : ability?.name).filter(Boolean)),
         [validAbs],
     );
-    const forms = useMemo(() => getSamePokemonForms(
+    const forms = getSamePokemonForms(
         speciesProfile?.varieties,
         speciesProfile?.id,
         { currentName: pk.species?.name || "", currentFormKey: pk.formKey || "" },
-    ), [speciesProfile?.varieties, speciesProfile?.id, pk.species?.name, pk.formKey]);
+    );
 
     useEffect(() => {
         const defaultAbility = pk.species?.abilities?.[0]?.ability?.name || "";

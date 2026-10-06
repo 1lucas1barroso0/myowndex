@@ -12,6 +12,15 @@ export const MYOWNDEX_TERMS = Object.freeze({
     narrator: "Narrador",
     player: "Jogador",
     pokemon: "Pokémon",
+    dexEntry: "entrada da Pokédex",
+    dexEntries: "entradas da Pokédex",
+    variant: "variante",
+    regionalVariant: "variante regional",
+    form: "forma",
+    debutGeneration: "geração de estreia",
+    variantRegion: "região da variante",
+    referenceGame: "jogo de referência",
+    encounter: "encontro",
     move: "movimento",
     ability: "habilidade",
     pokeBall: "Poké Ball",
@@ -83,6 +92,9 @@ export const formatPokemonCount = value => {
     const count = integerInRange(value, 0, MAX_SAFE_GAME_INTEGER, 0);
     return `${count} Pokémon ${count === 1 ? "encontrado" : "encontrados"}`;
 };
+
+export const formatDexEntryCount = value => formatCount(value, "entrada", "entradas");
+export const formatDexVariantCount = value => formatCount(value, "variante", "variantes");
 
 export const formatPokemonInScene = value => {
     const count = integerInRange(value, 0, MAX_SAFE_GAME_INTEGER, 0);

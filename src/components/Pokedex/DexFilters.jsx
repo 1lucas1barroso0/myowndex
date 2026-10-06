@@ -27,9 +27,7 @@ export default function DexFilters({
         + (minNumber ? 1 : 0) + (maxNumber ? 1 : 0);
 
     const toggleRegion = region => {
-        const next = toggleValue(regions, region);
-        onRegionsChange(next);
-        if (next.length) onVariantModeChange("separate");
+        onRegionsChange(toggleValue(regions, region));
     };
 
     return <section className="dex-filters-panel" aria-label="Filtros da Pokédex">
@@ -69,7 +67,7 @@ export default function DexFilters({
                         <small>Variantes são alternativas que o MyOwnDex trata como Pokémon diferentes.</small>
                     </div>
                     <div className="dex-segmented" role="group" aria-label="Como mostrar variantes">
-                        <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => { onVariantModeChange("grouped"); onRegionsChange([]); }}>Uma entrada</button>
+                        <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => onVariantModeChange("grouped")}>Uma entrada</button>
                         <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Mostrar variantes</button>
                     </div>
                     <p className="dex-filter-note">Uma entrada mantém a lista compacta. Formas que o mesmo Pokémon pode trocar e mudanças só de aparência continuam sempre na mesma ficha.</p><div className="dex-filter-heading"><strong>Região da variante</strong><small>Só vale para variantes regionais. Um Pokémon comum não entra só por ter estreado nessa região.</small></div><div className="dex-region-grid" role="group" aria-label="Filtrar por região da variante">

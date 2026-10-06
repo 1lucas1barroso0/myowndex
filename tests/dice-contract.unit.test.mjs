@@ -135,6 +135,29 @@ test("local Dados and authoritative Adventure Dados resolve the same choices wit
   }
 });
 
+test("invalid dice choices fail before consuming any entropy", () => {
+  const invalid = [
+    { kind: "unknown" },
+    { kind: "percent", chance: -1 },
+    { kind: "percent", chance: 101 },
+    { kind: "attribute", mode: "lucky" },
+    { kind: "free", sides: 7 },
+    { kind: "free", sides: 20, quantity: 0 },
+    { kind: "free", sides: 20, quantity: 21 },
+  ];
+  let calls = 0;
+  const random = () => { calls += 1; return 0.5; };
+  for (const [index, spec] of invalid.entries()) {
+    assert.throws(() => performLocalRoll(spec, { id: `invalid-${index}`, createdAt: 1, random }));
+  }
+  assert.equal(calls, 0);
+
+  assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-free", sides: 7, quantity: 1, modifier: 0 }));
+  assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-percent", chance: -1, mode: "normal" }));
+  assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-percent", chance: 101, mode: "normal" }));
+  assert.throws(() => normalizeAuthoritativeRequest({ requestId, action: "quick-attribute", attribute: 0, mode: "lucky" }));
+});
+
 test("corrupted or impossible saved dice receipts fail closed", () => {
   const valid = performLocalRoll(
     { kind: "percent", mode: "advantage", chance: 50 },

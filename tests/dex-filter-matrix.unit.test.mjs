@@ -129,6 +129,6 @@ test("invalid saved filter values fall back safely instead of breaking the Poké
     types: ["DARK", "dark"],
     variantMode: "old-mode",
   });
-  assert.deepEqual(result.map(key), ["sableye"]);
+  assert.deepEqual(result.map(key), ["rattata-alola", "sableye"]);
   assert.equal(debutGeneration(1008).id, "9");
 });

@@ -527,7 +527,7 @@ export default function Teambuilder({ envProps }) {
                         <button type="button" className="link-cable-close" onClick={() => { setSharing(false); setShareCode(""); }} aria-label="Fechar compartilhamento">×</button>
                         <span className="link-cable-kicker">Link Cable</span>
                         <h2 id="share-dialog-title">Compartilhar equipe</h2>
-                        <p className="link-cable-intro">Escolha os Pokémon ou a Box inteira para enviar a outro treinador. Espécie, forma e progresso acompanham o código.</p>
+                        <p className="link-cable-intro">Escolha os Pokémon ou a Box inteira para enviar a outro treinador. O Pokémon, com sua variante ou forma quando houver, e o progresso acompanham o código.</p>
 
                         {!shareCode ? (
                             <>

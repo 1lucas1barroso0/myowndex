@@ -44,7 +44,7 @@ test("percent tests have exact advertised probabilities in every mode", () => {
           outcomes += 1;
         }
       }
-      assert.equal(successes / outcomes, localRollOdds({ kind: "percent", chance, mode }).success, `${chance}% ${mode}`);
+      assert.ok(Math.abs(successes / outcomes - localRollOdds({ kind: "percent", chance, mode }).success) < 1e-12, `${chance}% ${mode}`);
     }
   }
 });

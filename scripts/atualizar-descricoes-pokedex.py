@@ -16,7 +16,7 @@ from pathlib import Path
 
 OUTPUT = Path(__file__).resolve().parents[1] / 'src/data'
 GO_SHA = '8353f3c4451f4b9154684222ce55128b8a33c7e4'
-API_SHA = 'bc92d3b6029ef1abe9e7ad424c400b338f3c11fe'
+API_SHA = '2ee1c422ad9f3831245dab0ac2a5cd1aae61cd72'
 SOURCES = {
     'go-apk-en': ('PokeMiners/pogo_assets', GO_SHA, 'Texts/Latest APK/English.txt'),
     'go-apk-pt': ('PokeMiners/pogo_assets', GO_SHA, 'Texts/Latest APK/BrazilianPortuguese.txt'),

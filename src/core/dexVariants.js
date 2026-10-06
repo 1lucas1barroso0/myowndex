@@ -5,28 +5,55 @@ const REGION_LABELS = Object.freeze({
     paldea: "Paldea",
 });
 
-// These are identities a captured/evolved individual does not freely swap into
-// and out of. Interchangeable modes such as Rotom appliances, Deoxys formes,
-// Therian formes, Furfrou trims, Oricorio styles, Arceus/Silvally types,
-// fusions and held-item modes stay inside the ordinary species record.
-const FIXED_VARIANT_SPECIES = new Set([
-    25, 172, 201, 413, 422, 423, 550, 592, 593, 666, 668, 669, 670, 671,
-    678, 710, 711, 745, 774, 849, 854, 855, 869, 876, 892, 901, 902, 916,
-    925, 931, 978, 982, 999, 1012, 1013,
+// Segregation is deliberately conservative. It exists only when a form is,
+// for practical gameplay and narrative purposes, a distinct Pokémon identity.
+// Cosmetic differences stay inside the ordinary species record even when they
+// are permanent or cannot be freely swapped.
+//
+// Species below have non-regional forms with durable mechanical differences
+// such as stats, abilities, typing, movepools, evolution identity or a unique
+// battle interaction that belongs to that form itself.
+const DISTINCT_VARIANT_SPECIES = new Set([
+    413, // Wormadam cloaks
+    550, // Basculin stripes
+    678, // Meowstic sexes
+    710, 711, // Pumpkaboo / Gourgeist sizes
+    745, // Lycanroc forms
+    849, // Toxtricity forms
+    876, // Indeedee sexes
+    892, // Urshifu styles
+    901, // Ursaluna / Bloodmoon
+    902, // Basculegion sexes
+    916, // Oinkologne sexes
+    931, // Squawkabilly plumages have different ability sets
+    978, // Tatsugiri forms
+    999, // Gimmighoul forms
 ]);
 
-const FIXED_SPECIAL_NAMES = new Set([
+// Individual exceptional forms whose species also has ordinary/cosmetic forms.
+const DISTINCT_SPECIAL_NAMES = new Set([
+    "pikachu-starter",
     "eevee-starter",
     "pichu-spiky-eared",
     "rockruff-own-tempo",
-    "magearna-original",
-    "zarude-dada",
+    "floette-eternal",
+]);
+
+const REGIONAL_PATTERNS = Object.freeze([
+    ["alola", /-alola$/],
+    ["galar", /-galar(?:-standard)?$/],
+    ["hisui", /-hisui$/],
+    ["paldea", /-paldea$/],
+    ["paldea", /^tauros-paldea-(?:combat|blaze|aqua)-breed$/],
 ]);
 
 export const getDexVariantRegion = entry => {
     const name = String(entry?.name || "");
-    for (const [key, label] of Object.entries(REGION_LABELS)) {
-        if (new RegExp(`-${key}(?:-|$)`).test(name)) return { key, label };
+    // Totem/costume/battle-state names may contain a region word without being
+    // a regional variant. Match canonical regional identities, not substrings.
+    if (/-totem(?:-|$)/.test(name)) return null;
+    for (const [key, pattern] of REGIONAL_PATTERNS) {
+        if (pattern.test(name)) return { key, label: REGION_LABELS[key] };
     }
     return null;
 };
@@ -34,12 +61,18 @@ export const getDexVariantRegion = entry => {
 export const getDexVariantMeta = entry => {
     const region = getDexVariantRegion(entry);
     if (region) return { separable: true, kind: "regional", region: region.key, regionLabel: region.label };
+
     const name = String(entry?.name || "");
     const speciesId = Number(entry?.speciesId);
-    const fixed = FIXED_VARIANT_SPECIES.has(speciesId)
-        || FIXED_SPECIAL_NAMES.has(name)
-        || /-totem(?:-|$)/.test(name);
-    return { separable: fixed, kind: fixed ? "fixed" : "interchangeable", region: "", regionLabel: "" };
+    const distinct = DISTINCT_VARIANT_SPECIES.has(speciesId)
+        || DISTINCT_SPECIAL_NAMES.has(name);
+
+    return {
+        separable: distinct,
+        kind: distinct ? "distinct" : "grouped",
+        region: "",
+        regionLabel: "",
+    };
 };
 
 export const shouldSeparateDexVariant = entry => getDexVariantMeta(entry).separable;

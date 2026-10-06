@@ -4,22 +4,22 @@ A 2.0.5 conclui a atualização de identificação, listagem, busca e leitura qu
 
 ## Pokédex
 
-A visualização normal continua com uma entrada principal por número da National Dex. Quando existem Pokémon diferentes e não intercambiáveis sob o mesmo número, o jogador pode separá-los para identificar e comparar. Formas que o mesmo indivíduo pode alternar continuam dentro da ficha e não viram linhas extras na lista.
+A visualização normal continua com uma entrada principal por número da National Dex. A segregação adicionada nesta fase foi refinada na 2.0.6: apenas variantes que funcionam como Pokémon distintos em mecânica e identidade podem ser separadas. Diferenças apenas estéticas permanecem dentro da entrada da espécie, independentemente de serem intercambiáveis.
 
 Em **Refinar Pokédex**, o jogador pode:
 
 - filtrar pela geração de estreia;
 - escolher um ou dois tipos;
 - limitar a National Dex com **A partir de** e **Até**, usando os dois campos ou somente um;
-- separar variantes fixas quando quiser comparar linhas diferentes do mesmo número;
+- separar variantes realmente distintas quando quiser comparar linhas diferentes do mesmo número;
 - filtrar diretamente variantes de Alola, Galar, Hisui ou Paldea;
 - combinar esses filtros com busca, favoritos e ordenação.
 
 A busca também entende intervalos fechados, como `310-560`, e expressões abertas, como `a partir de 700` e `até 940`.
 
-A lista fica agrupada por padrão. Uma busca textual por uma variante fixa, um filtro regional ou a opção **Separar variantes fixas** revela essas entradas somente quando isso ajuda a responder à procura. Formas intercambiáveis permanecem na ficha da espécie. Variantes favoritas continuam acessíveis sem invalidar favoritos antigos salvos apenas pelo número nacional.
+A lista fica agrupada por padrão. Uma busca textual por uma variante distinta, um filtro regional ou a opção **Separar variantes distintas** revela essas entradas somente quando isso ajuda a responder à procura. Formas puramente estéticas continuam agrupadas; estados e transformações do mesmo indivíduo também permanecem na ficha. Variantes favoritas continuam acessíveis sem invalidar favoritos antigos salvos apenas pelo número nacional.
 
-Essa organização é uma regra de navegação do próprio MyOwnDex. Ela não cria categorias externas, não usa critérios da megafauna e não importa classificações de nenhum outro projeto.
+Essa organização é uma regra interna de navegação do MyOwnDex e não altera a identidade salva dos Pokémon.
 
 ## Tipos e variantes
 
@@ -29,7 +29,7 @@ Variantes regionais são identificadas pela região quando aparecem separadament
 
 ## Gerador
 
-O Gerador recebe o mesmo filtro de região. Tipo, geração, região e variante fixa explícita podem trabalhar juntos; formas intercambiáveis continuam tratadas dentro da espécie. O sorteio aleatório continua equilibrado por espécie para que uma espécie com muitas variantes não domine os encontros.
+O Gerador recebe o mesmo filtro de região. Tipo, geração, região e variante distinta explícita podem trabalhar juntos; formas puramente estéticas continuam tratadas dentro da espécie. O sorteio aleatório continua equilibrado por espécie para que uma espécie com muitas variantes não domine os encontros.
 
 ## Guia do Treinador
 

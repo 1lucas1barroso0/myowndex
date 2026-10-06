@@ -4,7 +4,7 @@ import forms from "../src/data/forms.json" with { type: "json" };
 
 test("persistent-form catalogue is complete, deterministic and excludes collapsed battle transformations", () => {
   assert.equal(forms.schemaVersion, 1);
-  assert.equal(forms.sourceCommit, "bc92d3b6029ef1abe9e7ad424c400b338f3c11fe");
+  assert.equal(forms.sourceCommit, "2ee1c422ad9f3831245dab0ac2a5cd1aae61cd72");
   assert.equal(forms.defaults.length, 52);
   assert.equal(forms.entries.length, 379);
   assert.equal(forms.defaults.length + forms.entries.length, 431);
@@ -45,5 +45,5 @@ test("persistent-form catalogue is complete, deterministic and excludes collapse
     "furfrou-heart",
     "alcremie-rainbow-swirl-star-sweet",
     "ursaluna-bloodmoon",
-  ]) assert.equal(names.has(name), true, `${name} must be independently selectable`);
+  ]) assert.equal(names.has(name), true, `${name} must remain available in the technical form catalogue`);
 });

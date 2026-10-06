@@ -12,10 +12,13 @@ test("generator explains selection, filters and sheet options without mixing the
   assert.match(source, /Região da variante/);
   assert.match(source, /Não inclui todos os Pokémon da região/);
   assert.match(source, /Os dois caminhos não se misturam/);
-  assert.match(source, /Uma variante de uma entrada antiga pode ter uma geração de estreia mais nova/);\n  assert.match(source, /Ter mais variantes nunca dá mais chance à entrada/);\n  assert.match(source, /Elas não aumentam nem diminuem a chance de uma entrada da Pokédex aparecer/);
+  assert.match(source, /Uma variante de uma entrada antiga pode ter uma geração de estreia mais nova/);
+  assert.match(source, /Ter mais variantes nunca dá mais chance à entrada/);
+  assert.match(source, /Elas não aumentam nem diminuem a chance de uma entrada da Pokédex aparecer/);
   assert.match(source, /Criar um novo encontro\?/);
   assert.match(source, /Continuar neste encontro/);
-  assert.doesNotMatch(source, /prévia/i);\n  assert.doesNotMatch(source, /Pokémon ou forma/);
+  assert.doesNotMatch(source, /prévia/i);
+  assert.doesNotMatch(source, /Pokémon ou forma/);
 });
 
 test("choosing an exact Pokémon clears random-pool filters", async () => {

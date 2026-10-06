@@ -85,9 +85,14 @@ export function selectDexSpecies(species, {
     const numericRange = parseDexRange(rawQuery);
     const numericQuery = !numericRange && /^\d+$/.test(normalized) ? Number(normalized) : null;
     const selected = new Set(favorites);
-    const selectedTypes = [...new Set((Array.isArray(types) ? types : []).filter(Boolean))].slice(0, 2);
-    const selectedRegions = new Set(Array.isArray(regions) ? regions : []);
-    const range = DEX_GENERATIONS.find(gen => gen.id === generation) || DEX_GENERATIONS[0];
+    const selectedTypes = [...new Set((Array.isArray(types) ? types : [])
+        .map(type => String(type ?? "").trim().toLowerCase())
+        .filter(Boolean))].slice(0, 2);
+    const validRegions = new Set(DEX_REGIONS.map(region => region.id));
+    const selectedRegions = new Set((Array.isArray(regions) ? regions : []).filter(region => validRegions.has(region)));
+    const range = DEX_GENERATIONS.find(gen => gen.id === String(generation)) || DEX_GENERATIONS[0];
+    const selectedGeneration = range.id;
+    const selectedOrder = ["number", "reverse", "name"].includes(order) ? order : "number";
     const minimum = Number.isInteger(Number(minNumber)) && Number(minNumber) >= 1 ? Math.min(1025, Number(minNumber)) : 1;
     const maximum = Number.isInteger(Number(maxNumber)) && Number(maxNumber) >= 1 ? Math.min(1025, Number(maxNumber)) : 1025;
     const lower = Math.min(minimum, maximum);
@@ -98,8 +103,8 @@ export function selectDexSpecies(species, {
         const id = dexEntryNumber(entry);
         if (!Number.isInteger(id) || id < lower || id > upper) return false;
         const entryGeneration = dexEntryGeneration(entry);
-        const inGeneration = generation === "all"
-            || entryGeneration?.id === generation
+        const inGeneration = selectedGeneration === "all"
+            || entryGeneration?.id === selectedGeneration
             || (!entry?.generation && id >= range.start && id <= range.end);
         if (!inGeneration) return false;
 
@@ -124,7 +129,7 @@ export function selectDexSpecies(species, {
             && !(textQuery && matchesQuery) && !(onlyFavorites && selected.has(favoriteKey))) return false;
         return true;
     }).sort((a, b) => {
-        if (order === "name") {
+        if (selectedOrder === "name") {
             const left = String(a.speciesName || a.name);
             const right = String(b.speciesName || b.name);
             const difference = left.localeCompare(right, "pt-BR");

@@ -491,7 +491,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                 <div className="record-moves-heading">
                                     <h3 className="record-section-title">Movimentos</h3>
                                     {learnsetGames.length > 0 && <div className="record-game-picker">
-                                        <label htmlFor={`${recordId}-move-game`}>Jogo</label>
+                                        <label htmlFor={`${recordId}-move-game`}>Jogo de referência</label>
                                         <RoomSelect id={`${recordId}-move-game`} value={learnsetVersion === 'auto' || learnsetGames.some(game => game.value === learnsetVersion) ? learnsetVersion : 'auto'} onChange={event => setLearnsetVersion(event.target.value)}>
                                             <option value="auto">Mais recente · {VERSION_LABELS[resolveLearnsetGame(formData.moves)] || selectedMoveGame?.label}</option>
                                             {learnsetGames.map(game => <option key={game.value} value={game.value}>{game.label}</option>)}

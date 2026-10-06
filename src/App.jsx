@@ -22,7 +22,7 @@ import { getDexVariantMeta } from "./core/dexVariants.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.6";
+const APP_VERSION = "2.0.7";
 const APP_VERSION_LABEL = "2.0";
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 const formatDexResultCount = (speciesCount, formCount) => {
@@ -625,7 +625,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                     <span className="dex-count" role="status">{formatDexResultCount(filteredSpeciesCount, filteredFormCount)}</span>
                                 </header>
                                 <div className="dex-toolbar">
-                                    <label className="dex-search"><span className="dex-search-label">Nome, número ou intervalo</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} inputMode="search" /></label>
+                                    <label className="dex-search"><span className="dex-search-label">Buscar por nome, número ou intervalo</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} inputMode="search" /></label>
                                     <button type="button" className={`dex-filter ${onlyFavorites ? "is-active" : ""}`} aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setLimit(60); }}><GameIcon name="star" />Favoritos <span>{favorites.length}</span></button>
                                     <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(60); }}><option value="number" aria-label="Número crescente">Número ↑</option><option value="reverse" aria-label="Número decrescente">Número ↓</option><option value="name" aria-label="Nome de A a Z">Nome A–Z</option></select></label>
                                 </div>
@@ -661,7 +661,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="dex-empty"><PokemonCompanion place="pokedex-empty" /><p>{onlyFavorites && !favorites.length ? "Você ainda não tem favoritos. Toque na estrela de um Pokémon para adicioná-lo." : "Nenhum Pokémon corresponde aos filtros."}</p><button type="button" className="room-secondary-button" onClick={() => {
+                                    <div className="dex-empty"><PokemonCompanion place="pokedex-empty" /><p>{onlyFavorites && !favorites.length ? "Você ainda não tem favoritos. Toque na estrela de um Pokémon para adicioná-lo." : "Nenhum Pokémon foi encontrado. Tente mudar os filtros."}</p><button type="button" className="room-secondary-button" onClick={() => {
                                         setSearchInput("");
                                         setSearchTerm("");
                                         setOnlyFavorites(false);

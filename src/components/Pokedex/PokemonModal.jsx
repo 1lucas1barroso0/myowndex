@@ -225,15 +225,15 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
         if (!dialogRef.current?.contains(document.activeElement)) closeRef.current?.focus({ preventScroll: true });
     }, [phase]);
 
-    const selectedIdentityIsVariant = useMemo(() => Boolean(
+    const selectedIdentityIsVariant = Boolean(
         baseInfo?.id && formIdentity?.formKey
         && getDexVariantMeta({ name: formIdentity.formKey, speciesId: baseInfo.id }).separable
-    ), [baseInfo?.id, formIdentity?.formKey]);
-    const visibleVarieties = useMemo(() => getSamePokemonForms(
+    );
+    const visibleVarieties = getSamePokemonForms(
         baseInfo?.varieties,
         baseInfo?.id,
         { currentName: formIdentity?.pokemonName || activeForm?.name || "", currentFormKey: formIdentity?.formKey || "" },
-    ), [baseInfo?.id, baseInfo?.varieties, formIdentity?.pokemonName, formIdentity?.formKey, activeForm?.name]);
+    );
 
     const learnsetGames = useMemo(() => getLearnsetGames(formData?.moves || []), [formData?.moves]);
     const moveVersion = resolveLearnsetGame(formData?.moves || [], learnsetVersion);

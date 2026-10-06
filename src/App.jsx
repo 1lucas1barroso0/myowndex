@@ -18,6 +18,7 @@ import PokemonCompanion from "./components/Shared/PokemonCompanion.jsx";
 import GameIcon from "./components/Shared/GameIcon.jsx";
 import DexFilters from "./components/Pokedex/DexFilters.jsx";
 import { dexEntryFavoriteKey, dexEntryGeneration, dexEntryNumber, dexEntryRegion, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
+import { getDexVariantMeta } from "./core/dexVariants.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
@@ -47,7 +48,7 @@ const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorit
     const region = dexEntryRegion(species);
     const formLabel = species.formIdentifier ? formatName(species.formIdentifier) : "";
     const identityName = formLabel ? `${displayName} · ${formLabel}` : displayName;
-    const variantLabel = region ? `Variante · ${formatName(region)}` : formLabel ? `Forma · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional";
+    const variantLabel = region ? `Regional · ${formatName(region)}` : formLabel ? `Variante · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional";
     return (
         <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={generation?.id} data-form={formLabel ? "named" : "base"}>
             <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${identityName} na Pokédex`}>
@@ -119,10 +120,8 @@ export default function App() {
 const attachFixedForms = catalogue => {
     const source = Array.isArray(catalogue) ? catalogue : [];
     const names = new Map(source.map(entry => [Number(extractId(entry.url)), entry.name]));
-    const defaults = new Map((fixedFormCatalogue.defaults || []).map(entry => [entry.speciesId, entry]));
     const base = source.map(entry => {
         const speciesId = Number(extractId(entry.url));
-        const form = defaults.get(speciesId);
         const meta = speciesMetadata[speciesId] || {};
         return {
             ...entry,
@@ -130,23 +129,26 @@ const attachFixedForms = catalogue => {
             pokemonId: speciesId,
             speciesName: entry.name,
             isPrimarySpecies: true,
-            types: form?.types || meta.types || [],
-            pastTypes: form?.pastTypes || meta.pastTypes || [],
-            formKey: form?.name || "",
-            formId: form?.formId || null,
-            formIdentifier: form?.formIdentifier || "",
-            spriteKey: form?.spriteKey || String(speciesId),
-            ...(form?.generation ? { generation: form.generation } : {}),
+            types: meta.types || [],
+            pastTypes: meta.pastTypes || [],
+            formKey: "",
+            formId: null,
+            formIdentifier: "",
+            spriteKey: String(speciesId),
         };
     });
-    const forms = (fixedFormCatalogue.entries || []).map(entry => ({
-        ...entry,
-        speciesName: names.get(entry.speciesId) || entry.pokemonName,
-        isPrimarySpecies: false,
-        formKey: entry.name,
-        url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
-    }));
-    return [...base, ...forms];
+    const variants = [...(fixedFormCatalogue.defaults || []), ...(fixedFormCatalogue.entries || [])]
+        .map(entry => ({ entry, variant: getDexVariantMeta(entry) }))
+        .filter(({ variant }) => variant.separable)
+        .map(({ entry, variant }) => ({
+            ...entry,
+            ...variant,
+            speciesName: names.get(entry.speciesId) || entry.pokemonName,
+            isPrimarySpecies: false,
+            formKey: entry.name,
+            url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
+        }));
+    return [...base, ...variants];
 };
 
 function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNavigation, receivedDocument }) {

@@ -71,13 +71,11 @@ import { bindAccountRoom, listAccountRooms, unlinkAccountRoom } from "../../core
 import { mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
 import { getStorageScope, readDurableStorage, removeStorage, writeStorage } from "../../core/storage.js";
 import { getBattleDisplayIdentity, normalizeSpecialState } from "../../core/specialMechanics.js";
-import AudioDeck from "./AudioDeck.jsx";
 import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
 import CaptureAssistant from "./CaptureAssistant.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
 import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
-import VoiceCall from "./VoiceCall.jsx";
 import AdventurePhaseControl from "./AdventurePhaseControl.jsx";
 
 const connectionLabels = {
@@ -424,7 +422,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             snapshot: normalizeRoomSnapshot(bundle.snapshot),
             players: Array.isArray(bundle.players) ? bundle.players : [],
             events: Array.isArray(bundle.events) ? bundle.events : [],
-            media: Array.isArray(bundle.media) ? bundle.media : [],
         });
         setConnection("connected");
         setError("");
@@ -573,7 +570,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 payload: { text: `A aventura “${localTitle}” começou neste dispositivo.` },
                 createdAt: new Date().toISOString(),
             }],
-            media: [],
         };
         setSession(nextSession);
         setRoom(localRoom);
@@ -1755,7 +1751,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 </section>
 
                 <aside className="room-tools">
-                    {!session.local && <VoiceCall session={session} role={role} />}
                     {snapshot.phase === "batalha" && <CombatAssistant
                         role={role}
                         playerId={session.playerId}
@@ -1768,18 +1763,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         onError={showError}
                     />}
                     {["batalha", "exploracao"].includes(snapshot.phase) && <CaptureAssistant role={role} snapshot={snapshot} remote={!session.local} onAuthoritativeAction={requestAuthoritativeAction} onSnapshotChange={commitSnapshot} onEvent={sendEvent} onError={showError} />}
-                    <AudioDeck
-                        session={session}
-                        role={role}
-                        snapshot={snapshot}
-                        media={room.media || []}
-                        events={events}
-                        onSnapshotChange={commitSnapshot}
-                        onEvent={sendEvent}
-                        onRefresh={() => refresh(session)}
-                        onError={showError}
-                    />
-
                     <details className="room-tool">
                         <summary>
                             <span>
@@ -1881,7 +1864,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             <ConfirmDialog
                 open={ending}
                 title="Encerrar esta aventura?"
-                description="Antes de encerrar, o Narrador avalia a Amizade pela história da sessão. A aventura, o diário e as trilhas serão apagados; suas Boxes continuam no PC."
+                description="Antes de encerrar, o Narrador avalia a Amizade pela história da sessão. A aventura e o diário serão apagados; suas Boxes continuam no PC."
                 confirmLabel={busy ? "Encerrando…" : "Encerrar aventura"}
                 cancelLabel="Continuar aventura"
                 danger

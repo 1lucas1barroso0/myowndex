@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { getStorageScope, readStorage, resolveStorageKey, writeStorage } from "../../core/storage.js";
-import { authoritativeLocalRollReceipt, clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_LIMIT, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRoll, saveLocalRollDurable } from "../../core/localRolls.js";
+import { authoritativeLocalRollReceipt, clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_LIMIT, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRollDurable } from "../../core/localRolls.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import LocalPokemonDice from "./LocalPokemonDice.jsx";
 import RoomSelect from "./RoomSelect.jsx";
@@ -154,7 +154,10 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         setHistory(current=>mergeLocalRolls([receipt],current));
         // Session history is immediate. Browser cache and durable storage are
         // redundant, best-effort copies and are never allowed to gate a roll.
-        void Promise.resolve().then(()=>saveLocalRoll(receipt)).catch(()=>undefined);
+        void Promise.resolve().then(()=>{
+            const cached=readStorage(LOCAL_ROLL_HISTORY_KEY,[],{scope});
+            writeStorage(LOCAL_ROLL_HISTORY_KEY,mergeLocalRolls([receipt],cached),{scope});
+        }).catch(()=>undefined);
         void saveLocalRollDurable(receipt,{scope}).then(persisted=>{
             if(persisted) pendingReceipts.current.delete(receipt.id);
             if(alive.current && !persisted) setFeedback("O resultado continua na tela, mas não entrou no histórico.");

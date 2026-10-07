@@ -688,3 +688,295 @@ html .app-root.game-edition.handheld-edition .game-release b{
   }
   html .pokemon-companion::before{ display:none !important; }
 }
+
+
+/* 2.0.15 — retention pass: lively headers, transparent partners and clean collection sprites. */
+@keyframes myowndex-companion-idle {
+  0%,100% { transform: translateY(0) rotate(-.4deg); }
+  50% { transform: translateY(-5px) rotate(.7deg); }
+}
+@keyframes myowndex-companion-pop {
+  0% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-7px) scale(1.035); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+html .pokemon-companion{
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+  box-sizing:border-box !important;
+  overflow:visible !important;
+  isolation:auto !important;
+  padding:.4rem !important;
+  background:transparent !important;
+}
+html .pokemon-companion::before,
+html .pokemon-companion::after,
+html :is(.generator-heading,.account-dialog-heading) .pokemon-companion::before,
+html :is(.generator-heading,.account-dialog-heading) .pokemon-companion::after{
+  content:none !important;
+  display:none !important;
+}
+html .pokemon-companion img{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  background:transparent !important;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 5px 1px #17343c26) !important;
+  animation:myowndex-companion-idle 2.35s ease-in-out infinite !important;
+  transform-origin:50% 82%;
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  html .pokemon-companion:hover img,
+  html :is(.adventure-intro,.dex-heading,.guide-hero,.pc-sidebar-heading):hover .pokemon-companion img{
+    animation:myowndex-companion-pop .58s ease-out 1 !important;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  html .pokemon-companion img{ animation:none !important; transform:none !important; }
+}
+
+/* Headers should feel like game destinations, not blank forms. */
+html .app-root.game-edition.handheld-edition .app-header{
+  background:
+    linear-gradient(112deg,transparent 0 13%,#ffffff12 13% 26%,transparent 26% 74%,#8f183224 74% 84%,transparent 84%),
+    linear-gradient(180deg,#dc3151 0%,#cf2844 58%,#bd203e 100%) !important;
+  border-bottom:4px solid #8f1832 !important;
+  box-shadow:0 3px 0 #17343c12,0 9px 24px #8f183216 !important;
+}
+html .app-root.game-edition.handheld-edition .app-header::before{
+  content:"" !important;
+  position:absolute;
+  inset:auto 0 0;
+  width:auto;
+  height:3px;
+  transform:none;
+  background:linear-gradient(90deg,var(--joy-gold) 0 24%,#61c7df 24% 48%,#fff7e8 48% 72%,var(--joy-gold) 72% 100%);
+  opacity:.85;
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .app-header::after{
+  content:"" !important;
+  position:absolute;
+  inset:12% auto auto 9%;
+  width:7rem;
+  height:7rem;
+  border:1px dashed #ffffff24;
+  border-radius:1.4rem;
+  transform:rotate(19deg);
+  background:transparent;
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .nav-capsule{
+  background:#ffffff0d !important;
+  border-color:#ffffff45 !important;
+}
+html .app-root.game-edition.handheld-edition .nav-capsule.is-active{
+  background:#243b40 !important;
+  border-color:#243b40 !important;
+  box-shadow:0 3px 0 var(--joy-gold),0 8px 18px #6711262b !important;
+}
+html .app-root.game-edition.handheld-edition .app-brand-icon{
+  border-radius:.7rem !important;
+  box-shadow:0 0 0 2px #ffffff30 !important;
+}
+
+/* The four main destinations share a family but keep their own accent. */
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading){
+  position:relative !important;
+  overflow:visible !important;
+  isolation:isolate;
+  min-height:8rem;
+  padding:1.1rem 1.25rem !important;
+  border:1px solid var(--joy-line) !important;
+  border-radius:1rem !important;
+  box-shadow:0 3px 0 #17343c12,0 10px 22px #17343c0b !important;
+}
+html .app-root.game-edition.handheld-edition .adventure-intro{
+  border-left:5px solid var(--joy-red) !important;
+  background:
+    linear-gradient(105deg,color-mix(in srgb,var(--joy-red) 7%,var(--joy-paper)) 0 24%,var(--joy-paper) 24% 72%,color-mix(in srgb,var(--joy-gold) 11%,var(--joy-paper)) 72%) !important;
+}
+html .app-root.game-edition.handheld-edition .guide-hero{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:1rem !important;
+  border-left:5px solid var(--joy-teal) !important;
+  background:
+    linear-gradient(105deg,color-mix(in srgb,var(--joy-teal) 8%,var(--joy-paper)) 0 24%,var(--joy-paper) 24% 74%,color-mix(in srgb,var(--joy-gold) 10%,var(--joy-paper)) 74%) !important;
+}
+html .app-root.game-edition.handheld-edition .guide-hero::after{
+  width:5.4rem !important;
+  height:.34rem !important;
+  left:1.25rem !important;
+  bottom:.72rem !important;
+  background:linear-gradient(90deg,var(--joy-gold) 0 55%,var(--joy-teal) 55%) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-heading{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"title partner" "count partner";
+  align-items:center !important;
+  gap:.35rem 1rem !important;
+  margin-bottom:1rem !important;
+  border-left:5px solid var(--joy-blue) !important;
+  background:
+    linear-gradient(105deg,color-mix(in srgb,var(--joy-blue) 7%,var(--joy-paper)) 0 24%,var(--joy-paper) 24% 72%,color-mix(in srgb,var(--joy-gold) 10%,var(--joy-paper)) 72%) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-heading::after{
+  inset:auto 1rem .55rem 1rem !important;
+  height:3px !important;
+  background:linear-gradient(90deg,var(--joy-red) 0 22%,var(--joy-gold) 22% 45%,var(--joy-teal) 45% 68%,var(--joy-blue) 68% 90%,transparent 90%) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-title{ grid-area:title; }
+html .app-root.game-edition.handheld-edition .dex-count{ grid-area:count; justify-self:start; }
+html .app-root.game-edition.handheld-edition .dex-companion{ grid-area:partner; }
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
+  width:7.4rem !important;
+  height:7.4rem !important;
+  margin:-.35rem .1rem -.35rem 0 !important;
+  align-self:center;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar{
+  overflow:visible !important;
+  border-top:4px solid var(--joy-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading{
+  position:relative;
+  overflow:visible !important;
+  min-height:7rem;
+  margin:-.2rem -.2rem .8rem;
+  padding:.85rem 1rem !important;
+  border-radius:.85rem;
+  background:linear-gradient(105deg,color-mix(in srgb,var(--joy-blue) 8%,var(--joy-paper)),var(--joy-paper) 58%,color-mix(in srgb,var(--joy-gold) 9%,var(--joy-paper)));
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading::after{
+  content:"";
+  position:absolute;
+  left:1rem;
+  right:1rem;
+  bottom:.55rem;
+  height:3px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--joy-blue),var(--joy-gold) 65%,transparent);
+  opacity:.75;
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
+  width:6.7rem !important;
+  height:6.7rem !important;
+  margin:-.3rem -.15rem -.25rem 0;
+}
+
+/* Pokédex cards: no grey stage, no ruler line, no physical-height shrinking. */
+html .app-root.game-edition.handheld-edition .dex-grid{
+  gap:.85rem !important;
+}
+html .app-root.game-edition.handheld-edition .dex-entry:nth-child(4n+1){ --dex-card-accent:var(--joy-blue); }
+html .app-root.game-edition.handheld-edition .dex-entry:nth-child(4n+2){ --dex-card-accent:var(--joy-teal); }
+html .app-root.game-edition.handheld-edition .dex-entry:nth-child(4n+3){ --dex-card-accent:var(--joy-red); }
+html .app-root.game-edition.handheld-edition .dex-entry:nth-child(4n+4){ --dex-card-accent:var(--joy-gold); }
+html .app-root.game-edition.handheld-edition .dex-entry-main{
+  min-height:14rem !important;
+  overflow:visible !important;
+  border-bottom:3px solid color-mix(in srgb,var(--dex-card-accent,var(--joy-blue)) 52%,var(--joy-line)) !important;
+  background:
+    linear-gradient(180deg,color-mix(in srgb,var(--dex-card-accent,var(--joy-blue)) 4%,var(--joy-paper)) 0 1.7rem,var(--joy-paper) 1.7rem) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-entry-main::before{
+  height:.35rem !important;
+  background:linear-gradient(90deg,var(--dex-card-accent,var(--joy-blue)) 0 52%,transparent 88%) !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+  width:100% !important;
+  height:8.3rem !important;
+  margin:.35rem 0 .45rem !important;
+  padding:.2rem !important;
+  overflow:visible !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::before,
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
+  content:none !important;
+  display:none !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
+  --pokemon-scale:1 !important;
+  width:min(8rem,86%) !important;
+  height:min(8rem,86%) !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  transform:none !important;
+  transform-origin:center !important;
+  background:transparent !important;
+  filter:drop-shadow(0 5px 1px #17343c24) !important;
+}
+html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-sprite{
+  --pokemon-scale:1 !important;
+  transform:none !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  filter:drop-shadow(0 3px 1px #17343c1d);
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  html .app-root.game-edition.handheld-edition .dex-entry-main:hover .pokemon-card-sprite-frame .pokemon-sized-sprite,
+  html .app-root.game-edition.handheld-edition .dex-entry-main:focus-visible .pokemon-card-sprite-frame .pokemon-sized-sprite{
+    animation:myowndex-companion-pop .52s ease-out 1 !important;
+  }
+}
+
+/* Small screens keep the personality without sacrificing the safe area. */
+@media (max-width:540px),
+       (pointer:coarse) and (max-device-width:700px){
+  html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading){
+    min-height:7rem;
+    padding:.9rem 1rem !important;
+  }
+  html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
+    width:6rem !important;
+    height:6rem !important;
+    margin:-.15rem -.1rem -.15rem 0 !important;
+  }
+  html .app-root.game-edition.handheld-edition .dex-heading{
+    grid-template-columns:minmax(0,1fr) 6rem;
+    gap:.2rem .55rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .dex-entry-main{
+    min-height:12.8rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
+    height:7.1rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
+    width:min(6.8rem,92%) !important;
+    height:min(6.8rem,92%) !important;
+  }
+  html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
+    width:5.8rem !important;
+    height:5.8rem !important;
+  }
+}
+@media (max-width:350px){
+  html .app-root.game-edition.handheld-edition .dex-heading{
+    grid-template-columns:minmax(0,1fr) 5rem;
+  }
+  html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
+    width:5rem !important;
+    height:5rem !important;
+  }
+}

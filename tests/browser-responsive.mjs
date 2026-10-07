@@ -26,8 +26,9 @@ for(const width of [320,390,768,1280,1440]){
 }
 const deviceMatrix=[
  {width:280,height:653},{width:320,height:568},{width:360,height:640},{width:375,height:667},
- {width:390,height:844},{width:412,height:915},{width:540,height:720},{width:768,height:1024},
- {width:820,height:1180},{width:915,height:412}
+ {width:360,height:800},{width:390,height:844},{width:412,height:915},{width:540,height:720},
+ {width:640,height:360},{width:740,height:360},{width:768,height:1024},{width:820,height:1180},
+ {width:915,height:412},{width:1024,height:768},{width:1366,height:768},{width:1920,height:1080}
 ];
 for(const viewport of deviceMatrix){
  await page.setViewportSize(viewport);
@@ -36,7 +37,8 @@ for(const viewport of deviceMatrix){
   const spriteAudit=await page.evaluate(()=>({
    companions:[...document.querySelectorAll('.pokemon-companion img')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return {src:e.currentSrc,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,background:getComputedStyle(e).backgroundColor};}),
    dexStages:[...document.querySelectorAll('.pokemon-card-sprite-frame')].slice(0,8).map(e=>{const s=getComputedStyle(e);return {backgroundImage:s.backgroundImage,backgroundColor:s.backgroundColor};}),
-   dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].slice(0,8).map(e=>({transform:getComputedStyle(e).transform,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight}))
+   dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].map(e=>{const r=e.getBoundingClientRect(),f=e.closest('.pokemon-card-sprite-frame')?.getBoundingClientRect();return {transform:getComputedStyle(e).transform,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,background:getComputedStyle(e).backgroundColor,rect:{left:r.left,right:r.right,top:r.top,bottom:r.bottom},frame:f?{left:f.left,right:f.right,top:f.top,bottom:f.bottom}:null};}),
+   identity:[...document.querySelectorAll('img.app-brand-icon')].map(e=>e.getAttribute('src'))
   }));
   for(const sprite of spriteAudit.companions){
    assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0,`companion must load at ${viewport.width}x${viewport.height}`);
@@ -46,8 +48,14 @@ for(const viewport of deviceMatrix){
   if(view==='dex'){
    assert.ok(spriteAudit.dexStages.length>0);
    for(const stage of spriteAudit.dexStages){assert.equal(stage.backgroundImage,'none');assert.ok(stage.backgroundColor==='rgba(0, 0, 0, 0)'||stage.backgroundColor==='transparent');}
-   for(const sprite of spriteAudit.dexSprites){assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0);assert.equal(sprite.transform,'none');}
+   for(const sprite of spriteAudit.dexSprites){
+    assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0);
+    assert.equal(sprite.transform,'none');
+    assert.ok(sprite.background==='rgba(0, 0, 0, 0)'||sprite.background==='transparent');
+    if(sprite.frame){assert.ok(sprite.rect.left>=sprite.frame.left-1&&sprite.rect.right<=sprite.frame.right+1,'Dex sprite must stay inside its stage horizontally');assert.ok(sprite.rect.top>=sprite.frame.top-1&&sprite.rect.bottom<=sprite.frame.bottom+1,'Dex sprite must stay inside its stage vertically');}
+   }
   }
+  for(const src of spriteAudit.identity) assert.match(src,/myowndex-rotomdex-v101\.svg$/);
  }
 }
 await page.setViewportSize({width:390,height:844});await page.getByRole('radio',{name:'Claro',exact:true}).click();
@@ -75,6 +83,9 @@ await page.getByRole('button',{name:'Abrir Dados',exact:true}).click();const dic
 for(let index=0;index<40;index+=1) await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).click();
 await page.waitForFunction(()=>/41 rolagens/.test(document.querySelector('.local-dice-history > summary')?.textContent||''));
 assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/41 rolagens/);
+await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).evaluate(button=>{for(let index=0;index<140;index+=1)button.click();});
+await page.waitForFunction(()=>/100 rolagens/.test(document.querySelector('.local-dice-history > summary')?.textContent||''));
+assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/100 rolagens/);
 await check('global-dice-from-guide');
 for(const viewport of [{width:280,height:653},{width:320,height:480},{width:653,height:280},{width:844,height:390}]){
  await page.setViewportSize(viewport);await check(`dice-${viewport.width}x${viewport.height}`);

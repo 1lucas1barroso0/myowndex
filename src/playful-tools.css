@@ -90,7 +90,7 @@ html .app-root.game-edition.handheld-edition .local-dice-dialog {
 html .app-root.game-edition.handheld-edition .local-dice-dialog-heading {
   background: linear-gradient(115deg,var(--ui-panel) 45%,var(--ui-selected));
 }
-html .app-root.game-edition.handheld-edition :is(.local-dice-dialog-close,.local-dice-sound-control) {
+html .app-root.game-edition.handheld-edition .local-dice-dialog-close {
   border-radius: var(--play-control-radius,.65rem);
 }
 html .app-root.game-edition.handheld-edition .local-dice-panel button:not(.room-primary-button):not(:where(.local-pokemon-dice button)) {

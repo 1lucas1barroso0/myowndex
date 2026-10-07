@@ -1,6 +1,6 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
-type SqlValue = string | number | null;
+type SqlValue = string | number | Uint8Array | null;
 type SqlRow = Record<string, SqlValue>;
 type HranaValue = { type: string; value?: string | number; base64?: string };
 type HranaResult = {
@@ -43,6 +43,7 @@ function encodeValue(value: unknown): HranaValue {
       ? { type: "integer", value: String(value) }
       : { type: "float", value };
   }
+  if (value instanceof Uint8Array) return { type: "blob", base64: Buffer.from(value).toString("base64") };
   if (typeof value === "string") return { type: "text", value };
   throw new TypeError("Parâmetro SQL inválido.");
 }
@@ -54,7 +55,7 @@ function decodeValue(value: HranaValue): SqlValue {
     return Number.isSafeInteger(number) ? number : String(value.value);
   }
   if (value.type === "float") return Number(value.value);
-  if (value.type === "blob") return value.base64 || "";
+  if (value.type === "blob") return new Uint8Array(Buffer.from(value.base64 || "", "base64"));
   return String(value.value ?? "");
 }
 

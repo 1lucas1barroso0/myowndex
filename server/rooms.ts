@@ -128,6 +128,29 @@ export async function ensureRoomSchema() {
         FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
       )`),
       db.prepare("CREATE INDEX IF NOT EXISTS room_media_room_code_idx ON room_media (room_code)"),
+      db.prepare(`CREATE TABLE IF NOT EXISTS room_media_uploads (
+        id TEXT PRIMARY KEY NOT NULL,
+        room_code TEXT NOT NULL,
+        title TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        size INTEGER NOT NULL,
+        chunk_size INTEGER NOT NULL,
+        chunk_count INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
+      )`),
+      db.prepare("CREATE INDEX IF NOT EXISTS room_media_uploads_room_code_idx ON room_media_uploads (room_code, expires_at)"),
+      db.prepare(`CREATE TABLE IF NOT EXISTS room_media_chunks (
+        media_id TEXT NOT NULL,
+        room_code TEXT NOT NULL,
+        chunk_index INTEGER NOT NULL,
+        data BLOB NOT NULL,
+        size INTEGER NOT NULL,
+        PRIMARY KEY (media_id, chunk_index),
+        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
+      )`),
+      db.prepare("CREATE INDEX IF NOT EXISTS room_media_chunks_room_code_idx ON room_media_chunks (room_code, media_id, chunk_index)"),
       db.prepare(`CREATE TABLE IF NOT EXISTS room_call_members (
         id TEXT PRIMARY KEY NOT NULL,
         room_code TEXT NOT NULL,

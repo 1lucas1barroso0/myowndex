@@ -6,8 +6,34 @@ const getContext = () => {
     if (typeof window === "undefined") return null;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return null;
-    if (!audioContext) audioContext = new AudioContext();
+    if (!audioContext || audioContext.state === "closed") audioContext = new AudioContext();
     return audioContext;
+};
+
+const resumeContext = async context => {
+    if (!context) return false;
+    if (context.state !== "running") {
+        try {
+            await context.resume();
+        } catch {
+            return false;
+        }
+    }
+    return context.state === "running";
+};
+
+const primeOutput = context => {
+    try {
+        const buffer = context.createBuffer(1, 1, context.sampleRate || 44100);
+        const source = context.createBufferSource();
+        const gain = context.createGain();
+        gain.gain.value = 0;
+        source.buffer = buffer;
+        source.connect(gain).connect(context.destination);
+        source.start();
+    } catch {
+        // Alguns WebViews não precisam ou não aceitam a etapa de desbloqueio silenciosa.
+    }
 };
 
 const tone = (context, {
@@ -43,19 +69,18 @@ export const SOUND_EFFECTS = [
 
 export const activateAudio = async () => {
     const context = getContext();
-    if (!context) return false;
-    if (context.state === "suspended") await context.resume();
-    return context.state === "running";
+    if (!await resumeContext(context)) return false;
+    primeOutput(context);
+    return true;
 };
 
 export const playSoundEffect = async (effectId, masterVolume = 0.8) => {
     const context = getContext();
-    if (!context) return false;
-    if (context.state === "suspended") await context.resume();
+    if (!await resumeContext(context)) return false;
     const normalizedVolume = clampFinite(masterVolume, 0, 1, 0);
     if (normalizedVolume <= 0) return true;
     const now = context.currentTime + 0.01;
-    const volume = normalizedVolume * 0.13;
+    const volume = normalizedVolume * 0.18;
     const notes = {
         encounter: [
             { start: now, duration: 0.12, frequency: 196, endFrequency: 392 },
@@ -86,6 +111,10 @@ export const playSoundEffect = async (effectId, masterVolume = 0.8) => {
             { start: now + 0.18, duration: 0.12, frequency: 880, endFrequency: 880 },
         ],
     };
-    (notes[effectId] || notes.alert).forEach(note => tone(context, { ...note, volume }));
-    return true;
+    try {
+        (notes[effectId] || notes.alert).forEach(note => tone(context, { ...note, volume }));
+        return true;
+    } catch {
+        return false;
+    }
 };

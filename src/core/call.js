@@ -1,7 +1,13 @@
 import { secureRandomId } from "./random.js";
 
 const DEFAULT_ICE_SERVERS = [
-    { urls: ["stun:stun.cloudflare.com:3478"] },
+    {
+        urls: [
+            "stun:stun.cloudflare.com:3478",
+            "stun:stun.l.google.com:19302",
+            "stun:stun1.l.google.com:19302",
+        ],
+    },
 ];
 
 export const getCallIceServers = value => {
@@ -12,7 +18,11 @@ export const getCallIceServers = value => {
         const servers = parsed.map(server => {
             const urls = Array.isArray(server?.urls) ? server.urls : [server?.urls];
             if (!urls.length || urls.length > 8 || urls.some(url => typeof url !== "string" || !/^(stun|stuns|turn|turns):\S+$/.test(url))) return null;
-            return { urls, ...(typeof server.username === "string" ? { username: server.username } : {}), ...(typeof server.credential === "string" ? { credential: server.credential } : {}) };
+            return {
+                urls,
+                ...(typeof server.username === "string" ? { username: server.username } : {}),
+                ...(typeof server.credential === "string" ? { credential: server.credential } : {}),
+            };
         });
         return servers.every(Boolean) ? servers : DEFAULT_ICE_SERVERS;
     } catch {
@@ -22,9 +32,22 @@ export const getCallIceServers = value => {
 
 export const CALL_ICE_SERVERS = getCallIceServers(process.env.NEXT_PUBLIC_MYOWNDEX_ICE_SERVERS);
 
-export const createCallConnectionId = () => {
-    return secureRandomId("call");
-};
+export const callPeerConfiguration = (iceServers = CALL_ICE_SERVERS) => ({
+    iceServers,
+    iceCandidatePoolSize: 4,
+    bundlePolicy: "max-bundle",
+    rtcpMuxPolicy: "require",
+});
+
+export const callHasTurnRelay = (iceServers = CALL_ICE_SERVERS) =>
+    iceServers.some(server => {
+        const urls = Array.isArray(server?.urls) ? server.urls : [server?.urls];
+        return urls.some(url => typeof url === "string" && /^turns?:/i.test(url));
+    });
+
+export const shouldRestartCallIce = state => state === "failed" || state === "disconnected";
+
+export const createCallConnectionId = () => secureRandomId("call");
 
 export const callParticipantId = session => {
     if (session?.role === "narrator") return "narrator";
@@ -61,5 +84,6 @@ export const normalizeCallMembers = members => {
 
 export const supportsRoomCall = () =>
     typeof window !== "undefined"
+    && window.isSecureContext !== false
     && typeof window.RTCPeerConnection === "function"
     && Boolean(navigator.mediaDevices?.getUserMedia);

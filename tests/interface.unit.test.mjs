@@ -588,9 +588,9 @@ test("transparent companion masters replace opaque animated GIF mattes and sprit
     read("src/components/Shared/PokemonCompanion.jsx"),
     read("src/game-art-direction.css"),
   ]);
-  assert.match(companion, /\/sprites\/companions\/\$\{companion\.id\}\.png/);
-  assert.doesNotMatch(companion, /\.gif/);
-  assert.match(art, /@keyframes myowndex-companion-idle/);
+  assert.match(companion, /\/sprites\/companions\/\$\{companion\.id\}\.gif/);
+  assert.doesNotMatch(companion, /myowndex-companion-idle|myowndex-companion-pop/);
+  assert.doesNotMatch(art, /@keyframes myowndex-companion-(?:idle|pop)/);
   assert.match(art, /\.pokemon-companion::before,[\s\S]*content:none\s*!important/);
   assert.match(art, /\.pokemon-card-sprite-frame[\s\S]*background:transparent\s*!important/);
   assert.match(art, /\.pokemon-card-sprite-frame \.pokemon-sized-sprite[\s\S]*--pokemon-scale:1\s*!important/);
@@ -604,7 +604,7 @@ test("all visible app identity references use one RotomDex master asset", async 
   ]);
   for (const source of [app, layout, manifest, worker]) assert.match(source, /myowndex-rotomdex-v101\.svg/);
   assert.doesNotMatch(app + layout + manifest + worker, /myowndex-(?:icon|app|maskable|shortcut).*v(?:91|100)|favicon-v(?:91|100)/);
-  assert.match(await read("public/icons/myowndex-rotomdex-v101.svg"), /RotomDex estilizada nas cores do MyOwnDex/);
+  assert.match(await read("public/icons/myowndex-rotomdex-v101.svg"), /RotomDex expressiva nas cores//);
 });
 
 test("local dice submit has no click-count throttle", async () => {

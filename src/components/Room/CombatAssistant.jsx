@@ -251,7 +251,6 @@ export default function CombatAssistant({
                 : resolved.result);
             if (resolved.nextSnapshot) onSnapshotChange(resolved.nextSnapshot);
             await onEvent(resolved.eventType, resolved.eventPayload);
-            if (resolved.sfxPayload) await onEvent("sfx", resolved.sfxPayload);
         } catch (error) {
             onError?.(error);
         } finally {

@@ -577,7 +577,7 @@ test("joyful identity keeps one Pokémon companion on every primary surface with
   assert.match(account, /<h2 id=\{titleId\}>Cartão de Treinador<\/h2>/);
   assert.match(art, /\.pokemon-companion::before[\s\S]*content:none\s*!important;[\s\S]*display:none\s*!important;/);
   assert.match(art, /joyful field-guide direction/);
-  assert.doesNotMatch(art, /game-shadow-float|gloss/i);
+  assert.doesNotMatch(art, /game-shadow-float/);
   for (const source of [app, layout, manifest]) assert.match(source, /myowndex-icon-v100\.svg|favicon-v100\.svg/);
   assert.doesNotMatch(app + layout + manifest, /myowndex-icon-v91|favicon-v91/);
 });

@@ -55,7 +55,9 @@ export async function GET(request: Request, context: RouteContext) {
         if (!chunk || !(chunk.data instanceof Uint8Array)) {
           return noStoreJson({ error: "Um trecho desta trilha não está mais disponível." }, { status: 404 });
         }
-        return new Response(chunk.data, {
+        const body = new ArrayBuffer(chunk.data.byteLength);
+        new Uint8Array(body).set(chunk.data);
+        return new Response(body, {
           headers: {
             "content-type": "application/octet-stream",
             "content-length": String(chunk.size),

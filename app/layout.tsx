@@ -5,26 +5,26 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://myowndex.vercel.app"),
   title: "MyOwnDex",
   description: "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura reunidos em um só lugar.",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.webmanifest?v=2.0.16",
   applicationName: "MyOwnDex",
   icons: {
     icon: [
-      { url: "/icons/myowndex-rotomdex-v101.svg", type: "image/svg+xml" },
-      { url: "/icons/myowndex-rotomdex-v101.svg", sizes: "any", type: "image/svg+xml" },
+      { url: "/icons/myowndex-rotomdex-v102.svg", type: "image/svg+xml" },
+      { url: "/icons/myowndex-rotomdex-v102.svg", sizes: "any", type: "image/svg+xml" },
     ],
-    shortcut: "/icons/myowndex-rotomdex-v101.svg",
-    apple: [{ url: "/icons/myowndex-rotomdex-v101.svg", sizes: "any", type: "image/svg+xml" }],
+    shortcut: "/icons/myowndex-rotomdex-v102.svg",
+    apple: [{ url: "/icons/myowndex-rotomdex-v102.svg", sizes: "any", type: "image/svg+xml" }],
   },
   openGraph: {
     title: "MyOwnDex",
     description: "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura reunidos em um só lugar.",
-    images: [{ url: "/icons/myowndex-rotomdex-v101.svg", width: 512, height: 512, alt: "Ícone do MyOwnDex" }],
+    images: [{ url: "/icons/myowndex-rotomdex-v102.svg", width: 512, height: 512, alt: "Ícone do MyOwnDex" }],
   },
   twitter: {
     card: "summary",
     title: "MyOwnDex",
     description: "Sua Pokédex, suas Boxes e sua aventura Pokémon em um só lugar.",
-    images: ["/icons/myowndex-rotomdex-v101.svg"],
+    images: ["/icons/myowndex-rotomdex-v102.svg"],
   },
   appleWebApp: {
     capable: true,

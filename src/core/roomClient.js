@@ -15,13 +15,13 @@ const retryWait = (response, attempt) => {
 };
 
 const roomRequest = async (path, key, options = {}) => {
-    const { idempotent = false, ...requestOptions } = options;
+    const { idempotent = false, timeoutMs = REQUEST_TIMEOUT, ...requestOptions } = options;
     const method = String(requestOptions.method || "GET").toUpperCase();
     const maximumAttempts = SAFE_REQUEST_METHODS.has(method) || idempotent ? 3 : 1;
     let lastError = null;
     for (let attempt = 0; attempt < maximumAttempts; attempt += 1) {
         const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
         const headers = new Headers(requestOptions.headers || {});
         if (key) headers.set("x-myowndex-room-key", key);
         if (typeof key === "string" && key.startsWith("account_")) headers.set("x-myowndex-account", key.slice("account_".length));
@@ -153,65 +153,125 @@ export const leaveRoomCall = (session, connectionId, { keepalive = false } = {})
         keepalive,
     });
 
+const AUDIO_MAX_BYTES = 24 * 1024 * 1024;
+const AUDIO_CHUNK_CONCURRENCY = 3;
+
+const roomAudioHeaders = session => ({
+    "x-myowndex-room-key": session.key,
+    "x-myowndex-room-protocol": String(ROOM_PROTOCOL_VERSION),
+    ...(session.key.startsWith("account_") ? { "x-myowndex-account": session.key.slice("account_".length) } : {}),
+});
+
+const parallelMap = async (count, concurrency, task) => {
+    let next = 0;
+    const workers = Array.from({ length: Math.min(count, concurrency) }, async () => {
+        while (true) {
+            const index = next;
+            next += 1;
+            if (index >= count) return;
+            await task(index);
+        }
+    });
+    await Promise.all(workers);
+};
+
 export const uploadRoomAudio = async (session, file, title, onProgress) => {
     const path = `/api/rooms/${encodeURIComponent(session.code)}/audio`;
-    onProgress?.(0.1);
+    onProgress?.(0.04);
     const prepared = await roomRequest(path, session.key, {
         method: "POST",
-        body: JSON.stringify({ action: "prepare", title: title || file.name, fileName: file.name, mimeType: file.type, size: file.size }),
+        body: JSON.stringify({
+            action: "prepare",
+            title: title || file.name,
+            fileName: file.name,
+            mimeType: file.type,
+            size: file.size,
+        }),
+        timeoutMs: 30000,
     });
+
+    if (prepared?.mode === "database") {
+        const chunkSize = integerInRange(prepared.chunkSize, 64 * 1024, 1024 * 1024, 0);
+        const chunkCount = integerInRange(prepared.chunkCount, 1, 128, 0);
+        if (!prepared.uploadId || !chunkSize || !chunkCount || chunkCount !== Math.ceil(file.size / chunkSize)) {
+            throw new Error("O servidor não preparou corretamente o envio desta trilha. Tente novamente.");
+        }
+
+        let completed = 0;
+        await parallelMap(chunkCount, AUDIO_CHUNK_CONCURRENCY, async index => {
+            const start = index * chunkSize;
+            const end = Math.min(file.size, start + chunkSize);
+            await roomRequest(
+                `${path}?upload=${encodeURIComponent(prepared.uploadId)}&index=${index}`,
+                session.key,
+                {
+                    method: "PUT",
+                    headers: { "content-type": "application/octet-stream" },
+                    body: file.slice(start, end),
+                    idempotent: true,
+                    timeoutMs: 45000,
+                },
+            );
+            completed += 1;
+            onProgress?.(0.08 + (completed / chunkCount) * 0.82);
+        });
+
+        const result = await roomRequest(path, session.key, {
+            method: "POST",
+            body: JSON.stringify({ action: "complete-database", uploadId: prepared.uploadId }),
+            idempotent: true,
+            timeoutMs: 30000,
+        });
+        onProgress?.(1);
+        return result;
+    }
+
+    if (!prepared?.uploadUrl || !prepared?.uploadToken) {
+        throw new Error("O servidor não preparou corretamente o envio desta trilha. Tente novamente.");
+    }
     const upload = await fetch(prepared.uploadUrl, {
         method: "PUT",
         headers: prepared.headers,
         body: file,
         signal: AbortSignal.timeout(120000),
     });
-    if (!upload.ok) throw new Error("Não foi possível enviar esta trilha. Confira a conexão e a configuração de áudio da aventura.");
+    if (!upload.ok) throw new Error("Não foi possível enviar esta trilha. Confira a conexão e tente novamente.");
     onProgress?.(0.85);
     const result = await roomRequest(path, session.key, {
         method: "POST",
         body: JSON.stringify({ action: "complete", uploadToken: prepared.uploadToken }),
         idempotent: true,
+        timeoutMs: 30000,
     });
     onProgress?.(1);
     return result;
 };
 
-export const fetchRoomAudioUrl = async (session, mediaId, { signal } = {}) => {
-    const path = `/api/rooms/${encodeURIComponent(session.code)}/audio/${encodeURIComponent(mediaId)}`;
+const fetchRoomAudioResponse = async (session, path, { signal, timeoutMs = 30000 } = {}) => {
     let lastError = null;
     for (let attempt = 0; attempt < 3; attempt += 1) {
         if (signal?.aborted) throw signal.reason || new DOMException("Áudio cancelado", "AbortError");
         const controller = new AbortController();
         const abort = () => controller.abort(signal?.reason);
         signal?.addEventListener("abort", abort, { once: true });
-        const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
         let response = null;
         try {
             response = await fetch(path, {
-                headers: {
-                    "x-myowndex-room-key": session.key,
-                    "x-myowndex-room-protocol": String(ROOM_PROTOCOL_VERSION),
-                    ...(session.key.startsWith("account_") ? { "x-myowndex-account": session.key.slice("account_".length) } : {}),
-                },
+                headers: roomAudioHeaders(session),
                 cache: "no-store",
                 signal: controller.signal,
             });
             if (!response.ok) {
-                const data = await response.json().catch(() => ({}));
+                const type = response.headers.get("content-type") || "";
+                const data = type.includes("application/json") ? await response.json().catch(() => ({})) : {};
                 const error = new Error(data.error || "Esta trilha não pôde ser aberta agora.");
+                error.status = response.status;
+                error.data = data;
                 error.retryable = response.status === 408 || response.status === 429 || response.status >= 500;
                 throw error;
             }
-            const maximumSize = 24 * 1024 * 1024;
-            if (Number(response.headers.get("content-length")) > maximumSize) {
-                await response.body?.cancel();
-                throw new Error("Esta trilha excede o limite de 24 MB.");
-            }
-            const blob = await response.blob();
-            if (signal?.aborted) throw signal.reason || new DOMException("Áudio cancelado", "AbortError");
-            if (blob.size > maximumSize) throw new Error("Esta trilha excede o limite de 24 MB.");
-            return URL.createObjectURL(blob);
+            return response;
         } catch (error) {
             if (signal?.aborted) throw signal.reason || error;
             lastError = error;
@@ -224,6 +284,54 @@ export const fetchRoomAudioUrl = async (session, mediaId, { signal } = {}) => {
         }
     }
     throw lastError || new Error("Esta trilha não pôde ser aberta agora.");
+};
+
+export const fetchRoomAudioUrl = async (session, mediaId, { signal } = {}) => {
+    const path = `/api/rooms/${encodeURIComponent(session.code)}/audio/${encodeURIComponent(mediaId)}`;
+    if (signal?.aborted) throw signal.reason || new DOMException("Áudio cancelado", "AbortError");
+
+    const response = await fetchRoomAudioResponse(session, path, { signal });
+    const type = response.headers.get("content-type") || "";
+
+    if (type.includes("application/json")) {
+        const manifest = await response.json();
+        if (!manifest?.chunked) throw new Error("Esta trilha não pôde ser aberta agora.");
+        const size = integerInRange(manifest.size, 1, AUDIO_MAX_BYTES, 0);
+        const chunkCount = integerInRange(manifest.chunkCount, 1, 128, 0);
+        if (!size || !chunkCount) throw new Error("Esta trilha possui dados inválidos.");
+
+        const parts = new Array(chunkCount);
+        let receivedBytes = 0;
+        await parallelMap(chunkCount, AUDIO_CHUNK_CONCURRENCY, async index => {
+            const chunkResponse = await fetchRoomAudioResponse(
+                session,
+                `${path}?chunk=${index}`,
+                { signal, timeoutMs: 45000 },
+            );
+            const announced = Number(chunkResponse.headers.get("content-length"));
+            if (announced > 1024 * 1024) {
+                await chunkResponse.body?.cancel();
+                throw new Error("Um trecho desta trilha excede o limite esperado.");
+            }
+            const part = await chunkResponse.arrayBuffer();
+            parts[index] = part;
+            receivedBytes += part.byteLength;
+            if (receivedBytes > AUDIO_MAX_BYTES) throw new Error("Esta trilha excede o limite de 24 MB.");
+        });
+        if (signal?.aborted) throw signal.reason || new DOMException("Áudio cancelado", "AbortError");
+        if (receivedBytes !== size) throw new Error("Esta trilha chegou incompleta. Tente novamente.");
+        const blob = new Blob(parts, { type: manifest.mimeType || "audio/mpeg" });
+        return URL.createObjectURL(blob);
+    }
+
+    if (Number(response.headers.get("content-length")) > AUDIO_MAX_BYTES) {
+        await response.body?.cancel();
+        throw new Error("Esta trilha excede o limite de 24 MB.");
+    }
+    const blob = await response.blob();
+    if (signal?.aborted) throw signal.reason || new DOMException("Áudio cancelado", "AbortError");
+    if (blob.size > AUDIO_MAX_BYTES) throw new Error("Esta trilha excede o limite de 24 MB.");
+    return URL.createObjectURL(blob);
 };
 
 export const deleteRoomAudio = (session, mediaId) =>

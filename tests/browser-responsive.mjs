@@ -41,6 +41,11 @@ for(const viewport of deviceMatrix){
  await page.setViewportSize(viewport);
  for(const [view,label] of [['dex','Abrir a Pokédex'],['pc','Abrir o PC do Bill'],['guide','Abrir o Guia do Treinador'],['lobby','Abrir a Central da Aventura']]){
   await nav(label);await check(`device-${viewport.width}x${viewport.height}-${view}`);
+  if(view==='dex'){
+   const firstDexCard=page.locator('.dex-entry-main').first();
+   await firstDexCard.scrollIntoViewIfNeeded();
+   await page.waitForTimeout(80);
+  }
   await page.waitForFunction(()=>{
    const visible=selector=>[...document.querySelectorAll(selector)].filter(e=>{const r=e.getBoundingClientRect();return e.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight;});
    const loaded=selector=>visible(selector).every(e=>e.complete&&e.naturalWidth>0&&e.naturalHeight>0);

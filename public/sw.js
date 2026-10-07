@@ -8,7 +8,7 @@ const ASSET_ENTRY_BYTES = 4 * 1024 * 1024;
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
-  "/manifest.webmanifest?v=2.0.16",
+  "/manifest.webmanifest",
   "/icons/myowndex-rotomdex-v102.svg",
   "/fonts/VT323-Regular.ttf",
 ];

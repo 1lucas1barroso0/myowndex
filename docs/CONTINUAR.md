@@ -64,6 +64,8 @@ A revisão 2.0.8 torna o Gerador mais claro e auditável. O fluxo distingue trê
 
 A revisão 2.0.10 remove da aplicação trilha sonora, efeitos sonoros e chamada, incluindo interface, estado de sala, eventos sonoros, APIs, sinalização, armazenamento, estilos, testes e variáveis de ambiente dedicadas. Áudio e comunicação de voz passam a ser externos ao MyOwnDex e ficam a encargo do Narrador e dos jogadores.
 
+A revisão 2.0.11 endurece responsividade, fluidez e isolamento das rolagens. A Pokédex reduz colunas antes de comprimir cartões, controles horizontais continuam alcançáveis em telas estreitas e o shell mantém um único dono de rolagem com unidades dinâmicas de viewport, safe areas e conteúdo fora da tela renderizado sob demanda. O diálogo de Dados permanece utilizável em telas estreitas, baixas, landscape e com teclado virtual. A geração aleatória continua exclusivamente no núcleo CSPRNG/Web Crypto com rejection sampling; renderização, animação, cache, IndexedDB, armazenamento durável, sincronização e falhas de persistência não participam da escolha do resultado nem provocam rerrolagem.
+
 ## Documentos históricos
 
 Arquivos com versão ou intervalo de PR no próprio nome, como `REFINO-11.5.md`, `FINAL-11.6.md` e `PR-20-28.md`, registram decisões e auditorias daquele momento. Eles não substituem este arquivo, o README, `package.json` ou o código atual.

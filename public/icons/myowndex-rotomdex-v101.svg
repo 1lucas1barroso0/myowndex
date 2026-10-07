@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">MyOwnDex RotomDex</title>
+  <desc id="desc">RotomDex estilizada nas cores do MyOwnDex.</desc>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="#fff7e8"/>
+  <path d="M109 190 50 148 68 241l48 21M403 190l59-42-18 93-48 21" fill="#cf2844" stroke="#243b40" stroke-width="18" stroke-linejoin="round"/>
+  <path d="m159 115-40-63 85 31 52-35 52 35 85-31-40 63" fill="#e33a58" stroke="#243b40" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M117 142c0-34 28-62 62-62h154c34 0 62 28 62 62v240c0 35-28 63-62 63H179c-34 0-62-28-62-63V142Z" fill="#cf2844" stroke="#243b40" stroke-width="20"/>
+  <path d="M143 154c0-25 20-45 45-45h136c25 0 45 20 45 45v102c0 25-20 45-45 45H188c-25 0-45-20-45-45V154Z" fill="#243b40"/>
+  <path d="M162 328h188v72c0 14-11 25-25 25H187c-14 0-25-11-25-25v-72Z" fill="#dff5f6" stroke="#243b40" stroke-width="12"/>
+  <path d="M194 354h124" stroke="#3aa6d8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M216 380h80" stroke="#f2c655" stroke-width="12" stroke-linecap="round"/>
+  <path d="M184 180c18-17 39-17 57 0-4 25-14 37-29 37-15 0-24-12-28-37Zm87 0c18-17 39-17 57 0-4 25-14 37-29 37-15 0-24-12-28-37Z" fill="#f2c655"/>
+  <circle cx="212" cy="184" r="8" fill="#fff7e8"/>
+  <circle cx="299" cy="184" r="8" fill="#fff7e8"/>
+  <path d="M215 246c25 20 57 20 82 0" fill="none" stroke="#61c7df" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="152" cy="119" r="15" fill="#61c7df" stroke="#243b40" stroke-width="8"/>
+  <circle cx="359" cy="119" r="15" fill="#f2c655" stroke="#243b40" stroke-width="8"/>
+  <path d="M82 329h35v53H82zM395 329h35v53h-35z" rx="10" fill="#e33a58" stroke="#243b40" stroke-width="12"/>
+</svg>

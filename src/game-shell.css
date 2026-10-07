@@ -271,3 +271,17 @@ html .app-root.game-edition.handheld-edition :is(.dex-entry,.pc-partner-card,.ro
     max-width: 100%;
   }
 }
+
+
+/* 2.0.12: compensate when a narrow touch device is rendered through a
+   desktop-width layout viewport. Normal responsive mode is unchanged. */
+@media (pointer: coarse) and (min-width: 700px) and (max-device-width: 700px),
+       (pointer: coarse) and (min-width: 700px) and (max-device-height: 700px) {
+  html { font-size: 18px; }
+  html .app-root.game-edition.handheld-edition .game-shell {
+    max-width: none !important;
+  }
+  html .app-root.game-edition.handheld-edition .app-main-shell {
+    padding-inline: 1rem !important;
+  }
+}

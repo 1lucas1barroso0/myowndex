@@ -42,7 +42,7 @@ for(const viewport of deviceMatrix){
  for(const [view,label] of [['dex','Abrir a Pokédex'],['pc','Abrir o PC do Bill'],['guide','Abrir o Guia do Treinador'],['lobby','Abrir a Central da Aventura']]){
   await nav(label);await check(`device-${viewport.width}x${viewport.height}-${view}`);
   await page.waitForFunction(()=>{
-   const visible=selector=>[...document.querySelectorAll(selector)].filter(e=>e.getClientRects().length);
+   const visible=selector=>[...document.querySelectorAll(selector)].filter(e=>{const r=e.getBoundingClientRect();return e.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight;});
    const loaded=selector=>visible(selector).every(e=>e.complete&&e.naturalWidth>0&&e.naturalHeight>0);
    return loaded('.pokemon-companion img')&&loaded('.pokemon-card-sprite-frame .pokemon-sized-sprite');
   },null,{timeout:10000});
@@ -58,9 +58,9 @@ for(const viewport of deviceMatrix){
     return null;
    };
    return {
-    companions:[...document.querySelectorAll('.pokemon-companion img')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return {src:e.currentSrc,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,background:getComputedStyle(e).backgroundColor,clippedBy:clippingAncestor(e)};}),
-    dexStages:[...document.querySelectorAll('.pokemon-card-sprite-frame')].slice(0,8).map(e=>{const s=getComputedStyle(e);return {backgroundImage:s.backgroundImage,backgroundColor:s.backgroundColor};}),
-    dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].slice(0,8).map(e=>({transform:getComputedStyle(e).transform,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,clippedBy:clippingAncestor(e)}))
+    companions:[...document.querySelectorAll('.pokemon-companion img')].filter(e=>{const r=e.getBoundingClientRect();return e.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight;}).map(e=>{const r=e.getBoundingClientRect();return {src:e.currentSrc,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,background:getComputedStyle(e).backgroundColor,clippedBy:clippingAncestor(e)};}),
+    dexStages:[...document.querySelectorAll('.pokemon-card-sprite-frame')].filter(e=>{const r=e.getBoundingClientRect();return r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight;}).slice(0,8).map(e=>{const s=getComputedStyle(e);return {backgroundImage:s.backgroundImage,backgroundColor:s.backgroundColor};}),
+    dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].filter(e=>{const r=e.getBoundingClientRect();return r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight;}).slice(0,8).map(e=>({transform:getComputedStyle(e).transform,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,clippedBy:clippingAncestor(e)}))
    };
   });
   for(const sprite of spriteAudit.companions){

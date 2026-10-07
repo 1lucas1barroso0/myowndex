@@ -212,8 +212,8 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   assert.doesNotMatch(panel, /if\(lock\.current \|\| applyingAccount\.current \|\| !ready/, "local rolls must not wait for storage hydration or an account merge");
   assert.match(panel, /remoteAdventure && \(lock\.current \|\| applyingAccount\.current\)/, "only an authoritative remote request owns the request lock");
   assert.match(panel, /LOCAL_ROLL_LIMIT/, "the local history cap must be explicitly available to the roll handler");
-  assert.match(panel, /saveLocalRoll, saveLocalRollDurable/, "local history keeps a quick browser copy and a durable copy");
-  assert.match(panel, /setResult\(receipt\);[\s\S]*pendingReceipts\.current\.set[\s\S]*setHistory\(current=>mergeLocalRolls\(\[receipt\],current\)\)[\s\S]*saveLocalRoll\(receipt\)[\s\S]*saveLocalRollDurable/, "the session history is updated before either persistence path");
+  assert.match(panel, /writeStorage\(LOCAL_ROLL_HISTORY_KEY,mergeLocalRolls\(\[receipt\],cached\),\{scope\}\)/, "local history keeps a scope-captured browser mirror");
+  assert.match(panel, /setResult\(receipt\);[\s\S]*pendingReceipts\.current\.set[\s\S]*setHistory\(current=>mergeLocalRolls\(\[receipt\],current\)\)[\s\S]*writeStorage\(LOCAL_ROLL_HISTORY_KEY[\s\S]*saveLocalRollDurable/, "the session history is updated before either persistence path");
   assert.doesNotMatch(panel, /disabled=\{!ready \|\| Boolean\(configuration\.error\)\}/, "storage hydration must never disable a local roll");
   assert.doesNotMatch(panel, /unlockTimer/, "local rolling has no persistence-driven cooldown");
   assert.match(panel, /event\.repeat/);

@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://myowndex.vercel.app"),
   title: "MyOwnDex",
   description: "Pokédex, PC do Bill, Guia do Treinador e Central da Aventura reunidos em um só lugar.",
-  manifest: "/manifest.webmanifest?v=2.0.16",
+  manifest: "/manifest.webmanifest",
   applicationName: "MyOwnDex",
   icons: {
     icon: [

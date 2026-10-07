@@ -18,10 +18,13 @@ test("release version stays aligned across package, app, offline shell and curre
 
   assert.equal(lock.version, pkg.version);
   assert.equal(lock.packages[""].version, pkg.version);
-  assert.ok(app.includes(`const APP_VERSION = "${pkg.version}";`));
+  assert.match(app, /import packageJson from "\.\.\/package\.json";/);
+  assert.match(app, /const APP_VERSION = packageJson\.version;/);
+  assert.doesNotMatch(app, /APP_VERSION_LABEL/, "visible version must not have a second manually maintained label");
   assert.ok(worker.includes(`myowndex-shell-v${pkg.version}`));
   assert.ok(readme.includes(`A versão atual é **${pkg.version}**`));
   assert.ok(current.includes(`**Versão atual: ${pkg.version}.**`));
+  assert.match(app, /game-release">MyOwnDex <b>\{APP_VERSION\}<\/b>/);
 });
 
 test("registry dependency versions match the tarballs recorded in package-lock", async () => {

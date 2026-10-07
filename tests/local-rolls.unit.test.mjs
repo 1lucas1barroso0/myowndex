@@ -124,6 +124,47 @@ test("free dice support every offered die, twenty independent draws and signed m
   assert.deepEqual(localRollOdds({kind:"free",quantity:20,sides:20,modifier:7}),{minimum:27,maximum:407});
 });
 
+
+test("tens of thousands of mixed local rolls preserve quantities, bounds and immutable receipts", () => {
+  let state = 0x6d2b79f5;
+  const random = () => {
+    state = (Math.imul(state ^ (state >>> 15), 1 | state) + 0x9e3779b9) >>> 0;
+    return state / 0x100000000;
+  };
+  let receipts = 0;
+  for (const sides of [4,6,8,10,12,20,100]) {
+    for (let quantity = 1; quantity <= 20; quantity += 1) {
+      for (let iteration = 0; iteration < 200; iteration += 1) {
+        const modifier = (iteration % 41) - 20;
+        const spec = {kind:"free",quantity,sides,modifier,label:`stress ${quantity}d${sides}`};
+        const record = performLocalRoll(spec,{id:`stress-${sides}-${quantity}-${iteration}`,createdAt:options.createdAt+receipts,random});
+        assert.equal(record.values.length,quantity);
+        assert.equal(record.kept.length,quantity);
+        assert.ok(record.values.every(value=>Number.isInteger(value)&&value>=1&&value<=sides));
+        const minimum=quantity+modifier, maximum=quantity*sides+modifier;
+        assert.ok(record.total>=minimum&&record.total<=maximum);
+        assert.ok(Object.isFrozen(record)&&Object.isFrozen(record.values)&&Object.isFrozen(record.spec));
+        receipts += 1;
+      }
+    }
+  }
+  for (const mode of ["normal","advantage","disadvantage"]) {
+    for (let iteration = 0; iteration < 4_000; iteration += 1) {
+      const attribute=performLocalRoll({kind:"attribute",mode,attribute:(iteration%21)-10,opposition:iteration%24},{id:`attribute-${mode}-${iteration}`,createdAt:options.createdAt+receipts,random});
+      assert.equal(attribute.values.length,mode==="normal"?2:3);
+      assert.equal(attribute.kept.length,2);
+      assert.ok(attribute.kept.every(value=>value>=1&&value<=6));
+      receipts += 1;
+      const percent=performLocalRoll({kind:"percent",mode,chance:iteration%101},{id:`percent-${mode}-${iteration}`,createdAt:options.createdAt+receipts,random});
+      assert.equal(percent.values.length,mode==="normal"?1:2);
+      assert.equal(percent.kept.length,1);
+      assert.ok(percent.total>=1&&percent.total<=100);
+      receipts += 1;
+    }
+  }
+  assert.equal(receipts,52_000);
+});
+
 test("invalid input is rejected before consuming entropy or silently clamping a request", () => {
   const invalid=[{attribute:""},{attribute:1.5},{attribute:Infinity},{attribute:true},{attribute:[]},{mode:"constructor"},{kind:"other"},{kind:"percent",chance:-1},{kind:"percent",chance:101},{kind:"free",quantity:0},{kind:"free",quantity:21},{kind:"free",sides:7},{opposition:"invalid"}];
   for(const input of invalid) assert.throws(()=>performLocalRoll(input,{...options,random:()=>{assert.fail("invalid request consumed entropy");}}),RangeError);

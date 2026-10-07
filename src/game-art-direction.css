@@ -1,7 +1,7 @@
 /* MyOwnDex 2.0.14 — joyful field-guide direction.
    This file is intentionally presentation-only. Game rules, storage, RNG and
    document structure live elsewhere. The target is matte, warm and playful:
-   a field journal that happens to be a game tool, never a glossy dashboard. */
+   a field journal that happens to be a game tool, never a lacquered dashboard. */
 
 html:root{
   --joy-paper: var(--ui-panel);

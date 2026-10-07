@@ -48,7 +48,8 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
     const [deletePending,setDeletePending]=useState(null);
     const [accountApplying,setAccountApplying]=useState(false);
     const applyingAccount=useRef(false);
-    const lock=useRef(false), unlockTimer=useRef(null), alive=useRef(true);
+    const lock=useRef(false), alive=useRef(true);
+    const pendingReceipts=useRef(new Map());
     const inAdventure=context==="aventura";
     const modeHintId=useId(), difficultyHintId=useId();
     const remoteAdventure=inAdventure && Boolean(pokemonProps.remote) && typeof pokemonProps.onAuthoritativeAction==="function";
@@ -57,12 +58,15 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         const saved=readStorage(preferenceKey,null);
         if(saved) { try { setDraft({...DEFAULTS,...localRollSpec(saved)}); } catch { /* Invalid drafts cannot silently change a roll. */ } }
         const records=readLocalRolls(); setHistory(records); setResult(inAdventure ? null : records.find(r=>!r.legacy) || null);
-        void readLocalRollHistoryDurable().then(next=>{if(alive.current){setHistory(next);setResult(inAdventure ? null : next.find(r=>!r.legacy)||null);setReady(true);}});
+        void readLocalRollHistoryDurable().then(next=>{if(alive.current){const scope=getStorageScope();const pending=[...pendingReceipts.current.values()].filter(entry=>entry.scope===scope).map(entry=>entry.receipt);const merged=mergeLocalRolls(pending,next);setHistory(merged);setResult(inAdventure ? null : merged.find(r=>!r.legacy)||null);setReady(true);}});
         const refresh=()=>{
             void readLocalRollHistoryDurable().then(next=>{
                 if(!alive.current)return;
-                setHistory(next);
-                if(!inAdventure) setResult(current=>current && next.some(entry=>entry.id===current.id) ? current : next.find(entry=>!entry.legacy) || null);
+                const scope=getStorageScope();
+                const pending=[...pendingReceipts.current.values()].filter(entry=>entry.scope===scope).map(entry=>entry.receipt);
+                const merged=mergeLocalRolls(pending,next);
+                setHistory(merged);
+                if(!inAdventure) setResult(current=>current && merged.some(entry=>entry.id===current.id) ? current : merged.find(entry=>!entry.legacy) || null);
             });
         };
         const sync=event=>{
@@ -90,19 +94,19 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         window.addEventListener("myowndex:account-document",accountDocumentChanged);
         window.addEventListener("myowndex:account-apply-start",accountApplyChanged);
         window.addEventListener("myowndex:account-apply-end",accountApplyChanged);
-        return ()=>{ alive.current=false; clearTimeout(unlockTimer.current); window.removeEventListener("storage",sync); window.removeEventListener("myowndex:storage",syncHere);window.removeEventListener("myowndex:account-document",accountDocumentChanged);window.removeEventListener("myowndex:account-apply-start",accountApplyChanged);window.removeEventListener("myowndex:account-apply-end",accountApplyChanged); };
+        return ()=>{ alive.current=false; window.removeEventListener("storage",sync); window.removeEventListener("myowndex:storage",syncHere);window.removeEventListener("myowndex:account-document",accountDocumentChanged);window.removeEventListener("myowndex:account-apply-start",accountApplyChanged);window.removeEventListener("myowndex:account-apply-end",accountApplyChanged); };
     },[inAdventure]);
     const configuration=useMemo(()=>{ try { return {spec:localRollSpec(draft)}; } catch(e) { return {error:e.message}; } },[draft]);
     useEffect(()=>{ if(ready && configuration.spec) writeStorage(preferenceKey,configuration.spec); },[configuration,ready]);
     const update=(key,value)=>setDraft(current=>({...current,[key]:value}));
     const roll=async event=>{
         event.preventDefault();
-        if(lock.current || applyingAccount.current || !ready || configuration.error) return;
-        lock.current=true; setBusy(true); setError(""); setFeedback(""); setRemoteResult(null);
-        let receipt;
-        try {
-            const spec=configuration.spec;
-            if(remoteAdventure) {
+        if(configuration.error || (remoteAdventure && (lock.current || applyingAccount.current))) return;
+        setError(""); setFeedback(""); setRemoteResult(null);
+        const spec=configuration.spec;
+        if(remoteAdventure) {
+            lock.current=true; setBusy(true);
+            try {
                 const request=spec.kind==="attribute"
                     ? {action:"quick-attribute",mode:spec.mode,attribute:spec.attribute,opposition:spec.opposition,label:spec.label}
                     : spec.kind==="percent"
@@ -114,23 +118,49 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
                     setResult(receipt);
                     setRemoteResult(receipt ? null : {...(authoritative.result || authoritative),spec});
                 }
-                return;
+            } catch(e) {
+                if(alive.current) setError(e instanceof Error ? e.message : "Não foi possível concluir a rolagem. Nenhum resultado novo foi gerado.");
+            } finally {
+                lock.current=false;
+                if(alive.current) setBusy(false);
             }
-            receipt=performLocalRoll(draft,{context});
-            setResult(receipt);
-            if(inAdventure) {
-                if(typeof pokemonProps.onEvent==="function") await pokemonProps.onEvent("roll",localRollEvent(receipt));
-            } else {
-                const persisted=await saveLocalRollDurable(receipt);
-                setHistory(current=>mergeLocalRolls([receipt],current,readLocalRolls()));
-                if(!persisted) setFeedback("O resultado continua na tela, mas não entrou no histórico.");
-                if(onRoll) await onRoll(localRollEvent(receipt));
-            }
-        } catch(e) {
-            if(alive.current) setError(receipt ? "O resultado continua na tela, mas não entrou na aventura. Nenhuma nova rolagem foi feita." : e instanceof Error ? e.message : "Não foi possível concluir a rolagem. Nenhum resultado novo foi gerado.");
-        } finally {
-            if(alive.current) unlockTimer.current=setTimeout(()=>{lock.current=false;setBusy(false);},350);
+            return;
         }
+
+        let receipt;
+        try {
+            receipt=performLocalRoll(draft,{context});
+        } catch(e) {
+            if(alive.current) setError(e instanceof Error ? e.message : "Não foi possível concluir a rolagem. Nenhum resultado novo foi gerado.");
+            return;
+        }
+
+        // Result first: UI, account merge, cache, IndexedDB and callbacks never
+        // decide or delay a local outcome. Persistence is best-effort afterwards.
+        setResult(receipt);
+        const payload=localRollEvent(receipt);
+        if(inAdventure) {
+            if(typeof pokemonProps.onEvent==="function") {
+                void Promise.resolve().then(()=>pokemonProps.onEvent("roll",payload)).catch(()=>{
+                    if(alive.current) setFeedback("O resultado continua na tela, mas não entrou no Diário.");
+                });
+            }
+            return;
+        }
+
+        const scope=getStorageScope();
+        pendingReceipts.current.set(receipt.id,{receipt,scope});
+        while(pendingReceipts.current.size>LOCAL_ROLL_LIMIT) pendingReceipts.current.delete(pendingReceipts.current.keys().next().value);
+        setHistory(current=>mergeLocalRolls([receipt],current));
+        void saveLocalRollDurable(receipt,{scope}).then(persisted=>{
+            if(persisted) pendingReceipts.current.delete(receipt.id);
+            if(alive.current && !persisted) setFeedback("O resultado continua na tela, mas não entrou no histórico.");
+        }).catch(()=>{
+            if(alive.current) setFeedback("O resultado continua na tela, mas não entrou no histórico.");
+        });
+        if(onRoll) void Promise.resolve().then(()=>onRoll(payload)).catch(()=>{
+            if(alive.current) setFeedback("O resultado foi gerado. A ação ligada a ele não foi concluída.");
+        });
     };
     const download=()=>{
         try {
@@ -145,11 +175,13 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         setClearPending(false);
         if(!history.length) return;
         if(!await clearLocalRollsDurable()) { setFeedback("Não foi possível apagar o histórico."); return; }
+        const scope=getStorageScope(); for(const [id,entry] of pendingReceipts.current) if(entry.scope===scope) pendingReceipts.current.delete(id);
         setHistory([]); setResult(null); setFeedback("Histórico apagado.");
     };
     const deleteReceipt=async ()=>{
         if(applyingAccount.current || lock.current || !deletePending)return;
         const id=deletePending.id;
+        pendingReceipts.current.delete(id);
         setDeletePending(null);
         if(!await deleteLocalRollDurable(id)) { setFeedback("Não foi possível apagar esta rolagem."); return; }
         if(!alive.current)return;
@@ -165,7 +197,7 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         {!inAdventure && <div className="local-dice-pages" role="group" aria-label="Escolher tipo de jogada"><button type="button" aria-pressed={page==="simple"} onClick={()=>setPage("simple")}><GameIcon name="dice" />Rolagens</button><button type="button" aria-pressed={page==="pokemon"} onClick={()=>setPage("pokemon")}><GameIcon name="adventure" />Campo</button></div>}
         <div hidden={!inAdventure && page!=="simple"}>
         <form className="local-dice-controls" onSubmit={roll} onKeyDown={event=>{if(event.key==="Enter" && event.repeat) event.preventDefault();}}>
-            <fieldset disabled={busy || accountApplying}><legend className="sr-only">Configurar rolagem</legend>
+            <fieldset disabled={remoteAdventure && (busy || accountApplying)}><legend className="sr-only">Configurar rolagem</legend>
                 <div className="local-dice-tabs" role="group" aria-label="Tipo de rolagem">{[["attribute","2d6","Teste"],["percent","d100","Chance"],["free","dX","Livre"]].map(([kind,die,label])=><button type="button" key={kind} aria-pressed={draft.kind===kind} onClick={()=>update("kind",kind)}><b>{die}</b><small>{label}</small></button>)}</div>
                 <div className="local-dice-fields">
                     {draft.kind!=="free" && <label>Modo<RoomSelect aria-label="Modo" aria-describedby={modeHelp(configuration.spec) ? modeHintId : undefined} value={draft.mode} onChange={e=>update("mode",e.target.value)}>{Object.entries(LOCAL_ROLL_MODES).map(([mode,label])=><option key={mode} value={mode}>{label}</option>)}</RoomSelect>{modeHelp(configuration.spec) && <small id={modeHintId} className="local-dice-mode-help">{modeHelp(configuration.spec)}</small>}</label>}

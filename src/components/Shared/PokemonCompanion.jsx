@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 // Decorative partners have one home each. Pokémon in teams, search results and
 // the battle field are functional data and do not use this registry.
@@ -13,11 +13,14 @@ export const POKEMON_COMPANIONS = Object.freeze({
     account: Object.freeze({ id: 133, name: "Eevee", tone: "gold" }),
 });
 
+// The bundled animated GIFs used by older revisions contain opaque matte
+// backgrounds in their palettes. Use the transparent PNG master everywhere
+// and animate the sprite at the presentation layer instead. This preserves
+// transparency, avoids cropped/discoloured frames and still gives every
+// partner a living idle motion. Reduced-motion disables that motion in CSS.
 export default function PokemonCompanion({ place, className = "", eager = false }) {
     const companion = POKEMON_COMPANIONS[place];
-    const [failedAnimation, setFailedAnimation] = useState(false);
     if (!companion) return null;
-    const base = `/sprites/companions/${companion.id}`;
     return (
         <span
             className={`pokemon-companion companion-${companion.tone} ${className}`.trim()}
@@ -25,18 +28,14 @@ export default function PokemonCompanion({ place, className = "", eager = false 
             data-companion-id={companion.id}
             aria-hidden="true"
         >
-            <picture>
-                <source media="(prefers-reduced-motion: reduce)" srcSet={`${base}.png`} />
-                <img
-                    src={`${base}.${failedAnimation ? "png" : "gif"}`}
-                    alt=""
-                    width="96"
-                    height="96"
-                    loading={eager ? "eager" : "lazy"}
-                    decoding="async"
-                    onError={() => setFailedAnimation(true)}
-                />
-            </picture>
+            <img
+                src={`/sprites/companions/${companion.id}.png`}
+                alt=""
+                width="96"
+                height="96"
+                loading={eager ? "eager" : "lazy"}
+                decoding="async"
+            />
         </span>
     );
 }

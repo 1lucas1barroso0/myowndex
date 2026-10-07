@@ -989,3 +989,70 @@ html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-spr
     height:5rem !important;
   }
 }
+
+
+/* 2.0.16 — safe sprite geometry and lively-but-stable destination headers. */
+@keyframes myowndex-companion-idle {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.015); }
+}
+html .pokemon-companion{
+  overflow:visible !important;
+  margin:0 !important;
+  padding:.35rem !important;
+  contain:none !important;
+}
+html .pokemon-companion img{
+  object-position:center bottom !important;
+  transform-origin:50% 92% !important;
+  background:transparent !important;
+}
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
+  margin:0 !important;
+  align-self:center !important;
+  justify-self:end !important;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
+  margin:0 !important;
+}
+html .app-root.game-edition.handheld-edition :is(.local-dice-dialog-heading,.account-dialog-heading,.generator-heading){
+  overflow:visible !important;
+}
+html .app-root.game-edition.handheld-edition :is(.local-dice-dialog-heading,.account-dialog-heading,.generator-heading) .pokemon-companion{
+  margin:0 !important;
+  padding:.2rem !important;
+  align-self:center !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite,
+html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-sprite{
+  object-position:center bottom !important;
+  image-rendering:pixelated;
+  background:transparent !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
+  isolation:isolate;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::before,
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
+  content:none !important;
+  display:none !important;
+}
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading,.pc-sidebar-heading){
+  background-size:100% 100% !important;
+}
+@media (max-width:540px),
+       (pointer:coarse) and (max-device-width:700px){
+  html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
+    margin:0 !important;
+    padding:.25rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
+    margin:0 !important;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  html .pokemon-companion img{
+    animation:none !important;
+    transform:none !important;
+  }
+}

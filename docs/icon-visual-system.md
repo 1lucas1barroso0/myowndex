@@ -14,6 +14,14 @@ O MyOwnDex combina a organização ampla dos menus de Pokémon Sword/Shield com 
 - Conteúdo atual não convive com cópias ou referências obsoletas apresentadas como vigentes; histórico deve ser claramente histórico.
 - Uma função principal tem um único lar visível. Dados permanece no acesso global e se adapta ao contexto; a Aventura não repete rolagens, histórico ou ferramentas Pokémon que já existem em outro lugar.
 
+## Identidade e parceiros
+
+O ícone atual representa um diário de treinador/Pokédex aberto: lente de consulta, rota de aventura e marcador dourado. A mesma identidade deve aparecer no cabeçalho, abertura, favicon e manifesto. Não manter uma segunda “cara” do app em paralelo.
+
+Parceiros decorativos são Pokémon em GIF local quando movimento é permitido e PNG quando `prefers-reduced-motion` está ativo. Cada módulo principal tem ao menos um parceiro reconhecível. O sprite fica transparente e solto: não usar círculo, disco, cápsula ou halo atrás dele. A decoração nunca cobre controles nem altera a geometria necessária do conteúdo.
+
+A direção é alegre, fosca e acolhedora. Priorize cor, ritmo, sprites e pequenos acentos gráficos em vez de brilho plástico, vidro, reflexos, bevels pesados ou sombras de produto SaaS.
+
 ## Conteúdo e tamanho
 
 Texto legível pode quebrar linha; não deve desaparecer para caber em um botão, cartão ou campo. Grades precisam usar colunas que encolhem com a janela. Modais respeitam a altura disponível, as áreas seguras do dispositivo e o zoom, com rolagem interna que alcance todas as ações.
@@ -24,7 +32,7 @@ Foco de teclado, seleção e erro precisam permanecer visíveis. Cor vem acompan
 
 O menu usa emblemas legíveis e uma seleção escura com acento dourado. Cada destino mantém seu nome e seu símbolo, sem depender apenas da cor. As grandes áreas diagonais pertencem ao cabeçalho; os módulos continuam com superfícies tranquilas para jogar e ler. A aparência e o estilo de jogo permanecem controles separados.
 
-Os créditos ficam disponíveis sob demanda, sem disputar espaço com as ações. A versão visível é curta, 2.0; os metadados e o shell offline usam 2.0.0. Essa apresentação não cria um novo formato para os dados.
+Os créditos ficam disponíveis sob demanda, sem disputar espaço com as ações. A versão visível é sempre a versão completa atual de `package.json`; abertura, rodapé, documentação vigente e shell offline devem acompanhar a mesma entrega.
 
 O Gerador apresenta um encontro, sem presumir que os Pokémon são aliados. Os próprios resultados indicam que a geração terminou; somente situações que exigem atenção, salvamento e exportação precisam de mensagens adicionais. A personalidade vem dos sprites, dos símbolos e das interações existentes, sem inventar missões, recompensas ou regras.
 

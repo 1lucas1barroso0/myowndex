@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.13.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.14.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -69,6 +69,10 @@ A revisão 2.0.11 endurece responsividade, fluidez e isolamento das rolagens. A 
 A revisão 2.0.12 cobre explicitamente celulares cujo navegador ou modo PWA entrega um viewport de layout maior que a tela física. Em dispositivos de toque estreitos, a Pokédex força densidade móvel por envelope físico, o modal de Dados usa a largura útil em vez do teto de 40rem e a tipografia compensa o layout virtual largo. Rolagens locais são result-first: o recibo imutável é gerado e exibido antes de IndexedDB, histórico, conta, callbacks ou Diário; essas tarefas seguem em segundo plano e não impõem cooldown. Apenas rolagens remotas autoritativas aguardam o servidor, pois nesse caso o servidor é a fonte válida do resultado.
 
 A revisão 2.0.13 é uma passagem de direção de arte sobre o conteúdo já aprovado. A linguagem visual deixa de tratar as telas como formulários tematizados e passa a usar materiais e hierarquia próprios de jogo: cabeçalho como moldura de handheld, Aventura como seleção de papéis, Dados como instrumento de mesa, Conta como Cartão de Treinador e Pokédex como coleção. O acabamento usa profundidade curta, bordas táteis, estados selecionados fortes, motivos discretos de interface de jogo e valorização de sprites, sem introduzir texto, regra, dependência ou animação contínua. A camada final está em `src/game-art-direction.css` e deve continuar compatível com Claro/Escuro, movimento reduzido, alto contraste, teclado e telas estreitas.
+
+A revisão 2.0.14 substitui o acabamento plástico da 2.0.13 por uma linguagem de diário de aventura: superfícies foscas, cores felizes, profundidade curta e controles táteis sem brilho artificial. Pokémon decorativos nunca recebem disco/círculo de fundo e os módulos principais mantêm pelo menos um GIF parceiro, com PNG estático sob redução de movimento. O Cartão de Treinador deixa de repetir “Seu MyOwnDex”. O ícone v100 representa um diário/Pokédex aberto com lente de consulta e rota de aventura e é a identidade usada no cabeçalho, abertura, favicon e manifesto.
+
+A mesma revisão corrige o histórico de Dados local: `LOCAL_ROLL_LIMIT` passa a ser importado explicitamente, a rolagem entra no estado da sessão antes de qualquer persistência, recebe uma cópia rápida no armazenamento do navegador e uma cópia durável assíncrona. Falha de cache, IndexedDB, conta ou callback não remove nem rerrola o resultado e não bloqueia uma nova rolagem. Somente rolagens remotas autoritativas podem aguardar o servidor. A versão mostrada no rodapé e na abertura é lida diretamente de `package.json`; não manter um rótulo de versão paralelo.
 
 ## Documentos históricos
 

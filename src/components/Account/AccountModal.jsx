@@ -141,7 +141,7 @@ export default function AccountModal({ open, onClose, client }) {
     return createPortal(<div className="account-overlay" onMouseDown={event => { if (!busy && event.target === event.currentTarget) onClose(); }}>
         <section className="account-dialog" ref={dialogRef} role="dialog" tabIndex={-1} aria-modal="true" aria-labelledby={titleId} aria-busy={busy}>
             <header className="account-dialog-heading">
-                <div className="account-dialog-title"><span className="account-kicker">Cartão de Treinador</span><h2 id={titleId}>Seu MyOwnDex</h2></div>
+                <div className="account-dialog-title"><h2 id={titleId}>Cartão de Treinador</h2></div>
                 <PokemonCompanion place="account" className="companion-compact" eager />
                 <button type="button" ref={closeRef} className="account-close" aria-label="Fechar conta" disabled={busy} onClick={onClose}>×</button>
             </header>

@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v2.0.13";
+const CACHE_NAME = "myowndex-shell-v2.0.14";
 const CACHE_PREFIX = "myowndex-shell-";
 const ASSET_CACHE_NAME = "myowndex-assets-v1";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";
@@ -9,13 +9,9 @@ const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
-  "/favicon-v91.svg",
-  "/icons/myowndex-icon-v91.svg",
-  "/icons/myowndex-app-192-v91.png",
-  "/icons/myowndex-app-512-v91.png",
-  "/icons/myowndex-maskable-512-v91.png",
-  "/icons/apple-touch-icon-v91.png",
-  "/icons/myowndex-shortcut-96-v91.png",
+  "/favicon-v100.svg",
+  "/icons/myowndex-icon-v100.svg",
+  "/icons/myowndex-maskable-v100.svg",
   "/fonts/VT323-Regular.ttf",
 ];
 

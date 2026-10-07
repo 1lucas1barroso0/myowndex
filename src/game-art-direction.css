@@ -690,6 +690,15 @@ html .app-root.game-edition.handheld-edition .game-release b{
 }
 
 
+/* Layout contract: borders and padding always belong to the declared box.
+   This closes sub-pixel/2px viewport leaks on ultra-narrow screens. */
+html .app-root.game-edition.handheld-edition,
+html .app-root.game-edition.handheld-edition *,
+html .app-root.game-edition.handheld-edition *::before,
+html .app-root.game-edition.handheld-edition *::after{
+  box-sizing:border-box;
+}
+
 /* 2.0.15 — retention pass: lively headers, transparent partners and clean collection sprites. */
 @keyframes myowndex-companion-idle {
   0%,100% { transform: translateY(0) rotate(-.4deg); }

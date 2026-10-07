@@ -60,7 +60,6 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
                 setResult(resolved.result);
                 onSnapshotChange(resolved.nextSnapshot);
                 await onEvent(resolved.eventType, resolved.eventPayload);
-                if (resolved.sfxPayload) await onEvent("sfx", resolved.sfxPayload);
             }
         } catch (error) { onError?.(error); }
         finally { lock.current = false; setBusy(false); }

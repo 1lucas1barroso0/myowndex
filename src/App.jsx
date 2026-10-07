@@ -31,7 +31,7 @@ const formatDexResultCount = (speciesCount, formCount) => {
     if (formCount) parts.push(`${formCount} ${formCount === 1 ? "forma" : "formas"}`);
     return parts.join(" · ") || "0 resultados";
 };
-function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v100.svg" alt="" /><PokemonCompanion place="pokedex" className="opening-companion" eager /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
+function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-rotomdex-v101.svg" alt="" /><PokemonCompanion place="pokedex" className="opening-companion" eager /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
 const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: OpeningScreen });
@@ -572,7 +572,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     <div className="app-header-row">
                         <div className="app-header-primary">
                             <div className="app-brand-cluster">
-                                <img className="app-brand-icon" src="/icons/myowndex-icon-v100.svg" alt="" />
+                                <img className="app-brand-icon" src="/icons/myowndex-rotomdex-v101.svg" alt="" />
                                 <div className="app-brand">
                                     <h1>MyOwnDex</h1>
                                 </div>

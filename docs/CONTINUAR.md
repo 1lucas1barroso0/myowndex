@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.12.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.13.** A interface apresenta **2.0**. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -67,6 +67,8 @@ A revisão 2.0.10 remove da aplicação trilha sonora, efeitos sonoros e chamada
 A revisão 2.0.11 endurece responsividade, fluidez e isolamento das rolagens. A Pokédex reduz colunas antes de comprimir cartões, controles horizontais continuam alcançáveis em telas estreitas e o shell mantém um único dono de rolagem com unidades dinâmicas de viewport, safe areas e conteúdo fora da tela renderizado sob demanda. O diálogo de Dados permanece utilizável em telas estreitas, baixas, landscape e com teclado virtual. A geração aleatória continua exclusivamente no núcleo CSPRNG/Web Crypto com rejection sampling; renderização, animação, cache, IndexedDB, armazenamento durável, sincronização e falhas de persistência não participam da escolha do resultado nem provocam rerrolagem.
 
 A revisão 2.0.12 cobre explicitamente celulares cujo navegador ou modo PWA entrega um viewport de layout maior que a tela física. Em dispositivos de toque estreitos, a Pokédex força densidade móvel por envelope físico, o modal de Dados usa a largura útil em vez do teto de 40rem e a tipografia compensa o layout virtual largo. Rolagens locais são result-first: o recibo imutável é gerado e exibido antes de IndexedDB, histórico, conta, callbacks ou Diário; essas tarefas seguem em segundo plano e não impõem cooldown. Apenas rolagens remotas autoritativas aguardam o servidor, pois nesse caso o servidor é a fonte válida do resultado.
+
+A revisão 2.0.13 é uma passagem de direção de arte sobre o conteúdo já aprovado. A linguagem visual deixa de tratar as telas como formulários tematizados e passa a usar materiais e hierarquia próprios de jogo: cabeçalho como moldura de handheld, Aventura como seleção de papéis, Dados como instrumento de mesa, Conta como Cartão de Treinador e Pokédex como coleção. O acabamento usa profundidade curta, bordas táteis, estados selecionados fortes, motivos discretos de interface de jogo e valorização de sprites, sem introduzir texto, regra, dependência ou animação contínua. A camada final está em `src/game-art-direction.css` e deve continuar compatível com Claro/Escuro, movimento reduzido, alto contraste, teclado e telas estreitas.
 
 ## Documentos históricos
 

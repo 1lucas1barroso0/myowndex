@@ -780,3 +780,39 @@ html .app-root.game-edition.handheld-edition .combat-is-compact :is(.combat-dama
   html .app-root.game-edition.handheld-edition .local-pokemon-dice .room-tool { padding: 1rem !important; }
   html .app-root.game-edition.handheld-edition .local-field-preview { gap: .65rem; padding: .65rem; }
 }
+
+
+/* 2.0.11 viewport hardening: the roller behaves like a compact VTT tool.
+   VisualViewport/keyboard changes never participate in entropy or receipts. */
+html .app-root.game-edition.handheld-edition .local-dice-dialog {
+  max-width: calc(100vw - max(1rem, env(safe-area-inset-left)) - max(1rem, env(safe-area-inset-right)));
+  max-height: calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(1rem, env(safe-area-inset-bottom)));
+  contain: layout paint;
+}
+html .app-root.game-edition.handheld-edition .local-dice-dialog-content {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+html .app-root.game-edition.handheld-edition .local-dice-panel,
+html .app-root.game-edition.handheld-edition .local-pokemon-dice { overflow-x: clip; }
+html .app-root.game-edition.handheld-edition .local-dice-panel :is(input,select,button),
+html .app-root.game-edition.handheld-edition .local-pokemon-dice :is(input,select,button) { max-width: 100%; }
+@media (max-width: 420px) {
+  html .app-root.game-edition.handheld-edition .local-dice-tabs { grid-template-columns: minmax(0,1fr) !important; }
+  html .app-root.game-edition.handheld-edition .local-dice-tabs button { min-height: 48px !important; grid-template-columns: auto auto; justify-content: center !important; }
+  html .app-root.game-edition.handheld-edition .local-dice-pages { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-height: 560px) {
+  html .app-root.game-edition.handheld-edition .local-dice-dialog { max-height: calc(100dvh - .5rem); }
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading { padding-block: .65rem; }
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-content { padding-block: .75rem; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  html .app-root.game-edition.handheld-edition .local-dice-dialog {
+    width: min(52rem, calc(100vw - 1rem));
+    max-height: calc(100dvh - .5rem);
+  }
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading .companion-compact { display: none !important; }
+}

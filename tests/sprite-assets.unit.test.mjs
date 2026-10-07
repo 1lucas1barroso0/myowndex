@@ -95,10 +95,32 @@ test("every decorative Pokémon master is transparent, padded and impossible to 
 });
 
 
-test("obsolete matte GIF companions and pre-RotomDex identity assets cannot return", async () => {
+const inspectGif=buffer=>{
+  assert.equal(buffer.subarray(0,3).toString("ascii"),"GIF");
+  let frames=0,transparentControls=0,controls=0;
+  for(let index=0;index<buffer.length-7;index+=1){
+    if(buffer[index]===0x2c) frames+=1;
+    if(buffer[index]===0x21&&buffer[index+1]===0xf9&&buffer[index+2]===0x04){
+      controls+=1;
+      if(buffer[index+3]&1) transparentControls+=1;
+    }
+  }
+  return {frames,controls,transparentControls};
+};
+
+test("decorative partners use animated transparent GIF masters and one RotomDex identity", async () => {
   const companionFiles=await readdir("public/sprites/companions");
-  assert.ok(companionFiles.length>=8);
-  assert.ok(companionFiles.every(name=>name.endsWith(".png")), "companion directory must contain transparent PNG masters only");
+  const gifs=companionFiles.filter(name=>name.endsWith(".gif"));
+  const pngs=companionFiles.filter(name=>name.endsWith(".png"));
+  assert.ok(gifs.length>=8&&pngs.length>=8,"every partner keeps animated and recovery masters");
+  for(const name of gifs){
+    const meta=inspectGif(await readFile(`public/sprites/companions/${name}`));
+    assert.ok(meta.frames>1,`${name} must contain natural authored animation`);
+    assert.ok(meta.controls>0&&meta.transparentControls===meta.controls,`${name} must keep transparent animated frames`);
+  }
+  const component=await readFile("src/components/Shared/PokemonCompanion.jsx","utf8");
+  assert.match(component,/\/sprites\/companions\/\$\{companion\.id\}\.gif/);
+  assert.doesNotMatch(component,/myowndex-companion-idle|myowndex-companion-pop/);
   const source=await Promise.all([
     readFile("src/App.jsx","utf8"),
     readFile("app/layout.tsx","utf8"),
@@ -107,6 +129,6 @@ test("obsolete matte GIF companions and pre-RotomDex identity assets cannot retu
   ]);
   for(const text of source){
     assert.match(text,/myowndex-rotomdex-v101\.svg/);
-    assert.doesNotMatch(text,/myowndex-(?:icon|maskable)-v100|favicon-v100|companions\/\d+\.gif/);
+    assert.doesNotMatch(text,/myowndex-(?:icon|maskable)-v100|favicon-v100/);
   }
 });

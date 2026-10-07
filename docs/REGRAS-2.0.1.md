@@ -22,6 +22,6 @@ O Guia contém uma única regra 3.4 completa, com as 13 cláusulas canônicas. O
 
 As fases recolhem controles que não lhes pertencem. Uma ordem ativa permanece intacta ao alternar fases; a prática dos Dados continua com um campo de batalha completo, incluindo os efeitos finais. O HUD fica abaixo dos sprites, sem obstruir vizinhos; um índice local de 1.351 alturas oficiais dimensiona os sprites sem novas consultas. Movimento decorativo respeita a preferência por movimento reduzido.
 
-A trilha local usa um arquivo de até 24 MB por sessão, em memória, com reprodução, pausa, substituição e remoção. As trilhas compartilhadas continuam persistentes; downloads obsoletos podem ser cancelados. Som e volume respeitam as preferências; os efeitos dos Dados privados usam o mesmo controle de silêncio.
+Desde a 2.0.10, trilha sonora, efeitos sonoros e comunicação de voz são externos ao MyOwnDex e não fazem parte das regras nem da infraestrutura da aplicação.
 
-As verificações de regressão cobrem prioridades, regras, crescimento, preservação das cenas, áudio, contas, códigos de importação e API, além das suítes de navegador. O registro final da entrega informa os resultados da execução completa.
+As verificações de regressão cobrem prioridades, regras, crescimento, preservação das cenas, contas, códigos de importação e API, além das suítes de navegador. O registro final da entrega informa os resultados da execução completa.

@@ -24,7 +24,7 @@ const identityAudit=await page.evaluate(()=>({
 }));
 assert.equal(identityAudit.brand,'/icons/myowndex-rotomdex-v102.svg','RotomDex identity must be the same visible master');
 assert.ok(identityAudit.icons.some(value=>value.includes('myowndex-rotomdex-v102.svg')),'document icon must use the RotomDex master');
-assert.match(identityAudit.manifest,/manifest\.webmanifest\?v=2\.0\.16/);
+assert.equal(identityAudit.manifest,'/manifest.webmanifest');
 for(const width of [320,390,768,1280,1440]){
  await page.setViewportSize({width,height:900});
  for(const theme of ['Claro','Escuro']){

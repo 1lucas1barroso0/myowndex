@@ -17,6 +17,14 @@ async function check(label){
 }
 async function nav(label){await page.getByRole('button',{name:label,exact:true}).click();await page.waitForTimeout(100)}
 await page.goto(baseUrl);await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).waitFor();
+const identityAudit=await page.evaluate(()=>({
+ brand:document.querySelector('.app-brand-icon')?.getAttribute('src')||'',
+ icons:[...document.querySelectorAll('link[rel~="icon"],link[rel="shortcut icon"],link[rel="apple-touch-icon"]')].map(link=>link.getAttribute('href')||''),
+ manifest:document.querySelector('link[rel="manifest"]')?.getAttribute('href')||''
+}));
+assert.equal(identityAudit.brand,'/icons/myowndex-rotomdex-v102.svg','RotomDex identity must be the same visible master');
+assert.ok(identityAudit.icons.some(value=>value.includes('myowndex-rotomdex-v102.svg')),'document icon must use the RotomDex master');
+assert.match(identityAudit.manifest,/manifest\.webmanifest\?v=2\.0\.16/);
 for(const width of [320,390,768,1280,1440]){
  await page.setViewportSize({width,height:900});
  for(const theme of ['Claro','Escuro']){

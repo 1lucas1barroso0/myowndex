@@ -334,7 +334,6 @@ const quickAttribute = (request, random) => {
             critical: test.critical,
             fumble: test.fumble,
         },
-        sfxPayload: null,
     };
 };
 
@@ -370,7 +369,6 @@ const quickPercent = (request, random) => {
             chance: test.chance,
             success: test.success,
         },
-        sfxPayload: null,
     };
 };
 
@@ -405,7 +403,6 @@ const quickFree = (request, random) => {
             dice,
             modifier: request.modifier,
         },
-        sfxPayload: null,
     };
 };
 
@@ -435,7 +432,6 @@ const initiative = (snapshot, random) => {
         },
         eventType: "system",
         eventPayload: { text: `Ordem da rodada: ${order}.` },
-        sfxPayload: null,
     };
 };
 
@@ -476,7 +472,6 @@ const advanceTurn = (snapshot, random) => {
         },
         eventType: "system",
         eventPayload: { text: message },
-        sfxPayload: null,
     };
 };
 
@@ -551,7 +546,6 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             audit: { type: "combat", mode: request.mode, rawDice: conditionCheck.rolls, conditionCheck: { canAct: conditionCheck.canAct, notes: conditionNotes, rolls: conditionCheck.rolls, selfDamage: conditionCheck.selfDamage, appliedSelfDamage: conditionSelfDamage?.appliedDamage ?? 0 }, success: false, critical: false, fumble: false, result: detail },
             eventType: role === "narrator" ? "system" : "roll",
             eventPayload: role === "narrator" ? { text: detail } : { label: "simulação de condição", result: detail },
-            sfxPayload: null,
         };
     }
 
@@ -711,13 +705,6 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             defenderId: defender?.id || "",
         };
     const critical = targetResults.some(entry => entry.resolution.criticalHit);
-    const healedOnly = consequences.healed > 0 && !consequences.damage;
-    const sfxPayload = role === "narrator" && connected
-        ? {
-            effectId: critical ? "critical" : healedOnly ? "heal" : representative.profile.effectOnly ? "confirm" : "hit",
-            label: critical ? "Crítico" : healedOnly ? "Cura" : representative.profile.effectOnly ? "Efeito" : "Impacto",
-        }
-        : null;
 
     return {
         result,
@@ -743,7 +730,6 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         },
         eventType: role === "narrator" ? "move" : "roll",
         eventPayload,
-        sfxPayload,
     };
 };
 
@@ -789,7 +775,6 @@ export const resolveCaptureAction = ({ request, snapshot, role, species, random 
         result: { ...result, targetName: target.name, detail }, nextSnapshot,
         audit: { type: "capture", mode: "normal", rawDice: result.rolls, modifiers: result, chance: result.chance, result: result.result, success: result.success, critical: false, fumble: false },
         eventType: "system", eventPayload: { text: detail },
-        sfxPayload: result.success ? { effectId: "capture", label: "Captura" } : null,
     };
 };
 
@@ -812,7 +797,6 @@ export const resolveAuthoritativeAction = ({ request, snapshot, role, move = nul
                 chance: null, result: { round: 1 }, success: true, critical: false, fumble: false },
             eventType: "system",
             eventPayload: { text: "Nova batalha pronta. Escolha as ações da primeira rodada." },
-            sfxPayload: null,
         };
     }
     if (request.action === "capture") return resolveCaptureAction({ request, snapshot, role, species, random });

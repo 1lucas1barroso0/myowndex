@@ -15,7 +15,7 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "pt-BR",
     icons: [
       { src: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/icons/myowndex-maskable-v100.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],
     categories: ["games", "utilities"],
     prefer_related_applications: false,

@@ -9,7 +9,7 @@ const PROTECTED_KEYS = new Set([
     "myowndex_rotom_v4", "myowndex_rotom_v3", "myowndex_preferences_v1",
     "myowndex_dex_favorites_v1", "myowndex_appearance_v1", "myowndex_local_room_v1",
     "myowndex_live_room_v1", "myowndex_account_sync_v1", "myowndex_account_recovery_clear_v1", "myowndex_local_dice_preferences_v1",
-    "myowndex_audio_preferences_v1", "myowndex_call_preferences_v1", "myowndex_guide_roll_history_v1", "myowndex_generator_v1", "myowndex_local_dice_room_v1", "myowndex_local_roll_history_v3",
+    "myowndex_guide_roll_history_v1", "myowndex_generator_v1", "myowndex_local_dice_room_v1", "myowndex_local_roll_history_v3",
 ]);
 let activeScope = null;
 let databasePromise = null;

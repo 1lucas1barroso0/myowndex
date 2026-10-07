@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">MyOwnDex RotomDex</title>
+  <desc id="desc">RotomDex do MyOwnDex em vermelho, azul, teal e dourado.</desc>
+  <rect x="12" y="12" width="488" height="488" rx="116" fill="#fff7e8"/>
+  <path d="M150 111 116 45l91 35 49-44 49 44 91-35-34 66" fill="#e84360" stroke="#243b40" stroke-width="18" stroke-linejoin="round"/>
+  <path d="m119 194-72-43 22 104 53 23M393 194l72-43-22 104-53 23" fill="#cf2844" stroke="#243b40" stroke-width="18" stroke-linejoin="round"/>
+  <rect x="112" y="100" width="288" height="344" rx="78" fill="#cf2844" stroke="#243b40" stroke-width="20"/>
+  <path d="M142 157c0-29 24-53 53-53h122c29 0 53 24 53 53v116c0 29-24 53-53 53H195c-29 0-53-24-53-53V157Z" fill="#243b40"/>
+  <path d="M171 187c16-20 40-25 63-11-2 31-13 48-31 49-18 0-29-13-32-38Zm107-11c23-14 47-9 63 11-3 25-14 38-32 38-18-1-29-18-31-49Z" fill="#61c7df"/>
+  <circle cx="203" cy="188" r="8" fill="#fff7e8"/>
+  <circle cx="309" cy="188" r="8" fill="#fff7e8"/>
+  <path d="M214 270c26 21 58 21 84 0" fill="none" stroke="#f2c655" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="154" cy="128" r="17" fill="#61c7df" stroke="#243b40" stroke-width="8"/>
+  <circle cx="358" cy="128" r="17" fill="#f2c655" stroke="#243b40" stroke-width="8"/>
+  <rect x="159" y="342" width="194" height="74" rx="24" fill="#dff5f6" stroke="#243b40" stroke-width="12"/>
+  <path d="M187 368h94" stroke="#2277ad" stroke-width="11" stroke-linecap="round"/>
+  <path d="M187 391h64" stroke="#128174" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="321" cy="379" r="16" fill="#f2c655" stroke="#243b40" stroke-width="7"/>
+  <path d="M119 353H84v52h40M393 353h35v52h-40" fill="#e84360" stroke="#243b40" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M145 439h53M314 439h53" stroke="#243b40" stroke-width="18" stroke-linecap="round"/>
+</svg>

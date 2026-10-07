@@ -2,7 +2,7 @@
 
 /* One presentation system. index.css retains the adventure's spatial rules;
    these tokens also serve older controls so modules never invent a palette. */
-html:root {
+html:root{
   --ui-canvas: #edf4f3;
   --ui-panel: #fffdf6;
   --ui-raised: #f0f5ee;
@@ -36,7 +36,7 @@ html:root {
   --muted: var(--ui-muted);
   --line: var(--ui-line);
 }
-html[data-theme="night"] {
+html[data-theme="night"]{
   --ui-canvas: #142939;
   --ui-panel: #203847;
   --ui-raised: #294454;
@@ -51,74 +51,76 @@ html[data-theme="night"] {
   --journey-teal: #91ddca;
   --journey-focus: #f2c655;
 }
-html { scroll-padding-top: 1rem !important; }
-html body { margin: 0 !important; overflow: auto; min-height: 100dvh !important; background: var(--ui-canvas) !important; color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition {
+html{ scroll-padding-top: 1rem !important; }
+html body{ margin: 0 !important; overflow: auto; min-height: 100dvh !important; background: var(--ui-canvas) !important; color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition{
   --module-color: var(--ui-accent);
   --dex-radius-shell: .35rem; --dex-radius-panel: .3rem; --dex-radius-control: .25rem; display: flex !important; flex-direction: column !important; height: auto !important; min-height: 100dvh !important; overflow: visible !important; color: var(--ui-ink) !important; background: linear-gradient(118deg, transparent 0 69%, #222b3004 69% 80%, transparent 80%), var(--ui-canvas) !important; font-family: "Trebuchet MS", system-ui, -apple-system, "Segoe UI", sans-serif !important; font-size: 1rem !important; line-height: 1.5 !important;
 }
-html .app-root.game-edition.handheld-edition.view-teambuilder { --module-color: var(--ui-blue); }
-html .app-root.game-edition.handheld-edition.view-guide { --module-color: var(--journey-teal); }
-html .app-root.game-edition.handheld-edition :is(h1,h2,h3,h4) { font-family: inherit !important; line-height: 1.2 !important; letter-spacing: -.025em !important; text-shadow: none !important; overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: balance; }
-html .app-root.game-edition.handheld-edition :is(p,span,small,strong,label,summary,button,dt,dd) { overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; }
-html .app-root.game-edition.handheld-edition :is(.pc-partner-name,.pc-box-button-heading > span:first-child,.link-cable-partners strong,.link-cable-preview-list b,.room-player strong,.room-title h2,.token-inspector-identity strong,.audio-now strong,.audio-library strong,.call-member strong) { overflow:visible !important; white-space:normal !important; text-overflow:clip !important; overflow-wrap:normal !important; word-break:normal !important; hyphens:none !important; text-wrap:pretty; }
-html .app-root.game-edition.handheld-edition :is(section,article,aside,main,fieldset,label) { min-width: 0 !important; }
-html .app-root.game-edition.handheld-edition :is(button,summary) { cursor: pointer !important; touch-action: manipulation !important; }
-html .app-root.game-edition.handheld-edition button { white-space: normal !important; line-height: 1.3 !important; transition: background .15s, border-color .15s, transform .15s !important; }
-html .app-root.game-edition.handheld-edition button:disabled { cursor: not-allowed !important; opacity: .55 !important; transform: none !important; }
-html .app-root.game-edition.handheld-edition :is(button,summary,input,select,textarea,a,[tabindex]):focus-visible { outline: 3px solid var(--journey-focus) !important; outline-offset: 3px !important; }
-html .app-root.game-edition.handheld-edition :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea) { max-width: 100% !important; min-width: 0 !important; min-height: 44px !important; border: 1px solid var(--ui-control-line) !important; border-radius: .25rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; padding: .65rem .75rem !important; font-size: 1rem !important; line-height: 1.4 !important;
+html .app-root.game-edition.handheld-edition.view-teambuilder{ --module-color: var(--ui-blue); }
+html .app-root.game-edition.handheld-edition.view-guide{ --module-color: var(--journey-teal); }
+html .app-root.game-edition.handheld-edition :is(h1,h2,h3,h4){ font-family: inherit !important; line-height: 1.2 !important; letter-spacing: -.025em !important; text-shadow: none !important; overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: balance; }
+html .app-root.game-edition.handheld-edition :is(p,span,small,strong,label,summary,button,dt,dd){ overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; }
+html .app-root.game-edition.handheld-edition :is(.pc-partner-name,.pc-box-button-heading > span:first-child,.link-cable-partners strong,.link-cable-preview-list b,.room-player strong,.room-title h2,.token-inspector-identity strong){ overflow:visible !important; white-space:normal !important; text-overflow:clip !important; overflow-wrap:normal !important; word-break:normal !important; hyphens:none !important; text-wrap:pretty; }
+html .app-root.game-edition.handheld-edition :is(section,article,aside,main,fieldset,label){ min-width: 0 !important; }
+html .app-root.game-edition.handheld-edition :is(button,summary){ cursor: pointer !important; touch-action: manipulation !important; }
+html .app-root.game-edition.handheld-edition button{ white-space: normal !important; line-height: 1.3 !important; transition: background .15s, border-color .15s, transform .15s !important; }
+html .app-root.game-edition.handheld-edition button:disabled{ cursor: not-allowed !important; opacity: .55 !important; transform: none !important; }
+html .app-root.game-edition.handheld-edition :is(button,summary,input,select,textarea,a,[tabindex]):focus-visible{ outline: 3px solid var(--journey-focus) !important; outline-offset: 3px !important; }
+html .app-root.game-edition.handheld-edition :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea){ max-width: 100% !important; min-width: 0 !important; min-height: 44px !important; border: 1px solid var(--ui-control-line) !important; border-radius: .25rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; padding: .65rem .75rem !important; font-size: 1rem !important; line-height: 1.4 !important;
 }
-html .app-root.game-edition.handheld-edition textarea { resize: vertical !important; }
-html .app-root.game-edition.handheld-edition .game-icon { width: 1.4rem !important; height: 1.4rem !important; flex: 0 0 auto !important; }
-html .app-root.game-edition.handheld-edition .skip-to-content { position:fixed !important; top:1rem !important; left:1rem !important; z-index:999 !important; width:1px !important; height:1px !important; overflow:hidden !important; clip-path:inset(50%) !important; padding:0 !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; border: 2px solid var(--ui-blue) !important; }
-html .app-root.game-edition.handheld-edition .skip-to-content:focus { width:auto !important; height:auto !important; overflow:visible !important; clip-path:none !important; padding:1rem !important; }
-html .app-root.game-edition.handheld-edition .app-scroll-area { flex: 1 0 auto !important; overflow: visible !important; padding: clamp(1rem,3vw,2rem) clamp(.75rem,3vw,2.5rem) !important; }
-html .app-root.game-edition.handheld-edition :is(.app-header-shell,.app-main-shell) { border:0 !important; box-shadow:none !important; border-radius:0 !important; background:transparent !important; }
-html .app-root.game-edition.handheld-edition .app-main-shell { overflow:visible !important; padding:0 !important; }
-html .app-root.game-edition.handheld-edition .device-footer { display: flex !important; flex-wrap: wrap !important; justify-content: space-between !important; gap: .5rem 1rem !important; padding: .8rem max(1rem,env(safe-area-inset-right)) max(.8rem,env(safe-area-inset-bottom)) max(1rem,env(safe-area-inset-left)) !important; background: #222b30 !important; color: #f3f5ef !important; font-size: .875rem !important; }
-html .app-root.game-edition.handheld-edition .device-footer a { display:inline-flex; align-items:center; min-height:44px; min-width:44px; padding:0 .35rem; color: #f2c655 !important; text-decoration: underline !important; }
-html .app-root.game-edition.handheld-edition :is(.game-panel,.game-card,.room-section,.room-tool,.room-lobby-card,.room-local-entry,.token-inspector,.battlefield-card,.pokemon-editor,.link-cable-dialog) { background: var(--ui-panel) !important; color: var(--ui-ink) !important; border: 1px solid var(--ui-line) !important; border-radius: .3rem !important; box-shadow: var(--ui-shadow) !important; }
-html .app-root.game-edition.handheld-edition :is(.room-primary-button,.link-cable-primary,.record-add-partner,.confirm-dialog-confirm) { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: .5rem !important; min-height: 44px !important; padding: .75rem 1rem !important; background: #b9233b !important; color: #fff !important; border: 1px solid #941d31 !important; border-radius: .25rem !important; box-shadow: 0 3px 0 #941d31 !important; font-size: .95rem !important; font-weight: 800 !important; letter-spacing: 0 !important; text-transform: none !important; }
-html .app-root.game-edition.handheld-edition :is(.room-secondary-button,.link-cable-secondary,.room-header-actions > button,.dex-filter,.dex-generations button,.pc-action-button,.pc-create-box-button,.pc-import-button,.pc-add-partner) { min-height: 44px !important; padding: .6rem .85rem !important; border: 1px solid var(--ui-line) !important; border-radius: .25rem !important; background: var(--ui-panel) !important; color: var(--ui-blue) !important; box-shadow: none !important; font-size: .875rem !important; font-weight: 750 !important; letter-spacing: 0 !important; text-transform: none !important; }
-html .app-root.game-edition.handheld-edition :is(.room-kicker,.pc-eyebrow) { color: var(--ui-muted) !important; font-size: .875rem !important; letter-spacing: .06em !important; }
-html .app-root.game-edition.handheld-edition [class*="text-slate-"] { color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition :is(.text-\[8px\],.text-\[9px\],.text-\[10px\]) { font-size: .875rem !important; line-height: 1.5 !important; }
-html .app-root.game-edition.handheld-edition [class*="bg-slate-"] { background-color: var(--ui-raised) !important; }
-html .app-root.game-edition.handheld-edition :is(.room-error,.status-notice) { border: 1px solid var(--ui-accent) !important; border-left-width: 4px !important; border-radius: .25rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; padding: .85rem 1rem !important; }
+html .app-root.game-edition.handheld-edition textarea{ resize: vertical !important; }
+html .app-root.game-edition.handheld-edition .game-icon{ width: 1.4rem !important; height: 1.4rem !important; flex: 0 0 auto !important; }
+html .app-root.game-edition.handheld-edition .skip-to-content{ position:fixed !important; top:1rem !important; left:1rem !important; z-index:999 !important; width:1px !important; height:1px !important; overflow:hidden !important; clip-path:inset(50%) !important; padding:0 !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; border: 2px solid var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .skip-to-content:focus{ width:auto !important; height:auto !important; overflow:visible !important; clip-path:none !important; padding:1rem !important; }
+html .app-root.game-edition.handheld-edition .app-scroll-area{ flex: 1 0 auto !important; overflow: visible !important; padding: clamp(1rem,3vw,2rem) clamp(.75rem,3vw,2.5rem) !important; }
+html .app-root.game-edition.handheld-edition :is(.app-header-shell,.app-main-shell){ border:0 !important; box-shadow:none !important; border-radius:0 !important; background:transparent !important; }
+html .app-root.game-edition.handheld-edition .app-main-shell{ overflow:visible !important; padding:0 !important; }
+html .app-root.game-edition.handheld-edition .device-footer{ display: flex !important; flex-wrap: wrap !important; justify-content: space-between !important; gap: .5rem 1rem !important; padding: .8rem max(1rem,env(safe-area-inset-right)) max(.8rem,env(safe-area-inset-bottom)) max(1rem,env(safe-area-inset-left)) !important; background: #222b30 !important; color: #f3f5ef !important; font-size: .875rem !important; }
+html .app-root.game-edition.handheld-edition .device-footer a{ display:inline-flex; align-items:center; min-height:44px; min-width:44px; padding:0 .35rem; color: #f2c655 !important; text-decoration: underline !important; }
+html .app-root.game-edition.handheld-edition :is(.game-panel,.game-card,.room-section,.room-tool,.room-lobby-card,.room-local-entry,.token-inspector,.battlefield-card,.pokemon-editor,.link-cable-dialog){ background: var(--ui-panel) !important; color: var(--ui-ink) !important; border: 1px solid var(--ui-line) !important; border-radius: .3rem !important; box-shadow: var(--ui-shadow) !important; }
+html .app-root.game-edition.handheld-edition :is(.room-primary-button,.link-cable-primary,.record-add-partner,.confirm-dialog-confirm){ display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: .5rem !important; min-height: 44px !important; padding: .75rem 1rem !important; background: #b9233b !important; color: #fff !important; border: 1px solid #941d31 !important; border-radius: .25rem !important; box-shadow: 0 3px 0 #941d31 !important; font-size: .95rem !important; font-weight: 800 !important; letter-spacing: 0 !important; text-transform: none !important; }
+html .app-root.game-edition.handheld-edition :is(.room-secondary-button,.link-cable-secondary,.room-header-actions > button,.dex-filter,.dex-generations button,.pc-action-button,.pc-create-box-button,.pc-import-button,.pc-add-partner){ min-height: 44px !important; padding: .6rem .85rem !important; border: 1px solid var(--ui-line) !important; border-radius: .25rem !important; background: var(--ui-panel) !important; color: var(--ui-blue) !important; box-shadow: none !important; font-size: .875rem !important; font-weight: 750 !important; letter-spacing: 0 !important; text-transform: none !important; }
+html .app-root.game-edition.handheld-edition :is(.room-kicker,.pc-eyebrow){ color: var(--ui-muted) !important; font-size: .875rem !important; letter-spacing: .06em !important; }
+html .app-root.game-edition.handheld-edition [class*="text-slate-"]{ color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition :is(.text-\[8px\],.text-\[9px\],.text-\[10px\]){ font-size: .875rem !important; line-height: 1.5 !important; }
+html .app-root.game-edition.handheld-edition [class*="bg-slate-"]{ background-color: var(--ui-raised) !important; }
+html .app-root.game-edition.handheld-edition :is(.room-error,.status-notice){ border: 1px solid var(--ui-accent) !important; border-left-width: 4px !important; border-radius: .25rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; padding: .85rem 1rem !important; }
 
-/* Pokédex: quiet catalogue, lively partners and a clearly marked selection. */
-html .app-root.game-edition.handheld-edition .dex-heading { display: flex !important; align-items: center !important; flex-wrap: wrap !important; gap: .8rem !important; padding-bottom: 1rem !important; margin-bottom: 1rem !important; border-bottom: 3px solid var(--module-color) !important; }
-html .app-root.game-edition.handheld-edition .dex-title { margin-right: auto !important; }
-html .app-root.game-edition.handheld-edition .dex-title h2 { font-size: clamp(1.8rem,4vw,2.5rem) !important; font-weight: 900 !important; margin: 0 !important; color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .dex-companion { width: 112px !important; height: 112px !important; }
-html .app-root.game-edition.handheld-edition .dex-companion img { width: 100% !important; height: 100% !important; object-fit: contain !important; animation: none !important; }
-html .app-root.game-edition.handheld-edition .dex-count { color: var(--ui-muted) !important; font-size: .9rem !important; font-variant-numeric: tabular-nums !important; }
-html .app-root.game-edition.handheld-edition .dex-toolbar { display: flex !important; flex-wrap: wrap !important; gap: .6rem !important; margin-bottom: .8rem !important; }
-html .app-root.game-edition.handheld-edition .dex-filter { display: inline-flex !important; gap: .4rem !important; align-items: center !important; }
-html .app-root.game-edition.handheld-edition :is(.dex-filter.is-active,.dex-generations button[aria-pressed="true"]) { background: #222b30 !important; color: #fff !important; border-color: #222b30 !important; }
-html .app-root.game-edition.handheld-edition .dex-generations { display: flex !important; flex-wrap: wrap !important; gap: .4rem !important; align-items: center !important; margin-bottom: 1.2rem !important; }
-html .app-root.game-edition.handheld-edition .dex-generations > span { color: var(--ui-muted) !important; font-size: .875rem !important; margin-right: .2rem !important; }
-html .app-root.game-edition.handheld-edition .dex-generations button { min-width: 44px !important; padding: .5rem !important; }
-html .app-root.game-edition.handheld-edition .dex-grid { display: grid !important; grid-template-columns: repeat(auto-fill,minmax(172px,1fr)) !important; gap: .8rem !important; }
-html .app-root.game-edition.handheld-edition .dex-entry { position: relative !important; min-width: 0 !important; }
-html .app-root.game-edition.handheld-edition .dex-entry-main { display: flex !important; flex-direction: column !important; width: 100% !important; padding: .9rem !important; border: 1px solid var(--ui-line) !important; border-bottom: 3px solid var(--ui-line) !important; border-radius: .3rem !important; background: var(--ui-panel) !important; box-shadow: none !important; color: var(--ui-ink) !important; text-align: left !important; }
-html .app-root.game-edition.handheld-edition .dex-entry-main:hover { transform: translateY(-2px) !important; border-color: var(--ui-accent) !important; background: var(--ui-selected) !important; }
-html .app-root.game-edition.handheld-edition .dex-number { font-family: "Dex Pixel",monospace !important; font-size: 1.2rem !important; color: var(--ui-muted) !important; padding-right: 2rem !important; }
-html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame { display: grid !important; place-items: center !important; width: 100% !important; height: 114px !important; margin: .35rem 0 .5rem !important; border: 0 !important; border-radius: 0 !important; background: radial-gradient(ellipse at 50% 80%,#226cae12 0 30%,transparent 31%) !important; }
-html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame img { width: 112px !important; height: 112px !important; object-fit: contain !important; }
-html .app-root.game-edition.handheld-edition .dex-entry-main:hover img { animation: journey-partner-hop .7s steps(2,end) infinite !important; }
-html .app-root.game-edition.handheld-edition .pokemon-card-name { font-size: 1rem !important; font-weight: 800 !important; text-transform: capitalize !important; }
-html .app-root.game-edition.handheld-edition .dex-generation-mark { font-size: .875rem !important; color: var(--ui-muted) !important; margin-top: .35rem !important; }
-html .app-root.game-edition.handheld-edition .dex-favorite { position: absolute !important; right: .25rem !important; top: .25rem !important; display: grid !important; place-items: center !important; width: 44px !important; height: 44px !important; border: 0 !important; border-radius: .25rem !important; background: transparent !important; color: var(--ui-muted) !important; }
-html .app-root.game-edition.handheld-edition .dex-favorite[aria-pressed="true"] svg { fill: #f2c655 !important; color: #815c00 !important; }
-html .app-root.game-edition.handheld-edition .dex-empty { display: grid !important; justify-items: center !important; gap: 1rem !important; padding: 3rem 1rem !important; text-align: center !important; }
-html .app-root.game-edition.handheld-edition .dex-empty img { width: 96px !important; height: 96px !important; }
-html .app-root.game-edition.handheld-edition .dex-load-more { display: block !important; margin: 1.5rem auto 0 !important; }
+/* Pokédex: quiet catalogue,
+lively partners and a clearly marked selection. */
+html .app-root.game-edition.handheld-edition .dex-heading{ display: flex !important; align-items: center !important; flex-wrap: wrap !important; gap: .8rem !important; padding-bottom: 1rem !important; margin-bottom: 1rem !important; border-bottom: 3px solid var(--module-color) !important; }
+html .app-root.game-edition.handheld-edition .dex-title{ margin-right: auto !important; }
+html .app-root.game-edition.handheld-edition .dex-title h2{ font-size: clamp(1.8rem,4vw,2.5rem) !important; font-weight: 900 !important; margin: 0 !important; color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .dex-companion{ width: 112px !important; height: 112px !important; }
+html .app-root.game-edition.handheld-edition .dex-companion img{ width: 100% !important; height: 100% !important; object-fit: contain !important; animation: none !important; }
+html .app-root.game-edition.handheld-edition .dex-count{ color: var(--ui-muted) !important; font-size: .9rem !important; font-variant-numeric: tabular-nums !important; }
+html .app-root.game-edition.handheld-edition .dex-toolbar{ display: flex !important; flex-wrap: wrap !important; gap: .6rem !important; margin-bottom: .8rem !important; }
+html .app-root.game-edition.handheld-edition .dex-filter{ display: inline-flex !important; gap: .4rem !important; align-items: center !important; }
+html .app-root.game-edition.handheld-edition :is(.dex-filter.is-active,.dex-generations button[aria-pressed="true"]){ background: #222b30 !important; color: #fff !important; border-color: #222b30 !important; }
+html .app-root.game-edition.handheld-edition .dex-generations{ display: flex !important; flex-wrap: wrap !important; gap: .4rem !important; align-items: center !important; margin-bottom: 1.2rem !important; }
+html .app-root.game-edition.handheld-edition .dex-generations > span{ color: var(--ui-muted) !important; font-size: .875rem !important; margin-right: .2rem !important; }
+html .app-root.game-edition.handheld-edition .dex-generations button{ min-width: 44px !important; padding: .5rem !important; }
+html .app-root.game-edition.handheld-edition .dex-grid{ display: grid !important; grid-template-columns: repeat(auto-fill,minmax(172px,1fr)) !important; gap: .8rem !important; }
+html .app-root.game-edition.handheld-edition .dex-entry{ position: relative !important; min-width: 0 !important; }
+html .app-root.game-edition.handheld-edition .dex-entry-main{ display: flex !important; flex-direction: column !important; width: 100% !important; padding: .9rem !important; border: 1px solid var(--ui-line) !important; border-bottom: 3px solid var(--ui-line) !important; border-radius: .3rem !important; background: var(--ui-panel) !important; box-shadow: none !important; color: var(--ui-ink) !important; text-align: left !important; }
+html .app-root.game-edition.handheld-edition .dex-entry-main:hover{ transform: translateY(-2px) !important; border-color: var(--ui-accent) !important; background: var(--ui-selected) !important; }
+html .app-root.game-edition.handheld-edition .dex-number{ font-family: "Dex Pixel",monospace !important; font-size: 1.2rem !important; color: var(--ui-muted) !important; padding-right: 2rem !important; }
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{ display: grid !important; place-items: center !important; width: 100% !important; height: 114px !important; margin: .35rem 0 .5rem !important; border: 0 !important; border-radius: 0 !important; background: radial-gradient(ellipse at 50% 80%,#226cae12 0 30%,transparent 31%) !important; }
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame img{ width: 112px !important; height: 112px !important; object-fit: contain !important; }
+html .app-root.game-edition.handheld-edition .dex-entry-main:hover img{ animation: journey-partner-hop .7s steps(2,end) infinite !important; }
+html .app-root.game-edition.handheld-edition .pokemon-card-name{ font-size: 1rem !important; font-weight: 800 !important; text-transform: capitalize !important; }
+html .app-root.game-edition.handheld-edition .dex-generation-mark{ font-size: .875rem !important; color: var(--ui-muted) !important; margin-top: .35rem !important; }
+html .app-root.game-edition.handheld-edition .dex-favorite{ position: absolute !important; right: .25rem !important; top: .25rem !important; display: grid !important; place-items: center !important; width: 44px !important; height: 44px !important; border: 0 !important; border-radius: .25rem !important; background: transparent !important; color: var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition .dex-favorite[aria-pressed="true"] svg{ fill: #f2c655 !important; color: #815c00 !important; }
+html .app-root.game-edition.handheld-edition .dex-empty{ display: grid !important; justify-items: center !important; gap: 1rem !important; padding: 3rem 1rem !important; text-align: center !important; }
+html .app-root.game-edition.handheld-edition .dex-empty img{ width: 96px !important; height: 96px !important; }
+html .app-root.game-edition.handheld-edition .dex-load-more{ display: block !important; margin: 1.5rem auto 0 !important; }
 
-/* Each module has one recognizable partner, with real 2D animation bundled
+/* Each module has one recognizable partner,
+with real 2D animation bundled
    locally. A static picture source honors reduced-motion without hiding it. */
-html .pokemon-companion {
+html .pokemon-companion{
   --companion-ground: #a8d5ea;
   position: relative;
   isolation: isolate;
@@ -130,7 +132,7 @@ html .pokemon-companion {
   max-width: 100%;
   pointer-events: none;
 }
-html .pokemon-companion::before {
+html .pokemon-companion::before{
   content: "";
   position: absolute;
   z-index: -1;
@@ -142,12 +144,12 @@ html .pokemon-companion::before {
   background: var(--companion-ground);
   opacity: .6;
 }
-html .pokemon-companion picture {
+html .pokemon-companion picture{
   display: block;
   width: 100%;
   height: 100%;
 }
-html .pokemon-companion img {
+html .pokemon-companion img{
   display: block;
   width: 100% !important;
   height: 100% !important;
@@ -157,94 +159,97 @@ html .pokemon-companion img {
   animation: none !important;
   opacity: 1;
 }
-html .pokemon-companion.companion-gold { --companion-ground: #f2c655; }
-html .pokemon-companion.companion-teal { --companion-ground: #81ceb4; }
-html .pokemon-companion.companion-violet { --companion-ground: #cbb2eb; }
-html .pokemon-companion.companion-compact { width: 64px; height: 64px; }
-html[data-theme="night"] .pokemon-companion::before { opacity: .3; }
-html .app-root .pc-sidebar-heading { align-items: center; gap: .75rem; }
-html .app-root .pc-storage-title { display: flex; align-items: baseline; gap: .65rem; min-width: 0; }
-html .app-root .pc-sidebar-heading .pokemon-companion { width: 96px; height: 96px; }
-html .app-root.game-edition.handheld-edition .guide-hero { min-height: 112px; }
-html .app-root.game-edition.handheld-edition .adventure-intro > div:first-child { flex: 1 1 14rem; min-width: 0; }
-html .app-root.game-edition.handheld-edition .adventure-intro { flex-wrap: nowrap !important; }
-html .app-root.game-edition.handheld-edition .dex-heading > div:first-child { min-width: 0; }
+html .pokemon-companion.companion-gold{ --companion-ground: #f2c655; }
+html .pokemon-companion.companion-teal{ --companion-ground: #81ceb4; }
+html .pokemon-companion.companion-violet{ --companion-ground: #cbb2eb; }
+html .pokemon-companion.companion-compact{ width: 64px; height: 64px; }
+html[data-theme="night"] .pokemon-companion::before{ opacity: .3; }
+html .app-root .pc-sidebar-heading{ align-items: center; gap: .75rem; }
+html .app-root .pc-storage-title{ display: flex; align-items: baseline; gap: .65rem; min-width: 0; }
+html .app-root .pc-sidebar-heading .pokemon-companion{ width: 96px; height: 96px; }
+html .app-root.game-edition.handheld-edition .guide-hero{ min-height: 112px; }
+html .app-root.game-edition.handheld-edition .adventure-intro > div:first-child{ flex: 1 1 14rem; min-width: 0; }
+html .app-root.game-edition.handheld-edition .adventure-intro{ flex-wrap: nowrap !important; }
+html .app-root.game-edition.handheld-edition .dex-heading > div:first-child{ min-width: 0; }
 
 
-/* Adventure entrance: roles form two broad planes, rather than a dashboard. */
-html .app-root.game-edition.handheld-edition .adventure-intro { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; min-height: 0 !important; text-align: left !important; padding: 1.4rem 1.6rem !important; margin-bottom: 1.3rem !important; border: 0 !important; border-left: 5px solid var(--ui-accent) !important; border-radius: .3rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; box-shadow: var(--ui-shadow) !important; }
+/* Adventure entrance: roles form two broad planes,
+rather than a dashboard. */
+html .app-root.game-edition.handheld-edition .adventure-intro{ display: flex !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; min-height: 0 !important; text-align: left !important; padding: 1.4rem 1.6rem !important; margin-bottom: 1.3rem !important; border: 0 !important; border-left: 5px solid var(--ui-accent) !important; border-radius: .3rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; box-shadow: var(--ui-shadow) !important; }
 html .app-root.game-edition.handheld-edition .adventure-intro::before,
-html .app-root.game-edition.handheld-edition .adventure-intro::after { content: none !important; }
-html .app-root.game-edition.handheld-edition .adventure-intro h2 { margin: .25rem 0 .6rem !important; font-size: clamp(1.8rem,4vw,2.6rem) !important; color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .adventure-intro p { max-width: 44rem !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.6 !important; }
-html .app-root.game-edition.handheld-edition .adventure-starters { display: flex !important; flex: 0 1 auto !important; }
-html .app-root.game-edition.handheld-edition .adventure-starters img { width: clamp(56px,8vw,88px) !important; height: clamp(56px,8vw,88px) !important; object-fit: contain !important; animation: journey-partner-hop 3.5s steps(2,end) infinite !important; }
-html .app-root.game-edition.handheld-edition .adventure-starters img:nth-child(2) { animation-delay: .6s !important; }
-html .app-root.game-edition.handheld-edition .adventure-starters img:nth-child(3) { animation-delay: 1.2s !important; }
-html .app-root.game-edition.handheld-edition .room-lobby-grid { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 1.2rem !important; }
-html .app-root.game-edition.handheld-edition .room-lobby-card { display: flex !important; flex-direction: column !important; gap: .9rem !important; padding: clamp(1rem,3vw,1.6rem) !important; border-top: 4px solid var(--ui-accent) !important; }
-html .app-root.game-edition.handheld-edition .room-lobby-card.is-player { border-top-color: var(--ui-blue) !important; }
-html .app-root.game-edition.handheld-edition .room-lobby-card label { display: grid !important; gap: .35rem !important; color: var(--ui-muted) !important; font-size: .875rem !important; }
-html .app-root.game-edition.handheld-edition .room-lobby-card h3 { color: var(--ui-ink) !important; font-size: 1.6rem !important; }
-html .app-root.game-edition.handheld-edition .room-lobby-card .room-primary-button { width: 100% !important; margin-top: auto !important; }
-html .app-root.game-edition.handheld-edition .room-role-mark { display: grid !important; place-items: center !important; width: 48px !important; height: 48px !important; border-radius: 50% !important; background: var(--ui-selected) !important; color: var(--ui-blue) !important; }
-html .app-root.game-edition.handheld-edition .room-role-help { font-size: .875rem !important; color: var(--ui-muted) !important; }
-html .app-root.game-edition.handheld-edition .room-local-entry { display: flex !important; align-items: center !important; flex-wrap: wrap !important; gap: .8rem !important; padding: 1.1rem !important; margin-top: 1.2rem !important; }
-html .app-root.game-edition.handheld-edition .room-lobby-footnote { font-size: .875rem !important; color: var(--ui-muted) !important; margin-top: 1rem !important; }
-html .app-root.game-edition.handheld-edition :is(.room-header,.room-scene-strip) { background: var(--ui-panel) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; border-radius: .3rem !important; box-shadow: var(--ui-shadow) !important; }
-html .app-root.game-edition.handheld-edition :is(.room-title h2,.room-section-heading h3,.room-tool > summary,.room-scene-strip h3,.token-inspector h3) { color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .room-team-box { display: grid !important; gap: .3rem !important; margin-bottom: .8rem !important; }
-html .app-root.game-edition.handheld-edition .token-inspector-header { display: flex !important; min-width: 0 !important; gap: .6rem !important; align-items: flex-start !important; margin-bottom: 1rem !important; }
-html .app-root.game-edition.handheld-edition .token-inspector-identity { flex: 1 !important; min-width: 0 !important; padding: 0 !important; }
-html .app-root.game-edition.handheld-edition .token-inspector-close { position: static !important; flex: 0 0 44px !important; width: 44px !important; height: 44px !important; padding: .5rem !important; }
-html .app-root.game-edition.handheld-edition .token-xp-control { flex-wrap: wrap !important; }
-html .app-root.game-edition.handheld-edition .token-xp-next-level { position: static !important; color: var(--ui-muted) !important; font-size: .875rem !important; }
-html .app-root.game-edition.handheld-edition .room-phase-help-content { display: block !important; padding: .85rem !important; margin-top: .5rem !important; border: 1px solid var(--ui-line) !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition :is(.room-phase-help-content p,.room-phase-help-content strong) { color: inherit !important; }
-html .app-root.game-edition.handheld-edition :is(.room-notes-grid textarea,.room-wide-select) { width: 100% !important; }
+html .app-root.game-edition.handheld-edition .adventure-intro::after{ content: none !important; }
+html .app-root.game-edition.handheld-edition .adventure-intro h2{ margin: .25rem 0 .6rem !important; font-size: clamp(1.8rem,4vw,2.6rem) !important; color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .adventure-intro p{ max-width: 44rem !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.6 !important; }
+html .app-root.game-edition.handheld-edition .adventure-starters{ display: flex !important; flex: 0 1 auto !important; }
+html .app-root.game-edition.handheld-edition .adventure-starters img{ width: clamp(56px,8vw,88px) !important; height: clamp(56px,8vw,88px) !important; object-fit: contain !important; animation: journey-partner-hop 3.5s steps(2,end) infinite !important; }
+html .app-root.game-edition.handheld-edition .adventure-starters img:nth-child(2){ animation-delay: .6s !important; }
+html .app-root.game-edition.handheld-edition .adventure-starters img:nth-child(3){ animation-delay: 1.2s !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-grid{ display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 1.2rem !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-card{ display: flex !important; flex-direction: column !important; gap: .9rem !important; padding: clamp(1rem,3vw,1.6rem) !important; border-top: 4px solid var(--ui-accent) !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-card.is-player{ border-top-color: var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-card label{ display: grid !important; gap: .35rem !important; color: var(--ui-muted) !important; font-size: .875rem !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-card h3{ color: var(--ui-ink) !important; font-size: 1.6rem !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-card .room-primary-button{ width: 100% !important; margin-top: auto !important; }
+html .app-root.game-edition.handheld-edition .room-role-mark{ display: grid !important; place-items: center !important; width: 48px !important; height: 48px !important; border-radius: 50% !important; background: var(--ui-selected) !important; color: var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .room-role-help{ font-size: .875rem !important; color: var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition .room-local-entry{ display: flex !important; align-items: center !important; flex-wrap: wrap !important; gap: .8rem !important; padding: 1.1rem !important; margin-top: 1.2rem !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-footnote{ font-size: .875rem !important; color: var(--ui-muted) !important; margin-top: 1rem !important; }
+html .app-root.game-edition.handheld-edition :is(.room-header,.room-scene-strip){ background: var(--ui-panel) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; border-radius: .3rem !important; box-shadow: var(--ui-shadow) !important; }
+html .app-root.game-edition.handheld-edition :is(.room-title h2,.room-section-heading h3,.room-tool > summary,.room-scene-strip h3,.token-inspector h3){ color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .room-team-box{ display: grid !important; gap: .3rem !important; margin-bottom: .8rem !important; }
+html .app-root.game-edition.handheld-edition .token-inspector-header{ display: flex !important; min-width: 0 !important; gap: .6rem !important; align-items: flex-start !important; margin-bottom: 1rem !important; }
+html .app-root.game-edition.handheld-edition .token-inspector-identity{ flex: 1 !important; min-width: 0 !important; padding: 0 !important; }
+html .app-root.game-edition.handheld-edition .token-inspector-close{ position: static !important; flex: 0 0 44px !important; width: 44px !important; height: 44px !important; padding: .5rem !important; }
+html .app-root.game-edition.handheld-edition .token-xp-control{ flex-wrap: wrap !important; }
+html .app-root.game-edition.handheld-edition .token-xp-next-level{ position: static !important; color: var(--ui-muted) !important; font-size: .875rem !important; }
+html .app-root.game-edition.handheld-edition .room-phase-help-content{ display: block !important; padding: .85rem !important; margin-top: .5rem !important; border: 1px solid var(--ui-line) !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition :is(.room-phase-help-content p,.room-phase-help-content strong){ color: inherit !important; }
+html .app-root.game-edition.handheld-edition :is(.room-notes-grid textarea,.room-wide-select){ width: 100% !important; }
 
 /* Confirmations never share a layer with the content they protect. */
-html .confirm-dialog-overlay { position: fixed !important; inset: 0 !important; z-index: 400 !important; display: grid !important; place-items: center !important; padding: max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom)) !important; background: #102437b8 !important; }
-html .confirm-dialog-shell { font-family: "Trebuchet MS",system-ui,sans-serif !important; line-height: 1.5 !important; overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: pretty; width: min(100%,30rem) !important; max-height: calc(100dvh - 2rem) !important; overflow-y: auto !important; padding: 1.5rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; border: 1px solid var(--ui-line) !important; border-top: 5px solid var(--ui-accent) !important; border-radius: .4rem !important; box-shadow: 0 20px 60px #0004 !important; }
-html .confirm-dialog-shell h2 { margin: .8rem 0 !important; font-size: 1.5rem !important; }
-html .confirm-dialog-shell p { color: var(--ui-muted) !important; font-size: .95rem !important; }
-html .confirm-dialog-symbol { display: grid !important; place-items: center !important; width: 44px !important; height: 44px !important; background: var(--ui-selected) !important; color: var(--ui-accent) !important; }
-html .confirm-dialog-actions { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: .65rem !important; margin-top: 1.5rem !important; }
-html .confirm-dialog-actions button { min-height: 48px !important; padding: .8rem 1rem !important; border: 1px solid var(--ui-line) !important; border-radius: .25rem !important; background: var(--ui-raised) !important; color: var(--ui-ink) !important; font-size:1rem !important; line-height:1.5 !important; font-weight: 800 !important; white-space:normal !important; }
-html .confirm-dialog-shell :is(button,[tabindex]):focus-visible { outline:3px solid var(--journey-focus) !important; outline-offset:3px !important; }
-html .confirm-dialog-actions .confirm-dialog-confirm { background: #b9233b !important; color: #fff !important; border-color: #941d31 !important; }
+html .confirm-dialog-overlay{ position: fixed !important; inset: 0 !important; z-index: 400 !important; display: grid !important; place-items: center !important; padding: max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom)) !important; background: #102437b8 !important; }
+html .confirm-dialog-shell{ font-family: "Trebuchet MS",system-ui,sans-serif !important; line-height: 1.5 !important; overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: pretty; width: min(100%,30rem) !important; max-height: calc(100dvh - 2rem) !important; overflow-y: auto !important; padding: 1.5rem !important; background: var(--ui-panel) !important; color: var(--ui-ink) !important; border: 1px solid var(--ui-line) !important; border-top: 5px solid var(--ui-accent) !important; border-radius: .4rem !important; box-shadow: 0 20px 60px #0004 !important; }
+html .confirm-dialog-shell h2{ margin: .8rem 0 !important; font-size: 1.5rem !important; }
+html .confirm-dialog-shell p{ color: var(--ui-muted) !important; font-size: .95rem !important; }
+html .confirm-dialog-symbol{ display: grid !important; place-items: center !important; width: 44px !important; height: 44px !important; background: var(--ui-selected) !important; color: var(--ui-accent) !important; }
+html .confirm-dialog-actions{ display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: .65rem !important; margin-top: 1.5rem !important; }
+html .confirm-dialog-actions button{ min-height: 48px !important; padding: .8rem 1rem !important; border: 1px solid var(--ui-line) !important; border-radius: .25rem !important; background: var(--ui-raised) !important; color: var(--ui-ink) !important; font-size:1rem !important; line-height:1.5 !important; font-weight: 800 !important; white-space:normal !important; }
+html .confirm-dialog-shell :is(button,[tabindex]):focus-visible{ outline:3px solid var(--journey-focus) !important; outline-offset:3px !important; }
+html .confirm-dialog-actions .confirm-dialog-confirm{ background: #b9233b !important; color: #fff !important; border-color: #941d31 !important; }
 
-html .error-boundary-shell { background:var(--ui-panel) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-line) !important; border-top:4px solid var(--ui-blue) !important; border-radius:.4rem !important; font-family:"Trebuchet MS",system-ui,sans-serif !important; }
-html .error-boundary-shell .game-button { min-width:44px; min-height:48px; padding:.8rem 1rem; background:#b9233b !important; color:#fff !important; border:1px solid #941d31; border-radius:.25rem; font-size:1rem !important; line-height:1.5; letter-spacing:0; text-transform:none; }
-html .error-boundary-shell .game-button:focus-visible { outline:3px solid var(--journey-focus); outline-offset:3px; }
+html .error-boundary-shell{ background:var(--ui-panel) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-line) !important; border-top:4px solid var(--ui-blue) !important; border-radius:.4rem !important; font-family:"Trebuchet MS",system-ui,sans-serif !important; }
+html .error-boundary-shell .game-button{ min-width:44px; min-height:48px; padding:.8rem 1rem; background:#b9233b !important; color:#fff !important; border:1px solid #941d31; border-radius:.25rem; font-size:1rem !important; line-height:1.5; letter-spacing:0; text-transform:none; }
+html .error-boundary-shell .game-button:focus-visible{ outline:3px solid var(--journey-focus); outline-offset:3px; }
 
 @keyframes journey-partner-hop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-@media (max-width: 700px) {
-  html .app-root.game-edition.handheld-edition .room-lobby-grid { grid-template-columns: minmax(0,1fr) !important; }
-  html .app-root.game-edition.handheld-edition .adventure-intro { padding: 1.2rem !important; }
+@media (max-width: 700px){
+  html .app-root.game-edition.handheld-edition .room-lobby-grid{ grid-template-columns: minmax(0,1fr) !important; }
+  html .app-root.game-edition.handheld-edition .adventure-intro{ padding: 1.2rem !important; }
 }
-@media (max-width: 420px) {
-  html .app-root.game-edition.handheld-edition .dex-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: .5rem !important; }
-  html .app-root.game-edition.handheld-edition .dex-entry-main { padding: .65rem !important; }
-  html .app-root.game-edition.handheld-edition .dex-count { flex-basis: 100% !important; }
-  html .app-root.game-edition.handheld-edition .dex-sort { flex: 1 1 100% !important; }
-  html .app-root.game-edition.handheld-edition .dex-sort select { width: 100% !important; }
-  html .confirm-dialog-shell { padding: 1rem !important; }
+@media (max-width: 420px){
+  html .app-root.game-edition.handheld-edition .dex-grid{ grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: .5rem !important; }
+  html .app-root.game-edition.handheld-edition .dex-entry-main{ padding: .65rem !important; }
+  html .app-root.game-edition.handheld-edition .dex-count{ flex-basis: 100% !important; }
+  html .app-root.game-edition.handheld-edition .dex-sort{ flex: 1 1 100% !important; }
+  html .app-root.game-edition.handheld-edition .dex-sort select{ width: 100% !important; }
+  html .confirm-dialog-shell{ padding: 1rem !important; }
 }
-@media (prefers-reduced-motion: reduce) {
-  html .app-root.game-edition.handheld-edition *, html .app-root.game-edition.handheld-edition *::before, html .app-root.game-edition.handheld-edition *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce){
+  html .app-root.game-edition.handheld-edition *,
+html .app-root.game-edition.handheld-edition *::before,
+html .app-root.game-edition.handheld-edition *::after{ animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
-@media (forced-colors: active) {
-  html .app-root.game-edition.handheld-edition :is(button,input,select,textarea,.game-panel) { border: 1px solid ButtonText !important; }
+@media (forced-colors: active){
+  html .app-root.game-edition.handheld-edition :is(button,input,select,textarea,.game-panel){ border: 1px solid ButtonText !important; }
 }
 
 /* Journey rewards are small game choices. Detail opens only when it is needed. */
-html .app-root :is(.experience-award,.ev-training,.friendship-control) {
+html .app-root :is(.experience-award,.ev-training,.friendship-control){
   min-width: 0;
   color: var(--ui-ink);
   font-size: 1rem;
 }
-html .app-root :is(.experience-award,.experience-battle-context,.ev-training-options,.friendship-help) > summary {
+html .app-root :is(.experience-award,.experience-battle-context,.ev-training-options,.friendship-help) > summary{
   min-height: 48px;
   padding: .85rem 0;
   color: var(--ui-blue);
@@ -252,12 +257,12 @@ html .app-root :is(.experience-award,.experience-battle-context,.ev-training-opt
   font-size: .95rem;
   line-height: 1.5;
 }
-html .app-root .experience-award { border-top: 1px solid var(--ui-line); }
-html .app-root .experience-award-body { display: grid; gap: 1rem; padding: .6rem 0 1rem; }
-html .app-root :is(.experience-base-choice,.experience-sides fieldset) { border: 0; padding: 0; margin: 0; min-width: 0; }
-html .app-root :is(.experience-base-choice,.experience-sides fieldset) > legend { font-size: .875rem; font-weight: 750; margin-bottom: .65rem; color: var(--ui-ink); }
-html .app-root .experience-base-choice > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .6rem; }
-html .app-root :is(.experience-base-choice button,.experience-received button,.friendship-controls button,.ev-training-discard) {
+html .app-root .experience-award{ border-top: 1px solid var(--ui-line); }
+html .app-root .experience-award-body{ display: grid; gap: 1rem; padding: .6rem 0 1rem; }
+html .app-root :is(.experience-base-choice,.experience-sides fieldset){ border: 0; padding: 0; margin: 0; min-width: 0; }
+html .app-root :is(.experience-base-choice,.experience-sides fieldset) > legend{ font-size: .875rem; font-weight: 750; margin-bottom: .65rem; color: var(--ui-ink); }
+html .app-root .experience-base-choice > div{ display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .6rem; }
+html .app-root :is(.experience-base-choice button,.experience-received button,.friendship-controls button,.ev-training-discard){
   min-height: 44px;
   padding: .7rem .75rem;
   border: 1px solid var(--ui-control-line);
@@ -267,66 +272,66 @@ html .app-root :is(.experience-base-choice button,.experience-received button,.f
   font-size: .95rem;
   font-weight: 750;
 }
-html .app-root .experience-base-choice button[aria-pressed="true"] { background: var(--ui-selected); color: var(--ui-blue); border: 2px solid var(--ui-blue); }
-html .app-root .experience-battle-context { margin: 0; border-top: 1px solid var(--ui-line); border-bottom: 1px solid var(--ui-line); }
-html .app-root .experience-battle-toggle { display: flex; align-items: center; gap: .6rem; min-height: 44px; font-size: .875rem; margin: .3rem 0 .75rem; }
-html .app-root .experience-battle-toggle input { width: 20px; height: 20px; flex: 0 0 20px; }
-html .app-root .experience-sides { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,200px),1fr)); gap: 1.2rem; padding-bottom: 1rem; }
-html .app-root .experience-sides fieldset { display: grid; gap: .85rem; }
-html .app-root :is(.experience-sides label,.ev-training-controls label) { display: grid; gap: .4rem; min-width: 0; font-size: .875rem; color: var(--ui-muted); }
-html .app-root :is(.experience-sides input,.ev-training-controls input) { width: 100%; min-width: 0; font-variant-numeric: tabular-nums; }
-html .app-root .experience-reward-preview { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; margin: 0; }
-html .app-root .experience-reward-preview > div { padding: .9rem; border-left: 3px solid var(--journey-teal); background: var(--ui-panel); min-width: 0; }
-html .app-root .experience-reward-preview dt { color: var(--ui-muted); font-size: .875rem; }
-html .app-root .experience-reward-preview dd { margin: .2rem 0 0; font-size: 1.6rem; font-weight: 800; line-height: 1.2; color: var(--ui-ink); }
-html .app-root .experience-reasons { margin: 0; padding-left: 1.2rem; color: var(--ui-muted); font-size: .875rem; line-height: 1.65; }
-html .app-root :is(.experience-confirm,.ev-training-controls > button) { width: 100%; min-height: 48px; padding: .8rem 1rem; font-size: 1rem; }
-html .app-root .experience-received { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
-html .app-root .experience-received p { color: var(--ui-ink); font-size: .9rem; margin: 0; }
-html .app-root .experience-error { color: var(--ui-accent); margin: 0; font-size: .875rem; }
-html .app-root .ev-training { display: grid; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem; border: 1px solid var(--ui-line); border-left: 3px solid var(--journey-teal); background: var(--ui-selected); border-radius: .25rem; }
-html .app-root .ev-training > header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; }
-html .app-root .ev-training h4 { margin: 0; font-size: 1rem; font-weight: 750; }
-html .app-root .ev-training header > strong { font-size: clamp(.875rem,3vw,1.3rem); font-weight: 800; font-variant-numeric: tabular-nums; }
-html .app-root .ev-training-controls { display: grid; grid-template-columns: minmax(0,2fr) minmax(70px,1fr); align-items: end; gap: .9rem; }
-html .app-root .ev-training-controls > button { grid-column: 1/-1; }
-html .app-root .ev-training p { margin: 0; font-size: .875rem; line-height: 1.6; }
-html .app-root .ev-training-options { border-top: 1px solid var(--ui-line); }
-html .app-root .ev-training-discard { color: var(--ui-accent); }
-html .app-root .friendship-control { display: grid; gap: .8rem; }
-html .app-root .friendship-control > header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
-html .app-root .friendship-control output { font-size: .875rem; color: var(--journey-teal); font-weight: 750; }
-html .app-root .friendship-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
-html .app-root .friendship-controls > input { width: min(100%,110px); flex: 0 1 110px; }
-html .app-root .friendship-controls > div { display: grid; grid-template-columns: repeat(4,minmax(44px,1fr)); gap: .5rem; flex: 1 1 220px; }
-html .app-root .friendship-help { border-top: 1px solid var(--ui-line); }
-html .app-root .friendship-help p { margin: .25rem 0 1rem; font-size: .875rem; line-height: 1.65; }
+html .app-root .experience-base-choice button[aria-pressed="true"]{ background: var(--ui-selected); color: var(--ui-blue); border: 2px solid var(--ui-blue); }
+html .app-root .experience-battle-context{ margin: 0; border-top: 1px solid var(--ui-line); border-bottom: 1px solid var(--ui-line); }
+html .app-root .experience-battle-toggle{ display: flex; align-items: center; gap: .6rem; min-height: 44px; font-size: .875rem; margin: .3rem 0 .75rem; }
+html .app-root .experience-battle-toggle input{ width: 20px; height: 20px; flex: 0 0 20px; }
+html .app-root .experience-sides{ display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,200px),1fr)); gap: 1.2rem; padding-bottom: 1rem; }
+html .app-root .experience-sides fieldset{ display: grid; gap: .85rem; }
+html .app-root :is(.experience-sides label,.ev-training-controls label){ display: grid; gap: .4rem; min-width: 0; font-size: .875rem; color: var(--ui-muted); }
+html .app-root :is(.experience-sides input,.ev-training-controls input){ width: 100%; min-width: 0; font-variant-numeric: tabular-nums; }
+html .app-root .experience-reward-preview{ display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; margin: 0; }
+html .app-root .experience-reward-preview > div{ padding: .9rem; border-left: 3px solid var(--journey-teal); background: var(--ui-panel); min-width: 0; }
+html .app-root .experience-reward-preview dt{ color: var(--ui-muted); font-size: .875rem; }
+html .app-root .experience-reward-preview dd{ margin: .2rem 0 0; font-size: 1.6rem; font-weight: 800; line-height: 1.2; color: var(--ui-ink); }
+html .app-root .experience-reasons{ margin: 0; padding-left: 1.2rem; color: var(--ui-muted); font-size: .875rem; line-height: 1.65; }
+html .app-root :is(.experience-confirm,.ev-training-controls > button){ width: 100%; min-height: 48px; padding: .8rem 1rem; font-size: 1rem; }
+html .app-root .experience-received{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+html .app-root .experience-received p{ color: var(--ui-ink); font-size: .9rem; margin: 0; }
+html .app-root .experience-error{ color: var(--ui-accent); margin: 0; font-size: .875rem; }
+html .app-root .ev-training{ display: grid; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem; border: 1px solid var(--ui-line); border-left: 3px solid var(--journey-teal); background: var(--ui-selected); border-radius: .25rem; }
+html .app-root .ev-training > header{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; }
+html .app-root .ev-training h4{ margin: 0; font-size: 1rem; font-weight: 750; }
+html .app-root .ev-training header > strong{ font-size: clamp(.875rem,3vw,1.3rem); font-weight: 800; font-variant-numeric: tabular-nums; }
+html .app-root .ev-training-controls{ display: grid; grid-template-columns: minmax(0,2fr) minmax(70px,1fr); align-items: end; gap: .9rem; }
+html .app-root .ev-training-controls > button{ grid-column: 1/-1; }
+html .app-root .ev-training p{ margin: 0; font-size: .875rem; line-height: 1.6; }
+html .app-root .ev-training-options{ border-top: 1px solid var(--ui-line); }
+html .app-root .ev-training-discard{ color: var(--ui-accent); }
+html .app-root .friendship-control{ display: grid; gap: .8rem; }
+html .app-root .friendship-control > header{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+html .app-root .friendship-control output{ font-size: .875rem; color: var(--journey-teal); font-weight: 750; }
+html .app-root .friendship-controls{ display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
+html .app-root .friendship-controls > input{ width: min(100%,110px); flex: 0 1 110px; }
+html .app-root .friendship-controls > div{ display: grid; grid-template-columns: repeat(4,minmax(44px,1fr)); gap: .5rem; flex: 1 1 220px; }
+html .app-root .friendship-help{ border-top: 1px solid var(--ui-line); }
+html .app-root .friendship-help p{ margin: .25rem 0 1rem; font-size: .875rem; line-height: 1.65; }
 
 /* Notices carry actions and wrap with the same rhythm as the rest of the UI. */
-html .app-root.game-edition.handheld-edition .status-notice { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: .75rem !important; margin-bottom: 1rem !important; border-color: var(--ui-blue) !important; box-shadow: none !important; }
-html .app-root.game-edition.handheld-edition .status-notice.is-caution { border-color: var(--ui-accent) !important; }
-html .app-root.game-edition.handheld-edition .status-notice.is-reversible { border-color: #a47712 !important; }
-html .app-root.game-edition.handheld-edition .status-notice-message { flex: 1 1 240px !important; min-width: 0 !important; color: var(--ui-ink) !important; font-size: .9rem !important; }
-html .app-root.game-edition.handheld-edition .status-notice-actions { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: .5rem !important; }
-html .app-root.game-edition.handheld-edition .status-notice-actions button { min-height: 44px !important; padding: .65rem .8rem !important; background: var(--ui-selected) !important; color: var(--ui-blue) !important; border: 1px solid var(--ui-line) !important; border-radius: .25rem !important; font-size: .875rem !important; }
-html .app-root.game-edition.handheld-edition .status-notice-close { width: 44px !important; }
+html .app-root.game-edition.handheld-edition .status-notice{ display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: .75rem !important; margin-bottom: 1rem !important; border-color: var(--ui-blue) !important; box-shadow: none !important; }
+html .app-root.game-edition.handheld-edition .status-notice.is-caution{ border-color: var(--ui-accent) !important; }
+html .app-root.game-edition.handheld-edition .status-notice.is-reversible{ border-color: #a47712 !important; }
+html .app-root.game-edition.handheld-edition .status-notice-message{ flex: 1 1 240px !important; min-width: 0 !important; color: var(--ui-ink) !important; font-size: .9rem !important; }
+html .app-root.game-edition.handheld-edition .status-notice-actions{ display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: .5rem !important; }
+html .app-root.game-edition.handheld-edition .status-notice-actions button{ min-height: 44px !important; padding: .65rem .8rem !important; background: var(--ui-selected) !important; color: var(--ui-blue) !important; border: 1px solid var(--ui-line) !important; border-radius: .25rem !important; font-size: .875rem !important; }
+html .app-root.game-edition.handheld-edition .status-notice-close{ width: 44px !important; }
 /* Canonical shell: controls stay visible and wrap independently of each theme. */
-html .app-root.game-edition.handheld-edition .app-header { background:#da3041; color:#fff; padding:0; border-bottom:4px solid #b9233b; box-shadow:none; }
-html .app-root.game-edition.handheld-edition .app-header-shell { padding:1.25rem clamp(1rem,3vw,2.5rem); background:transparent; border:0; }
-html .app-root.game-edition.handheld-edition .app-header-row { display:grid; gap:1rem; }
-html .app-root.game-edition.handheld-edition .app-header-primary { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem 2rem; }
-html .app-root.game-edition.handheld-edition .app-brand-cluster { display:flex; align-items:center; gap:.65rem; }
-html .app-root.game-edition.handheld-edition .app-brand-icon { width:2.5rem; height:2.5rem; object-fit:contain; }
-html .app-root.game-edition.handheld-edition .app-brand h1 { color:#fff; font-size:1.7rem; font-weight:800; margin:0; }
-html .app-root.game-edition.handheld-edition .app-nav { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; }
-html .app-root.game-edition.handheld-edition .nav-capsule { display:flex; align-items:center; justify-content:center; gap:.65rem; min-height:60px; padding:.85rem 1.25rem; color:#fff; background:transparent; border:1px solid transparent; border-radius:.25rem; font-weight:800; font-size:1rem; }
-html .app-root.game-edition.handheld-edition .nav-capsule > .game-icon { width:1.75rem; height:1.75rem; }
-html .app-root.game-edition.handheld-edition .nav-capsule.is-active { background:#222b30; box-shadow:inset 0 -3px var(--journey-gold); }
-html .app-root.game-edition.handheld-edition .nav-capsule:hover { border-color:#ffffff80; }
-html .app-root.game-edition.handheld-edition .app-actions { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem 1.75rem; padding-top:1rem; border-top:1px solid #ffffff40; }
-html .app-root.game-edition.handheld-edition .app-tool-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; min-width:0; }
-html .app-root.game-edition.handheld-edition .app-preferences { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:.75rem 1.25rem; min-width:0; margin-left:auto; }
-html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button) {
+html .app-root.game-edition.handheld-edition .app-header{ background:#da3041; color:#fff; padding:0; border-bottom:4px solid #b9233b; box-shadow:none; }
+html .app-root.game-edition.handheld-edition .app-header-shell{ padding:1.25rem clamp(1rem,3vw,2.5rem); background:transparent; border:0; }
+html .app-root.game-edition.handheld-edition .app-header-row{ display:grid; gap:1rem; }
+html .app-root.game-edition.handheld-edition .app-header-primary{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem 2rem; }
+html .app-root.game-edition.handheld-edition .app-brand-cluster{ display:flex; align-items:center; gap:.65rem; }
+html .app-root.game-edition.handheld-edition .app-brand-icon{ width:2.5rem; height:2.5rem; object-fit:contain; }
+html .app-root.game-edition.handheld-edition .app-brand h1{ color:#fff; font-size:1.7rem; font-weight:800; margin:0; }
+html .app-root.game-edition.handheld-edition .app-nav{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; }
+html .app-root.game-edition.handheld-edition .nav-capsule{ display:flex; align-items:center; justify-content:center; gap:.65rem; min-height:60px; padding:.85rem 1.25rem; color:#fff; background:transparent; border:1px solid transparent; border-radius:.25rem; font-weight:800; font-size:1rem; }
+html .app-root.game-edition.handheld-edition .nav-capsule > .game-icon{ width:1.75rem; height:1.75rem; }
+html .app-root.game-edition.handheld-edition .nav-capsule.is-active{ background:#222b30; box-shadow:inset 0 -3px var(--journey-gold); }
+html .app-root.game-edition.handheld-edition .nav-capsule:hover{ border-color:#ffffff80; }
+html .app-root.game-edition.handheld-edition .app-actions{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem 1.75rem; padding-top:1rem; border-top:1px solid #ffffff40; }
+html .app-root.game-edition.handheld-edition .app-tool-actions{ display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; min-width:0; }
+html .app-root.game-edition.handheld-edition .app-preferences{ display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:.75rem 1.25rem; min-width:0; margin-left:auto; }
+html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button){
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -342,110 +347,112 @@ html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-butto
   line-height: 1.4;
   font-weight: 750;
 }
-html .app-root.game-edition.handheld-edition .app-actions .global-dice-button { background:var(--journey-gold); color:#222b30; border-color:var(--journey-gold); box-shadow:0 2px 0 #a97516; }
-html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button):hover { border-color: #fff; background: #222b30; }
-html .app-root.game-edition.handheld-edition .app-actions .global-dice-button:hover { color:#222b30; background:#ffe5a0; border-color:#ffe5a0; }
-html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button) > span { color: inherit; }
-html .app-root.game-edition.handheld-edition :is(.game-style-control,.appearance-control) { display:flex; flex:0 0 auto; align-items:center; min-width:0; max-width:100%; background:transparent; color:#fff; border:0; padding:0; margin:0; box-shadow:none; }
-html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) { display:grid; grid-auto-flow:column; grid-auto-columns:max-content; gap:.5rem; min-width:0; max-width:100%; }
-html .app-root.game-edition.handheld-edition .game-style-options { grid-template-columns:repeat(3,max-content); }
-html .app-root.game-edition.handheld-edition .appearance-options { grid-template-columns:repeat(2,max-content); }
-html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button { display:flex; gap:.4rem; align-items:center; justify-content:center; min-width:44px; min-height:48px; padding:.65rem .8rem; white-space:nowrap !important; border:1px solid #ffffff70; border-radius:.25rem; background:transparent; color:#fff; font-size:.9375rem; font-weight:700; }
-html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button > span { color:inherit; }
-html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button.is-selected { color:#222b30; background:#fff; border-color:#fff; }
-html .app-root.game-edition.handheld-edition .appearance-options .game-icon { width:1rem !important; height:1rem !important; }
-html .app-root.game-edition.handheld-edition .app-header :is(button,[tabindex]):focus-visible { outline-color:#fff !important; }
-html .app-root.game-edition.handheld-edition .dex-search { display:flex; flex:1 1 300px; align-items:center; flex-wrap:wrap; gap:.5rem .75rem; padding:.7rem 1rem; background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:.3rem; }
-html .app-root.game-edition.handheld-edition .dex-search-label { flex:1 0 100%; font-size:.875rem; font-weight:700; color:var(--ui-muted); }
-html .app-root.game-edition.handheld-edition .dex-search input { flex:1; width:0; min-width:0; border:0 !important; padding:.25rem 0 !important; background:transparent !important; }
-html .app-root.game-edition.handheld-edition .dex-search:focus-within { border-color:var(--ui-blue); box-shadow:inset 0 0 0 1px var(--ui-blue); }
-html .app-root.game-edition.handheld-edition .dex-toolbar { align-items:stretch; gap:1rem !important; }
-html .app-root.game-edition.handheld-edition .dex-filter { align-self:end; }
-html .app-root.game-edition.handheld-edition .dex-sort { align-self:end; }
-html .app-root.game-edition.handheld-edition .app-scroll-area { padding:clamp(1.5rem,3.5vw,3rem) clamp(1rem,3vw,2.5rem) !important; }
-html .app-root.game-edition.handheld-edition .game-panel { box-shadow:none !important; }
+html .app-root.game-edition.handheld-edition .app-actions .global-dice-button{ background:var(--journey-gold); color:#222b30; border-color:var(--journey-gold); box-shadow:0 2px 0 #a97516; }
+html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button):hover{ border-color: #fff; background: #222b30; }
+html .app-root.game-edition.handheld-edition .app-actions .global-dice-button:hover{ color:#222b30; background:#ffe5a0; border-color:#ffe5a0; }
+html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button) > span{ color: inherit; }
+html .app-root.game-edition.handheld-edition :is(.game-style-control,.appearance-control){ display:flex; flex:0 0 auto; align-items:center; min-width:0; max-width:100%; background:transparent; color:#fff; border:0; padding:0; margin:0; box-shadow:none; }
+html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options){ display:grid; grid-auto-flow:column; grid-auto-columns:max-content; gap:.5rem; min-width:0; max-width:100%; }
+html .app-root.game-edition.handheld-edition .game-style-options{ grid-template-columns:repeat(3,max-content); }
+html .app-root.game-edition.handheld-edition .appearance-options{ grid-template-columns:repeat(2,max-content); }
+html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button{ display:flex; gap:.4rem; align-items:center; justify-content:center; min-width:44px; min-height:48px; padding:.65rem .8rem; white-space:nowrap !important; border:1px solid #ffffff70; border-radius:.25rem; background:transparent; color:#fff; font-size:.9375rem; font-weight:700; }
+html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button > span{ color:inherit; }
+html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button.is-selected{ color:#222b30; background:#fff; border-color:#fff; }
+html .app-root.game-edition.handheld-edition .appearance-options .game-icon{ width:1rem !important; height:1rem !important; }
+html .app-root.game-edition.handheld-edition .app-header :is(button,[tabindex]):focus-visible{ outline-color:#fff !important; }
+html .app-root.game-edition.handheld-edition .dex-search{ display:flex; flex:1 1 300px; align-items:center; flex-wrap:wrap; gap:.5rem .75rem; padding:.7rem 1rem; background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:.3rem; }
+html .app-root.game-edition.handheld-edition .dex-search-label{ flex:1 0 100%; font-size:.875rem; font-weight:700; color:var(--ui-muted); }
+html .app-root.game-edition.handheld-edition .dex-search input{ flex:1; width:0; min-width:0; border:0 !important; padding:.25rem 0 !important; background:transparent !important; }
+html .app-root.game-edition.handheld-edition .dex-search:focus-within{ border-color:var(--ui-blue); box-shadow:inset 0 0 0 1px var(--ui-blue); }
+html .app-root.game-edition.handheld-edition .dex-toolbar{ align-items:stretch; gap:1rem !important; }
+html .app-root.game-edition.handheld-edition .dex-filter{ align-self:end; }
+html .app-root.game-edition.handheld-edition .dex-sort{ align-self:end; }
+html .app-root.game-edition.handheld-edition .app-scroll-area{ padding:clamp(1.5rem,3.5vw,3rem) clamp(1rem,3vw,2.5rem) !important; }
+html .app-root.game-edition.handheld-edition .game-panel{ box-shadow:none !important; }
 /* The field stays broad. Side information stacks before it squeezes the scene. */
-html .app-root .room-app { container-type:inline-size; }
-html .app-root .room-layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; align-items:start; gap:1.5rem; }
-html .app-root .room-roster { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:1.5rem; }
-html .app-root .room-roster > .room-section { margin:0; grid-column:auto; height:auto; }
-html .app-root :is(.room-roster,.room-tools) { max-height: none; overflow: visible; padding-right: 0; }
-html .app-root :is(.room-section,.room-tool,.token-inspector) { padding:1.25rem; box-shadow:none !important; }
-html .app-root .room-field { min-width:0; display:grid; gap:1.25rem; align-content:start; }
-html .app-root .battlefield-selectors { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr)); width:100%; min-width:0; gap:1rem; }
-html .app-root .battlefield-selectors label { display:grid; gap:.4rem; min-width:0; }
-html .app-root .battlefield-selectors select { width:100%; max-width:100%; min-width:0; }
-html .app-root .room-tools { min-width:0; display:grid; grid-column:auto; grid-template-columns:minmax(0,1fr); align-items:start; grid-auto-rows:max-content; gap:1rem; }
-html .app-root .room-tool > summary { min-height:44px; padding:.25rem 0; font-size:1rem; line-height:1.5; }
-html .app-root .room-section-heading h3 { font-size:1rem; line-height:1.5; }
-html .app-root .room-player strong { font-size:.95rem; }
-html .app-root :is(.room-roster,.room-tools,.room-mobile-nav) button { min-height:44px; font-size:.875rem; padding:.6rem .75rem; }
-html .app-root .room-mini-team small { font-size:.875rem; }
-html .app-root .room-header-actions > button { display: inline-flex; align-items: center; justify-content: center; }
-html .app-root .room-phase-control { display:grid; grid-template-columns:minmax(0,1fr); gap:.75rem; width:100%; padding:1rem 1.25rem; border:0; background:transparent; box-shadow:none; }
-html .app-root .room-phase-label { font-size:.875rem; color:var(--ui-muted); }
-html .app-root .room-phase-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
-html .app-root .room-phase-options button { display:flex; align-items:center; justify-content:center; gap:.5rem; min-height:48px; height:auto; padding:.65rem .6rem; font-size:.875rem; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); box-shadow:none; }
-html .app-root .room-phase-options button strong { color:inherit; font-size:inherit; }
-html .app-root .room-phase-options button.is-selected { background:#222b30; color:#fff; border-color:#222b30; box-shadow:none; }
-html .app-root .room-phase-help summary { font-size:.875rem; min-height:44px; }
-html .app-root .room-tool > summary :is(strong,b) { font-size:1rem; }
-html .app-root .room-message-field { display:grid; gap:.5rem; min-width:0; flex:1; }
-html .app-root .room-message-field span { font-size:.875rem; }
-html .app-root .room-message-field input { width:100%; }
-html .app-root .room-lobby-hero { background:transparent !important; border:0 !important; box-shadow:none !important; padding:0 0 2rem !important; margin-bottom:0 !important; }
-html .app-root .room-lobby-grid { gap:2rem !important; }
-html .app-root .room-lobby-card { gap:1.25rem !important; padding:clamp(1.5rem,3vw,2rem) !important; box-shadow:none !important; }
-html .app-root .room-lobby-card h3 { font-size:1.5rem !important; }
-html .app-root .room-lobby-card label { font-size:.95rem !important; text-transform:none !important; letter-spacing:0 !important; }
-html .app-root.game-edition.handheld-edition .room-lobby-card label > span:not(.room-select) { color:var(--ui-muted) !important; font-size:1em; font-weight:700; letter-spacing:0; text-transform:none; }
-html .app-root .room-role-help { padding:0 !important; background:transparent !important; border:0 !important; }
-html .app-root .room-role-help summary { min-height:44px; color:var(--ui-muted) !important; font-size:.9rem !important; }
-html .app-root .room-local-entry { margin-top:2rem !important; padding:1.25rem !important; }
-html .app-root .room-local-entry :is(small,b,strong) { font-size:.95rem !important; text-transform:none !important; }
-html .app-root .room-account-adventures { margin-bottom: 2rem; }
-html .app-root .room-account-adventures h3 { margin: 0 0 1rem; color: var(--ui-ink); font-size: 1.3rem; font-weight: 800; }
-html .app-root .room-account-adventure-list { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,20rem),1fr)); gap: 1rem; }
-html .app-root :is(.room-account-adventure,.room-account-adventure-list > article) { display: grid; align-content: start; min-width: 0; padding: 1.25rem; background: var(--ui-panel); border: 1px solid var(--ui-line); border-left: 4px solid var(--ui-blue); border-radius: .3rem; }
-html .app-root .room-account-adventure-list .room-resume { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; width: 100%; min-height: 64px; padding: .25rem 0; margin: 0; border: 0; background: transparent; color: var(--ui-ink); box-shadow: none; text-align: left; }
-html .app-root .room-account-adventure-list .room-resume > span { display: grid; flex: 1 1 9rem; gap: .4rem; min-width: 0; }
-html .app-root .room-account-adventure-list .room-resume small { color: var(--ui-muted); font-size: .875rem; line-height: 1.4; text-transform: none; letter-spacing: 0; }
-html .app-root .room-account-adventure-list .room-resume strong { margin: 0; color: var(--ui-ink); font-size: 1.1rem; line-height: 1.5; overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: pretty; }
-html .app-root .room-account-adventure-list .room-resume b { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: .75rem 1rem; background: var(--ui-selected); color: var(--ui-blue); border: 1px solid var(--ui-blue); border-radius: .25rem; font-size: .9rem; text-transform: none; }
-html .app-root :is(.room-account-adventure-options,.room-account-adventure-list > article > details) { margin-top: 1rem; padding-top: .25rem; border-top: 1px solid var(--ui-line); }
-html .app-root :is(.room-account-adventure-options,.room-account-adventure-list > article > details) > summary { display: flex; align-items: center; gap: .5rem; min-height: 48px; color: var(--ui-muted); font-size: .9rem; font-weight: 650; }
-html .app-root :is(.room-account-adventure-options,.room-account-adventure-list > article > details) > button { margin-top: .75rem; color: var(--ui-accent) !important; }
-html .app-root .choice-help .choice-help-popover { position:static; width:100%; transform:none; background:var(--ui-panel); color:var(--ui-ink); border:1px solid var(--ui-line); padding:1rem; margin-top:.5rem; }
-@container (min-width:84rem) { html .app-root .room-layout { grid-template-columns:220px minmax(0,1fr) 300px; } html .app-root .room-roster { grid-column:auto; grid-template-columns:minmax(0,1fr); } }
-@container (max-width:68rem) { html .app-root .room-layout { grid-template-columns:minmax(0,1fr); } html .app-root .room-roster { grid-column:auto; } }
-@media (max-width:540px) { html .app-root .room-roster { grid-template-columns:minmax(0,1fr); } }
-@media (max-width:900px) {
-  html .app-root .room-roster,html .app-root .room-tools,html .app-root .room-field { display:none; }
-  html .app-root .mobile-pane-roster .room-roster { display:grid; }
-  html .app-root .mobile-pane-field .room-field { display:grid; }
-  html .app-root .mobile-pane-tools .room-tools { display:grid; }
-  html .app-root .room-mobile-nav { position: static; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .65rem; margin: 1rem 0 1.5rem; padding: .5rem; background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: .3rem; backdrop-filter: none; }
-  html .app-root .room-mobile-nav button { min-height: 48px; padding: .75rem .6rem; background: var(--ui-panel); color: var(--ui-ink); border: 1px solid var(--ui-line); border-radius: .25rem; font-size: .95rem; font-weight: 750; }
-  html .app-root .room-mobile-nav button[aria-pressed="true"] { background: #222b30; border-color: #222b30; color: #fff; box-shadow: inset 0 -3px var(--journey-gold); }
+html .app-root .room-app{ container-type:inline-size; }
+html .app-root .room-layout{ display:grid; grid-template-columns:minmax(0,1fr) 300px; align-items:start; gap:1.5rem; }
+html .app-root .room-roster{ grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:1.5rem; }
+html .app-root .room-roster > .room-section{ margin:0; grid-column:auto; height:auto; }
+html .app-root :is(.room-roster,.room-tools){ max-height: none; overflow: visible; padding-right: 0; }
+html .app-root :is(.room-section,.room-tool,.token-inspector){ padding:1.25rem; box-shadow:none !important; }
+html .app-root .room-field{ min-width:0; display:grid; gap:1.25rem; align-content:start; }
+html .app-root .battlefield-selectors{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr)); width:100%; min-width:0; gap:1rem; }
+html .app-root .battlefield-selectors label{ display:grid; gap:.4rem; min-width:0; }
+html .app-root .battlefield-selectors select{ width:100%; max-width:100%; min-width:0; }
+html .app-root .room-tools{ min-width:0; display:grid; grid-column:auto; grid-template-columns:minmax(0,1fr); align-items:start; grid-auto-rows:max-content; gap:1rem; }
+html .app-root .room-tool > summary{ min-height:44px; padding:.25rem 0; font-size:1rem; line-height:1.5; }
+html .app-root .room-section-heading h3{ font-size:1rem; line-height:1.5; }
+html .app-root .room-player strong{ font-size:.95rem; }
+html .app-root :is(.room-roster,.room-tools,.room-mobile-nav) button{ min-height:44px; font-size:.875rem; padding:.6rem .75rem; }
+html .app-root .room-mini-team small{ font-size:.875rem; }
+html .app-root .room-header-actions > button{ display: inline-flex; align-items: center; justify-content: center; }
+html .app-root .room-phase-control{ display:grid; grid-template-columns:minmax(0,1fr); gap:.75rem; width:100%; padding:1rem 1.25rem; border:0; background:transparent; box-shadow:none; }
+html .app-root .room-phase-label{ font-size:.875rem; color:var(--ui-muted); }
+html .app-root .room-phase-options{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+html .app-root .room-phase-options button{ display:flex; align-items:center; justify-content:center; gap:.5rem; min-height:48px; height:auto; padding:.65rem .6rem; font-size:.875rem; background:var(--ui-raised); color:var(--ui-ink); border:1px solid var(--ui-line); box-shadow:none; }
+html .app-root .room-phase-options button strong{ color:inherit; font-size:inherit; }
+html .app-root .room-phase-options button.is-selected{ background:#222b30; color:#fff; border-color:#222b30; box-shadow:none; }
+html .app-root .room-phase-help summary{ font-size:.875rem; min-height:44px; }
+html .app-root .room-tool > summary :is(strong,b){ font-size:1rem; }
+html .app-root .room-message-field{ display:grid; gap:.5rem; min-width:0; flex:1; }
+html .app-root .room-message-field span{ font-size:.875rem; }
+html .app-root .room-message-field input{ width:100%; }
+html .app-root .room-lobby-hero{ background:transparent !important; border:0 !important; box-shadow:none !important; padding:0 0 2rem !important; margin-bottom:0 !important; }
+html .app-root .room-lobby-grid{ gap:2rem !important; }
+html .app-root .room-lobby-card{ gap:1.25rem !important; padding:clamp(1.5rem,3vw,2rem) !important; box-shadow:none !important; }
+html .app-root .room-lobby-card h3{ font-size:1.5rem !important; }
+html .app-root .room-lobby-card label{ font-size:.95rem !important; text-transform:none !important; letter-spacing:0 !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-card label > span:not(.room-select){ color:var(--ui-muted) !important; font-size:1em; font-weight:700; letter-spacing:0; text-transform:none; }
+html .app-root .room-role-help{ padding:0 !important; background:transparent !important; border:0 !important; }
+html .app-root .room-role-help summary{ min-height:44px; color:var(--ui-muted) !important; font-size:.9rem !important; }
+html .app-root .room-local-entry{ margin-top:2rem !important; padding:1.25rem !important; }
+html .app-root .room-local-entry :is(small,b,strong){ font-size:.95rem !important; text-transform:none !important; }
+html .app-root .room-account-adventures{ margin-bottom: 2rem; }
+html .app-root .room-account-adventures h3{ margin: 0 0 1rem; color: var(--ui-ink); font-size: 1.3rem; font-weight: 800; }
+html .app-root .room-account-adventure-list{ display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,20rem),1fr)); gap: 1rem; }
+html .app-root :is(.room-account-adventure,.room-account-adventure-list > article){ display: grid; align-content: start; min-width: 0; padding: 1.25rem; background: var(--ui-panel); border: 1px solid var(--ui-line); border-left: 4px solid var(--ui-blue); border-radius: .3rem; }
+html .app-root .room-account-adventure-list .room-resume{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; width: 100%; min-height: 64px; padding: .25rem 0; margin: 0; border: 0; background: transparent; color: var(--ui-ink); box-shadow: none; text-align: left; }
+html .app-root .room-account-adventure-list .room-resume > span{ display: grid; flex: 1 1 9rem; gap: .4rem; min-width: 0; }
+html .app-root .room-account-adventure-list .room-resume small{ color: var(--ui-muted); font-size: .875rem; line-height: 1.4; text-transform: none; letter-spacing: 0; }
+html .app-root .room-account-adventure-list .room-resume strong{ margin: 0; color: var(--ui-ink); font-size: 1.1rem; line-height: 1.5; overflow-wrap: normal !important; word-break: normal !important; hyphens: none !important; text-wrap: pretty; }
+html .app-root .room-account-adventure-list .room-resume b{ display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: .75rem 1rem; background: var(--ui-selected); color: var(--ui-blue); border: 1px solid var(--ui-blue); border-radius: .25rem; font-size: .9rem; text-transform: none; }
+html .app-root :is(.room-account-adventure-options,.room-account-adventure-list > article > details){ margin-top: 1rem; padding-top: .25rem; border-top: 1px solid var(--ui-line); }
+html .app-root :is(.room-account-adventure-options,.room-account-adventure-list > article > details) > summary{ display: flex; align-items: center; gap: .5rem; min-height: 48px; color: var(--ui-muted); font-size: .9rem; font-weight: 650; }
+html .app-root :is(.room-account-adventure-options,.room-account-adventure-list > article > details) > button{ margin-top: .75rem; color: var(--ui-accent) !important; }
+html .app-root .choice-help .choice-help-popover{ position:static; width:100%; transform:none; background:var(--ui-panel); color:var(--ui-ink); border:1px solid var(--ui-line); padding:1rem; margin-top:.5rem; }
+@container (min-width:84rem){ html .app-root .room-layout{ grid-template-columns:220px minmax(0,1fr) 300px; } html .app-root .room-roster{ grid-column:auto; grid-template-columns:minmax(0,1fr); } }
+@container (max-width:68rem){ html .app-root .room-layout{ grid-template-columns:minmax(0,1fr); } html .app-root .room-roster{ grid-column:auto; } }
+@media (max-width:540px){ html .app-root .room-roster{ grid-template-columns:minmax(0,1fr); } }
+@media (max-width:900px){
+  html .app-root .room-roster,
+html .app-root .room-tools,
+html .app-root .room-field{ display:none; }
+  html .app-root .mobile-pane-roster .room-roster{ display:grid; }
+  html .app-root .mobile-pane-field .room-field{ display:grid; }
+  html .app-root .mobile-pane-tools .room-tools{ display:grid; }
+  html .app-root .room-mobile-nav{ position: static; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .65rem; margin: 1rem 0 1.5rem; padding: .5rem; background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: .3rem; backdrop-filter: none; }
+  html .app-root .room-mobile-nav button{ min-height: 48px; padding: .75rem .6rem; background: var(--ui-panel); color: var(--ui-ink); border: 1px solid var(--ui-line); border-radius: .25rem; font-size: .95rem; font-weight: 750; }
+  html .app-root .room-mobile-nav button[aria-pressed="true"]{ background: #222b30; border-color: #222b30; color: #fff; box-shadow: inset 0 -3px var(--journey-gold); }
 }
-@media (max-width:700px) { html .app-root.game-edition.handheld-edition .app-header-primary { gap:1.25rem; } html .app-root.game-edition.handheld-edition .app-nav { width:100%; gap:.5rem; } html .app-root.game-edition.handheld-edition .nav-capsule { flex-direction:column; min-height:76px; padding:.65rem .35rem; font-size:.875rem; } }
-@media (max-width:540px) {
-  html .pokemon-companion { width: 96px; height: 96px; }
-  html .app-root.game-edition.handheld-edition .dex-companion { width: 96px !important; height: 96px !important; }
-  html .app-root .pc-sidebar-heading .pokemon-companion { width: 80px; height: 80px; }
-  html .app-root.game-edition.handheld-edition .guide-hero { min-height: 96px; gap: .75rem !important; }
-  html .app-root.game-edition.handheld-edition .app-actions { gap:.85rem; }
-  html .app-root.game-edition.handheld-edition .app-tool-actions { width:100%; gap:.5rem; }
-  html .app-root.game-edition.handheld-edition .app-preferences { width:100%; gap:.65rem .5rem; }
-  html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button) { order: -1; flex: 1 1 4.75rem; gap: .4rem; padding: .75rem .5rem; font-size: .875rem; }
-  html .app-root.game-edition.handheld-edition .app-actions :is(.game-style-control,.appearance-control) { margin-left: auto; }
-  html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) { gap: .25rem; }
-  html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button { gap: .25rem; padding: .65rem .5rem; font-size: .875rem; }
-  html .app-root.game-edition.handheld-edition .adventure-intro { gap: .6rem !important; }
+@media (max-width:700px){ html .app-root.game-edition.handheld-edition .app-header-primary{ gap:1.25rem; } html .app-root.game-edition.handheld-edition .app-nav{ width:100%; gap:.5rem; } html .app-root.game-edition.handheld-edition .nav-capsule{ flex-direction:column; min-height:76px; padding:.65rem .35rem; font-size:.875rem; } }
+@media (max-width:540px){
+  html .pokemon-companion{ width: 96px; height: 96px; }
+  html .app-root.game-edition.handheld-edition .dex-companion{ width: 96px !important; height: 96px !important; }
+  html .app-root .pc-sidebar-heading .pokemon-companion{ width: 80px; height: 80px; }
+  html .app-root.game-edition.handheld-edition .guide-hero{ min-height: 96px; gap: .75rem !important; }
+  html .app-root.game-edition.handheld-edition .app-actions{ gap:.85rem; }
+  html .app-root.game-edition.handheld-edition .app-tool-actions{ width:100%; gap:.5rem; }
+  html .app-root.game-edition.handheld-edition .app-preferences{ width:100%; gap:.65rem .5rem; }
+  html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button){ order: -1; flex: 1 1 4.75rem; gap: .4rem; padding: .75rem .5rem; font-size: .875rem; }
+  html .app-root.game-edition.handheld-edition .app-actions :is(.game-style-control,.appearance-control){ margin-left: auto; }
+  html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options){ gap: .25rem; }
+  html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button{ gap: .25rem; padding: .65rem .5rem; font-size: .875rem; }
+  html .app-root.game-edition.handheld-edition .adventure-intro{ gap: .6rem !important; }
 }
-html .account-opening { min-height: 100dvh; display: grid; align-content: center; justify-items: center; gap: 1rem; padding: 2rem; background: var(--ui-canvas); color: var(--ui-ink); text-align: center; font-family: "Trebuchet MS",system-ui,sans-serif; }
-html .account-opening img { width: 88px; height: 88px; object-fit: contain; }
-html .account-opening strong { font-size: clamp(1.8rem,5vw,2.4rem); font-weight: 800; }
-html .account-opening :is(p,span) { margin: 0; font-size: 1rem; line-height: 1.6; color: var(--ui-muted); }
-html .account-opening small { color: var(--ui-muted); font-size: .875rem; }
-@media (prefers-reduced-motion:reduce) { html .app-root * { animation:none !important; transition:none !important; } }
+html .account-opening{ min-height: 100dvh; display: grid; align-content: center; justify-items: center; gap: 1rem; padding: 2rem; background: var(--ui-canvas); color: var(--ui-ink); text-align: center; font-family: "Trebuchet MS",system-ui,sans-serif; }
+html .account-opening img{ width: 88px; height: 88px; object-fit: contain; }
+html .account-opening strong{ font-size: clamp(1.8rem,5vw,2.4rem); font-weight: 800; }
+html .account-opening :is(p,span){ margin: 0; font-size: 1rem; line-height: 1.6; color: var(--ui-muted); }
+html .account-opening small{ color: var(--ui-muted); font-size: .875rem; }
+@media (prefers-reduced-motion:reduce){ html .app-root *{ animation:none !important; transition:none !important; } }

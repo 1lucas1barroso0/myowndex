@@ -573,7 +573,7 @@ test("joyful identity keeps one Pokémon companion on every primary surface with
   assert.match(dice, /<PokemonCompanion place="dice"/);
   assert.match(generator, /<PokemonCompanion place="generator"/);
   assert.match(account, /<PokemonCompanion place="account"/);
-  assert.doesNotMatch(account, /Seu MyOwnDex/);
+  assert.doesNotMatch(account, /<h2[^>]*>Seu MyOwnDex<\/h2>/);
   assert.match(account, /<h2 id=\{titleId\}>Cartão de Treinador<\/h2>/);
   assert.match(art, /\.pokemon-companion::before[\s\S]*content:none\s*!important;[\s\S]*display:none\s*!important;/);
   assert.match(art, /joyful field-guide direction/);

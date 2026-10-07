@@ -1,7 +1,6 @@
 import React, { useEffect, useId, useRef } from "react";
 import LocalDicePanel from "./LocalDicePanel.jsx";
 import PokemonCompanion from "./PokemonCompanion.jsx";
-import SoundControl from "./SoundControl.jsx";
 
 /** Native modal keeps keyboard focus inside, makes the background inert and
  * remains in the app's theme inheritance even when presented in the top layer. */
@@ -69,7 +68,6 @@ export default function LocalDiceDialog({ open, onClose, context = "central", ..
             <header className="local-dice-dialog-heading">
                 <div><h2 id={titleId}>Dados</h2></div>
                 <PokemonCompanion place="dice" className="companion-compact" eager />
-                <SoundControl />
                 <button ref={closeRef} type="button" className="local-dice-dialog-close" aria-label="Fechar dados" onClick={() => onCloseRef.current?.()}>×</button>
             </header>
             <div className="local-dice-dialog-content"><LocalDicePanel {...diceProps} context={context} compact showHeading={false} /></div>

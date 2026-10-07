@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.15.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.16.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -79,6 +79,10 @@ A revisão 2.0.15 é o passe de retenção, sprites e robustez. Toda identidade 
 A Pokédex não usa régua, haste, faixa cinza ou marcador de chão atrás dos sprites. Dentro dos cards, a escala física é neutralizada para que espécies pequenas continuem visualmente legíveis. Cabeçalhos principais recuperam cor, composição e presença de jogo, preservando leitura, toque, contraste e redução de movimento.
 
 Dados mantém Web Crypto como fonte aleatória de produção e rejection sampling para intervalos uniformes. A suíte 2.0.15 amplia a auditoria para todos os dados oferecidos, centenas de milhares de draws seguros adicionais, dezenas de milhares de recibos locais mistos e uma matriz ampliada de viewports. Rolagens locais não usam cooldown por clique; cada ativação válida gera seu recibo antes de cache ou persistência e entra no histórico da sessão imediatamente.
+
+A revisão 2.0.16 consolida a barreira de qualidade visual e de runtime. A identidade única passa a ser `/icons/myowndex-rotomdex-v102.svg`; o manifesto é referenciado com versão explícita para reduzir a persistência de ícones antigos em instalações. Parceiros decorativos não usam margens negativas, são ancorados pela base e não podem ser recortados por ancestrais com overflow. A Pokédex mantém stages completamente transparentes e sprites inteiros.
+
+O workflow de qualidade inclui um job de navegador real em Chromium. A matriz cobre telefones estreitos, tablets, desktop, landscape, Claro/Escuro, zoom 200%, redução de movimento, modais, histórico de Dados, grandes quantidades de Boxes e auditoria de clipping. A suíte de rolagem acrescenta 25.000 recibos locais usando o CSPRNG real além das auditorias estatísticas existentes. Nenhuma falha de persistência entra na escolha do resultado.
 
 ## Documentos históricos
 

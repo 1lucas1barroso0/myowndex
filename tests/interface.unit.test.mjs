@@ -18,6 +18,20 @@ const interfaceFiles = async root => (await readdir(new URL(`../${root}/`, impor
   .filter(path => /\.(?:jsx|tsx|css|html)$/i.test(path))
   .map(path => `${root}/${path}`);
 
+test("physical phones keep mobile density even with a desktop-sized layout viewport", async () => {
+  const [collectionCss, diceCss, shellCss] = await Promise.all([
+    read("src/playful-collection.css"),
+    read("src/local-dice.css"),
+    read("src/game-shell.css"),
+  ]);
+  assert.match(collectionCss, /max-device-width:\s*700px/);
+  assert.match(collectionCss, /grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)\s*!important/);
+  assert.match(diceCss, /max-device-width:\s*700px/);
+  assert.match(diceCss, /width:\s*calc\(100vw - \.75rem\)\s*!important/);
+  assert.match(shellCss, /min-width:\s*700px[\s\S]*max-device-width:\s*700px/);
+  assert.match(shellCss, /html\s*\{\s*font-size:\s*18px;/);
+});
+
 test("the interface keeps dedicated responsive layouts through phone widths", async () => {
   const [css, room, layout] = await Promise.all([
     read("src/index.css"),
@@ -194,7 +208,10 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   assert.match(panel, /Nenhuma rolagem ainda/);
   assert.match(panel, /Apagar histórico/);
   assert.match(rolls, /clearLocalRolls/);
-  assert.match(panel, /if\(lock\.current \|\| applyingAccount\.current \|\| !ready/, "rolls stay locked during an account merge as well as during a pending receipt");
+  assert.doesNotMatch(panel, /if\(lock\.current \|\| applyingAccount\.current \|\| !ready/, "local rolls must not wait for storage hydration or an account merge");
+  assert.match(panel, /remoteAdventure && \(lock\.current \|\| applyingAccount\.current\)/, "only an authoritative remote request owns the request lock");
+  assert.match(panel, /setResult\(receipt\);[\s\S]*pendingReceipts\.current\.set[\s\S]*void saveLocalRollDurable/, "a local result is shown before durable persistence begins");
+  assert.doesNotMatch(panel, /unlockTimer/, "local rolling has no persistence-driven cooldown");
   assert.match(panel, /event\.repeat/);
   assert.match(panel, /Baixar histórico/);
 });

@@ -11,6 +11,7 @@ import {
   roll2D6,
   rollD100,
   rollD6,
+  rollDie,
   SecureRandomError,
   secureRandomInt,
   secureRandomString,
@@ -120,6 +121,21 @@ const withinStandardDeviations = (actual, samples, probability, deviations = 7) 
     `${actual} must remain within ${deviations}σ of ${expected}`,
   );
 };
+
+
+test("secure production dice stay uniform across every offered die over 800,000 independent draws", () => {
+  const sidesList = [2,4,6,8,10,12,20,100];
+  const samples = 100_000;
+  for (const sides of sidesList) {
+    const counts = Array(sides + 1).fill(0);
+    for (let index = 0; index < samples; index += 1) counts[rollDie(sides)] += 1;
+    assert.equal(counts[0], 0);
+    assert.equal(counts.slice(1).reduce((sum, count) => sum + count, 0), samples);
+    for (let face = 1; face <= sides; face += 1) {
+      withinStandardDeviations(counts[face], samples, 1 / sides, 8);
+    }
+  }
+});
 
 test("large secure audits converge to uniform d6, uniform d100 and the natural 2d6 curve", () => {
   const d6Samples = 120_000;

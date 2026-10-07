@@ -14,16 +14,16 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "any",
     lang: "pt-BR",
     icons: [
-      { src: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/icons/myowndex-maskable-v100.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/icons/myowndex-rotomdex-v101.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/icons/myowndex-rotomdex-v101.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],
     categories: ["games", "utilities"],
     prefer_related_applications: false,
     shortcuts: [
-      { name: "Central da Aventura", short_name: "Aventura", url: "/?abrir=aventura", icons: [{ src: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml" }] },
-      { name: "Pokédex", short_name: "Pokédex", url: "/?abrir=pokedex", icons: [{ src: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml" }] },
-      { name: "PC do Bill", short_name: "PC", url: "/?abrir=pc", icons: [{ src: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml" }] },
-      { name: "Guia do Treinador", short_name: "Guia", url: "/?abrir=guia", icons: [{ src: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml" }] },
+      { name: "Central da Aventura", short_name: "Aventura", url: "/?abrir=aventura", icons: [{ src: "/icons/myowndex-rotomdex-v101.svg", sizes: "any", type: "image/svg+xml" }] },
+      { name: "Pokédex", short_name: "Pokédex", url: "/?abrir=pokedex", icons: [{ src: "/icons/myowndex-rotomdex-v101.svg", sizes: "any", type: "image/svg+xml" }] },
+      { name: "PC do Bill", short_name: "PC", url: "/?abrir=pc", icons: [{ src: "/icons/myowndex-rotomdex-v101.svg", sizes: "any", type: "image/svg+xml" }] },
+      { name: "Guia do Treinador", short_name: "Guia", url: "/?abrir=guia", icons: [{ src: "/icons/myowndex-rotomdex-v101.svg", sizes: "any", type: "image/svg+xml" }] },
     ],
   };
 }

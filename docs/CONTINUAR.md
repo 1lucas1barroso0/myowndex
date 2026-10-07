@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.14.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.15.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -73,6 +73,12 @@ A revisão 2.0.13 é uma passagem de direção de arte sobre o conteúdo já apr
 A revisão 2.0.14 substitui o acabamento plástico da 2.0.13 por uma linguagem de diário de aventura: superfícies foscas, cores felizes, profundidade curta e controles táteis sem brilho artificial. Pokémon decorativos nunca recebem disco/círculo de fundo e os módulos principais mantêm pelo menos um GIF parceiro, com PNG estático sob redução de movimento. O Cartão de Treinador deixa de repetir “Seu MyOwnDex”. O ícone v100 representa um diário/Pokédex aberto com lente de consulta e rota de aventura e é a identidade usada no cabeçalho, abertura, favicon e manifesto.
 
 A mesma revisão corrige o histórico de Dados local: `LOCAL_ROLL_LIMIT` passa a ser importado explicitamente, a rolagem entra no estado da sessão antes de qualquer persistência, recebe uma cópia rápida no armazenamento do navegador e uma cópia durável assíncrona. Falha de cache, IndexedDB, conta ou callback não remove nem rerrola o resultado e não bloqueia uma nova rolagem. Somente rolagens remotas autoritativas podem aguardar o servidor. A versão mostrada no rodapé e na abertura é lida diretamente de `package.json`; não manter um rótulo de versão paralelo.
+
+A revisão 2.0.15 é o passe de retenção, sprites e robustez. Toda identidade visível usa o mesmo asset `/icons/myowndex-rotomdex-v101.svg`, uma RotomDex própria nas cores do MyOwnDex. Parceiros decorativos passam a usar os PNGs transparentes locais, animados suavemente por CSS quando movimento é permitido. Nenhum parceiro deve ter disco, halo, fundo artificial ou ser cortado por um cabeçalho.
+
+A Pokédex não usa régua, haste, faixa cinza ou marcador de chão atrás dos sprites. Dentro dos cards, a escala física é neutralizada para que espécies pequenas continuem visualmente legíveis. Cabeçalhos principais recuperam cor, composição e presença de jogo, preservando leitura, toque, contraste e redução de movimento.
+
+Dados mantém Web Crypto como fonte aleatória de produção e rejection sampling para intervalos uniformes. A suíte 2.0.15 amplia a auditoria para todos os dados oferecidos, centenas de milhares de draws seguros adicionais, dezenas de milhares de recibos locais mistos e uma matriz ampliada de viewports. Rolagens locais não usam cooldown por clique; cada ativação válida gera seu recibo antes de cache ou persistência e entra no histórico da sessão imediatamente.
 
 ## Documentos históricos
 

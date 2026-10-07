@@ -219,7 +219,7 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
                     </div>
                 </details>
                 {configuration.error && <p className="local-dice-feedback is-error" role="alert">{configuration.error}</p>}
-                <div className="local-dice-submit"><button type="submit" className="room-primary-button" disabled={Boolean(configuration.error) || (remoteAdventure && (!ready || busy || accountApplying))} aria-busy={remoteAdventure && busy} onClick={event=>{if(event.detail>1) event.preventDefault();}}>{busy ? "Rolando…" : `Rolar ${configuration.spec ? kindLabel(configuration.spec) : "dados"}`}</button></div>
+                <div className="local-dice-submit"><button type="submit" className="room-primary-button" disabled={Boolean(configuration.error) || (remoteAdventure && (!ready || busy || accountApplying))} aria-busy={remoteAdventure && busy}>{busy ? "Rolando…" : `Rolar ${configuration.spec ? kindLabel(configuration.spec) : "dados"}`}</button></div>
             </fieldset>
         </form>
         {error && <p className="local-dice-feedback is-error" role="alert">{error}</p>}

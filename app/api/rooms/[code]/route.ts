@@ -147,18 +147,11 @@ export async function DELETE(request: Request, context: RouteContext) {
     if (!auth || auth.role !== "narrator") {
       return noStoreJson({ error: "Só o Narrador pode encerrar esta aventura." }, { status: 403 });
     }
-    const { db, bucket } = getBindings();
-    const media = await db.prepare("SELECT object_key FROM room_media WHERE room_code = ?")
-      .bind(code)
-      .all<{ object_key: string }>();
-    await Promise.all((media.results || []).map(item => bucket?.delete(item.object_key)));
+    const { db } = getBindings();
     await db.batch([
-      db.prepare("DELETE FROM room_call_signals WHERE room_code = ?").bind(code),
-      db.prepare("DELETE FROM room_call_members WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_rolls WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_events WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM room_players WHERE room_code = ?").bind(code),
-      db.prepare("DELETE FROM room_media WHERE room_code = ?").bind(code),
       db.prepare("DELETE FROM rooms WHERE code = ?").bind(code),
     ]);
     return noStoreJson({ ok: true });

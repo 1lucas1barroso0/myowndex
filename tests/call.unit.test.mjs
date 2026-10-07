@@ -3,10 +3,13 @@ import test from "node:test";
 import {
   CALL_ICE_SERVERS,
   getCallIceServers,
+  callHasTurnRelay,
   callParticipantId,
+  callPeerConfiguration,
   createCallConnectionId,
   normalizeCallMembers,
   shouldCreateCallOffer,
+  shouldRestartCallIce,
 } from "../src/core/call.js";
 
 test("each participant and browser connection receives a stable call identity", () => {
@@ -43,4 +46,19 @@ test("custom TURN servers preserve credentials and malformed configuration keeps
   assert.deepEqual(getCallIceServers(JSON.stringify(servers)), servers);
   assert.deepEqual(getCallIceServers("broken-json"), getCallIceServers(""));
   assert.deepEqual(getCallIceServers('[{"urls":"https://wrong.example.com"}]'), getCallIceServers(""));
+});
+
+
+test("voice peers use a pooled ICE configuration and restart broken routes", () => {
+  const config = callPeerConfiguration();
+  assert.equal(config.iceCandidatePoolSize, 4);
+  assert.equal(config.bundlePolicy, "max-bundle");
+  assert.equal(config.rtcpMuxPolicy, "require");
+  assert.ok(config.iceServers[0].urls.includes("stun:stun.cloudflare.com:3478"));
+  assert.ok(config.iceServers[0].urls.includes("stun:stun.l.google.com:19302"));
+  assert.equal(callHasTurnRelay(config.iceServers), false);
+  assert.equal(callHasTurnRelay([{ urls: ["stun:relay.example", "turn:relay.example:3478"] }]), true);
+  assert.equal(shouldRestartCallIce("failed"), true);
+  assert.equal(shouldRestartCallIce("disconnected"), true);
+  assert.equal(shouldRestartCallIce("connected"), false);
 });

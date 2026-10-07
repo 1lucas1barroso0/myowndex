@@ -24,6 +24,32 @@ for(const width of [320,390,768,1280,1440]){
   for(const [view,label] of [['dex','Abrir a Pokédex'],['pc','Abrir o PC do Bill'],['guide','Abrir o Guia do Treinador'],['lobby','Abrir a Central da Aventura']]){await nav(label);await check(`${width}-${theme}-${view}`)}
  }
 }
+const deviceMatrix=[
+ {width:280,height:653},{width:320,height:568},{width:360,height:640},{width:375,height:667},
+ {width:390,height:844},{width:412,height:915},{width:540,height:720},{width:768,height:1024},
+ {width:820,height:1180},{width:915,height:412}
+];
+for(const viewport of deviceMatrix){
+ await page.setViewportSize(viewport);
+ for(const [view,label] of [['dex','Abrir a Pokédex'],['pc','Abrir o PC do Bill'],['guide','Abrir o Guia do Treinador'],['lobby','Abrir a Central da Aventura']]){
+  await nav(label);await check(`device-${viewport.width}x${viewport.height}-${view}`);
+  const spriteAudit=await page.evaluate(()=>({
+   companions:[...document.querySelectorAll('.pokemon-companion img')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return {src:e.currentSrc,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,background:getComputedStyle(e).backgroundColor};}),
+   dexStages:[...document.querySelectorAll('.pokemon-card-sprite-frame')].slice(0,8).map(e=>{const s=getComputedStyle(e);return {backgroundImage:s.backgroundImage,backgroundColor:s.backgroundColor};}),
+   dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].slice(0,8).map(e=>({transform:getComputedStyle(e).transform,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight}))
+  }));
+  for(const sprite of spriteAudit.companions){
+   assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0,`companion must load at ${viewport.width}x${viewport.height}`);
+   assert.match(sprite.src,/\.png(?:$|\?)/,`decorative companion must use transparent PNG master: ${sprite.src}`);
+   assert.ok(sprite.left>=-1&&sprite.right<=viewport.width+1,`companion must stay horizontally reachable at ${viewport.width}x${viewport.height}`);
+  }
+  if(view==='dex'){
+   assert.ok(spriteAudit.dexStages.length>0);
+   for(const stage of spriteAudit.dexStages){assert.equal(stage.backgroundImage,'none');assert.ok(stage.backgroundColor==='rgba(0, 0, 0, 0)'||stage.backgroundColor==='transparent');}
+   for(const sprite of spriteAudit.dexSprites){assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0);assert.equal(sprite.transform,'none');}
+  }
+ }
+}
 await page.setViewportSize({width:390,height:844});await page.getByRole('radio',{name:'Claro',exact:true}).click();
 await nav('Abrir a Pokédex');await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).click();
 await page.getByRole('button',{name:'Adicionar à equipe',exact:false}).waitFor({timeout:30000});
@@ -45,7 +71,11 @@ await page.getByRole('button',{name:'Fechar compartilhamento',exact:true}).click
 await page.getByRole('button',{name:'Importar Pokémon ou Box',exact:false}).click();await page.locator('#link-cable-code').fill(code);await page.getByRole('button',{name:'Conferir conteúdo',exact:true}).click();await page.getByRole('radio',{name:'Adicionar a uma Box',exact:false}).click();await page.getByLabel('Box de destino',{exact:false}).selectOption('__new__');await check('390-import-preview');await page.getByRole('button',{name:'Adicionar à Box escolhida',exact:true}).click();await page.getByRole('dialog').waitFor({state:'hidden'});assert.equal(await page.locator('.pc-box-count').textContent(),'2');await check('390-imported');
 await nav('Abrir o Guia do Treinador');await page.getByLabel('Pesquisar regras').fill('dano');await page.locator('.guide-rule-body').first().scrollIntoViewIfNeeded();await check('guide-open-rules');await page.screenshot({path:'/tmp/myowndex-clean-guide.png'});
 await page.getByLabel('Pesquisar regras').fill('');await page.locator('.guide-rule-card summary').first().click();await check('guide-one-open-rule');
-await page.getByRole('button',{name:'Abrir Dados',exact:true}).click();const diceDialog=page.getByRole('dialog',{name:'Dados',exact:true});await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).click();await diceDialog.locator('.local-dice-result').waitFor();await diceDialog.locator('.local-dice-history > summary').filter({hasText:'1 rolagem'}).waitFor();assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/1 rolagem/);await check('global-dice-from-guide');
+await page.getByRole('button',{name:'Abrir Dados',exact:true}).click();const diceDialog=page.getByRole('dialog',{name:'Dados',exact:true});await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).click();await diceDialog.locator('.local-dice-result').waitFor();await diceDialog.locator('.local-dice-history > summary').filter({hasText:'1 rolagem'}).waitFor();assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/1 rolagem/);
+for(let index=0;index<40;index+=1) await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).click();
+await page.waitForFunction(()=>/41 rolagens/.test(document.querySelector('.local-dice-history > summary')?.textContent||''));
+assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/41 rolagens/);
+await check('global-dice-from-guide');
 for(const viewport of [{width:280,height:653},{width:320,height:480},{width:653,height:280},{width:844,height:390}]){
  await page.setViewportSize(viewport);await check(`dice-${viewport.width}x${viewport.height}`);
  const box=await diceDialog.boundingBox();assert.ok(box&&box.width<=viewport.width+1&&box.height<=viewport.height+1,`dice dialog must fit ${viewport.width}x${viewport.height}`);

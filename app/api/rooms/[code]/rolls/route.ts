@@ -182,7 +182,6 @@ export async function POST(request: Request, context: RouteContext) {
     assertStateSize(storedResult);
     const resultJson = JSON.stringify(storedResult);
     const eventPayloadJson = JSON.stringify(resolution.eventPayload || {});
-    const sfxPayloadJson = resolution.sfxPayload ? JSON.stringify(resolution.sfxPayload) : null;
     const mode = "mode" in normalized ? normalized.mode : "normal";
     const claimToken = crypto.randomUUID();
     const { db } = getBindings();
@@ -193,8 +192,8 @@ export async function POST(request: Request, context: RouteContext) {
         `INSERT OR IGNORE INTO room_rolls
           (room_code, actor_key, request_id, request_fingerprint, player_id, author,
            action_type, mode, request_json, result_json, event_type, event_payload_json,
-           sfx_payload_json, status, claim_token, server_authoritative)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ready', ?, 1)`,
+           status, claim_token, server_authoritative)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ready', ?, 1)`,
       ).bind(
         code,
         actorKey,
@@ -208,7 +207,6 @@ export async function POST(request: Request, context: RouteContext) {
         resultJson,
         resolution.eventType,
         eventPayloadJson,
-        sfxPayloadJson,
         claimToken,
       ).run();
     } else if (!mutatesRoom) {
@@ -216,8 +214,8 @@ export async function POST(request: Request, context: RouteContext) {
         `INSERT OR IGNORE INTO room_rolls
           (room_code, actor_key, request_id, request_fingerprint, player_id, author,
            action_type, mode, request_json, result_json, event_type, event_payload_json,
-           sfx_payload_json, status, claim_token, server_authoritative)
-         SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ready', ?, 1
+           status, claim_token, server_authoritative)
+         SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ready', ?, 1
          WHERE EXISTS (SELECT 1 FROM rooms WHERE code = ? AND revision = ?)`,
       ).bind(
         code,
@@ -232,7 +230,6 @@ export async function POST(request: Request, context: RouteContext) {
         resultJson,
         resolution.eventType,
         eventPayloadJson,
-        sfxPayloadJson,
         claimToken,
         code,
         normalized.expectedRevision,
@@ -245,8 +242,8 @@ export async function POST(request: Request, context: RouteContext) {
           `INSERT OR IGNORE INTO room_rolls
             (room_code, actor_key, request_id, request_fingerprint, player_id, author,
              action_type, mode, request_json, result_json, event_type, event_payload_json,
-             sfx_payload_json, status, claim_token, server_authoritative)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, 1)`,
+           status, claim_token, server_authoritative)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, 1)`,
         ).bind(
           code,
           actorKey,
@@ -260,7 +257,6 @@ export async function POST(request: Request, context: RouteContext) {
           resultJson,
           resolution.eventType,
           eventPayloadJson,
-          sfxPayloadJson,
           claimToken,
         ),
         db.prepare(

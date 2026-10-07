@@ -330,13 +330,6 @@ try {
     await openDetails(intervalExperience);
     await openDetails(intervalExperience.locator('.experience-battle-context'));
     await checkpoint('Aventura: Intervalo, ficha e recompensa', [320, 1280], ['Claro', 'Escuro'], 'Campo');
-    const actionsPane = page.locator('.room-mobile-nav button').filter({ hasText: 'Ações' });
-    if (await actionsPane.isVisible()) await actionsPane.click();
-    const audio = page.locator('.audio-tool');
-    await openDetails(audio);
-    await openDetails(audio.locator('.audio-effects'));
-    await openDetails(audio.locator('.audio-preferences'));
-    await checkpoint('Aventura: trilha, efeitos sonoros e volume', [320, 1280], ['Claro', 'Escuro'], 'Ações');
     await page.getByRole('button', { name: 'Encerrar', exact: true }).click();
     await checkpoint('Aventura: confirmação de encerramento', [320]);
     await page.getByRole('button', { name: 'Continuar aventura', exact: true }).click();

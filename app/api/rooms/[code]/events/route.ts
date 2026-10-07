@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 type RouteContext = { params: Promise<{ code: string }> };
 
 const COMMON_EVENTS = new Set(["message", "ready", "team-offer", "token-request", "token-move", "move-declared", "leave"]);
-const NARRATOR_EVENTS = new Set(["system", "sfx", "team-accepted", "message"]);
+const NARRATOR_EVENTS = new Set(["system", "team-accepted", "message"]);
 
 export async function POST(request: Request, context: RouteContext) {
   const protocolError = requireCurrentRoomProtocol(request);

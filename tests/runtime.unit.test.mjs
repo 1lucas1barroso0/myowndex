@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { registerHooks } from "node:module";
-import { getRuntimeBindings, RuntimeConfigurationError, RuntimeServiceError, S3Bucket, TursoDatabase } from "../server/runtime.ts";
+import { getRuntimeBindings, RuntimeConfigurationError, RuntimeServiceError, TursoDatabase } from "../server/runtime.ts";
 
 // Exercise the HTTP driver against real SQLite, interpreting Hrana batch conditions.
 const sqliteTransport = sqlite => async (url, options) => {
@@ -17,13 +17,13 @@ const sqliteTransport = sqlite => async (url, options) => {
     if (!condition(step.condition)) { results.push(null); errors.push(null); continue; }
     try {
       const statement = sqlite.prepare(step.stmt.sql);
-      const args = step.stmt.args.map(arg => arg.type === "null" ? null : arg.type === "integer" || arg.type === "float" ? Number(arg.value) : arg.type === "blob" ? Buffer.from(arg.base64 || "", "base64") : arg.value);
+      const args = step.stmt.args.map(arg => arg.type === "null" ? null : arg.type === "integer" || arg.type === "float" ? Number(arg.value) : arg.value);
       const cols = statement.columns();
       const rows = cols.length ? statement.all(...args) : [];
       const meta = cols.length ? { changes: 0, lastInsertRowid: 0 } : statement.run(...args);
       results.push({
         cols: cols.map(col => ({ name: col.name })),
-        rows: rows.map(row => cols.map(col => row[col.name] === null ? { type: "null" } : typeof row[col.name] === "number" ? { type: Number.isInteger(row[col.name]) ? "integer" : "float", value: String(row[col.name]) } : row[col.name] instanceof Uint8Array ? { type: "blob", base64: Buffer.from(row[col.name]).toString("base64") } : { type: "text", value: row[col.name] })),
+        rows: rows.map(row => cols.map(col => row[col.name] === null ? { type: "null" } : typeof row[col.name] === "number" ? { type: Number.isInteger(row[col.name]) ? "integer" : "float", value: String(row[col.name]) } : { type: "text", value: row[col.name] })),
         affected_row_count: Number(meta.changes), last_insert_rowid: String(meta.lastInsertRowid),
       });
       errors.push(null);
@@ -45,12 +45,7 @@ test("Turso preserves SQLite parameters, row types, insert IDs and transactional
     await db.batch([
       db.prepare("CREATE TABLE trainers (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL, hp INTEGER, note TEXT)"),
       db.prepare("CREATE TABLE teams (trainer INTEGER REFERENCES trainers(id) ON DELETE CASCADE)"),
-      db.prepare("CREATE TABLE binary_data (id INTEGER PRIMARY KEY, data BLOB NOT NULL)"),
     ]);
-    const binary = new Uint8Array([0, 1, 2, 127, 255]);
-    await db.prepare("INSERT INTO binary_data (data) VALUES (?)").bind(binary).run();
-    const binaryRow = await db.prepare("SELECT data FROM binary_data WHERE id = 1").first();
-    assert.deepEqual([...binaryRow.data], [...binary]);
     const inserted = await db.prepare("INSERT INTO trainers (name, hp, note) VALUES (?, ?, ?)").bind("O'Brien ?;", 25, null).run();
     assert.equal(inserted.meta.changes, 1);
     assert.equal(inserted.meta.last_row_id, 1);
@@ -86,16 +81,13 @@ test("database HTTP failures never expose response bodies or credentials", async
   await assert.rejects(db.prepare("SELECT 1").run(), error => error.status === 503 && !error.message.includes("secret-token") && /401/.test(error.message));
 });
 
-test("native room handlers bootstrap a fresh database, protect narrator data and support calls", async t => {
+test("native room handlers bootstrap a fresh database and protect narrator data", async t => {
   const sqlite = new DatabaseSync(":memory:");
   const originalFetch = globalThis.fetch;
   const originalUrl = process.env.TURSO_DATABASE_URL;
   const originalToken = process.env.TURSO_AUTH_TOKEN;
-  const s3Keys = ["MYOWNDEX_S3_ENDPOINT", "MYOWNDEX_S3_BUCKET", "MYOWNDEX_S3_ACCESS_KEY_ID", "MYOWNDEX_S3_SECRET_ACCESS_KEY", "MYOWNDEX_S3_REGION"];
-  const originalS3 = Object.fromEntries(s3Keys.map(key => [key, process.env[key]]));
   process.env.TURSO_DATABASE_URL = "https://dex-example.turso.io";
   process.env.TURSO_AUTH_TOKEN = "database-token";
-  s3Keys.forEach(key => { delete process.env[key]; });
   globalThis.fetch = sqliteTransport(sqlite);
   const hook = registerHooks({
     resolve(specifier, context, nextResolve) {
@@ -111,20 +103,13 @@ test("native room handlers bootstrap a fresh database, protect narrator data and
     globalThis.fetch = originalFetch;
     if (originalUrl === undefined) delete process.env.TURSO_DATABASE_URL; else process.env.TURSO_DATABASE_URL = originalUrl;
     if (originalToken === undefined) delete process.env.TURSO_AUTH_TOKEN; else process.env.TURSO_AUTH_TOKEN = originalToken;
-    s3Keys.forEach(key => {
-      if (originalS3[key] === undefined) delete process.env[key];
-      else process.env[key] = originalS3[key];
-    });
     sqlite.close();
   });
-  const [create, room, join, event, call, audio, audioItem] = await Promise.all([
+  const [create, room, join, event] = await Promise.all([
     import("../app/api/rooms/route.ts"),
     import("../app/api/rooms/[code]/route.ts"),
     import("../app/api/rooms/[code]/join/route.ts"),
     import("../app/api/rooms/[code]/events/route.ts"),
-    import("../app/api/rooms/[code]/call/route.ts"),
-    import("../app/api/rooms/[code]/audio/route.ts"),
-    import("../app/api/rooms/[code]/audio/[id]/route.ts"),
   ]);
   const request = (path, key = "", body, method = "POST") => new Request(`https://app.example.com${path}`, {
     method, headers: { "content-type": "application/json", "x-myowndex-room-protocol": "3", "x-myowndex-room-key": key }, body: body === undefined ? undefined : JSON.stringify(body),
@@ -150,88 +135,9 @@ test("native room handlers bootstrap a fresh database, protect narrator data and
   assert.equal((await room.PATCH(request(path, created.narratorKey, { snapshot: created.snapshot, expectedRevision: 0 }, "PATCH"), context)).status, 409);
   assert.equal((await event.POST(request(`${path}/events`, player.playerKey, { type: "ready", payload: { ready: true } }), context)).status, 201);
   assert.equal(sqlite.prepare("SELECT ready FROM room_players WHERE id = ?").get(player.playerId).ready, 1);
-  for (const [key, connectionId] of [[created.narratorKey, "call-narrator"], [player.playerKey, "call-player"]]) {
-    const joinedCall = await call.POST(request(`${path}/call`, key, { action: "join", connectionId }), context);
-    assert.equal(joinedCall.status, 201, await joinedCall.clone().text());
-  }
-  const signal = await call.POST(request(`${path}/call`, created.narratorKey, { action: "signal", connectionId: "call-narrator", recipientId: player.playerId, type: "offer", payload: { type: "offer", sdp: "example-sdp" } }), context);
-  assert.equal(signal.status, 201, await signal.clone().text());
-  const received = await call.GET(request(`${path}/call?connection=call-player`, player.playerKey, undefined, "GET"), context);
-  const callState = await received.json();
-  assert.equal(callState.members.length, 2);
-  assert.equal(callState.signals[0].payload.sdp, "example-sdp");
-
-  const preparedAudioResponse = await audio.POST(request(`${path}/audio`, created.narratorKey, {
-    action: "prepare", title: "Tema QA", fileName: "tema.ogg", mimeType: "audio/ogg", size: 7,
-  }), context);
-  assert.equal(preparedAudioResponse.status, 200, await preparedAudioResponse.clone().text());
-  const preparedAudio = await preparedAudioResponse.json();
-  assert.equal(preparedAudio.mode, "database");
-  assert.equal(preparedAudio.chunkCount, 1);
-  const audioBytes = new Uint8Array([1, 3, 5, 7, 9, 11, 13]);
-  const chunkRequest = new Request(`https://app.example.com${path}/audio?upload=${encodeURIComponent(preparedAudio.uploadId)}&index=0`, {
-    method: "PUT",
-    headers: {
-      "content-type": "application/octet-stream",
-      "x-myowndex-room-protocol": "3",
-      "x-myowndex-room-key": created.narratorKey,
-    },
-    body: Buffer.from(audioBytes),
-  });
-  const chunkResponse = await audio.PUT(chunkRequest, context);
-  assert.equal(chunkResponse.status, 200, await chunkResponse.clone().text());
-  const completedAudioResponse = await audio.POST(request(`${path}/audio`, created.narratorKey, {
-    action: "complete-database", uploadId: preparedAudio.uploadId,
-  }), context);
-  assert.equal(completedAudioResponse.status, 201, await completedAudioResponse.clone().text());
-  const completedAudio = await completedAudioResponse.json();
-  const mediaId = completedAudio.media.id;
-  const audioContext = { params: Promise.resolve({ code: created.code, id: mediaId }) };
-  const manifestResponse = await audioItem.GET(request(`${path}/audio/${mediaId}`, player.playerKey, undefined, "GET"), audioContext);
-  assert.equal(manifestResponse.status, 200, await manifestResponse.clone().text());
-  const manifest = await manifestResponse.json();
-  assert.deepEqual({ chunked: manifest.chunked, size: manifest.size, chunkCount: manifest.chunkCount }, { chunked: true, size: 7, chunkCount: 1 });
-  const downloadedChunk = await audioItem.GET(request(`${path}/audio/${mediaId}?chunk=0`, player.playerKey, undefined, "GET"), audioContext);
-  assert.equal(downloadedChunk.status, 200, await downloadedChunk.clone().text());
-  assert.deepEqual([...new Uint8Array(await downloadedChunk.arrayBuffer())], [...audioBytes]);
-  const removedAudio = await audioItem.DELETE(request(`${path}/audio/${mediaId}`, created.narratorKey, undefined, "DELETE"), audioContext);
-  assert.equal(removedAudio.status, 200, await removedAudio.clone().text());
-  assert.equal(sqlite.prepare("SELECT count(*) AS count FROM room_media_chunks").get().count, 0);
   assert.equal((await room.DELETE(request(path, player.playerKey, undefined, "DELETE"), context)).status, 403);
   assert.equal((await room.DELETE(request(path, created.narratorKey, undefined, "DELETE"), context)).status, 200);
-  for (const table of ["rooms", "room_players", "room_events", "room_rolls", "room_media", "room_media_uploads", "room_media_chunks", "room_call_members", "room_call_signals"]) {
+  for (const table of ["rooms", "room_players", "room_events", "room_rolls"]) {
     assert.equal(sqlite.prepare(`SELECT count(*) AS count FROM ${table}`).get().count, 0);
   }
-});
-
-const storage = new S3Bucket({ endpoint: "https://objects.example.com", bucket: "adventure-audio", accessKeyId: "access-id", secretAccessKey: "private-secret" });
-
-test("direct audio uploads are signed, expire, and cannot cross rooms or accept altered metadata", () => {
-  const upload = { code: "ABC234", id: "audio-example", objectKey: "rooms/ABC234/audio/audio-example", title: "Rota 1", mimeType: "audio/ogg", size: 10_000_000, expires: Date.now() + 900_000 };
-  const prepared = storage.prepareUpload(upload);
-  const url = new URL(prepared.uploadUrl);
-  assert.equal(url.searchParams.get("X-Amz-Expires"), "900");
-  assert.equal(url.searchParams.get("X-Amz-SignedHeaders"), "content-type;host");
-  assert.ok(url.searchParams.get("X-Amz-Signature"));
-  assert.equal(prepared.uploadUrl.includes("private-secret"), false);
-  assert.deepEqual(storage.verifyUpload(prepared.uploadToken, "ABC234"), upload);
-  assert.equal(storage.verifyUpload(prepared.uploadToken, "OTHER1"), null);
-  const [payload, proof] = prepared.uploadToken.split(".");
-  const altered = Buffer.from(JSON.stringify({ ...JSON.parse(Buffer.from(payload, "base64url")), size: 1 })).toString("base64url");
-  assert.equal(storage.verifyUpload(`${altered}.${proof}`, "ABC234"), null);
-  const expired = storage.prepareUpload({ ...upload, expires: Date.now() - 1 });
-  assert.equal(storage.verifyUpload(expired.uploadToken, "ABC234"), null);
-});
-
-test("private audio GET/HEAD use signed server requests and return streaming data", async () => {
-  const bucket = new S3Bucket(storage.config, async (url, options) => {
-    assert.equal(String(url), "https://objects.example.com/adventure-audio/rooms/ABC234/audio/audio-example");
-    assert.match(options.headers.authorization, /^AWS4-HMAC-SHA256 Credential=access-id\//);
-    assert.match(options.headers["x-amz-content-sha256"], /^[a-f0-9]{64}$/);
-    return new Response(options.method === "HEAD" ? null : "audio-bytes", { headers: { "content-length": "11", "content-type": "audio/ogg" } });
-  });
-  assert.deepEqual(await bucket.head("rooms/ABC234/audio/audio-example"), { size: 11, contentType: "audio/ogg" });
-  const object = await bucket.get("rooms/ABC234/audio/audio-example");
-  assert.equal(await new Response(object.body).text(), "audio-bytes");
-  assert.throws(() => bucket.objectUrl("rooms/../private"), TypeError);
 });

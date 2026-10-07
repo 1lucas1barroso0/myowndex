@@ -94,7 +94,6 @@ test("room snapshots normalize phases, scenes and unsafe token positions", () =>
     ...createRoomSnapshot("Sinnoh"),
     phase: "invalid",
     scenario: "invalid",
-    audio: { playing: true, volume: 2, offset: -5 },
     tokens: [{ id: "one", name: "Teste", x: 500, y: -100, maxHp: 5, currentHp: 10 }],
   });
   assert.equal(room.phase, ROOM_PHASES[0].id);
@@ -102,8 +101,6 @@ test("room snapshots normalize phases, scenes and unsafe token positions", () =>
   assert.equal(room.tokens[0].x, 96);
   assert.equal(room.tokens[0].y, 8);
   assert.equal(room.tokens[0].currentHp, 5);
-  assert.equal(room.audio.volume, 1);
-  assert.equal(room.audio.offset, 0);
 });
 
 test("a new battle resets hit kill use while healing and other phases do not", () => {

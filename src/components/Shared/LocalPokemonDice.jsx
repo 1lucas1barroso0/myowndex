@@ -4,8 +4,7 @@ import { formatName } from "../../core/mechanics.js";
 import { createRoomSnapshot, addTeamToSnapshot, declareRoomMove, normalizeRoomToken, ROOM_WEATHERS, ROOM_TERRAINS, STATUS_LABELS, syncTeamsWithRoomProgress } from "../../core/room.js";
 import { hydratePokemon } from "../../core/team.js";
 import { createScheduledSave } from "../../core/scheduledSave.js";
-import { getStorageScope, readDurableStorage, readStorage, resolveStorageKey, writeDurableStorage } from "../../core/storage.js";
-import { playSoundEffect } from "../../core/audio.js";
+import { getStorageScope, readDurableStorage, resolveStorageKey, writeDurableStorage } from "../../core/storage.js";
 import { createPokemonRollReceipt, saveLocalRollDurable } from "../../core/localRolls.js";
 import { LOCAL_DICE_ROOM_KEY, LOCAL_DICE_TOKEN_LIMIT, LOCAL_OPPOSED_STATS, normalizeLocalDiceRoom, registerLocalPokemonDiceWrites, removeLocalDiceToken, rollLocalPokemonOpposition } from "../../core/localPokemonRolls.js";
 import { applyAuthoritativeMovePriorities, resolveAuthoritativeAction } from "../../../server/authoritativeActions.js";
@@ -219,13 +218,6 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
                 await record(receipt);
             }
             if(sceneSnapshot && onEvent)await onEvent(resolved.eventType,resolved.eventPayload);
-            if (resolved.sfxPayload) {
-                if (sceneSnapshot && onEvent) await onEvent("sfx", resolved.sfxPayload);
-                else {
-                    const preferences = readStorage("myowndex_audio_preferences_v1", {});
-                    if (!preferences?.muted) void playSoundEffect(resolved.sfxPayload.effectId, preferences?.volume ?? .85).catch(() => {});
-                }
-            }
             return resolved;
         } finally { actionLock.current=false;if(alive.current)setBusy(false); }
     });

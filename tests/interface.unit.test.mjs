@@ -90,7 +90,6 @@ test("visible copy avoids robotic system language", async () => {
     read("src/components/Pokedex/AbilityCard.jsx"),
     read("src/components/Pokedex/MoveAccordion.jsx"),
     read("src/components/Pokedex/PokemonModal.jsx"),
-    read("src/components/Room/AudioDeck.jsx"),
     read("src/components/Room/Battlefield.jsx"),
     read("src/components/Room/CombatAssistant.jsx"),
     read("src/components/Room/RpgRoom.jsx"),
@@ -353,25 +352,6 @@ test("Link Cable previews selective imports and Adventure invitations open in on
   assert.match(room, /Link ou convite da aventura/);
   assert.match(room, /Enviar convite/);
   assert.match(roomClient, /searchParams\.set\("abrir", "aventura"\)/);
-});
-
-test("voice calls are room-scoped, accessible and locally controllable", async () => {
-  const [room, voice, route] = await Promise.all([
-    read("src/components/Room/RpgRoom.jsx"),
-    read("src/components/Room/VoiceCall.jsx"),
-    read("app/api/rooms/[code]/call/route.ts"),
-  ]);
-  assert.match(room, /<VoiceCall session=\{session\} role=\{role\}/);
-  assert.match(voice, /Chamada de voz/);
-  assert.match(voice, /falando agora/);
-  assert.match(voice, /Volume da chamada/);
-  assert.match(voice, /Sons discretos de entrada e conexão/);
-  assert.match(voice, /Silenciar/);
-  assert.match(voice, /não é gravado pelo MyOwnDex/);
-  assert.match(voice, /echoCancellation:\s*true/);
-  assert.match(route, /connection_id = \?/);
-  assert.match(route, /CALL_MEMBER_LIMIT = 12/);
-  assert.match(route, /recipient_id = \?/);
 });
 
 test("safe shell updates and both visual themes remain available without an install guide button", async () => {

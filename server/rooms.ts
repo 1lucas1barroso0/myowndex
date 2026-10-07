@@ -35,7 +35,6 @@ type RoomRollRow = {
   result_json: string;
   event_type: string;
   event_payload_json: string;
-  sfx_payload_json: string | null;
   created_at: string;
 };
 
@@ -107,7 +106,6 @@ export async function ensureRoomSchema() {
         result_json TEXT NOT NULL,
         event_type TEXT NOT NULL,
         event_payload_json TEXT NOT NULL,
-        sfx_payload_json TEXT,
         status TEXT NOT NULL DEFAULT 'ready',
         claim_token TEXT NOT NULL DEFAULT '',
         server_authoritative INTEGER NOT NULL DEFAULT 1,
@@ -117,66 +115,6 @@ export async function ensureRoomSchema() {
       )`),
       db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS room_rolls_request_idx ON room_rolls (room_code, actor_key, request_id)"),
       db.prepare("CREATE INDEX IF NOT EXISTS room_rolls_room_id_idx ON room_rolls (room_code, id)"),
-      db.prepare(`CREATE TABLE IF NOT EXISTS room_media (
-        id TEXT PRIMARY KEY NOT NULL,
-        room_code TEXT NOT NULL,
-        object_key TEXT NOT NULL,
-        title TEXT NOT NULL,
-        mime_type TEXT NOT NULL,
-        size INTEGER NOT NULL,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
-      )`),
-      db.prepare("CREATE INDEX IF NOT EXISTS room_media_room_code_idx ON room_media (room_code)"),
-      db.prepare(`CREATE TABLE IF NOT EXISTS room_media_uploads (
-        id TEXT PRIMARY KEY NOT NULL,
-        room_code TEXT NOT NULL,
-        title TEXT NOT NULL,
-        mime_type TEXT NOT NULL,
-        size INTEGER NOT NULL,
-        chunk_size INTEGER NOT NULL,
-        chunk_count INTEGER NOT NULL,
-        expires_at INTEGER NOT NULL,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
-      )`),
-      db.prepare("CREATE INDEX IF NOT EXISTS room_media_uploads_room_code_idx ON room_media_uploads (room_code, expires_at)"),
-      db.prepare(`CREATE TABLE IF NOT EXISTS room_media_chunks (
-        media_id TEXT NOT NULL,
-        room_code TEXT NOT NULL,
-        chunk_index INTEGER NOT NULL,
-        data BLOB NOT NULL,
-        size INTEGER NOT NULL,
-        PRIMARY KEY (media_id, chunk_index),
-        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
-      )`),
-      db.prepare("CREATE INDEX IF NOT EXISTS room_media_chunks_room_code_idx ON room_media_chunks (room_code, media_id, chunk_index)"),
-      db.prepare(`CREATE TABLE IF NOT EXISTS room_call_members (
-        id TEXT PRIMARY KEY NOT NULL,
-        room_code TEXT NOT NULL,
-        participant_id TEXT NOT NULL,
-        connection_id TEXT NOT NULL,
-        display_name TEXT NOT NULL,
-        role TEXT NOT NULL,
-        muted INTEGER NOT NULL DEFAULT 0,
-        joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
-      )`),
-      db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS room_call_members_participant_idx ON room_call_members (room_code, participant_id)"),
-      db.prepare("CREATE INDEX IF NOT EXISTS room_call_members_presence_idx ON room_call_members (room_code, last_seen_at)"),
-      db.prepare(`CREATE TABLE IF NOT EXISTS room_call_signals (
-        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        room_code TEXT NOT NULL,
-        sender_id TEXT NOT NULL,
-        recipient_id TEXT NOT NULL,
-        type TEXT NOT NULL,
-        payload_json TEXT NOT NULL DEFAULT '{}',
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (room_code) REFERENCES rooms(code) ON DELETE CASCADE
-      )`),
-      db.prepare("CREATE INDEX IF NOT EXISTS room_call_signals_recipient_idx ON room_call_signals (room_code, recipient_id, id)"),
-      db.prepare("CREATE INDEX IF NOT EXISTS room_call_signals_created_at_idx ON room_call_signals (created_at)"),
     ]);
     // A database imported from an older release can predate authoritative rolls.
     const columns = await db.prepare("PRAGMA table_info(rooms)").all<{ name: string }>();
@@ -243,14 +181,6 @@ export function createInitialRoomState(title: string) {
     benchTokens: [],
     initiative: [],
     trainerInterventions: [],
-    audio: {
-      trackId: null,
-      title: "",
-      playing: false,
-      volume: 0.55,
-      startedAt: 0,
-      offset: 0,
-    },
     settings: {
       showHp: true,
       allowPlayerMovement: false,
@@ -352,15 +282,11 @@ export async function getRoomBundle(code: string, role: RoomRole) {
   ).bind(code).all();
   const rolls = await db.prepare(
     `SELECT id, request_id, player_id, author, action_type, mode, request_json,
-      result_json, event_type, event_payload_json, sfx_payload_json, created_at
+      result_json, event_type, event_payload_json, created_at
      FROM room_rolls
      WHERE room_code = ? AND status = 'ready' AND server_authoritative = 1 AND journal_hidden = 0
      ORDER BY id DESC LIMIT 80`,
   ).bind(code).all<RoomRollRow>();
-  const media = await db.prepare(
-    `SELECT id, title, mime_type, size, created_at
-     FROM room_media WHERE room_code = ? ORDER BY created_at DESC LIMIT 30`,
-  ).bind(code).all();
   const snapshot = parseJson<Record<string, unknown>>(room.state_json, {});
   if (role !== "narrator") delete snapshot.gmNotes;
   const standardEvents = (events.results || []).reverse().map(event => ({
@@ -388,34 +314,20 @@ export async function getRoomBundle(code: string, role: RoomRole) {
       serverAuthoritative: true,
     };
   });
-  const authorityEvents = (rolls.results || []).flatMap(roll => {
-    const main = {
-      id: `authority-${roll.id}`,
-      playerId: roll.player_id,
-      author: roll.author,
-      type: roll.event_type,
-      payload: {
-        ...parseJson<Record<string, unknown>>(roll.event_payload_json, {}),
-        rollId: `authority-${roll.id}`,
-        sequence: roll.id,
-        serverAuthoritative: true,
-      },
-      createdAt: roll.created_at,
-      authorityOrder: 1,
-    };
-    const sfx = parseJson<Record<string, unknown> | null>(roll.sfx_payload_json, null);
-    return sfx
-      ? [main, {
-        id: `authority-${roll.id}-sfx`,
-        playerId: roll.player_id,
-        author: roll.author,
-        type: "sfx",
-        payload: { ...sfx, rollId: `authority-${roll.id}`, serverAuthoritative: true },
-        createdAt: roll.created_at,
-        authorityOrder: 2,
-      }]
-      : [main];
-  });
+  const authorityEvents = (rolls.results || []).map(roll => ({
+    id: `authority-${roll.id}`,
+    playerId: roll.player_id,
+    author: roll.author,
+    type: roll.event_type,
+    payload: {
+      ...parseJson<Record<string, unknown>>(roll.event_payload_json, {}),
+      rollId: `authority-${roll.id}`,
+      sequence: roll.id,
+      serverAuthoritative: true,
+    },
+    createdAt: roll.created_at,
+    authorityOrder: 1,
+  }));
   const combinedEvents = [...standardEvents, ...authorityEvents]
     .sort((first, second) => {
       const firstTime = Date.parse(String(first.createdAt || "").replace(" ", "T") + (String(first.createdAt || "").includes("T") ? "" : "Z")) || 0;
@@ -443,13 +355,6 @@ export async function getRoomBundle(code: string, role: RoomRole) {
     })),
     events: combinedEvents,
     rolls: authorityRecords,
-    media: (media.results || []).map(item => ({
-      id: item.id,
-      title: item.title,
-      mimeType: item.mime_type,
-      size: item.size,
-      createdAt: item.created_at,
-    })),
   };
 }
 

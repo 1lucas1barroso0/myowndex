@@ -183,7 +183,8 @@ test("offline support caches the shell and sprites but never private room APIs",
   assert.match(worker, /SKIP_WAITING/);
   assert.doesNotMatch(worker, /then\(\(\) => self\.skipWaiting\(\)\)/);
   assert.match(worker, /request\.headers\.get\("RSC"\)/);
-  assert.match(worker, /myowndex-maskable-512-v91\.png/);
+  assert.match(worker, /myowndex-icon-v100\.svg/);
+  assert.doesNotMatch(worker, /myowndex-(?:icon|app|maskable|shortcut).*v91|favicon-v91/);
   assert.match(app, /document\.readyState === "complete"/);
   assert.match(app, /updateViaCache: "none"/);
   assert.match(app, /visibilitychange/);
@@ -210,7 +211,10 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   assert.match(rolls, /clearLocalRolls/);
   assert.doesNotMatch(panel, /if\(lock\.current \|\| applyingAccount\.current \|\| !ready/, "local rolls must not wait for storage hydration or an account merge");
   assert.match(panel, /remoteAdventure && \(lock\.current \|\| applyingAccount\.current\)/, "only an authoritative remote request owns the request lock");
-  assert.match(panel, /setResult\(receipt\);[\s\S]*pendingReceipts\.current\.set[\s\S]*void saveLocalRollDurable/, "a local result is shown before durable persistence begins");
+  assert.match(panel, /LOCAL_ROLL_LIMIT/, "the local history cap must be explicitly available to the roll handler");
+  assert.match(panel, /saveLocalRoll, saveLocalRollDurable/, "local history keeps a quick browser copy and a durable copy");
+  assert.match(panel, /setResult\(receipt\);[\s\S]*pendingReceipts\.current\.set[\s\S]*setHistory\(current=>mergeLocalRolls\(\[receipt\],current\)\)[\s\S]*saveLocalRoll\(receipt\)[\s\S]*saveLocalRollDurable/, "the session history is updated before either persistence path");
+  assert.doesNotMatch(panel, /disabled=\{!ready \|\| Boolean\(configuration\.error\)\}/, "storage hydration must never disable a local roll");
   assert.doesNotMatch(panel, /unlockTimer/, "local rolling has no persistence-driven cooldown");
   assert.match(panel, /event\.repeat/);
   assert.match(panel, /Baixar histórico/);
@@ -545,4 +549,35 @@ test("game art direction is imported last and preserves the approved content lay
   assert.match(art, /prefers-reduced-motion:\s*reduce/);
   assert.match(art, /forced-colors:\s*active/);
   assert.doesNotMatch(art, /content:\s*["'](?:Entrar|Criar conta|Rolar|Pokédex|Aventura)["']/i);
+});
+
+
+test("joyful identity keeps one Pokémon companion on every primary surface without decorative discs", async () => {
+  const [app, room, pc, guide, dice, generator, account, art, layout, manifest] = await Promise.all([
+    read("src/App.jsx"),
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/components/Teambuilder/Teambuilder.jsx"),
+    read("src/components/Guide/TrainerGuide.jsx"),
+    read("src/components/Shared/LocalDiceDialog.jsx"),
+    read("src/components/Generator/GeneratorModal.jsx"),
+    read("src/components/Account/AccountModal.jsx"),
+    read("src/game-art-direction.css"),
+    read("app/layout.tsx"),
+    read("app/manifest.ts"),
+  ]);
+  assert.match(app, /<PokemonCompanion place="pokedex"/);
+  assert.match(app, /className="opening-companion"/);
+  assert.match(room, /<PokemonCompanion place="adventure"/);
+  assert.match(pc, /<PokemonCompanion place="pc"/);
+  assert.match(guide, /<PokemonCompanion place="guide"/);
+  assert.match(dice, /<PokemonCompanion place="dice"/);
+  assert.match(generator, /<PokemonCompanion place="generator"/);
+  assert.match(account, /<PokemonCompanion place="account"/);
+  assert.doesNotMatch(account, /Seu MyOwnDex/);
+  assert.match(account, /<h2 id=\{titleId\}>Cartão de Treinador<\/h2>/);
+  assert.match(art, /\.pokemon-companion::before[\s\S]*content:none\s*!important;[\s\S]*display:none\s*!important;/);
+  assert.match(art, /joyful field-guide direction/);
+  assert.doesNotMatch(art, /game-shadow-float|gloss/i);
+  for (const source of [app, layout, manifest]) assert.match(source, /myowndex-icon-v100\.svg|favicon-v100\.svg/);
+  assert.doesNotMatch(app + layout + manifest, /myowndex-icon-v91|favicon-v91/);
 });

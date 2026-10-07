@@ -232,3 +232,42 @@ html .app-root.game-edition.handheld-edition .game-credits p {
     box-shadow: none !important;
   }
 }
+
+
+/* 2.0.11: one scroll owner, stable viewport units and cheap off-screen rendering. */
+html .app-root.game-edition.handheld-edition {
+  width: 100%;
+  min-width: 0;
+  height: 100dvh;
+  min-height: 100svh;
+  overflow: clip;
+}
+html .app-root.game-edition.handheld-edition .app-scroll-area {
+  min-width: 0;
+  min-height: 0;
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+html .app-root.game-edition.handheld-edition .app-main-shell {
+  min-width: 0;
+  max-width: 100%;
+}
+html .app-root.game-edition.handheld-edition :is(.dex-entry,.pc-partner-card,.room-section,.room-tool) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 16rem;
+}
+@supports not (height: 100dvh) {
+  html .app-root.game-edition.handheld-edition { height: 100vh; }
+}
+@media (max-width: 480px) {
+  html .app-root.game-edition.handheld-edition .app-header-row,
+  html .app-root.game-edition.handheld-edition .app-header-primary,
+  html .app-root.game-edition.handheld-edition .app-actions {
+    min-width: 0;
+    max-width: 100%;
+  }
+}

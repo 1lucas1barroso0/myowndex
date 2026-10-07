@@ -15,7 +15,7 @@ Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para Pokémon RPG.
 - Guia com 40 regras individuais expansíveis, busca e destaque para a proteção contra hit kill. Pokémon, itens, movimentos e habilidades mantêm seus nomes originais em inglês; valores calculados seguem os arredondamentos das regras. A leitura segue os padrões responsivos do Fate Gameplay Toolkit.
 - Telas grandes carregadas sob demanda; service worker nunca guarda APIs privadas nem respostas RSC.
 - Cache público limitado a 256 respostas de catálogo e 500 assets regeneráveis, hidratação com quatro tarefas simultâneas e salvamento agrupado. Boxes mantêm seus dados e formato de armazenamento.
-- A Vercel executa páginas e APIs diretamente. Salas usam banco Turso sob seu controle; áudio compartilhado usa armazenamento S3/R2 sob seu controle, com upload direto assinado.
+- A Vercel executa páginas e APIs diretamente. Salas usam banco Turso sob seu controle; trilhas compartilhadas funcionam pelo mesmo Turso em chunks autenticados e, quando um S3/R2 privado é configurado, passam automaticamente ao upload direto assinado.
 
 ## Rodar no Linux
 
@@ -28,7 +28,7 @@ npm run dev
 
 Abra `http://localhost:3000`. Pokédex, PC, Guia e aventura local funcionam sem configurar banco. Boxes e preferências ficam salvas neste navegador e dispositivo. Exporte suas Boxes pelo Link Cable para transferi-las a outro navegador ou domínio.
 
-Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configure `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN`. Trilhas enviadas pelo narrador também precisam das variáveis S3 e de CORS. Consulte [docs/RUNTIME.md](docs/RUNTIME.md) para configuração, limites e TURN. As salas da instalação atual usam Turso; a atualização não depende de migrar o serviço antigo.
+Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configure `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN`. Isso também basta para a biblioteca de trilhas; S3/R2 é apenas uma opção para descarregar os arquivos do banco. Consulte [docs/RUNTIME.md](docs/RUNTIME.md) para configuração, limites e TURN. As salas da instalação atual usam Turso; a atualização não depende de migrar o serviço antigo.
 
 ## Atualizar pelo Linux
 
@@ -42,7 +42,7 @@ O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da V
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A versão atual é **2.0.8**, apresentada como **2.0** na interface. A nova leva sucede a 11.6.6 e mantém as 40 regras, contas sincronizadas, Boxes, aventuras, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira e Dados acessíveis em todos os módulos. A numeração da entrega é independente do formato dos dados. A 2.0.4 preserva as chaves de armazenamento e a compatibilidade com Boxes e códigos anteriores; os novos campos de identidade de forma são opcionais e não exigem migração. O estado vigente do projeto é sempre o conteúdo de `main`, com a versão declarada em `package.json`; documentos de entregas anteriores são registros históricos. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
+A versão atual é **2.0.9**, apresentada como **2.0** na interface. A nova leva sucede a 11.6.6 e mantém as 40 regras, contas sincronizadas, Boxes, aventuras, encontros rápidos pelo gerador, referências EN/PT por jogo, XP inteira e Dados acessíveis em todos os módulos. A numeração da entrega é independente do formato dos dados. A 2.0.4 preserva as chaves de armazenamento e a compatibilidade com Boxes e códigos anteriores; os novos campos de identidade de forma são opcionais e não exigem migração. O estado vigente do projeto é sempre o conteúdo de `main`, com a versão declarada em `package.json`; documentos de entregas anteriores são registros históricos. O instalador executa testes, ESLint, verificação de tipos e build antes da publicação.
 
 A preparação da rodada reúne a escolha de um movimento ou Outra ação para cada Pokémon antes da iniciativa. A ordem considera a prioridade efetiva, incluindo Prankster, Gale Wings e Triage, e mantém a ponderação proporcional pela Velocidade. As escolhas ficam confirmadas até o fim da rodada; novas escolhas e uma nova rolagem iniciam a seguinte. A intervenção do Treinador continua separada do turno do Pokémon.
 
@@ -51,6 +51,8 @@ A revisão 2.0.4 concluiu a base técnica de identificação de formas. A 2.0.5 
 A revisão 2.0.7 reforça a Pokédex como ferramenta simples de usar: busca, favoritos, ordem, geração, tipos, região, variantes e intervalo são testados em conjunto. Estados antigos ou inválidos voltam a escolhas seguras, os textos visíveis dos filtros usam frases mais simples e a integridade da versão passa a ser verificada automaticamente. Veja `docs/FILTROS-E-CLAREZA-2.0.7.md`.
 
 A revisão 2.0.8 reorganiza o Gerador para separar claramente **quem pode aparecer** de **como a ficha será montada**. Escolher um Pokémon específico não se mistura com filtros aleatórios; tipo, geração de estreia, região e lendários delimitam juntos o conjunto sorteável; natureza, Shiny e Hidden Ability só mudam a ficha. O sorteio é explicitamente feito por entrada da Pokédex e só depois escolhe uma forma elegível, impedindo que Pokémon com várias formas recebam chance extra. O termo “prévia” foi removido da interface do Gerador e substituído por encontro/resultado atual. Os controles de variantes da Pokédex também ficaram visual e verbalmente mais distintos. Veja `docs/GERADOR-2.0.8.md`.
+
+A revisão 2.0.9 fecha a camada de áudio da Aventura. Efeitos sonoros são reproduzidos imediatamente no dispositivo do Narrador e propagados aos participantes que ativaram o áudio; trilhas compartilhadas passam a funcionar apenas com o Turso já exigido pelas salas, em chunks autenticados, mantendo S3/R2 como otimização opcional. A chamada WebRTC ganhou múltiplos STUNs, pool de ICE, reconexão controlada e fallback de microfone para navegadores móveis. Veja `docs/AUDIO-E-CHAMADA-2.0.9.md`.
 
 A interface usa rótulos legíveis, foco visível, alvos confortáveis e contraste consistente nos dois temas. Fichas, gerador e diálogos têm navegação pelo teclado e retorno de foco. Ajuda adicional fica recolhida; consultas de catálogo permitem tentar novamente após falhas de conexão. O roteiro de acessibilidade e os demais testes de navegador estão descritos em [docs/VALIDACAO.md](docs/VALIDACAO.md).
 

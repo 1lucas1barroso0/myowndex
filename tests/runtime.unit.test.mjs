@@ -17,13 +17,13 @@ const sqliteTransport = sqlite => async (url, options) => {
     if (!condition(step.condition)) { results.push(null); errors.push(null); continue; }
     try {
       const statement = sqlite.prepare(step.stmt.sql);
-      const args = step.stmt.args.map(arg => arg.type === "null" ? null : arg.type === "integer" || arg.type === "float" ? Number(arg.value) : arg.value);
+      const args = step.stmt.args.map(arg => arg.type === "null" ? null : arg.type === "integer" || arg.type === "float" ? Number(arg.value) : arg.type === "blob" ? Buffer.from(arg.base64 || "", "base64") : arg.value);
       const cols = statement.columns();
       const rows = cols.length ? statement.all(...args) : [];
       const meta = cols.length ? { changes: 0, lastInsertRowid: 0 } : statement.run(...args);
       results.push({
         cols: cols.map(col => ({ name: col.name })),
-        rows: rows.map(row => cols.map(col => row[col.name] === null ? { type: "null" } : typeof row[col.name] === "number" ? { type: Number.isInteger(row[col.name]) ? "integer" : "float", value: String(row[col.name]) } : { type: "text", value: row[col.name] })),
+        rows: rows.map(row => cols.map(col => row[col.name] === null ? { type: "null" } : typeof row[col.name] === "number" ? { type: Number.isInteger(row[col.name]) ? "integer" : "float", value: String(row[col.name]) } : row[col.name] instanceof Uint8Array ? { type: "blob", base64: Buffer.from(row[col.name]).toString("base64") } : { type: "text", value: row[col.name] })),
         affected_row_count: Number(meta.changes), last_insert_rowid: String(meta.lastInsertRowid),
       });
       errors.push(null);
@@ -45,7 +45,12 @@ test("Turso preserves SQLite parameters, row types, insert IDs and transactional
     await db.batch([
       db.prepare("CREATE TABLE trainers (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL, hp INTEGER, note TEXT)"),
       db.prepare("CREATE TABLE teams (trainer INTEGER REFERENCES trainers(id) ON DELETE CASCADE)"),
+      db.prepare("CREATE TABLE binary_data (id INTEGER PRIMARY KEY, data BLOB NOT NULL)"),
     ]);
+    const binary = new Uint8Array([0, 1, 2, 127, 255]);
+    await db.prepare("INSERT INTO binary_data (data) VALUES (?)").bind(binary).run();
+    const binaryRow = await db.prepare("SELECT data FROM binary_data WHERE id = 1").first();
+    assert.deepEqual([...binaryRow.data], [...binary]);
     const inserted = await db.prepare("INSERT INTO trainers (name, hp, note) VALUES (?, ?, ?)").bind("O'Brien ?;", 25, null).run();
     assert.equal(inserted.meta.changes, 1);
     assert.equal(inserted.meta.last_row_id, 1);
@@ -144,7 +149,7 @@ test("native room handlers bootstrap a fresh database, protect narrator data and
   assert.equal(callState.signals[0].payload.sdp, "example-sdp");
   assert.equal((await room.DELETE(request(path, player.playerKey, undefined, "DELETE"), context)).status, 403);
   assert.equal((await room.DELETE(request(path, created.narratorKey, undefined, "DELETE"), context)).status, 200);
-  for (const table of ["rooms", "room_players", "room_events", "room_rolls", "room_call_members", "room_call_signals"]) {
+  for (const table of ["rooms", "room_players", "room_events", "room_rolls", "room_media", "room_media_uploads", "room_media_chunks", "room_call_members", "room_call_signals"]) {
     assert.equal(sqlite.prepare(`SELECT count(*) AS count FROM ${table}`).get().count, 0);
   }
 });

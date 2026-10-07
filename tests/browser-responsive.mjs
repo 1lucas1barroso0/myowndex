@@ -42,7 +42,7 @@ for(const viewport of deviceMatrix){
   }));
   for(const sprite of spriteAudit.companions){
    assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0,`companion must load at ${viewport.width}x${viewport.height}`);
-   assert.match(sprite.src,/\.png(?:$|\?)/,`decorative companion must use transparent PNG master: ${sprite.src}`);
+   assert.match(sprite.src,/\.gif(?:$|\?)/,`decorative companion must use authored animated GIF: ${sprite.src}`);
    assert.ok(sprite.left>=-1&&sprite.right<=viewport.width+1,`companion must stay horizontally reachable at ${viewport.width}x${viewport.height}`);
   }
   if(view==='dex'){

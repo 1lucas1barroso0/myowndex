@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { getStorageScope, readStorage, resolveStorageKey, writeStorage } from "../../core/storage.js";
-import { authoritativeLocalRollReceipt, clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRollDurable } from "../../core/localRolls.js";
+import { authoritativeLocalRollReceipt, clearLocalRollsDurable, deleteLocalRollDurable, LOCAL_DICE_SIDES, LOCAL_ROLL_HISTORY_KEY, LOCAL_ROLL_LIMIT, LOCAL_ROLL_MODES, LOCAL_ROLL_PREFIX, localRollEvent, localRollSpec, localRollText, mergeLocalRolls, performLocalRoll, readLocalRollHistoryDurable, readLocalRolls, saveLocalRoll, saveLocalRollDurable } from "../../core/localRolls.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import LocalPokemonDice from "./LocalPokemonDice.jsx";
 import RoomSelect from "./RoomSelect.jsx";
@@ -152,6 +152,9 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
         pendingReceipts.current.set(receipt.id,{receipt,scope});
         while(pendingReceipts.current.size>LOCAL_ROLL_LIMIT) pendingReceipts.current.delete(pendingReceipts.current.keys().next().value);
         setHistory(current=>mergeLocalRolls([receipt],current));
+        // Session history is immediate. Browser cache and durable storage are
+        // redundant, best-effort copies and are never allowed to gate a roll.
+        void Promise.resolve().then(()=>saveLocalRoll(receipt)).catch(()=>undefined);
         void saveLocalRollDurable(receipt,{scope}).then(persisted=>{
             if(persisted) pendingReceipts.current.delete(receipt.id);
             if(alive.current && !persisted) setFeedback("O resultado continua na tela, mas não entrou no histórico.");
@@ -213,7 +216,7 @@ export default function LocalDicePanel({ context="central", onRoll, compact=fals
                     </div>
                 </details>
                 {configuration.error && <p className="local-dice-feedback is-error" role="alert">{configuration.error}</p>}
-                <div className="local-dice-submit"><button type="submit" className="room-primary-button" disabled={!ready || Boolean(configuration.error)} aria-busy={busy} onClick={event=>{if(event.detail>1) event.preventDefault();}}>{busy ? "Rolando…" : `Rolar ${configuration.spec ? kindLabel(configuration.spec) : "dados"}`}</button></div>
+                <div className="local-dice-submit"><button type="submit" className="room-primary-button" disabled={Boolean(configuration.error) || (remoteAdventure && (!ready || busy || accountApplying))} aria-busy={remoteAdventure && busy} onClick={event=>{if(event.detail>1) event.preventDefault();}}>{busy ? "Rolando…" : `Rolar ${configuration.spec ? kindLabel(configuration.spec) : "dados"}`}</button></div>
             </fieldset>
         </form>
         {error && <p className="local-dice-feedback is-error" role="alert">{error}</p>}

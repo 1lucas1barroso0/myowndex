@@ -329,3 +329,47 @@ html .app-root.game-edition.handheld-edition .rpg-journey-panel {
     transform: translateY(1px) !important;
   }
 }
+
+
+/* 2.0.11: collection density follows available space, never forcing card squeeze. */
+html .app-root.game-edition.handheld-edition .dex-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)) !important;
+  align-items: stretch;
+}
+html .app-root.game-edition.handheld-edition .dex-entry,
+html .app-root.game-edition.handheld-edition .dex-entry-main {
+  min-width: 0;
+  max-width: 100%;
+}
+html .app-root.game-edition.handheld-edition .dex-entry-main {
+  contain: layout paint;
+}
+html .app-root.game-edition.handheld-edition .dex-generations {
+  display: flex !important;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+html .app-root.game-edition.handheld-edition .dex-generations > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+@media (max-width: 540px) {
+  html .app-root.game-edition.handheld-edition .dex-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap: .65rem !important;
+  }
+}
+@media (max-width: 350px) {
+  html .app-root.game-edition.handheld-edition .dex-grid {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  html .app-root.game-edition.handheld-edition .dex-grid {
+    grid-template-columns: repeat(auto-fit,minmax(12rem,1fr)) !important;
+  }
+}

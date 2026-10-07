@@ -604,7 +604,7 @@ test("all visible app identity references use one RotomDex master asset", async 
   ]);
   for (const source of [app, layout, manifest, worker]) assert.match(source, /myowndex-rotomdex-v101\.svg/);
   assert.doesNotMatch(app + layout + manifest + worker, /myowndex-(?:icon|app|maskable|shortcut).*v(?:91|100)|favicon-v(?:91|100)/);
-  assert.match(await read("public/icons/myowndex-rotomdex-v101.svg"), /RotomDex expressiva nas cores//);
+  assert.match(await read("public/icons/myowndex-rotomdex-v101.svg"), /RotomDex expressiva nas cores/);
 });
 
 test("local dice submit has no click-count throttle", async () => {

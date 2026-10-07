@@ -27,7 +27,7 @@ test("journal removal preserves permissions, state and authoritative idempotency
     player_id TEXT, author TEXT NOT NULL, action_type TEXT NOT NULL,
     mode TEXT NOT NULL DEFAULT 'normal', request_json TEXT NOT NULL,
     result_json TEXT NOT NULL, event_type TEXT NOT NULL, event_payload_json TEXT NOT NULL,
-    sfx_payload_json TEXT, status TEXT NOT NULL DEFAULT 'ready', claim_token TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'ready', claim_token TEXT NOT NULL DEFAULT '',
     server_authoritative INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
   fixture.sqlite.prepare(`INSERT INTO room_rolls (room_code, actor_key, request_id, request_fingerprint,
     author, action_type, request_json, result_json, event_type, event_payload_json)

@@ -41,7 +41,11 @@ for(const viewport of deviceMatrix){
  await page.setViewportSize(viewport);
  for(const [view,label] of [['dex','Abrir a Pokédex'],['pc','Abrir o PC do Bill'],['guide','Abrir o Guia do Treinador'],['lobby','Abrir a Central da Aventura']]){
   await nav(label);await check(`device-${viewport.width}x${viewport.height}-${view}`);
-  await page.waitForFunction(()=>[...document.querySelectorAll('.pokemon-companion img')].filter(e=>e.getClientRects().length).every(e=>e.complete&&e.naturalWidth>0&&e.naturalHeight>0),null,{timeout:10000});
+  await page.waitForFunction(()=>{
+   const visible=selector=>[...document.querySelectorAll(selector)].filter(e=>e.getClientRects().length);
+   const loaded=selector=>visible(selector).every(e=>e.complete&&e.naturalWidth>0&&e.naturalHeight>0);
+   return loaded('.pokemon-companion img')&&loaded('.pokemon-card-sprite-frame .pokemon-sized-sprite');
+  },null,{timeout:10000});
   const spriteAudit=await page.evaluate(()=>{
    const clippingAncestor=element=>{
     const r=element.getBoundingClientRect();

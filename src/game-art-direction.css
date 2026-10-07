@@ -1037,3 +1037,20 @@ html .app-root.game-edition.handheld-edition .local-dice-dialog-heading .pokemon
     grid-template-columns:minmax(0,1fr) 6rem !important;
   }
 }
+
+
+/* 2.0.16 ultra-narrow containment: decorative prominence must never create
+   page overflow. Borders and padding stay inside the destination width. */
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading,.pc-sidebar-heading){
+  box-sizing:border-box !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+}
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading,.pc-sidebar-heading) :is(h1,h2,h3){
+  min-width:0 !important;
+  overflow-wrap:normal;
+}
+html .app-root.game-edition.handheld-edition .guide-hero .pokemon-companion{
+  flex:0 0 auto !important;
+}

@@ -157,14 +157,6 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     hitKillProtectionUsed: [],
     hitKillProtectionDisabled: [],
     hitKillSurvivalGrace: [],
-    audio: {
-        trackId: null,
-        title: "",
-        playing: false,
-        volume: 0.55,
-        startedAt: 0,
-        offset: 0,
-    },
     settings: {
         showHp: true,
         allowPlayerMovement: false,
@@ -173,7 +165,8 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
 });
 
 export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
-    const source = value && typeof value === "object" ? value : {};
+    const source = value && typeof value === "object" ? { ...value } : {};
+    delete source.audio;
     const storedMaxHp = integerInRange(source.maxHp, 1, 99999, 1);
     const moves = asArray(source.moves).slice(0, 4).map(move => normalizeSlug(move));
     while (moves.length < 4) moves.push("");
@@ -330,16 +323,6 @@ export const normalizeRoomSnapshot = value => {
         hitKillProtectionUsed: normalizeHitKillProtectionUsage(source.hitKillProtectionUsed),
         hitKillProtectionDisabled: normalizeHitKillProtectionUsage(source.hitKillProtectionDisabled),
         hitKillSurvivalGrace: normalizeHitKillProtectionUsage(source.hitKillSurvivalGrace),
-        audio: {
-            ...fallback.audio,
-            ...(source.audio && typeof source.audio === "object" ? source.audio : {}),
-            trackId: asText(source.audio?.trackId) || null,
-            title: asText(source.audio?.title).slice(0, 120),
-            playing: Boolean(source.audio?.playing),
-            volume: numberInRange(source.audio?.volume, 0, 1, 0.55),
-            startedAt: integerInRange(source.audio?.startedAt, 0, MAX_SAFE_GAME_INTEGER, 0),
-            offset: numberInRange(source.audio?.offset, 0, 604800, 0),
-        },
         settings: {
             ...fallback.settings,
             ...(source.settings && typeof source.settings === "object" ? source.settings : {}),
@@ -1999,6 +1982,5 @@ export const eventSummary = event => {
         ? `${event.author} confirmou presença.`
         : `${event.author} voltou a se preparar.`;
     if (event?.type === "team-offer") return `${event.author} enviou a equipe “${payload.team?.name || "sem nome"}”.`;
-    if (event?.type === "sfx") return `Som da cena: ${payload.label || "efeito"}.`;
     return asText(payload.text) || `${event?.author || "MyOwnDex"} registrou uma ação.`;
 };

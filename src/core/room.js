@@ -165,8 +165,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
 });
 
 export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
-    const source = value && typeof value === "object" ? { ...value } : {};
-    delete source.audio;
+    const source = value && typeof value === "object" ? value : {};
     const storedMaxHp = integerInRange(source.maxHp, 1, 99999, 1);
     const moves = asArray(source.moves).slice(0, 4).map(move => normalizeSlug(move));
     while (moves.length < 4) moves.push("");
@@ -267,7 +266,8 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
 };
 
 export const normalizeRoomSnapshot = value => {
-    const source = value && typeof value === "object" ? value : {};
+    const source = value && typeof value === "object" ? { ...value } : {};
+    delete source.audio;
     const fallback = createRoomSnapshot(source.title);
     const legacyScale = Number.isFinite(Number(source.schema))
         && Number(source.schema) > 0

@@ -496,14 +496,15 @@ html .app-root.game-edition.handheld-edition .local-dice-total{
   box-shadow:0 3px 0 color-mix(in srgb,var(--ui-blue) 18%,transparent);
 }
 .account-trainer-card::before{
-  content:"TRAINER";
+  content:"";
   position:absolute;
-  right:.8rem;
-  bottom:.25rem;
-  color:color-mix(in srgb,var(--ui-blue) 10%,transparent);
-  font-family:"Dex Pixel",monospace;
-  font-size:2.2rem;
-  letter-spacing:.08em;
+  right:-1.3rem;
+  bottom:-1.7rem;
+  width:6.5rem;
+  aspect-ratio:1;
+  border:1px solid color-mix(in srgb,var(--ui-blue) 13%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 0 .9rem color-mix(in srgb,var(--ui-blue) 4%,transparent);
   pointer-events:none;
 }
 .account-trainer-card > *{

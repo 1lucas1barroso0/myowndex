@@ -816,3 +816,38 @@ html .app-root.game-edition.handheld-edition .local-pokemon-dice :is(input,selec
   }
   html .app-root.game-edition.handheld-edition .local-dice-dialog-heading .companion-compact { display: none !important; }
 }
+
+
+/* 2.0.12: physical-phone fallback for browsers/PWAs that expose a wide
+   desktop layout viewport. The roller uses the available screen instead of
+   staying capped at 40rem and becoming a tiny island in the middle. */
+@media (pointer: coarse) and (max-device-width: 700px),
+       (pointer: coarse) and (max-device-height: 700px) {
+  html .app-root.game-edition.handheld-edition .local-dice-dialog {
+    width: calc(100vw - .75rem) !important;
+    max-width: none !important;
+    max-height: calc(100dvh - .75rem) !important;
+  }
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading {
+    padding: 1rem !important;
+    gap: .6rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-content {
+    padding: 1rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .local-dice-pages {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+  html .app-root.game-edition.handheld-edition .local-dice-tabs {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  }
+  html .app-root.game-edition.handheld-edition .local-dice-fields {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media (pointer: coarse) and (max-device-width: 360px),
+       (pointer: coarse) and (max-device-height: 360px) {
+  html .app-root.game-edition.handheld-edition .local-dice-fields {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+}

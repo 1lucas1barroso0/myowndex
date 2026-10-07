@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.15.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.16.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -79,6 +79,8 @@ A revisão 2.0.15 é o passe de retenção, sprites e robustez. Toda identidade 
 A Pokédex não usa régua, haste, faixa cinza ou marcador de chão atrás dos sprites. Dentro dos cards, a escala física é neutralizada para que espécies pequenas continuem visualmente legíveis. Cabeçalhos principais recuperam cor, composição e presença de jogo, preservando leitura, toque, contraste e redução de movimento.
 
 Dados mantém Web Crypto como fonte aleatória de produção e rejection sampling para intervalos uniformes. A suíte 2.0.15 amplia a auditoria para todos os dados oferecidos, centenas de milhares de draws seguros adicionais, dezenas de milhares de recibos locais mistos e uma matriz ampliada de viewports. Rolagens locais não usam cooldown por clique; cada ativação válida gera seu recibo antes de cache ou persistência e entra no histórico da sessão imediatamente.
+
+A revisão 2.0.16 acrescenta uma barreira de qualidade permanente. O CI passa a rodar a matriz real de browser com Chromium após testes, lint, tipos e build. A matriz inclui celulares estreitos, retrato alto, landscape curto, tablets e desktops; verifica overflow, modais, sprites decorativos, cards visíveis da Pokédex e rajadas de rolagens até o limite do histórico. Os PNGs dos parceiros também são decodificados nos testes para garantir transparência e margem de segurança contra corte. O RNG mantém Web Crypto + rejection sampling e ganha uma auditoria adicional de transições consecutivas para flagrar qualquer acoplamento de estado ou preferência artificial.
 
 ## Documentos históricos
 

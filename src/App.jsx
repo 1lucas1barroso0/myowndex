@@ -2,6 +2,7 @@ import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useSt
 import dynamic from "next/dynamic";
 import bundledSpecies from "./data/species.json";
 import fixedFormCatalogue from "./data/forms.json";
+import packageJson from "../package.json";
 import speciesMetadata from "./data/generator-species.json";
 import { integerInRange } from "./core/math.js";
 import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
@@ -22,8 +23,7 @@ import { getDexVariantMeta } from "./core/dexVariants.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
-const APP_VERSION = "2.0.13";
-const APP_VERSION_LABEL = "2.0";
+const APP_VERSION = packageJson.version;
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
 const formatDexResultCount = (speciesCount, formCount) => {
     const parts = [];
@@ -31,7 +31,7 @@ const formatDexResultCount = (speciesCount, formCount) => {
     if (formCount) parts.push(`${formCount} ${formCount === 1 ? "forma" : "formas"}`);
     return parts.join(" · ") || "0 resultados";
 };
-function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v91.svg" alt="" /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION_LABEL}</small></div>; }
+function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-icon-v100.svg" alt="" /><PokemonCompanion place="pokedex" className="opening-companion" eager /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
 const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: OpeningScreen });
@@ -572,7 +572,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     <div className="app-header-row">
                         <div className="app-header-primary">
                             <div className="app-brand-cluster">
-                                <img className="app-brand-icon" src="/icons/myowndex-icon-v91.svg" alt="" />
+                                <img className="app-brand-icon" src="/icons/myowndex-icon-v100.svg" alt="" />
                                 <div className="app-brand">
                                     <h1>MyOwnDex</h1>
                                 </div>
@@ -683,7 +683,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} />}
                 </div>
             </main>
-            <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION_LABEL}</b></span><details className="game-credits"><summary>Créditos</summary><p>Projeto de fãs · <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></p></details></footer>
+            <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION}</b></span><details className="game-credits"><summary>Créditos</summary><p>Projeto de fãs · <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a></p></details></footer>
             {selectedEntry && <PokemonModal
                 speciesUrl={selectedEntry.url}
                 initialForm={selectedEntry.formKey ? {

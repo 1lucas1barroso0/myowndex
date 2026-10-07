@@ -10,8 +10,6 @@ const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
   "/icons/myowndex-rotomdex-v101.svg",
-  "/icons/myowndex-rotomdex-v101.svg",
-  "/icons/myowndex-rotomdex-v101.svg",
   "/fonts/VT323-Regular.ttf",
 ];
 

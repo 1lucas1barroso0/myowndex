@@ -11,6 +11,7 @@ const CORE_ASSETS = [
   "/manifest.webmanifest",
   "/favicon-v100.svg",
   "/icons/myowndex-icon-v100.svg",
+  "/icons/myowndex-maskable-v100.svg",
   "/fonts/VT323-Regular.ttf",
 ];
 

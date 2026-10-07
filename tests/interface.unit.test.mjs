@@ -183,7 +183,7 @@ test("offline support caches the shell and sprites but never private room APIs",
   assert.match(worker, /SKIP_WAITING/);
   assert.doesNotMatch(worker, /then\(\(\) => self\.skipWaiting\(\)\)/);
   assert.match(worker, /request\.headers\.get\("RSC"\)/);
-  assert.match(worker, /myowndex-rotomdex-v101\.svg/);
+  assert.match(worker, /myowndex-rotomdex-v102\.svg/);
   assert.doesNotMatch(worker, /myowndex-(?:icon|app|maskable|shortcut).*v91|favicon-v91/);
   assert.match(app, /document\.readyState === "complete"/);
   assert.match(app, /updateViaCache: "none"/);
@@ -386,16 +386,16 @@ test("safe shell updates and both visual themes remain available without an inst
   assert.doesNotMatch(app, /InstallMyOwnDex|Pronto para explorar/);
   assert.match(appearance, /prefers-color-scheme: dark/);
   assert.match(appearance, /myowndex_appearance_v1/);
-  assert.match(manifest, /myowndex-rotomdex-v101\.svg/);
+  assert.match(manifest, /myowndex-rotomdex-v102\.svg/);
   assert.match(manifest, /purpose:\s*"maskable"/);
   assert.match(manifest, /shortcuts:/);
-  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-rotomdex-v101\.svg"/);
-  assert.match(layout, /myowndex-rotomdex-v101\.svg/);
+  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-rotomdex-v102\.svg"/);
+  assert.match(layout, /myowndex-rotomdex-v102\.svg/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
-  assert.match(app, /myowndex-rotomdex-v101\.svg/);
+  assert.match(app, /myowndex-rotomdex-v102\.svg/);
   assert.match(app, /app-header-primary/);
   assert.match(css, /min-height:\s*100dvh/);
 });
@@ -578,7 +578,7 @@ test("joyful identity keeps one Pokémon companion on every primary surface with
   assert.match(art, /\.pokemon-companion::before[\s\S]*content:none\s*!important;[\s\S]*display:none\s*!important;/);
   assert.match(art, /joyful field-guide direction/);
   assert.doesNotMatch(art, /game-shadow-float/);
-  for (const source of [app, layout, manifest]) assert.match(source, /myowndex-rotomdex-v101\.svg/);
+  for (const source of [app, layout, manifest]) assert.match(source, /myowndex-rotomdex-v102\.svg/);
   assert.doesNotMatch(app + layout + manifest, /myowndex-icon-v91|favicon-v91/);
 });
 
@@ -602,13 +602,23 @@ test("all visible app identity references use one RotomDex master asset", async 
   const [app, layout, manifest, worker] = await Promise.all([
     read("src/App.jsx"), read("app/layout.tsx"), read("app/manifest.ts"), read("public/sw.js"),
   ]);
-  for (const source of [app, layout, manifest, worker]) assert.match(source, /myowndex-rotomdex-v101\.svg/);
+  for (const source of [app, layout, manifest, worker]) assert.match(source, /myowndex-rotomdex-v102\.svg/);
   assert.doesNotMatch(app + layout + manifest + worker, /myowndex-(?:icon|app|maskable|shortcut).*v(?:91|100)|favicon-v(?:91|100)/);
-  assert.match(await read("public/icons/myowndex-rotomdex-v101.svg"), /RotomDex estilizada nas cores do MyOwnDex/);
+  assert.match(await read("public/icons/myowndex-rotomdex-v102.svg"), /RotomDex do MyOwnDex em vermelho, azul, teal e dourado/);
 });
 
 test("local dice submit has no click-count throttle", async () => {
   const panel = await read("src/components/Shared/LocalDicePanel.jsx");
   assert.doesNotMatch(panel, /event\.detail\s*>\s*1/);
   assert.match(panel, /setHistory\(current=>mergeLocalRolls\(\[receipt\],current\)\)/);
+});
+
+
+test("safe sprite geometry removes negative hero offsets and keeps transparent stages", async () => {
+  const art = await read("src/game-art-direction.css");
+  const finalPass = art.slice(art.lastIndexOf("/* 2.0.16"));
+  assert.match(finalPass, /\.pokemon-companion\{[\s\S]*margin:0\s*!important;[\s\S]*contain:none\s*!important;/);
+  assert.match(finalPass, /object-position:center bottom\s*!important/);
+  assert.match(finalPass, /\.pokemon-card-sprite-frame::before,[\s\S]*content:none\s*!important/);
+  assert.doesNotMatch(finalPass, /margin:\s*-/, "the final sprite pass must not use negative companion margins");
 });

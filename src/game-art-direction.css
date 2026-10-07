@@ -1,0 +1,595 @@
+/* MyOwnDex 2.0.13 — senior game-art pass.
+   Content stays untouched; this layer only changes staging, material, hierarchy
+   and tactile feedback. It is imported last on purpose. */
+
+html:root{
+  --game-frame: color-mix(in srgb,var(--ui-ink) 18%,var(--ui-line));
+  --game-frame-strong: color-mix(in srgb,var(--ui-ink) 34%,var(--ui-line));
+  --game-panel-hi: color-mix(in srgb,#fff 34%,var(--ui-panel));
+  --game-panel-low: color-mix(in srgb,var(--ui-raised) 72%,var(--ui-panel));
+  --game-shadow-soft: 0 12px 32px #10243714;
+  --game-shadow-card: 0 3px 0 #10243718,0 10px 24px #1024370d;
+  --game-shadow-float: 0 8px 0 #10243718,0 28px 70px #071a3236;
+  --game-gold-soft: color-mix(in srgb,var(--journey-gold) 26%,transparent);
+  --game-blue-soft: color-mix(in srgb,var(--ui-blue) 12%,transparent);
+  --game-red-soft: color-mix(in srgb,var(--ui-accent) 10%,transparent);
+}
+html[data-theme="night"]{
+  --game-panel-hi: color-mix(in srgb,#fff 4%,var(--ui-panel));
+  --game-panel-low: color-mix(in srgb,#000 12%,var(--ui-raised));
+  --game-shadow-soft: 0 14px 34px #020a1066;
+  --game-shadow-card: 0 3px 0 #020a107a,0 12px 26px #020a104a;
+  --game-shadow-float: 0 8px 0 #020a1080,0 30px 78px #020a1090;
+}
+
+/* World layer: subtle map/handheld texture, not wallpaper. */
+html .app-root.game-edition.handheld-edition{
+  background:
+    radial-gradient(circle at 8% 16%,color-mix(in srgb,var(--ui-blue) 5%,transparent) 0 1px,transparent 1.5px) 0 0/22px 22px,
+    radial-gradient(ellipse at 8% 4%,color-mix(in srgb,var(--journey-teal) 7%,transparent),transparent 43%),
+    radial-gradient(ellipse at 94% 34%,color-mix(in srgb,var(--ui-blue) 6%,transparent),transparent 47%),
+    var(--ui-canvas) !important;
+}
+
+/* Header behaves like the top half of a handheld: bold frame, quiet controls. */
+html .app-root.game-edition.handheld-edition .app-header{
+  position: relative;
+  border-bottom: 5px solid #861a31 !important;
+  background:
+    linear-gradient(116deg,#a91f3d 0 14%,transparent 14% 79%,#a91f3d 79%),
+    linear-gradient(180deg,#d83350 0%,#c52243 70%,#b91f3d 100%) !important;
+  box-shadow: inset 0 1px #ffffff30,inset 0 -1px #5c1222,0 6px 0 #243b4010 !important;
+}
+html .app-root.game-edition.handheld-edition .app-header::after{
+  content:"";
+  position:absolute;
+  inset:auto 0 0;
+  height:2px;
+  background:linear-gradient(90deg,transparent 2%,#ffffff24 12% 88%,transparent 98%);
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .app-brand-icon{
+  filter: drop-shadow(0 3px 0 #70132655);
+}
+html .app-root.game-edition.handheld-edition .nav-capsule{
+  border:1px solid #ffffff2e !important;
+  background:linear-gradient(180deg,#ffffff10,#7e16302e) !important;
+  box-shadow:inset 0 1px #ffffff1c,0 3px 0 #7b173025 !important;
+}
+html .app-root.game-edition.handheld-edition .nav-capsule.is-active{
+  transform:translateY(1px);
+  background:linear-gradient(180deg,#2f474c,#20353a) !important;
+  border-color:#183036 !important;
+  box-shadow:inset 0 1px #ffffff18,0 4px 0 var(--journey-gold),0 8px 16px #70132630 !important;
+}
+html .app-root.game-edition.handheld-edition .nav-capsule.is-active .nav-emblem{
+  box-shadow:inset 0 -3px 0 #ad8230,0 0 0 3px #ffffff12 !important;
+}
+html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button){
+  border-color:#ffffff69 !important;
+  background:linear-gradient(180deg,#ffffff10,#7e16302b) !important;
+  box-shadow:inset 0 1px #ffffff1a,0 3px 0 #74162b38 !important;
+}
+html .app-root.game-edition.handheld-edition .app-actions :is(.global-dice-button,.global-generator-button,.account-header-button)[aria-expanded="true"],
+html .app-root.game-edition.handheld-edition .app-actions .account-header-button[aria-pressed="true"]{
+  background:linear-gradient(180deg,#f7d974,#e8b93f) !important;
+  color:#243b40 !important;
+  border-color:#bb8d2c !important;
+  box-shadow:inset 0 1px #fff6c7,0 3px 0 #9b7226 !important;
+}
+
+/* Shared game material: layered edge plus a tiny highlight. */
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.room-lobby-card,.room-local-entry,.dex-more-filters,.dex-search,.record-shell,.pc-sidebar,.pc-main-panel,.guide-hero){
+  position:relative;
+  border-color:var(--game-frame) !important;
+  box-shadow:var(--game-shadow-card) !important;
+}
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.room-lobby-card,.room-local-entry,.dex-more-filters,.dex-search)::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  inset:1px 1px auto;
+  height:1px;
+  border-radius:inherit;
+  background:linear-gradient(90deg,transparent,#ffffffad 18% 82%,transparent);
+  opacity:.55;
+}
+
+/* Adventure lobby: two role cartridges rather than two plain forms. */
+html .app-root.game-edition.handheld-edition .adventure-intro{
+  overflow:hidden;
+  border-left-width:0 !important;
+  border-top:5px solid var(--ui-accent) !important;
+  background:
+    radial-gradient(circle at 89% 40%,color-mix(in srgb,var(--journey-teal) 16%,transparent) 0 14%,transparent 32%),
+    linear-gradient(125deg,var(--game-panel-hi),var(--ui-panel) 58%,var(--game-panel-low)) !important;
+  box-shadow:0 5px 0 color-mix(in srgb,var(--ui-accent) 20%,transparent),var(--game-shadow-soft) !important;
+}
+html .app-root.game-edition.handheld-edition .adventure-intro::before{
+  content:"";
+  position:absolute;
+  right:-3rem;
+  bottom:-4.5rem;
+  width:12rem;
+  aspect-ratio:1;
+  border:1px solid color-mix(in srgb,var(--journey-teal) 18%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 0 1.6rem color-mix(in srgb,var(--journey-teal) 4%,transparent),0 0 0 3rem color-mix(in srgb,var(--journey-teal) 3%,transparent);
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .adventure-intro .pokemon-companion{
+  position:relative;
+  z-index:1;
+  filter:drop-shadow(0 7px 2px #10243725) !important;
+}
+html .app-root.game-edition.handheld-edition .room-lobby-grid{
+  gap:1rem !important;
+}
+html .app-root.game-edition.handheld-edition .room-lobby-card{
+  overflow:hidden;
+  padding:1.3rem !important;
+  border-top-width:5px !important;
+  background:linear-gradient(155deg,var(--game-panel-hi),var(--ui-panel) 58%,var(--game-panel-low)) !important;
+}
+html .app-root.game-edition.handheld-edition .room-lobby-card.is-narrator{
+  border-top-color:var(--ui-accent) !important;
+}
+html .app-root.game-edition.handheld-edition .room-lobby-card.is-player{
+  border-top-color:var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .room-lobby-card::before{
+  content:"";
+  position:absolute;
+  right:-2rem;
+  top:-2rem;
+  width:7rem;
+  height:7rem;
+  border-radius:50%;
+  background:color-mix(in srgb,var(--ui-accent) 7%,transparent);
+  box-shadow:0 0 0 1.2rem color-mix(in srgb,var(--ui-accent) 3%,transparent);
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .room-lobby-card.is-player::before{
+  background:color-mix(in srgb,var(--ui-blue) 8%,transparent);
+  box-shadow:0 0 0 1.2rem color-mix(in srgb,var(--ui-blue) 3%,transparent);
+}
+html .app-root.game-edition.handheld-edition .room-lobby-card > header{
+  position:relative;
+  z-index:1;
+  padding-bottom:.75rem !important;
+  border-bottom:1px dashed color-mix(in srgb,var(--ui-line) 72%,transparent);
+}
+html .app-root.game-edition.handheld-edition .room-role-mark{
+  border:1px solid color-mix(in srgb,var(--ui-accent) 30%,var(--ui-line)) !important;
+  box-shadow:inset 0 1px #ffffffb0,0 3px 0 color-mix(in srgb,var(--ui-accent) 18%,transparent) !important;
+}
+html .app-root.game-edition.handheld-edition .is-player .room-role-mark{
+  border-color:color-mix(in srgb,var(--ui-blue) 35%,var(--ui-line)) !important;
+  box-shadow:inset 0 1px #ffffffb0,0 3px 0 color-mix(in srgb,var(--ui-blue) 17%,transparent) !important;
+}
+html .app-root.game-edition.handheld-edition .room-lobby-card :is(input,textarea,select){
+  background:color-mix(in srgb,var(--ui-raised) 72%,var(--ui-panel)) !important;
+  border-color:var(--game-frame) !important;
+  box-shadow:inset 0 2px 4px #10243708 !important;
+}
+html .app-root.game-edition.handheld-edition .room-lobby-card .room-primary-button{
+  min-height:50px !important;
+  background:linear-gradient(180deg,#d32e50,#b91f40) !important;
+  border-color:#8f1831 !important;
+  box-shadow:inset 0 1px #ffffff42,0 4px 0 #8f1831,0 8px 14px #8f18311c !important;
+}
+html .app-root.game-edition.handheld-edition .room-local-entry{
+  border:1px solid color-mix(in srgb,var(--journey-teal) 40%,var(--ui-line)) !important;
+  background:
+    linear-gradient(90deg,color-mix(in srgb,var(--journey-teal) 9%,var(--ui-panel)),var(--ui-panel) 66%) !important;
+  box-shadow:0 3px 0 color-mix(in srgb,var(--journey-teal) 12%,transparent),0 10px 20px #1024370a !important;
+}
+
+/* Pokédex: collection cards read as physical entries, not dashboard tiles. */
+html .app-root.game-edition.handheld-edition .dex-heading{
+  position:relative;
+  padding:1rem 0 1.2rem !important;
+  border-bottom:0 !important;
+}
+html .app-root.game-edition.handheld-edition .dex-heading::after{
+  content:"";
+  position:absolute;
+  inset:auto 0 0;
+  height:4px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--ui-accent),color-mix(in srgb,var(--ui-accent) 48%,var(--ui-blue)),transparent 92%);
+}
+html .app-root.game-edition.handheld-edition .dex-title h2{
+  letter-spacing:-.045em !important;
+}
+html .app-root.game-edition.handheld-edition .dex-count{
+  border-color:var(--game-frame) !important;
+  background:linear-gradient(var(--game-panel-hi),var(--ui-panel)) !important;
+  box-shadow:0 2px 0 #10243712 !important;
+}
+html .app-root.game-edition.handheld-edition .dex-search{
+  background:linear-gradient(160deg,var(--game-panel-hi),var(--ui-panel)) !important;
+  border:1px solid var(--game-frame) !important;
+  box-shadow:var(--game-shadow-card) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-more-filters{
+  overflow:hidden;
+  border-color:var(--game-frame) !important;
+  background:linear-gradient(180deg,var(--game-panel-hi),var(--ui-panel)) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-more-filters > summary{
+  box-shadow:inset 0 -1px color-mix(in srgb,var(--ui-line) 45%,transparent);
+}
+html .app-root.game-edition.handheld-edition .dex-grid{
+  gap:.9rem !important;
+}
+html .app-root.game-edition.handheld-edition .dex-entry{
+  isolation:isolate;
+}
+html .app-root.game-edition.handheld-edition .dex-entry-main{
+  position:relative;
+  overflow:hidden;
+  min-height:15rem;
+  border:1px solid var(--game-frame) !important;
+  border-bottom:4px solid color-mix(in srgb,var(--ui-blue) 24%,var(--ui-line)) !important;
+  border-radius:1rem !important;
+  background:linear-gradient(155deg,var(--game-panel-hi),var(--ui-panel) 62%,var(--game-panel-low)) !important;
+  box-shadow:var(--game-shadow-card) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-entry-main::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:0;
+  background:
+    linear-gradient(135deg,color-mix(in srgb,var(--ui-blue) 4%,transparent),transparent 42%),
+    radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--ui-accent) 6%,transparent),transparent 22%);
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .dex-entry-main > *{
+  position:relative;
+  z-index:1;
+}
+html .app-root.game-edition.handheld-edition .dex-number{
+  width:max-content;
+  padding:.12rem .45rem !important;
+  border:1px solid color-mix(in srgb,var(--ui-line) 75%,transparent);
+  border-radius:.35rem;
+  background:color-mix(in srgb,var(--ui-raised) 78%,transparent);
+  font-size:1rem !important;
+  letter-spacing:.04em;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
+  position:relative;
+  height:8rem !important;
+  margin:.55rem 0 .65rem !important;
+  border-radius:.9rem !important;
+  background:
+    radial-gradient(ellipse at 50% 87%,color-mix(in srgb,var(--ui-blue) 18%,transparent) 0 26%,transparent 27%),
+    radial-gradient(circle at 50% 54%,color-mix(in srgb,var(--ui-blue) 7%,var(--ui-raised)) 0 42%,transparent 43%) !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
+  content:"";
+  position:absolute;
+  inset:12% 17%;
+  border:1px solid color-mix(in srgb,var(--ui-blue) 11%,transparent);
+  border-radius:50%;
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame img{
+  filter:drop-shadow(0 5px 1px #10243720);
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-name{
+  font-size:1.05rem !important;
+  font-weight:850 !important;
+  letter-spacing:-.025em;
+}
+html .app-root.game-edition.handheld-edition .dex-generation-mark{
+  margin-top:.18rem !important;
+}
+html .app-root.game-edition.handheld-edition .dex-favorite{
+  top:.45rem !important;
+  right:.45rem !important;
+  border:1px solid transparent !important;
+  border-radius:50% !important;
+}
+html .app-root.game-edition.handheld-edition .dex-favorite[aria-pressed="true"]{
+  background:color-mix(in srgb,var(--journey-gold) 18%,var(--ui-panel)) !important;
+  color:#9b7226 !important;
+  border-color:color-mix(in srgb,var(--journey-gold) 55%,var(--ui-line)) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-entry.is-favorite .dex-entry-main{
+  border-bottom-color:var(--journey-gold) !important;
+  box-shadow:0 3px 0 color-mix(in srgb,var(--journey-gold) 38%,transparent),0 12px 26px #10243710 !important;
+}
+
+/* Dice station: one compact VTT instrument with a strong result lane. */
+html .app-root.game-edition.handheld-edition .local-dice-dialog{
+  border:1px solid var(--game-frame-strong) !important;
+  border-top:0 !important;
+  border-radius:1.1rem !important;
+  background:var(--ui-panel) !important;
+  box-shadow:var(--game-shadow-float),0 0 0 1px #ffffff14 !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-dialog::before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  inset:0 0 auto;
+  height:6px;
+  border-radius:1.1rem 1.1rem 0 0;
+  background:linear-gradient(90deg,var(--ui-blue),#46a6d4 48%,var(--journey-gold));
+  pointer-events:none;
+}
+html .app-root.game-edition.handheld-edition .local-dice-dialog-heading{
+  padding-top:1.25rem !important;
+  background:
+    radial-gradient(circle at 86% 40%,var(--game-blue-soft),transparent 25%),
+    linear-gradient(180deg,var(--game-panel-hi),var(--ui-raised)) !important;
+  border-bottom:1px solid var(--game-frame) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-dialog-close,
+.account-dialog .account-close{
+  border:1px solid var(--game-frame) !important;
+  border-radius:.75rem !important;
+  background:linear-gradient(var(--game-panel-hi),var(--ui-panel)) !important;
+  box-shadow:0 2px 0 #10243718 !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-dialog-content{
+  background:
+    linear-gradient(180deg,color-mix(in srgb,var(--ui-blue) 2%,transparent),transparent 9rem),
+    var(--ui-panel);
+}
+html .app-root.game-edition.handheld-edition .local-dice-pages{
+  gap:.45rem !important;
+  padding:.35rem !important;
+  margin-bottom:1rem;
+  border:1px solid var(--game-frame);
+  border-radius:.85rem;
+  background:var(--game-panel-low);
+}
+html .app-root.game-edition.handheld-edition .local-dice-pages button{
+  border-color:transparent !important;
+  border-radius:.65rem !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-pages button[aria-pressed="true"]{
+  background:linear-gradient(180deg,var(--game-panel-hi),var(--ui-selected)) !important;
+  border-color:color-mix(in srgb,var(--ui-blue) 35%,var(--ui-line)) !important;
+  box-shadow:0 2px 0 color-mix(in srgb,var(--ui-blue) 18%,transparent) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-tabs{
+  gap:.55rem !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-tabs button{
+  min-height:68px !important;
+  border:1px solid var(--game-frame) !important;
+  border-bottom-width:3px !important;
+  border-radius:.8rem !important;
+  background:linear-gradient(160deg,var(--game-panel-hi),var(--ui-panel)) !important;
+  box-shadow:0 2px 0 #10243710 !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-tabs button[aria-pressed="true"]{
+  border-color:color-mix(in srgb,var(--ui-blue) 58%,var(--ui-line)) !important;
+  border-bottom-color:var(--ui-blue) !important;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--ui-blue) 10%,var(--game-panel-hi)),var(--ui-selected)) !important;
+  box-shadow:0 3px 0 color-mix(in srgb,var(--ui-blue) 20%,transparent) !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-submit .room-primary-button{
+  min-height:52px !important;
+  border-radius:.8rem !important;
+  background:linear-gradient(180deg,#d82f52,#b91f40) !important;
+  box-shadow:inset 0 1px #ffffff42,0 4px 0 #8f1831,0 10px 20px #8f183120 !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-result{
+  position:relative;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--ui-blue) 35%,var(--ui-line)) !important;
+  border-left:5px solid var(--ui-blue) !important;
+  border-radius:.9rem !important;
+  background:
+    radial-gradient(circle at 92% 16%,var(--game-blue-soft),transparent 28%),
+    linear-gradient(150deg,var(--game-panel-hi),var(--ui-panel)) !important;
+  box-shadow:0 3px 0 color-mix(in srgb,var(--ui-blue) 14%,transparent),0 10px 24px #1024370c !important;
+}
+html .app-root.game-edition.handheld-edition .local-dice-total{
+  min-width:3.25rem;
+  min-height:3.25rem;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:var(--ui-ink);
+  color:var(--ui-panel);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--ui-blue) 14%,transparent);
+}
+
+/* Account: trainer card / save-file language, not generic SaaS login. */
+.account-overlay{
+  background:
+    radial-gradient(circle at 50% 38%,#17324b36,transparent 34rem),
+    #07131fc2 !important;
+  backdrop-filter:blur(3px);
+}
+.account-dialog{
+  position:relative;
+  border:1px solid var(--game-frame-strong) !important;
+  border-top:0 !important;
+  border-radius:1.1rem !important;
+  background:var(--ui-panel) !important;
+  box-shadow:var(--game-shadow-float) !important;
+}
+.account-dialog::before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  inset:0 0 auto;
+  height:6px;
+  border-radius:1.1rem 1.1rem 0 0;
+  background:linear-gradient(90deg,var(--ui-accent),#de5470 45%,var(--journey-gold));
+  pointer-events:none;
+}
+.account-dialog-heading{
+  position:relative;
+  padding-top:1.65rem !important;
+  background:
+    radial-gradient(circle at 82% 45%,var(--game-red-soft),transparent 25%),
+    linear-gradient(180deg,var(--game-panel-hi),var(--ui-raised)) !important;
+  border-bottom:1px solid var(--game-frame) !important;
+}
+.account-kicker{
+  display:inline-flex;
+  align-items:center;
+  min-height:1.7rem;
+  padding:.18rem .55rem;
+  border-radius:999px;
+  border:1px solid color-mix(in srgb,var(--ui-blue) 28%,var(--ui-line));
+  background:var(--ui-selected);
+  letter-spacing:.06em !important;
+}
+.account-dialog-content{
+  background:
+    linear-gradient(180deg,color-mix(in srgb,var(--ui-accent) 2%,transparent),transparent 10rem),
+    var(--ui-panel);
+}
+.account-pages{
+  gap:.45rem !important;
+  padding:.35rem;
+  border:1px solid var(--game-frame);
+  border-radius:.85rem;
+  background:var(--game-panel-low);
+}
+.account-pages button{
+  border-color:transparent !important;
+  border-radius:.65rem !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.account-pages button[aria-pressed="true"]{
+  color:var(--ui-panel) !important;
+  border-color:var(--ui-ink) !important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ui-ink) 88%,#fff),var(--ui-ink)) !important;
+  box-shadow:inset 0 -3px var(--journey-gold),0 2px 0 #10243720 !important;
+}
+.account-dialog input:not([type="checkbox"]){
+  border-color:var(--game-frame) !important;
+  border-radius:.7rem !important;
+  background:linear-gradient(180deg,var(--game-panel-low),var(--ui-raised)) !important;
+  box-shadow:inset 0 2px 4px #10243708 !important;
+}
+.account-dialog .account-primary{
+  min-height:50px;
+  border-radius:.75rem !important;
+  background:linear-gradient(180deg,#2e4a50,#20383d) !important;
+  border-color:#172f34 !important;
+  box-shadow:inset 0 1px #ffffff24,0 4px 0 #172f34 !important;
+}
+.account-trainer-card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--ui-blue) 35%,var(--ui-line));
+  border-left:0 !important;
+  border-radius:1rem;
+  background:
+    radial-gradient(circle at 90% 50%,var(--game-blue-soft),transparent 30%),
+    linear-gradient(135deg,var(--game-panel-hi),var(--ui-selected)) !important;
+  box-shadow:0 3px 0 color-mix(in srgb,var(--ui-blue) 18%,transparent);
+}
+.account-trainer-card::before{
+  content:"";
+  position:absolute;
+  right:-1.3rem;
+  bottom:-1.7rem;
+  width:6.5rem;
+  aspect-ratio:1;
+  border:1px solid color-mix(in srgb,var(--ui-blue) 13%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 0 .9rem color-mix(in srgb,var(--ui-blue) 4%,transparent);
+  pointer-events:none;
+}
+.account-trainer-card > *{
+  position:relative;
+  z-index:1;
+}
+
+/* Buttons: tactile but not toy-like. */
+html .app-root.game-edition.handheld-edition :is(.room-primary-button,.link-cable-primary,.record-add-partner,.confirm-dialog-confirm),
+.account-dialog .account-primary{
+  transition:transform .12s ease,box-shadow .12s ease,filter .12s ease !important;
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  html .app-root.game-edition.handheld-edition .dex-entry-main:hover{
+    transform:translateY(-3px) !important;
+    border-color:color-mix(in srgb,var(--ui-blue) 42%,var(--game-frame)) !important;
+    box-shadow:0 5px 0 color-mix(in srgb,var(--ui-blue) 14%,transparent),0 16px 32px #10243716 !important;
+  }
+  html .app-root.game-edition.handheld-edition :is(.room-lobby-card,.adventure-intro,.local-dice-result){
+    transition:box-shadow .18s ease,border-color .18s ease;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  html .app-root.game-edition.handheld-edition .nav-capsule.is-active{ transform:none; }
+}
+
+/* Phone composition: keep the game character without stealing playable space. */
+@media (max-width:540px),
+       (pointer:coarse) and (max-device-width:700px){
+  html .app-root.game-edition.handheld-edition .app-scroll-area{
+    padding-inline:.75rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .adventure-intro{
+    border-top-width:4px !important;
+  }
+  html .app-root.game-edition.handheld-edition .room-lobby-card{
+    padding:1rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .dex-grid{
+    gap:.75rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .dex-entry-main{
+    min-height:13.4rem;
+    padding:.75rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
+    height:7.2rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame img{
+    width:100px !important;
+    height:100px !important;
+  }
+  html .app-root.game-edition.handheld-edition .local-dice-dialog{
+    border-radius:.95rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading{
+    padding:1rem !important;
+    padding-top:1.2rem !important;
+  }
+  .account-dialog{
+    width:min(100%,34rem);
+    border-radius:.95rem !important;
+  }
+  .account-dialog-heading{
+    padding:1.2rem 1rem 1rem !important;
+  }
+  .account-dialog-content{
+    padding:1rem !important;
+  }
+}
+@media (max-width:360px){
+  html .app-root.game-edition.handheld-edition .dex-entry-main{
+    min-height:12.5rem;
+  }
+  html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
+    height:6.5rem !important;
+  }
+}
+
+/* High-contrast mode keeps structure without relying on shadows or gradients. */
+@media (forced-colors:active){
+  html .app-root.game-edition.handheld-edition :is(.adventure-intro,.room-lobby-card,.room-local-entry,.dex-entry-main,.local-dice-dialog,.local-dice-result),
+  .account-dialog,.account-trainer-card{
+    box-shadow:none !important;
+    border:2px solid CanvasText !important;
+    background:Canvas !important;
+  }
+}

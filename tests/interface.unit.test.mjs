@@ -531,3 +531,18 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.doesNotMatch(combat, /attackTest\.total/);
   assert.doesNotMatch(combat, /contestAttributes\.attacker/);
 });
+
+
+test("game art direction is imported last and preserves the approved content layer", async () => {
+  const [globals, art] = await Promise.all([
+    read("app/globals.css"),
+    read("src/game-art-direction.css"),
+  ]);
+  assert.ok(globals.trimEnd().endsWith('@import "../src/game-art-direction.css";'));
+  for (const selector of [".adventure-intro", ".room-lobby-card", ".dex-entry-main", ".local-dice-dialog", ".account-dialog"]) {
+    assert.ok(art.includes(selector), `missing art-direction treatment for ${selector}`);
+  }
+  assert.match(art, /prefers-reduced-motion:\s*reduce/);
+  assert.match(art, /forced-colors:\s*active/);
+  assert.doesNotMatch(art, /content:\s*["'](?:Entrar|Criar conta|Rolar|Pokédex|Aventura)["']/i);
+});

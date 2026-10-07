@@ -31,6 +31,15 @@ test("database-backed audio is rebuilt from authenticated chunks in the original
     withBrowser(t);
     const pieces = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5]), new Uint8Array([6, 7, 8, 9])];
     const requested = [];
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    let capturedBlob = null;
+    URL.createObjectURL = blob => { capturedBlob = blob; return "blob:audio-test"; };
+    URL.revokeObjectURL = () => {};
+    t.after(() => {
+        URL.createObjectURL = originalCreateObjectURL;
+        URL.revokeObjectURL = originalRevokeObjectURL;
+    });
     globalThis.fetch = async (path, options) => {
         requested.push(path);
         assert.equal(options.headers["x-myowndex-room-key"], session.key);
@@ -50,10 +59,10 @@ test("database-backed audio is rebuilt from authenticated chunks in the original
     };
 
     const url = await fetchRoomAudioUrl(session, "track-db");
-    const rebuilt = new Uint8Array(await (await fetch(url)).arrayBuffer());
+    assert.equal(url, "blob:audio-test");
+    const rebuilt = new Uint8Array(await capturedBlob.arrayBuffer());
     assert.deepEqual([...rebuilt], [1, 2, 3, 4, 5, 6, 7, 8, 9]);
     assert.equal(requested.filter(path => String(path).includes("?chunk=")).length, 3);
-    URL.revokeObjectURL(url);
 });
 
 test("database-backed uploads split a track, retry safely through room requests and then complete it", async t => {

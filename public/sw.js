@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v2.0.15";
+const CACHE_NAME = "myowndex-shell-v2.0.16";
 const CACHE_PREFIX = "myowndex-shell-";
 const ASSET_CACHE_NAME = "myowndex-assets-v1";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";
@@ -8,8 +8,8 @@ const ASSET_ENTRY_BYTES = 4 * 1024 * 1024;
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
-  "/manifest.webmanifest",
-  "/icons/myowndex-rotomdex-v101.svg",
+  "/manifest.webmanifest?v=2.0.16",
+  "/icons/myowndex-rotomdex-v102.svg",
   "/fonts/VT323-Regular.ttf",
 ];
 

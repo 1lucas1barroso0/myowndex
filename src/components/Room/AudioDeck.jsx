@@ -220,7 +220,7 @@ export default function AudioDeck({
         await onEvent("sfx", { effectId: effect.id, label: effect.label });
     };
 
-    const useLocalFile = useCallback((file, fallback = false) => {
+    const loadLocalFile = useCallback((file, fallback = false) => {
         audioRef.current?.pause();
         const url = URL.createObjectURL(file);
         if (localUrlRef.current) URL.revokeObjectURL(localUrlRef.current);
@@ -256,7 +256,7 @@ export default function AudioDeck({
             return;
         }
         if (isLocal) {
-            useLocalFile(file);
+            loadLocalFile(file);
             return;
         }
         setUploading(true);
@@ -279,7 +279,7 @@ export default function AudioDeck({
             });
         } catch (error) {
             if (error?.data?.setupRequired) {
-                useLocalFile(file, true);
+                loadLocalFile(file, true);
             } else {
                 onError(error);
             }

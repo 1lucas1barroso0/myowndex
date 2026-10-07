@@ -373,3 +373,30 @@ html .app-root.game-edition.handheld-edition .dex-generations > * {
     grid-template-columns: repeat(auto-fit,minmax(12rem,1fr)) !important;
   }
 }
+
+
+/* 2.0.12: phones keep a phone layout even when the browser exposes a
+   desktop-sized layout viewport. This uses the physical input/device envelope
+   as a fallback instead of trusting viewport width alone. */
+@media (pointer: coarse) and (max-device-width: 700px),
+       (pointer: coarse) and (max-device-height: 700px) {
+  html .app-root.game-edition.handheld-edition .dex-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    gap: .75rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .dex-entry-main {
+    padding: .9rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .pokemon-card-name {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+  }
+  html .app-root.game-edition.handheld-edition :is(.dex-number,.dex-generation-mark) {
+    font-size: .78rem !important;
+  }
+}
+@media (pointer: coarse) and (orientation: landscape) and (max-device-height: 700px) {
+  html .app-root.game-edition.handheld-edition .dex-grid {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  }
+}

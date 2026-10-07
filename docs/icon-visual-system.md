@@ -16,9 +16,9 @@ O MyOwnDex combina a organização ampla dos menus de Pokémon Sword/Shield com 
 
 ## Identidade e parceiros
 
-O ícone atual representa um diário de treinador/Pokédex aberto: lente de consulta, rota de aventura e marcador dourado. A mesma identidade deve aparecer no cabeçalho, abertura, favicon e manifesto. Não manter uma segunda “cara” do app em paralelo.
+O ícone atual é uma RotomDex estilizada própria, construída com o vermelho, teal escuro, azul e dourado do MyOwnDex. O mesmo asset mestre `/icons/myowndex-rotomdex-v101.svg` aparece no cabeçalho, abertura, favicon, manifesto, atalhos e instalação. Não manter uma segunda cara do app em paralelo.
 
-Parceiros decorativos são Pokémon em GIF local quando movimento é permitido e PNG quando `prefers-reduced-motion` está ativo. Cada módulo principal tem ao menos um parceiro reconhecível. O sprite fica transparente e solto: não usar círculo, disco, cápsula ou halo atrás dele. A decoração nunca cobre controles nem altera a geometria necessária do conteúdo.
+Parceiros decorativos usam sempre o PNG transparente local. Movimento, quando permitido, vem de animação CSS curta e discreta; `prefers-reduced-motion` a desativa por completo. Os GIFs antigos não são usados na interface porque alguns carregam fundo opaco no próprio arquivo. Cada módulo principal mantém ao menos um parceiro reconhecível. O sprite fica transparente e solto: não usar círculo, disco, cápsula, halo, régua, haste ou faixa de chão atrás dele. A decoração nunca cobre controles nem altera a geometria necessária do conteúdo.
 
 A direção é alegre, fosca e acolhedora. Priorize cor, ritmo, sprites e pequenos acentos gráficos em vez de brilho plástico, vidro, reflexos, bevels pesados ou sombras de produto SaaS.
 

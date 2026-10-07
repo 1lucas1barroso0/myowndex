@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     CALL_ICE_SERVERS,
+    callHasTurnRelay,
     callParticipantId,
+    callPeerConfiguration,
     createCallConnectionId,
     normalizeCallMembers,
     shouldCreateCallOffer,
+    shouldRestartCallIce,
     supportsRoomCall,
 } from "../../core/call.js";
 import {
@@ -18,6 +21,8 @@ import { readStorage, writeStorage } from "../../core/storage.js";
 import { clampFinite, integerInRange, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
 
 const POLL_INTERVAL = 1000;
+const ICE_RESTART_DELAY = 3500;
+const MAX_ICE_RESTARTS = 3;
 const CALL_PREFERENCES_KEY = "myowndex_call_preferences_v1";
 
 const friendlyCallError = error => {
@@ -30,7 +35,22 @@ const friendlyCallError = error => {
     if (error?.name === "NotReadableError" || error?.name === "TrackStartError") {
         return "O microfone está ocupado em outro aplicativo. Libere-o e tente novamente.";
     }
+    if (error?.name === "OverconstrainedError" || error?.name === "ConstraintNotSatisfiedError") {
+        return "Este microfone não aceitou os ajustes de voz. Tente entrar novamente.";
+    }
     return error instanceof Error ? error.message : "A chamada não conseguiu começar. Tente novamente.";
+};
+
+const openMicrophone = async () => {
+    try {
+        return await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+            video: false,
+        });
+    } catch (error) {
+        if (error?.name !== "OverconstrainedError" && error?.name !== "ConstraintNotSatisfiedError") throw error;
+        return navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    }
 };
 
 function RemoteAudio({ name, stream, volume, muted }) {
@@ -57,7 +77,7 @@ function RemoteAudio({ name, stream, volume, muted }) {
 
     return (
         <>
-            <audio ref={audioRef} autoPlay playsInline aria-hidden="true" />
+            <audio ref={audioRef} autoPlay playsInline aria-hidden="true" onCanPlay={play} />
             {blocked && !muted && (
                 <button type="button" className="call-listen" onClick={play}>Ouvir {name}</button>
             )}
@@ -159,9 +179,11 @@ export default function VoiceCall({ session, role }) {
     const closePeer = useCallback(peerId => {
         const entry = peersRef.current.get(peerId);
         if (entry) {
+            if (entry.restartTimer) window.clearTimeout(entry.restartTimer);
             entry.pc.onicecandidate = null;
             entry.pc.ontrack = null;
             entry.pc.onconnectionstatechange = null;
+            entry.pc.oniceconnectionstatechange = null;
             entry.pc.close();
             peersRef.current.delete(peerId);
         }
@@ -191,8 +213,16 @@ export default function VoiceCall({ session, role }) {
     const ensurePeer = useCallback(peerId => {
         const existing = peersRef.current.get(peerId);
         if (existing) return existing;
-        const pc = new window.RTCPeerConnection({ iceServers: CALL_ICE_SERVERS });
-        const entry = { pc, makingOffer: false, ignoreOffer: false, offered: false, candidates: [] };
+        const pc = new window.RTCPeerConnection(callPeerConfiguration(CALL_ICE_SERVERS));
+        const entry = {
+            pc,
+            makingOffer: false,
+            ignoreOffer: false,
+            offered: false,
+            candidates: [],
+            restartTimer: 0,
+            restartAttempts: 0,
+        };
         streamRef.current?.getAudioTracks().forEach(track => pc.addTrack(track, streamRef.current));
         pc.onicecandidate = event => {
             if (!event.candidate) return;
@@ -202,7 +232,37 @@ export default function VoiceCall({ session, role }) {
             const [stream] = event.streams;
             if (stream) setRemoteAudio(current => ({ ...current, [peerId]: stream }));
         };
-        pc.onconnectionstatechange = () => {
+        const clearRestartTimer = () => {
+            if (!entry.restartTimer) return;
+            window.clearTimeout(entry.restartTimer);
+            entry.restartTimer = 0;
+        };
+        const scheduleRestart = delay => {
+            if (!shouldCreateCallOffer(selfId, peerId) || entry.restartTimer || !activeRef.current) return;
+            entry.restartTimer = window.setTimeout(() => {
+                entry.restartTimer = 0;
+                if (!activeRef.current || pc.connectionState === "closed") return;
+                const needsRestart = shouldRestartCallIce(pc.connectionState)
+                    || shouldRestartCallIce(pc.iceConnectionState);
+                if (!needsRestart) return;
+                if (entry.restartAttempts >= MAX_ICE_RESTARTS) {
+                    const message = callHasTurnRelay(CALL_ICE_SERVERS)
+                        ? "A conexão de voz continua instável. Saia da chamada e entre novamente."
+                        : "Esta rede não conseguiu abrir uma rota de voz. Tente outra rede e entre novamente.";
+                    setError(message);
+                    return;
+                }
+                entry.restartAttempts += 1;
+                entry.offered = false;
+                try {
+                    pc.restartIce();
+                } catch {
+                    // createOffer({ iceRestart: true }) ainda tentará uma nova rota.
+                }
+                void makeOfferRef.current?.(peerId, true);
+            }, delay);
+        };
+        const updateConnection = () => {
             const state = pc.connectionState;
             updatePeerState(
                 peerId,
@@ -210,12 +270,29 @@ export default function VoiceCall({ session, role }) {
                     : state === "failed" || state === "disconnected" ? "reconnecting"
                         : state,
             );
-            if (state === "failed" && shouldCreateCallOffer(selfId, peerId)) {
-                entry.offered = false;
-                pc.restartIce();
-                void makeOfferRef.current?.(peerId, true);
+            if (state === "connected") {
+                clearRestartTimer();
+                entry.restartAttempts = 0;
+                setError("");
+            } else if (state === "failed") {
+                scheduleRestart(0);
+            } else if (state === "disconnected") {
+                scheduleRestart(ICE_RESTART_DELAY);
+            } else if (state === "closed") {
+                clearRestartTimer();
+                closePeer(peerId);
             }
-            if (state === "closed") closePeer(peerId);
+        };
+        pc.onconnectionstatechange = updateConnection;
+        pc.oniceconnectionstatechange = () => {
+            if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+                clearRestartTimer();
+                entry.restartAttempts = 0;
+            } else if (pc.iceConnectionState === "failed") {
+                scheduleRestart(0);
+            } else if (pc.iceConnectionState === "disconnected") {
+                scheduleRestart(ICE_RESTART_DELAY);
+            }
         };
         peersRef.current.set(peerId, entry);
         updatePeerState(peerId, "connecting");
@@ -338,10 +415,7 @@ export default function VoiceCall({ session, role }) {
         let stream;
         try {
             if (callSounds) playFeedback("connect");
-            stream = await navigator.mediaDevices.getUserMedia({
-                audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-                video: false,
-            });
+            stream = await openMicrophone();
             streamRef.current = stream;
             await joinRoomCall(session, connectionId(), { displayName, muted: false });
             joinedRef.current = true;
@@ -531,6 +605,9 @@ export default function VoiceCall({ session, role }) {
                             <span>{callLabel}</span>
                         </div>
                         {error && <p className="call-error" role="status">{error}</p>}
+                        {phase === "reconnecting" && !callHasTurnRelay(CALL_ICE_SERVERS) && (
+                            <p className="call-note">Se o áudio não voltar, trocar entre Wi-Fi e dados móveis pode liberar a rota da chamada.</p>
+                        )}
                         <div className="call-members" role="group" aria-label="Participantes da chamada">
                             {members.map(member => {
                                 const isSelf = member.participantId === selfId;

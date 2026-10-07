@@ -1,6 +1,9 @@
-/* A native picker with a complete, wrapping selected value. The transparent
-   select still owns focus, validation, keyboard navigation and touch input. */
-html .app-root.game-edition.handheld-edition .room-select {
+/* A native picker with a complete,
+wrapping selected value. The transparent
+   select still owns focus,
+validation,
+keyboard navigation and touch input. */
+html .app-root.game-edition.handheld-edition .room-select{
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 1rem;
@@ -21,7 +24,7 @@ html .app-root.game-edition.handheld-edition .room-select {
   letter-spacing: 0 !important;
   text-transform: none !important;
 }
-html .app-root.game-edition.handheld-edition .room-select-value {
+html .app-root.game-edition.handheld-edition .room-select-value{
   display: block;
   min-width: 0;
   color: inherit !important;
@@ -31,12 +34,12 @@ html .app-root.game-edition.handheld-edition .room-select-value {
   text-transform: none !important;
   letter-spacing: 0 !important;
 }
-html .app-root.game-edition.handheld-edition .room-select-chevron {
+html .app-root.game-edition.handheld-edition .room-select-chevron{
   width: 1rem;
   height: 1rem;
   color: var(--ui-muted);
 }
-html .app-root.game-edition.handheld-edition .room-select > select {
+html .app-root.game-edition.handheld-edition .room-select > select{
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -49,41 +52,42 @@ html .app-root.game-edition.handheld-edition .room-select > select {
   opacity: 0 !important;
   cursor: pointer;
 }
-html .app-root.game-edition.handheld-edition .room-select:has(> select:focus-visible) {
+html .app-root.game-edition.handheld-edition .room-select:has(> select:focus-visible){
   outline: 3px solid var(--journey-focus);
   outline-offset: 3px;
 }
-html .app-root.game-edition.handheld-edition .room-select:is(.is-disabled, :has(> select:disabled)) {
+html .app-root.game-edition.handheld-edition .room-select:is(.is-disabled,:has(> select:disabled)){
   background: var(--ui-raised);
   color: var(--ui-muted) !important;
 }
-html .app-root.game-edition.handheld-edition .room-select > select:disabled {
+html .app-root.game-edition.handheld-edition .room-select > select:disabled{
   cursor: not-allowed;
 }
 
-/* Tool layouts respond to their own usable width, including desktop sidebars. */
-html .app-root.game-edition.handheld-edition .room-tool {
+/* Tool layouts respond to their own usable width,
+including desktop sidebars. */
+html .app-root.game-edition.handheld-edition .room-tool{
   container: room-tool / inline-size;
   overflow: visible;
 }
-html .app-root.game-edition.handheld-edition .room-tool-body {
+html .app-root.game-edition.handheld-edition .room-tool-body{
   min-width: 0;
   padding: 1.25rem 0 0;
 }
-html .app-root.game-edition.handheld-edition .room-tool[open] > summary {
+html .app-root.game-edition.handheld-edition .room-tool[open] > summary{
   border-bottom: 1px solid var(--ui-line);
   padding-bottom: .75rem;
 }
-html .app-root.game-edition.handheld-edition .combat-grid {
+html .app-root.game-edition.handheld-edition .combat-grid{
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 1.25rem;
   margin: 0 0 1.25rem;
 }
-html .app-root.game-edition.handheld-edition .combat-grid label {
+html .app-root.game-edition.handheld-edition .combat-grid label{
   gap: .5rem;
 }
-html .app-root.game-edition.handheld-edition .combat-grid label > span:not(.room-select) {
+html .app-root.game-edition.handheld-edition .combat-grid label > span:not(.room-select){
   color: var(--ui-muted);
   font-size: .875rem;
   font-weight: 750;
@@ -91,47 +95,47 @@ html .app-root.game-edition.handheld-edition .combat-grid label > span:not(.room
   letter-spacing: 0;
   text-transform: none;
 }
-html .app-root.game-edition.handheld-edition .capture-fields .capture-confirmation {
+html .app-root.game-edition.handheld-edition .capture-fields .capture-confirmation{
   flex-direction: row;
   align-items: flex-start;
   gap: .75rem;
 }
-html .app-root.game-edition.handheld-edition .capture-confirmation input {
+html .app-root.game-edition.handheld-edition .capture-confirmation input{
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
   margin: .15rem 0 0;
   accent-color: var(--ui-blue);
 }
-html .app-root.game-edition.handheld-edition .capture-fields .capture-confirmation > span {
+html .app-root.game-edition.handheld-edition .capture-fields .capture-confirmation > span{
   color: var(--ui-ink);
   font-size: .95rem;
   font-weight: 500;
 }
-html .app-root.game-edition.handheld-edition :is(.combat-target-note, .capture-note) {
+html .app-root.game-edition.handheld-edition :is(.combat-target-note,.capture-note){
   margin: 1rem 0 1.25rem;
   color: var(--ui-muted);
   font-size: .95rem;
   font-weight: 500;
   line-height: 1.65;
 }
-html .app-root.game-edition.handheld-edition .combat-target-note {
+html .app-root.game-edition.handheld-edition .combat-target-note{
   border-left: 3px solid var(--ui-blue);
   background: var(--ui-selected);
   padding: .85rem 1rem;
   color: var(--ui-ink);
 }
-html .app-root.game-edition.handheld-edition .room-tool .room-primary-button {
+html .app-root.game-edition.handheld-edition .room-tool .room-primary-button{
   width: 100%;
 }
-html .app-root.game-edition.handheld-edition :is(.room-tools, .room-roster) button:disabled {
+html .app-root.game-edition.handheld-edition :is(.room-tools,.room-roster) button:disabled{
   opacity: 1 !important;
   border-color: var(--ui-line) !important;
   background: var(--ui-raised) !important;
   color: var(--ui-muted) !important;
   box-shadow: none !important;
 }
-html .app-root.game-edition.handheld-edition .capture-metrics {
+html .app-root.game-edition.handheld-edition .capture-metrics{
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
@@ -140,62 +144,59 @@ html .app-root.game-edition.handheld-edition .capture-metrics {
   border-bottom: 1px solid var(--ui-line);
   padding: 1.25rem 0;
 }
-html .app-root.game-edition.handheld-edition .capture-metrics dt {
+html .app-root.game-edition.handheld-edition .capture-metrics dt{
   margin-bottom: .35rem;
   color: var(--ui-muted);
   font-size: .875rem;
 }
-html .app-root.game-edition.handheld-edition .capture-metrics dd {
+html .app-root.game-edition.handheld-edition .capture-metrics dd{
   margin: 0;
   color: var(--ui-ink);
   font-weight: 750;
 }
-@container room-tool (min-width: 33rem) {
-  html .app-root.game-edition.handheld-edition :is(.combat-grid, .capture-metrics) {
+@container room-tool (min-width: 33rem){
+  html .app-root.game-edition.handheld-edition :is(.combat-grid,.capture-metrics){
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 /* Initiative is readable even when its panel is narrower than the page. */
 html .app-root.game-edition.handheld-edition .room-app :is(small,button,p,label > span:not(.room-select)),
-html .app-root.game-edition.handheld-edition :is(.room-role-badge,.room-tool-badge,.room-section-heading > span,.room-team-box > span,.room-notes-grid label > span,.battlefield-footer,.battlefield-footer > span) { font-size:.875rem !important; line-height:1.5; letter-spacing:0; text-transform:none; }
-html .app-root.game-edition.handheld-edition .room-app :is(button,summary) { min-height:44px !important; min-width:44px !important; }
-html .app-root.game-edition.handheld-edition :is(.token-self-damage-action > span,.trait-context > span) { font-size:.875rem !important; line-height:1.5; }
-html .app-root.game-edition.handheld-edition .token-modifiers > summary > span { font-size:1rem !important; }
-html .app-root.game-edition.handheld-edition :is(.room-title small,.room-player small,.room-app label > span:not(.room-select)) { color:var(--ui-muted) !important; }
-html .app-root.game-edition.handheld-edition :is(.room-role-badge,.room-tool-badge) { background:var(--ui-selected) !important; color:var(--ui-blue) !important; }
-html .app-root.game-edition.handheld-edition .room-phase-options button.is-selected { background:var(--ui-ink) !important; color:var(--ui-panel) !important; border-color:var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition :is(.room-note,.room-note.is-private,.room-settings label,.event-log article,.token-modifier,.audio-now,.audio-local-toggle,.audio-local-note,.call-note,.token-self-damage-action) { background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-color:var(--ui-line) !important; }
-html .app-root.game-edition.handheld-edition :is(.audio-now small,.audio-now strong,.audio-local-toggle span,.audio-local-note,.call-note,.event-log article > span,.event-log article p,.token-self-damage-action > span,.token-self-damage-action > strong,.token-modifier strong,.token-modifier small,.journal-entry-options summary) { color:var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .event-log article > span { font-size:.875rem !important; color:var(--ui-muted) !important; }
-html .app-root.game-edition.handheld-edition :is(.token-traits > summary,.token-modifiers > summary,.trait-card,.trait-card.is-active,.trait-card > header) { background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-color:var(--ui-line) !important; }
-html .app-root.game-edition.handheld-edition :is(.token-traits > summary strong,.token-traits > summary small,.trait-card > header strong,.trait-card > header small,.trait-card-copy p,.trait-card-copy small) { color:var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .room-tool > summary > b { background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; }
-html .app-root.game-edition.handheld-edition .room-invite-panel > summary { background:var(--ui-raised) !important; color:var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .room-invite-panel > summary small { color:var(--ui-muted) !important; }
-html .app-root.game-edition.handheld-edition .room-invite-panel > summary > b { background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; }
-html .app-root.game-edition.handheld-edition .audio-upload { position:relative; min-width:44px; min-height:48px; padding:.75rem; background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-color:var(--ui-control-line); }
-html .app-root.game-edition.handheld-edition .room-app .audio-upload input[type="file"] { position:absolute; inset:0; width:100%; height:100%; padding:0 !important; opacity:0; cursor:pointer; }
-html .app-root.game-edition.handheld-edition .audio-upload:focus-within { outline:3px solid var(--journey-focus); outline-offset:3px; }
-html .app-root.game-edition.handheld-edition .trait-card > header > b { background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; padding:.35rem .6rem; }
-html .app-root.game-edition.handheld-edition :is(.token-xp-actions button,.token-modifier-reset,.token-tera) { background:var(--ui-selected) !important; color:var(--ui-blue) !important; border-color:var(--ui-blue) !important; }
-html .app-root.game-edition.handheld-edition .trait-card-actions .is-warning { background:#b9233b !important; color:#fff !important; border-color:#941d31 !important; }
-html .app-root.game-edition.handheld-edition .room-initiative li.is-empty { color:var(--ui-muted) !important; font-size:1rem; line-height:1.6; }
-html .app-root.game-edition.handheld-edition .token-traits > summary > b { background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; line-height:1.5; padding:.35rem .6rem; }
-html .app-root.game-edition.handheld-edition :is(.combat-result,.combat-target-results) :is(p,small) { font-size:.875rem !important; line-height:1.7 !important; text-transform:none !important; letter-spacing:0 !important; }
-html .app-root.game-edition.handheld-edition .combat-target-results article span { font-size:.875rem !important; line-height:1.7 !important; }
-html .app-root .capture-help { margin:.75rem 0; border-top:1px solid var(--ui-line); }
-html .app-root .capture-help > summary { display:flex; align-items:center; min-height:44px; padding:.65rem 0; color:var(--ui-muted); font-size:.875rem; font-weight:700; }
-html .app-root .capture-help > p { margin:.5rem 0 1rem; line-height:1.7; }
-html .app-root.game-edition.handheld-edition .room-section {
+html .app-root.game-edition.handheld-edition :is(.room-role-badge,.room-tool-badge,.room-section-heading > span,.room-team-box > span,.room-notes-grid label > span,.battlefield-footer,.battlefield-footer > span){ font-size:.875rem !important; line-height:1.5; letter-spacing:0; text-transform:none; }
+html .app-root.game-edition.handheld-edition .room-app :is(button,summary){ min-height:44px !important; min-width:44px !important; }
+html .app-root.game-edition.handheld-edition :is(.token-self-damage-action > span,.trait-context > span){ font-size:.875rem !important; line-height:1.5; }
+html .app-root.game-edition.handheld-edition .token-modifiers > summary > span{ font-size:1rem !important; }
+html .app-root.game-edition.handheld-edition :is(.room-title small,.room-player small,.room-app label > span:not(.room-select)){ color:var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition :is(.room-role-badge,.room-tool-badge){ background:var(--ui-selected) !important; color:var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .room-phase-options button.is-selected{ background:var(--ui-ink) !important; color:var(--ui-panel) !important; border-color:var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition :is(.room-note,.room-note.is-private,.room-settings label,.event-log article,.token-modifier,.token-self-damage-action){ background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-color:var(--ui-line) !important; }
+html .app-root.game-edition.handheld-edition :is(.event-log article > span,.event-log article p,.token-self-damage-action > span,.token-self-damage-action > strong,.token-modifier strong,.token-modifier small,.journal-entry-options summary){ color:var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .event-log article > span{ font-size:.875rem !important; color:var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition :is(.token-traits > summary,.token-modifiers > summary,.trait-card,.trait-card.is-active,.trait-card > header){ background:var(--ui-raised) !important; color:var(--ui-ink) !important; border-color:var(--ui-line) !important; }
+html .app-root.game-edition.handheld-edition :is(.token-traits > summary strong,.token-traits > summary small,.trait-card > header strong,.trait-card > header small,.trait-card-copy p,.trait-card-copy small){ color:var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .room-tool > summary > b{ background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; }
+html .app-root.game-edition.handheld-edition .room-invite-panel > summary{ background:var(--ui-raised) !important; color:var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .room-invite-panel > summary small{ color:var(--ui-muted) !important; }
+html .app-root.game-edition.handheld-edition .room-invite-panel > summary > b{ background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; }
+html .app-root.game-edition.handheld-edition .trait-card > header > b{ background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; padding:.35rem .6rem; }
+html .app-root.game-edition.handheld-edition :is(.token-xp-actions button,.token-modifier-reset,.token-tera){ background:var(--ui-selected) !important; color:var(--ui-blue) !important; border-color:var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .trait-card-actions .is-warning{ background:#b9233b !important; color:#fff !important; border-color:#941d31 !important; }
+html .app-root.game-edition.handheld-edition .room-initiative li.is-empty{ color:var(--ui-muted) !important; font-size:1rem; line-height:1.6; }
+html .app-root.game-edition.handheld-edition .token-traits > summary > b{ background:var(--ui-selected) !important; color:var(--ui-blue) !important; font-size:.875rem !important; line-height:1.5; padding:.35rem .6rem; }
+html .app-root.game-edition.handheld-edition :is(.combat-result,.combat-target-results) :is(p,small){ font-size:.875rem !important; line-height:1.7 !important; text-transform:none !important; letter-spacing:0 !important; }
+html .app-root.game-edition.handheld-edition .combat-target-results article span{ font-size:.875rem !important; line-height:1.7 !important; }
+html .app-root .capture-help{ margin:.75rem 0; border-top:1px solid var(--ui-line); }
+html .app-root .capture-help > summary{ display:flex; align-items:center; min-height:44px; padding:.65rem 0; color:var(--ui-muted); font-size:.875rem; font-weight:700; }
+html .app-root .capture-help > p{ margin:.5rem 0 1rem; line-height:1.7; }
+html .app-root.game-edition.handheld-edition .room-section{
   container: room-section / inline-size;
 }
-html .app-root.game-edition.handheld-edition .room-button-row {
+html .app-root.game-edition.handheld-edition .room-button-row{
   grid-template-columns: minmax(0, 1fr);
   gap: .75rem;
   margin-top: 1.25rem;
 }
-html .app-root.game-edition.handheld-edition .room-button-row button {
+html .app-root.game-edition.handheld-edition .room-button-row button{
   width: 100%;
   border-color: var(--ui-line);
   background: var(--ui-raised);
@@ -204,24 +205,24 @@ html .app-root.game-edition.handheld-edition .room-button-row button {
   font-weight: 750;
   text-transform: none;
 }
-html .app-root.game-edition.handheld-edition .initiative-list {
+html .app-root.game-edition.handheld-edition .initiative-list{
   gap: .75rem;
 }
-html .app-root.game-edition.handheld-edition .initiative-list li {
+html .app-root.game-edition.handheld-edition .initiative-list li{
   grid-template-columns: 1.75rem minmax(0, 1fr);
   gap: .3rem .75rem;
   border-radius: .25rem;
   background: var(--ui-raised);
   padding: .75rem;
 }
-html .app-root.game-edition.handheld-edition .initiative-list li > span {
+html .app-root.game-edition.handheld-edition .initiative-list li > span{
   width: 1.75rem;
   height: 1.75rem;
   background: var(--ui-selected);
   color: var(--ui-ink);
   font-size: .875rem;
 }
-html .app-root.game-edition.handheld-edition .initiative-list li > button {
+html .app-root.game-edition.handheld-edition .initiative-list li > button{
   min-width: 0;
   padding: .35rem 0;
   color: var(--ui-ink);
@@ -231,7 +232,7 @@ html .app-root.game-edition.handheld-edition .initiative-list li > button {
   white-space: normal;
   overflow-wrap: normal !important;
 }
-html .app-root.game-edition.handheld-edition .initiative-list li > small {
+html .app-root.game-edition.handheld-edition .initiative-list li > small{
   grid-column: 2;
   min-width: 0;
   color: var(--ui-muted);
@@ -243,11 +244,11 @@ html .app-root.game-edition.handheld-edition .initiative-list li > small {
   white-space: normal;
   overflow-wrap: normal !important;
 }
-html .app-root.game-edition.handheld-edition .initiative-list li.is-current {
+html .app-root.game-edition.handheld-edition .initiative-list li.is-current{
   background: var(--ui-selected);
   box-shadow: inset 3px 0 0 var(--ui-blue);
 }
-html .app-root.game-edition.handheld-edition .initiative-list li.is-empty {
+html .app-root.game-edition.handheld-edition .initiative-list li.is-empty{
   padding: 1rem 0;
   background: transparent;
   color: var(--ui-muted);
@@ -256,14 +257,15 @@ html .app-root.game-edition.handheld-edition .initiative-list li.is-empty {
   line-height: 1.65;
   text-align: left;
 }
-@container room-section (min-width: 28rem) {
-  html .app-root.game-edition.handheld-edition .room-button-row {
+@container room-section (min-width: 28rem){
+  html .app-root.game-edition.handheld-edition .room-button-row{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Quick Pokémon sheets use rows and comfortable field widths, never corners. */
-html .app-root.game-edition.handheld-edition .token-inspector {
+/* Quick Pokémon sheets use rows and comfortable field widths,
+never corners. */
+html .app-root.game-edition.handheld-edition .token-inspector{
   container: token-sheet / inline-size;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
@@ -271,35 +273,35 @@ html .app-root.game-edition.handheld-edition .token-inspector {
   align-items: start;
   margin-top: 1.5rem;
 }
-html .app-root.game-edition.handheld-edition .token-inspector > :is(header, .token-battle-vitals, .token-xp-control, .token-switch-control, .token-volatile-list, details) {
+html .app-root.game-edition.handheld-edition .token-inspector > :is(header,.token-battle-vitals,.token-xp-control,.token-switch-control,.token-volatile-list,details){
   grid-column: 1 / -1;
 }
-html .app-root.game-edition.handheld-edition .token-inspector-header {
+html .app-root.game-edition.handheld-edition .token-inspector-header{
   margin-bottom: 0 !important;
 }
-html .app-root.game-edition.handheld-edition .token-inspector-identity {
+html .app-root.game-edition.handheld-edition .token-inspector-identity{
   align-items: center;
   gap: 1rem;
 }
-html .app-root.game-edition.handheld-edition .token-inspector-identity > span {
+html .app-root.game-edition.handheld-edition .token-inspector-identity > span{
   gap: .35rem;
 }
-html .app-root.game-edition.handheld-edition .token-inspector-identity strong {
+html .app-root.game-edition.handheld-edition .token-inspector-identity strong{
   font-size: 1.1rem;
 }
-html .app-root.game-edition.handheld-edition .token-inspector-identity :is(small, em) {
+html .app-root.game-edition.handheld-edition .token-inspector-identity :is(small,em){
   color: var(--ui-muted);
   font-size: .875rem;
   line-height: 1.5;
   text-transform: none;
 }
-html .app-root.game-edition.handheld-edition .token-battle-vitals {
+html .app-root.game-edition.handheld-edition .token-battle-vitals{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
   gap: 1.25rem;
   align-items: stretch;
 }
-html .app-root.game-edition.handheld-edition .token-hp-control {
+html .app-root.game-edition.handheld-edition .token-hp-control{
   grid-template-columns: 44px minmax(0, 1fr) 44px;
   gap: .65rem;
   padding: 1rem;
@@ -307,32 +309,32 @@ html .app-root.game-edition.handheld-edition .token-hp-control {
   border-radius: .25rem;
   background: var(--ui-raised);
 }
-html .app-root.game-edition.handheld-edition .token-hp-control > span {
+html .app-root.game-edition.handheld-edition .token-hp-control > span{
   grid-column: 1 / -1;
   color: var(--ui-muted);
   font-size: .875rem;
 }
-html .app-root.game-edition.handheld-edition .token-hp-control button {
+html .app-root.game-edition.handheld-edition .token-hp-control button{
   width: 44px;
   height: 44px;
 }
-html .app-root.game-edition.handheld-edition .token-hp-control strong {
+html .app-root.game-edition.handheld-edition .token-hp-control strong{
   min-width: 0;
   color: var(--ui-ink);
   font-size: 1rem;
   overflow-wrap: normal !important;
 }
-html .app-root.game-edition.handheld-edition .token-inspector > label {
+html .app-root.game-edition.handheld-edition .token-inspector > label{
   gap: .5rem;
 }
-html .app-root.game-edition.handheld-edition .token-inspector label > span:not(.room-select) {
+html .app-root.game-edition.handheld-edition .token-inspector label > span:not(.room-select){
   color: var(--ui-muted);
   font-size: .875rem;
   line-height: 1.5;
   letter-spacing: 0;
   text-transform: none;
 }
-html .app-root.game-edition.handheld-edition .token-xp-control {
+html .app-root.game-edition.handheld-edition .token-xp-control{
   grid-template-columns: auto minmax(0, 1fr);
   gap: .65rem .85rem;
   padding: 1rem;
@@ -340,14 +342,14 @@ html .app-root.game-edition.handheld-edition .token-xp-control {
   border-radius: .25rem;
   background: var(--ui-raised);
 }
-html .app-root.game-edition.handheld-edition .token-xp-next-level {
+html .app-root.game-edition.handheld-edition .token-xp-next-level{
   grid-column: 2;
 }
-html .app-root.game-edition.handheld-edition .token-xp-actions {
+html .app-root.game-edition.handheld-edition .token-xp-actions{
   grid-column: 1 / -1;
   gap: .75rem;
 }
-html .app-root.game-edition.handheld-edition .token-switch-control {
+html .app-root.game-edition.handheld-edition .token-switch-control{
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   padding: 1.25rem;
@@ -355,60 +357,61 @@ html .app-root.game-edition.handheld-edition .token-switch-control {
   border-radius: .25rem;
   background: var(--ui-selected);
 }
-html .app-root.game-edition.handheld-edition .token-switch-control > small {
+html .app-root.game-edition.handheld-edition .token-switch-control > small{
   color: var(--ui-muted);
   font-size: .875rem;
   font-weight: 500;
   line-height: 1.6;
 }
-html .app-root.game-edition.handheld-edition .token-modifier-grid {
+html .app-root.game-edition.handheld-edition .token-modifier-grid{
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   padding: 1rem;
 }
-html .app-root.game-edition.handheld-edition .token-modifier {
+html .app-root.game-edition.handheld-edition .token-modifier{
   grid-template-columns: minmax(0, 1fr) 44px 2rem 44px;
   gap: .5rem;
   padding: .75rem;
 }
-html .app-root.game-edition.handheld-edition .token-modifier > span {
+html .app-root.game-edition.handheld-edition .token-modifier > span{
   grid-column: 1 / -1;
   gap: .3rem;
 }
-html .app-root.game-edition.handheld-edition .token-modifier > span :is(strong, small) {
+html .app-root.game-edition.handheld-edition .token-modifier > span :is(strong,small){
   color: var(--ui-ink);
   font-size: .9rem;
   overflow: visible;
   white-space: normal;
 }
-html .app-root.game-edition.handheld-edition .token-modifier > button:first-of-type {
+html .app-root.game-edition.handheld-edition .token-modifier > button:first-of-type{
   grid-column: 2;
 }
-html .app-root.game-edition.handheld-edition .token-modifier button {
+html .app-root.game-edition.handheld-edition .token-modifier button{
   width: 44px;
   height: 44px;
 }
-html .app-root.game-edition.handheld-edition .token-modifier b {
+html .app-root.game-edition.handheld-edition .token-modifier b{
   font-size: 1rem;
 }
-@container token-sheet (min-width: 32rem) {
-  html .app-root.game-edition.handheld-edition .token-xp-control {
+@container token-sheet (min-width: 32rem){
+  html .app-root.game-edition.handheld-edition .token-xp-control{
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
-  html .app-root.game-edition.handheld-edition .token-xp-next-level {
+  html .app-root.game-edition.handheld-edition .token-xp-next-level{
     grid-column: auto;
   }
-  html .app-root.game-edition.handheld-edition .token-xp-actions {
+  html .app-root.game-edition.handheld-edition .token-xp-actions{
     grid-column: 2 / -1;
   }
-  html .app-root.game-edition.handheld-edition .token-modifier-grid {
+  html .app-root.game-edition.handheld-edition .token-modifier-grid{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 /* The adventure reads as a game: team and turn order support one broad field.
-   Secondary controls remain available behind concise, predictable menus. */
-html .app-root.game-edition.handheld-edition .room-roster > .room-participants {
+   Secondary controls remain available behind concise,
+predictable menus. */
+html .app-root.game-edition.handheld-edition .room-roster > .room-participants{
   grid-column: 1 / -1;
   padding: .4rem 1.25rem;
   background: transparent !important;
@@ -416,7 +419,7 @@ html .app-root.game-edition.handheld-edition .room-roster > .room-participants {
   border-bottom: 1px solid var(--ui-line) !important;
   box-shadow: none !important;
 }
-html .app-root.game-edition.handheld-edition .room-participants > summary {
+html .app-root.game-edition.handheld-edition .room-participants > summary{
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -426,12 +429,12 @@ html .app-root.game-edition.handheld-edition .room-participants > summary {
   font-size: .95rem;
   font-weight: 750;
 }
-html .app-root.game-edition.handheld-edition .room-participants > summary .room-section-heading {
+html .app-root.game-edition.handheld-edition .room-participants > summary .room-section-heading{
   flex: 1;
   margin: 0;
 }
-html .app-root.game-edition.handheld-edition :is(.room-participants, .room-notes-panel) > summary::after,
-html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary::after {
+html .app-root.game-edition.handheld-edition :is(.room-participants,.room-notes-panel) > summary::after,
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary::after{
   content: "+";
   flex: 0 0 auto;
   margin-left: auto;
@@ -439,47 +442,47 @@ html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary:
   font-size: 1.1rem;
   line-height: 1;
 }
-html .app-root.game-edition.handheld-edition :is(.room-participants, .room-notes-panel)[open] > summary::after,
-html .app-root.game-edition.handheld-edition .room-tools > .room-tool[open] > summary::after {
+html .app-root.game-edition.handheld-edition :is(.room-participants,.room-notes-panel)[open] > summary::after,
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool[open] > summary::after{
   content: "−";
 }
-html .app-root.game-edition.handheld-edition .room-participants > summary > span {
+html .app-root.game-edition.handheld-edition .room-participants > summary > span{
   margin-left: auto;
 }
-html .app-root.game-edition.handheld-edition .room-participants > summary::after {
+html .app-root.game-edition.handheld-edition .room-participants > summary::after{
   margin-left: 0;
 }
-html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary > span:first-child {
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary > span:first-child{
   flex: 1;
 }
-html .app-root.game-edition.handheld-edition .room-participants[open] .room-player-list {
+html .app-root.game-edition.handheld-edition .room-participants[open] .room-player-list{
   margin: .75rem 0 1rem;
 }
-html .app-root.game-edition.handheld-edition .room-roster > .room-team-entry {
+html .app-root.game-edition.handheld-edition .room-roster > .room-team-entry{
   grid-column: 1 / -1;
 }
-html .app-root.game-edition.handheld-edition .room-team-entry {
+html .app-root.game-edition.handheld-edition .room-team-entry{
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   border-top: 3px solid var(--ui-blue) !important;
 }
-html .app-root.game-edition.handheld-edition .room-team-entry > :is(.room-section-heading, .room-mini-team, .room-button-row, .room-empty-copy, button) {
+html .app-root.game-edition.handheld-edition .room-team-entry > :is(.room-section-heading,.room-mini-team,.room-button-row,.room-empty-copy,button){
   grid-column: 1 / -1;
 }
-html .app-root.game-edition.handheld-edition .room-team-entry :is(.room-section-heading, .room-team-box, .room-button-row) {
+html .app-root.game-edition.handheld-edition .room-team-entry :is(.room-section-heading,.room-team-box,.room-button-row){
   margin: 0 !important;
 }
-html .app-root.game-edition.handheld-edition .room-team-entry :is(.room-team-box, .room-team-lead) {
+html .app-root.game-edition.handheld-edition .room-team-entry :is(.room-team-box,.room-team-lead){
   gap: .5rem !important;
 }
-html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team {
+html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team{
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
   margin: 0;
 }
-html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team > span {
+html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team > span{
   display: grid;
   place-items: center;
   width: 52px;
@@ -488,46 +491,46 @@ html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team > 
   background: var(--ui-raised);
   border-radius: .25rem;
 }
-html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team img {
+html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team img{
   width: 48px;
   height: 48px;
   object-fit: contain;
 }
-html .app-root.game-edition.handheld-edition .room-scene-strip {
+html .app-root.game-edition.handheld-edition .room-scene-strip{
   display: block;
   padding: 0;
   margin: 0;
   box-shadow: none !important;
 }
-html .app-root.game-edition.handheld-edition .room-phase-options button {
+html .app-root.game-edition.handheld-edition .room-phase-options button{
   font-family: inherit;
   letter-spacing: 0;
   text-transform: none;
 }
-@media (max-width: 360px) {
-  html .app-root.game-edition.handheld-edition .room-phase-options button {
+@media (max-width: 360px){
+  html .app-root.game-edition.handheld-edition .room-phase-options button{
     flex-direction: column;
     min-height: 68px;
     gap: .35rem;
   }
 }
-html .app-root.game-edition.handheld-edition .room-phase-control .game-icon {
+html .app-root.game-edition.handheld-edition .room-phase-control .game-icon{
   width: 1.1rem;
   height: 1.1rem;
   flex: 0 0 auto;
 }
-html .app-root.game-edition.handheld-edition .room-phase-control .room-phase-label {
+html .app-root.game-edition.handheld-edition .room-phase-control .room-phase-label{
   color: var(--ui-muted);
   font-size: .875rem;
   font-weight: 700;
   text-transform: none;
   letter-spacing: 0;
 }
-html .app-root.game-edition.handheld-edition .room-tools {
+html .app-root.game-edition.handheld-edition .room-tools{
   gap: .25rem;
   border-top: 3px solid var(--ui-blue);
 }
-html .app-root.game-edition.handheld-edition .room-tools > .room-tool {
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool{
   margin: 0;
   padding: .75rem 1rem;
   border: 0 !important;
@@ -536,14 +539,14 @@ html .app-root.game-edition.handheld-edition .room-tools > .room-tool {
   background: transparent !important;
   box-shadow: none !important;
 }
-html .app-root.game-edition.handheld-edition .room-tools > .room-tool[open] {
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool[open]{
   padding: 1.25rem;
   border: 1px solid var(--ui-line) !important;
   border-left: 3px solid var(--ui-blue) !important;
   border-radius: .3rem !important;
   background: var(--ui-panel) !important;
 }
-html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary {
+html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary{
   min-height: 48px;
   padding: 0 !important;
   border: 0 !important;
@@ -552,10 +555,10 @@ html .app-root.game-edition.handheld-edition .room-tools > .room-tool > summary 
   color: var(--ui-ink) !important;
   font-weight: 750;
 }
-html .app-root.game-edition.handheld-edition .battlefield-card {
+html .app-root.game-edition.handheld-edition .battlefield-card{
   container: battlefield / inline-size;
 }
-html .app-root.game-edition.handheld-edition .battlefield-toolbar {
+html .app-root.game-edition.handheld-edition .battlefield-toolbar{
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: .65rem;
@@ -563,13 +566,13 @@ html .app-root.game-edition.handheld-edition .battlefield-toolbar {
   border: 0;
   background: var(--ui-panel) !important;
 }
-html .app-root.game-edition.handheld-edition .battlefield-toolbar h3 {
+html .app-root.game-edition.handheld-edition .battlefield-toolbar h3{
   margin: 0;
   color: var(--ui-ink);
   font-size: 1.1rem;
   line-height: 1.5;
 }
-html .app-root.game-edition.handheld-edition .battlefield-environment > summary {
+html .app-root.game-edition.handheld-edition .battlefield-environment > summary{
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -584,49 +587,49 @@ html .app-root.game-edition.handheld-edition .battlefield-environment > summary 
   cursor: pointer;
   list-style: none;
 }
-html .app-root.game-edition.handheld-edition .battlefield-environment > summary::-webkit-details-marker {
+html .app-root.game-edition.handheld-edition .battlefield-environment > summary::-webkit-details-marker{
   display: none;
 }
-html .app-root.game-edition.handheld-edition .battlefield-environment > summary::after {
+html .app-root.game-edition.handheld-edition .battlefield-environment > summary::after{
   content: "+";
   flex: 0 0 auto;
   font-size: 1.1rem;
 }
-html .app-root.game-edition.handheld-edition .battlefield-environment[open] > summary::after {
+html .app-root.game-edition.handheld-edition .battlefield-environment[open] > summary::after{
   content: "−";
 }
-html .app-root.game-edition.handheld-edition .battlefield-environment[open] .battlefield-selectors {
+html .app-root.game-edition.handheld-edition .battlefield-environment[open] .battlefield-selectors{
   margin-top: 1rem;
 }
-html .app-root.game-edition.handheld-edition .battlefield-selectors label > span:not(.room-select) {
+html .app-root.game-edition.handheld-edition .battlefield-selectors label > span:not(.room-select){
   color: var(--ui-muted);
   font-size: .875rem;
   font-weight: 700;
   line-height: 1.5;
 }
-html .app-root.game-edition.handheld-edition .battlefield-board.scene-rota {
+html .app-root.game-edition.handheld-edition .battlefield-board.scene-rota{
   background: linear-gradient(to bottom, #9bdedb 0 40%, #e9efd1 40% 44%, #77bd90 44%);
 }
-html .app-root.game-edition.handheld-edition .battlefield-board.scene-rota::before {
+html .app-root.game-edition.handheld-edition .battlefield-board.scene-rota::before{
   opacity: .4;
 }
-html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon {
+html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon{
   min-height: 19rem;
   height: clamp(19rem, 38vw, 26rem);
   aspect-ratio: auto;
 }
-html .app-root.game-edition.handheld-edition .room-token-sprite {
+html .app-root.game-edition.handheld-edition .room-token-sprite{
   width: 7rem;
   height: 7rem;
   max-width: none !important;
 }
-html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field {
+html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field{
   min-height: 15rem;
   height: clamp(15rem, 28vw, 19rem);
   aspect-ratio: auto;
   touch-action: auto;
 }
-html .app-root.game-edition.handheld-edition .battlefield-empty {
+html .app-root.game-edition.handheld-edition .battlefield-empty{
   display: grid;
   gap: 1rem;
   width: min(calc(100% - 2rem), 22rem);
@@ -638,22 +641,22 @@ html .app-root.game-edition.handheld-edition .battlefield-empty {
   box-shadow: 0 3px 0 #222b3026;
   backdrop-filter: none;
 }
-html .app-root.game-edition.handheld-edition .battlefield-empty strong {
+html .app-root.game-edition.handheld-edition .battlefield-empty strong{
   margin: 0;
   color: var(--ui-ink);
   font-size: 1.1rem;
   line-height: 1.5;
 }
-html .app-root.game-edition.handheld-edition .battlefield-empty small {
+html .app-root.game-edition.handheld-edition .battlefield-empty small{
   margin: 0;
   color: var(--ui-muted);
   font-size: .875rem;
   line-height: 1.6;
 }
-html .app-root.game-edition.handheld-edition .battlefield-choose-pokemon {
+html .app-root.game-edition.handheld-edition .battlefield-choose-pokemon{
   width: 100%;
 }
-html .app-root.game-edition.handheld-edition .battlefield-side-label {
+html .app-root.game-edition.handheld-edition .battlefield-side-label{
   border: 1px solid #fff;
   background: #222b30;
   color: #fff;
@@ -663,10 +666,10 @@ html .app-root.game-edition.handheld-edition .battlefield-side-label {
   letter-spacing: 0;
   text-transform: none;
 }
-html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field .battlefield-side-label {
+html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field .battlefield-side-label{
   display: none;
 }
-html .app-root.game-edition.handheld-edition .battlefield-footer {
+html .app-root.game-edition.handheld-edition .battlefield-footer{
   flex-wrap: wrap;
   align-items: center;
   gap: .6rem 1rem;
@@ -674,17 +677,17 @@ html .app-root.game-edition.handheld-edition .battlefield-footer {
   background: var(--ui-panel) !important;
   color: var(--ui-muted) !important;
 }
-html .app-root.game-edition.handheld-edition .battlefield-footer > span {
+html .app-root.game-edition.handheld-edition .battlefield-footer > span{
   color: var(--ui-muted) !important;
 }
-html .app-root.game-edition.handheld-edition .battlefield-footer > span:last-child {
+html .app-root.game-edition.handheld-edition .battlefield-footer > span:last-child{
   color: var(--ui-blue) !important;
 }
-html .app-root.game-edition.handheld-edition .room-notes-panel {
+html .app-root.game-edition.handheld-edition .room-notes-panel{
   padding: .4rem 1.25rem;
   border-top: 1px solid var(--ui-line);
 }
-html .app-root.game-edition.handheld-edition .room-notes-panel > summary {
+html .app-root.game-edition.handheld-edition .room-notes-panel > summary{
   display: flex;
   align-items: center;
   min-height: 48px;
@@ -693,90 +696,90 @@ html .app-root.game-edition.handheld-edition .room-notes-panel > summary {
   font-size: .95rem;
   font-weight: 700;
 }
-html .app-root.game-edition.handheld-edition .room-notes-panel[open] .room-notes-grid {
+html .app-root.game-edition.handheld-edition .room-notes-panel[open] .room-notes-grid{
   margin-top: .75rem;
 }
-html .app-root.game-edition.handheld-edition .room-notes-grid {
+html .app-root.game-edition.handheld-edition .room-notes-grid{
   gap: 1rem;
   margin-top: 0;
 }
-html .app-root.game-edition.handheld-edition .room-note {
+html .app-root.game-edition.handheld-edition .room-note{
   padding: 1rem;
   border: 1px solid var(--ui-line) !important;
   border-left: 3px solid var(--ui-blue) !important;
   border-radius: .3rem !important;
   box-shadow: none;
 }
-html .app-root.game-edition.handheld-edition .room-note.is-private {
+html .app-root.game-edition.handheld-edition .room-note.is-private{
   border-left-color: var(--ui-accent) !important;
 }
-html .app-root.game-edition.handheld-edition .room-notes-grid textarea {
+html .app-root.game-edition.handheld-edition .room-notes-grid textarea{
   margin-top: .65rem;
   min-height: 6rem;
 }
-@container battlefield (min-width: 36rem) {
-  html .app-root.game-edition.handheld-edition .battlefield-toolbar {
+@container battlefield (min-width: 36rem){
+  html .app-root.game-edition.handheld-edition .battlefield-toolbar{
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
     gap: 1.25rem;
   }
-  html .app-root.game-edition.handheld-edition .battlefield-environment[open] {
+  html .app-root.game-edition.handheld-edition .battlefield-environment[open]{
     grid-column: 1 / -1;
   }
 }
-@media (min-width: 701px) {
-  html .app-root.game-edition.handheld-edition .room-phase-options {
+@media (min-width: 701px){
+  html .app-root.game-edition.handheld-edition .room-phase-options{
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
-@container (min-width: 84rem) {
-  html .app-root.game-edition.handheld-edition .room-team-entry {
+@container (min-width: 84rem){
+  html .app-root.game-edition.handheld-edition .room-team-entry{
     grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (max-width: 540px) {
-  html .app-root.game-edition.handheld-edition .room-team-entry {
+@media (max-width: 540px){
+  html .app-root.game-edition.handheld-edition .room-team-entry{
     grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (min-width: 1440px) {
-  html .app-root.game-edition.handheld-edition .room-roster > .room-participants {
+@media (min-width: 1440px){
+  html .app-root.game-edition.handheld-edition .room-roster > .room-participants{
     grid-column: auto;
   }
 }
 
 /* Journal actions stay with their entry and disclose only when needed. */
-html .app-root.game-edition.handheld-edition .journal-options {
+html .app-root.game-edition.handheld-edition .journal-options{
   margin-bottom: 1rem;
   color: var(--ui-muted);
 }
-html .app-root.game-edition.handheld-edition .journal-options > summary {
+html .app-root.game-edition.handheld-edition .journal-options > summary{
   min-height: 44px;
   display: flex;
   align-items: center;
   cursor: pointer;
   font-size: .875rem;
 }
-html .app-root.game-edition.handheld-edition .event-log article {
+html .app-root.game-edition.handheld-edition .event-log article{
   grid-template-columns: minmax(0, 1fr) 44px;
   gap: .5rem .75rem;
   align-items: start;
 }
-html .app-root.game-edition.handheld-edition .event-log article > span {
+html .app-root.game-edition.handheld-edition .event-log article > span{
   grid-column: 1;
 }
-html .app-root.game-edition.handheld-edition .event-log article > p {
+html .app-root.game-edition.handheld-edition .event-log article > p{
   grid-column: 1;
 }
-html .app-root.game-edition.handheld-edition .event-log article > :is(button, small) {
+html .app-root.game-edition.handheld-edition .event-log article > :is(button,small){
   grid-column: 1 / -1;
 }
-html .app-root.game-edition.handheld-edition .journal-entry-options {
+html .app-root.game-edition.handheld-edition .journal-entry-options{
   grid-column: 2;
   grid-row: 1 / 3;
   min-width: 0;
 }
-html .app-root.game-edition.handheld-edition .journal-entry-options > summary {
+html .app-root.game-edition.handheld-edition .journal-entry-options > summary{
   min-width: 44px;
   min-height: 44px;
   display: flex;
@@ -788,8 +791,8 @@ html .app-root.game-edition.handheld-edition .journal-entry-options > summary {
   font-size: 1.25rem;
   letter-spacing: .1em;
 }
-html .app-root.game-edition.handheld-edition .journal-entry-options > summary::-webkit-details-marker { display: none; }
-html .app-root.game-edition.handheld-edition .journal-entry-options[open] {
+html .app-root.game-edition.handheld-edition .journal-entry-options > summary::-webkit-details-marker{ display: none; }
+html .app-root.game-edition.handheld-edition .journal-entry-options[open]{
   grid-column: 1 / -1;
   grid-row: auto;
   display: flex;
@@ -797,7 +800,7 @@ html .app-root.game-edition.handheld-edition .journal-entry-options[open] {
   gap: .5rem;
   align-items: center;
 }
-html .app-root.game-edition.handheld-edition :is(.journal-options, .journal-entry-options) > button {
+html .app-root.game-edition.handheld-edition :is(.journal-options,.journal-entry-options) > button{
   min-height: 44px;
   max-width: 100%;
   border: 1px solid var(--ui-line);
@@ -807,11 +810,11 @@ html .app-root.game-edition.handheld-edition :is(.journal-options, .journal-entr
   padding: .6rem .85rem;
   line-height: 1.5;
 }
-html .app-root.game-edition.handheld-edition :is(.journal-options, .journal-entry-options) > button:not(:disabled) {
+html .app-root.game-edition.handheld-edition :is(.journal-options,.journal-entry-options) > button:not(:disabled){
   color: var(--ui-accent);
 }
 
-html .app-root.game-edition.handheld-edition .combat-special-block {
+html .app-root.game-edition.handheld-edition .combat-special-block{
   border-color: var(--ui-accent);
   background: color-mix(in srgb, var(--ui-panel) 90%, var(--ui-accent) 10%);
   color: var(--ui-ink) !important;
@@ -820,11 +823,12 @@ html .app-root.game-edition.handheld-edition .combat-special-block {
   padding: .65rem .8rem;
 }
 
-.token-protection-details > summary { min-height: 44px; cursor: pointer; }
-.token-protection-details > summary .token-hit-kill-state { margin: 0; }
+.token-protection-details > summary{ min-height: 44px; cursor: pointer; }
+.token-protection-details > summary .token-hit-kill-state{ margin: 0; }
 .token-hp-control:has(.token-protection-details[open]),
-.token-growth-reserve, .token-inspector .experience-award { grid-column: 1 / -1; }
-.token-protection-details[open] > .guide-hit-kill-overview { margin-top: 1rem; }
-.token-growth-reserve { margin: 0; color: var(--ui-muted); font-size: .875rem; line-height: 1.6; }
+.token-growth-reserve,
+.token-inspector .experience-award{ grid-column: 1 / -1; }
+.token-protection-details[open] > .guide-hit-kill-overview{ margin-top: 1rem; }
+.token-growth-reserve{ margin: 0; color: var(--ui-muted); font-size: .875rem; line-height: 1.6; }
 
-html .confirm-dialog-shell .room-secondary-button { background: var(--ui-raised) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; }
+html .confirm-dialog-shell .room-secondary-button{ background: var(--ui-raised) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; }

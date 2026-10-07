@@ -13,7 +13,7 @@ export const metadata: Metadata = {
       { url: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml" },
     ],
     shortcut: "/icons/myowndex-icon-v100.svg",
-    apple: [{ url: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/png" }],
+    apple: [{ url: "/icons/myowndex-icon-v100.svg", sizes: "any", type: "image/svg+xml" }],
   },
   openGraph: {
     title: "MyOwnDex",

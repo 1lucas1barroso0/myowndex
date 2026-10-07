@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { inflateSync } from "node:zlib";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
 const SIGNATURE = Buffer.from([137,80,78,71,13,10,26,10]);
@@ -91,5 +91,22 @@ test("every decorative Pokémon master is transparent, padded and impossible to 
       assert.equal(png.alphaAt(0,y),0,`${id}.png left edge must be transparent`);
       assert.equal(png.alphaAt(png.width-1,y),0,`${id}.png right edge must be transparent`);
     }
+  }
+});
+
+
+test("obsolete matte GIF companions and pre-RotomDex identity assets cannot return", async () => {
+  const companionFiles=await readdir("public/sprites/companions");
+  assert.ok(companionFiles.length>=8);
+  assert.ok(companionFiles.every(name=>name.endsWith(".png")), "companion directory must contain transparent PNG masters only");
+  const source=await Promise.all([
+    readFile("src/App.jsx","utf8"),
+    readFile("app/layout.tsx","utf8"),
+    readFile("app/manifest.ts","utf8"),
+    readFile("public/sw.js","utf8"),
+  ]);
+  for(const text of source){
+    assert.match(text,/myowndex-rotomdex-v101\.svg/);
+    assert.doesNotMatch(text,/myowndex-(?:icon|maskable)-v100|favicon-v100|companions\/\d+\.gif/);
   }
 });

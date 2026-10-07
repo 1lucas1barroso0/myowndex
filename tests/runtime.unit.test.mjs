@@ -91,8 +91,11 @@ test("native room handlers bootstrap a fresh database, protect narrator data and
   const originalFetch = globalThis.fetch;
   const originalUrl = process.env.TURSO_DATABASE_URL;
   const originalToken = process.env.TURSO_AUTH_TOKEN;
+  const s3Keys = ["MYOWNDEX_S3_ENDPOINT", "MYOWNDEX_S3_BUCKET", "MYOWNDEX_S3_ACCESS_KEY_ID", "MYOWNDEX_S3_SECRET_ACCESS_KEY", "MYOWNDEX_S3_REGION"];
+  const originalS3 = Object.fromEntries(s3Keys.map(key => [key, process.env[key]]));
   process.env.TURSO_DATABASE_URL = "https://dex-example.turso.io";
   process.env.TURSO_AUTH_TOKEN = "database-token";
+  s3Keys.forEach(key => { delete process.env[key]; });
   globalThis.fetch = sqliteTransport(sqlite);
   const hook = registerHooks({
     resolve(specifier, context, nextResolve) {
@@ -108,10 +111,20 @@ test("native room handlers bootstrap a fresh database, protect narrator data and
     globalThis.fetch = originalFetch;
     if (originalUrl === undefined) delete process.env.TURSO_DATABASE_URL; else process.env.TURSO_DATABASE_URL = originalUrl;
     if (originalToken === undefined) delete process.env.TURSO_AUTH_TOKEN; else process.env.TURSO_AUTH_TOKEN = originalToken;
+    s3Keys.forEach(key => {
+      if (originalS3[key] === undefined) delete process.env[key];
+      else process.env[key] = originalS3[key];
+    });
     sqlite.close();
   });
-  const [create, room, join, event, call] = await Promise.all([
-    import("../app/api/rooms/route.ts"), import("../app/api/rooms/[code]/route.ts"), import("../app/api/rooms/[code]/join/route.ts"), import("../app/api/rooms/[code]/events/route.ts"), import("../app/api/rooms/[code]/call/route.ts"),
+  const [create, room, join, event, call, audio, audioItem] = await Promise.all([
+    import("../app/api/rooms/route.ts"),
+    import("../app/api/rooms/[code]/route.ts"),
+    import("../app/api/rooms/[code]/join/route.ts"),
+    import("../app/api/rooms/[code]/events/route.ts"),
+    import("../app/api/rooms/[code]/call/route.ts"),
+    import("../app/api/rooms/[code]/audio/route.ts"),
+    import("../app/api/rooms/[code]/audio/[id]/route.ts"),
   ]);
   const request = (path, key = "", body, method = "POST") => new Request(`https://app.example.com${path}`, {
     method, headers: { "content-type": "application/json", "x-myowndex-room-protocol": "3", "x-myowndex-room-key": key }, body: body === undefined ? undefined : JSON.stringify(body),
@@ -147,6 +160,43 @@ test("native room handlers bootstrap a fresh database, protect narrator data and
   const callState = await received.json();
   assert.equal(callState.members.length, 2);
   assert.equal(callState.signals[0].payload.sdp, "example-sdp");
+
+  const preparedAudioResponse = await audio.POST(request(`${path}/audio`, created.narratorKey, {
+    action: "prepare", title: "Tema QA", fileName: "tema.ogg", mimeType: "audio/ogg", size: 7,
+  }), context);
+  assert.equal(preparedAudioResponse.status, 200, await preparedAudioResponse.clone().text());
+  const preparedAudio = await preparedAudioResponse.json();
+  assert.equal(preparedAudio.mode, "database");
+  assert.equal(preparedAudio.chunkCount, 1);
+  const audioBytes = new Uint8Array([1, 3, 5, 7, 9, 11, 13]);
+  const chunkRequest = new Request(`https://app.example.com${path}/audio?upload=${encodeURIComponent(preparedAudio.uploadId)}&index=0`, {
+    method: "PUT",
+    headers: {
+      "content-type": "application/octet-stream",
+      "x-myowndex-room-protocol": "3",
+      "x-myowndex-room-key": created.narratorKey,
+    },
+    body: Buffer.from(audioBytes),
+  });
+  const chunkResponse = await audio.PUT(chunkRequest, context);
+  assert.equal(chunkResponse.status, 200, await chunkResponse.clone().text());
+  const completedAudioResponse = await audio.POST(request(`${path}/audio`, created.narratorKey, {
+    action: "complete-database", uploadId: preparedAudio.uploadId,
+  }), context);
+  assert.equal(completedAudioResponse.status, 201, await completedAudioResponse.clone().text());
+  const completedAudio = await completedAudioResponse.json();
+  const mediaId = completedAudio.media.id;
+  const audioContext = { params: Promise.resolve({ code: created.code, id: mediaId }) };
+  const manifestResponse = await audioItem.GET(request(`${path}/audio/${mediaId}`, player.playerKey, undefined, "GET"), audioContext);
+  assert.equal(manifestResponse.status, 200, await manifestResponse.clone().text());
+  const manifest = await manifestResponse.json();
+  assert.deepEqual({ chunked: manifest.chunked, size: manifest.size, chunkCount: manifest.chunkCount }, { chunked: true, size: 7, chunkCount: 1 });
+  const downloadedChunk = await audioItem.GET(request(`${path}/audio/${mediaId}?chunk=0`, player.playerKey, undefined, "GET"), audioContext);
+  assert.equal(downloadedChunk.status, 200, await downloadedChunk.clone().text());
+  assert.deepEqual([...new Uint8Array(await downloadedChunk.arrayBuffer())], [...audioBytes]);
+  const removedAudio = await audioItem.DELETE(request(`${path}/audio/${mediaId}`, created.narratorKey, undefined, "DELETE"), audioContext);
+  assert.equal(removedAudio.status, 200, await removedAudio.clone().text());
+  assert.equal(sqlite.prepare("SELECT count(*) AS count FROM room_media_chunks").get().count, 0);
   assert.equal((await room.DELETE(request(path, player.playerKey, undefined, "DELETE"), context)).status, 403);
   assert.equal((await room.DELETE(request(path, created.narratorKey, undefined, "DELETE"), context)).status, 200);
   for (const table of ["rooms", "room_players", "room_events", "room_rolls", "room_media", "room_media_uploads", "room_media_chunks", "room_call_members", "room_call_signals"]) {

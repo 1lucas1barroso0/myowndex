@@ -128,6 +128,23 @@ for(const viewport of deviceMatrix){
    identity:[...document.querySelectorAll('img.app-brand-icon')].map(e=>e.getAttribute('src'))
   };});
   report.at(-1).spriteAudit=spriteAudit;
+  if(view==='guide'){
+   const guideColumns=await page.evaluate(()=>{
+    const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};};
+    return {
+     columns:[...document.querySelectorAll('.guide-rule-content')].map(e=>({rect:rect(e),parent:rect(e.parentElement),client:e.clientWidth,scroll:e.scrollWidth})),
+     cards:[...document.querySelectorAll('.guide-rule-card')].map(e=>({rect:rect(e),list:rect(e.closest('.guide-rule-list'))})),
+    };
+   });
+   report.at(-1).guideColumns=guideColumns;
+   fs.writeFileSync(process.env.MYOWNDEX_BROWSER_REPORT || '/tmp/myowndex-browser-report.json',JSON.stringify({report,errors},null,2));
+   assert.equal(guideColumns.cards.length,40,'The complete Guide retains all forty rules');
+   for(const column of guideColumns.columns){
+    assert.ok(column.scroll<=column.client+1,'Rule titles fit their own Guide column, including narrow-font fallbacks');
+    assert.ok(column.rect.left>=column.parent.left-.5&&column.rect.right<=column.parent.right+.5,'Guide columns remain inside their topic');
+   }
+   for(const card of guideColumns.cards)assert.ok(card.rect.left>=card.list.left-.5&&card.rect.right<=card.list.right+.5,'Every rule card stays within its Guide list');
+  }
   fs.writeFileSync(process.env.MYOWNDEX_BROWSER_REPORT || '/tmp/myowndex-browser-report.json',JSON.stringify({report,errors},null,2));
   for(const sprite of spriteAudit.companions){
    assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0,`companion must load at ${viewport.width}x${viewport.height}`);

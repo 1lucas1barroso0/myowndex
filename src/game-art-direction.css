@@ -140,13 +140,40 @@ html .account-opening{
   background:var(--ui-canvas) !important;
 }
 html .account-opening > img{
-  width:76px !important;
-  height:76px !important;
+  width:96px;
+  height:96px;
 }
-html .account-opening .opening-companion{
-  width:86px;
-  height:86px;
-  margin-top:-.6rem;
+html .app-main-shell > .account-opening{
+  min-height:12rem;
+  padding:1rem;
+}
+html .opening-progress{
+  display:flex;
+  gap:.45rem;
+  align-items:center;
+  justify-content:center;
+}
+html .opening-progress i{
+  width:.5rem;
+  height:.5rem;
+  border-radius:50%;
+  background:var(--joy-blue);
+  animation:opening-progress 1.2s ease-in-out infinite;
+}
+html .opening-progress i:nth-child(2){
+  background:var(--joy-gold);
+  animation-delay:.15s;
+}
+html .opening-progress i:nth-child(3){
+  background:var(--joy-red);
+  animation-delay:.3s;
+}
+@keyframes opening-progress{
+  0%,80%,100%{opacity:.4}
+  40%{opacity:1}
+}
+@media (prefers-reduced-motion:reduce){
+  html .opening-progress i{animation:none;opacity:1}
 }
 
 /* ---------- Shared matte materials ---------- */
@@ -763,8 +790,11 @@ html .app-root.game-edition.handheld-edition .nav-capsule.is-active{
   box-shadow:0 3px 0 var(--joy-gold),0 8px 18px #6711262b !important;
 }
 html .app-root.game-edition.handheld-edition .app-brand-icon{
-  border-radius:.7rem !important;
-  box-shadow:0 0 0 2px #ffffff30 !important;
+  width:2.75rem;
+  height:2.75rem;
+  flex:0 0 2.75rem;
+  border-radius:0 !important;
+  box-shadow:none !important;
 }
 
 /* The four main destinations share a family but keep their own accent. */

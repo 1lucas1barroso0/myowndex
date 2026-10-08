@@ -10,7 +10,7 @@ test("Pokédex filter instructions stay simple and player-facing", async () => {
   assert.match(filters, /Escolha como a lista mostra variantes que o MyOwnDex trata como Pokémon diferentes\./);
   assert.match(filters, /Uma entrada evita repetição na lista\./);
   assert.match(filters, />Uma entrada<\/button>/);
-  assert.match(filters, />Mostrar variantes<\/button>/);
+  assert.match(filters, />Separar variantes<\/button>/);
   assert.match(filters, /Número na Pokédex Nacional/);
   assert.doesNotMatch(filters, /intercambi[aá]vel|segrega(?:ção|r)|identidade narrativa|mecânicas próprias/i);
 

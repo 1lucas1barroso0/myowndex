@@ -14,18 +14,17 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "any",
     lang: "pt-BR",
     icons: [
-      { src: "/icons/myowndex-rotomdex-v101-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icons/myowndex-rotomdex-v101-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icons/myowndex-rotomdex-v101-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-      { src: "/icons/myowndex-rotomdex-v101.svg?v=2.0.17", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/icons/myowndex-rotomdex-v103-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/myowndex-rotomdex-v103-app-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/myowndex-rotomdex-v103-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     categories: ["games"],
     prefer_related_applications: false,
     shortcuts: [
-      { name: "Central da Aventura", short_name: "Aventura", url: "/?abrir=aventura", icons: [{ src: "/icons/myowndex-rotomdex-v101-96.png", sizes: "96x96", type: "image/png" }] },
-      { name: "Pokédex", short_name: "Pokédex", url: "/?abrir=pokedex", icons: [{ src: "/icons/myowndex-rotomdex-v101-96.png", sizes: "96x96", type: "image/png" }] },
-      { name: "PC do Bill", short_name: "PC", url: "/?abrir=pc", icons: [{ src: "/icons/myowndex-rotomdex-v101-96.png", sizes: "96x96", type: "image/png" }] },
-      { name: "Guia do Treinador", short_name: "Guia", url: "/?abrir=guia", icons: [{ src: "/icons/myowndex-rotomdex-v101-96.png", sizes: "96x96", type: "image/png" }] },
+      { name: "Central da Aventura", short_name: "Aventura", url: "/?abrir=aventura", icons: [{ src: "/icons/myowndex-rotomdex-v103-96.png", sizes: "96x96", type: "image/png" }] },
+      { name: "Pokédex", short_name: "Pokédex", url: "/?abrir=pokedex", icons: [{ src: "/icons/myowndex-rotomdex-v103-96.png", sizes: "96x96", type: "image/png" }] },
+      { name: "PC do Bill", short_name: "PC", url: "/?abrir=pc", icons: [{ src: "/icons/myowndex-rotomdex-v103-96.png", sizes: "96x96", type: "image/png" }] },
+      { name: "Guia do Treinador", short_name: "Guia", url: "/?abrir=guia", icons: [{ src: "/icons/myowndex-rotomdex-v103-96.png", sizes: "96x96", type: "image/png" }] },
     ],
   };
 }

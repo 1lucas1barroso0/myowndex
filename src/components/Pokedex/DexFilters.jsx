@@ -68,7 +68,7 @@ export default function DexFilters({
                     </div>
                     <div className="dex-segmented" role="group" aria-label="Como mostrar variantes">
                         <button type="button" aria-pressed={variantMode === "grouped"} onClick={() => onVariantModeChange("grouped")}>Uma entrada</button>
-                        <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Mostrar variantes</button>
+                        <button type="button" aria-pressed={variantMode === "separate"} onClick={() => onVariantModeChange("separate")}>Separar variantes</button>
                     </div>
                     <p className="dex-filter-note">Uma entrada evita repetição na lista. Formas que o mesmo Pokémon pode trocar e mudanças só de aparência continuam sempre na mesma ficha.</p><div className="dex-region-grid" role="group" aria-label="Filtrar variantes regionais">
                         {DEX_REGIONS.map(region => <button

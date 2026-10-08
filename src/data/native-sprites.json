@@ -1,0 +1,5268 @@
+{
+  "schemaVersion": 1,
+  "smogonCommit": "bad55c7b7e7292f459366505460d41dcab08d4cd",
+  "aliases": {
+    "414-sandy": "414",
+    "414-trash": "414",
+    "664-polar": "664",
+    "664-tundra": "664",
+    "664-continental": "664",
+    "664-garden": "664",
+    "664-elegant": "664",
+    "664-meadow": "664",
+    "664-modern": "664",
+    "664-marine": "664",
+    "664-archipelago": "664",
+    "664-high-plains": "664",
+    "664-sandstorm": "664",
+    "664-river": "664",
+    "664-monsoon": "664",
+    "664-savanna": "664",
+    "664-sun": "664",
+    "664-ocean": "664",
+    "664-jungle": "664",
+    "664-fancy": "664",
+    "664-poke-ball": "664",
+    "665-polar": "665",
+    "665-tundra": "665",
+    "665-continental": "665",
+    "665-garden": "665",
+    "665-elegant": "665",
+    "665-meadow": "665",
+    "665-modern": "665",
+    "665-marine": "665",
+    "665-archipelago": "665",
+    "665-high-plains": "665",
+    "665-sandstorm": "665",
+    "665-river": "665",
+    "665-monsoon": "665",
+    "665-savanna": "665",
+    "665-sun": "665",
+    "665-ocean": "665",
+    "665-jungle": "665",
+    "665-fancy": "665",
+    "665-poke-ball": "665",
+    "10268-low-power-mode": "10268"
+  },
+  "external": {
+    "676-la-reine": {
+      "": "src/models/sfurfrou-ola_reine.gif",
+      "shiny": "src/models/sfurfrou-ola_reine-s.gif",
+      "back": "src/models/sfurfrou-ola_reine-b.gif",
+      "back/shiny": "src/models/sfurfrou-ola_reine-b-s.gif"
+    },
+    "854-antique": {
+      "": "src/models/ssinistea-oantique.gif",
+      "shiny": "src/models/ssinistea-oantique-s.gif",
+      "back": "src/models/ssinistea-oantique-b.gif",
+      "back/shiny": "src/models/ssinistea-oantique-b-s.gif"
+    },
+    "1012-artisan": {
+      "": "src/models/spoltchageist-oartisan.gif",
+      "shiny": "src/models/spoltchageist-oartisan-s.gif",
+      "back": "src/models/spoltchageist-oartisan-b.gif",
+      "back/shiny": "src/models/spoltchageist-oartisan-b-s.gif"
+    },
+    "1013-masterpiece": {
+      "": "src/models/ssinistcha-omasterpiece.gif",
+      "shiny": "src/models/ssinistcha-omasterpiece-s.gif",
+      "back": "src/models/ssinistcha-omasterpiece-b.gif",
+      "back/shiny": "src/models/ssinistcha-omasterpiece-b-s.gif"
+    },
+    "10257": {
+      "": "src/models/smaushold.gif",
+      "shiny": "src/models/smaushold-s.gif",
+      "back": "src/models/smaushold-b.gif",
+      "back/shiny": "src/models/smaushold-b-s.gif"
+    }
+  },
+  "local": {
+    "993": {
+      "": {
+        "animated": "/sprites/native/993-front.gif",
+        "static": "/sprites/native/993-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/993-front-shiny.gif",
+        "static": "/sprites/native/993-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/993-back.gif",
+        "static": "/sprites/native/993-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/993-back-shiny.gif",
+        "static": "/sprites/native/993-back-shiny.png"
+      }
+    },
+    "1022": {
+      "": {
+        "animated": "/sprites/native/1022-front.gif",
+        "static": "/sprites/native/1022-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/1022-front-shiny.gif",
+        "static": "/sprites/native/1022-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/1022-back.gif",
+        "static": "/sprites/native/1022-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/1022-back-shiny.gif",
+        "static": "/sprites/native/1022-back-shiny.png"
+      }
+    },
+    "1023": {
+      "": {
+        "animated": "/sprites/native/1023-front.gif",
+        "static": "/sprites/native/1023-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/1023-front-shiny.gif",
+        "static": "/sprites/native/1023-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/1023-back.gif",
+        "static": "/sprites/native/1023-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/1023-back-shiny.gif",
+        "static": "/sprites/native/1023-back-shiny.png"
+      }
+    },
+    "990": {
+      "": {
+        "animated": "/sprites/native/990-front.gif",
+        "static": "/sprites/native/990-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/990-front-shiny.gif",
+        "static": "/sprites/native/990-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/990-back.gif",
+        "static": "/sprites/native/990-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/990-back-shiny.gif",
+        "static": "/sprites/native/990-back-shiny.png"
+      }
+    },
+    "991": {
+      "": {
+        "animated": "/sprites/native/991-front.gif",
+        "static": "/sprites/native/991-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/991-front-shiny.gif",
+        "static": "/sprites/native/991-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/991-back.gif",
+        "static": "/sprites/native/991-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/991-back-shiny.gif",
+        "static": "/sprites/native/991-back-shiny.png"
+      }
+    },
+    "1010": {
+      "": {
+        "animated": "/sprites/native/1010-front.gif",
+        "static": "/sprites/native/1010-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/1010-front-shiny.gif",
+        "static": "/sprites/native/1010-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/1010-back.gif",
+        "static": "/sprites/native/1010-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/1010-back-shiny.gif",
+        "static": "/sprites/native/1010-back-shiny.png"
+      }
+    },
+    "1017": {
+      "": {
+        "animated": "/sprites/native/1017-front.gif",
+        "static": "/sprites/native/1017-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/1017-front-shiny.gif",
+        "static": "/sprites/native/1017-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/1017-back.gif",
+        "static": "/sprites/native/1017-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/1017-back-shiny.gif",
+        "static": "/sprites/native/1017-back-shiny.png"
+      }
+    },
+    "10273": {
+      "": {
+        "animated": "/sprites/native/10273-front.gif",
+        "static": "/sprites/native/10273-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10273-front-shiny.gif",
+        "static": "/sprites/native/10273-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10273-back.gif",
+        "static": "/sprites/native/10273-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10273-back-shiny.gif",
+        "static": "/sprites/native/10273-back-shiny.png"
+      }
+    },
+    "10274": {
+      "": {
+        "animated": "/sprites/native/10274-front.gif",
+        "static": "/sprites/native/10274-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10274-front-shiny.gif",
+        "static": "/sprites/native/10274-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10274-back.gif",
+        "static": "/sprites/native/10274-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10274-back-shiny.gif",
+        "static": "/sprites/native/10274-back-shiny.png"
+      }
+    },
+    "10275": {
+      "": {
+        "animated": "/sprites/native/10275-front.gif",
+        "static": "/sprites/native/10275-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10275-front-shiny.gif",
+        "static": "/sprites/native/10275-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10275-back.gif",
+        "static": "/sprites/native/10275-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10275-back-shiny.gif",
+        "static": "/sprites/native/10275-back-shiny.png"
+      }
+    },
+    "1025": {
+      "": {
+        "animated": "/sprites/native/1025-front.gif",
+        "static": "/sprites/native/1025-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/1025-front-shiny.gif",
+        "static": "/sprites/native/1025-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/1025-back.gif",
+        "static": "/sprites/native/1025-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/1025-back-shiny.gif",
+        "static": "/sprites/native/1025-back-shiny.png"
+      }
+    },
+    "172-spiky-eared": {
+      "": {
+        "animated": "/sprites/native/172-spiky-eared-front.apng",
+        "static": "/sprites/native/172-spiky-eared-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/172-spiky-eared-back.apng",
+        "static": "/sprites/native/172-spiky-eared-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/172-spiky-eared-front-shiny.apng",
+        "static": "/sprites/native/172-spiky-eared-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/172-spiky-eared-back-shiny.apng",
+        "static": "/sprites/native/172-spiky-eared-back-shiny.png"
+      }
+    },
+    "493-unknown": {
+      "": {
+        "animated": "/sprites/native/493-unknown-front.apng",
+        "static": "/sprites/native/493-unknown-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/493-unknown-back.apng",
+        "static": "/sprites/native/493-unknown-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/493-unknown-front-shiny.apng",
+        "static": "/sprites/native/493-unknown-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/493-unknown-back-shiny.apng",
+        "static": "/sprites/native/493-unknown-back-shiny.png"
+      }
+    },
+    "869": {
+      "": {
+        "animated": "/sprites/native/869-front.apng",
+        "static": "/sprites/native/869-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-back.apng",
+        "static": "/sprites/native/869-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-vanilla-cream-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-vanilla-cream-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-vanilla-cream-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-vanilla-cream-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-vanilla-cream-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-vanilla-cream-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-cream-strawberry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-cream-strawberry-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-cream-strawberry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-cream-strawberry-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-cream-strawberry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-ruby-cream-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-cream-berry-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-cream-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-cream-berry-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-cream-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-cream-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-cream-love-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-cream-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-cream-love-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-cream-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-cream-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-cream-star-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-cream-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-cream-star-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-cream-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-cream-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-cream-clover-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-cream-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-cream-clover-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-cream-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-cream-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-cream-flower-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-cream-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-cream-flower-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-cream-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-cream-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-cream-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-cream-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-cream-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-cream-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "869-matcha-cream-strawberry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-matcha-cream-strawberry-sweet-front.apng",
+        "static": "/sprites/native/869-matcha-cream-strawberry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-matcha-cream-strawberry-sweet-back.apng",
+        "static": "/sprites/native/869-matcha-cream-strawberry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-matcha-cream-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-matcha-cream-berry-sweet-front.apng",
+        "static": "/sprites/native/869-matcha-cream-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-matcha-cream-berry-sweet-back.apng",
+        "static": "/sprites/native/869-matcha-cream-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-matcha-cream-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-matcha-cream-love-sweet-front.apng",
+        "static": "/sprites/native/869-matcha-cream-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-matcha-cream-love-sweet-back.apng",
+        "static": "/sprites/native/869-matcha-cream-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-matcha-cream-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-matcha-cream-star-sweet-front.apng",
+        "static": "/sprites/native/869-matcha-cream-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-matcha-cream-star-sweet-back.apng",
+        "static": "/sprites/native/869-matcha-cream-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-matcha-cream-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-matcha-cream-clover-sweet-front.apng",
+        "static": "/sprites/native/869-matcha-cream-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-matcha-cream-clover-sweet-back.apng",
+        "static": "/sprites/native/869-matcha-cream-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-matcha-cream-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-matcha-cream-flower-sweet-front.apng",
+        "static": "/sprites/native/869-matcha-cream-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-matcha-cream-flower-sweet-back.apng",
+        "static": "/sprites/native/869-matcha-cream-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-matcha-cream-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-matcha-cream-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-matcha-cream-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-matcha-cream-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-matcha-cream-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "869-mint-cream-strawberry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-mint-cream-strawberry-sweet-front.apng",
+        "static": "/sprites/native/869-mint-cream-strawberry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-mint-cream-strawberry-sweet-back.apng",
+        "static": "/sprites/native/869-mint-cream-strawberry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-mint-cream-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-mint-cream-berry-sweet-front.apng",
+        "static": "/sprites/native/869-mint-cream-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-mint-cream-berry-sweet-back.apng",
+        "static": "/sprites/native/869-mint-cream-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-mint-cream-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-mint-cream-love-sweet-front.apng",
+        "static": "/sprites/native/869-mint-cream-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-mint-cream-love-sweet-back.apng",
+        "static": "/sprites/native/869-mint-cream-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-mint-cream-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-mint-cream-star-sweet-front.apng",
+        "static": "/sprites/native/869-mint-cream-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-mint-cream-star-sweet-back.apng",
+        "static": "/sprites/native/869-mint-cream-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-mint-cream-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-mint-cream-clover-sweet-front.apng",
+        "static": "/sprites/native/869-mint-cream-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-mint-cream-clover-sweet-back.apng",
+        "static": "/sprites/native/869-mint-cream-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-mint-cream-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-mint-cream-flower-sweet-front.apng",
+        "static": "/sprites/native/869-mint-cream-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-mint-cream-flower-sweet-back.apng",
+        "static": "/sprites/native/869-mint-cream-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-mint-cream-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-mint-cream-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-mint-cream-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-mint-cream-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-mint-cream-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "869-lemon-cream-strawberry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-lemon-cream-strawberry-sweet-front.apng",
+        "static": "/sprites/native/869-lemon-cream-strawberry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-lemon-cream-strawberry-sweet-back.apng",
+        "static": "/sprites/native/869-lemon-cream-strawberry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-lemon-cream-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-lemon-cream-berry-sweet-front.apng",
+        "static": "/sprites/native/869-lemon-cream-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-lemon-cream-berry-sweet-back.apng",
+        "static": "/sprites/native/869-lemon-cream-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-lemon-cream-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-lemon-cream-love-sweet-front.apng",
+        "static": "/sprites/native/869-lemon-cream-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-lemon-cream-love-sweet-back.apng",
+        "static": "/sprites/native/869-lemon-cream-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-lemon-cream-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-lemon-cream-star-sweet-front.apng",
+        "static": "/sprites/native/869-lemon-cream-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-lemon-cream-star-sweet-back.apng",
+        "static": "/sprites/native/869-lemon-cream-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-lemon-cream-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-lemon-cream-clover-sweet-front.apng",
+        "static": "/sprites/native/869-lemon-cream-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-lemon-cream-clover-sweet-back.apng",
+        "static": "/sprites/native/869-lemon-cream-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-lemon-cream-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-lemon-cream-flower-sweet-front.apng",
+        "static": "/sprites/native/869-lemon-cream-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-lemon-cream-flower-sweet-back.apng",
+        "static": "/sprites/native/869-lemon-cream-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-lemon-cream-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-lemon-cream-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-lemon-cream-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-lemon-cream-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-lemon-cream-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "869-salted-cream-strawberry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-salted-cream-strawberry-sweet-front.apng",
+        "static": "/sprites/native/869-salted-cream-strawberry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-salted-cream-strawberry-sweet-back.apng",
+        "static": "/sprites/native/869-salted-cream-strawberry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-salted-cream-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-salted-cream-berry-sweet-front.apng",
+        "static": "/sprites/native/869-salted-cream-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-salted-cream-berry-sweet-back.apng",
+        "static": "/sprites/native/869-salted-cream-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-salted-cream-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-salted-cream-love-sweet-front.apng",
+        "static": "/sprites/native/869-salted-cream-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-salted-cream-love-sweet-back.apng",
+        "static": "/sprites/native/869-salted-cream-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-salted-cream-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-salted-cream-star-sweet-front.apng",
+        "static": "/sprites/native/869-salted-cream-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-salted-cream-star-sweet-back.apng",
+        "static": "/sprites/native/869-salted-cream-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-salted-cream-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-salted-cream-clover-sweet-front.apng",
+        "static": "/sprites/native/869-salted-cream-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-salted-cream-clover-sweet-back.apng",
+        "static": "/sprites/native/869-salted-cream-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-salted-cream-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-salted-cream-flower-sweet-front.apng",
+        "static": "/sprites/native/869-salted-cream-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-salted-cream-flower-sweet-back.apng",
+        "static": "/sprites/native/869-salted-cream-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-salted-cream-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-salted-cream-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-salted-cream-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-salted-cream-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-salted-cream-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-swirl-strawberry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-swirl-strawberry-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-swirl-strawberry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-swirl-strawberry-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-swirl-strawberry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-ruby-swirl-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-swirl-berry-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-swirl-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-swirl-berry-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-swirl-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-swirl-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-swirl-love-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-swirl-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-swirl-love-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-swirl-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-swirl-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-swirl-star-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-swirl-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-swirl-star-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-swirl-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-swirl-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-swirl-clover-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-swirl-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-swirl-clover-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-swirl-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-swirl-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-swirl-flower-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-swirl-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-swirl-flower-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-swirl-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-ruby-swirl-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-ruby-swirl-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-ruby-swirl-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-ruby-swirl-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-ruby-swirl-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "869-caramel-swirl-strawberry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-caramel-swirl-strawberry-sweet-front.apng",
+        "static": "/sprites/native/869-caramel-swirl-strawberry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-caramel-swirl-strawberry-sweet-back.apng",
+        "static": "/sprites/native/869-caramel-swirl-strawberry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-caramel-swirl-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-caramel-swirl-berry-sweet-front.apng",
+        "static": "/sprites/native/869-caramel-swirl-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-caramel-swirl-berry-sweet-back.apng",
+        "static": "/sprites/native/869-caramel-swirl-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-caramel-swirl-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-caramel-swirl-love-sweet-front.apng",
+        "static": "/sprites/native/869-caramel-swirl-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-caramel-swirl-love-sweet-back.apng",
+        "static": "/sprites/native/869-caramel-swirl-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-caramel-swirl-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-caramel-swirl-star-sweet-front.apng",
+        "static": "/sprites/native/869-caramel-swirl-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-caramel-swirl-star-sweet-back.apng",
+        "static": "/sprites/native/869-caramel-swirl-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-caramel-swirl-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-caramel-swirl-clover-sweet-front.apng",
+        "static": "/sprites/native/869-caramel-swirl-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-caramel-swirl-clover-sweet-back.apng",
+        "static": "/sprites/native/869-caramel-swirl-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-caramel-swirl-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-caramel-swirl-flower-sweet-front.apng",
+        "static": "/sprites/native/869-caramel-swirl-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-caramel-swirl-flower-sweet-back.apng",
+        "static": "/sprites/native/869-caramel-swirl-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-caramel-swirl-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-caramel-swirl-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-caramel-swirl-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-caramel-swirl-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-caramel-swirl-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "869-rainbow-swirl-strawberry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-rainbow-swirl-strawberry-sweet-front.apng",
+        "static": "/sprites/native/869-rainbow-swirl-strawberry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-rainbow-swirl-strawberry-sweet-back.apng",
+        "static": "/sprites/native/869-rainbow-swirl-strawberry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-front-shiny.apng",
+        "static": "/sprites/native/869-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-back-shiny.apng",
+        "static": "/sprites/native/869-back-shiny.png"
+      }
+    },
+    "869-rainbow-swirl-berry-sweet": {
+      "": {
+        "animated": "/sprites/native/869-rainbow-swirl-berry-sweet-front.apng",
+        "static": "/sprites/native/869-rainbow-swirl-berry-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-rainbow-swirl-berry-sweet-back.apng",
+        "static": "/sprites/native/869-rainbow-swirl-berry-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-berry-sweet-back-shiny.png"
+      }
+    },
+    "869-rainbow-swirl-love-sweet": {
+      "": {
+        "animated": "/sprites/native/869-rainbow-swirl-love-sweet-front.apng",
+        "static": "/sprites/native/869-rainbow-swirl-love-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-rainbow-swirl-love-sweet-back.apng",
+        "static": "/sprites/native/869-rainbow-swirl-love-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-love-sweet-back-shiny.png"
+      }
+    },
+    "869-rainbow-swirl-star-sweet": {
+      "": {
+        "animated": "/sprites/native/869-rainbow-swirl-star-sweet-front.apng",
+        "static": "/sprites/native/869-rainbow-swirl-star-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-rainbow-swirl-star-sweet-back.apng",
+        "static": "/sprites/native/869-rainbow-swirl-star-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-star-sweet-back-shiny.png"
+      }
+    },
+    "869-rainbow-swirl-clover-sweet": {
+      "": {
+        "animated": "/sprites/native/869-rainbow-swirl-clover-sweet-front.apng",
+        "static": "/sprites/native/869-rainbow-swirl-clover-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-rainbow-swirl-clover-sweet-back.apng",
+        "static": "/sprites/native/869-rainbow-swirl-clover-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-clover-sweet-back-shiny.png"
+      }
+    },
+    "869-rainbow-swirl-flower-sweet": {
+      "": {
+        "animated": "/sprites/native/869-rainbow-swirl-flower-sweet-front.apng",
+        "static": "/sprites/native/869-rainbow-swirl-flower-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-rainbow-swirl-flower-sweet-back.apng",
+        "static": "/sprites/native/869-rainbow-swirl-flower-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-flower-sweet-back-shiny.png"
+      }
+    },
+    "869-rainbow-swirl-ribbon-sweet": {
+      "": {
+        "animated": "/sprites/native/869-rainbow-swirl-ribbon-sweet-front.apng",
+        "static": "/sprites/native/869-rainbow-swirl-ribbon-sweet-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/869-rainbow-swirl-ribbon-sweet-back.apng",
+        "static": "/sprites/native/869-rainbow-swirl-ribbon-sweet-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.apng",
+        "static": "/sprites/native/869-vanilla-cream-ribbon-sweet-back-shiny.png"
+      }
+    },
+    "10268": {
+      "": {
+        "animated": "/sprites/native/10268-front.apng",
+        "static": "/sprites/native/10268-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10268-back.apng",
+        "static": "/sprites/native/10268-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10268-front-shiny.apng",
+        "static": "/sprites/native/10268-front-shiny.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10268-back-shiny.apng",
+        "static": "/sprites/native/10268-back-shiny.png"
+      }
+    },
+    "10287": {
+      "": {
+        "animated": "/sprites/native/10287-front.gif",
+        "static": "/sprites/native/10287-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10287-front-shiny.gif",
+        "static": "/sprites/native/10287-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10287-back.gif",
+        "static": "/sprites/native/10287-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10287-back-shiny.gif",
+        "static": "/sprites/native/10287-back-shiny.png"
+      }
+    },
+    "10288": {
+      "": {
+        "animated": "/sprites/native/10288-front.gif",
+        "static": "/sprites/native/10288-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10288-front-shiny.gif",
+        "static": "/sprites/native/10288-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10288-back.gif",
+        "static": "/sprites/native/10288-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10288-back-shiny.gif",
+        "static": "/sprites/native/10288-back-shiny.png"
+      }
+    },
+    "10289": {
+      "": {
+        "animated": "/sprites/native/10289-front.gif",
+        "static": "/sprites/native/10289-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10289-front-shiny.gif",
+        "static": "/sprites/native/10289-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10289-back.gif",
+        "static": "/sprites/native/10289-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10289-back-shiny.gif",
+        "static": "/sprites/native/10289-back-shiny.png"
+      }
+    },
+    "10290": {
+      "": {
+        "animated": "/sprites/native/10290-front.gif",
+        "static": "/sprites/native/10290-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10290-front-shiny.gif",
+        "static": "/sprites/native/10290-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10290-back.gif",
+        "static": "/sprites/native/10290-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10290-back-shiny.gif",
+        "static": "/sprites/native/10290-back-shiny.png"
+      }
+    },
+    "10291": {
+      "": {
+        "animated": "/sprites/native/10291-front.gif",
+        "static": "/sprites/native/10291-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10291-front-shiny.gif",
+        "static": "/sprites/native/10291-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10291-back.gif",
+        "static": "/sprites/native/10291-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10291-back-shiny.gif",
+        "static": "/sprites/native/10291-back-shiny.png"
+      }
+    },
+    "10292": {
+      "": {
+        "animated": "/sprites/native/10292-front.gif",
+        "static": "/sprites/native/10292-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10292-front-shiny.gif",
+        "static": "/sprites/native/10292-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10292-back.gif",
+        "static": "/sprites/native/10292-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10292-back-shiny.gif",
+        "static": "/sprites/native/10292-back-shiny.png"
+      }
+    },
+    "10293": {
+      "": {
+        "animated": "/sprites/native/10293-front.gif",
+        "static": "/sprites/native/10293-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10293-front-shiny.gif",
+        "static": "/sprites/native/10293-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10293-back.gif",
+        "static": "/sprites/native/10293-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10293-back-shiny.gif",
+        "static": "/sprites/native/10293-back-shiny.png"
+      }
+    },
+    "10294": {
+      "": {
+        "animated": "/sprites/native/10294-front.gif",
+        "static": "/sprites/native/10294-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10294-front-shiny.gif",
+        "static": "/sprites/native/10294-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10294-back.gif",
+        "static": "/sprites/native/10294-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10294-back-shiny.gif",
+        "static": "/sprites/native/10294-back-shiny.png"
+      }
+    },
+    "10295": {
+      "": {
+        "animated": "/sprites/native/10295-front.gif",
+        "static": "/sprites/native/10295-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10295-front-shiny.gif",
+        "static": "/sprites/native/10295-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10295-back.gif",
+        "static": "/sprites/native/10295-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10295-back-shiny.gif",
+        "static": "/sprites/native/10295-back-shiny.png"
+      }
+    },
+    "10296": {
+      "": {
+        "animated": "/sprites/native/10296-front.gif",
+        "static": "/sprites/native/10296-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10296-front-shiny.gif",
+        "static": "/sprites/native/10296-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10296-back.gif",
+        "static": "/sprites/native/10296-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10296-back-shiny.gif",
+        "static": "/sprites/native/10296-back-shiny.png"
+      }
+    },
+    "10297": {
+      "": {
+        "animated": "/sprites/native/10297-front.gif",
+        "static": "/sprites/native/10297-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10297-front-shiny.gif",
+        "static": "/sprites/native/10297-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10297-back.gif",
+        "static": "/sprites/native/10297-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10297-back-shiny.gif",
+        "static": "/sprites/native/10297-back-shiny.png"
+      }
+    },
+    "10298": {
+      "": {
+        "animated": "/sprites/native/10298-front.gif",
+        "static": "/sprites/native/10298-front.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10298-back.gif",
+        "static": "/sprites/native/10298-back.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10298-front-shiny.apng",
+        "static": "/sprites/native/10298-front-shiny.png"
+      }
+    },
+    "10299": {
+      "": {
+        "animated": "/sprites/native/10299-front.gif",
+        "static": "/sprites/native/10299-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10299-front-shiny.gif",
+        "static": "/sprites/native/10299-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10299-back.gif",
+        "static": "/sprites/native/10299-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10299-back-shiny.gif",
+        "static": "/sprites/native/10299-back-shiny.png"
+      }
+    },
+    "10300": {
+      "": {
+        "animated": "/sprites/native/10300-front.gif",
+        "static": "/sprites/native/10300-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10300-front-shiny.gif",
+        "static": "/sprites/native/10300-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10300-back.gif",
+        "static": "/sprites/native/10300-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10300-back-shiny.gif",
+        "static": "/sprites/native/10300-back-shiny.png"
+      }
+    },
+    "10301": {
+      "": {
+        "animated": "/sprites/native/10301-front.gif",
+        "static": "/sprites/native/10301-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10301-front-shiny.gif",
+        "static": "/sprites/native/10301-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10301-back.gif",
+        "static": "/sprites/native/10301-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10301-back-shiny.gif",
+        "static": "/sprites/native/10301-back-shiny.png"
+      }
+    },
+    "10302": {
+      "": {
+        "animated": "/sprites/native/10302-front.gif",
+        "static": "/sprites/native/10302-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10302-front-shiny.gif",
+        "static": "/sprites/native/10302-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10302-back.gif",
+        "static": "/sprites/native/10302-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10302-back-shiny.gif",
+        "static": "/sprites/native/10302-back-shiny.png"
+      }
+    },
+    "10303": {
+      "": {
+        "animated": "/sprites/native/10303-front.gif",
+        "static": "/sprites/native/10303-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10303-front-shiny.gif",
+        "static": "/sprites/native/10303-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10303-back.gif",
+        "static": "/sprites/native/10303-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10303-back-shiny.gif",
+        "static": "/sprites/native/10303-back-shiny.png"
+      }
+    },
+    "10304": {
+      "": {
+        "animated": "/sprites/native/10304-front.gif",
+        "static": "/sprites/native/10304-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10304-front-shiny.gif",
+        "static": "/sprites/native/10304-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10304-back.gif",
+        "static": "/sprites/native/10304-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10304-back-shiny.gif",
+        "static": "/sprites/native/10304-back-shiny.png"
+      }
+    },
+    "10305": {
+      "": {
+        "animated": "/sprites/native/10305-front.gif",
+        "static": "/sprites/native/10305-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10305-front-shiny.gif",
+        "static": "/sprites/native/10305-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10305-back.gif",
+        "static": "/sprites/native/10305-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10305-back-shiny.gif",
+        "static": "/sprites/native/10305-back-shiny.png"
+      }
+    },
+    "10306": {
+      "": {
+        "animated": "/sprites/native/10306-front.gif",
+        "static": "/sprites/native/10306-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10306-front-shiny.gif",
+        "static": "/sprites/native/10306-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10306-back.gif",
+        "static": "/sprites/native/10306-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10306-back-shiny.gif",
+        "static": "/sprites/native/10306-back-shiny.png"
+      }
+    },
+    "10307": {
+      "": {
+        "animated": "/sprites/native/10307-front.gif",
+        "static": "/sprites/native/10307-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10307-front-shiny.gif",
+        "static": "/sprites/native/10307-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10307-back.gif",
+        "static": "/sprites/native/10307-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10307-back-shiny.gif",
+        "static": "/sprites/native/10307-back-shiny.png"
+      }
+    },
+    "10308": {
+      "": {
+        "animated": "/sprites/native/10308-front.gif",
+        "static": "/sprites/native/10308-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10308-front-shiny.gif",
+        "static": "/sprites/native/10308-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10308-back.gif",
+        "static": "/sprites/native/10308-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10308-back-shiny.gif",
+        "static": "/sprites/native/10308-back-shiny.png"
+      }
+    },
+    "10309": {
+      "": {
+        "animated": "/sprites/native/10309-front.gif",
+        "static": "/sprites/native/10309-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10309-front-shiny.gif",
+        "static": "/sprites/native/10309-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10309-back.gif",
+        "static": "/sprites/native/10309-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10309-back-shiny.gif",
+        "static": "/sprites/native/10309-back-shiny.png"
+      }
+    },
+    "10310": {
+      "": {
+        "animated": "/sprites/native/10310-front.gif",
+        "static": "/sprites/native/10310-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10310-front-shiny.gif",
+        "static": "/sprites/native/10310-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10310-back.gif",
+        "static": "/sprites/native/10310-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10310-back-shiny.gif",
+        "static": "/sprites/native/10310-back-shiny.png"
+      }
+    },
+    "10311": {
+      "": {
+        "animated": "/sprites/native/10311-front.gif",
+        "static": "/sprites/native/10311-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10311-front-shiny.gif",
+        "static": "/sprites/native/10311-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10311-back.gif",
+        "static": "/sprites/native/10311-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10311-back-shiny.gif",
+        "static": "/sprites/native/10311-back-shiny.png"
+      }
+    },
+    "10312": {
+      "": {
+        "animated": "/sprites/native/10312-front.gif",
+        "static": "/sprites/native/10312-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10312-front-shiny.gif",
+        "static": "/sprites/native/10312-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10312-back.gif",
+        "static": "/sprites/native/10312-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10312-back-shiny.gif",
+        "static": "/sprites/native/10312-back-shiny.png"
+      }
+    },
+    "10313": {
+      "": {
+        "animated": "/sprites/native/10313-front.gif",
+        "static": "/sprites/native/10313-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10313-front-shiny.gif",
+        "static": "/sprites/native/10313-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10313-back.gif",
+        "static": "/sprites/native/10313-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10313-back-shiny.gif",
+        "static": "/sprites/native/10313-back-shiny.png"
+      }
+    },
+    "10314": {
+      "": {
+        "animated": "/sprites/native/10314-front.gif",
+        "static": "/sprites/native/10314-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10314-front-shiny.gif",
+        "static": "/sprites/native/10314-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10314-back.gif",
+        "static": "/sprites/native/10314-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10314-back-shiny.gif",
+        "static": "/sprites/native/10314-back-shiny.png"
+      }
+    },
+    "10315": {
+      "": {
+        "animated": "/sprites/native/10315-front.gif",
+        "static": "/sprites/native/10315-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10315-front-shiny.gif",
+        "static": "/sprites/native/10315-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10315-back.gif",
+        "static": "/sprites/native/10315-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10315-back-shiny.gif",
+        "static": "/sprites/native/10315-back-shiny.png"
+      }
+    },
+    "10316": {
+      "": {
+        "animated": "/sprites/native/10316-front.gif",
+        "static": "/sprites/native/10316-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10316-front-shiny.gif",
+        "static": "/sprites/native/10316-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10316-back.gif",
+        "static": "/sprites/native/10316-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10316-back-shiny.gif",
+        "static": "/sprites/native/10316-back-shiny.png"
+      }
+    },
+    "10317": {
+      "": {
+        "animated": "/sprites/native/10317-front.gif",
+        "static": "/sprites/native/10317-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10317-front-shiny.gif",
+        "static": "/sprites/native/10317-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10317-back.gif",
+        "static": "/sprites/native/10317-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10317-back-shiny.gif",
+        "static": "/sprites/native/10317-back-shiny.png"
+      }
+    },
+    "10318": {
+      "": {
+        "animated": "/sprites/native/10318-front.gif",
+        "static": "/sprites/native/10318-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10318-front-shiny.gif",
+        "static": "/sprites/native/10318-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10318-back.gif",
+        "static": "/sprites/native/10318-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10318-back-shiny.gif",
+        "static": "/sprites/native/10318-back-shiny.png"
+      }
+    },
+    "10319": {
+      "": {
+        "animated": "/sprites/native/10319-front.gif",
+        "static": "/sprites/native/10319-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10319-front-shiny.gif",
+        "static": "/sprites/native/10319-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10319-back.gif",
+        "static": "/sprites/native/10319-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10319-back-shiny.gif",
+        "static": "/sprites/native/10319-back-shiny.png"
+      }
+    },
+    "10320": {
+      "": {
+        "animated": "/sprites/native/10320-front.gif",
+        "static": "/sprites/native/10320-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10320-front-shiny.gif",
+        "static": "/sprites/native/10320-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10320-back.gif",
+        "static": "/sprites/native/10320-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10320-back-shiny.gif",
+        "static": "/sprites/native/10320-back-shiny.png"
+      }
+    },
+    "10321": {
+      "": {
+        "animated": "/sprites/native/10321-front.gif",
+        "static": "/sprites/native/10321-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10321-front-shiny.gif",
+        "static": "/sprites/native/10321-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10321-back.gif",
+        "static": "/sprites/native/10321-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10321-back-shiny.gif",
+        "static": "/sprites/native/10321-back-shiny.png"
+      }
+    },
+    "10322": {
+      "": {
+        "animated": "/sprites/native/10322-front.gif",
+        "static": "/sprites/native/10322-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10322-front-shiny.gif",
+        "static": "/sprites/native/10322-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10322-back.gif",
+        "static": "/sprites/native/10322-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10322-back-shiny.gif",
+        "static": "/sprites/native/10322-back-shiny.png"
+      }
+    },
+    "10323": {
+      "": {
+        "animated": "/sprites/native/10323-front.gif",
+        "static": "/sprites/native/10323-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10323-front-shiny.gif",
+        "static": "/sprites/native/10323-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10323-back.gif",
+        "static": "/sprites/native/10323-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10323-back-shiny.gif",
+        "static": "/sprites/native/10323-back-shiny.png"
+      }
+    },
+    "10324": {
+      "": {
+        "animated": "/sprites/native/10324-front.gif",
+        "static": "/sprites/native/10324-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10324-front-shiny.gif",
+        "static": "/sprites/native/10324-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10324-back.gif",
+        "static": "/sprites/native/10324-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10324-back-shiny.gif",
+        "static": "/sprites/native/10324-back-shiny.png"
+      }
+    },
+    "10325": {
+      "": {
+        "animated": "/sprites/native/10325-front.gif",
+        "static": "/sprites/native/10325-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10325-front-shiny.gif",
+        "static": "/sprites/native/10325-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10325-back.gif",
+        "static": "/sprites/native/10325-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10325-back-shiny.gif",
+        "static": "/sprites/native/10325-back-shiny.png"
+      }
+    },
+    "10326": {
+      "": {
+        "animated": "/sprites/native/10326-front.gif",
+        "static": "/sprites/native/10326-front.png"
+      },
+      "shiny": {
+        "animated": "/sprites/native/10326-front-shiny.gif",
+        "static": "/sprites/native/10326-front-shiny.png"
+      },
+      "back": {
+        "animated": "/sprites/native/10326-back.gif",
+        "static": "/sprites/native/10326-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10326-back-shiny.gif",
+        "static": "/sprites/native/10326-back-shiny.png"
+      }
+    },
+    "992": {
+      "back": {
+        "animated": "/sprites/native/992-back.gif",
+        "static": "/sprites/native/992-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/992-back-shiny.gif",
+        "static": "/sprites/native/992-back-shiny.png"
+      }
+    },
+    "994": {
+      "back": {
+        "animated": "/sprites/native/994-back.gif",
+        "static": "/sprites/native/994-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/994-back-shiny.gif",
+        "static": "/sprites/native/994-back-shiny.png"
+      }
+    },
+    "995": {
+      "back": {
+        "animated": "/sprites/native/995-back.gif",
+        "static": "/sprites/native/995-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/995-back-shiny.gif",
+        "static": "/sprites/native/995-back-shiny.png"
+      }
+    },
+    "1006": {
+      "back": {
+        "animated": "/sprites/native/1006-back.gif",
+        "static": "/sprites/native/1006-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/1006-back-shiny.gif",
+        "static": "/sprites/native/1006-back-shiny.png"
+      }
+    },
+    "1008": {
+      "back": {
+        "animated": "/sprites/native/1008-back.gif",
+        "static": "/sprites/native/1008-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/1008-back-shiny.gif",
+        "static": "/sprites/native/1008-back-shiny.png"
+      }
+    },
+    "1024": {
+      "back": {
+        "animated": "/sprites/native/1024-back.gif",
+        "static": "/sprites/native/1024-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/1024-back-shiny.gif",
+        "static": "/sprites/native/1024-back-shiny.png"
+      }
+    },
+    "10084": {
+      "back": {
+        "animated": "/sprites/native/10084-back.gif",
+        "static": "/sprites/native/10084-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10084-back-shiny.gif",
+        "static": "/sprites/native/10084-back-shiny.png"
+      }
+    },
+    "10195": {
+      "back": {
+        "animated": "/sprites/native/10195-back.gif",
+        "static": "/sprites/native/10195-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10195-back-shiny.gif",
+        "static": "/sprites/native/10195-back-shiny.png"
+      }
+    },
+    "10197": {
+      "back": {
+        "animated": "/sprites/native/10197-back.gif",
+        "static": "/sprites/native/10197-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10197-back-shiny.gif",
+        "static": "/sprites/native/10197-back-shiny.png"
+      }
+    },
+    "10209": {
+      "back": {
+        "animated": "/sprites/native/10209-back.gif",
+        "static": "/sprites/native/10209-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10209-back-shiny.gif",
+        "static": "/sprites/native/10209-back-shiny.png"
+      }
+    },
+    "10211": {
+      "back": {
+        "animated": "/sprites/native/10211-back.gif",
+        "static": "/sprites/native/10211-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10211-back-shiny.gif",
+        "static": "/sprites/native/10211-back-shiny.png"
+      }
+    },
+    "10226": {
+      "back": {
+        "animated": "/sprites/native/10226-back.gif",
+        "static": "/sprites/native/10226-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10226-back-shiny.gif",
+        "static": "/sprites/native/10226-back-shiny.png"
+      }
+    },
+    "10227": {
+      "back": {
+        "animated": "/sprites/native/10227-back.gif",
+        "static": "/sprites/native/10227-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10227-back-shiny.gif",
+        "static": "/sprites/native/10227-back-shiny.png"
+      }
+    },
+    "10276": {
+      "back": {
+        "animated": "/sprites/native/10276-back.gif",
+        "static": "/sprites/native/10276-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10276-back-shiny.gif",
+        "static": "/sprites/native/10276-back-shiny.png"
+      }
+    },
+    "10277": {
+      "back": {
+        "animated": "/sprites/native/10277-back.gif",
+        "static": "/sprites/native/10277-back.png"
+      },
+      "back/shiny": {
+        "animated": "/sprites/native/10277-back-shiny.gif",
+        "static": "/sprites/native/10277-back-shiny.png"
+      }
+    }
+  },
+  "formKeys": {
+    "1": "1",
+    "2": "2",
+    "3": "3",
+    "4": "4",
+    "5": "5",
+    "6": "6",
+    "7": "7",
+    "8": "8",
+    "9": "9",
+    "10": "10",
+    "11": "11",
+    "12": "12",
+    "13": "13",
+    "14": "14",
+    "15": "15",
+    "16": "16",
+    "17": "17",
+    "18": "18",
+    "19": "19",
+    "20": "20",
+    "21": "21",
+    "22": "22",
+    "23": "23",
+    "24": "24",
+    "25": "25",
+    "26": "26",
+    "27": "27",
+    "28": "28",
+    "29": "29",
+    "30": "30",
+    "31": "31",
+    "32": "32",
+    "33": "33",
+    "34": "34",
+    "35": "35",
+    "36": "36",
+    "37": "37",
+    "38": "38",
+    "39": "39",
+    "40": "40",
+    "41": "41",
+    "42": "42",
+    "43": "43",
+    "44": "44",
+    "45": "45",
+    "46": "46",
+    "47": "47",
+    "48": "48",
+    "49": "49",
+    "50": "50",
+    "51": "51",
+    "52": "52",
+    "53": "53",
+    "54": "54",
+    "55": "55",
+    "56": "56",
+    "57": "57",
+    "58": "58",
+    "59": "59",
+    "60": "60",
+    "61": "61",
+    "62": "62",
+    "63": "63",
+    "64": "64",
+    "65": "65",
+    "66": "66",
+    "67": "67",
+    "68": "68",
+    "69": "69",
+    "70": "70",
+    "71": "71",
+    "72": "72",
+    "73": "73",
+    "74": "74",
+    "75": "75",
+    "76": "76",
+    "77": "77",
+    "78": "78",
+    "79": "79",
+    "80": "80",
+    "81": "81",
+    "82": "82",
+    "83": "83",
+    "84": "84",
+    "85": "85",
+    "86": "86",
+    "87": "87",
+    "88": "88",
+    "89": "89",
+    "90": "90",
+    "91": "91",
+    "92": "92",
+    "93": "93",
+    "94": "94",
+    "95": "95",
+    "96": "96",
+    "97": "97",
+    "98": "98",
+    "99": "99",
+    "100": "100",
+    "101": "101",
+    "102": "102",
+    "103": "103",
+    "104": "104",
+    "105": "105",
+    "106": "106",
+    "107": "107",
+    "108": "108",
+    "109": "109",
+    "110": "110",
+    "111": "111",
+    "112": "112",
+    "113": "113",
+    "114": "114",
+    "115": "115",
+    "116": "116",
+    "117": "117",
+    "118": "118",
+    "119": "119",
+    "120": "120",
+    "121": "121",
+    "122": "122",
+    "123": "123",
+    "124": "124",
+    "125": "125",
+    "126": "126",
+    "127": "127",
+    "128": "128",
+    "129": "129",
+    "130": "130",
+    "131": "131",
+    "132": "132",
+    "133": "133",
+    "134": "134",
+    "135": "135",
+    "136": "136",
+    "137": "137",
+    "138": "138",
+    "139": "139",
+    "140": "140",
+    "141": "141",
+    "142": "142",
+    "143": "143",
+    "144": "144",
+    "145": "145",
+    "146": "146",
+    "147": "147",
+    "148": "148",
+    "149": "149",
+    "150": "150",
+    "151": "151",
+    "152": "152",
+    "153": "153",
+    "154": "154",
+    "155": "155",
+    "156": "156",
+    "157": "157",
+    "158": "158",
+    "159": "159",
+    "160": "160",
+    "161": "161",
+    "162": "162",
+    "163": "163",
+    "164": "164",
+    "165": "165",
+    "166": "166",
+    "167": "167",
+    "168": "168",
+    "169": "169",
+    "170": "170",
+    "171": "171",
+    "172": "172",
+    "173": "173",
+    "174": "174",
+    "175": "175",
+    "176": "176",
+    "177": "177",
+    "178": "178",
+    "179": "179",
+    "180": "180",
+    "181": "181",
+    "182": "182",
+    "183": "183",
+    "184": "184",
+    "185": "185",
+    "186": "186",
+    "187": "187",
+    "188": "188",
+    "189": "189",
+    "190": "190",
+    "191": "191",
+    "192": "192",
+    "193": "193",
+    "194": "194",
+    "195": "195",
+    "196": "196",
+    "197": "197",
+    "198": "198",
+    "199": "199",
+    "200": "200",
+    "201": "201",
+    "202": "202",
+    "203": "203",
+    "204": "204",
+    "205": "205",
+    "206": "206",
+    "207": "207",
+    "208": "208",
+    "209": "209",
+    "210": "210",
+    "211": "211",
+    "212": "212",
+    "213": "213",
+    "214": "214",
+    "215": "215",
+    "216": "216",
+    "217": "217",
+    "218": "218",
+    "219": "219",
+    "220": "220",
+    "221": "221",
+    "222": "222",
+    "223": "223",
+    "224": "224",
+    "225": "225",
+    "226": "226",
+    "227": "227",
+    "228": "228",
+    "229": "229",
+    "230": "230",
+    "231": "231",
+    "232": "232",
+    "233": "233",
+    "234": "234",
+    "235": "235",
+    "236": "236",
+    "237": "237",
+    "238": "238",
+    "239": "239",
+    "240": "240",
+    "241": "241",
+    "242": "242",
+    "243": "243",
+    "244": "244",
+    "245": "245",
+    "246": "246",
+    "247": "247",
+    "248": "248",
+    "249": "249",
+    "250": "250",
+    "251": "251",
+    "252": "252",
+    "253": "253",
+    "254": "254",
+    "255": "255",
+    "256": "256",
+    "257": "257",
+    "258": "258",
+    "259": "259",
+    "260": "260",
+    "261": "261",
+    "262": "262",
+    "263": "263",
+    "264": "264",
+    "265": "265",
+    "266": "266",
+    "267": "267",
+    "268": "268",
+    "269": "269",
+    "270": "270",
+    "271": "271",
+    "272": "272",
+    "273": "273",
+    "274": "274",
+    "275": "275",
+    "276": "276",
+    "277": "277",
+    "278": "278",
+    "279": "279",
+    "280": "280",
+    "281": "281",
+    "282": "282",
+    "283": "283",
+    "284": "284",
+    "285": "285",
+    "286": "286",
+    "287": "287",
+    "288": "288",
+    "289": "289",
+    "290": "290",
+    "291": "291",
+    "292": "292",
+    "293": "293",
+    "294": "294",
+    "295": "295",
+    "296": "296",
+    "297": "297",
+    "298": "298",
+    "299": "299",
+    "300": "300",
+    "301": "301",
+    "302": "302",
+    "303": "303",
+    "304": "304",
+    "305": "305",
+    "306": "306",
+    "307": "307",
+    "308": "308",
+    "309": "309",
+    "310": "310",
+    "311": "311",
+    "312": "312",
+    "313": "313",
+    "314": "314",
+    "315": "315",
+    "316": "316",
+    "317": "317",
+    "318": "318",
+    "319": "319",
+    "320": "320",
+    "321": "321",
+    "322": "322",
+    "323": "323",
+    "324": "324",
+    "325": "325",
+    "326": "326",
+    "327": "327",
+    "328": "328",
+    "329": "329",
+    "330": "330",
+    "331": "331",
+    "332": "332",
+    "333": "333",
+    "334": "334",
+    "335": "335",
+    "336": "336",
+    "337": "337",
+    "338": "338",
+    "339": "339",
+    "340": "340",
+    "341": "341",
+    "342": "342",
+    "343": "343",
+    "344": "344",
+    "345": "345",
+    "346": "346",
+    "347": "347",
+    "348": "348",
+    "349": "349",
+    "350": "350",
+    "351": "351",
+    "352": "352",
+    "353": "353",
+    "354": "354",
+    "355": "355",
+    "356": "356",
+    "357": "357",
+    "358": "358",
+    "359": "359",
+    "360": "360",
+    "361": "361",
+    "362": "362",
+    "363": "363",
+    "364": "364",
+    "365": "365",
+    "366": "366",
+    "367": "367",
+    "368": "368",
+    "369": "369",
+    "370": "370",
+    "371": "371",
+    "372": "372",
+    "373": "373",
+    "374": "374",
+    "375": "375",
+    "376": "376",
+    "377": "377",
+    "378": "378",
+    "379": "379",
+    "380": "380",
+    "381": "381",
+    "382": "382",
+    "383": "383",
+    "384": "384",
+    "385": "385",
+    "386": "386",
+    "387": "387",
+    "388": "388",
+    "389": "389",
+    "390": "390",
+    "391": "391",
+    "392": "392",
+    "393": "393",
+    "394": "394",
+    "395": "395",
+    "396": "396",
+    "397": "397",
+    "398": "398",
+    "399": "399",
+    "400": "400",
+    "401": "401",
+    "402": "402",
+    "403": "403",
+    "404": "404",
+    "405": "405",
+    "406": "406",
+    "407": "407",
+    "408": "408",
+    "409": "409",
+    "410": "410",
+    "411": "411",
+    "412": "412",
+    "413": "413",
+    "414": "414",
+    "415": "415",
+    "416": "416",
+    "417": "417",
+    "418": "418",
+    "419": "419",
+    "420": "420",
+    "421": "421",
+    "422": "422",
+    "423": "423",
+    "424": "424",
+    "425": "425",
+    "426": "426",
+    "427": "427",
+    "428": "428",
+    "429": "429",
+    "430": "430",
+    "431": "431",
+    "432": "432",
+    "433": "433",
+    "434": "434",
+    "435": "435",
+    "436": "436",
+    "437": "437",
+    "438": "438",
+    "439": "439",
+    "440": "440",
+    "441": "441",
+    "442": "442",
+    "443": "443",
+    "444": "444",
+    "445": "445",
+    "446": "446",
+    "447": "447",
+    "448": "448",
+    "449": "449",
+    "450": "450",
+    "451": "451",
+    "452": "452",
+    "453": "453",
+    "454": "454",
+    "455": "455",
+    "456": "456",
+    "457": "457",
+    "458": "458",
+    "459": "459",
+    "460": "460",
+    "461": "461",
+    "462": "462",
+    "463": "463",
+    "464": "464",
+    "465": "465",
+    "466": "466",
+    "467": "467",
+    "468": "468",
+    "469": "469",
+    "470": "470",
+    "471": "471",
+    "472": "472",
+    "473": "473",
+    "474": "474",
+    "475": "475",
+    "476": "476",
+    "477": "477",
+    "478": "478",
+    "479": "479",
+    "480": "480",
+    "481": "481",
+    "482": "482",
+    "483": "483",
+    "484": "484",
+    "485": "485",
+    "486": "486",
+    "487": "487",
+    "488": "488",
+    "489": "489",
+    "490": "490",
+    "491": "491",
+    "492": "492",
+    "493": "493",
+    "494": "494",
+    "495": "495",
+    "496": "496",
+    "497": "497",
+    "498": "498",
+    "499": "499",
+    "500": "500",
+    "501": "501",
+    "502": "502",
+    "503": "503",
+    "504": "504",
+    "505": "505",
+    "506": "506",
+    "507": "507",
+    "508": "508",
+    "509": "509",
+    "510": "510",
+    "511": "511",
+    "512": "512",
+    "513": "513",
+    "514": "514",
+    "515": "515",
+    "516": "516",
+    "517": "517",
+    "518": "518",
+    "519": "519",
+    "520": "520",
+    "521": "521",
+    "522": "522",
+    "523": "523",
+    "524": "524",
+    "525": "525",
+    "526": "526",
+    "527": "527",
+    "528": "528",
+    "529": "529",
+    "530": "530",
+    "531": "531",
+    "532": "532",
+    "533": "533",
+    "534": "534",
+    "535": "535",
+    "536": "536",
+    "537": "537",
+    "538": "538",
+    "539": "539",
+    "540": "540",
+    "541": "541",
+    "542": "542",
+    "543": "543",
+    "544": "544",
+    "545": "545",
+    "546": "546",
+    "547": "547",
+    "548": "548",
+    "549": "549",
+    "550": "550",
+    "551": "551",
+    "552": "552",
+    "553": "553",
+    "554": "554",
+    "555": "555",
+    "556": "556",
+    "557": "557",
+    "558": "558",
+    "559": "559",
+    "560": "560",
+    "561": "561",
+    "562": "562",
+    "563": "563",
+    "564": "564",
+    "565": "565",
+    "566": "566",
+    "567": "567",
+    "568": "568",
+    "569": "569",
+    "570": "570",
+    "571": "571",
+    "572": "572",
+    "573": "573",
+    "574": "574",
+    "575": "575",
+    "576": "576",
+    "577": "577",
+    "578": "578",
+    "579": "579",
+    "580": "580",
+    "581": "581",
+    "582": "582",
+    "583": "583",
+    "584": "584",
+    "585": "585",
+    "586": "586",
+    "587": "587",
+    "588": "588",
+    "589": "589",
+    "590": "590",
+    "591": "591",
+    "592": "592",
+    "593": "593",
+    "594": "594",
+    "595": "595",
+    "596": "596",
+    "597": "597",
+    "598": "598",
+    "599": "599",
+    "600": "600",
+    "601": "601",
+    "602": "602",
+    "603": "603",
+    "604": "604",
+    "605": "605",
+    "606": "606",
+    "607": "607",
+    "608": "608",
+    "609": "609",
+    "610": "610",
+    "611": "611",
+    "612": "612",
+    "613": "613",
+    "614": "614",
+    "615": "615",
+    "616": "616",
+    "617": "617",
+    "618": "618",
+    "619": "619",
+    "620": "620",
+    "621": "621",
+    "622": "622",
+    "623": "623",
+    "624": "624",
+    "625": "625",
+    "626": "626",
+    "627": "627",
+    "628": "628",
+    "629": "629",
+    "630": "630",
+    "631": "631",
+    "632": "632",
+    "633": "633",
+    "634": "634",
+    "635": "635",
+    "636": "636",
+    "637": "637",
+    "638": "638",
+    "639": "639",
+    "640": "640",
+    "641": "641",
+    "642": "642",
+    "643": "643",
+    "644": "644",
+    "645": "645",
+    "646": "646",
+    "647": "647",
+    "648": "648",
+    "649": "649",
+    "650": "650",
+    "651": "651",
+    "652": "652",
+    "653": "653",
+    "654": "654",
+    "655": "655",
+    "656": "656",
+    "657": "657",
+    "658": "658",
+    "659": "659",
+    "660": "660",
+    "661": "661",
+    "662": "662",
+    "663": "663",
+    "664": "664",
+    "665": "665",
+    "666": "666",
+    "667": "667",
+    "668": "668",
+    "669": "669",
+    "670": "670",
+    "671": "671",
+    "672": "672",
+    "673": "673",
+    "674": "674",
+    "675": "675",
+    "676": "676",
+    "677": "677",
+    "678": "678",
+    "679": "679",
+    "680": "680",
+    "681": "681",
+    "682": "682",
+    "683": "683",
+    "684": "684",
+    "685": "685",
+    "686": "686",
+    "687": "687",
+    "688": "688",
+    "689": "689",
+    "690": "690",
+    "691": "691",
+    "692": "692",
+    "693": "693",
+    "694": "694",
+    "695": "695",
+    "696": "696",
+    "697": "697",
+    "698": "698",
+    "699": "699",
+    "700": "700",
+    "701": "701",
+    "702": "702",
+    "703": "703",
+    "704": "704",
+    "705": "705",
+    "706": "706",
+    "707": "707",
+    "708": "708",
+    "709": "709",
+    "710": "710",
+    "711": "711",
+    "712": "712",
+    "713": "713",
+    "714": "714",
+    "715": "715",
+    "716": "716-active",
+    "717": "717",
+    "718": "718",
+    "719": "719",
+    "720": "720",
+    "721": "721",
+    "722": "722",
+    "723": "723",
+    "724": "724",
+    "725": "725",
+    "726": "726",
+    "727": "727",
+    "728": "728",
+    "729": "729",
+    "730": "730",
+    "731": "731",
+    "732": "732",
+    "733": "733",
+    "734": "734",
+    "735": "735",
+    "736": "736",
+    "737": "737",
+    "738": "738",
+    "739": "739",
+    "740": "740",
+    "741": "741",
+    "742": "742",
+    "743": "743",
+    "744": "744",
+    "745": "745",
+    "746": "746",
+    "747": "747",
+    "748": "748",
+    "749": "749",
+    "750": "750",
+    "751": "751",
+    "752": "752",
+    "753": "753",
+    "754": "754",
+    "755": "755",
+    "756": "756",
+    "757": "757",
+    "758": "758",
+    "759": "759",
+    "760": "760",
+    "761": "761",
+    "762": "762",
+    "763": "763",
+    "764": "764",
+    "765": "765",
+    "766": "766",
+    "767": "767",
+    "768": "768",
+    "769": "769",
+    "770": "770",
+    "771": "771",
+    "772": "772",
+    "773": "773",
+    "774": "774",
+    "775": "775",
+    "776": "776",
+    "777": "777",
+    "778": "778",
+    "779": "779",
+    "780": "780",
+    "781": "781",
+    "782": "782",
+    "783": "783",
+    "784": "784",
+    "785": "785",
+    "786": "786",
+    "787": "787",
+    "788": "788",
+    "789": "789",
+    "790": "790",
+    "791": "791",
+    "792": "792",
+    "793": "793",
+    "794": "794",
+    "795": "795",
+    "796": "796",
+    "797": "797",
+    "798": "798",
+    "799": "799",
+    "800": "800",
+    "801": "801",
+    "802": "802",
+    "803": "803",
+    "804": "804",
+    "805": "805",
+    "806": "806",
+    "807": "807",
+    "808": "808",
+    "809": "809",
+    "810": "810",
+    "811": "811",
+    "812": "812",
+    "813": "813",
+    "814": "814",
+    "815": "815",
+    "816": "816",
+    "817": "817",
+    "818": "818",
+    "819": "819",
+    "820": "820",
+    "821": "821",
+    "822": "822",
+    "823": "823",
+    "824": "824",
+    "825": "825",
+    "826": "826",
+    "827": "827",
+    "828": "828",
+    "829": "829",
+    "830": "830",
+    "831": "831",
+    "832": "832",
+    "833": "833",
+    "834": "834",
+    "835": "835",
+    "836": "836",
+    "837": "837",
+    "838": "838",
+    "839": "839",
+    "840": "840",
+    "841": "841",
+    "842": "842",
+    "843": "843",
+    "844": "844",
+    "845": "845",
+    "846": "846",
+    "847": "847",
+    "848": "848",
+    "849": "849",
+    "850": "850",
+    "851": "851",
+    "852": "852",
+    "853": "853",
+    "854": "854",
+    "855": "855",
+    "856": "856",
+    "857": "857",
+    "858": "858",
+    "859": "859",
+    "860": "860",
+    "861": "861",
+    "862": "862",
+    "863": "863",
+    "864": "864",
+    "865": "865",
+    "866": "866",
+    "867": "867",
+    "868": "868",
+    "869": "869",
+    "870": "870",
+    "871": "871",
+    "872": "872",
+    "873": "873",
+    "874": "874",
+    "875": "875",
+    "876": "876",
+    "877": "877",
+    "878": "878",
+    "879": "879",
+    "880": "880",
+    "881": "881",
+    "882": "882",
+    "883": "883",
+    "884": "884",
+    "885": "885",
+    "886": "886",
+    "887": "887",
+    "888": "888",
+    "889": "889",
+    "890": "890",
+    "891": "891",
+    "892": "892",
+    "893": "893",
+    "894": "894",
+    "895": "895",
+    "896": "896",
+    "897": "897",
+    "898": "898",
+    "899": "899",
+    "900": "900",
+    "901": "901",
+    "902": "902",
+    "903": "903",
+    "904": "904",
+    "905": "905",
+    "906": "906",
+    "907": "907",
+    "908": "908",
+    "909": "909",
+    "910": "910",
+    "911": "911",
+    "912": "912",
+    "913": "913",
+    "914": "914",
+    "915": "915",
+    "916": "916",
+    "917": "917",
+    "918": "918",
+    "919": "919",
+    "920": "920",
+    "921": "921",
+    "922": "922",
+    "923": "923",
+    "924": "924",
+    "925": "925",
+    "926": "926",
+    "927": "927",
+    "928": "928",
+    "929": "929",
+    "930": "930",
+    "931": "931",
+    "932": "932",
+    "933": "933",
+    "934": "934",
+    "935": "935",
+    "936": "936",
+    "937": "937",
+    "938": "938",
+    "939": "939",
+    "940": "940",
+    "941": "941",
+    "942": "942",
+    "943": "943",
+    "944": "944",
+    "945": "945",
+    "946": "946",
+    "947": "947",
+    "948": "948",
+    "949": "949",
+    "950": "950",
+    "951": "951",
+    "952": "952",
+    "953": "953",
+    "954": "954",
+    "955": "955",
+    "956": "956",
+    "957": "957",
+    "958": "958",
+    "959": "959",
+    "960": "960",
+    "961": "961",
+    "962": "962",
+    "963": "963",
+    "964": "964",
+    "965": "965",
+    "966": "966",
+    "967": "967",
+    "968": "968",
+    "969": "969",
+    "970": "970",
+    "971": "971",
+    "972": "972",
+    "973": "973",
+    "974": "974",
+    "975": "975",
+    "976": "976",
+    "977": "977",
+    "978": "978",
+    "979": "979",
+    "980": "980",
+    "981": "981",
+    "982": "982",
+    "983": "983",
+    "984": "984",
+    "985": "985",
+    "986": "986",
+    "987": "987",
+    "988": "988",
+    "989": "989",
+    "990": "990",
+    "991": "991",
+    "992": "992",
+    "993": "993",
+    "994": "994",
+    "995": "995",
+    "996": "996",
+    "997": "997",
+    "998": "998",
+    "999": "999",
+    "1000": "1000",
+    "1001": "1001",
+    "1002": "1002",
+    "1003": "1003",
+    "1004": "1004",
+    "1005": "1005",
+    "1006": "1006",
+    "1007": "1007",
+    "1008": "1008",
+    "1009": "1009",
+    "1010": "1010",
+    "1011": "1011",
+    "1012": "1012",
+    "1013": "1013",
+    "1014": "1014",
+    "1015": "1015",
+    "1016": "1016",
+    "1017": "1017",
+    "1018": "1018",
+    "1019": "1019",
+    "1020": "1020",
+    "1021": "1021",
+    "1022": "1022",
+    "1023": "1023",
+    "1024": "1024",
+    "1025": "1025",
+    "10001": "201-b",
+    "10002": "201-c",
+    "10003": "201-d",
+    "10004": "201-e",
+    "10005": "201-f",
+    "10006": "201-g",
+    "10007": "201-h",
+    "10008": "201-i",
+    "10009": "201-j",
+    "10010": "201-k",
+    "10011": "201-l",
+    "10012": "201-m",
+    "10013": "201-n",
+    "10014": "201-o",
+    "10015": "201-p",
+    "10016": "201-q",
+    "10017": "201-r",
+    "10018": "201-s",
+    "10019": "201-t",
+    "10020": "201-u",
+    "10021": "201-v",
+    "10022": "201-w",
+    "10023": "201-x",
+    "10024": "201-y",
+    "10025": "201-z",
+    "10026": "201-exclamation",
+    "10027": "201-question",
+    "10028": "10013",
+    "10029": "10014",
+    "10030": "10015",
+    "10031": "10001",
+    "10032": "10002",
+    "10033": "10003",
+    "10034": "412-sandy",
+    "10035": "412-trash",
+    "10036": "10004",
+    "10037": "10005",
+    "10038": "421-sunshine",
+    "10039": "422-east",
+    "10040": "423-east",
+    "10041": "493-bug",
+    "10042": "493-dark",
+    "10043": "493-dragon",
+    "10044": "493-electric",
+    "10045": "493-fighting",
+    "10046": "493-fire",
+    "10047": "493-flying",
+    "10048": "493-ghost",
+    "10049": "493-grass",
+    "10050": "493-ground",
+    "10051": "493-ice",
+    "10052": "493-poison",
+    "10053": "493-psychic",
+    "10054": "493-rock",
+    "10055": "493-steel",
+    "10056": "493-water",
+    "10057": "493-unknown",
+    "10058": "10008",
+    "10059": "10009",
+    "10060": "10010",
+    "10061": "10011",
+    "10062": "10012",
+    "10063": "10007",
+    "10064": "10006",
+    "10065": "172-spiky-eared",
+    "10066": "10016",
+    "10067": "10017",
+    "10068": "585-summer",
+    "10069": "585-autumn",
+    "10070": "585-winter",
+    "10071": "586-summer",
+    "10072": "586-autumn",
+    "10073": "586-winter",
+    "10074": "10018",
+    "10075": "649-douse",
+    "10076": "649-shock",
+    "10077": "649-burn",
+    "10078": "649-chill",
+    "10079": "10019",
+    "10080": "10020",
+    "10081": "10021",
+    "10082": "10022",
+    "10083": "10023",
+    "10084": "10024",
+    "10085": "493-fairy",
+    "10086": "666-icy-snow",
+    "10087": "666-polar",
+    "10088": "666-tundra",
+    "10089": "666-continental",
+    "10090": "666-garden",
+    "10091": "666-elegant",
+    "10092": "666-modern",
+    "10093": "666-marine",
+    "10094": "666-archipelago",
+    "10095": "666-high-plains",
+    "10096": "666-sandstorm",
+    "10097": "666-river",
+    "10098": "666-monsoon",
+    "10099": "666-savanna",
+    "10100": "666-sun",
+    "10101": "666-ocean",
+    "10102": "666-jungle",
+    "10103": "669-yellow",
+    "10104": "669-orange",
+    "10105": "669-blue",
+    "10106": "669-white",
+    "10107": "670-yellow",
+    "10108": "670-orange",
+    "10109": "670-blue",
+    "10110": "670-white",
+    "10111": "671-yellow",
+    "10112": "671-orange",
+    "10113": "671-blue",
+    "10114": "671-white",
+    "10115": "676-heart",
+    "10116": "676-star",
+    "10117": "676-diamond",
+    "10118": "676-debutante",
+    "10119": "676-matron",
+    "10120": "676-dandy",
+    "10121": "676-la-reine",
+    "10122": "676-kabuki",
+    "10123": "676-pharaoh",
+    "10124": "10025",
+    "10125": "10026",
+    "10126": "10027",
+    "10127": "10028",
+    "10128": "10029",
+    "10129": "10030",
+    "10130": "10031",
+    "10131": "10032",
+    "10132": "716",
+    "10133": "10033",
+    "10134": "10034",
+    "10135": "10035",
+    "10136": "10036",
+    "10137": "10037",
+    "10138": "10038",
+    "10139": "10039",
+    "10140": "10040",
+    "10141": "10041",
+    "10142": "10042",
+    "10143": "10043",
+    "10144": "10044",
+    "10145": "10045",
+    "10146": "10046",
+    "10147": "10047",
+    "10148": "10048",
+    "10149": "10049",
+    "10150": "10050",
+    "10151": "10051",
+    "10152": "10052",
+    "10153": "10053",
+    "10154": "10054",
+    "10155": "10055",
+    "10156": "10056",
+    "10157": "10057",
+    "10158": "10058",
+    "10159": "10059",
+    "10160": "10060",
+    "10161": "666-fancy",
+    "10162": "666-poke-ball",
+    "10163": "10061",
+    "10164": "10062",
+    "10165": "10063",
+    "10166": "10064",
+    "10167": "10065",
+    "10168": "10066",
+    "10169": "10067",
+    "10170": "10068",
+    "10171": "10069",
+    "10172": "10070",
+    "10173": "10071",
+    "10174": "10072",
+    "10175": "10073",
+    "10176": "10074",
+    "10177": "10075",
+    "10178": "10076",
+    "10179": "10077",
+    "10180": "10078",
+    "10181": "10079",
+    "10182": "10080",
+    "10183": "10081",
+    "10184": "10082",
+    "10185": "10083",
+    "10186": "10084",
+    "10187": "10085",
+    "10188": "10086",
+    "10189": "10087",
+    "10190": "10088",
+    "10191": "10089",
+    "10192": "10090",
+    "10193": "10091",
+    "10194": "10092",
+    "10195": "10093",
+    "10196": "10094",
+    "10197": "10095",
+    "10198": "10096",
+    "10199": "10097",
+    "10200": "10098",
+    "10201": "10099",
+    "10202": "10100",
+    "10203": "10101",
+    "10204": "10102",
+    "10205": "10103",
+    "10206": "10104",
+    "10207": "10105",
+    "10208": "10106",
+    "10209": "10107",
+    "10210": "10108",
+    "10211": "10109",
+    "10212": "10110",
+    "10213": "10111",
+    "10214": "10112",
+    "10215": "10113",
+    "10216": "10114",
+    "10217": "10115",
+    "10218": "10116",
+    "10219": "10117",
+    "10220": "10118",
+    "10221": "10119",
+    "10222": "10120",
+    "10223": "10121",
+    "10224": "10122",
+    "10225": "10123",
+    "10226": "10124",
+    "10227": "10125",
+    "10228": "10126",
+    "10229": "10127",
+    "10230": "10128",
+    "10231": "10129",
+    "10232": "773-fighting",
+    "10233": "773-flying",
+    "10234": "773-poison",
+    "10235": "773-ground",
+    "10236": "773-rock",
+    "10237": "773-bug",
+    "10238": "773-ghost",
+    "10239": "773-steel",
+    "10240": "773-fire",
+    "10241": "773-water",
+    "10242": "773-grass",
+    "10243": "773-electric",
+    "10244": "773-psychic",
+    "10245": "773-ice",
+    "10246": "773-dragon",
+    "10247": "773-dark",
+    "10248": "773-fairy",
+    "10249": "10130",
+    "10250": "10131",
+    "10251": "10132",
+    "10252": "10133",
+    "10253": "10134",
+    "10254": "10135",
+    "10255": "10136",
+    "10256": "10137",
+    "10257": "10138",
+    "10258": "10139",
+    "10259": "10140",
+    "10260": "10141",
+    "10261": "10142",
+    "10262": "10143",
+    "10263": "10144",
+    "10264": "10145",
+    "10265": "10146",
+    "10266": "10147",
+    "10267": "10148",
+    "10268": "10149",
+    "10269": "414-sandy",
+    "10270": "414-trash",
+    "10271": "664-polar",
+    "10272": "664-tundra",
+    "10273": "664-continental",
+    "10274": "664-garden",
+    "10275": "664-elegant",
+    "10276": "664-meadow",
+    "10277": "664-modern",
+    "10278": "664-marine",
+    "10279": "664-archipelago",
+    "10280": "664-high-plains",
+    "10281": "664-sandstorm",
+    "10282": "664-river",
+    "10283": "664-monsoon",
+    "10284": "664-savanna",
+    "10285": "664-sun",
+    "10286": "664-ocean",
+    "10287": "664-jungle",
+    "10288": "664-fancy",
+    "10289": "664-poke-ball",
+    "10290": "665-polar",
+    "10291": "665-tundra",
+    "10292": "665-continental",
+    "10293": "665-garden",
+    "10294": "665-elegant",
+    "10295": "665-meadow",
+    "10296": "665-modern",
+    "10297": "665-marine",
+    "10298": "665-archipelago",
+    "10299": "665-high-plains",
+    "10300": "665-sandstorm",
+    "10301": "665-river",
+    "10302": "665-monsoon",
+    "10303": "665-savanna",
+    "10304": "665-sun",
+    "10305": "665-ocean",
+    "10306": "665-jungle",
+    "10307": "665-fancy",
+    "10308": "665-poke-ball",
+    "10309": "10150",
+    "10310": "10151",
+    "10311": "10152",
+    "10312": "10153",
+    "10313": "10154",
+    "10314": "10155",
+    "10315": "10156",
+    "10316": "10157",
+    "10317": "10158",
+    "10318": "10159",
+    "10319": "10160",
+    "10320": "10161",
+    "10321": "10162",
+    "10322": "10163",
+    "10323": "10164",
+    "10324": "10165",
+    "10325": "10166",
+    "10326": "10167",
+    "10327": "10168",
+    "10328": "10169",
+    "10329": "10170",
+    "10330": "10171",
+    "10331": "10172",
+    "10332": "10173",
+    "10333": "10174",
+    "10334": "10175",
+    "10335": "10176",
+    "10336": "10177",
+    "10337": "10178",
+    "10338": "10179",
+    "10339": "10180",
+    "10340": "10181",
+    "10341": "10182",
+    "10342": "10183",
+    "10343": "10184",
+    "10344": "854-antique",
+    "10345": "855-antique",
+    "10346": "869-ruby-cream-strawberry-sweet",
+    "10347": "869-matcha-cream-strawberry-sweet",
+    "10348": "869-mint-cream-strawberry-sweet",
+    "10349": "869-lemon-cream-strawberry-sweet",
+    "10350": "869-salted-cream-strawberry-sweet",
+    "10351": "869-ruby-swirl-strawberry-sweet",
+    "10352": "869-caramel-swirl-strawberry-sweet",
+    "10353": "869-rainbow-swirl-strawberry-sweet",
+    "10354": "10185",
+    "10355": "10186",
+    "10356": "10187",
+    "10357": "10188",
+    "10358": "10189",
+    "10359": "10190",
+    "10360": "10191",
+    "10361": "10192",
+    "10362": "10193",
+    "10363": "10194",
+    "10364": "10195",
+    "10365": "10196",
+    "10366": "10197",
+    "10367": "10198",
+    "10368": "10199",
+    "10369": "10200",
+    "10370": "10201",
+    "10371": "10202",
+    "10372": "10203",
+    "10373": "10204",
+    "10374": "10205",
+    "10375": "10206",
+    "10376": "10207",
+    "10377": "10208",
+    "10378": "10209",
+    "10379": "10210",
+    "10380": "10211",
+    "10381": "10212",
+    "10382": "10213",
+    "10383": "10214",
+    "10384": "10215",
+    "10385": "10216",
+    "10386": "10217",
+    "10387": "10218",
+    "10388": "10219",
+    "10389": "10220",
+    "10390": "10221",
+    "10391": "10222",
+    "10392": "10223",
+    "10393": "10224",
+    "10394": "10225",
+    "10395": "10226",
+    "10396": "10227",
+    "10397": "10228",
+    "10398": "10229",
+    "10399": "10230",
+    "10400": "10231",
+    "10401": "10232",
+    "10402": "10233",
+    "10403": "10234",
+    "10404": "10235",
+    "10405": "10236",
+    "10406": "10237",
+    "10407": "10238",
+    "10408": "10239",
+    "10409": "10240",
+    "10410": "10241",
+    "10411": "10242",
+    "10412": "10243",
+    "10413": "10244",
+    "10414": "10245",
+    "10415": "10246",
+    "10416": "10247",
+    "10417": "10248",
+    "10418": "10249",
+    "10419": "10250",
+    "10420": "10251",
+    "10421": "10252",
+    "10422": "10253",
+    "10423": "10254",
+    "10424": "10255",
+    "10425": "10256",
+    "10426": "10257",
+    "10427": "10258",
+    "10428": "10259",
+    "10429": "10260",
+    "10430": "10261",
+    "10431": "10262",
+    "10432": "10263",
+    "10433": "10264-limited-build",
+    "10434": "10265-sprinting-build",
+    "10435": "10266-swimming-build",
+    "10436": "10267-gliding-build",
+    "10437": "10268-low-power-mode",
+    "10438": "10269-drive-mode",
+    "10439": "10270-aquatic-mode",
+    "10440": "10271-glide-mode",
+    "10441": "10272",
+    "10442": "10273",
+    "10443": "10274",
+    "10444": "10275",
+    "10445": "10276",
+    "10446": "10277",
+    "10447": "1012-artisan",
+    "10448": "1013-masterpiece",
+    "10449": "869-vanilla-cream-berry-sweet",
+    "10450": "869-ruby-cream-berry-sweet",
+    "10451": "869-matcha-cream-berry-sweet",
+    "10452": "869-mint-cream-berry-sweet",
+    "10453": "869-lemon-cream-berry-sweet",
+    "10454": "869-salted-cream-berry-sweet",
+    "10455": "869-ruby-swirl-berry-sweet",
+    "10456": "869-caramel-swirl-berry-sweet",
+    "10457": "869-rainbow-swirl-berry-sweet",
+    "10458": "869-vanilla-cream-love-sweet",
+    "10459": "869-ruby-cream-love-sweet",
+    "10460": "869-matcha-cream-love-sweet",
+    "10461": "869-mint-cream-love-sweet",
+    "10462": "869-lemon-cream-love-sweet",
+    "10463": "869-salted-cream-love-sweet",
+    "10464": "869-ruby-swirl-love-sweet",
+    "10465": "869-caramel-swirl-love-sweet",
+    "10466": "869-rainbow-swirl-love-sweet",
+    "10467": "869-vanilla-cream-star-sweet",
+    "10468": "869-ruby-cream-star-sweet",
+    "10469": "869-matcha-cream-star-sweet",
+    "10470": "869-mint-cream-star-sweet",
+    "10471": "869-lemon-cream-star-sweet",
+    "10472": "869-salted-cream-star-sweet",
+    "10473": "869-ruby-swirl-star-sweet",
+    "10474": "869-caramel-swirl-star-sweet",
+    "10475": "869-rainbow-swirl-star-sweet",
+    "10476": "869-vanilla-cream-clover-sweet",
+    "10477": "869-ruby-cream-clover-sweet",
+    "10478": "869-matcha-cream-clover-sweet",
+    "10479": "869-mint-cream-clover-sweet",
+    "10480": "869-lemon-cream-clover-sweet",
+    "10481": "869-salted-cream-clover-sweet",
+    "10482": "869-ruby-swirl-clover-sweet",
+    "10483": "869-caramel-swirl-clover-sweet",
+    "10484": "869-rainbow-swirl-clover-sweet",
+    "10485": "869-vanilla-cream-flower-sweet",
+    "10486": "869-ruby-cream-flower-sweet",
+    "10487": "869-matcha-cream-flower-sweet",
+    "10488": "869-mint-cream-flower-sweet",
+    "10489": "869-lemon-cream-flower-sweet",
+    "10490": "869-salted-cream-flower-sweet",
+    "10491": "869-ruby-swirl-flower-sweet",
+    "10492": "869-caramel-swirl-flower-sweet",
+    "10493": "869-rainbow-swirl-flower-sweet",
+    "10494": "869-vanilla-cream-ribbon-sweet",
+    "10495": "869-ruby-cream-ribbon-sweet",
+    "10496": "869-matcha-cream-ribbon-sweet",
+    "10497": "869-mint-cream-ribbon-sweet",
+    "10498": "869-lemon-cream-ribbon-sweet",
+    "10499": "869-salted-cream-ribbon-sweet",
+    "10500": "869-ruby-swirl-ribbon-sweet",
+    "10501": "869-caramel-swirl-ribbon-sweet",
+    "10502": "869-rainbow-swirl-ribbon-sweet",
+    "10503": "10278",
+    "10504": "10279",
+    "10505": "10280",
+    "10506": "10281",
+    "10507": "10282",
+    "10508": "10283",
+    "10509": "10284",
+    "10510": "10285",
+    "10511": "10286",
+    "10512": "10287",
+    "10513": "10288",
+    "10514": "10289",
+    "10515": "10290",
+    "10516": "10291",
+    "10517": "10292",
+    "10518": "10293",
+    "10519": "10294",
+    "10520": "10295",
+    "10521": "10296",
+    "10522": "10297",
+    "10523": "10298",
+    "10524": "10299",
+    "10525": "10300",
+    "10526": "10301",
+    "10527": "10302",
+    "10528": "10303",
+    "10529": "10304",
+    "10530": "10305",
+    "10531": "10306",
+    "10532": "10307",
+    "10533": "10308",
+    "10534": "10309",
+    "10535": "10310",
+    "10536": "10311",
+    "10537": "10312",
+    "10538": "10313",
+    "10539": "10314",
+    "10540": "10315",
+    "10541": "10316",
+    "10542": "10317",
+    "10543": "10318",
+    "10544": "10319",
+    "10545": "10320",
+    "10546": "10321",
+    "10547": "10322",
+    "10548": "10323",
+    "10549": "10324",
+    "10550": "10325",
+    "10551": "668-female",
+    "10552": "592-female",
+    "10553": "593-female",
+    "10554": "10326"
+  },
+  "pokemonResources": {
+    "1": "bulbasaur",
+    "2": "ivysaur",
+    "3": "venusaur",
+    "4": "charmander",
+    "5": "charmeleon",
+    "6": "charizard",
+    "7": "squirtle",
+    "8": "wartortle",
+    "9": "blastoise",
+    "10": "caterpie",
+    "11": "metapod",
+    "12": "butterfree",
+    "13": "weedle",
+    "14": "kakuna",
+    "15": "beedrill",
+    "16": "pidgey",
+    "17": "pidgeotto",
+    "18": "pidgeot",
+    "19": "rattata",
+    "20": "raticate",
+    "21": "spearow",
+    "22": "fearow",
+    "23": "ekans",
+    "24": "arbok",
+    "25": "pikachu",
+    "26": "raichu",
+    "27": "sandshrew",
+    "28": "sandslash",
+    "29": "nidoran-f",
+    "30": "nidorina",
+    "31": "nidoqueen",
+    "32": "nidoran-m",
+    "33": "nidorino",
+    "34": "nidoking",
+    "35": "clefairy",
+    "36": "clefable",
+    "37": "vulpix",
+    "38": "ninetales",
+    "39": "jigglypuff",
+    "40": "wigglytuff",
+    "41": "zubat",
+    "42": "golbat",
+    "43": "oddish",
+    "44": "gloom",
+    "45": "vileplume",
+    "46": "paras",
+    "47": "parasect",
+    "48": "venonat",
+    "49": "venomoth",
+    "50": "diglett",
+    "51": "dugtrio",
+    "52": "meowth",
+    "53": "persian",
+    "54": "psyduck",
+    "55": "golduck",
+    "56": "mankey",
+    "57": "primeape",
+    "58": "growlithe",
+    "59": "arcanine",
+    "60": "poliwag",
+    "61": "poliwhirl",
+    "62": "poliwrath",
+    "63": "abra",
+    "64": "kadabra",
+    "65": "alakazam",
+    "66": "machop",
+    "67": "machoke",
+    "68": "machamp",
+    "69": "bellsprout",
+    "70": "weepinbell",
+    "71": "victreebel",
+    "72": "tentacool",
+    "73": "tentacruel",
+    "74": "geodude",
+    "75": "graveler",
+    "76": "golem",
+    "77": "ponyta",
+    "78": "rapidash",
+    "79": "slowpoke",
+    "80": "slowbro",
+    "81": "magnemite",
+    "82": "magneton",
+    "83": "farfetchd",
+    "84": "doduo",
+    "85": "dodrio",
+    "86": "seel",
+    "87": "dewgong",
+    "88": "grimer",
+    "89": "muk",
+    "90": "shellder",
+    "91": "cloyster",
+    "92": "gastly",
+    "93": "haunter",
+    "94": "gengar",
+    "95": "onix",
+    "96": "drowzee",
+    "97": "hypno",
+    "98": "krabby",
+    "99": "kingler",
+    "100": "voltorb",
+    "101": "electrode",
+    "102": "exeggcute",
+    "103": "exeggutor",
+    "104": "cubone",
+    "105": "marowak",
+    "106": "hitmonlee",
+    "107": "hitmonchan",
+    "108": "lickitung",
+    "109": "koffing",
+    "110": "weezing",
+    "111": "rhyhorn",
+    "112": "rhydon",
+    "113": "chansey",
+    "114": "tangela",
+    "115": "kangaskhan",
+    "116": "horsea",
+    "117": "seadra",
+    "118": "goldeen",
+    "119": "seaking",
+    "120": "staryu",
+    "121": "starmie",
+    "122": "mr-mime",
+    "123": "scyther",
+    "124": "jynx",
+    "125": "electabuzz",
+    "126": "magmar",
+    "127": "pinsir",
+    "128": "tauros",
+    "129": "magikarp",
+    "130": "gyarados",
+    "131": "lapras",
+    "132": "ditto",
+    "133": "eevee",
+    "134": "vaporeon",
+    "135": "jolteon",
+    "136": "flareon",
+    "137": "porygon",
+    "138": "omanyte",
+    "139": "omastar",
+    "140": "kabuto",
+    "141": "kabutops",
+    "142": "aerodactyl",
+    "143": "snorlax",
+    "144": "articuno",
+    "145": "zapdos",
+    "146": "moltres",
+    "147": "dratini",
+    "148": "dragonair",
+    "149": "dragonite",
+    "150": "mewtwo",
+    "151": "mew",
+    "152": "chikorita",
+    "153": "bayleef",
+    "154": "meganium",
+    "155": "cyndaquil",
+    "156": "quilava",
+    "157": "typhlosion",
+    "158": "totodile",
+    "159": "croconaw",
+    "160": "feraligatr",
+    "161": "sentret",
+    "162": "furret",
+    "163": "hoothoot",
+    "164": "noctowl",
+    "165": "ledyba",
+    "166": "ledian",
+    "167": "spinarak",
+    "168": "ariados",
+    "169": "crobat",
+    "170": "chinchou",
+    "171": "lanturn",
+    "172": "pichu",
+    "173": "cleffa",
+    "174": "igglybuff",
+    "175": "togepi",
+    "176": "togetic",
+    "177": "natu",
+    "178": "xatu",
+    "179": "mareep",
+    "180": "flaaffy",
+    "181": "ampharos",
+    "182": "bellossom",
+    "183": "marill",
+    "184": "azumarill",
+    "185": "sudowoodo",
+    "186": "politoed",
+    "187": "hoppip",
+    "188": "skiploom",
+    "189": "jumpluff",
+    "190": "aipom",
+    "191": "sunkern",
+    "192": "sunflora",
+    "193": "yanma",
+    "194": "wooper",
+    "195": "quagsire",
+    "196": "espeon",
+    "197": "umbreon",
+    "198": "murkrow",
+    "199": "slowking",
+    "200": "misdreavus",
+    "201": "unown",
+    "202": "wobbuffet",
+    "203": "girafarig",
+    "204": "pineco",
+    "205": "forretress",
+    "206": "dunsparce",
+    "207": "gligar",
+    "208": "steelix",
+    "209": "snubbull",
+    "210": "granbull",
+    "211": "qwilfish",
+    "212": "scizor",
+    "213": "shuckle",
+    "214": "heracross",
+    "215": "sneasel",
+    "216": "teddiursa",
+    "217": "ursaring",
+    "218": "slugma",
+    "219": "magcargo",
+    "220": "swinub",
+    "221": "piloswine",
+    "222": "corsola",
+    "223": "remoraid",
+    "224": "octillery",
+    "225": "delibird",
+    "226": "mantine",
+    "227": "skarmory",
+    "228": "houndour",
+    "229": "houndoom",
+    "230": "kingdra",
+    "231": "phanpy",
+    "232": "donphan",
+    "233": "porygon2",
+    "234": "stantler",
+    "235": "smeargle",
+    "236": "tyrogue",
+    "237": "hitmontop",
+    "238": "smoochum",
+    "239": "elekid",
+    "240": "magby",
+    "241": "miltank",
+    "242": "blissey",
+    "243": "raikou",
+    "244": "entei",
+    "245": "suicune",
+    "246": "larvitar",
+    "247": "pupitar",
+    "248": "tyranitar",
+    "249": "lugia",
+    "250": "ho-oh",
+    "251": "celebi",
+    "252": "treecko",
+    "253": "grovyle",
+    "254": "sceptile",
+    "255": "torchic",
+    "256": "combusken",
+    "257": "blaziken",
+    "258": "mudkip",
+    "259": "marshtomp",
+    "260": "swampert",
+    "261": "poochyena",
+    "262": "mightyena",
+    "263": "zigzagoon",
+    "264": "linoone",
+    "265": "wurmple",
+    "266": "silcoon",
+    "267": "beautifly",
+    "268": "cascoon",
+    "269": "dustox",
+    "270": "lotad",
+    "271": "lombre",
+    "272": "ludicolo",
+    "273": "seedot",
+    "274": "nuzleaf",
+    "275": "shiftry",
+    "276": "taillow",
+    "277": "swellow",
+    "278": "wingull",
+    "279": "pelipper",
+    "280": "ralts",
+    "281": "kirlia",
+    "282": "gardevoir",
+    "283": "surskit",
+    "284": "masquerain",
+    "285": "shroomish",
+    "286": "breloom",
+    "287": "slakoth",
+    "288": "vigoroth",
+    "289": "slaking",
+    "290": "nincada",
+    "291": "ninjask",
+    "292": "shedinja",
+    "293": "whismur",
+    "294": "loudred",
+    "295": "exploud",
+    "296": "makuhita",
+    "297": "hariyama",
+    "298": "azurill",
+    "299": "nosepass",
+    "300": "skitty",
+    "301": "delcatty",
+    "302": "sableye",
+    "303": "mawile",
+    "304": "aron",
+    "305": "lairon",
+    "306": "aggron",
+    "307": "meditite",
+    "308": "medicham",
+    "309": "electrike",
+    "310": "manectric",
+    "311": "plusle",
+    "312": "minun",
+    "313": "volbeat",
+    "314": "illumise",
+    "315": "roselia",
+    "316": "gulpin",
+    "317": "swalot",
+    "318": "carvanha",
+    "319": "sharpedo",
+    "320": "wailmer",
+    "321": "wailord",
+    "322": "numel",
+    "323": "camerupt",
+    "324": "torkoal",
+    "325": "spoink",
+    "326": "grumpig",
+    "327": "spinda",
+    "328": "trapinch",
+    "329": "vibrava",
+    "330": "flygon",
+    "331": "cacnea",
+    "332": "cacturne",
+    "333": "swablu",
+    "334": "altaria",
+    "335": "zangoose",
+    "336": "seviper",
+    "337": "lunatone",
+    "338": "solrock",
+    "339": "barboach",
+    "340": "whiscash",
+    "341": "corphish",
+    "342": "crawdaunt",
+    "343": "baltoy",
+    "344": "claydol",
+    "345": "lileep",
+    "346": "cradily",
+    "347": "anorith",
+    "348": "armaldo",
+    "349": "feebas",
+    "350": "milotic",
+    "351": "castform",
+    "352": "kecleon",
+    "353": "shuppet",
+    "354": "banette",
+    "355": "duskull",
+    "356": "dusclops",
+    "357": "tropius",
+    "358": "chimecho",
+    "359": "absol",
+    "360": "wynaut",
+    "361": "snorunt",
+    "362": "glalie",
+    "363": "spheal",
+    "364": "sealeo",
+    "365": "walrein",
+    "366": "clamperl",
+    "367": "huntail",
+    "368": "gorebyss",
+    "369": "relicanth",
+    "370": "luvdisc",
+    "371": "bagon",
+    "372": "shelgon",
+    "373": "salamence",
+    "374": "beldum",
+    "375": "metang",
+    "376": "metagross",
+    "377": "regirock",
+    "378": "regice",
+    "379": "registeel",
+    "380": "latias",
+    "381": "latios",
+    "382": "kyogre",
+    "383": "groudon",
+    "384": "rayquaza",
+    "385": "jirachi",
+    "386": "deoxys-normal",
+    "387": "turtwig",
+    "388": "grotle",
+    "389": "torterra",
+    "390": "chimchar",
+    "391": "monferno",
+    "392": "infernape",
+    "393": "piplup",
+    "394": "prinplup",
+    "395": "empoleon",
+    "396": "starly",
+    "397": "staravia",
+    "398": "staraptor",
+    "399": "bidoof",
+    "400": "bibarel",
+    "401": "kricketot",
+    "402": "kricketune",
+    "403": "shinx",
+    "404": "luxio",
+    "405": "luxray",
+    "406": "budew",
+    "407": "roserade",
+    "408": "cranidos",
+    "409": "rampardos",
+    "410": "shieldon",
+    "411": "bastiodon",
+    "412": "burmy",
+    "413": "wormadam-plant",
+    "414": "mothim",
+    "415": "combee",
+    "416": "vespiquen",
+    "417": "pachirisu",
+    "418": "buizel",
+    "419": "floatzel",
+    "420": "cherubi",
+    "421": "cherrim",
+    "422": "shellos",
+    "423": "gastrodon",
+    "424": "ambipom",
+    "425": "drifloon",
+    "426": "drifblim",
+    "427": "buneary",
+    "428": "lopunny",
+    "429": "mismagius",
+    "430": "honchkrow",
+    "431": "glameow",
+    "432": "purugly",
+    "433": "chingling",
+    "434": "stunky",
+    "435": "skuntank",
+    "436": "bronzor",
+    "437": "bronzong",
+    "438": "bonsly",
+    "439": "mime-jr",
+    "440": "happiny",
+    "441": "chatot",
+    "442": "spiritomb",
+    "443": "gible",
+    "444": "gabite",
+    "445": "garchomp",
+    "446": "munchlax",
+    "447": "riolu",
+    "448": "lucario",
+    "449": "hippopotas",
+    "450": "hippowdon",
+    "451": "skorupi",
+    "452": "drapion",
+    "453": "croagunk",
+    "454": "toxicroak",
+    "455": "carnivine",
+    "456": "finneon",
+    "457": "lumineon",
+    "458": "mantyke",
+    "459": "snover",
+    "460": "abomasnow",
+    "461": "weavile",
+    "462": "magnezone",
+    "463": "lickilicky",
+    "464": "rhyperior",
+    "465": "tangrowth",
+    "466": "electivire",
+    "467": "magmortar",
+    "468": "togekiss",
+    "469": "yanmega",
+    "470": "leafeon",
+    "471": "glaceon",
+    "472": "gliscor",
+    "473": "mamoswine",
+    "474": "porygon-z",
+    "475": "gallade",
+    "476": "probopass",
+    "477": "dusknoir",
+    "478": "froslass",
+    "479": "rotom",
+    "480": "uxie",
+    "481": "mesprit",
+    "482": "azelf",
+    "483": "dialga",
+    "484": "palkia",
+    "485": "heatran",
+    "486": "regigigas",
+    "487": "giratina-altered",
+    "488": "cresselia",
+    "489": "phione",
+    "490": "manaphy",
+    "491": "darkrai",
+    "492": "shaymin-land",
+    "493": "arceus",
+    "494": "victini",
+    "495": "snivy",
+    "496": "servine",
+    "497": "serperior",
+    "498": "tepig",
+    "499": "pignite",
+    "500": "emboar",
+    "501": "oshawott",
+    "502": "dewott",
+    "503": "samurott",
+    "504": "patrat",
+    "505": "watchog",
+    "506": "lillipup",
+    "507": "herdier",
+    "508": "stoutland",
+    "509": "purrloin",
+    "510": "liepard",
+    "511": "pansage",
+    "512": "simisage",
+    "513": "pansear",
+    "514": "simisear",
+    "515": "panpour",
+    "516": "simipour",
+    "517": "munna",
+    "518": "musharna",
+    "519": "pidove",
+    "520": "tranquill",
+    "521": "unfezant",
+    "522": "blitzle",
+    "523": "zebstrika",
+    "524": "roggenrola",
+    "525": "boldore",
+    "526": "gigalith",
+    "527": "woobat",
+    "528": "swoobat",
+    "529": "drilbur",
+    "530": "excadrill",
+    "531": "audino",
+    "532": "timburr",
+    "533": "gurdurr",
+    "534": "conkeldurr",
+    "535": "tympole",
+    "536": "palpitoad",
+    "537": "seismitoad",
+    "538": "throh",
+    "539": "sawk",
+    "540": "sewaddle",
+    "541": "swadloon",
+    "542": "leavanny",
+    "543": "venipede",
+    "544": "whirlipede",
+    "545": "scolipede",
+    "546": "cottonee",
+    "547": "whimsicott",
+    "548": "petilil",
+    "549": "lilligant",
+    "550": "basculin-red-striped",
+    "551": "sandile",
+    "552": "krokorok",
+    "553": "krookodile",
+    "554": "darumaka",
+    "555": "darmanitan-standard",
+    "556": "maractus",
+    "557": "dwebble",
+    "558": "crustle",
+    "559": "scraggy",
+    "560": "scrafty",
+    "561": "sigilyph",
+    "562": "yamask",
+    "563": "cofagrigus",
+    "564": "tirtouga",
+    "565": "carracosta",
+    "566": "archen",
+    "567": "archeops",
+    "568": "trubbish",
+    "569": "garbodor",
+    "570": "zorua",
+    "571": "zoroark",
+    "572": "minccino",
+    "573": "cinccino",
+    "574": "gothita",
+    "575": "gothorita",
+    "576": "gothitelle",
+    "577": "solosis",
+    "578": "duosion",
+    "579": "reuniclus",
+    "580": "ducklett",
+    "581": "swanna",
+    "582": "vanillite",
+    "583": "vanillish",
+    "584": "vanilluxe",
+    "585": "deerling",
+    "586": "sawsbuck",
+    "587": "emolga",
+    "588": "karrablast",
+    "589": "escavalier",
+    "590": "foongus",
+    "591": "amoonguss",
+    "592": "frillish-male",
+    "593": "jellicent-male",
+    "594": "alomomola",
+    "595": "joltik",
+    "596": "galvantula",
+    "597": "ferroseed",
+    "598": "ferrothorn",
+    "599": "klink",
+    "600": "klang",
+    "601": "klinklang",
+    "602": "tynamo",
+    "603": "eelektrik",
+    "604": "eelektross",
+    "605": "elgyem",
+    "606": "beheeyem",
+    "607": "litwick",
+    "608": "lampent",
+    "609": "chandelure",
+    "610": "axew",
+    "611": "fraxure",
+    "612": "haxorus",
+    "613": "cubchoo",
+    "614": "beartic",
+    "615": "cryogonal",
+    "616": "shelmet",
+    "617": "accelgor",
+    "618": "stunfisk",
+    "619": "mienfoo",
+    "620": "mienshao",
+    "621": "druddigon",
+    "622": "golett",
+    "623": "golurk",
+    "624": "pawniard",
+    "625": "bisharp",
+    "626": "bouffalant",
+    "627": "rufflet",
+    "628": "braviary",
+    "629": "vullaby",
+    "630": "mandibuzz",
+    "631": "heatmor",
+    "632": "durant",
+    "633": "deino",
+    "634": "zweilous",
+    "635": "hydreigon",
+    "636": "larvesta",
+    "637": "volcarona",
+    "638": "cobalion",
+    "639": "terrakion",
+    "640": "virizion",
+    "641": "tornadus-incarnate",
+    "642": "thundurus-incarnate",
+    "643": "reshiram",
+    "644": "zekrom",
+    "645": "landorus-incarnate",
+    "646": "kyurem",
+    "647": "keldeo-ordinary",
+    "648": "meloetta-aria",
+    "649": "genesect",
+    "650": "chespin",
+    "651": "quilladin",
+    "652": "chesnaught",
+    "653": "fennekin",
+    "654": "braixen",
+    "655": "delphox",
+    "656": "froakie",
+    "657": "frogadier",
+    "658": "greninja",
+    "659": "bunnelby",
+    "660": "diggersby",
+    "661": "fletchling",
+    "662": "fletchinder",
+    "663": "talonflame",
+    "664": "scatterbug",
+    "665": "spewpa",
+    "666": "vivillon",
+    "667": "litleo",
+    "668": "pyroar-male",
+    "669": "flabebe",
+    "670": "floette",
+    "671": "florges",
+    "672": "skiddo",
+    "673": "gogoat",
+    "674": "pancham",
+    "675": "pangoro",
+    "676": "furfrou",
+    "677": "espurr",
+    "678": "meowstic-male",
+    "679": "honedge",
+    "680": "doublade",
+    "681": "aegislash-shield",
+    "682": "spritzee",
+    "683": "aromatisse",
+    "684": "swirlix",
+    "685": "slurpuff",
+    "686": "inkay",
+    "687": "malamar",
+    "688": "binacle",
+    "689": "barbaracle",
+    "690": "skrelp",
+    "691": "dragalge",
+    "692": "clauncher",
+    "693": "clawitzer",
+    "694": "helioptile",
+    "695": "heliolisk",
+    "696": "tyrunt",
+    "697": "tyrantrum",
+    "698": "amaura",
+    "699": "aurorus",
+    "700": "sylveon",
+    "701": "hawlucha",
+    "702": "dedenne",
+    "703": "carbink",
+    "704": "goomy",
+    "705": "sliggoo",
+    "706": "goodra",
+    "707": "klefki",
+    "708": "phantump",
+    "709": "trevenant",
+    "710": "pumpkaboo-average",
+    "711": "gourgeist-average",
+    "712": "bergmite",
+    "713": "avalugg",
+    "714": "noibat",
+    "715": "noivern",
+    "716": "xerneas",
+    "717": "yveltal",
+    "718": "zygarde-50",
+    "719": "diancie",
+    "720": "hoopa",
+    "721": "volcanion",
+    "722": "rowlet",
+    "723": "dartrix",
+    "724": "decidueye",
+    "725": "litten",
+    "726": "torracat",
+    "727": "incineroar",
+    "728": "popplio",
+    "729": "brionne",
+    "730": "primarina",
+    "731": "pikipek",
+    "732": "trumbeak",
+    "733": "toucannon",
+    "734": "yungoos",
+    "735": "gumshoos",
+    "736": "grubbin",
+    "737": "charjabug",
+    "738": "vikavolt",
+    "739": "crabrawler",
+    "740": "crabominable",
+    "741": "oricorio-baile",
+    "742": "cutiefly",
+    "743": "ribombee",
+    "744": "rockruff",
+    "745": "lycanroc-midday",
+    "746": "wishiwashi-solo",
+    "747": "mareanie",
+    "748": "toxapex",
+    "749": "mudbray",
+    "750": "mudsdale",
+    "751": "dewpider",
+    "752": "araquanid",
+    "753": "fomantis",
+    "754": "lurantis",
+    "755": "morelull",
+    "756": "shiinotic",
+    "757": "salandit",
+    "758": "salazzle",
+    "759": "stufful",
+    "760": "bewear",
+    "761": "bounsweet",
+    "762": "steenee",
+    "763": "tsareena",
+    "764": "comfey",
+    "765": "oranguru",
+    "766": "passimian",
+    "767": "wimpod",
+    "768": "golisopod",
+    "769": "sandygast",
+    "770": "palossand",
+    "771": "pyukumuku",
+    "772": "type-null",
+    "773": "silvally",
+    "774": "minior-red-meteor",
+    "775": "komala",
+    "776": "turtonator",
+    "777": "togedemaru",
+    "778": "mimikyu-disguised",
+    "779": "bruxish",
+    "780": "drampa",
+    "781": "dhelmise",
+    "782": "jangmo-o",
+    "783": "hakamo-o",
+    "784": "kommo-o",
+    "785": "tapu-koko",
+    "786": "tapu-lele",
+    "787": "tapu-bulu",
+    "788": "tapu-fini",
+    "789": "cosmog",
+    "790": "cosmoem",
+    "791": "solgaleo",
+    "792": "lunala",
+    "793": "nihilego",
+    "794": "buzzwole",
+    "795": "pheromosa",
+    "796": "xurkitree",
+    "797": "celesteela",
+    "798": "kartana",
+    "799": "guzzlord",
+    "800": "necrozma",
+    "801": "magearna",
+    "802": "marshadow",
+    "803": "poipole",
+    "804": "naganadel",
+    "805": "stakataka",
+    "806": "blacephalon",
+    "807": "zeraora",
+    "808": "meltan",
+    "809": "melmetal",
+    "810": "grookey",
+    "811": "thwackey",
+    "812": "rillaboom",
+    "813": "scorbunny",
+    "814": "raboot",
+    "815": "cinderace",
+    "816": "sobble",
+    "817": "drizzile",
+    "818": "inteleon",
+    "819": "skwovet",
+    "820": "greedent",
+    "821": "rookidee",
+    "822": "corvisquire",
+    "823": "corviknight",
+    "824": "blipbug",
+    "825": "dottler",
+    "826": "orbeetle",
+    "827": "nickit",
+    "828": "thievul",
+    "829": "gossifleur",
+    "830": "eldegoss",
+    "831": "wooloo",
+    "832": "dubwool",
+    "833": "chewtle",
+    "834": "drednaw",
+    "835": "yamper",
+    "836": "boltund",
+    "837": "rolycoly",
+    "838": "carkol",
+    "839": "coalossal",
+    "840": "applin",
+    "841": "flapple",
+    "842": "appletun",
+    "843": "silicobra",
+    "844": "sandaconda",
+    "845": "cramorant",
+    "846": "arrokuda",
+    "847": "barraskewda",
+    "848": "toxel",
+    "849": "toxtricity-amped",
+    "850": "sizzlipede",
+    "851": "centiskorch",
+    "852": "clobbopus",
+    "853": "grapploct",
+    "854": "sinistea",
+    "855": "polteageist",
+    "856": "hatenna",
+    "857": "hattrem",
+    "858": "hatterene",
+    "859": "impidimp",
+    "860": "morgrem",
+    "861": "grimmsnarl",
+    "862": "obstagoon",
+    "863": "perrserker",
+    "864": "cursola",
+    "865": "sirfetchd",
+    "866": "mr-rime",
+    "867": "runerigus",
+    "868": "milcery",
+    "869": "alcremie",
+    "870": "falinks",
+    "871": "pincurchin",
+    "872": "snom",
+    "873": "frosmoth",
+    "874": "stonjourner",
+    "875": "eiscue-ice",
+    "876": "indeedee-male",
+    "877": "morpeko-full-belly",
+    "878": "cufant",
+    "879": "copperajah",
+    "880": "dracozolt",
+    "881": "arctozolt",
+    "882": "dracovish",
+    "883": "arctovish",
+    "884": "duraludon",
+    "885": "dreepy",
+    "886": "drakloak",
+    "887": "dragapult",
+    "888": "zacian",
+    "889": "zamazenta",
+    "890": "eternatus",
+    "891": "kubfu",
+    "892": "urshifu-single-strike",
+    "893": "zarude",
+    "894": "regieleki",
+    "895": "regidrago",
+    "896": "glastrier",
+    "897": "spectrier",
+    "898": "calyrex",
+    "899": "wyrdeer",
+    "900": "kleavor",
+    "901": "ursaluna",
+    "902": "basculegion-male",
+    "903": "sneasler",
+    "904": "overqwil",
+    "905": "enamorus-incarnate",
+    "906": "sprigatito",
+    "907": "floragato",
+    "908": "meowscarada",
+    "909": "fuecoco",
+    "910": "crocalor",
+    "911": "skeledirge",
+    "912": "quaxly",
+    "913": "quaxwell",
+    "914": "quaquaval",
+    "915": "lechonk",
+    "916": "oinkologne-male",
+    "917": "tarountula",
+    "918": "spidops",
+    "919": "nymble",
+    "920": "lokix",
+    "921": "pawmi",
+    "922": "pawmo",
+    "923": "pawmot",
+    "924": "tandemaus",
+    "925": "maushold-family-of-four",
+    "926": "fidough",
+    "927": "dachsbun",
+    "928": "smoliv",
+    "929": "dolliv",
+    "930": "arboliva",
+    "931": "squawkabilly-green-plumage",
+    "932": "nacli",
+    "933": "naclstack",
+    "934": "garganacl",
+    "935": "charcadet",
+    "936": "armarouge",
+    "937": "ceruledge",
+    "938": "tadbulb",
+    "939": "bellibolt",
+    "940": "wattrel",
+    "941": "kilowattrel",
+    "942": "maschiff",
+    "943": "mabosstiff",
+    "944": "shroodle",
+    "945": "grafaiai",
+    "946": "bramblin",
+    "947": "brambleghast",
+    "948": "toedscool",
+    "949": "toedscruel",
+    "950": "klawf",
+    "951": "capsakid",
+    "952": "scovillain",
+    "953": "rellor",
+    "954": "rabsca",
+    "955": "flittle",
+    "956": "espathra",
+    "957": "tinkatink",
+    "958": "tinkatuff",
+    "959": "tinkaton",
+    "960": "wiglett",
+    "961": "wugtrio",
+    "962": "bombirdier",
+    "963": "finizen",
+    "964": "palafin-zero",
+    "965": "varoom",
+    "966": "revavroom",
+    "967": "cyclizar",
+    "968": "orthworm",
+    "969": "glimmet",
+    "970": "glimmora",
+    "971": "greavard",
+    "972": "houndstone",
+    "973": "flamigo",
+    "974": "cetoddle",
+    "975": "cetitan",
+    "976": "veluza",
+    "977": "dondozo",
+    "978": "tatsugiri-curly",
+    "979": "annihilape",
+    "980": "clodsire",
+    "981": "farigiraf",
+    "982": "dudunsparce-two-segment",
+    "983": "kingambit",
+    "984": "great-tusk",
+    "985": "scream-tail",
+    "986": "brute-bonnet",
+    "987": "flutter-mane",
+    "988": "slither-wing",
+    "989": "sandy-shocks",
+    "990": "iron-treads",
+    "991": "iron-bundle",
+    "992": "iron-hands",
+    "993": "iron-jugulis",
+    "994": "iron-moth",
+    "995": "iron-thorns",
+    "996": "frigibax",
+    "997": "arctibax",
+    "998": "baxcalibur",
+    "999": "gimmighoul",
+    "1000": "gholdengo",
+    "1001": "wo-chien",
+    "1002": "chien-pao",
+    "1003": "ting-lu",
+    "1004": "chi-yu",
+    "1005": "roaring-moon",
+    "1006": "iron-valiant",
+    "1007": "koraidon",
+    "1008": "miraidon",
+    "1009": "walking-wake",
+    "1010": "iron-leaves",
+    "1011": "dipplin",
+    "1012": "poltchageist",
+    "1013": "sinistcha",
+    "1014": "okidogi",
+    "1015": "munkidori",
+    "1016": "fezandipiti",
+    "1017": "ogerpon",
+    "1018": "archaludon",
+    "1019": "hydrapple",
+    "1020": "gouging-fire",
+    "1021": "raging-bolt",
+    "1022": "iron-boulder",
+    "1023": "iron-crown",
+    "1024": "terapagos",
+    "1025": "pecharunt",
+    "10001": "deoxys-attack",
+    "10002": "deoxys-defense",
+    "10003": "deoxys-speed",
+    "10004": "wormadam-sandy",
+    "10005": "wormadam-trash",
+    "10006": "shaymin-sky",
+    "10007": "giratina-origin",
+    "10008": "rotom-heat",
+    "10009": "rotom-wash",
+    "10010": "rotom-frost",
+    "10011": "rotom-fan",
+    "10012": "rotom-mow",
+    "10013": "castform-sunny",
+    "10014": "castform-rainy",
+    "10015": "castform-snowy",
+    "10016": "basculin-blue-striped",
+    "10017": "darmanitan-zen",
+    "10018": "meloetta-pirouette",
+    "10019": "tornadus-therian",
+    "10020": "thundurus-therian",
+    "10021": "landorus-therian",
+    "10022": "kyurem-black",
+    "10023": "kyurem-white",
+    "10024": "keldeo-resolute",
+    "10025": "meowstic-female",
+    "10026": "aegislash-blade",
+    "10027": "pumpkaboo-small",
+    "10028": "pumpkaboo-large",
+    "10029": "pumpkaboo-super",
+    "10030": "gourgeist-small",
+    "10031": "gourgeist-large",
+    "10032": "gourgeist-super",
+    "10033": "venusaur-mega",
+    "10034": "charizard-mega-x",
+    "10035": "charizard-mega-y",
+    "10036": "blastoise-mega",
+    "10037": "alakazam-mega",
+    "10038": "gengar-mega",
+    "10039": "kangaskhan-mega",
+    "10040": "pinsir-mega",
+    "10041": "gyarados-mega",
+    "10042": "aerodactyl-mega",
+    "10043": "mewtwo-mega-x",
+    "10044": "mewtwo-mega-y",
+    "10045": "ampharos-mega",
+    "10046": "scizor-mega",
+    "10047": "heracross-mega",
+    "10048": "houndoom-mega",
+    "10049": "tyranitar-mega",
+    "10050": "blaziken-mega",
+    "10051": "gardevoir-mega",
+    "10052": "mawile-mega",
+    "10053": "aggron-mega",
+    "10054": "medicham-mega",
+    "10055": "manectric-mega",
+    "10056": "banette-mega",
+    "10057": "absol-mega",
+    "10058": "garchomp-mega",
+    "10059": "lucario-mega",
+    "10060": "abomasnow-mega",
+    "10061": "floette-eternal",
+    "10062": "latias-mega",
+    "10063": "latios-mega",
+    "10064": "swampert-mega",
+    "10065": "sceptile-mega",
+    "10066": "sableye-mega",
+    "10067": "altaria-mega",
+    "10068": "gallade-mega",
+    "10069": "audino-mega",
+    "10070": "sharpedo-mega",
+    "10071": "slowbro-mega",
+    "10072": "steelix-mega",
+    "10073": "pidgeot-mega",
+    "10074": "glalie-mega",
+    "10075": "diancie-mega",
+    "10076": "metagross-mega",
+    "10077": "kyogre-primal",
+    "10078": "groudon-primal",
+    "10079": "rayquaza-mega",
+    "10080": "pikachu-rock-star",
+    "10081": "pikachu-belle",
+    "10082": "pikachu-pop-star",
+    "10083": "pikachu-phd",
+    "10084": "pikachu-libre",
+    "10085": "pikachu-cosplay",
+    "10086": "hoopa-unbound",
+    "10087": "camerupt-mega",
+    "10088": "lopunny-mega",
+    "10089": "salamence-mega",
+    "10090": "beedrill-mega",
+    "10091": "rattata-alola",
+    "10092": "raticate-alola",
+    "10093": "raticate-totem-alola",
+    "10094": "pikachu-original-cap",
+    "10095": "pikachu-hoenn-cap",
+    "10096": "pikachu-sinnoh-cap",
+    "10097": "pikachu-unova-cap",
+    "10098": "pikachu-kalos-cap",
+    "10099": "pikachu-alola-cap",
+    "10100": "raichu-alola",
+    "10101": "sandshrew-alola",
+    "10102": "sandslash-alola",
+    "10103": "vulpix-alola",
+    "10104": "ninetales-alola",
+    "10105": "diglett-alola",
+    "10106": "dugtrio-alola",
+    "10107": "meowth-alola",
+    "10108": "persian-alola",
+    "10109": "geodude-alola",
+    "10110": "graveler-alola",
+    "10111": "golem-alola",
+    "10112": "grimer-alola",
+    "10113": "muk-alola",
+    "10114": "exeggutor-alola",
+    "10115": "marowak-alola",
+    "10116": "greninja-battle-bond",
+    "10117": "greninja-ash",
+    "10118": "zygarde-10-power-construct",
+    "10119": "zygarde-50-power-construct",
+    "10120": "zygarde-complete",
+    "10121": "gumshoos-totem",
+    "10122": "vikavolt-totem",
+    "10123": "oricorio-pom-pom",
+    "10124": "oricorio-pau",
+    "10125": "oricorio-sensu",
+    "10126": "lycanroc-midnight",
+    "10127": "wishiwashi-school",
+    "10128": "lurantis-totem",
+    "10129": "salazzle-totem",
+    "10130": "minior-orange-meteor",
+    "10131": "minior-yellow-meteor",
+    "10132": "minior-green-meteor",
+    "10133": "minior-blue-meteor",
+    "10134": "minior-indigo-meteor",
+    "10135": "minior-violet-meteor",
+    "10136": "minior-red",
+    "10137": "minior-orange",
+    "10138": "minior-yellow",
+    "10139": "minior-green",
+    "10140": "minior-blue",
+    "10141": "minior-indigo",
+    "10142": "minior-violet",
+    "10143": "mimikyu-busted",
+    "10144": "mimikyu-totem-disguised",
+    "10145": "mimikyu-totem-busted",
+    "10146": "kommo-o-totem",
+    "10147": "magearna-original",
+    "10148": "pikachu-partner-cap",
+    "10149": "marowak-totem",
+    "10150": "ribombee-totem",
+    "10151": "rockruff-own-tempo",
+    "10152": "lycanroc-dusk",
+    "10153": "araquanid-totem",
+    "10154": "togedemaru-totem",
+    "10155": "necrozma-dusk",
+    "10156": "necrozma-dawn",
+    "10157": "necrozma-ultra",
+    "10158": "pikachu-starter",
+    "10159": "eevee-starter",
+    "10160": "pikachu-world-cap",
+    "10161": "meowth-galar",
+    "10162": "ponyta-galar",
+    "10163": "rapidash-galar",
+    "10164": "slowpoke-galar",
+    "10165": "slowbro-galar",
+    "10166": "farfetchd-galar",
+    "10167": "weezing-galar",
+    "10168": "mr-mime-galar",
+    "10169": "articuno-galar",
+    "10170": "zapdos-galar",
+    "10171": "moltres-galar",
+    "10172": "slowking-galar",
+    "10173": "corsola-galar",
+    "10174": "zigzagoon-galar",
+    "10175": "linoone-galar",
+    "10176": "darumaka-galar",
+    "10177": "darmanitan-galar-standard",
+    "10178": "darmanitan-galar-zen",
+    "10179": "yamask-galar",
+    "10180": "stunfisk-galar",
+    "10181": "zygarde-10",
+    "10182": "cramorant-gulping",
+    "10183": "cramorant-gorging",
+    "10184": "toxtricity-low-key",
+    "10185": "eiscue-noice",
+    "10186": "indeedee-female",
+    "10187": "morpeko-hangry",
+    "10188": "zacian-crowned",
+    "10189": "zamazenta-crowned",
+    "10190": "eternatus-eternamax",
+    "10191": "urshifu-rapid-strike",
+    "10192": "zarude-dada",
+    "10193": "calyrex-ice",
+    "10194": "calyrex-shadow",
+    "10195": "venusaur-gmax",
+    "10196": "charizard-gmax",
+    "10197": "blastoise-gmax",
+    "10198": "butterfree-gmax",
+    "10199": "pikachu-gmax",
+    "10200": "meowth-gmax",
+    "10201": "machamp-gmax",
+    "10202": "gengar-gmax",
+    "10203": "kingler-gmax",
+    "10204": "lapras-gmax",
+    "10205": "eevee-gmax",
+    "10206": "snorlax-gmax",
+    "10207": "garbodor-gmax",
+    "10208": "melmetal-gmax",
+    "10209": "rillaboom-gmax",
+    "10210": "cinderace-gmax",
+    "10211": "inteleon-gmax",
+    "10212": "corviknight-gmax",
+    "10213": "orbeetle-gmax",
+    "10214": "drednaw-gmax",
+    "10215": "coalossal-gmax",
+    "10216": "flapple-gmax",
+    "10217": "appletun-gmax",
+    "10218": "sandaconda-gmax",
+    "10219": "toxtricity-amped-gmax",
+    "10220": "centiskorch-gmax",
+    "10221": "hatterene-gmax",
+    "10222": "grimmsnarl-gmax",
+    "10223": "alcremie-gmax",
+    "10224": "copperajah-gmax",
+    "10225": "duraludon-gmax",
+    "10226": "urshifu-single-strike-gmax",
+    "10227": "urshifu-rapid-strike-gmax",
+    "10228": "toxtricity-low-key-gmax",
+    "10229": "growlithe-hisui",
+    "10230": "arcanine-hisui",
+    "10231": "voltorb-hisui",
+    "10232": "electrode-hisui",
+    "10233": "typhlosion-hisui",
+    "10234": "qwilfish-hisui",
+    "10235": "sneasel-hisui",
+    "10236": "samurott-hisui",
+    "10237": "lilligant-hisui",
+    "10238": "zorua-hisui",
+    "10239": "zoroark-hisui",
+    "10240": "braviary-hisui",
+    "10241": "sliggoo-hisui",
+    "10242": "goodra-hisui",
+    "10243": "avalugg-hisui",
+    "10244": "decidueye-hisui",
+    "10245": "dialga-origin",
+    "10246": "palkia-origin",
+    "10247": "basculin-white-striped",
+    "10248": "basculegion-female",
+    "10249": "enamorus-therian",
+    "10250": "tauros-paldea-combat-breed",
+    "10251": "tauros-paldea-blaze-breed",
+    "10252": "tauros-paldea-aqua-breed",
+    "10253": "wooper-paldea",
+    "10254": "oinkologne-female",
+    "10255": "dudunsparce-three-segment",
+    "10256": "palafin-hero",
+    "10257": "maushold-family-of-three",
+    "10258": "tatsugiri-droopy",
+    "10259": "tatsugiri-stretchy",
+    "10260": "squawkabilly-blue-plumage",
+    "10261": "squawkabilly-yellow-plumage",
+    "10262": "squawkabilly-white-plumage",
+    "10263": "gimmighoul-roaming",
+    "10264": "koraidon-limited-build",
+    "10265": "koraidon-sprinting-build",
+    "10266": "koraidon-swimming-build",
+    "10267": "koraidon-gliding-build",
+    "10268": "miraidon-low-power-mode",
+    "10269": "miraidon-drive-mode",
+    "10270": "miraidon-aquatic-mode",
+    "10271": "miraidon-glide-mode",
+    "10272": "ursaluna-bloodmoon",
+    "10273": "ogerpon-wellspring-mask",
+    "10274": "ogerpon-hearthflame-mask",
+    "10275": "ogerpon-cornerstone-mask",
+    "10276": "terapagos-terastal",
+    "10277": "terapagos-stellar",
+    "10278": "clefable-mega",
+    "10279": "victreebel-mega",
+    "10280": "starmie-mega",
+    "10281": "dragonite-mega",
+    "10282": "meganium-mega",
+    "10283": "feraligatr-mega",
+    "10284": "skarmory-mega",
+    "10285": "froslass-mega",
+    "10286": "emboar-mega",
+    "10287": "excadrill-mega",
+    "10288": "scolipede-mega",
+    "10289": "scrafty-mega",
+    "10290": "eelektross-mega",
+    "10291": "chandelure-mega",
+    "10292": "chesnaught-mega",
+    "10293": "delphox-mega",
+    "10294": "greninja-mega",
+    "10295": "pyroar-mega",
+    "10296": "floette-mega",
+    "10297": "malamar-mega",
+    "10298": "barbaracle-mega",
+    "10299": "dragalge-mega",
+    "10300": "hawlucha-mega",
+    "10301": "zygarde-mega",
+    "10302": "drampa-mega",
+    "10303": "falinks-mega",
+    "10304": "raichu-mega-x",
+    "10305": "raichu-mega-y",
+    "10306": "chimecho-mega",
+    "10307": "absol-mega-z",
+    "10308": "staraptor-mega",
+    "10309": "garchomp-mega-z",
+    "10310": "lucario-mega-z",
+    "10311": "heatran-mega",
+    "10312": "darkrai-mega",
+    "10313": "golurk-mega",
+    "10314": "meowstic-male-mega",
+    "10315": "crabominable-mega",
+    "10316": "golisopod-mega",
+    "10317": "magearna-mega",
+    "10318": "magearna-original-mega",
+    "10319": "zeraora-mega",
+    "10320": "scovillain-mega",
+    "10321": "glimmora-mega",
+    "10322": "tatsugiri-curly-mega",
+    "10323": "tatsugiri-droopy-mega",
+    "10324": "tatsugiri-stretchy-mega",
+    "10325": "baxcalibur-mega",
+    "10326": "meowstic-female-mega"
+  },
+  "catalogueCommit": "2ee1c422ad9f3831245dab0ac2a5cd1aae61cd72"
+}

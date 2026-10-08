@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.17.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.18.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -72,9 +72,9 @@ A revisão 2.0.13 é uma passagem de direção de arte sobre o conteúdo já apr
 
 A revisão 2.0.14 substitui o acabamento plástico da 2.0.13 por uma linguagem de diário de aventura: superfícies foscas, cores felizes, profundidade curta e controles táteis sem brilho artificial. Pokémon decorativos nunca recebem disco/círculo de fundo e os módulos principais mantêm pelo menos um GIF parceiro, com PNG estático sob redução de movimento. O Cartão de Treinador deixa de repetir “Seu MyOwnDex”. O ícone v100 representa um diário/Pokédex aberto com lente de consulta e rota de aventura e é a identidade usada no cabeçalho, abertura, favicon e manifesto.
 
-A mesma revisão corrige o histórico de Dados local: `LOCAL_ROLL_LIMIT` passa a ser importado explicitamente, a rolagem entra no estado da sessão antes de qualquer persistência, recebe uma cópia rápida no armazenamento do navegador e uma cópia durável assíncrona. Falha de cache, IndexedDB, conta ou callback não remove nem rerrola o resultado e não bloqueia uma nova rolagem. Somente rolagens remotas autoritativas podem aguardar o servidor. A versão mostrada no rodapé e na abertura é lida diretamente de `package.json`; não manter um rótulo de versão paralelo.
+A mesma revisão corrige o histórico de Dados local: `LOCAL_ROLL_LIMIT` passa a ser importado explicitamente, a rolagem entra no estado da sessão antes de qualquer persistência, recebe uma cópia rápida no armazenamento do navegador e uma cópia durável assíncrona. Falha de cache, IndexedDB, conta ou callback não remove nem rerrola o resultado e não bloqueia uma nova rolagem. Somente rolagens remotas autoritativas podem aguardar o servidor. A versão mostrada no rodapé é lida diretamente de `package.json`; não manter um rótulo de versão paralelo.
 
-A revisão 2.0.15 trouxe a RotomDex própria nas cores do MyOwnDex, cabeçalhos mais vivos e palcos transparentes. A revisão atual preserva esse desenho, corrige formatos de ícones para instalação e compartilhamento e atualiza seus endereços para evitar imagens antigas em cache.
+A revisão 2.0.15 trouxe a RotomDex própria nas cores do MyOwnDex, cabeçalhos mais vivos e palcos transparentes. A revisão 2.0.17 preservou esse desenho e corrigiu os formatos de ícones. A 2.0.18 substitui a marca v101 por uma nova RotomDex v103, conforme a decisão mais recente do usuário.
 
 Parceiros decorativos usam animações GIF transparentes e naturais, com PNG estático quando a pessoa prefere menos movimento ou a imagem falha. Cada espécie decorativa tem um único lar. Os sprites de jogo podem usar animações verificadas da identidade exata, preservando Shiny e variantes. A escala oficial é comprimida para distinguir tamanhos sem esconder espécies pequenas. Não reintroduzir discos, halos, régua, haste, fundo cinza ou balanço artificial.
 
@@ -83,6 +83,8 @@ Dados mantém Web Crypto como fonte aleatória de produção e rejection samplin
 A revisão 2.0.17 acrescenta uma barreira de qualidade permanente. O CI passa a rodar a matriz real de browser com Chromium após testes, lint, tipos e build. A matriz inclui celulares estreitos, retrato alto, landscape curto, tablets e desktops; verifica overflow, modais, sprites decorativos, cards visíveis da Pokédex e rajadas de rolagens até o limite do histórico. Os arquivos dos parceiros são verificados para garantir transparência, animação real e recuperação estática. O RNG mantém Web Crypto + rejection sampling e ganha uma auditoria adicional de transições consecutivas para flagrar qualquer acoplamento de estado ou preferência artificial.
 
 A revisão 2.0.17 consolida a direção fosca, vibrante e acolhedora com animações naturais de identidade exata, recuperação estática e escala oficial comprimida. A RotomDex aprovada acompanha ícones raster compatíveis com instalações e prévias de links. A explicação do sorteio fica disponível sob demanda, e os tipos de dados mantêm botões separados e legíveis também no celular. Linhas evolutivas respeitam variantes e formas de gênero fixo permanecem coerentes no Gerador, no PC e no compartilhamento. Filtros são aplicados antes do agrupamento nacional, permanecem ao alternar a visualização e usam apenas regiões canônicas. A edição permite somente formas reversíveis do mesmo indivíduo. Veja `docs/DIRECAO-ARTISTICA-2.0.17.md`.
+
+A revisão 2.0.18 renova a marca com um único master RotomDex v103 e derivados para cada plataforma. Cabeçalho, carregamento, favicon, instalação e compartilhamento usam a mesma identidade; arquivos antigos não são referências ativas. O carregamento contém somente a marca e três pontos de progresso, com nome acessível e sem texto ou versão repetidos. Dentro de uma área, ocupa uma caixa compacta, sem acrescentar outra altura de tela. A cobertura de animações reais é ampliada para Pokémon ausentes da fonte anterior, respeitando identidade, formas, Shiny e movimento reduzido. Veja `docs/DIRECAO-ARTISTICA-2.0.18.md`.
 
 ## Documentos históricos
 

@@ -18,7 +18,7 @@ BASE = 'https://api.github.com/repos/PokeAPI/sprites/'
 
 
 def get(path):
-    return json.loads(subprocess.check_output(['curl', '--fail', '--silent', '--show-error', '--location', BASE + path]))
+    return json.loads(subprocess.check_output(['curl', '--max-time', '30', '--fail', '--silent', '--show-error', '--location', BASE + path]))
 
 
 def keys(tree):
@@ -27,25 +27,53 @@ def keys(tree):
     return sorted(entry['path'][:-4] for entry in tree['tree'] if entry['type'] == 'blob' and entry['path'].endswith('.gif'))
 
 
+VIEWS = ['', 'shiny', 'female', 'shiny/female', 'back', 'back/shiny', 'back/female', 'back/shiny/female']
+
+
+def availability(tree):
+    if tree.get('truncated'):
+        raise ValueError('The source tree is truncated; do not publish a partial map.')
+    result = {view: [] for view in VIEWS}
+    for entry in tree['tree']:
+        if entry['type'] != 'blob' or not entry['path'].endswith('.gif'):
+            continue
+        folder, _, filename = entry['path'].rpartition('/')
+        if folder in result and re.fullmatch(r'[0-9]+(?:-[a-z0-9-]+)?', filename[:-4]):
+            result[folder].append(filename[:-4])
+    return {view: sorted(values) for view, values in result.items()}
+
+
+def folder(tree, name):
+    entry = next(entry for entry in tree['tree'] if entry['path'] == name and entry['type'] == 'tree')
+    return get('git/trees/' + entry['sha'])
+
+
 def build(commit, checked):
     if not re.fullmatch(r'[a-f0-9]{40}|master', commit):
         raise ValueError('Use a 40-character commit SHA or master.')
     source = get('commits/' + commit)
     commit = source['sha']
     tree = get('git/trees/' + source['commit']['tree']['sha'])
-    for folder in ['sprites', 'pokemon', 'versions', 'generation-v', 'black-white', 'animated']:
-        entry = next(entry for entry in tree['tree'] if entry['path'] == folder and entry['type'] == 'tree')
-        tree = get('git/trees/' + entry['sha'])
+    pokemon = folder(folder(tree, 'sprites'), 'pokemon')
+    tree = pokemon
+    for name in ['versions', 'generation-v', 'black-white', 'animated']:
+        tree = folder(tree, name)
+    bw = availability(get('git/trees/' + tree['sha'] + '?recursive=1'))
+    showdown = folder(folder(pokemon, 'other'), 'showdown')
+    show = availability(get('git/trees/' + showdown['sha'] + '?recursive=1'))
     shiny_entry = next(entry for entry in tree['tree'] if entry['path'] == 'shiny' and entry['type'] == 'tree')
-    shiny = get('git/trees/' + shiny_entry['sha'])
     return {
+        'schemaVersion': 2,
         'source': 'https://github.com/PokeAPI/sprites',
         'commit': commit,
         'checked': checked,
         'animatedTree': tree['sha'],
-        'shinyTree': shiny['sha'],
-        'regular': keys(tree),
-        'shiny': keys(shiny),
+        'shinyTree': shiny_entry['sha'],
+        'regular': bw[''],
+        'shiny': bw['shiny'],
+        'views': {view: values for view, values in bw.items() if view not in ['', 'shiny']},
+        'showdownTree': showdown['sha'],
+        'showdown': show,
     }
 
 

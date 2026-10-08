@@ -128,7 +128,7 @@ test("decorative partners use animated transparent GIF masters and one RotomDex 
     readFile("public/sw.js","utf8"),
   ]);
   for(const text of source){
-    assert.match(text,/myowndex-rotomdex-v101\.svg/);
-    assert.doesNotMatch(text,/myowndex-(?:icon|maskable)-v100|favicon-v100/);
+    assert.match(text,/myowndex-rotomdex-v103-/);
+    assert.doesNotMatch(text,/myowndex-rotomdex-v101|myowndex-(?:icon|maskable)-v100|favicon-v100/);
   }
 });

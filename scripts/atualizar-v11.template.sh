@@ -7,7 +7,7 @@ umask 077
 DEX_STAGE="preparação da atualização"
 DEX_REPO="1lucas1barroso0/myowndex"
 # Base publicada e auditada; o instalador aplica somente a diferença desta entrega.
-DEX_BASE="45c9b62b62ed7b077b31082ac9b73e32c1865af7"
+DEX_BASE="4571533836bd982d56f29b6d59f38a2521dd2590"
 DEX_SCOPE="1lucas1barroso0s-projects"
 DEX_PRODUCTION="https://myowndex.vercel.app"
 DEX_ARCHIVE_SHA="__ARCHIVE_SHA256__"

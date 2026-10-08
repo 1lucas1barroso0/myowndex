@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 const {chromium}=await import(process.env.MYOWNDEX_PLAYWRIGHT_MODULE || 'playwright');
 import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 const proxyServer = process.env.MYOWNDEX_BROWSER_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
 const browser=await chromium.launch({headless:true,executablePath:process.env.MYOWNDEX_BROWSER_EXECUTABLE || undefined,args:['--no-sandbox'],...(proxyServer ? {proxy:{server:proxyServer,bypass:'localhost,127.0.0.1,::1'}} : {})});
 const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'});
@@ -25,15 +26,18 @@ async function waitForVisibleSprites(){
 async function auditRotomIdentity(){
  const metadata=await page.evaluate(()=>({
   brand:document.querySelector('img.app-brand-icon')?.getAttribute('src'),
+  icons:[...document.querySelectorAll('link[rel="icon"]')].map(icon=>({url:icon.getAttribute('href'),size:Number(icon.getAttribute('sizes')?.split('x')[0])})),
   apple:document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href'),
   shortcut:document.querySelector('link[rel="shortcut icon"]')?.getAttribute('href'),
   manifest:document.querySelector('link[rel="manifest"]')?.getAttribute('href'),
   og:document.querySelector('meta[property="og:image"]')?.getAttribute('content'),
   twitter:document.querySelector('meta[name="twitter:image"]')?.getAttribute('content'),
  }));
- assert.match(metadata.brand,/myowndex-rotomdex-v101\.svg(?:\?|$)/,'Header uses the current RotomDex master');
- assert.match(metadata.apple,/myowndex-rotomdex-v101-180\.png$/,'Apple installation uses its actual PNG, not an unrelated SVG');
- assert.match(metadata.shortcut,/myowndex-rotomdex-v101-96\.png$/,'Shortcut uses the same RotomDex');
+ assert.match(metadata.brand,/myowndex-rotomdex-v103-96\.png(?:\?|$)/,'Header uses the new RotomDex identity');
+ assert.match(metadata.apple,/myowndex-rotomdex-v103-180\.png$/,'Apple installation uses its actual PNG, not an unrelated SVG');
+ assert.match(metadata.shortcut,/myowndex-rotomdex-v103-96\.png$/,'Shortcut uses the same RotomDex');
+ assert.ok(metadata.icons.some(icon=>icon.size===32),'The browser has a legible dedicated favicon');
+ for(const icon of metadata.icons)assert.match(icon.url,/myowndex-rotomdex-v103-(?:32|96)\.png$/,'Every browser icon uses the new identity');
  assert.equal(metadata.og,metadata.twitter,'Shared links use one RotomDex image');
  assert.ok(metadata.og,'Shared-link image is present');
  const localPath=url=>{const parsed=new URL(url,baseUrl);return parsed.pathname+parsed.search;};
@@ -41,24 +45,125 @@ async function auditRotomIdentity(){
  assert.equal(manifestResponse.status(),200);
  const manifest=await manifestResponse.json();
  assert.deepEqual(manifest.categories,['games']);
- for(const icon of manifest.icons) assert.match(icon.src,/myowndex-rotomdex-v101(?:\.svg|-(?:maskable-)?\d+\.png)/,'PWA icons share the same master');
- const images=[{url:metadata.apple,size:180},{url:metadata.shortcut,size:96},...manifest.icons.filter(icon=>icon.type==='image/png').map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0])})),{url:localPath(metadata.og),size:512,opaque:true}];
+ for(const icon of manifest.icons) assert.match(icon.src,/myowndex-rotomdex-v103-(?:app-|maskable-)?\d+\.png$/,'PWA icons share the same master');
+ assert.equal(manifest.shortcuts.length,4,'Every main game area keeps its installed shortcut');
+ for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-rotomdex-v103-96\.png$/,'Installed shortcuts use the same new RotomDex');
+ const images=[{url:metadata.brand,size:96,transparent:true},...metadata.icons.map(icon=>({...icon,transparent:true})),{url:metadata.apple,size:180,opaque:true},{url:metadata.shortcut,size:96,transparent:true},...manifest.icons.filter(icon=>icon.type==='image/png').map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0]),opaque:true})),{url:localPath(metadata.og),size:512,opaque:true}];
  for(const image of images){
   const result=await page.evaluate(async ({url,size})=>{
    const response=await fetch(url);if(!response.ok) return {status:response.status};
    const bitmap=await createImageBitmap(await response.blob());
    const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
    const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-   const palette={red:0,dark:0,gold:0,blue:0};let transparent=0;
-   for(let index=0;index<pixels.length;index+=4){const [r,g,b,a]=pixels.subarray(index,index+4);if(a<255)transparent++;if(a<220)continue;if(r>120&&r>g*1.4&&r>b*1.2)palette.red++;if(r<80&&g<110&&b<110)palette.dark++;if(r>150&&g>100&&b<150)palette.gold++;if(b>110&&g>100&&r<130)palette.blue++;}
-   bitmap.close();return {status:response.status,width:canvas.width,height:canvas.height,transparent,palette,minimum:size*size*.005};
+   let transparent=0,visible=0;const colors=new Set();
+   for(let index=0;index<pixels.length;index+=4){const [r,g,b,a]=pixels.subarray(index,index+4);if(a<255)transparent++;if(a<220)continue;visible++;colors.add(`${r>>4},${g>>4},${b>>4}`);}
+   bitmap.close();return {status:response.status,type:response.headers.get('content-type'),width:canvas.width,height:canvas.height,transparent,visible,colors:colors.size,minimum:size*size*.05};
   },{url:localPath(image.url),size:image.size});
   assert.equal(result.status,200,`Identity asset loads: ${image.url}`);
+  assert.match(result.type,/image\/png/,'Icons are actual portable PNG images');
   assert.equal(result.width,image.size);assert.equal(result.height,image.size);
-  for(const [color,count] of Object.entries(result.palette))assert.ok(count>result.minimum,`RotomDex retains its ${color} feature: ${image.url}`);
-  if(image.opaque) assert.equal(result.transparent,0,'Shared-link RotomDex fills its entire frame');
+  assert.ok(result.visible>result.minimum&&result.colors>12,`RotomDex artwork remains visible in ${image.url}`);
+  if(image.opaque) assert.equal(result.transparent,0,'Installed and shared-link RotomDex fills its entire frame');
+  if(image.transparent)assert.ok(result.transparent>0,'Header and browser icons have no unwanted square background');
  }
  report.push({label:'RotomDex header, Apple, shortcuts, PWA and shared-link identity',images:images.length});
+}
+async function auditCompactLoading(){
+ const loadingContext=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+ const loadingPage=await loadingContext.newPage();const loadingErrors=[];
+ loadingPage.on('pageerror',error=>loadingErrors.push(error.message));
+ let release;const gate=new Promise(resolve=>{release=resolve;});let heldChunks=0;
+ try{
+  await loadingPage.goto(baseUrl);await loadingPage.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).waitFor();
+  // Hold only the newly requested view code. The real shell remains usable,
+  // and the delay is controlled by this test rather than by the network.
+  await loadingContext.route('**/_next/static/chunks/*.js',async route=>{heldChunks++;await gate;await route.continue();});
+  await loadingPage.getByRole('button',{name:'Abrir o PC do Bill',exact:true}).click();
+  const opening=loadingPage.locator('.account-opening');await opening.waitFor();
+  assert.ok(heldChunks>0,'The loading state is tested while an actual view chunk is pending');
+  assert.equal(await opening.getAttribute('role'),'status');
+  assert.equal(await opening.getAttribute('aria-label'),'Carregando MyOwnDex','The compact loading indicator remains announced to assistive technology');
+  assert.equal(await opening.locator('img').count(),1,'Loading shows one identity instead of competing characters');
+  assert.equal((await opening.innerText()).trim(),'','Loading has no visible instructions, title or version');
+  assert.equal(await opening.locator('.pokemon-companion').count(),0);
+  await opening.locator('img').evaluate(image=>image.complete&&image.naturalWidth>0||new Promise(resolve=>image.addEventListener('load',resolve,{once:true})));
+  for(const width of [280,390,1280]){
+   await loadingPage.setViewportSize({width,height:844});
+   const metrics=await opening.evaluate(element=>{const r=element.getBoundingClientRect(),image=element.querySelector('img'),i=image.getBoundingClientRect();return {width:innerWidth,scroll:document.documentElement.scrollWidth,height:r.height,imageWidth:i.width,left:i.left,right:i.right,src:image.currentSrc};});
+   assert.equal(metrics.scroll,metrics.width,'Loading does not overflow the screen');
+   assert.ok(metrics.height<=200,'A pending view uses a compact loading area');
+   assert.ok(metrics.imageWidth>=48&&metrics.imageWidth<=120,'The sole loading identity remains readable without dominating the screen');
+   assert.ok(metrics.left>=0&&metrics.right<=width);
+   assert.match(metrics.src,/myowndex-rotomdex-v103-96\.png(?:\?|$)/);
+   report.push({label:`Compact loading ${width}`, ...metrics});
+  }
+  await loadingPage.emulateMedia({reducedMotion:'reduce'});
+  const animated=await opening.locator('*').evaluateAll(elements=>elements.filter(element=>{const style=getComputedStyle(element);return style.animationName!=='none'&&style.animationDuration!=='0s';}).map(element=>element.className));
+  assert.deepEqual(animated,[],'Loading respects a request to reduce motion');
+  release();await loadingPage.locator('.pc-sidebar').waitFor();
+  assert.equal(await opening.count(),0,'The pending indicator leaves when the real view becomes available');
+  assert.deepEqual(loadingErrors,[]);
+ }finally{release();await loadingContext.close();}
+}
+async function auditVisibleModernAnimations(){
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'no-preference'});
+ for(const name of ['Toedscool','Scovillain']){
+  await page.locator('#pokemon-search').fill(name);
+  const card=page.getByRole('button',{name:`Consultar ${name} na Pokédex`,exact:true});await card.waitFor();await card.scrollIntoViewIfNeeded();
+  const image=card.locator('.pokemon-sized-sprite');
+  await page.waitForFunction(name=>{const card=[...document.querySelectorAll('.dex-entry-main')].find(element=>element.getAttribute('aria-label')===`Consultar ${name} na Pokédex`),image=card?.querySelector('img');return image?.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;},name);
+  const animation=await image.evaluate(element=>({src:element.currentSrc,animation:getComputedStyle(element).animationName,transform:getComputedStyle(element).transform}));
+  assert.match(animation.src,/\.gif(?:\?|$)/,`${name} loads an authored animation rather than a static recovery image`);
+  assert.equal(animation.animation,'none');assert.equal(animation.transform,'none','Sprite motion comes from its artwork rather than moving the whole card');
+  const frames=new Set();
+  for(let frame=0;frame<10&&frames.size<2;frame++){
+   frames.add(createHash('sha256').update(await image.screenshot()).digest('hex'));
+   await page.waitForTimeout(150);
+  }
+  assert.ok(frames.size>1,`${name} changes its visible frame after loading`);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForFunction(name=>{const card=[...document.querySelectorAll('.dex-entry-main')].find(element=>element.getAttribute('aria-label')===`Consultar ${name} na Pokédex`),image=card?.querySelector('img');return image?.dataset.pokemonMotion==='static'&&image.complete&&image.naturalWidth>0;},name);
+  const staticSource=await image.getAttribute('src');assert.match(staticSource,/\.png(?:\?|$)/,'The reduced-motion recovery keeps the same Pokémon identity');
+  const stillFrame=await image.screenshot();await page.waitForTimeout(150);assert.ok(stillFrame.equals(await image.screenshot()),`${name} respects reduced motion`);
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.waitForFunction(name=>{const card=[...document.querySelectorAll('.dex-entry-main')].find(element=>element.getAttribute('aria-label')===`Consultar ${name} na Pokédex`),image=card?.querySelector('img');return image?.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;},name);
+  assert.equal(await image.getAttribute('src'),animation.src,'Animation returns without replacing the Pokémon');
+  report.push({label:`${name} visibly animates and respects reduced motion`,frames:frames.size,src:animation.src,staticSource});
+ }
+ await page.locator('#pokemon-search').fill('');await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).waitFor();
+}
+async function auditConsultableAppearances(){
+ const cases=[
+  {name:'Unown',count:28,id:'10001',sprite:/\/(?:201-b|unown-b)\.gif(?:\?|$)/},
+  {name:'Burmy',count:3,id:'10034',sprite:/\/(?:412-sandy|burmy-sandy)\.gif(?:\?|$)/},
+  {name:'Vivillon',count:20,id:'10100',sprite:/\/(?:666-sun|vivillon-sun)\.gif(?:\?|$)/},
+  {name:'Alcremie',count:63,id:'10475',sprite:/\/(?:869|alcremie)-rainbow-swirl-star-sweet(?:-front)?\.(?:gif|apng)(?:\?|$)/},
+  {name:'Arceus',type:'Fire',sprite:/\/(?:493-fire|arceus-fire)\.gif(?:\?|$)/},
+  {name:'Silvally',type:'Water',sprite:/\/(?:773-water|silvally-water)\.gif(?:\?|$)/},
+ ];
+ for(const entry of cases){
+  await page.locator('#pokemon-search').fill(entry.name);
+  const card=page.getByRole('button',{name:new RegExp(`^Consultar ${entry.name}(?: · | na Pokédex)`)}).first();await card.waitFor();await card.click();
+  const record=page.locator('.record-shell');await record.getByRole('button',{name:/Adicionar à equipe/}).waitFor();
+  const appearance=record.getByLabel('Aparência',{exact:true});await appearance.waitFor();const count=await appearance.locator('option').count();
+  if(entry.count)assert.equal(count,entry.count,`${entry.name}: all appearances stay available in one entry`);
+  else assert.ok(count>=18,`${entry.name}: the complete type selection remains available`);
+  if(entry.id)await appearance.selectOption(entry.id);else await appearance.selectOption({label:entry.type});
+  const image=record.locator('.record-sprite-stage .pokemon-sized-sprite');
+  await page.waitForFunction(()=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite');return image?.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;});
+  // The form request can resolve after the base portrait has already loaded.
+  // Wait for the chosen identity, rather than auditing that stale base image.
+  await page.waitForFunction(pattern=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite');return image?.complete&&image.naturalWidth>0&&new RegExp(pattern).test(image.currentSrc);},entry.sprite.source);
+  const src=await image.getAttribute('src');assert.match(src,entry.sprite,`${entry.name}: the selected appearance never falls back to an unrelated base portrait`);
+  if(entry.id)assert.equal(await appearance.inputValue(),entry.id);
+  if(entry.type)assert.deepEqual(await record.locator('.record-type-chip').allTextContents(),[entry.type],`${entry.name}: the chosen type accompanies its portrait`);
+  const first=await image.screenshot();let changed=false;for(let frame=0;frame<10&&!changed;frame++){await page.waitForTimeout(150);changed=!first.equals(await image.screenshot());}
+  assert.ok(changed,`${entry.name}: its chosen appearance has visible authored motion`);
+  await check(`Consultable ${entry.name} appearance`);
+  report.at(-1).appearance={choices:count,selected:await appearance.inputValue(),src,changed,type:entry.type};
+  await page.getByRole('button',{name:'Fechar registro da Pokédex',exact:true}).click();
+ }
+ await page.locator('#pokemon-search').fill('');await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).waitFor();
 }
 async function auditRepeatedMotionPreferences(){
  await page.setViewportSize({width:1920,height:1080});
@@ -89,6 +194,9 @@ async function auditRepeatedMotionPreferences(){
 }
 await page.goto(baseUrl);await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).waitFor();
 await auditRotomIdentity();
+await auditCompactLoading();
+await auditVisibleModernAnimations();
+await auditConsultableAppearances();
 await auditRepeatedMotionPreferences();
 for(const width of [320,390,768,1280,1440]){
  await page.setViewportSize({width,height:900});
@@ -164,7 +272,7 @@ for(const viewport of deviceMatrix){
     if(sprite.frame){assert.ok(sprite.rect.left>=sprite.frame.left-1&&sprite.rect.right<=sprite.frame.right+1,'Dex sprite must stay inside its stage horizontally');assert.ok(sprite.rect.top>=sprite.frame.top-1&&sprite.rect.bottom<=sprite.frame.bottom+1,'Dex sprite must stay inside its stage vertically');}
    }
   }
-  for(const src of spriteAudit.identity) assert.match(src,/myowndex-rotomdex-v101\.svg(?:\?|$)/);
+  for(const src of spriteAudit.identity) assert.match(src,/myowndex-rotomdex-v103-96\.png(?:\?|$)/);
  }
 }
 await page.getByRole('button',{name:'Entrar ou criar conta',exact:true}).click();

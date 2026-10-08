@@ -183,8 +183,8 @@ test("offline support caches the shell and sprites but never private room APIs",
   assert.match(worker, /SKIP_WAITING/);
   assert.doesNotMatch(worker, /then\(\(\) => self\.skipWaiting\(\)\)/);
   assert.match(worker, /request\.headers\.get\("RSC"\)/);
-  assert.match(worker, /myowndex-rotomdex-v101\.svg/);
-  assert.doesNotMatch(worker, /myowndex-(?:icon|app|maskable|shortcut).*v91|favicon-v91/);
+  assert.match(worker, /myowndex-rotomdex-v103-96\.png/);
+  assert.doesNotMatch(worker, /myowndex-rotomdex-v101|myowndex-(?:icon|app|maskable|shortcut).*v91|favicon-v91/);
   assert.match(app, /document\.readyState === "complete"/);
   assert.match(app, /updateViaCache: "none"/);
   assert.match(app, /visibilitychange/);
@@ -386,16 +386,16 @@ test("safe shell updates and both visual themes remain available without an inst
   assert.doesNotMatch(app, /InstallMyOwnDex|Pronto para explorar/);
   assert.match(appearance, /prefers-color-scheme: dark/);
   assert.match(appearance, /myowndex_appearance_v1/);
-  assert.match(manifest, /myowndex-rotomdex-v101\.svg/);
+  assert.match(manifest, /myowndex-rotomdex-v103-/);
   assert.match(manifest, /purpose:\s*"maskable"/);
   assert.match(manifest, /shortcuts:/);
-  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-rotomdex-v101-96\.png"/);
-  assert.match(layout, /myowndex-rotomdex-v101\.svg/);
+  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-rotomdex-v103-96\.png"/);
+  assert.match(layout, /myowndex-rotomdex-v103-/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
-  assert.match(app, /myowndex-rotomdex-v101\.svg/);
+  assert.match(app, /myowndex-rotomdex-v103-96\.png/);
   assert.match(app, /app-header-primary/);
   assert.match(css, /min-height:\s*100dvh/);
 });
@@ -566,7 +566,7 @@ test("joyful identity keeps one Pokémon companion on every primary surface with
     read("app/manifest.ts"),
   ]);
   assert.match(app, /<PokemonCompanion place="pokedex"/);
-  assert.match(app, /className="opening-companion"/);
+  assert.doesNotMatch(app, /className="opening-companion"/, "the pending indicator does not duplicate the Pokédex companion");
   assert.match(room, /<PokemonCompanion place="adventure"/);
   assert.match(pc, /<PokemonCompanion place="pc"/);
   assert.match(guide, /<PokemonCompanion place="guide"/);
@@ -578,8 +578,8 @@ test("joyful identity keeps one Pokémon companion on every primary surface with
   assert.match(art, /\.pokemon-companion::before[\s\S]*content:none\s*!important;[\s\S]*display:none\s*!important;/);
   assert.match(art, /joyful field-guide direction/);
   assert.doesNotMatch(art, /game-shadow-float/);
-  for (const source of [app, layout, manifest]) assert.match(source, /myowndex-rotomdex-v101\.svg/);
-  assert.doesNotMatch(app + layout + manifest, /myowndex-icon-v91|favicon-v91/);
+  for (const source of [app, layout, manifest]) assert.match(source, /myowndex-rotomdex-v103-/);
+  assert.doesNotMatch(app + layout + manifest, /myowndex-rotomdex-v101|myowndex-icon-v91|favicon-v91/);
 });
 
 
@@ -602,9 +602,11 @@ test("all visible app identity references use one RotomDex master asset", async 
   const [app, layout, manifest, worker] = await Promise.all([
     read("src/App.jsx"), read("app/layout.tsx"), read("app/manifest.ts"), read("public/sw.js"),
   ]);
-  for (const source of [app, layout, manifest, worker]) assert.match(source, /myowndex-rotomdex-v101\.svg/);
-  assert.doesNotMatch(app + layout + manifest + worker, /myowndex-(?:icon|app|maskable|shortcut).*v(?:91|100)|favicon-v(?:91|100)/);
-  assert.match(await read("public/icons/myowndex-rotomdex-v101.svg"), /RotomDex expressiva nas cores/);
+  for (const source of [app, layout, manifest, worker]) assert.match(source, /myowndex-rotomdex-v103-/);
+  assert.doesNotMatch(app + layout + manifest + worker, /myowndex-rotomdex-v101|myowndex-(?:icon|app|maskable|shortcut).*v(?:91|100)|favicon-v(?:91|100)/);
+  const master = await readFile(new URL("../public/icons/myowndex-rotomdex-v103-master.png", import.meta.url));
+  assert.equal(master.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", "the current identity has one real portable PNG master");
+  assert.ok(master.readUInt32BE(16) >= 512 && master.readUInt32BE(20) >= 512, "the master preserves detail for high-resolution icons");
 });
 
 test("local dice submit has no click-count throttle", async () => {

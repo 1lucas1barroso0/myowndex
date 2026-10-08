@@ -236,7 +236,7 @@ test('generator can pin a persistent form and keeps its identity in the generate
         level: 5,
     }, {
         fetcher: async url => url === `${API}pokemon-form/${entry.formId}/`
-            ? { sprites: { front_default: '/sprites/spring.png' } }
+            ? { id: entry.formId, pokemon: { name: 'bulbasaur' }, sprites: { front_default: '/sprites/spring.png' } }
             : fixtureFetcher(url),
         random: () => 0,
     });

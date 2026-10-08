@@ -6,6 +6,7 @@ import { requestPersistentStorage } from "./storageBudget.js";
 import { getPokemonReferenceForMode, getStoredCurrentPokemonReference } from "./referenceGames.js";
 import { normalizeGrowthData } from "./experience.js";
 import { getFixedFormGender, getPokemonGenderRate } from "./pokemonGender.js";
+import { applyRecordAppearance } from "./pokemonRecordForms.js";
 
 export const TEAM_STORAGE_KEY = "myowndex_rotom_v4";
 export const LEGACY_TEAM_STORAGE_KEY = "myowndex_rotom_v3";
@@ -386,13 +387,14 @@ const hydratePokemonData = async (pokemon, { signal, experienceMode = "rpg", ver
     if (stored.formId) {
         const appearance = await fetchCached(`https://pokeapi.co/api/v2/pokemon-form/${stored.formId}/`);
         if (signal?.aborted) return stored;
-        const spriteSource = appearance?.sprites || stored.species?.sprites;
-        const formSprites = spriteSource
-            ? Object.fromEntries(Object.entries(spriteSource).filter(([, value]) => Boolean(value)))
-            : null;
-        if (formSprites && Object.keys(formSprites).length) {
-            hydratedSpecies = { ...data, sprites: { ...(data.sprites || {}), ...formSprites } };
-        }
+        const exactAppearance = appearance?.id === stored.formId && appearance.pokemon?.name === data.name ? appearance : null;
+        // A failed optional refresh must not replace a saved appearance with
+        // the resource's default portrait or type (e.g. Arceus/Silvally).
+        const savedTypes = getStoredCurrentPokemonReference(stored.species)?.types || stored.species?.types;
+        hydratedSpecies = applyRecordAppearance(data, exactAppearance || {
+            pokemon: { name: data.name }, sprites: stored.species?.sprites,
+            ...(savedTypes?.length ? { types: savedTypes } : {}),
+        });
     }
     const genderRate = getPokemonGenderRate({ ...stored, species: hydratedSpecies }, finiteNumberOrNull(speciesData?.gender_rate) ?? stored.genderRate);
     const enriched = getPokemonReferenceForMode({
@@ -447,6 +449,7 @@ export const mergeHydratedTeams = (currentTeams, hydratedTeams) => {
                 // A pending catalogue request belongs to this partner and this form only.
                 // Deleting, replacing or transforming a partner must not revive stale data.
                 if (!hydratedPartner?.species?.name || hydratedPartner.species.name !== partner.species?.name) return partner;
+                if ((hydratedPartner.formId || null) !== (partner.formId || null) || (hydratedPartner.formKey || "") !== (partner.formKey || "")) return partner;
                 const enriched = {
                     ...partner,
                     species: hydratedPartner.species,

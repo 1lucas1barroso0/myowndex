@@ -6,6 +6,7 @@ import { getMoveReferenceForMode, getPokemonAtGeneration, getPokemonReferenceFor
 import { loadCatalogText } from './catalogText.js';
 import { dexEntryRegion } from './dexCollection.js';
 import { getPokemonGenderRate } from './pokemonGender.js';
+import { applyRecordAppearance, getPokemonRecordForms } from './pokemonRecordForms.js';
 
 export const GENERATOR_REQUEST_CONCURRENCY = 3;
 export const GENERATOR_DRAFT_KEY = 'myowndex_generator_v1';
@@ -54,6 +55,7 @@ export const normalizeGeneratorOptions = (options = {}) => ({
     level: integerInRange(options.level, 1, options.experienceMode === 'game' ? 100 : 200, 5),
     speciesId: integerInRange(options.speciesId, 0, 1025, 0),
     formKey: typeof options.formKey === 'string' && /^[a-z0-9-]{1,120}$/.test(options.formKey) ? options.formKey : '',
+    appearanceFormId: integerInRange(options.speciesId, 0, 1025, 0) ? integerInRange(options.appearanceFormId, 0, 20000, 0) : 0,
     generation: integerInRange(options.generation, 0, 9, 0),
     type: TYPES.includes(options.type) && options.type !== 'stellar' ? options.type : '',
     region: ['alola', 'galar', 'hisui', 'paldea'].includes(options.region) ? options.region : '',
@@ -67,6 +69,7 @@ export const normalizeGeneratorOptions = (options = {}) => ({
 
 export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null, metadata = {}) => {
     const normalized = normalizeGeneratorOptions(options);
+    const explicitAppearance = Boolean(normalized.speciesId && normalized.appearanceFormId);
     const range = GENERATION_RANGES[normalized.generation - 1];
     const gameGeneration = normalized.experienceMode === 'game' ? getReferenceGameGeneration(normalized.versionGroup) || 9 : 9;
     return (Array.isArray(catalogue) ? catalogue : []).map(entry => ({
@@ -91,8 +94,10 @@ export const getGeneratorSpeciesPool = (catalogue, options = {}, typeIds = null,
         const pinnedTypes = Array.isArray(entry.types) && entry.types.length
             ? getGeneratorSpeciesTypes(entry, gameGeneration)
             : getGeneratorSpeciesTypes(meta, gameGeneration);
-        if (normalized.type && pinnedTypes?.length && !pinnedTypes.includes(normalized.type)) return false;
-        if (typeIds && !entry.formKey && !typeIds.has(entry.id)) return false;
+        // A chosen Arceus/Silvally appearance has its own type. The base
+        // catalogue and type index cannot reject it before the form is read.
+        if (!explicitAppearance && normalized.type && pinnedTypes?.length && !pinnedTypes.includes(normalized.type)) return false;
+        if (!explicitAppearance && typeIds && !entry.formKey && !typeIds.has(entry.id)) return false;
         return true;
     });
 };
@@ -203,7 +208,7 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
     // A current type index cannot exclude old Normal Clefairy or pure Electric
     // Magnemite. Without the pinned index, inspect candidates in the real game.
     const historicalTypes = normalized.experienceMode === 'game' && getReferenceGameGeneration(normalized.versionGroup) < 6 && normalized.versionGroup !== 'auto';
-    if (normalized.type && !hasPinnedTypes && !historicalTypes) {
+    if (normalized.type && !normalized.appearanceFormId && !hasPinnedTypes && !historicalTypes) {
         const type = await request(`${API}type/${normalized.type}/`);
         typeIds = new Set((type.pokemon || []).map(entry => Number(extractId(entry.pokemon?.url))).filter(id => id <= 1025));
     }
@@ -232,21 +237,27 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
         const defaultForm = selectedForm || species.varieties?.find(variety => variety.is_default)?.pokemon;
         if (!defaultForm?.url) throw new Error('A Pokédex não trouxe a forma escolhida deste Pokémon.');
         const currentPokemon = await request(defaultForm.url);
-        const formAppearance = entry.formId ? await request(`${API}pokemon-form/${entry.formId}/`) : null;
-        const formSprites = formAppearance?.sprites
-            ? Object.fromEntries(Object.entries(formAppearance.sprites).filter(([, value]) => Boolean(value)))
+        const appearanceChoice = normalized.appearanceFormId
+            ? getPokemonRecordForms(currentPokemon).find(choice => choice.formId === normalized.appearanceFormId)
             : null;
-        const pokemonWithAppearance = formSprites && Object.keys(formSprites).length
-            ? { ...currentPokemon, sprites: { ...(currentPokemon.sprites || {}), ...formSprites } }
-            : currentPokemon;
+        if (normalized.appearanceFormId && !appearanceChoice) throw new Error('Escolha uma aparência disponível para este Pokémon.');
+        const selectedFormId = appearanceChoice?.formId || entry.formId;
+        const formAppearance = selectedFormId ? await request(`${API}pokemon-form/${selectedFormId}/`) : null;
+        if (formAppearance && (formAppearance.id !== selectedFormId || formAppearance.pokemon?.name !== currentPokemon.name)) throw new Error('Esta aparência pertence a outro Pokémon. Escolha novamente.');
+        const pokemonWithAppearance = applyRecordAppearance(currentPokemon, formAppearance);
         const learnset = getGeneratorLearnset(currentPokemon, normalized.versionGroup, normalized.level);
         checked += 1;
         onProgress?.({ completed: result.length, total: normalized.count, checked });
         if (!learnset.versionGroup) continue;
+        const appearanceGeneration = appearanceChoice?.generation || getReferenceGameGeneration(formAppearance?.version_group?.name);
+        if (normalized.experienceMode === 'game' && appearanceGeneration && appearanceGeneration > getReferenceGameGeneration(learnset.versionGroup)) throw new Error('Esta aparência ainda não existia no jogo escolhido.');
         const game = normalized.experienceMode === 'game' ? await request(`${API}version-group/${learnset.versionGroup}/`) : null;
         if (game && !Number(extractId(game.generation?.url))) throw new Error('A Pokédex não trouxe a geração do jogo escolhido.');
         const pokemon = getPokemonReferenceForMode(pokemonWithAppearance, game || learnset.versionGroup, { experienceMode: normalized.experienceMode });
-        if (normalized.type && !pokemon.types?.some(value => value.type?.name === normalized.type)) continue;
+        if (normalized.type && !pokemon.types?.some(value => value.type?.name === normalized.type)) {
+            if (appearanceChoice) throw new Error('Esta aparência não tem o tipo escolhido. Mude o tipo ou a aparência.');
+            continue;
+        }
         const moveData = [];
         for (const move of learnset.moves) {
             const data = await request(move.url || `${API}move/${move.name}/`);
@@ -260,7 +271,7 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
             learnset,
             moveData,
             options: normalized,
-            formIdentity: entry.formKey ? { formKey: entry.formKey, formId: entry.formId } : null,
+            formIdentity: appearanceChoice || (entry.formKey ? { formKey: entry.formKey, formId: entry.formId } : null),
             random,
         });
         result.push({ pokemon: partner, versionGroup: learnset.versionGroup });

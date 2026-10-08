@@ -1,0 +1,20 @@
+Arte adicional dos Pokémon — SpriteCollab
+
+Fonte: https://github.com/PMDCollab/SpriteCollab
+Commit: 27c65cc0164c3f0dc91ad42989ee4d50267e66a5
+Licença: Creative Commons Atribuição-NãoComercial 4.0 (CC BY-NC 4.0)
+https://creativecommons.org/licenses/by-nc/4.0/
+Política de uso preservada: /sprites/native/policy-pmd.md
+
+Artistas das animações utilizadas:
+◥θ┴θ◤ — DC:<@215638650434617345>
+Spikey-Valentine — https://twitter.com/spikeyvalentine
+baronessfaron
+Emmuffin — https://twitter.com/Ernmuffin
+Top_Kec — @topkec.bsky.social
+
+Inclui Pichu de orelha espetada, Arceus (tipo desconhecido), as 63 combinações de Alcremie e Miraidon em modo de baixa potência. Cada aparência conserva suas cores normal e Shiny. As sete decorações Shiny de Alcremie são compartilhadas entre os cremes porque essa cor oficial não depende do creme.
+
+Conversão: separação das poses Idle já presentes nas folhas originais, em animações APNG. Nenhuma pose foi redesenhada, recolorida ou interpolada. Os pixels RGBA, a transparência parcial e a ordem dos quadros foram preservados. Os tempos da origem, em 60 quadros por segundo, foram convertidos em milissegundos com erro acumulado máximo de 0,5 ms. A imagem PNG de recuperação é o primeiro quadro exato.
+
+Origem de cada aparência, nomes dos artistas, hashes e comprovação: /sprites/native/provenance-pmd.json

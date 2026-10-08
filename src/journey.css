@@ -451,8 +451,5 @@ html .app-root .room-field{ display:none; }
   html .app-root.game-edition.handheld-edition .adventure-intro{ gap: .6rem !important; }
 }
 html .account-opening{ min-height: 100dvh; display: grid; align-content: center; justify-items: center; gap: 1rem; padding: 2rem; background: var(--ui-canvas); color: var(--ui-ink); text-align: center; font-family: "Trebuchet MS",system-ui,sans-serif; }
-html .account-opening img{ width: 88px; height: 88px; object-fit: contain; }
-html .account-opening strong{ font-size: clamp(1.8rem,5vw,2.4rem); font-weight: 800; }
-html .account-opening :is(p,span){ margin: 0; font-size: 1rem; line-height: 1.6; color: var(--ui-muted); }
-html .account-opening small{ color: var(--ui-muted); font-size: .875rem; }
+html .account-opening img{ width: 96px; height: 96px; object-fit: contain; }
 @media (prefers-reduced-motion:reduce){ html .app-root *{ animation:none !important; transition:none !important; } }

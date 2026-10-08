@@ -7,6 +7,7 @@ import pokedexEntries from '../../data/pokedex-entries.json';
 import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
 import { getFormLearnsetFallback, resolveFormEvolutionPaths } from '../../core/formEvolution.js';
+import { applyRecordAppearance, getPokemonRecordForms } from '../../core/pokemonRecordForms.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
@@ -46,6 +47,8 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
     const [formData, setFormData] = useState(null);
     const [formIdentity, setFormIdentity] = useState(initialForm);
     const [formAppearance, setFormAppearance] = useState(null);
+    const [appearanceError, setAppearanceError] = useState(false);
+    const [appearanceAttempt, setAppearanceAttempt] = useState(0);
     const [evoChain, setEvoChain] = useState([]);
     const [tab, setTab] = useState("stats");
     const [recordLanguage, setRecordLanguage] = useState('en');
@@ -71,6 +74,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
         setActiveForm(null);
         setFormIdentity(initialForm);
         setFormAppearance(null);
+        setAppearanceError(false);
         setEvoChain([]);
         setFormData(null);
         setLoadError("");
@@ -118,12 +122,17 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
     useEffect(() => {
         let mounted = true;
         setFormAppearance(null);
+        setAppearanceError(false);
         if (!formIdentity?.formId) return () => { mounted = false; };
-        fetchCached(`https://pokeapi.co/api/v2/pokemon-form/${formIdentity.formId}/`, { forceRefresh: retryAttempt > 0 })
-            .then(data => { if (mounted && data) setFormAppearance(data); })
-            .catch(() => {});
+        fetchCached(`https://pokeapi.co/api/v2/pokemon-form/${formIdentity.formId}/`, { forceRefresh: retryAttempt > 0 || appearanceAttempt > 0 })
+            .then(data => {
+                if (!mounted) return;
+                if (data?.id === formIdentity.formId && data.pokemon?.name === formIdentity.pokemonName) setFormAppearance(data);
+                else setAppearanceError(true);
+            })
+            .catch(() => { if (mounted) setAppearanceError(true); });
         return () => { mounted = false; };
-    }, [formIdentity?.formId, retryAttempt]);
+    }, [formIdentity?.formId, formIdentity?.pokemonName, retryAttempt, appearanceAttempt]);
 
     useEffect(() => {
         let mounted = true;
@@ -141,7 +150,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                 let moves = data.moves || [];
                 if (!moves.length && baseInfo) {
                     const defaultName = baseInfo.varieties?.find(v => v.is_default)?.pokemon?.name;
-                    const fallbackName = getFormLearnsetFallback({ name: activeForm.name, formKey: formIdentity?.formKey }, defaultName);
+                    const fallbackName = getFormLearnsetFallback({ name: activeForm.name }, defaultName);
                     const fallbackUrl = baseInfo.varieties?.find(v => v.pokemon?.name === fallbackName)?.pokemon?.url;
                     if (fallbackUrl && fallbackUrl !== activeForm.url) {
                         const bData = await fetchCached(fallbackUrl);
@@ -153,7 +162,16 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
             }).catch(() => mounted && setLoadError("A Pokédex não conseguiu abrir esta forma agora. Tente novamente em instantes."));
         }
         return () => mounted = false;
-    }, [activeForm, baseInfo, formIdentity?.formKey, retryAttempt]);
+    }, [activeForm, baseInfo, retryAttempt]);
+
+    const appearanceChoices = useMemo(() => getPokemonRecordForms(formData), [formData]);
+    useEffect(() => {
+        if (!formData) return;
+        setFormIdentity(current => {
+            if (current?.pokemonName === formData.name) return current;
+            return appearanceChoices.length > 1 ? appearanceChoices[0] : null;
+        });
+    }, [formData, appearanceChoices]);
 
     useEffect(() => {
         if (!baseInfo?.id) return;
@@ -247,11 +265,15 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
         document.getElementById(`${recordId}-tab-${RECORD_TABS[nextIndex].id}`)?.focus();
     };
 
-    const defenses = calculateDefenses(formData?.types || []);
+    const selectedAppearance = formAppearance?.id === formIdentity?.formId ? formAppearance : null;
+    const appearanceReady = !formIdentity?.formId || Boolean(selectedAppearance && selectedAppearance.pokemon?.name === formData?.name);
+    const profileData = applyRecordAppearance(formData, selectedAppearance);
+    const selectedAppearanceChoice = appearanceChoices.find(choice => choice.formId === formIdentity?.formId) || appearanceChoices[0];
+    const defenses = calculateDefenses(profileData?.types || []);
     const bst = formData?.stats?.reduce((acc, s) => acc + (isTTRPG ? convertToTTRPG(s.base_stat, s.stat?.name === "hp") : (s.base_stat || 0)), 0) || 0;
-    const primaryColor = TYPE_COLORS[formData?.types?.[0]?.type?.name] || "#0EA5E9";
-    const sprite = formAppearance?.sprites?.front_default || formData?.sprites?.other?.["official-artwork"]?.front_default || formData?.sprites?.front_default;
-    const speciesDescription = phase === "ready" ? describeSpecies(baseInfo, formData) : null;
+    const primaryColor = TYPE_COLORS[profileData?.types?.[0]?.type?.name] || "#0EA5E9";
+    const sprite = selectedAppearance?.sprites?.front_default || formData?.sprites?.other?.["official-artwork"]?.front_default || formData?.sprites?.front_default;
+    const speciesDescription = phase === "ready" ? describeSpecies(baseInfo, profileData) : null;
     const speciesFacts = speciesDescription ? organizeSpeciesFacts(speciesDescription.facts) : [];
     const profileFacts = speciesFacts.filter(fact => !fact.scale);
     const referenceFacts = speciesFacts.filter(fact => fact.scale);
@@ -283,7 +305,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                     <header className="record-header">
                         <div className="record-cartridge-label"><span aria-hidden="true" /><small>Pokédex nacional</small><b>No. {String(baseInfo.id).padStart(4, "0")}</b></div>
                         <h2 id={titleId}>{formatName(baseInfo.name)}</h2>
-                        {(formIdentity?.formKey || activeForm?.name !== baseInfo.name) && <p className="record-form-label">Forma {formatName((formIdentity?.formKey || activeForm.name).replace(`${baseInfo.name}-`, ""))}</p>}
+                        {(formIdentity?.formKey || activeForm?.name !== baseInfo.name) && <p className="record-form-label">{appearanceChoices.length > 1 ? selectedAppearanceChoice?.label : `Forma ${formatName((formIdentity?.formKey || activeForm.name).replace(`${baseInfo.name}-`, ""))}`}</p>}
                     </header>
                     <div className="record-sprite-stage">
                         <span className="record-sprite-ground" aria-hidden="true" />
@@ -291,6 +313,8 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                             <PokemonSprite
                                 src={sprite} 
                                 pokemonId={formData.id}
+                                spriteKey={selectedAppearance ? selectedAppearanceChoice?.spriteKey || formIdentity?.spriteKey || '' : ''}
+                                strictAppearance={Boolean(selectedAppearance)}
                                 alt={formatName(activeForm?.name || baseInfo.name)}
                                 loading="eager"
                                 className="record-partner-sprite"
@@ -300,14 +324,12 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                         )}
                     </div>
                     
-                    <button type="button" onClick={() => {
-                        const formSprites = formAppearance?.sprites
-                            ? Object.fromEntries(Object.entries(formAppearance.sprites).filter(([, value]) => Boolean(value)))
-                            : null;
-                        const selectedFormData = formSprites && Object.keys(formSprites).length
-                            ? { ...formData, sprites: { ...(formData.sprites || {}), ...formSprites } }
-                            : formData;
-                        onAddToTeam(selectedFormData, baseInfo?.gender_rate ?? -1, formIdentity);
+                    {formIdentity?.formId && !appearanceReady && <div className="record-section-note" role={appearanceError ? 'alert' : 'status'}>
+                        {appearanceError ? <>Esta aparência não abriu. <button type="button" className="record-state-button" onClick={() => setAppearanceAttempt(attempt => attempt + 1)}>Tentar novamente</button></> : 'Consultando aparência…'}
+                    </div>}
+                    <button type="button" disabled={!appearanceReady} onClick={() => {
+                        if (!appearanceReady) return;
+                        onAddToTeam(profileData, baseInfo?.gender_rate ?? -1, formIdentity);
                         onClose();
                     }} className="record-add-partner">
                         <span className="record-mini-ball" aria-hidden="true" /> Adicionar à equipe <span aria-hidden="true">＋</span>
@@ -315,7 +337,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
 
                     <div className="record-attributes">
                         <div className="record-types" role="group" aria-label="Tipos deste Pokémon">
-                            {formData.types?.map(t => (
+                            {profileData.types?.map(t => (
                                 <span key={t.type?.name} className="record-type-chip" style={{ backgroundColor: TYPE_COLORS[t.type?.name] || TYPE_COLORS.normal, color: TYPE_TEXT_COLORS[t.type?.name] || TYPE_TEXT_COLORS.normal }}>
                                     {formatType(t.type?.name)}
                                 </span>
@@ -412,28 +434,29 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                     <div className="record-abilities-list">{formData.abilities?.map((a, i) => <AbilityCard key={a.ability?.name || i} name={a.ability?.name} url={a.ability?.url} isHidden={a.is_hidden} />)}</div>
                                 </div>
                                 
-                                {baseInfo.varieties?.length > 1 && (
+                                {(baseInfo.varieties?.length > 1 || appearanceChoices.length > 1) && (
                                     <div>
                                         <h3 className="record-section-title">Formas</h3>
-                                        <div className="record-form-options">
-                                            {baseInfo.varieties.map((v, index) => {
-                                                const formSlug = (v.pokemon?.name || "").replace(baseInfo.name + "-", "");
-                                                const btnName = v.pokemon?.name === baseInfo.name || !formSlug
-                                                    ? "Forma base"
-                                                    : formatName(formSlug);
-                                                return (
-                                                    <button 
-                                                        key={v.pokemon?.name || `form-${index}`}
-                                                        type="button"
-                                                        aria-pressed={activeForm?.name === v.pokemon?.name}
-                                                        onClick={() => { setFormIdentity(null); setFormAppearance(null); setActiveForm(v.pokemon); }} 
-                                                        className={`record-form-button ${activeForm?.name === v.pokemon?.name ? "is-selected" : ""}`}
-                                                    >
-                                                        {btnName}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                        {baseInfo.varieties?.length > 1 && <div className="record-game-picker">
+                                            <label htmlFor={`${recordId}-form`}>Forma</label>
+                                            <RoomSelect id={`${recordId}-form`} className="record-variety-picker" value={activeForm?.name || ''} onChange={event => {
+                                                const variety = baseInfo.varieties.find(entry => entry.pokemon?.name === event.target.value);
+                                                if (!variety) return;
+                                                setFormIdentity(null); setFormAppearance(null); setFormData(null); setActiveForm(variety.pokemon);
+                                            }}>
+                                                {baseInfo.varieties.map(variety => <option key={variety.pokemon?.name} value={variety.pokemon?.name}>{variety.pokemon?.name === baseInfo.name ? 'Forma base' : formatName(variety.pokemon?.name)}</option>)}
+                                            </RoomSelect>
+                                        </div>}
+                                        {appearanceChoices.length > 1 && <div className="record-game-picker">
+                                            <label htmlFor={`${recordId}-appearance`}>Aparência</label>
+                                            <RoomSelect id={`${recordId}-appearance`} className="record-appearance-picker" value={selectedAppearanceChoice?.formId || ''} onChange={event => {
+                                                const choice = appearanceChoices.find(entry => entry.formId === Number(event.target.value));
+                                                if (!choice) return;
+                                                setFormAppearance(null); setAppearanceError(false); setFormIdentity(choice);
+                                            }}>
+                                                {appearanceChoices.map(choice => <option key={choice.formId} value={choice.formId}>{choice.label}</option>)}
+                                            </RoomSelect>
+                                        </div>}
                                     </div>
                                 )}
                                 

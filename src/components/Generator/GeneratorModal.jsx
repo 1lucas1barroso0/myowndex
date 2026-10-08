@@ -3,10 +3,11 @@ import { createPortal } from 'react-dom';
 import speciesCatalogue from '../../data/species.json';
 import fixedFormCatalogue from '../../data/forms.json';
 import speciesMetadata from '../../data/generator-species.json';
-import { formatName, formatType, NATURES, STAT_MAP, TYPE_COLORS, TYPE_TEXT_COLORS, TYPES, VERSION_GROUPS, VERSION_LABELS } from '../../core/mechanics.js';
+import { fetchCached, formatName, formatType, NATURES, STAT_MAP, TYPE_COLORS, TYPE_TEXT_COLORS, TYPES, VERSION_GROUPS, VERSION_LABELS } from '../../core/mechanics.js';
 import { generatePokemon, GENERATOR_DRAFT_KEY, getGeneratedHp, normalizeGeneratorOptions } from '../../core/pokemonGenerator.js';
 import { DEX_REGIONS } from '../../core/dexCollection.js';
 import { buildDexCatalogue, findDexCatalogueChoice } from '../../core/dexCatalogue.js';
+import { getPokemonRecordForms } from '../../core/pokemonRecordForms.js';
 import { getStorageScope, readDurableStorage, readStorage, writeDurableStorage } from '../../core/storage.js';
 import { compactPokemon, createTeam, normalizePokemon } from '../../core/team.js';
 import { encodePokemonBundle, encodeTeam } from '../../core/teamShare.js';
@@ -48,6 +49,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     const [results, setResults] = useState(() => readDraft(scope));
     const [draftReady, setDraftReady] = useState(false);
     const [options, setOptions] = useState(() => normalizeGeneratorOptions({ experienceMode }));
+    const [appearancePokemon, setAppearancePokemon] = useState(null);
     const [selected, setSelected] = useState(() => new Set(readDraft(scope).map(entry => entry.pokemon.id)));
     const [target, setTarget] = useState('new');
     const [boxName, setBoxName] = useState('Novo encontro');
@@ -83,7 +85,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     const updateOption = (key, value) => setOptions(current => ({ ...current, [key]: value }));
     const choosePokemon = value => {
         if (value === 'random') {
-            setOptions(current => ({ ...current, speciesId: 0, formKey: '' }));
+            setOptions(current => ({ ...current, speciesId: 0, formKey: '', appearanceFormId: 0 }));
             return;
         }
         const selected = findDexCatalogueChoice(generatorCatalogue, value);
@@ -92,6 +94,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             ...current,
             speciesId: selected.speciesId,
             formKey: selected.formKey || '',
+            appearanceFormId: 0,
             type: '',
             generation: 0,
             region: '',
@@ -102,6 +105,22 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         ? generatorCatalogue.find(entry => entry.speciesId === options.speciesId
             && (options.formKey ? entry.formKey === options.formKey : entry.isPrimarySpecies))?.choiceKey || `species:${options.speciesId}`
         : 'random';
+    const selectedPokemonEntry = useMemo(() => findDexCatalogueChoice(generatorCatalogue, selectedPokemonChoice), [selectedPokemonChoice]);
+    const appearanceChoices = useMemo(() => getPokemonRecordForms(
+        appearancePokemon?.name === selectedPokemonEntry?.pokemonName ? appearancePokemon
+            : selectedPokemonEntry ? { id: selectedPokemonEntry.pokemonId, name: selectedPokemonEntry.pokemonName } : null,
+    ), [appearancePokemon, selectedPokemonEntry]);
+
+    useEffect(() => {
+        let active = true;
+        setAppearancePokemon(null);
+        if (selectedPokemonEntry?.pokemonName) {
+            fetchCached(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(selectedPokemonEntry.pokemonName)}/`)
+                .then(data => { if (active && data?.name === selectedPokemonEntry.pokemonName) setAppearancePokemon(data); })
+                .catch(() => {});
+        }
+        return () => { active = false; };
+    }, [selectedPokemonEntry]);
 
     useEffect(() => { closeCallback.current = onClose; }, [onClose]);
     useEffect(() => { draftRef.current = results; }, [results]);
@@ -391,7 +410,15 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                             <small>Você pode escolher um Pokémon exato ou deixar o MyOwnDex sortear usando os filtros. As duas formas de escolher não se misturam.</small>
                         </div>
                         <label>Escolha direta<RoomSelect disabled={working} value={selectedPokemonChoice} onChange={event => choosePokemon(event.target.value)} aria-label="Escolher um Pokémon ou forma específicos"><option value="random">Sortear pela Pokédex</option>{generatorCatalogue.map(entry => <option key={entry.choiceKey} value={entry.choiceKey}>{generatorChoiceName(entry)}</option>)}</RoomSelect></label>
-                        {selectedPokemonChoice !== 'random' ? <p className="generator-choice-note">Pokémon definido. Os filtros de sorteio abaixo ficam fora da escolha porque este encontro já tem um Pokémon específico.</p> : <>
+                        {selectedPokemonChoice !== 'random' ? <>
+                            <p className="generator-choice-note">Pokémon definido. Os filtros de sorteio abaixo ficam fora da escolha porque este encontro já tem um Pokémon específico.</p>
+                            {appearanceChoices.length > 1 && <details className="generator-customize generator-appearance-options">
+                                <summary>Aparência</summary>
+                                <label>Visual deste Pokémon<RoomSelect className="generator-appearance-picker" disabled={working} value={options.appearanceFormId || appearanceChoices[0].formId} onChange={event => updateOption('appearanceFormId', Number(event.target.value))} aria-label="Aparência do Pokémon escolhido">
+                                    {appearanceChoices.map(choice => <option key={choice.formId} value={choice.formId}>{choice.label}</option>)}
+                                </RoomSelect></label>
+                            </details>}
+                        </> : <>
                             <p className="generator-choice-note">Os filtros abaixo trabalham juntos. Eles só diminuem a lista de Pokémon que podem ser sorteados.</p>
                             <div className="generator-filter-grid">
                                 <label>Tipo<span className="generator-field-help">Mostra apenas Pokémon que tenham este tipo.</span><RoomSelect disabled={working} value={options.type} onChange={event => updateOption('type', event.target.value)} aria-label="Tipo que pode aparecer"><option value="">Qualquer tipo</option>{TYPES.filter(type => type !== 'stellar').map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>

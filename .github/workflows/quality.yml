@@ -74,6 +74,12 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-responsive.mjs
+      - name: Conferir a versão publicada sem alterar contas ou aventuras
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: https://myowndex.vercel.app
+        run: node tests/browser-production.mjs
       - name: Exibir log em caso de falha
         if: failure()
         run: cat /tmp/myowndex-browser.log || true

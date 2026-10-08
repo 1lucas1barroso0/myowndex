@@ -1,0 +1,39 @@
+{
+  "pokemonId": 10298,
+  "name": "BARBARACLE_1",
+  "view": "front",
+  "shiny": true,
+  "type": "native-menu-icon",
+  "repository": "ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX",
+  "commit": "836bb026ba8f6c3b3ee3bb6d461c510263953a02",
+  "sourcePath": "Graphics/Pokemon/Icons shiny/BARBARACLE_1.png",
+  "sourceUrl": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Icons%20shiny/BARBARACLE_1.png",
+  "sourceGitBlob": "ce13ab278ae71811f7257ff80b7bb7b6ee0631d0",
+  "sourceSha256": "a18f9cf75a82236475563003f44a53636e98b6699669c593eb8ca302deef70a4",
+  "nativeFrames": 2,
+  "frameSize": [
+    64,
+    64
+  ],
+  "nativeCycleMs": 250,
+  "nativeFrameMs": 125,
+  "timingProof": "Data/Scripts.rxdata extracted Pokemon_Sprites.rb: PokemonSpeciesIconSprite ANIMATION_DURATION = 0.25, @frames_count = width / height, update_frame = (@frames_count * (System.uptime % ANIMATION_DURATION) / ANIMATION_DURATION).floor.",
+  "apngDurationMs": [
+    125,
+    125
+  ],
+  "identityNote": "Native 2-frame menu icon of Mega Barbaracle with official shiny green limbs and pink accents. Do not use this front view for back. No new frames, recoloring, or body animation was invented.",
+  "pixelAlphaVerified": true,
+  "assets": {
+    "10298-front-shiny.apng": {
+      "bytes": 2533,
+      "sha256": "a1d81c2a80d9d395afa12ada6d990fa8c67f7f7e2a8db5adb73e96de41ede3ed"
+    },
+    "10298-front-shiny.png": {
+      "bytes": 1241,
+      "sha256": "a64cd84b796c283a5806d25f987ea421adba81110f616aae5c0e27f5825d896b"
+    }
+  },
+  "animated": "/sprites/native/10298-front-shiny.apng",
+  "static": "/sprites/native/10298-front-shiny.png"
+}

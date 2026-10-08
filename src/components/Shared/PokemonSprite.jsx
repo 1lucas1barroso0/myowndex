@@ -74,7 +74,7 @@ export default function PokemonSprite({
             src={sources[sourceIndex]}
             alt={alt}
             className={`pokemon-sized-sprite ${className}`}
-            data-pokemon-motion={/\.gif(?:[?#].*)?$/i.test(sources[sourceIndex]) ? "animated" : "static"}
+            data-pokemon-motion={/\.(?:gif|apng)(?:[?#].*)?$/i.test(sources[sourceIndex]) ? "animated" : "static"}
             style={{ "--pokemon-scale": getPokemonSpriteScale(pokemonId, height) }}
             loading={loading}
             decoding="async"

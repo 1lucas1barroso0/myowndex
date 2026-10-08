@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v2.0.18";
+const CACHE_NAME = "myowndex-shell-v2.0.19";
 const CACHE_PREFIX = "myowndex-shell-";
 const ASSET_CACHE_NAME = "myowndex-assets-v1";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";
@@ -8,15 +8,15 @@ const ASSET_ENTRY_BYTES = 4 * 1024 * 1024;
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
-  "/manifest.webmanifest?v=2.0.18",
-  "/icons/myowndex-rotomdex-v103-96.png?v=2.0.18",
-  "/icons/myowndex-rotomdex-v103-32.png",
-  "/icons/myowndex-rotomdex-v103-192.png",
-  "/icons/myowndex-rotomdex-v103-512.png",
-  "/icons/myowndex-rotomdex-v103-app-512.png",
-  "/icons/myowndex-rotomdex-v103-180.png",
-  "/icons/myowndex-rotomdex-v103-96.png",
-  "/icons/myowndex-rotomdex-v103-maskable-512.png",
+  "/manifest.webmanifest?v=2.0.19",
+  "/icons/myowndex-dex-v104-96.png?v=2.0.19",
+  "/icons/myowndex-dex-v104-32.png",
+  "/icons/myowndex-dex-v104-192.png",
+  "/icons/myowndex-dex-v104-512.png",
+  "/icons/myowndex-dex-v104-app-512.png",
+  "/icons/myowndex-dex-v104-180.png",
+  "/icons/myowndex-dex-v104-96.png",
+  "/icons/myowndex-dex-v104-maskable-512.png",
   "/fonts/VT323-Regular.ttf",
 ];
 

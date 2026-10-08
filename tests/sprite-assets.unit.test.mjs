@@ -108,7 +108,7 @@ const inspectGif=buffer=>{
   return {frames,controls,transparentControls};
 };
 
-test("decorative partners use animated transparent GIF masters and one RotomDex identity", async () => {
+test("decorative partners use animated transparent GIF masters and one Pokédex do MyOwnDex identity", async () => {
   const companionFiles=await readdir("public/sprites/companions");
   const gifs=companionFiles.filter(name=>name.endsWith(".gif"));
   const pngs=companionFiles.filter(name=>name.endsWith(".png"));
@@ -128,7 +128,7 @@ test("decorative partners use animated transparent GIF masters and one RotomDex 
     readFile("public/sw.js","utf8"),
   ]);
   for(const text of source){
-    assert.match(text,/myowndex-rotomdex-v103-/);
+    assert.match(text,/myowndex-dex-v104-/);
     assert.doesNotMatch(text,/myowndex-rotomdex-v101|myowndex-(?:icon|maskable)-v100|favicon-v100/);
   }
 });

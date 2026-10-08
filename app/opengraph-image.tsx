@@ -2,11 +2,11 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const alt = "RotomDex do MyOwnDex: uma Pokédex laranja com olhos azuis e braços em forma de raio.";
+export const alt = "Pokédex do MyOwnDex";
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
-const icon = await readFile(join(process.cwd(), "public/icons/myowndex-rotomdex-v103-app-512.png"));
+const icon = await readFile(join(process.cwd(), "public/icons/myowndex-dex-v104-app-512.png"));
 const iconSource = `data:image/png;base64,${icon.toString("base64")}`;
 
 export default function OpenGraphImage() {

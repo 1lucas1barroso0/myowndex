@@ -36,7 +36,6 @@ function referenceSelect(entries, options = {}) {
   const normalized = normalizeDexSearch(rawQuery);
   const numericRange = parseDexRange(rawQuery);
   const numericQuery = !numericRange && /^\d+$/.test(normalized) ? Number(normalized) : null;
-  const textQuery = Boolean(rawQuery && numericQuery === null && !numericRange);
   const selected = new Set(options.favorites || []);
   const types = [...new Set((Array.isArray(options.types) ? options.types : [])
     .map(value => String(value ?? "").trim().toLowerCase()).filter(Boolean))].slice(0, 2);
@@ -44,18 +43,18 @@ function referenceSelect(entries, options = {}) {
   const regions = new Set((Array.isArray(options.regions) ? options.regions : []).filter(region => allowedRegions.has(region)));
   const generation = DEX_GENERATIONS.find(gen => gen.id === String(options.generation ?? "all")) || DEX_GENERATIONS[0];
   const order = ["number", "reverse", "name"].includes(options.order) ? options.order : "number";
+  const variantMode = options.variantMode === "separate" ? "separate" : "grouped";
   const min = Number.isInteger(Number(options.minNumber)) && Number(options.minNumber) >= 1 ? Math.min(1025, Number(options.minNumber)) : 1;
   const max = Number.isInteger(Number(options.maxNumber)) && Number(options.maxNumber) >= 1 ? Math.min(1025, Number(options.maxNumber)) : 1025;
   const lower = Math.min(min, max);
   const upper = Math.max(min, max);
 
-  return entries.filter(entry => {
+  const matching = entries.filter(entry => {
     const number = dexEntryNumber(entry);
     if (number < lower || number > upper) return false;
 
     const entryGeneration = dexEntryGeneration(entry);
-    if (generation.id !== "all" && entryGeneration?.id !== generation.id
-      && !(!entry.generation && number >= generation.start && number <= generation.end)) return false;
+    if (generation.id !== "all" && entryGeneration?.id !== generation.id) return false;
 
     const searchable = [entry.name, entry.speciesName, entry.pokemonName, entry.formKey, entry.formIdentifier]
       .filter(Boolean).map(normalizeDexSearch);
@@ -71,10 +70,14 @@ function referenceSelect(entries, options = {}) {
     const entryTypes = dexEntryTypes(entry);
     if (types.length && !types.every(type => entryTypes.includes(type))) return false;
 
-    if (entry.isPrimarySpecies === false && options.variantMode !== "separate" && !regions.size
-      && !(textQuery && matchesQuery) && !(options.onlyFavorites && favorite)) return false;
     return true;
-  }).sort((a, b) => {
+  });
+  const displayed = variantMode === "separate" ? matching : matching.filter(entry => {
+    const siblings = matching.filter(candidate => dexEntryNumber(candidate) === dexEntryNumber(entry));
+    const representative = siblings.find(candidate => candidate.isPrimarySpecies !== false) || siblings[0];
+    return entry === representative;
+  });
+  return displayed.sort((a, b) => {
     if (order === "name") {
       const difference = String(a.speciesName || a.name).localeCompare(String(b.speciesName || b.name), "pt-BR");
       if (difference) return difference;
@@ -127,6 +130,6 @@ test("invalid saved filter values fall back safely instead of breaking the Poké
     types: ["DARK", "dark"],
     variantMode: "old-mode",
   });
-  assert.deepEqual(result.map(key), ["sableye"]);
+  assert.deepEqual(result.map(key), ["rattata-alola", "sableye"]);
   assert.equal(debutGeneration(1008).id, "9");
 });

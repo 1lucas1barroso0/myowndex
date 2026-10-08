@@ -40,3 +40,46 @@ jobs:
         run: npx tsc --noEmit --incremental false
       - name: Compilar o artefato completo
         run: npm run build
+
+
+  browser-quality:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Preparar o Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - name: Instalar dependências verificadas
+        run: npm ci
+      - name: Instalar navegador de QA sem alterar o lockfile
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Compilar para QA real
+        run: npm run build
+      - name: Subir MyOwnDex local
+        run: |
+          npm run start > /tmp/myowndex-browser.log 2>&1 &
+          echo $! > /tmp/myowndex-browser.pid
+          for i in {1..60}; do curl -fsS http://127.0.0.1:3000 >/dev/null && exit 0; sleep 1; done
+          cat /tmp/myowndex-browser.log
+          exit 1
+      - name: Testar matriz real de telas, sprites e Dados
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-responsive.mjs
+      - name: Exibir log em caso de falha
+        if: failure()
+        run: cat /tmp/myowndex-browser.log || true
+      - name: Encerrar servidor de QA
+        if: always()
+        run: |
+          if [ -f /tmp/myowndex-browser.pid ]; then
+            kill "$(cat /tmp/myowndex-browser.pid)" 2>/dev/null || true
+          fi

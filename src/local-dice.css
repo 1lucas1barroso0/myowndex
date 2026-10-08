@@ -800,9 +800,9 @@ html .app-root.game-edition.handheld-edition .local-pokemon-dice { overflow-x: c
 html .app-root.game-edition.handheld-edition .local-dice-panel :is(input,select,button),
 html .app-root.game-edition.handheld-edition .local-pokemon-dice :is(input,select,button) { max-width: 100%; }
 @media (max-width: 420px) {
-  html .app-root.game-edition.handheld-edition .local-dice-tabs { grid-template-columns: minmax(0,1fr) !important; }
-  html .app-root.game-edition.handheld-edition .local-dice-tabs button { min-height: 48px !important; grid-template-columns: auto auto; justify-content: center !important; }
-  html .app-root.game-edition.handheld-edition .local-dice-pages { grid-template-columns: minmax(0,1fr); }
+  html .app-root.game-edition.handheld-edition .local-dice-tabs { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  html .app-root.game-edition.handheld-edition .local-dice-tabs button { display:grid !important; min-height:64px !important; grid-template-columns:minmax(0,1fr); justify-content:center !important; gap:.2rem !important; }
+  html .app-root.game-edition.handheld-edition .local-dice-pages { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 @media (max-height: 560px) {
   html .app-root.game-edition.handheld-edition .local-dice-dialog { max-height: calc(100dvh - .5rem); }

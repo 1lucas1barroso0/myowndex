@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 // Decorative partners have one home each. Pokémon in teams, search results and
 // the battle field are functional data and do not use this registry.
@@ -13,13 +13,13 @@ export const POKEMON_COMPANIONS = Object.freeze({
     account: Object.freeze({ id: 133, name: "Eevee", tone: "gold" }),
 });
 
-// The bundled animated GIFs used by older revisions contain opaque matte
-// backgrounds in their palettes. Use the transparent PNG master everywhere
-// and animate the sprite at the presentation layer instead. This preserves
-// transparency, avoids cropped/discoloured frames and still gives every
-// partner a living idle motion. Reduced-motion disables that motion in CSS.
+// Decorative partners use their own animated sprite masters. Their motion is
+// authored in the sprite frames themselves: CSS never invents bobbing, sway or
+// pseudo-idle movement. PNG masters preserve the character when reduced motion
+// is requested or its animated asset cannot be loaded.
 export default function PokemonCompanion({ place, className = "", eager = false }) {
     const companion = POKEMON_COMPANIONS[place];
+    const [failedAnimation, setFailedAnimation] = useState(null);
     if (!companion) return null;
     return (
         <span
@@ -28,14 +28,18 @@ export default function PokemonCompanion({ place, className = "", eager = false 
             data-companion-id={companion.id}
             aria-hidden="true"
         >
-            <img
-                src={`/sprites/companions/${companion.id}.png`}
-                alt=""
-                width="96"
-                height="96"
-                loading={eager ? "eager" : "lazy"}
-                decoding="async"
-            />
+            <picture>
+                <source media="(prefers-reduced-motion: reduce)" srcSet={`/sprites/companions/${companion.id}.png`} />
+                <img
+                    src={failedAnimation === companion.id ? `/sprites/companions/${companion.id}.png` : `/sprites/companions/${companion.id}.gif`}
+                    alt=""
+                    width="96"
+                    height="96"
+                    loading={eager ? "eager" : "lazy"}
+                    decoding="async"
+                    onError={() => setFailedAnimation(companion.id)}
+                />
+            </picture>
         </span>
     );
 }

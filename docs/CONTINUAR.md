@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.15.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.17.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 
@@ -74,11 +74,15 @@ A revisão 2.0.14 substitui o acabamento plástico da 2.0.13 por uma linguagem d
 
 A mesma revisão corrige o histórico de Dados local: `LOCAL_ROLL_LIMIT` passa a ser importado explicitamente, a rolagem entra no estado da sessão antes de qualquer persistência, recebe uma cópia rápida no armazenamento do navegador e uma cópia durável assíncrona. Falha de cache, IndexedDB, conta ou callback não remove nem rerrola o resultado e não bloqueia uma nova rolagem. Somente rolagens remotas autoritativas podem aguardar o servidor. A versão mostrada no rodapé e na abertura é lida diretamente de `package.json`; não manter um rótulo de versão paralelo.
 
-A revisão 2.0.15 é o passe de retenção, sprites e robustez. Toda identidade visível usa o mesmo asset `/icons/myowndex-rotomdex-v101.svg`, uma RotomDex própria nas cores do MyOwnDex. Parceiros decorativos passam a usar os PNGs transparentes locais, animados suavemente por CSS quando movimento é permitido. Nenhum parceiro deve ter disco, halo, fundo artificial ou ser cortado por um cabeçalho.
+A revisão 2.0.15 trouxe a RotomDex própria nas cores do MyOwnDex, cabeçalhos mais vivos e palcos transparentes. A revisão atual preserva esse desenho, corrige formatos de ícones para instalação e compartilhamento e atualiza seus endereços para evitar imagens antigas em cache.
 
-A Pokédex não usa régua, haste, faixa cinza ou marcador de chão atrás dos sprites. Dentro dos cards, a escala física é neutralizada para que espécies pequenas continuem visualmente legíveis. Cabeçalhos principais recuperam cor, composição e presença de jogo, preservando leitura, toque, contraste e redução de movimento.
+Parceiros decorativos usam animações GIF transparentes e naturais, com PNG estático quando a pessoa prefere menos movimento ou a imagem falha. Cada espécie decorativa tem um único lar. Os sprites de jogo podem usar animações verificadas da identidade exata, preservando Shiny e variantes. A escala oficial é comprimida para distinguir tamanhos sem esconder espécies pequenas. Não reintroduzir discos, halos, régua, haste, fundo cinza ou balanço artificial.
 
 Dados mantém Web Crypto como fonte aleatória de produção e rejection sampling para intervalos uniformes. A suíte 2.0.15 amplia a auditoria para todos os dados oferecidos, centenas de milhares de draws seguros adicionais, dezenas de milhares de recibos locais mistos e uma matriz ampliada de viewports. Rolagens locais não usam cooldown por clique; cada ativação válida gera seu recibo antes de cache ou persistência e entra no histórico da sessão imediatamente.
+
+A revisão 2.0.17 acrescenta uma barreira de qualidade permanente. O CI passa a rodar a matriz real de browser com Chromium após testes, lint, tipos e build. A matriz inclui celulares estreitos, retrato alto, landscape curto, tablets e desktops; verifica overflow, modais, sprites decorativos, cards visíveis da Pokédex e rajadas de rolagens até o limite do histórico. Os arquivos dos parceiros são verificados para garantir transparência, animação real e recuperação estática. O RNG mantém Web Crypto + rejection sampling e ganha uma auditoria adicional de transições consecutivas para flagrar qualquer acoplamento de estado ou preferência artificial.
+
+A revisão 2.0.17 consolida a direção fosca, vibrante e acolhedora com animações naturais de identidade exata, recuperação estática e escala oficial comprimida. A RotomDex aprovada acompanha ícones raster compatíveis com instalações e prévias de links. A explicação do sorteio fica disponível sob demanda, e os tipos de dados mantêm botões separados e legíveis também no celular. Linhas evolutivas respeitam variantes e formas de gênero fixo permanecem coerentes no Gerador, no PC e no compartilhamento. Filtros são aplicados antes do agrupamento nacional, permanecem ao alternar a visualização e usam apenas regiões canônicas. A edição permite somente formas reversíveis do mesmo indivíduo. Veja `docs/DIRECAO-ARTISTICA-2.0.17.md`.
 
 ## Documentos históricos
 

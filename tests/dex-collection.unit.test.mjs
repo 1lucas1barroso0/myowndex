@@ -35,10 +35,52 @@ test("dex search accepts explicit National Dex intervals and keeps fixed forms w
     { name: "raichu", url: "https://pokeapi.co/api/v2/pokemon-species/26/" },
     { name: "sandshrew", url: "https://pokeapi.co/api/v2/pokemon-species/27/" },
   ];
-  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
-  assert.deepEqual(selectDexSpecies(catalogue, { query: "#0026 a #0019" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26" }).map(p => p.name), ["rattata", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "19-26", variantMode: "separate" }).map(p => p.name), ["rattata", "rattata-alola", "raichu"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { query: "#0026 a #0019" }).map(p => p.name), ["rattata", "raichu"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "19..26", generation: "7" }).map(p => p.name), ["rattata-alola"]);
   assert.deepEqual(selectDexSpecies(catalogue, { query: "1026-1030" }), []);
+});
+
+test("a matching later identity represents its National entry in compact display", () => {
+  const catalogue = [
+    { name: "rattata-alola", speciesId: 19, formKey: "rattata-alola", isPrimarySpecies: false, generation: 7, types: ["dark", "normal"] },
+    { name: "rattata", speciesId: 19, isPrimarySpecies: true, generation: 1, types: ["normal"] },
+    { name: "ursaluna", speciesId: 901, isPrimarySpecies: true, generation: 8, types: ["normal", "ground"] },
+    { name: "ursaluna-bloodmoon", speciesId: 901, formKey: "ursaluna-bloodmoon", isPrimarySpecies: false, generation: 9, types: ["normal", "ground"] },
+  ];
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "7" }).map(entry => entry.name), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { types: ["dark", "normal"] }).map(entry => entry.name), ["rattata-alola"]);
+  assert.deepEqual(selectDexSpecies(catalogue, { generation: "9" }).map(entry => entry.name), ["ursaluna-bloodmoon"]);
+  assert.deepEqual(selectDexSpecies(catalogue).map(entry => entry.name), ["rattata", "ursaluna"], "prefer an eligible original even when the variant occurs first");
+  assert.equal(selectDexSpecies(catalogue, { variantMode: "separate" }).length, 4);
+});
+
+test("region filters use canonical regional identities rather than costume or Totem words", () => {
+  const catalogue = [
+    { name: "rattata-alola", speciesId: 19, generation: 7, isPrimarySpecies: false },
+    { name: "pikachu-alola-cap", speciesId: 25, formKey: "pikachu-alola-cap", generation: 7, region: "alola" },
+    { name: "raticate-totem-alola", speciesId: 20, formKey: "raticate-totem-alola", generation: 7 },
+    { name: "rowlet", speciesId: 722, generation: 7 },
+  ];
+  assert.equal(dexEntryRegion(catalogue[0]), "alola");
+  for (const entry of catalogue.slice(1)) assert.equal(dexEntryRegion(entry), "", entry.name);
+  assert.deepEqual(selectDexSpecies(catalogue, { regions: ["alola"] }).map(entry => entry.name), ["rattata-alola"]);
+});
+
+test("changing the display mode preserves every filter and the eligible National entries", () => {
+  const catalogue = [
+    { name: "meowth", speciesId: 52, isPrimarySpecies: true, generation: 1, types: ["normal"] },
+    { name: "meowth-galar", speciesId: 52, formKey: "meowth-galar", isPrimarySpecies: false, generation: 8, types: ["steel"] },
+    { name: "meowth-alola", speciesId: 52, formKey: "meowth-alola", isPrimarySpecies: false, generation: 7, types: ["dark"] },
+  ];
+  const filters = Object.freeze({ generation: "8", regions: Object.freeze(["galar"]), types: Object.freeze(["steel"]), minNumber: 50, maxNumber: 55 });
+  const before = JSON.stringify(filters);
+  const grouped = selectDexSpecies(catalogue, { ...filters, variantMode: "grouped" });
+  const separate = selectDexSpecies(catalogue, { ...filters, variantMode: "separate" });
+  assert.deepEqual(grouped.map(entry => entry.name), ["meowth-galar"]);
+  assert.deepEqual(separate.map(entry => entry.name), ["meowth-galar"]);
+  assert.equal(JSON.stringify(filters), before);
 });
 
 test("dex filters support open ranges, multiple types and optional regional segregation", () => {

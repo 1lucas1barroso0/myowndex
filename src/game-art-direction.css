@@ -1,4 +1,4 @@
-/* MyOwnDex 2.0.14 — joyful field-guide direction.
+/* MyOwnDex 2.0.16 — joyful field-guide direction.
    This file is intentionally presentation-only. Game rules, storage, RNG and
    document structure live elsewhere. The target is matte, warm and playful:
    a field journal that happens to be a game tool, never a glossy dashboard. */
@@ -270,7 +270,7 @@ html .app-root.game-edition.handheld-edition .room-local-entry{
 html .app-root.game-edition.handheld-edition .room-local-entry b{
   border-radius:.6rem !important;
   background:var(--joy-paper) !important;
-  color:var(--joy-teal) !important;
+  color:var(--journey-teal) !important;
 }
 
 /* ---------- Pokédex: collection pages with lively sprites ---------- */
@@ -333,9 +333,8 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
   margin:.55rem 0 .55rem !important;
   border:0 !important;
   border-radius:.8rem !important;
-  background:
-    linear-gradient(0deg,color-mix(in srgb,var(--joy-blue) 9%,var(--ui-raised)) 0 30%,transparent 30%),
-    linear-gradient(90deg,transparent 49.5%,color-mix(in srgb,var(--ui-line) 45%,transparent) 50%,transparent 50.5%) !important;
+  background:transparent !important;
+  box-shadow:none !important;
 }
 html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
   content:none !important;
@@ -690,17 +689,7 @@ html .app-root.game-edition.handheld-edition .game-release b{
 }
 
 
-/* 2.0.15 — retention pass: lively headers, transparent partners and clean collection sprites. */
-@keyframes myowndex-companion-idle {
-  0%,100% { transform: translateY(0) rotate(-.4deg); }
-  50% { transform: translateY(-5px) rotate(.7deg); }
-}
-@keyframes myowndex-companion-pop {
-  0% { transform: translateY(0) scale(1); }
-  45% { transform: translateY(-7px) scale(1.035); }
-  100% { transform: translateY(0) scale(1); }
-}
-
+/* 2.0.16 — natural partner motion comes from authored animated sprites. */
 html .pokemon-companion{
   position:relative !important;
   display:grid !important;
@@ -725,21 +714,12 @@ html .pokemon-companion img{
   max-width:100% !important;
   max-height:100% !important;
   object-fit:contain !important;
-  object-position:center !important;
+  object-position:center bottom !important;
   background:transparent !important;
   image-rendering:pixelated;
   filter:drop-shadow(0 5px 1px #17343c26) !important;
-  animation:myowndex-companion-idle 2.35s ease-in-out infinite !important;
-  transform-origin:50% 82%;
-}
-@media (hover:hover) and (prefers-reduced-motion:no-preference){
-  html .pokemon-companion:hover img,
-  html :is(.adventure-intro,.dex-heading,.guide-hero,.pc-sidebar-heading):hover .pokemon-companion img{
-    animation:myowndex-companion-pop .58s ease-out 1 !important;
-  }
-}
-@media (prefers-reduced-motion:reduce){
-  html .pokemon-companion img{ animation:none !important; transform:none !important; }
+  animation:none !important;
+  transform:none !important;
 }
 
 /* Headers should feel like game destinations, not blank forms. */
@@ -839,9 +819,9 @@ html .app-root.game-edition.handheld-edition .dex-title{ grid-area:title; }
 html .app-root.game-edition.handheld-edition .dex-count{ grid-area:count; justify-self:start; }
 html .app-root.game-edition.handheld-edition .dex-companion{ grid-area:partner; }
 html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
-  width:7.4rem !important;
-  height:7.4rem !important;
-  margin:-.35rem .1rem -.35rem 0 !important;
+  width:9rem !important;
+  height:9rem !important;
+  margin:0 .1rem 0 0 !important;
   align-self:center;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar{
@@ -870,12 +850,12 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading::after{
   pointer-events:none;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
-  width:6.7rem !important;
-  height:6.7rem !important;
-  margin:-.3rem -.15rem -.25rem 0;
+  width:8.2rem !important;
+  height:8.2rem !important;
+  margin:0 -.05rem 0 0;
 }
 
-/* Pokédex cards: no grey stage, no ruler line, no physical-height shrinking. */
+/* Transparent cards keep the official size order within a readable game scale. */
 html .app-root.game-edition.handheld-edition .dex-grid{
   gap:.85rem !important;
 }
@@ -898,6 +878,8 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
   position:relative !important;
   display:grid !important;
   place-items:center !important;
+  grid-template-rows:minmax(0,1fr);
+  grid-template-columns:minmax(0,1fr);
   width:100% !important;
   height:8.3rem !important;
   margin:.35rem 0 .45rem !important;
@@ -914,30 +896,24 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
   display:none !important;
 }
 html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
-  --pokemon-scale:1 !important;
+  min-width:0;
+  min-height:0;
   width:min(8rem,86%) !important;
   height:min(8rem,86%) !important;
   max-width:100% !important;
   max-height:100% !important;
   object-fit:contain !important;
-  object-position:center !important;
+  object-position:center bottom !important;
   transform:none !important;
-  transform-origin:center !important;
+  transform-origin:center bottom !important;
   background:transparent !important;
   filter:drop-shadow(0 5px 1px #17343c24) !important;
 }
 html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-sprite{
-  --pokemon-scale:1 !important;
   transform:none !important;
   object-fit:contain !important;
-  object-position:center !important;
+  object-position:center bottom !important;
   filter:drop-shadow(0 3px 1px #17343c1d);
-}
-@media (hover:hover) and (prefers-reduced-motion:no-preference){
-  html .app-root.game-edition.handheld-edition .dex-entry-main:hover .pokemon-card-sprite-frame .pokemon-sized-sprite,
-  html .app-root.game-edition.handheld-edition .dex-entry-main:focus-visible .pokemon-card-sprite-frame .pokemon-sized-sprite{
-    animation:myowndex-companion-pop .52s ease-out 1 !important;
-  }
 }
 
 /* Small screens keep the personality without sacrificing the safe area. */
@@ -948,12 +924,12 @@ html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-spr
     padding:.9rem 1rem !important;
   }
   html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
-    width:6rem !important;
-    height:6rem !important;
+    width:7.2rem !important;
+    height:7.2rem !important;
     margin:-.15rem -.1rem -.15rem 0 !important;
   }
   html .app-root.game-edition.handheld-edition .dex-heading{
-    grid-template-columns:minmax(0,1fr) 6rem;
+    grid-template-columns:minmax(0,1fr) 7.2rem;
     gap:.2rem .55rem !important;
   }
   html .app-root.game-edition.handheld-edition .dex-entry-main{
@@ -967,16 +943,110 @@ html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-spr
     height:min(6.8rem,92%) !important;
   }
   html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
-    width:5.8rem !important;
-    height:5.8rem !important;
+    width:6.7rem !important;
+    height:6.7rem !important;
   }
 }
 @media (max-width:350px){
   html .app-root.game-edition.handheld-edition .dex-heading{
-    grid-template-columns:minmax(0,1fr) 5rem;
+    grid-template-columns:minmax(0,1fr) 5.8rem;
   }
   html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
-    width:5rem !important;
-    height:5rem !important;
+    width:5.8rem !important;
+    height:5.8rem !important;
   }
+}
+
+
+/* 2.0.16 complaint-proof sprite/header safety. No decorative image may rely
+   on clipping, a fake stage, or negative placement to look correct. */
+html .app-root.game-edition.handheld-edition :is(
+  .adventure-intro,.guide-hero,.dex-heading,.pc-sidebar-heading,
+  .local-dice-dialog-heading
+),
+html :is(.account-dialog-heading,.generator-heading){
+  overflow:visible !important;
+}
+html :is(.account-dialog-heading,.generator-heading) .pokemon-companion,
+html .app-root.game-edition.handheld-edition .local-dice-dialog-heading .pokemon-companion{
+  width:5.8rem !important;
+  height:5.8rem !important;
+  margin:0 !important;
+  padding:.45rem !important;
+  flex:none;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
+  background:transparent !important;
+  overflow:visible !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::before,
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
+  content:none !important;
+  display:none !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
+  object-position:center bottom !important;
+  background:transparent !important;
+}
+@media (max-width:360px){
+  html :is(.account-dialog-heading,.generator-heading) .pokemon-companion,
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading .pokemon-companion{
+    width:5.1rem !important;
+    height:5.1rem !important;
+    padding:.35rem !important;
+  }
+}
+
+
+/* 2.0.16 partner prominence contract.
+   Decorative Pokémon are characters, not badges. Their animation is native
+   to the GIF; the layout only gives it room, scale and a clean transparent stage. */
+html .pokemon-companion{
+  min-width:5.1rem !important;
+  min-height:5.1rem !important;
+}
+html .pokemon-companion img{
+  object-fit:contain !important;
+  object-position:center bottom !important;
+  animation:none !important;
+  transform:none !important;
+}
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
+  width:clamp(7rem,15vw,9.5rem) !important;
+  height:clamp(7rem,15vw,9.5rem) !important;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
+  width:clamp(6.5rem,13vw,8.5rem) !important;
+  height:clamp(6.5rem,13vw,8.5rem) !important;
+}
+html :is(.account-dialog-heading,.generator-heading) .pokemon-companion,
+html .app-root.game-edition.handheld-edition .local-dice-dialog-heading .pokemon-companion{
+  width:clamp(5.25rem,12vw,6.5rem) !important;
+  height:clamp(5.25rem,12vw,6.5rem) !important;
+}
+@media (max-width:360px){
+  html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
+    width:6rem !important;
+    height:6rem !important;
+  }
+  html .app-root.game-edition.handheld-edition .dex-heading{
+    grid-template-columns:minmax(0,1fr) 6rem !important;
+  }
+}
+
+
+/* 2.0.16 ultra-narrow containment: decorative prominence must never create
+   page overflow. Borders and padding stay inside the destination width. */
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading,.pc-sidebar-heading){
+  box-sizing:border-box !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+}
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading,.pc-sidebar-heading) :is(h1,h2,h3){
+  min-width:0 !important;
+  overflow-wrap:normal;
+}
+html .app-root.game-edition.handheld-edition .guide-hero .pokemon-companion{
+  flex:0 0 auto !important;
 }

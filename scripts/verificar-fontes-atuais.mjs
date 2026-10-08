@@ -2,11 +2,12 @@ import { readFile } from "node:fs/promises";
 
 const here = new URL("./", import.meta.url);
 const read = name => readFile(new URL(name, here), "utf8");
-const [generator, forms, catalog, pokedex] = await Promise.all([
+const [generator, forms, catalog, pokedex, evolution] = await Promise.all([
   read("atualizar-indice-gerador.py"),
   read("atualizar-indice-formas.py"),
   read("atualizar-catalogo-bilingue.py"),
   read("atualizar-descricoes-pokedex.py"),
+  read("atualizar-caminhos-formas.py"),
 ]);
 
 const pin = (source, name) => {
@@ -15,7 +16,7 @@ const pin = (source, name) => {
   return match[1];
 };
 
-const pokePins = new Set([pin(generator, "PIN"), pin(forms, "PIN"), pin(catalog, "PIN"), pin(pokedex, "API_SHA")]);
+const pokePins = new Set([pin(generator, "PIN"), pin(forms, "PIN"), pin(catalog, "PIN"), pin(pokedex, "API_SHA"), pin(evolution, "PIN")]);
 if (pokePins.size !== 1) throw new Error("Os scripts usam commits PokeAPI diferentes.");
 const POKEAPI_PIN = [...pokePins][0];
 const POKEMINERS_PIN = pin(pokedex, "GO_SHA");
@@ -30,6 +31,7 @@ const sources = [
       "data/v2/csv/pokemon_species.csv",
       "data/v2/csv/pokemon.csv",
       "data/v2/csv/pokemon_forms.csv",
+      "data/v2/csv/pokemon_evolution.csv",
       "data/v2/csv/types.csv",
       "data/v2/csv/pokemon_types.csv",
       "data/v2/csv/pokemon_types_past.csv",

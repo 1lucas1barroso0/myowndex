@@ -16,7 +16,80 @@ async function check(label){
  });report.push({label,...metrics});assert.equal(metrics.scroll,metrics.width,`${label}: horizontal page overflow`);assert.deepEqual(metrics.outside,[],`${label}: controls outside screen`);assert.equal(metrics.placeholder,0,`${label}: placeholder remains`);if(metrics.dialog)assert.ok(metrics.dialog.scroll<=metrics.dialog.width+1,`${label}: dialog overflow`);console.log(JSON.stringify(report.at(-1)));
 }
 async function nav(label){await page.getByRole('button',{name:label,exact:true}).click();await page.waitForTimeout(100)}
+async function waitForVisibleSprites(){
+ await page.waitForFunction(()=>{
+  const visible=element=>{const r=element.getBoundingClientRect();return element.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight&&!element.closest('[inert]');};
+  return [...document.querySelectorAll('.pokemon-companion img,.pokemon-card-sprite-frame .pokemon-sized-sprite')].filter(visible).every(element=>element.complete&&element.naturalWidth>0&&element.naturalHeight>0);
+ },null,{timeout:30000});
+}
+async function auditRotomIdentity(){
+ const metadata=await page.evaluate(()=>({
+  brand:document.querySelector('img.app-brand-icon')?.getAttribute('src'),
+  apple:document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href'),
+  shortcut:document.querySelector('link[rel="shortcut icon"]')?.getAttribute('href'),
+  manifest:document.querySelector('link[rel="manifest"]')?.getAttribute('href'),
+  og:document.querySelector('meta[property="og:image"]')?.getAttribute('content'),
+  twitter:document.querySelector('meta[name="twitter:image"]')?.getAttribute('content'),
+ }));
+ assert.match(metadata.brand,/myowndex-rotomdex-v101\.svg(?:\?|$)/,'Header uses the current RotomDex master');
+ assert.match(metadata.apple,/myowndex-rotomdex-v101-180\.png$/,'Apple installation uses its actual PNG, not an unrelated SVG');
+ assert.match(metadata.shortcut,/myowndex-rotomdex-v101-96\.png$/,'Shortcut uses the same RotomDex');
+ assert.equal(metadata.og,metadata.twitter,'Shared links use one RotomDex image');
+ assert.ok(metadata.og,'Shared-link image is present');
+ const localPath=url=>{const parsed=new URL(url,baseUrl);return parsed.pathname+parsed.search;};
+ const manifestResponse=await context.request.get(new URL(localPath(metadata.manifest),baseUrl).href);
+ assert.equal(manifestResponse.status(),200);
+ const manifest=await manifestResponse.json();
+ assert.deepEqual(manifest.categories,['games']);
+ for(const icon of manifest.icons) assert.match(icon.src,/myowndex-rotomdex-v101(?:\.svg|-(?:maskable-)?\d+\.png)/,'PWA icons share the same master');
+ const images=[{url:metadata.apple,size:180},{url:metadata.shortcut,size:96},...manifest.icons.filter(icon=>icon.type==='image/png').map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0])})),{url:localPath(metadata.og),size:512,opaque:true}];
+ for(const image of images){
+  const result=await page.evaluate(async ({url,size})=>{
+   const response=await fetch(url);if(!response.ok) return {status:response.status};
+   const bitmap=await createImageBitmap(await response.blob());
+   const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
+   const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+   const palette={red:0,dark:0,gold:0,blue:0};let transparent=0;
+   for(let index=0;index<pixels.length;index+=4){const [r,g,b,a]=pixels.subarray(index,index+4);if(a<255)transparent++;if(a<220)continue;if(r>120&&r>g*1.4&&r>b*1.2)palette.red++;if(r<80&&g<110&&b<110)palette.dark++;if(r>150&&g>100&&b<150)palette.gold++;if(b>110&&g>100&&r<130)palette.blue++;}
+   bitmap.close();return {status:response.status,width:canvas.width,height:canvas.height,transparent,palette,minimum:size*size*.005};
+  },{url:localPath(image.url),size:image.size});
+  assert.equal(result.status,200,`Identity asset loads: ${image.url}`);
+  assert.equal(result.width,image.size);assert.equal(result.height,image.size);
+  for(const [color,count] of Object.entries(result.palette))assert.ok(count>result.minimum,`RotomDex retains its ${color} feature: ${image.url}`);
+  if(image.opaque) assert.equal(result.transparent,0,'Shared-link RotomDex fills its entire frame');
+ }
+ report.push({label:'RotomDex header, Apple, shortcuts, PWA and shared-link identity',images:images.length});
+}
+async function auditRepeatedMotionPreferences(){
+ await page.setViewportSize({width:1920,height:1080});
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ const sprites=page.locator('.dex-entry-main .pokemon-sized-sprite');
+ const count=await sprites.count();
+ assert.ok(count>=60,'Repeated motion changes are tested with at least sixty mounted Pokémon');
+ for(let index=0;index<count;index+=8){
+  await sprites.nth(index).scrollIntoViewIfNeeded();
+  await waitForVisibleSprites();
+ }
+ await sprites.last().scrollIntoViewIfNeeded();await waitForVisibleSprites();
+ const loaded=await sprites.evaluateAll(images=>images.filter(image=>image.complete&&image.naturalWidth>0&&image.naturalHeight>0).length);
+ assert.ok(loaded>=60,'Sixty actual sprite images load before switching motion preferences');
+ await sprites.first().scrollIntoViewIfNeeded();
+ const errorsBefore=errors.length;
+ for(let cycle=0;cycle<10;cycle+=1){
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForFunction(()=>[...document.querySelectorAll('.dex-entry-main .pokemon-sized-sprite')].every(image=>image.dataset.pokemonMotion==='static'));
+  await waitForVisibleSprites();
+  assert.deepEqual(errors.slice(errorsBefore),[],`Motion reduction cycle ${cycle+1} has no React or browser errors`);
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.waitForFunction(()=>document.querySelector('.dex-entry-main .pokemon-sized-sprite')?.dataset.pokemonMotion==='animated');
+  await waitForVisibleSprites();
+  assert.deepEqual(errors.slice(errorsBefore),[],`Animation restoration cycle ${cycle+1} has no React or browser errors`);
+ }
+ report.push({label:'Ten motion preference cycles across sixty loaded Pokémon',mounted:count,loaded,cycles:10,errors:errors.slice(errorsBefore)});
+}
 await page.goto(baseUrl);await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).waitFor();
+await auditRotomIdentity();
+await auditRepeatedMotionPreferences();
 for(const width of [320,390,768,1280,1440]){
  await page.setViewportSize({width,height:900});
  for(const theme of ['Claro','Escuro']){
@@ -26,30 +99,87 @@ for(const width of [320,390,768,1280,1440]){
 }
 const deviceMatrix=[
  {width:280,height:653},{width:320,height:568},{width:360,height:640},{width:375,height:667},
- {width:390,height:844},{width:412,height:915},{width:540,height:720},{width:768,height:1024},
- {width:820,height:1180},{width:915,height:412}
+ {width:360,height:800},{width:390,height:844},{width:412,height:915},{width:540,height:720},
+ {width:640,height:360},{width:740,height:360},{width:768,height:1024},{width:820,height:1180},
+ {width:915,height:412},{width:1024,height:768},{width:1366,height:768},{width:1920,height:1080}
 ];
 for(const viewport of deviceMatrix){
  await page.setViewportSize(viewport);
  for(const [view,label] of [['dex','Abrir a Pokédex'],['pc','Abrir o PC do Bill'],['guide','Abrir o Guia do Treinador'],['lobby','Abrir a Central da Aventura']]){
   await nav(label);await check(`device-${viewport.width}x${viewport.height}-${view}`);
-  const spriteAudit=await page.evaluate(()=>({
-   companions:[...document.querySelectorAll('.pokemon-companion img')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return {src:e.currentSrc,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,background:getComputedStyle(e).backgroundColor};}),
+  // Scroll an actual card into view before checking lazy sprites; off-screen
+  // placeholders must never be mistaken for a fully loaded visual audit.
+  if(view==='dex')await page.locator('.dex-entry-main').first().scrollIntoViewIfNeeded();
+  await waitForVisibleSprites();
+  const spriteAudit=await page.evaluate(()=>{
+   const visible=element=>{const r=element.getBoundingClientRect();return element.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight&&!element.closest('[inert]');};
+   const clippingAncestor=element=>{
+    const r=element.getBoundingClientRect();
+    for(let parent=element.parentElement;parent&&parent!==document.body;parent=parent.parentElement){
+     const style=getComputedStyle(parent),p=parent.getBoundingClientRect();
+     if((/(hidden|clip)/.test(style.overflowX)&&(r.left<p.left-.5||r.right>p.right+.5))||(/(hidden|clip)/.test(style.overflowY)&&(r.top<p.top-.5||r.bottom>p.bottom+.5)))return {tag:parent.tagName,cls:parent.className,overflowX:style.overflowX,overflowY:style.overflowY};
+    }
+    return null;
+   };
+   return {
+   companions:[...document.querySelectorAll('.pokemon-companion img')].filter(visible).map(e=>{const r=e.getBoundingClientRect();return {src:e.currentSrc,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,background:getComputedStyle(e).backgroundColor,clippedBy:clippingAncestor(e)};}),
    dexStages:[...document.querySelectorAll('.pokemon-card-sprite-frame')].slice(0,8).map(e=>{const s=getComputedStyle(e);return {backgroundImage:s.backgroundImage,backgroundColor:s.backgroundColor};}),
-   dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].slice(0,8).map(e=>({transform:getComputedStyle(e).transform,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight}))
-  }));
+   dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].filter(visible).map(e=>{const r=e.getBoundingClientRect(),f=e.closest('.pokemon-card-sprite-frame')?.getBoundingClientRect();return {transform:getComputedStyle(e).transform,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,background:getComputedStyle(e).backgroundColor,clippedBy:clippingAncestor(e),rect:{left:r.left,right:r.right,top:r.top,bottom:r.bottom},frame:f?{left:f.left,right:f.right,top:f.top,bottom:f.bottom}:null};}),
+   identity:[...document.querySelectorAll('img.app-brand-icon')].map(e=>e.getAttribute('src'))
+  };});
+  report.at(-1).spriteAudit=spriteAudit;
+  if(view==='guide'){
+   const guideColumns=await page.evaluate(()=>{
+    const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};};
+    return {
+     columns:[...document.querySelectorAll('.guide-rule-content')].map(e=>({rect:rect(e),parent:rect(e.parentElement),client:e.clientWidth,scroll:e.scrollWidth})),
+     cards:[...document.querySelectorAll('.guide-rule-card')].map(e=>({rect:rect(e),list:rect(e.closest('.guide-rule-list'))})),
+    };
+   });
+   report.at(-1).guideColumns=guideColumns;
+   fs.writeFileSync(process.env.MYOWNDEX_BROWSER_REPORT || '/tmp/myowndex-browser-report.json',JSON.stringify({report,errors},null,2));
+   assert.equal(guideColumns.cards.length,40,'The complete Guide retains all forty rules');
+   for(const column of guideColumns.columns){
+    assert.ok(column.scroll<=column.client+1,'Rule titles fit their own Guide column, including narrow-font fallbacks');
+    assert.ok(column.rect.left>=column.parent.left-.5&&column.rect.right<=column.parent.right+.5,'Guide columns remain inside their topic');
+   }
+   for(const card of guideColumns.cards)assert.ok(card.rect.left>=card.list.left-.5&&card.rect.right<=card.list.right+.5,'Every rule card stays within its Guide list');
+  }
+  fs.writeFileSync(process.env.MYOWNDEX_BROWSER_REPORT || '/tmp/myowndex-browser-report.json',JSON.stringify({report,errors},null,2));
   for(const sprite of spriteAudit.companions){
    assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0,`companion must load at ${viewport.width}x${viewport.height}`);
-   assert.match(sprite.src,/\.png(?:$|\?)/,`decorative companion must use transparent PNG master: ${sprite.src}`);
+   assert.match(sprite.src,/\.gif(?:$|\?)/,`decorative companion must use authored animated GIF: ${sprite.src}`);
    assert.ok(sprite.left>=-1&&sprite.right<=viewport.width+1,`companion must stay horizontally reachable at ${viewport.width}x${viewport.height}`);
+   assert.equal(sprite.clippedBy,null,`companion must not be clipped by an ancestor at ${viewport.width}x${viewport.height}`);
   }
   if(view==='dex'){
    assert.ok(spriteAudit.dexStages.length>0);
+   assert.ok(spriteAudit.dexSprites.length>0,'At least one real, visible Dex sprite is audited');
    for(const stage of spriteAudit.dexStages){assert.equal(stage.backgroundImage,'none');assert.ok(stage.backgroundColor==='rgba(0, 0, 0, 0)'||stage.backgroundColor==='transparent');}
-   for(const sprite of spriteAudit.dexSprites){assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0);assert.equal(sprite.transform,'none');}
+   for(const sprite of spriteAudit.dexSprites){
+    assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0);
+    assert.equal(sprite.transform,'none');
+    assert.equal(sprite.clippedBy,null,'Dex sprite must not be clipped by an ancestor');
+    assert.ok(sprite.background==='rgba(0, 0, 0, 0)'||sprite.background==='transparent');
+    if(sprite.frame){assert.ok(sprite.rect.left>=sprite.frame.left-1&&sprite.rect.right<=sprite.frame.right+1,'Dex sprite must stay inside its stage horizontally');assert.ok(sprite.rect.top>=sprite.frame.top-1&&sprite.rect.bottom<=sprite.frame.bottom+1,'Dex sprite must stay inside its stage vertically');}
+   }
   }
+  for(const src of spriteAudit.identity) assert.match(src,/myowndex-rotomdex-v101\.svg(?:\?|$)/);
  }
 }
+await page.getByRole('button',{name:'Entrar ou criar conta',exact:true}).click();
+const accountDialog=page.locator('.account-dialog');
+for(const label of ['Entrar','Criar conta','Recuperar acesso']){
+ await accountDialog.getByRole('button',{name:label,exact:true}).click();
+ for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:844});await check(`${width}-account-${label}`)}
+}
+await page.getByRole('button',{name:'Fechar conta',exact:true}).click();
+await page.getByRole('button',{name:'Gerar Pokémon',exact:true}).first().click();
+const generatorDialog=page.locator('.generator-dialog');
+for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:844});await check(`${width}-generator-basic`)}
+for(const details of await generatorDialog.locator('.generator-customize').all())if(!await details.evaluate(element=>element.open))await details.locator(':scope > summary').click();
+for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:844});await check(`${width}-generator-options`)}
+await page.getByRole('button',{name:'Fechar gerador',exact:true}).click();
 await page.setViewportSize({width:390,height:844});await page.getByRole('radio',{name:'Claro',exact:true}).click();
 await nav('Abrir a Pokédex');await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).click();
 await page.getByRole('button',{name:'Adicionar à equipe',exact:false}).waitFor({timeout:30000});
@@ -75,6 +205,9 @@ await page.getByRole('button',{name:'Abrir Dados',exact:true}).click();const dic
 for(let index=0;index<40;index+=1) await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).click();
 await page.waitForFunction(()=>/41 rolagens/.test(document.querySelector('.local-dice-history > summary')?.textContent||''));
 assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/41 rolagens/);
+await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).evaluate(button=>{for(let index=0;index<140;index+=1)button.click();});
+await page.waitForFunction(()=>/100 rolagens/.test(document.querySelector('.local-dice-history > summary')?.textContent||''));
+assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/100 rolagens/);
 await check('global-dice-from-guide');
 for(const viewport of [{width:280,height:653},{width:320,height:480},{width:653,height:280},{width:844,height:390}]){
  await page.setViewportSize(viewport);await check(`dice-${viewport.width}x${viewport.height}`);
@@ -86,7 +219,7 @@ for(const width of [320,390,768,1280,1440]){await page.setViewportSize({width,he
 await page.setViewportSize({width:1280,height:1000});await page.screenshot({path:'/tmp/myowndex-clean-room.png',fullPage:true});
 await page.setViewportSize({width:1280,height:900});
 await page.evaluate(()=>document.documentElement.style.zoom='2');for(const view of ['Abrir a Pokédex','Abrir o PC do Bill','Abrir o Guia do Treinador','Abrir a Central da Aventura']){await nav(view);await check(`zoom-200-${view}`)}await page.evaluate(()=>document.documentElement.style.zoom='1');
-await page.emulateMedia({reducedMotion:'reduce',colorScheme:'dark'});await page.getByRole('radio',{name:'Escuro',exact:true}).click();assert.equal(await page.locator('html').getAttribute('data-theme'),'night');assert.equal(await page.locator('.appearance-options [role=radio]').count(),2);await nav('Abrir o Guia do Treinador');const companion=page.locator('[data-companion-place="guide"] img');assert.equal(await companion.evaluate(e=>getComputedStyle(e).animationName),'none');await page.waitForFunction(()=>document.querySelector('[data-companion-place="guide"] img')?.currentSrc.endsWith('/164.png'));await check('dark-reduced-motion');
+await page.emulateMedia({reducedMotion:'reduce',colorScheme:'dark'});await page.getByRole('radio',{name:'Escuro',exact:true}).click();assert.equal(await page.locator('html').getAttribute('data-theme'),'night');assert.equal(await page.locator('.appearance-options [role=radio]').count(),2);await nav('Abrir o Guia do Treinador');const companion=page.locator('[data-companion-place="guide"] img');assert.equal(await companion.evaluate(e=>getComputedStyle(e).animationName),'none');await page.waitForFunction(()=>{const image=document.querySelector('[data-companion-place="guide"] img');return image?.currentSrc.endsWith('/164.png')&&image.complete&&image.naturalWidth>0;});assert.match(await companion.evaluate(element=>element.currentSrc),/\/164\.png$/,'Reduced motion renders the static master');await check('dark-reduced-motion');
 await nav('Abrir o PC do Bill');
 await page.waitForTimeout(1000);
 await page.evaluate(()=>{

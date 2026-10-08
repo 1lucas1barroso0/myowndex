@@ -5,7 +5,7 @@ import fixedFormCatalogue from "./data/forms.json";
 import packageJson from "../package.json";
 import speciesMetadata from "./data/generator-species.json";
 import { integerInRange } from "./core/math.js";
-import { dedupeByNameLatest, extractId, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
+import { dedupeByNameLatest, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { compactSpecies, createTeam, hydrateTeam, loadTeamsDurable, mergeHydratedTeams, normalizePokemon, saveTeamsDurable, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
 import { randomChance } from "./core/random.js";
@@ -18,20 +18,19 @@ import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
 import PokemonCompanion from "./components/Shared/PokemonCompanion.jsx";
 import GameIcon from "./components/Shared/GameIcon.jsx";
 import DexFilters from "./components/Pokedex/DexFilters.jsx";
-import { dexEntryFavoriteKey, dexEntryGeneration, dexEntryNumber, dexEntryRegion, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
-import { getDexVariantMeta } from "./core/dexVariants.js";
+import { dexEntryFavoriteKeys, dexEntryGeneration, dexEntryNumber, dexEntryRegion, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
+import { buildDexCatalogue } from "./core/dexCatalogue.js";
 import useAccountSync from "./components/Account/useAccountSync.js";
 import AccountButton from "./components/Account/AccountButton.jsx";
 
 const APP_VERSION = packageJson.version;
 const VIEW_LABELS = { room: "Aventura", pokedex: "Pokédex", teambuilder: "PC do Bill", guide: "Guia do Treinador" };
-const formatDexResultCount = (speciesCount, formCount) => {
-    const parts = [];
-    if (speciesCount) parts.push(`${speciesCount} ${speciesCount === 1 ? "espécie" : "espécies"}`);
-    if (formCount) parts.push(`${formCount} ${formCount === 1 ? "forma" : "formas"}`);
-    return parts.join(" · ") || "0 resultados";
+const formatDexResultCount = (entryCount, variantCount, variantMode) => {
+    const parts = [`${entryCount} ${entryCount === 1 ? "entrada" : "entradas"}`];
+    if (variantMode === "separate" && variantCount) parts.push(`${variantCount} ${variantCount === 1 ? "variante" : "variantes"}`);
+    return parts.join(" · ");
 };
-function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-rotomdex-v101.svg" alt="" /><PokemonCompanion place="pokedex" className="opening-companion" eager /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
+function OpeningScreen() { return <div className="account-opening" role="status" data-version={APP_VERSION}><img src="/icons/myowndex-rotomdex-v101.svg?v=2.0.17" alt="" /><PokemonCompanion place="pokedex" className="opening-companion" eager /><strong>MyOwnDex</strong><span>Abrindo sua jornada…</span><small>{APP_VERSION}</small></div>; }
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
 const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: OpeningScreen });
@@ -48,7 +47,8 @@ const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorit
     const region = dexEntryRegion(species);
     const formLabel = species.formIdentifier ? formatName(species.formIdentifier) : "";
     const identityName = formLabel ? `${displayName} · ${formLabel}` : displayName;
-    const variantLabel = region ? `Regional · ${formatName(region)}` : formLabel ? `Variante · ${formLabel}` : generation ? `Geração ${generation.label}` : "Nacional";
+    const generationLabel = generation ? `Geração ${generation.label}` : "Nacional";
+    const variantLabel = region ? `${formatName(region)} · ${generationLabel}` : formLabel ? `${formLabel} · ${generationLabel}` : generationLabel;
     return (
         <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={generation?.id} data-form={formLabel ? "named" : "base"}>
             <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${identityName} na Pokédex`}>
@@ -117,39 +117,7 @@ export default function App() {
     </>;
 }
 
-const attachFixedForms = catalogue => {
-    const source = Array.isArray(catalogue) ? catalogue : [];
-    const names = new Map(source.map(entry => [Number(extractId(entry.url)), entry.name]));
-    const base = source.map(entry => {
-        const speciesId = Number(extractId(entry.url));
-        const meta = speciesMetadata[speciesId] || {};
-        return {
-            ...entry,
-            speciesId,
-            pokemonId: speciesId,
-            speciesName: entry.name,
-            isPrimarySpecies: true,
-            types: meta.types || [],
-            pastTypes: meta.pastTypes || [],
-            formKey: "",
-            formId: null,
-            formIdentifier: "",
-            spriteKey: String(speciesId),
-        };
-    });
-    const variants = [...(fixedFormCatalogue.defaults || []), ...(fixedFormCatalogue.entries || [])]
-        .map(entry => ({ entry, variant: getDexVariantMeta(entry) }))
-        .filter(({ variant }) => variant.separable)
-        .map(({ entry, variant }) => ({
-            ...entry,
-            ...variant,
-            speciesName: names.get(entry.speciesId) || entry.pokemonName,
-            isPrimarySpecies: false,
-            formKey: entry.name,
-            url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
-        }));
-    return [...base, ...variants];
-};
+const attachFixedForms = catalogue => buildDexCatalogue(catalogue, fixedFormCatalogue, speciesMetadata);
 
 function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNavigation, receivedDocument }) {
     const scope = client.scope;
@@ -288,8 +256,10 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
         document.title = `${VIEW_LABELS[view]} · MyOwnDex`;
     }, [view]);
 
-    const toggleFavorite = id => {
-        const next = favorites.includes(id) ? favorites.filter(value => value !== id) : [...favorites, id];
+    const toggleFavorite = entry => {
+        const keys = dexEntryFavoriteKeys(entry);
+        const next = keys.some(key => favorites.includes(key))
+            ? favorites.filter(value => !keys.includes(value)) : [...favorites, keys[0]];
         setFavorites(next);
         if (!writeStorage("myowndex_dex_favorites_v1", next, { scope })) setNotice({ tone: "amber", text: "Seus favoritos continuam nesta sessão. A cópia persistente será tentada novamente." });
     };
@@ -450,8 +420,8 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
         minNumber: dexMinNumber,
         maxNumber: dexMaxNumber,
     }), [species, deferredSearchTerm, favorites, onlyFavorites, dexOrder, dexGeneration, dexTypes, dexRegions, dexVariantMode, dexMinNumber, dexMaxNumber]);
-    const filteredSpeciesCount = useMemo(() => filteredSpecies.filter(entry => entry.isPrimarySpecies !== false).length, [filteredSpecies]);
-    const filteredFormCount = filteredSpecies.length - filteredSpeciesCount;
+    const filteredEntryCount = useMemo(() => new Set(filteredSpecies.map(dexEntryNumber)).size, [filteredSpecies]);
+    const filteredVariantCount = useMemo(() => filteredSpecies.filter(entry => entry.isPrimarySpecies === false).length, [filteredSpecies]);
 
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 
@@ -572,7 +542,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     <div className="app-header-row">
                         <div className="app-header-primary">
                             <div className="app-brand-cluster">
-                                <img className="app-brand-icon" src="/icons/myowndex-rotomdex-v101.svg" alt="" />
+                                <img className="app-brand-icon" src="/icons/myowndex-rotomdex-v101.svg?v=2.0.17" alt="" />
                                 <div className="app-brand">
                                     <h1>MyOwnDex</h1>
                                 </div>
@@ -622,7 +592,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 <header className="dex-heading">
                                     <div className="dex-title"><h2>Pokédex Nacional</h2></div>
                                     <PokemonCompanion place="pokedex" className="dex-companion" eager />
-                                    <span className="dex-count" role="status">{formatDexResultCount(filteredSpeciesCount, filteredFormCount)}</span>
+                                    <span className="dex-count" role="status">{formatDexResultCount(filteredEntryCount, filteredVariantCount, dexVariantMode)}</span>
                                 </header>
                                 <div className="dex-toolbar">
                                     <label className="dex-search"><span className="dex-search-label">Buscar por nome, número ou intervalo</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} inputMode="search" /></label>
@@ -656,8 +626,8 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 {visible.length ? (
                                     <div className="dex-grid">
                                         {visible.map(entry => {
-                                            const favoriteKey = dexEntryFavoriteKey(entry);
-                                            return <PokemonCard key={entry.formKey || entry.name} species={entry} onSelect={() => setSelectedEntry(entry)} favorite={favorites.includes(favoriteKey)} onFavorite={() => toggleFavorite(favoriteKey)} />;
+                                            const favorite = dexEntryFavoriteKeys(entry).some(key => favorites.includes(key));
+                                            return <PokemonCard key={entry.formKey || entry.name} species={entry} onSelect={() => setSelectedEntry(entry)} favorite={favorite} onFavorite={() => toggleFavorite(entry)} />;
                                         })}
                                     </div>
                                 ) : (

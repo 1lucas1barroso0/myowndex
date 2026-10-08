@@ -205,3 +205,21 @@ test("a failed exhausted-pool refill fails closed repeatedly and recovers with f
   assert.throws(()=>source(),SecureRandomError);assert.throws(()=>source(),SecureRandomError);
   assert.equal(source(),31);assert.equal(fills,4);
 });
+
+
+test("secure d6 transitions show no stateful preference across 180,000 consecutive rolls", () => {
+  const samples=180_000;
+  const transitions=Array.from({length:6},()=>Array(6).fill(0));
+  let previous=rollD6();
+  const faceCounts=Array(7).fill(0);faceCounts[previous]+=1;
+  for(let index=1;index<samples;index+=1){
+    const current=rollD6();faceCounts[current]+=1;transitions[previous-1][current-1]+=1;previous=current;
+  }
+  for(let face=1;face<=6;face+=1)withinStandardDeviations(faceCounts[face],samples,1/6,8);
+  const transitionSamples=samples-1;
+  for(let from=0;from<6;from++)for(let to=0;to<6;to++){
+    withinStandardDeviations(transitions[from][to],transitionSamples,1/36,9);
+  }
+  const repeats=transitions.reduce((sum,row,index)=>sum+row[index],0);
+  withinStandardDeviations(repeats,transitionSamples,1/6,8);
+});

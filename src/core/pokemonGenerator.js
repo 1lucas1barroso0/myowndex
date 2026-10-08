@@ -5,6 +5,7 @@ import { compactPokemon, normalizePokemon, STAT_KEYS } from './team.js';
 import { getMoveReferenceForMode, getPokemonAtGeneration, getPokemonReferenceForMode, getReferenceGameGeneration } from './referenceGames.js';
 import { loadCatalogText } from './catalogText.js';
 import { dexEntryRegion } from './dexCollection.js';
+import { getPokemonGenderRate } from './pokemonGender.js';
 
 export const GENERATOR_REQUEST_CONCURRENCY = 3;
 export const GENERATOR_DRAFT_KEY = 'myowndex_generator_v1';
@@ -141,10 +142,11 @@ export const buildGeneratedPokemon = ({ pokemon, species, learnset, moveData = [
     const abilities = validAbilities.filter(entry => normalized.hiddenAbility || !entry.is_hidden);
     const selectedAbilities = abilities.length ? abilities : validAbilities;
     const nature = normalized.nature === 'random' ? Object.keys(NATURES)[randomInt(Object.keys(NATURES).length, random)] : normalized.nature;
+    const genderRate = getPokemonGenderRate(pokemon, species.gender_rate);
     const partner = normalizePokemon({
-        species: { ...pokemon, gender_rate: species.gender_rate },
-        genderRate: species.gender_rate,
-        gender: getGeneratorGender(species.gender_rate, random),
+        species: { ...pokemon, gender_rate: genderRate },
+        genderRate,
+        gender: getGeneratorGender(genderRate, random),
         level: normalized.level,
         nature,
         ability: selectedAbilities.length ? selectedAbilities[randomInt(selectedAbilities.length, random)].ability.name : '',

@@ -8,6 +8,7 @@ import {
     STAT_MAP,
 } from "./mechanics.js";
 import { RPG_STATUS_LABELS } from "./copy.js";
+import { getPokemonSpriteSources } from "./pokemonSpriteSources.js";
 import {
     applyDirectionalIntegerModifier,
     clampFinite,
@@ -460,12 +461,9 @@ export const calculatePokemonStats = pokemon => {
 
 export const getPokemonSprite = pokemon => {
     const sprites = pokemon?.species?.sprites;
-    const animated = sprites?.versions?.["generation-v"]?.["black-white"]?.animated?.front_default;
-    const pixel = sprites?.front_default;
-    const id = integerInRange(pokemon?.species?.id, 0, 99999, 0);
-    return animated || pixel || (id
-        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`
-        : "");
+    const pixel = pokemon?.shiny ? sprites?.front_shiny || sprites?.front_default : sprites?.front_default;
+    const choices = getPokemonSpriteSources({ src: pixel, pokemonId: pokemon?.species?.id, shiny: Boolean(pokemon?.shiny) });
+    return choices.animated[0] || choices.static[0] || "";
 };
 
 const getBattlefieldPosition = (index = 0, side = "ally") => {
@@ -497,7 +495,7 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
         pokemonId: pokemon?.id,
         teamId: team?.id,
         teamShareId: team?.shareId,
-        name: pokemon?.nickname || formatName(pokemon?.species?.species?.name || pokemon?.species?.name) || "Pokémon",
+        name: pokemon?.nickname || formatName(pokemon?.formKey || pokemon?.species?.name || pokemon?.species?.species?.name) || "Pokémon",
         speciesName: pokemon?.species?.species?.name || pokemon?.species?.name || "",
         speciesId: pokemon?.species?.id,
         sprite: getPokemonSprite(pokemon),

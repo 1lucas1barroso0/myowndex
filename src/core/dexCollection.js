@@ -1,4 +1,5 @@
 import { extractId } from "./mechanics.js";
+import { getDexVariantRegion } from "./dexVariants.js";
 
 export const VIEW_LINKS = Object.freeze({ room: "aventura", pokedex: "pokedex", teambuilder: "pc", guide: "guia" });
 // National numbers describe debut generations, not a regional Pokédex membership.
@@ -23,10 +24,12 @@ export const DEX_REGIONS = Object.freeze([
 export const debutGeneration = id => DEX_GENERATIONS.slice(1).find(gen => Number(id) >= gen.start && Number(id) <= gen.end);
 export const dexEntryNumber = entry => Number(entry?.speciesId || extractId(entry?.url));
 export const dexEntryFavoriteKey = entry => entry?.formKey && !entry?.isPrimarySpecies ? `form:${entry.formKey}` : String(dexEntryNumber(entry));
-export const dexEntryRegion = entry => {
-    const value = normalizeDexSearch([entry?.formKey, entry?.formIdentifier, entry?.pokemonName, entry?.name].filter(Boolean).join(" "));
-    return DEX_REGIONS.find(region => value.includes(region.id))?.id || "";
-};
+export const dexEntryFavoriteKeys = entry => [dexEntryFavoriteKey(entry),
+    ...(entry?.isPrimarySpecies && entry?.formKey ? [`form:${entry.formKey}`] : [])];
+export const dexEntryRegion = entry => getDexVariantRegion({
+    name: entry?.formKey || entry?.pokemonName || entry?.name,
+})?.key || "";
+const isVariantEntry = entry => entry?.isPrimarySpecies === false || (Boolean(entry?.formKey) && entry?.isPrimarySpecies !== true);
 export const dexEntryTypes = entry => (Array.isArray(entry?.types) ? entry.types : [])
     .map(type => typeof type === "string" ? type : type?.type?.name)
     .filter(Boolean);
@@ -93,20 +96,16 @@ export function selectDexSpecies(species, {
     const range = DEX_GENERATIONS.find(gen => gen.id === String(generation)) || DEX_GENERATIONS[0];
     const selectedGeneration = range.id;
     const selectedOrder = ["number", "reverse", "name"].includes(order) ? order : "number";
+    const selectedVariantMode = variantMode === "separate" ? "separate" : "grouped";
     const minimum = Number.isInteger(Number(minNumber)) && Number(minNumber) >= 1 ? Math.min(1025, Number(minNumber)) : 1;
     const maximum = Number.isInteger(Number(maxNumber)) && Number(maxNumber) >= 1 ? Math.min(1025, Number(maxNumber)) : 1025;
     const lower = Math.min(minimum, maximum);
     const upper = Math.max(minimum, maximum);
-    const textQuery = Boolean(rawQuery && numericQuery === null && !numericRange);
-
-    return (Array.isArray(species) ? species : []).filter(entry => {
+    const matching = (Array.isArray(species) ? species : []).filter(entry => {
         const id = dexEntryNumber(entry);
         if (!Number.isInteger(id) || id < lower || id > upper) return false;
         const entryGeneration = dexEntryGeneration(entry);
-        const inGeneration = selectedGeneration === "all"
-            || entryGeneration?.id === selectedGeneration
-            || (!entry?.generation && id >= range.start && id <= range.end);
-        if (!inGeneration) return false;
+        if (selectedGeneration !== "all" && entryGeneration?.id !== selectedGeneration) return false;
 
         const searchable = [entry?.name, entry?.speciesName, entry?.pokemonName, entry?.formKey, entry?.formIdentifier]
             .filter(Boolean).map(value => normalizeDexSearch(value));
@@ -116,8 +115,7 @@ export function selectDexSpecies(species, {
                     : searchable.some(value => value.includes(normalized)));
         if (!matchesQuery) return false;
 
-        const favoriteKey = dexEntryFavoriteKey(entry);
-        if (onlyFavorites && !selected.has(favoriteKey)) return false;
+        if (onlyFavorites && !dexEntryFavoriteKeys(entry).some(key => selected.has(key))) return false;
 
         const entryRegion = dexEntryRegion(entry);
         if (selectedRegions.size && !selectedRegions.has(entryRegion)) return false;
@@ -125,10 +123,19 @@ export function selectDexSpecies(species, {
         const entryTypes = dexEntryTypes(entry);
         if (selectedTypes.length && !selectedTypes.every(type => entryTypes.includes(type))) return false;
 
-        if (entry?.isPrimarySpecies === false && variantMode !== "separate" && !selectedRegions.size
-            && !(textQuery && matchesQuery) && !(onlyFavorites && selected.has(favoriteKey))) return false;
         return true;
-    }).sort((a, b) => {
+    });
+    // Compact display happens after all filters. A later regional or distinct
+    // identity can represent the National entry when the original does not
+    // match. If both match, prefer the original without clearing any filter.
+    const displayed = selectedVariantMode === "separate" ? matching
+        : [...matching.reduce((byNumber, entry) => {
+            const id = dexEntryNumber(entry);
+            const current = byNumber.get(id);
+            if (!current || (isVariantEntry(current) && !isVariantEntry(entry))) byNumber.set(id, entry);
+            return byNumber;
+        }, new Map()).values()];
+    return displayed.sort((a, b) => {
         if (selectedOrder === "name") {
             const left = String(a.speciesName || a.name);
             const right = String(b.speciesName || b.name);
@@ -136,8 +143,8 @@ export function selectDexSpecies(species, {
             if (difference) return difference;
         }
         const numberDifference = dexEntryNumber(a) - dexEntryNumber(b);
-        if (numberDifference) return numberDifference * (order === "reverse" ? -1 : 1);
-        const primaryDifference = Number(a?.isPrimarySpecies === false) - Number(b?.isPrimarySpecies === false);
+        if (numberDifference) return numberDifference * (selectedOrder === "reverse" ? -1 : 1);
+        const primaryDifference = Number(isVariantEntry(a)) - Number(isVariantEntry(b));
         if (primaryDifference) return primaryDifference;
         return String(a.formKey || a.name).localeCompare(String(b.formKey || b.name), "pt-BR");
     });

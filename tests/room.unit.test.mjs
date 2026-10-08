@@ -10,6 +10,8 @@ import {
   changeRoomPhase,
   startNewRoomBattle,
   createRoomSnapshot,
+  createTokenFromPokemon,
+  getPokemonSprite,
   mergeRoomConflictSnapshot,
   normalizeRoomSnapshot,
   ROOM_PHASES,
@@ -56,6 +58,20 @@ const team = normalizeTeam({
 test("the experience is named RPG without the old compound label", () => {
   assert.equal(EXPERIENCE_MODES.rpg.label, "RPG");
   assert.notEqual(EXPERIENCE_MODES.rpg.label, "RPG Anime");
+});
+
+test("field identity preserves regional names, named appearances and Shiny animation", () => {
+  const prefix = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/";
+  const regular = { ...team.pokemon[0], nickname: "", formKey: "shellos-east", species: { ...team.pokemon[0].species, id: 422, name: "shellos", species: { name: "shellos" }, sprites: { front_default: `${prefix}422-east.png`, versions: { "generation-v": { "black-white": { animated: { front_default: `${prefix}versions/generation-v/black-white/animated/422.gif` } } } } } } };
+  assert.match(getPokemonSprite(regular), /\/422-east\.gif$/);
+  assert.equal(createTokenFromPokemon(regular, team).name, "Shellos East");
+  assert.equal(createTokenFromPokemon(regular, team).speciesName, "shellos");
+  const shiny = { ...regular, shiny: true, species: { ...regular.species, sprites: { ...regular.species.sprites, front_shiny: `${prefix}shiny/422-east.png` } } };
+  assert.match(getPokemonSprite(shiny), /\/animated\/shiny\/422-east\.gif$/);
+  const regional = { ...regular, formKey: "meowth-galar", species: { ...regular.species, id: 10161, name: "meowth-galar", species: { name: "meowth" }, sprites: { front_default: `${prefix}10161.png` } } };
+  const token = createTokenFromPokemon(regional, team);
+  assert.equal(token.name, "Galarian Meowth");
+  assert.equal(token.speciesName, "meowth");
 });
 
 test("RPG division uses scale by 10 with HP-only half-up ties", () => {

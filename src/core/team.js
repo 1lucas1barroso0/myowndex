@@ -5,6 +5,7 @@ import { getStorageScope, readDurableStorage, readStorage, removeDurableStorage,
 import { requestPersistentStorage } from "./storageBudget.js";
 import { getPokemonReferenceForMode, getStoredCurrentPokemonReference } from "./referenceGames.js";
 import { normalizeGrowthData } from "./experience.js";
+import { getFixedFormGender, getPokemonGenderRate } from "./pokemonGender.js";
 
 export const TEAM_STORAGE_KEY = "myowndex_rotom_v4";
 export const LEGACY_TEAM_STORAGE_KEY = "myowndex_rotom_v3";
@@ -127,9 +128,11 @@ const speciesShell = input => {
 
 export const normalizePokemon = input => {
     const source = input && typeof input === "object" ? input : {};
-    const species = speciesShell(source);
-    const rawRate = finiteNumberOrNull(source.genderRate ?? species.gender_rate);
-    const genderRate = rawRate == null ? -1 : integerInRange(rawRate, -1, 8, -1);
+    const savedSpecies = speciesShell(source);
+    const genderRate = getPokemonGenderRate({ ...source, species: savedSpecies });
+    const species = getFixedFormGender({ ...source, species: savedSpecies })
+        ? { ...savedSpecies, gender_rate: genderRate }
+        : savedSpecies;
     const customStatEntries = source.customStats && typeof source.customStats === "object"
         ? STAT_KEYS
             .filter(stat => Object.prototype.hasOwnProperty.call(source.customStats, stat))
@@ -391,15 +394,15 @@ const hydratePokemonData = async (pokemon, { signal, experienceMode = "rpg", ver
             hydratedSpecies = { ...data, sprites: { ...(data.sprites || {}), ...formSprites } };
         }
     }
-    const genderRate = finiteNumberOrNull(speciesData?.gender_rate);
+    const genderRate = getPokemonGenderRate({ ...stored, species: hydratedSpecies }, finiteNumberOrNull(speciesData?.gender_rate) ?? stored.genderRate);
     const enriched = getPokemonReferenceForMode({
         ...hydratedSpecies,
-        gender_rate: genderRate == null ? stored.genderRate : integerInRange(genderRate, -1, 8, stored.genderRate)
+        gender_rate: genderRate
     }, versionGroup, { experienceMode });
     return normalizePokemon({
         ...stored,
         species: enriched,
-        genderRate: genderRate == null ? stored.genderRate : integerInRange(genderRate, -1, 8, stored.genderRate)
+        genderRate
     });
 };
 
@@ -451,7 +454,12 @@ export const mergeHydratedTeams = (currentTeams, hydratedTeams) => {
                 };
                 // Apply a deferred scale migration to the current edits, never
                 // copy the RPG state captured by an older catalogue request.
-                return { ...enriched, rpg: normalizePokemon(enriched).rpg };
+                const normalized = normalizePokemon(enriched);
+                return {
+                    ...enriched,
+                    ...(getFixedFormGender(enriched) ? { species: normalized.species, gender: normalized.gender, genderRate: normalized.genderRate } : {}),
+                    rpg: normalized.rpg
+                };
             })
         };
     });

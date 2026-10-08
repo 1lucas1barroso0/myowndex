@@ -8,5 +8,5 @@ export const getPokemonSpriteScale = (pokemonId, height) => {
     const supplied = Number(height);
     const reference = Number.isFinite(supplied) && supplied > 0 ? supplied : POKEMON_HEIGHTS[Number(pokemonId)];
     if (!reference || !Number.isFinite(reference)) return 1;
-    return 0.5 + 0.5 * (reference / (reference + 12));
+    return 0.72 + 0.28 * (reference / (reference + 12));
 };

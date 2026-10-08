@@ -1,0 +1,17 @@
+/* Pokémon move in their own sprite frames. The layout gives them room without
+   inventing a second idle motion or changing their place on the field. */
+html .pokemon-sized-sprite[data-pokemon-motion] {
+  animation: none !important;
+  translate: none !important;
+  object-position: center bottom;
+  image-rendering: pixelated;
+}
+
+/* Small turn portraits still need to read as Pokémon, rather than tiny marks.
+   Their physical scale stays bounded and comes from the same Pokédex heights. */
+html .app-root.game-edition.handheld-edition :is(.turn-order-list,.round-choice-identity) :is(.pokemon-sized-sprite,.pokemon-sprite-fallback) {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: 0 0 3.5rem;
+  object-fit: contain;
+}

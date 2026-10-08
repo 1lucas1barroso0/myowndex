@@ -8,6 +8,8 @@ import { applyPokemonExperienceAward } from '../../core/experience.js';
 import { finiteNumberOrNull, integerInRange } from '../../core/math.js';
 import { randomChance, randomChoice, randomInt } from '../../core/random.js';
 import { getPokemonConsumedItem, replacePokemonHeldItem, RPG_STATUSES } from '../../core/team.js';
+import { getPokemonGenderRate } from '../../core/pokemonGender.js';
+import { getSamePokemonForms } from '../../core/pokemonFormChoices.js';
 import { getMoveReferenceForMode, resolveLearnsetGame } from '../../core/referenceGames.js';
 import PokemonSprite from '../Shared/PokemonSprite.jsx';
 import RoomSelect from '../Shared/RoomSelect.jsx';
@@ -127,7 +129,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             const sp = await fetchCached(pk.species.species.url);
             if(!sp || !mounted) return;
             setSpeciesProfile(sp);
-            const defVar = sp.varieties?.find(v => v.is_default);
+            const defVar = getSamePokemonForms(sp.varieties, { name: pk.species?.name, speciesId: sp.id }).find(v => v.is_default);
             if(defVar && defVar.pokemon?.name !== pk.species.name) {
                 const bData = await fetchCached(defVar.pokemon.url);
                 if(mounted) setBaseForm(bData);
@@ -197,7 +199,10 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         () => new Set(validAbs.map(ability => typeof ability === "string" ? ability : ability?.name).filter(Boolean)),
         [validAbs],
     );
-    const forms = useMemo(() => speciesProfile?.varieties || [], [speciesProfile]);
+    const forms = useMemo(() => getSamePokemonForms(speciesProfile?.varieties, {
+        name: pk.species?.name,
+        speciesId: speciesProfile?.id,
+    }), [speciesProfile, pk.species?.name]);
 
     useEffect(() => {
         const defaultAbility = pk.species?.abilities?.[0]?.ability?.name || "";
@@ -215,6 +220,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const changeForm = async formUrl => {
         if (!formUrl || switchingForm) return;
+        const selected = forms.find(entry => entry.pokemon?.url === formUrl);
+        if (!selected) return;
+        const originalPartner = partnerRef.current;
         const current = forms.find(entry => entry.pokemon?.name === pk.species?.name);
         if (current?.pokemon?.url === formUrl) return;
         setSwitchingForm(true);
@@ -222,17 +230,17 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         try {
             const nextSpecies = await fetchCached(formUrl);
             if (!mountedRef.current) return;
-            if (!nextSpecies) throw new Error("Esta forma ainda não está disponível.");
+            if (!nextSpecies || nextSpecies.name !== selected.pokemon.name) throw new Error("Esta forma ainda não está disponível.");
             const profile = nextSpecies.species?.url
                 ? await fetchCached(nextSpecies.species.url)
                 : speciesProfile;
             if (!mountedRef.current) return;
             const currentPartner = partnerRef.current;
+            if (currentPartner.id !== originalPartner.id || currentPartner.species?.name !== originalPartner.species?.name
+                || currentPartner.formKey !== originalPartner.formKey) return;
             const fallbackRate = integerInRange(currentPartner.genderRate ?? currentPartner.species?.gender_rate, -1, 8, -1);
             const profileRate = finiteNumberOrNull(profile?.gender_rate);
-            const nextRate = profileRate == null
-                ? fallbackRate
-                : integerInRange(profileRate, -1, 8, fallbackRate);
+            const nextRate = getPokemonGenderRate(nextSpecies, profileRate ?? fallbackRate);
             const oldPrimaryType = currentPartner.species?.types?.[0]?.type?.name || "";
             const nextPrimaryType = nextSpecies.types?.[0]?.type?.name || "";
             const forcedGender = nextRate === -1 ? "N" : nextRate === 0 ? "M" : nextRate === 8 ? "F" : currentPartner.gender;
@@ -268,19 +276,19 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         updatePk({ ...pk, [cat]: { ...(pk[cat] || {}), [stat]: v } });
     };
 
-    const currentGenderRate = integerInRange(pk.genderRate ?? pk.species?.gender_rate, -1, 8, -1);
+    const currentGenderRate = getPokemonGenderRate(pk);
     const canUseMale = currentGenderRate !== -1 && currentGenderRate !== 8;
     const canUseFemale = currentGenderRate !== -1 && currentGenderRate !== 0;
     const canUseNeutral = currentGenderRate === -1;
 
     useEffect(() => {
         const forcedGender = currentGenderRate === -1 ? "N" : currentGenderRate === 0 ? "M" : currentGenderRate === 8 ? "F" : null;
-        if (forcedGender && pk.gender !== forcedGender) {
+        if (forcedGender && (pk.gender !== forcedGender || pk.genderRate !== currentGenderRate)) {
             updatePk({ ...pk, gender: forcedGender, genderRate: currentGenderRate });
         }
     // Only a ratio or selected-gender change can require normalization.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentGenderRate, pk.gender]);
+    }, [currentGenderRate, pk.gender, pk.genderRate]);
 
     const randomize = (t) => {
         dismissKeyboard();
@@ -450,7 +458,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             { value: "N", label: "Sem gênero", symbol: "⚲", enabled: canUseNeutral },
                         ].filter(choice => choice.enabled).map(choice => <button key={choice.value} type="button" aria-pressed={pk.gender === choice.value} onClick={() => { dismissKeyboard(); updatePk({ ...pk, gender: choice.value, genderRate: currentGenderRate, genderLocked: true }); }}>{choice.symbol} {choice.label}</button>)}
                         </div>
-                        {currentGenderRate !== -1 && <div className="editor-gender-tools">
+                        {canUseMale && canUseFemale && <div className="editor-gender-tools">
                             <button type="button" onClick={() => updatePk({ ...pk, genderLocked: !pk.genderLocked })} aria-pressed={Boolean(pk.genderLocked)} aria-label={pk.genderLocked ? "Permitir novo sorteio de gênero" : "Manter o gênero escolhido"} title={pk.genderLocked ? "Permitir novo sorteio" : "Manter esta escolha"}><span aria-hidden="true">{pk.genderLocked ? "🔒" : "🔓"}</span> Manter escolha</button>
                             <button type="button" disabled={pk.genderLocked} onClick={() => randomize("gender")} aria-label="Sortear gênero pela proporção da espécie" title="Sortear gênero"><span aria-hidden="true">⚄</span> Sortear</button>
                         </div>}

@@ -77,3 +77,9 @@ jobs:
       - name: Exibir log em caso de falha
         if: failure()
         run: cat /tmp/myowndex-browser.log || true
+      - name: Encerrar servidor de QA
+        if: always()
+        run: |
+          if [ -f /tmp/myowndex-browser.pid ]; then
+            kill "$(cat /tmp/myowndex-browser.pid)" 2>/dev/null || true
+          fi

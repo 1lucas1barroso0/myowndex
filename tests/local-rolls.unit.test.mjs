@@ -327,3 +327,24 @@ test("individual durable removal preserves another concurrent receipt, captured 
   assert.equal(await deleteLocalRollDurable("__proto__"),false);
   assert.equal(await deleteLocalRollDurable(""),false);
 });
+
+
+test("production entropy survives twenty-five thousand mixed local receipts without invalid values or id collisions", () => {
+  const sidesList=[4,6,8,10,12,20,100];
+  const ids=new Set();
+  for(let index=0;index<25_000;index+=1){
+    const sides=sidesList[index%sidesList.length];
+    const quantity=(index%20)+1;
+    const modifier=(index%101)-50;
+    const record=performLocalRoll(
+      {kind:"free",quantity,sides,modifier,label:"secure stress"},
+      {createdAt:options.createdAt+index}
+    );
+    assert.equal(record.values.length,quantity);
+    assert.ok(record.values.every(value=>Number.isInteger(value)&&value>=1&&value<=sides));
+    assert.ok(record.total>=quantity+modifier&&record.total<=quantity*sides+modifier);
+    assert.ok(!ids.has(record.id),"secure receipt ids must not collide during stress");
+    ids.add(record.id);
+  }
+  assert.equal(ids.size,25_000);
+});

@@ -6,7 +6,7 @@ import speciesMetadata from '../../data/generator-species.json';
 import { formatName, formatType, NATURES, STAT_MAP, TYPE_COLORS, TYPE_TEXT_COLORS, TYPES, VERSION_GROUPS, VERSION_LABELS } from '../../core/mechanics.js';
 import { generatePokemon, GENERATOR_DRAFT_KEY, getGeneratedHp, normalizeGeneratorOptions } from '../../core/pokemonGenerator.js';
 import { DEX_REGIONS } from '../../core/dexCollection.js';
-import { getDexVariantMeta } from '../../core/dexVariants.js';
+import { buildDexCatalogue, findDexCatalogueChoice } from '../../core/dexCatalogue.js';
 import { getStorageScope, readDurableStorage, readStorage, writeDurableStorage } from '../../core/storage.js';
 import { compactPokemon, createTeam, normalizePokemon } from '../../core/team.js';
 import { encodePokemonBundle, encodeTeam } from '../../core/teamShare.js';
@@ -34,43 +34,7 @@ const downloadText = (text, filename) => {
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
-const generatorSpeciesNames = new Map(speciesCatalogue.map(entry => [
-    Number(entry.url.split('/').filter(Boolean).pop()), entry.name,
-]));
-const generatorCatalogue = [
-    ...speciesCatalogue.map(entry => {
-        const speciesId = Number(entry.url.split('/').filter(Boolean).pop());
-        const meta = speciesMetadata[String(speciesId)] || {};
-        return {
-            ...entry,
-            speciesId,
-            pokemonId: speciesId,
-            pokemonName: entry.name,
-            speciesName: entry.name,
-            isPrimarySpecies: true,
-            formKey: '',
-            formId: null,
-            formIdentifier: '',
-            spriteKey: String(speciesId),
-            generation: meta.generation,
-            types: meta.types || [],
-            pastTypes: meta.pastTypes,
-            choiceKey: `species:${speciesId}`,
-        };
-    }),
-    ...[...(fixedFormCatalogue.defaults || []), ...(fixedFormCatalogue.entries || [])]
-        .map(entry => ({ entry, variant: getDexVariantMeta(entry) }))
-        .filter(({ variant }) => variant.separable)
-        .map(({ entry, variant }) => ({
-            ...entry,
-            ...variant,
-            speciesName: generatorSpeciesNames.get(entry.speciesId) || entry.pokemonName,
-            isPrimarySpecies: false,
-            formKey: entry.name,
-            choiceKey: `form:${entry.name}`,
-            url: `https://pokeapi.co/api/v2/pokemon-species/${entry.speciesId}/`,
-        })),
-];
+const generatorCatalogue = buildDexCatalogue(speciesCatalogue, fixedFormCatalogue, speciesMetadata);
 
 const generatorChoiceName = entry => entry.formIdentifier
     ? `${formatName(entry.speciesName || entry.name)} · ${formatName(entry.formIdentifier)}`
@@ -122,7 +86,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             setOptions(current => ({ ...current, speciesId: 0, formKey: '' }));
             return;
         }
-        const selected = generatorCatalogue.find(entry => entry.choiceKey === value);
+        const selected = findDexCatalogueChoice(generatorCatalogue, value);
         if (!selected) return;
         setOptions(current => ({
             ...current,
@@ -135,7 +99,8 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         }));
     };
     const selectedPokemonChoice = options.speciesId
-        ? (options.formKey ? `form:${options.formKey}` : `species:${options.speciesId}`)
+        ? generatorCatalogue.find(entry => entry.speciesId === options.speciesId
+            && (options.formKey ? entry.formKey === options.formKey : entry.isPrimarySpecies))?.choiceKey || `species:${options.speciesId}`
         : 'random';
 
     useEffect(() => { closeCallback.current = onClose; }, [onClose]);
@@ -399,7 +364,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             </header>
             {!draftReady ? <p role="status" className="generator-notice">Abrindo seu encontro…</p> : <div className="generator-content">
                 <form className={`generator-options${results.length ? '' : ' generator-empty'}`} onSubmit={requestGeneration} aria-busy={busy}>
-                    <p className="generator-intro">Monte o sorteio do seu jeito. Cada entrada da Pokédex tem a mesma chance de ser escolhida; se ela tiver formas possíveis, o MyOwnDex sorteia a forma só depois.</p>
+                    <details className="generator-customize"><summary>Como funciona o sorteio</summary><p className="generator-intro">Cada entrada da Pokédex tem a mesma chance de ser escolhida; se ela tiver formas possíveis, o MyOwnDex sorteia a forma só depois. Você escolhe quem pode aparecer nos filtros.</p></details>
 
                     <section className="generator-setting-group" aria-labelledby="generator-encounter-title">
                         <div className="generator-setting-heading">

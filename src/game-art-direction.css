@@ -270,7 +270,7 @@ html .app-root.game-edition.handheld-edition .room-local-entry{
 html .app-root.game-edition.handheld-edition .room-local-entry b{
   border-radius:.6rem !important;
   background:var(--joy-paper) !important;
-  color:var(--joy-teal) !important;
+  color:var(--journey-teal) !important;
 }
 
 /* ---------- Pokédex: collection pages with lively sprites ---------- */
@@ -855,7 +855,7 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-compan
   margin:0 -.05rem 0 0;
 }
 
-/* Pokédex cards: no grey stage, no ruler line, no physical-height shrinking. */
+/* Transparent cards keep the official size order within a readable game scale. */
 html .app-root.game-edition.handheld-edition .dex-grid{
   gap:.85rem !important;
 }
@@ -878,6 +878,8 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
   position:relative !important;
   display:grid !important;
   place-items:center !important;
+  grid-template-rows:minmax(0,1fr);
+  grid-template-columns:minmax(0,1fr);
   width:100% !important;
   height:8.3rem !important;
   margin:.35rem 0 .45rem !important;
@@ -894,7 +896,8 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
   display:none !important;
 }
 html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
-  --pokemon-scale:1 !important;
+  min-width:0;
+  min-height:0;
   width:min(8rem,86%) !important;
   height:min(8rem,86%) !important;
   max-width:100% !important;
@@ -902,22 +905,15 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon
   object-fit:contain !important;
   object-position:center bottom !important;
   transform:none !important;
-  transform-origin:center !important;
+  transform-origin:center bottom !important;
   background:transparent !important;
   filter:drop-shadow(0 5px 1px #17343c24) !important;
 }
 html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-sprite{
-  --pokemon-scale:1 !important;
   transform:none !important;
   object-fit:contain !important;
-  object-position:center !important;
+  object-position:center bottom !important;
   filter:drop-shadow(0 3px 1px #17343c1d);
-}
-@media (hover:hover) and (prefers-reduced-motion:no-preference){
-  html .app-root.game-edition.handheld-edition .dex-entry-main:hover .pokemon-card-sprite-frame .pokemon-sized-sprite,
-  html .app-root.game-edition.handheld-edition .dex-entry-main:focus-visible .pokemon-card-sprite-frame .pokemon-sized-sprite{
-    animation:myowndex-companion-pop .52s ease-out 1 !important;
-  }
 }
 
 /* Small screens keep the personality without sacrificing the safe area. */

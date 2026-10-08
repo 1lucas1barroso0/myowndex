@@ -1,11 +1,11 @@
-// Every surface uses the same original RotomDex artwork, including small favicons.
+// Every surface uses the same original Pokédex do MyOwnDex artwork, including small favicons.
 import { ImageResponse } from "next/og.js";
 import { createElement } from "react";
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const iconDirectory = new URL("../public/icons/", import.meta.url);
-const master = await readFile(new URL("myowndex-rotomdex-v103-master.png", iconDirectory));
+const master = await readFile(new URL("myowndex-dex-v104-master.png", iconDirectory));
 const source = `data:image/png;base64,${master.toString("base64")}`;
 const backgroundColor = "#fff7e8";
 
@@ -25,7 +25,7 @@ async function renderIcon(size, { suffix = String(size), opaque = true, maskable
     }, createElement("img", { src: source, width: artworkSize, height: artworkSize, alt: "" })),
     { width: size, height: size },
   );
-  const target = new URL(`myowndex-rotomdex-v103-${suffix}.png`, iconDirectory);
+  const target = new URL(`myowndex-dex-v104-${suffix}.png`, iconDirectory);
   const content = Buffer.from(await response.arrayBuffer());
   await writeFile(target, content);
   process.stdout.write(`${fileURLToPath(target)} (${content.byteLength} bytes)\n`);

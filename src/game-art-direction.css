@@ -862,8 +862,8 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading{
   position:relative;
   overflow:visible !important;
   min-height:7rem;
-  margin:-.2rem -.2rem .8rem;
-  padding:.85rem 1rem !important;
+  margin:0 0 .8rem;
+  padding:.85rem 1rem 1.35rem !important;
   border-radius:.85rem;
   background:linear-gradient(105deg,color-mix(in srgb,var(--joy-blue) 8%,var(--joy-paper)),var(--joy-paper) 58%,color-mix(in srgb,var(--joy-gold) 9%,var(--joy-paper)));
 }
@@ -871,18 +871,23 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading::after{
   content:"";
   position:absolute;
   left:1rem;
-  right:1rem;
-  bottom:.55rem;
-  height:3px;
+  bottom:.6rem;
+  width:3rem;
+  max-width:calc(100% - 2rem);
+  height:.3rem;
   border-radius:999px;
-  background:linear-gradient(90deg,var(--joy-blue),var(--joy-gold) 65%,transparent);
-  opacity:.75;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 0 25%,
+    transparent 25% 37.5%,
+    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 37.5% 62.5%,
+    transparent 62.5% 75%,
+    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 75% 100%);
   pointer-events:none;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
   width:8.2rem !important;
   height:8.2rem !important;
-  margin:0 -.05rem 0 0;
+  margin:0;
 }
 
 /* Transparent cards keep the official size order within a readable game scale. */

@@ -7,15 +7,15 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://myowndex.vercel.app"),
   title: "MyOwnDex",
   description,
-  manifest: "/manifest.webmanifest?v=2.0.18",
+  manifest: "/manifest.webmanifest?v=2.0.19",
   applicationName: "MyOwnDex",
   icons: {
     icon: [
-      { url: "/icons/myowndex-rotomdex-v103-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icons/myowndex-rotomdex-v103-96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icons/myowndex-dex-v104-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/myowndex-dex-v104-96.png", sizes: "96x96", type: "image/png" },
     ],
-    shortcut: "/icons/myowndex-rotomdex-v103-96.png",
-    apple: [{ url: "/icons/myowndex-rotomdex-v103-180.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/icons/myowndex-dex-v104-96.png",
+    apple: [{ url: "/icons/myowndex-dex-v104-180.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     title: "MyOwnDex",

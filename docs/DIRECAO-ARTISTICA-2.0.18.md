@@ -1,5 +1,7 @@
 # Direção artística — revisão 2.0.18
 
+Registro histórico desta revisão. A marca vigente foi substituída na [revisão 2.0.19](DIRECAO-ARTISTICA-2.0.19.md); as orientações de animação e identidade dos Pokémon continuam preservadas.
+
 ## Marca
 
 A decisão mais recente substitui integralmente a RotomDex v101. A v103 é uma nova mascote própria do MyOwnDex, com silhueta legível, rosto expressivo e cores vibrantes. Um único master gera todos os formatos. Cabeçalho, carregamento e favicon mantêm transparência; Apple, instalação e compartilhamento recebem o fundo creme quando a plataforma exige uma imagem opaca. Não usar marcas antigas como alternativa ativa.

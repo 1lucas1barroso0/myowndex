@@ -86,6 +86,7 @@ export default function CombatAssistant({
     const [defenderId, setDefenderId] = useState(snapshot.tokens.find(token => token.id !== activeId)?.id || "");
     const [moveName, setMoveName] = useState("");
     const [moveData, setMoveData] = useState(null);
+    const [moveDetails,setMoveDetails]=useState({});
     const [loadingMove, setLoadingMove] = useState(false);
     const [moveLoadError, setMoveLoadError] = useState(false);
     const [moveRefresh, setMoveRefresh] = useState(0);
@@ -148,6 +149,17 @@ export default function CombatAssistant({
     }, [moveName, moveRefresh]);
 
     const moves = useMemo(() => attacker?.moves?.filter(Boolean) || [], [attacker]);
+    const gimmickActive=attacker?.gimmickState?.active||"";
+    const moveListKey=moves.join("|");
+    useEffect(()=>{
+        let live=true;
+        if(!["dyna","gmax"].includes(gimmickActive)){setMoveDetails({});return;}
+        Promise.all(moveListKey.split("|").filter(Boolean).map(async id=>{
+            try{return [id,getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(id)}`))];}
+            catch{return [id,null];}
+        })).then(rows=>{if(live)setMoveDetails(Object.fromEntries(rows));});
+        return ()=>{live=false;};
+    },[attackerId,gimmickActive,moveListKey]);
     const zAvailable=canUseZMove(attacker,moveData,snapshot) && !getMoveSpecialProfile(moveData) && snapshot.phase==="batalha";
     const presentedMove=moveData?battleMovePresentation(attacker,moveData,{useZMove:useZMove&&zAvailable}):null;
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
@@ -338,7 +350,7 @@ export default function CombatAssistant({
                         <span>Movimento</span>
                         <RoomSelect aria-label="Movimento" value={moveName} disabled={!moves.length || Boolean(snapshot.initiative.length && attacker?.declaredMove)} onChange={event => void selectMove(event.target.value)}>
                             <option value="">{moves.length ? "Escolha um movimento" : "Sem movimentos na ficha"}</option>
-                            {moves.map(move => <option key={move} value={move}>{move===moveName && presentedMove?.kind!=="normal" && presentedMove?.label ? `${presentedMove.label} · ${formatName(move)}` : formatName(move)}</option>)}
+                            {moves.map(move => { const view=battleMovePresentation(attacker,moveDetails[move]|| (move===moveName?moveData:null));return <option key={move} value={move}>{view && view.kind!=="normal" ? `${view.label} · ${formatName(move)}` : formatName(move)}</option>; })}
                         </RoomSelect>
                     </label>
                     {(!compact || !resolutionProfile || resolutionProfile.requiresDamageContest) && <label>

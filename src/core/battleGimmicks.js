@@ -119,7 +119,7 @@ export const applyGimmick = (token,id,{formData=null}={})=>{
    const nature=NATURES[token.nature]||NATURES.hardy;
    const computed=Object.fromEntries((formData.stats||[]).filter(entry=>entry?.stat?.name&&entry.stat.name!=="hp").map(entry=>{
      const key=entry.stat.name;
-     const multiplier=nature.up===key?1.1:nature.down===key?.9:1;
+     const multiplier=nature.up===key?1.1:nature.down===key?0.9:1;
      const raw=calculateStat(entry.base_stat,token.evs?.[key],token.ivs?.[key],token.level,multiplier,false,formData.name);
      return [key,{raw,stat:convertToTTRPG(raw,false)}];
    }));

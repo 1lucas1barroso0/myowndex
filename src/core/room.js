@@ -47,6 +47,7 @@ import { randomChance, randomChoice, randomInt, randomUnit, rollD6, SecureRandom
 import { compactTeam, createId, getPokemonConsumedItem, getPokemonItemOrigin, normalizeTeam, touchTeam } from "./team.js";
 import { EV_STAT_KEYS, normalizeGrowthData } from "./experience.js";
 import { getPokemonReferenceForMode } from "./referenceGames.js";
+import { advanceGimmickRound, endGimmick, normalizeGimmickState } from "./battleGimmicks.js";
 import {
     applyBattleIllusion,
     calculateDynamicMovePower,
@@ -247,6 +248,10 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         originalTypes,
         teraType: normalizeSlug(source.teraType),
         teraActive: Boolean(source.teraActive && source.teraType),
+        dynamaxLevel: integerInRange(source.dynamaxLevel, 0, 10, 0),
+        canGMax: Boolean(source.canGMax),
+        formName: asText(source.formName).toLowerCase().slice(0,90),
+        gimmickState: normalizeGimmickState(source.gimmickState,source),
         ability: normalizeSlug(source.ability),
         item: normalizeSlug(source.item),
         nature: normalizeSlug(source.nature),
@@ -341,18 +346,19 @@ export const startNewRoomBattle = snapshot => {
     if (room.initiative.length) throw new RangeError("Termine a rodada antes de começar outra batalha.");
     const resetToken = (token, active) => {
         const changed = prepareTokenForSwitch(token);
+        const resetGimmick = endGimmick(changed, {reset:true});
         const participating = active && !token.hidden && !token.captured && token.currentHp > 0;
         return {
-            ...changed,
+            ...resetGimmick,
             declaredDamageClass: "",
             enteredRound: 1,
             lastActionRound: 0,
             activeMoveActions: 0,
             battleParticipated: participating,
             battleEntryLevel: participating ? token.level : 0,
-            traitState: { ...changed.traitState, markers: [],
-                history: changed.traitState.history.filter(entry => entry.itemAvailability && entry.origin) },
-            specialState: { ...changed.specialState, markers: [], history: [] },
+            traitState: { ...resetGimmick.traitState, markers: [],
+                history: resetGimmick.traitState.history.filter(entry => entry.itemAvailability && entry.origin) },
+            specialState: { ...resetGimmick.specialState, markers: [], history: [] },
         };
     };
     return normalizeRoomSnapshot({
@@ -472,8 +478,8 @@ const getBattlefieldPosition = (index = 0, side = "ally") => {
     const row = Math.floor(index / 3);
     const column = index % 3;
     return {
-        x: ally ? 20 + column * 11 : 80 - column * 11,
-        y: ally ? 67 + row * 10 : 33 - row * 10,
+        x: side === "neutral" ? 39 + column * 11 : ally ? 20 + column * 11 : 80 - column * 11,
+        y: side === "neutral" ? 45 + row * 10 : ally ? 67 + row * 10 : 33 - row * 10,
     };
 };
 
@@ -523,6 +529,9 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
             : pokemon?.species?.types?.map(entry => entry?.type?.name),
         teraType: pokemon?.teraType || "",
         teraActive: false,
+        dynamaxLevel: pokemon?.dynamaxLevel ?? 0,
+        canGMax: Boolean(pokemon?.canGMax || String(pokemon?.species?.name||"").endsWith("-gmax")),
+        formName: pokemon?.formKey || pokemon?.species?.name || "",
         ability: pokemon?.ability || "",
         item: consumedItem ? "" : pokemon?.item || "",
         ...(originalItem ? { traitState: { item: {
@@ -723,7 +732,8 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
 };
 
 const prepareTokenForSwitch = tokenInput => {
-    let token = tokenInput;
+    const active=normalizeGimmickState(tokenInput?.gimmickState,tokenInput).active;
+    let token = ["dyna","gmax"].includes(active) ? endGimmick(tokenInput) : tokenInput;
     const revertedTransform = revertBattleTransform(token);
     if (revertedTransform.applied) token = revertedTransform.token;
     const revertedCopy = revertTemporaryMoveCopies(token);
@@ -1501,7 +1511,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
     return {
         room: {
             ...room,
-            tokens,
+            tokens:tokens.map(advanceGimmickRound),
             hitKillProtectionUsed,
             hitKillProtectionDisabled,
             hitKillSurvivalGrace,

@@ -1724,13 +1724,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                 onTokenChange={replaceSelectedToken}
                                 onNotice={text => setNotice?.({ tone: "blue", text })}
                             />
-                            <SpecialMechanicsPanel
+                            {snapshot.phase === "batalha" && <SpecialMechanicsPanel
                                 token={selectedToken}
                                 snapshot={snapshot}
                                 role={role}
                                 onTokenChange={replaceSelectedToken}
                                 onNotice={text => setNotice?.({ tone: "blue", text })}
-                            />
+                            />}
                             <TraitMechanicsPanel
                                 token={selectedToken}
                                 snapshot={snapshot}

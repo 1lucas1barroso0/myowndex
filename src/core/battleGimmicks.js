@@ -11,7 +11,7 @@ const stones = [
 ["camerupt","cameruptite"],["charizard","charizardite-x"],["charizard","charizardite-y"],
 ["diancie","diancite"],["gallade","galladite"],["garchomp","garchompite"],
 ["gardevoir","gardevoirite"],["gengar","gengarite"],["glalie","glalitite"],
-["gyarados","gyaradosite"],["heracross","heracronite"],["houndoom","houndoominite"],
+["gyarados","gyaradosite"],["heracross","heracronite"],["heracross","heracrossite"],["houndoom","houndoominite"],
 ["kangaskhan","kangaskhanite"],["latias","latiasite"],["latios","latiosite"],
 ["lopunny","lopunnite"],["lucario","lucarionite"],["manectric","manectite"],
 ["mawile","mawilite"],["medicham","medichamite"],["metagross","metagrossite"],
@@ -62,10 +62,20 @@ export const megaFormFor = token =>{
  const suffix=item.endsWith("-x")?"-x":item.endsWith("-y")?"-y":"";
  return `${species}-mega${suffix}`;
 };
-export const getGimmickChoices = (token, {phase="batalha"}={})=>{
+const trainerGroupKey = token => token?.ownerPlayerId ? `player:${token.ownerPlayerId}`
+    : token?.teamShareId ? `box:${token.teamShareId}`
+    : token?.teamId ? `box:${token.teamId}` : "";
+export const trainerHasUsedGimmick = (token,snapshot) => {
+    const key=trainerGroupKey(token);
+    if(!key || !snapshot)return false;
+    return [...(snapshot.tokens||[]),...(snapshot.benchTokens||[])].some(other=>
+      other.id!==token.id && trainerGroupKey(other)===key
+      && normalizeGimmickState(other.gimmickState,other).used.some(id=>["mega","tera","dyna","gmax","z"].includes(id)));
+};
+export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  if(!token || token.currentHp<=0 || phase!=="batalha")return [];
  const state=normalizeGimmickState(token.gimmickState,token);
- if(state.active)return [];
+ if(state.active || trainerHasUsedGimmick(token,snapshot))return [];
  const used=new Set(state.used);
  const locked=used.has("mega")||used.has("tera")||used.has("dyna")||used.has("gmax")||used.has("z");
  if(locked)return [];
@@ -79,10 +89,10 @@ export const getGimmickChoices = (token, {phase="batalha"}={})=>{
  }
  return options;
 };
-export const canUseZMove = (token,move) => {
+export const canUseZMove = (token,move,snapshot=null) => {
  if(!token || !move || !Array.isArray(token.moves) || !token.moves.includes(slug(move.name)) || token.currentHp<=0)return false;
  const state=normalizeGimmickState(token.gimmickState,token);
- if(state.active||state.used.some(id=>["z","mega","tera","dyna","gmax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status"||!Number.isFinite(move.power)||move.power<=0)return false;
+ if(trainerHasUsedGimmick(token,snapshot)||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status"||!Number.isFinite(move.power)||move.power<=0)return false;
  const crystal=slug(token.item),specific=SPECIFIC_Z[crystal];
  if(specific) {
    const species=baseSpecies(token);

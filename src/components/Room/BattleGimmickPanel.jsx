@@ -6,7 +6,7 @@ const headings={mega:"Mega Evolução",tera:"Terastalização",dyna:"Dynamax",gm
 export default function BattleGimmickPanel({token, snapshot, role, onTokenChange, onNotice}){
     const [busy,setBusy]=useState("");
     const state=normalizeGimmickState(token.gimmickState,token);
-    const options=getGimmickChoices(token,{phase:snapshot.phase});
+    const options=getGimmickChoices(token,{phase:snapshot.phase,snapshot});
     if(snapshot.phase!=="batalha"||(!options.length&&!state.active))return null;
     const activate=async choice=>{
         if(role!=="narrator"||busy)return;

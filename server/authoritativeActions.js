@@ -494,7 +494,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const specialProfile = getMoveSpecialProfile(move);
     const needsCalledMove = specialProfile?.id === "called-move";
     const zMove=Boolean(request.useZMove);
-    if(zMove && (needsCalledMove || specialProfile || !canUseZMove(attacker,move))) throw new AuthoritativeActionError("Este Pokémon não pode usar esse movimento Z com o cristal equipado.",409);
+    if(zMove && (needsCalledMove || specialProfile || !canUseZMove(attacker,move,room))) throw new AuthoritativeActionError("Este Pokémon não pode usar esse movimento Z com o cristal equipado.",409);
     const gigantism=normalizeGimmickState(attacker.gimmickState,attacker).active;
     const maxActive=["dyna","gmax"].includes(gigantism);
     if(maxActive && move.damage_class?.name==="status")throw new AuthoritativeActionError("Use um movimento ofensivo em Dynamax; Max Guard requer resolução defensiva própria.",409);

@@ -198,3 +198,25 @@ html .app-root .link-cable-preview { margin:1rem 0; }
 @container (min-width:42rem) { html .app-root .pc-toolbar-fields { grid-template-columns:repeat(2,minmax(0,1fr)); } html .app-root .editor-trait-reference .editor-disclosure-body { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @container (max-width:30rem) { html .app-root :is(.pc-toolbar-actions,.pc-editor-actions) { width:100%; } html .app-root :is(.pc-toolbar-actions,.pc-editor-actions) > button { flex:1 1 9rem; } }
 @media (max-width:540px) { html .app-root .pc-sidebar,html .app-root .pc-main-panel { padding:1.25rem; } html .app-root .pokemon-stat-row { grid-template-columns:minmax(0,1fr); } }
+
+/* Journey fields need the same inset and rhythm as the remaining editor. */
+html .app-root.game-edition.handheld-edition .rpg-journey-panel > summary {
+  padding: 1rem clamp(1rem, 2.5vw, 1.5rem) !important;
+}
+html .app-root.game-edition.handheld-edition .rpg-journey-body {
+  padding: clamp(1rem, 2.5vw, 1.5rem) !important;
+  gap: 1.2rem 1.4rem !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+html .app-root.game-edition.handheld-edition .rpg-journey-body > .editor-field:not(.editor-wide-field) {
+  min-width: 0; max-width: 24rem;
+}
+html .app-root.game-edition.handheld-edition .rpg-journey-body > .editor-wide-field {
+  grid-column: 1 / -1; min-width: 0;
+}
+@media (max-width: 760px) {
+  html .app-root.game-edition.handheld-edition .rpg-journey-body {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 1.1rem !important;
+  }
+}

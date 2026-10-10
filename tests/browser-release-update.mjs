@@ -13,9 +13,14 @@ try{
     const response=await context.request.get(new URL(path,base).href,{headers:{"Cache-Control":"no-cache"}});
     assert.equal(response.status(),200,path);
     assert.match(response.headers()["cache-control"]||"",/no-store/,path);
-    if(path==="/api/version")assert.equal((await response.json()).version,packageJson.version);
+    if(path==="/api/version"){
+      const current=await response.json();
+      assert.equal(current.version,packageJson.version);
+      assert.equal(typeof current.revision,"string");
+      assert.ok(current.revision.length>0);
+    }
   }
-  await page.waitForFunction(()=>navigator.serviceWorker?.controller!==null,{timeout:30000});
+  await page.waitForFunction(()=>Boolean(navigator.serviceWorker?.controller),null,{timeout:30000});
   const active=await page.evaluate(async()=>{
     const registration=await navigator.serviceWorker.ready;
     return {script:registration.active?.scriptURL,controlled:!!navigator.serviceWorker.controller};
@@ -25,6 +30,7 @@ try{
   await page.reload({waitUntil:"domcontentloaded"});
   assert.equal(await page.evaluate(()=>localStorage.getItem("myowndex-cache-update-qa")),"preserved");
   assert.equal(await page.locator(".app-root").getAttribute("data-version"),packageJson.version);
+  assert.ok(await page.locator("html").getAttribute("data-release"));
   assert.deepEqual(errors,[]);
   console.log("PASS release endpoint no-store, active PWA, current version and retained local data");
 }finally{await browser.close();}

@@ -49,7 +49,7 @@ const themeBootScript = `try{const identity=JSON.parse(localStorage.getItem("myo
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" data-release={process.env.VERCEL_GIT_COMMIT_SHA || packageInfo.version} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: themeBootScript }} /></head>
       <body>{children}</body>
     </html>

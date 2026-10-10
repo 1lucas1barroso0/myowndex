@@ -45,6 +45,8 @@ test("release freshness endpoint and device auto-update preserve durable game st
   ]);
   assert.match(route,/dynamic = "force-dynamic"/);
   assert.match(route,/packageInfo\.version/);
+  assert.match(route,/VERCEL_GIT_COMMIT_SHA/);
+  assert.match(app,/document\.documentElement\.dataset\.release/);
   assert.match(route,/no-store/);
   assert.match(app,/fetch\("\/api\/version"/);
   assert.match(app,/cache: "no-store"/);

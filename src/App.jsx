@@ -360,7 +360,9 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                 if (!response.ok) return;
                 const release = await response.json();
                 if (typeof release.version !== "string" || !/^\d+\.\d+\.\d+$/.test(release.version)) return;
-                if (release.version !== APP_VERSION) {
+                const loadedRevision = document.documentElement.dataset.release || APP_VERSION;
+                if (release.version !== APP_VERSION ||
+                    (typeof release.revision === "string" && release.revision !== loadedRevision)) {
                     try { await registration?.update(); } catch { /* Browser update may be unavailable. */ }
                     promote(registration?.waiting || registration?.installing);
                     // Network-first navigation is still able to fetch the new

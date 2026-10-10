@@ -220,7 +220,7 @@ test("local rolls keep exact modes, a clean result and manageable local history"
   assert.match(panel, /Baixar histórico/);
 });
 
-test("Dados has one visible home and becomes contextual inside an adventure", async () => {
+test("Dados remains global and also opens on demand inside an adventure", async () => {
   const [app, guide, room, dialog, panel] = await Promise.all([
     read("src/App.jsx"),
     read("src/components/Guide/TrainerGuide.jsx"),
@@ -231,7 +231,9 @@ test("Dados has one visible home and becomes contextual inside an adventure", as
   assert.match(app, /aria-label="Abrir Dados"/);
   assert.match(app, /context=\{diceRoomContext \? "aventura" : "central"\}/);
   assert.doesNotMatch(guide, /LocalDicePanel/);
-  assert.doesNotMatch(room, /LocalDicePanel|QuickRoller|Rolagem rápida/);
+  assert.match(room, /AdventureDicePanel context="aventura"/);
+  assert.match(room, /diceOpen && <AdventureDicePanel/);
+  assert.doesNotMatch(room, /QuickRoller|Rolagem rápida/);
   assert.match(room, />Ações<\/button>/);
   assert.doesNotMatch(room, />Dados e ações<\/button>/);
   assert.match(dialog, /context=\{context\}/);
@@ -310,11 +312,12 @@ test("the common presentation preserves critical rules without hiding content", 
   assert.match(app, /className="status-notice-close"/);
   assert.doesNotMatch(app, /status-notice[^\n]*bg-white\/70/);
   assert.doesNotMatch(room, /room-live-led/);
-  assert.match(room, /Registrar autocusto/);
-  assert.match(room, /−1 HP/);
+  assert.match(room, /Pagar HP/);
+  assert.match(room, /selfInflicted: true, amount: selfCostHp/);
+  assert.match(room, /HP a pagar/);
   assert.match(room, /Trocar com o banco/);
   assert.match(room, /Fazer a troca/);
-  assert.match(room, /Encerrada por autocusto/);
+  assert.match(room, /Indisponível/);
   assert.match(guide, /<PokemonCompanion place="guide"/);
   assert.doesNotMatch(guide, /guide-hero-lens absolute -bottom/);
 
@@ -453,7 +456,8 @@ test("the adventure field keeps readable selected health outside the movable Pok
   assert.doesNotMatch(battlefield, /room-token-status-card|battlefield-depth-front/);
   assert.match(room, /token-battle-vitals/);
   assert.match(room, /Proteção contra hit kill/);
-  assert.match(room, /Registrar autocusto/);
+  assert.match(room, /Pagar HP/);
+  assert.match(room, /selfInflicted: true, amount: selfCostHp/);
   assert.match(room, /token-self-damage-action/);
   assert.doesNotMatch(room, /if \(result\.tokens\[0\]\) setSelectedTokenId/);
   assert.match(css, /battlefield-focus-health/);

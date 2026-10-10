@@ -37,6 +37,7 @@
     }
   ],
   "method": "Tiles Kenney (CC0) mantidos pixel a pixel; pequenos detalhes vetoriais autorais de terreno em camadas reprodutíveis, sem filtros ou dependências.",
+  "decorations": "public/scenes/source/decorations.json",
   "scenes": [
     {
       "id": "rota",
@@ -49,8 +50,8 @@
       ],
       "width": 480,
       "height": 320,
-      "pixelSha256": "764228bd1f0aa50362f8622a1a417e140db019273a77ea2ce207bdc47d825fba",
-      "bytes": 7215
+      "pixelSha256": "e45bc1c569251b9152e84824dc7e347d405656cf43229f2531394112e6558f20",
+      "bytes": 4749
     },
     {
       "id": "floresta",
@@ -62,8 +63,8 @@
       ],
       "width": 480,
       "height": 320,
-      "pixelSha256": "d50f7386edc17c5a1eadc83dc29b92c8d4e0bea0f0114edf0cb3d5ede512c3c7",
-      "bytes": 7934
+      "pixelSha256": "70e529a7d83320dc64046f4823e45ec6c0bc1f01b1438654982ac8cf48fb305d",
+      "bytes": 5111
     },
     {
       "id": "cidade",
@@ -76,8 +77,8 @@
       ],
       "width": 480,
       "height": 320,
-      "pixelSha256": "cf48b55c8f3d328472a41d7354f27b3e52ace0681ff29d83de860dd749e5cef5",
-      "bytes": 6268
+      "pixelSha256": "42539c5d15af76ba870cc6bef8b41904c119e5a47f21b82433107fdafcfc5abf",
+      "bytes": 4649
     },
     {
       "id": "praia",
@@ -90,8 +91,8 @@
       ],
       "width": 480,
       "height": 320,
-      "pixelSha256": "b815b17bed8c7472da801807fc516fa247cf97330536a042aa1f9629d84b8781",
-      "bytes": 4597
+      "pixelSha256": "a70e73394570bb72dabb33aeaa659bc7c69d6b7f185ee3feaabd98610724387f",
+      "bytes": 2664
     },
     {
       "id": "caverna",
@@ -104,7 +105,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "417fd534ff94a41abf18aa16e49c5a23fcde699ea86abab06b103bffc069054a",
-      "bytes": 7012
+      "bytes": 5406
     },
     {
       "id": "neve",
@@ -117,8 +118,8 @@
       ],
       "width": 480,
       "height": 320,
-      "pixelSha256": "fa1656e2a01826ae0203b8e88ab1e057ad058f81453d7fdd2715d8e2112cb7b4",
-      "bytes": 5344
+      "pixelSha256": "ccc59e780352d64b9e11644836dbfabcebd343927684b9f5b71ee5bdf2d804c5",
+      "bytes": 3439
     },
     {
       "id": "arena",
@@ -131,7 +132,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "c4a13af680e8398eb0f40531635c0e6dae5fcb761c042e2f2ce52bea8a18936f",
-      "bytes": 4365
+      "bytes": 2987
     },
     {
       "id": "laboratorio",
@@ -145,7 +146,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "f32d5869b144386408ec3a9d397aa843ef4567c63f15b4b67e1969ca91c6ba44",
-      "bytes": 4223
+      "bytes": 2935
     },
     {
       "id": "distorcao",
@@ -158,8 +159,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "13ba3a621cc59ea46e7bf52e260f5b8b6589ec34f7236084a30c68470a2012cc",
-      "bytes": 6401
+      "bytes": 4507
     }
-  ],
-  "decorations": "public/scenes/source/decorations.json"
+  ]
 }

@@ -1,3 +1,4 @@
+import spriteCorrections from "../data/sprite-corrections.json" with {type:"json"};
 import spriteFraming from "../data/sprite-framing.json" with { type: "json" };
 
 const fullFrame = Object.freeze({ known: false, width: 96, height: 96, x: 0, y: 0, bodyWidth: 96, bodyHeight: 96 });
@@ -11,7 +12,7 @@ export const getPokemonSpriteFraming = source => {
     const smogonPath = smogonMatch?.[1] === spriteFraming.smogonCommit ? smogonMatch[2] : "";
     const key = path.startsWith("/") ? `local${path}`
         : pokeapiPath ? `pokeapi/${pokeapiPath}` : smogonPath ? `smogon/${smogonPath}` : "";
-    const values = spriteFraming.assets[key];
+    const values = spriteCorrections.framing[key] || spriteFraming.assets[key];
     if (!values) return fullFrame;
     const [width, height, x, y, bodyWidth, bodyHeight] = values;
     return { known: true, width, height, x, y, bodyWidth, bodyHeight };

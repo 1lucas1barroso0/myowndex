@@ -31,6 +31,13 @@ const GMAX_SPECIES = new Set([
   "alcremie","copperajah","duraludon","urshifu"
 ]);
 const gmaxEligible = token => GMAX_SPECIES.has(baseSpecies(token).split("-")[0]);
+const formIdentity = token => slug(token?.gimmickState?.base?.formName || token?.formName || token?.speciesName);
+const gmaxFormFor = token => {
+ const species=baseSpecies(token).split("-")[0], form=formIdentity(token);
+ if(species==="toxtricity")return `toxtricity-${form.includes("low-key")?"low-key":"amped"}-gmax`;
+ if(species==="urshifu")return `urshifu-${form.includes("rapid-strike")?"rapid-strike":"single-strike"}-gmax`;
+ return `${species}-gmax`;
+};
 const NORMAL_CRYSTALS = new Map(Object.entries({
 normal:"normalium-z",fighting:"fightinium-z",flying:"flyinium-z",poison:"poisonium-z",
 ground:"groundium-z",rock:"rockium-z",bug:"buginium-z",ghost:"ghostium-z",
@@ -57,7 +64,7 @@ ability:token.ability,stats:{...token.stats},originalStats:{...token.originalSta
 maxHp:token.maxHp,currentHp:token.currentHp,
 });
 const baseState = () => ({active:"",used:[],rounds:0,base:null,form:""});
-export const normalizeGimmickState = (value,token={})=>{
+export const normalizeGimmickState = value=>{
  const used=[...new Set((Array.isArray(value?.used)?value.used:[]).filter(id=>["mega","tera","dyna","gmax","z"].includes(id)))].slice(0,5);
  const active=["mega","tera","dyna","gmax"].includes(value?.active)?value.active:"";
  return {...baseState(),active,used,rounds:integerInRange(value?.rounds,0,3,0),
@@ -67,7 +74,7 @@ export const normalizeGimmickState = (value,token={})=>{
 const baseSpecies=token=>slug(token?.gimmickState?.base?.speciesName||token?.speciesName).replace(/-(?:mega(?:-[xy])?|gmax)$/,"");
 export const megaFormFor = token =>{
  const item=slug(token?.item),species=baseSpecies(token);
- if(STONE_TO_SPECIES.get(item)!==species)return "";
+ if(STONE_TO_SPECIES.get(item)!==species || /-(?:alola|galar|hisui|paldea)(?:-|$)/.test(formIdentity(token)))return "";
  const suffix=item.endsWith("-x")?"-x":item.endsWith("-y")?"-y":"";
  return `${species}-mega${suffix}`;
 };
@@ -95,17 +102,20 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  const level=integerInRange(token.dynamaxLevel,0,10,0);
  if(level>0&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
    options.push({id:"dyna",label:"Dynamax",hint:`Nível Dynamax ${level} • 3 rodadas`});
-   if(Boolean(token.canGMax) && gmaxEligible(token))options.push({id:"gmax",label:"Gigantamax",form:`${baseSpecies(token)}-gmax`,hint:"Fator Gigantamax na ficha • 3 rodadas"});
+   if(Boolean(token.canGMax) && gmaxEligible(token))options.push({id:"gmax",label:"Gigantamax",form:gmaxFormFor(token),hint:"Fator Gigantamax na ficha • 3 rodadas"});
  }
  return options;
 };
 export const canUseZMove = (token,move,snapshot=null) => {
  if(!token || !move || !Array.isArray(token.moves) || !token.moves.includes(slug(move.name)) || token.currentHp<=0)return false;
  const state=normalizeGimmickState(token.gimmickState,token);
- if(trainerHasUsedGimmick(token,snapshot,"z")||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status"||!Number.isFinite(move.power)||move.power<=0)return false;
+ if(trainerHasUsedGimmick(token,snapshot,"z")||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status")return false;
  const crystal=slug(token.item),specific=SPECIFIC_Z[crystal];
  if(specific) {
-   const species=baseSpecies(token);
+   const form=formIdentity(token), species=baseSpecies(token).replace(/-alola$/, "");
+   if(crystal==="pikashunium-z" && !/-cap$/.test(form))return false;
+   if(crystal==="ultranecrozium-z" && form!=="necrozma-ultra")return false;
+   if(crystal!=="aloraichium-z" && /-(?:alola|galar|hisui|paldea)(?:-|$)/.test(form))return false;
    return (specific[0]==="tapu"?species.startsWith("tapu-"):species===specific[0])
      && (crystal!=="aloraichium-z" || slug(token.formName||token.formKey||"").includes("alola"))
      && slug(move.name)===specific[1];
@@ -113,14 +123,14 @@ export const canUseZMove = (token,move,snapshot=null) => {
  return NORMAL_CRYSTALS.get(crystal)===slug(move.type?.name);
 };
 export const getZMovePower = power =>{
- const b=integerInRange(power,1,300,1);
- if(b<=55)return 100;if(b<=65)return 120;if(b<=75)return 140;if(b<=85)return 160;
- if(b<=95)return 175;if(b<=100)return 180;if(b<=110)return 185;if(b<=125)return 190;
- if(b<=130)return 195;return 200;
+ const b=Number(power)||0;
+ return b>=140?200:b>=130?195:b>=120?190:b>=110?185:b>=100?180:b>=90?175:b>=80?160:b>=70?140:b>=60?120:100;
 };
-export const maxMovePower = power =>{
- const b=integerInRange(power,1,300,1);
- return b<45?90:b<55?100:b<65?110:b<75?120:b<100?130:b<150?140:150;
+export const maxMovePower = (power,type="") =>{
+ const b=Number(power)||0;
+ if(!b)return 100;
+ if(["fighting","poison"].includes(type))return b>=150?100:b>=110?95:b>=75?90:b>=65?85:b>=55?80:b>=45?75:70;
+ return b>=150?150:b>=110?140:b>=75?130:b>=65?120:b>=55?110:b>=45?100:90;
 };
 export const applyGimmick = (token,id,{formData=null}={})=>{
  const option=getGimmickChoices(token).find(g=>g.id===id);
@@ -152,7 +162,7 @@ export const applyGimmick = (token,id,{formData=null}={})=>{
    changed={...changed,speciesName:formData.name,speciesId:formData.id,formName:formData.name,
       sprite:spriteSources.animated[0]||spriteSources.static[0]||formData.sprites?.front_default||token.sprite,
       types:typeNames.length?typeNames:changed.types,originalTypes:typeNames.length?typeNames:changed.originalTypes,
-      ability:formData.abilities?.[0]?.ability?.name||changed.ability,stats,originalStats};
+      ability:id==="gmax"?changed.ability:formData.abilities?.[0]?.ability?.name||changed.ability,stats,originalStats};
    changed={...changed,stats:calculateStagedStats(changed)};
  }
  return {applied:true,token:changed};
@@ -163,7 +173,7 @@ export const endGimmick = (token,{reset=false}={})=>{
  if(!state.active || !base)return {...token,gimmickState:reset?baseState():state,teraActive:reset?false:token.teraActive};
  const ratio=token.maxHp>0?token.currentHp/token.maxHp:0;
  const restored={...token,...base,currentHp:Math.min(base.maxHp,token.currentHp<=0?0:Math.max(1,Math.ceil(ratio*base.maxHp)))};
- return {...restored,gimmickState:reset?baseState():{...state,active:"",rounds:0,base:null,form:""},teraActive:false};
+ return {...restored,stats:calculateStagedStats(restored),gimmickState:reset?baseState():{...state,active:"",rounds:0,base:null,form:""},teraActive:false};
 };
 export const advanceGimmickRound = token => {
  const state=normalizeGimmickState(token.gimmickState,token);

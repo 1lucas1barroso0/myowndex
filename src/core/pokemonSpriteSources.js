@@ -1,12 +1,15 @@
+import spriteCorrections from "../data/sprite-corrections.json" with {type:"json"};
 import animatedSprites from "../data/animated-sprites.json" with { type: "json" };
-import nativeSprites from "../data/native-sprites.json" with { type: "json" };
+import nativeSpriteCatalogue from "../data/native-sprites.json" with { type: "json" };
 import { finiteNumberOrNull } from "./math.js";
 
+const nativeSprites={...nativeSpriteCatalogue,local:{...nativeSpriteCatalogue.local,...spriteCorrections.local},sourceKinds:{...nativeSpriteCatalogue.sourceKinds,...spriteCorrections.sourceKinds}};
+const quarantinedBwKeys=new Set(spriteCorrections.quarantinedBwKeys);
 const SPRITES = "https://raw.githubusercontent.com/PokeAPI/sprites";
 const PINNED = `${SPRITES}/${animatedSprites.commit}/sprites/pokemon/`;
 const ANIMATED = `${PINNED}versions/generation-v/black-white/animated/`;
 const EXTERNAL = `https://raw.githubusercontent.com/smogon/sprites/${nativeSprites.smogonCommit}/`;
-const bwViews = Object.fromEntries(Object.entries({ "": animatedSprites.regular, shiny: animatedSprites.shiny, ...animatedSprites.views }).map(([view, keys]) => [view, new Set(keys)]));
+const bwViews = Object.fromEntries(Object.entries({ "": animatedSprites.regular, shiny: animatedSprites.shiny, ...animatedSprites.views }).map(([view, keys]) => [view, new Set(keys.filter(key=>!quarantinedBwKeys.has(key)))]));
 const knownSources = new Map();
 const legacyExternalPaths = new Map();
 const validKey = value => /^[0-9]+(?:-[a-z0-9-]+)?$/.test(String(value || "")) ? String(value) : "";

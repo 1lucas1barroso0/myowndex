@@ -57,19 +57,26 @@ const gifAnimation = bytes => {
 
 test("imported EBDX animation keeps verified authored frames, timing, alpha and the exact first-frame recovery", async () => {
     const provenance = JSON.parse(await readFile("public/sprites/native/provenance-ebdx.json", "utf8"));
+    const correction = JSON.parse(await readFile("public/sprites/native/provenance-silicobra.json", "utf8"));
+    const correctedSprites = JSON.parse(await readFile("src/data/sprite-corrections.json", "utf8"));
+    provenance.assets.push(...correction.assets);
     assert.match(provenance.commit, /^[a-f0-9]{40}$/);
     assert.ok(provenance.assets.length >= 44);
     for (const entry of provenance.assets) {
         const bytes = await asset(entry.animated);
-        assert.equal(digest(bytes), entry.gifSha256, entry.animated);
+        assert.equal(digest(bytes), entry.apngSha256 || entry.gifSha256, entry.animated);
         assert.equal(digest(await asset(entry.static)), entry.staticSha256, entry.static);
-        const animation = gifAnimation(bytes);
+        const chunks = entry.apngSha256 ? pngChunks(bytes) : null;
+        const animation = chunks ? {
+            frames: chunks.find(chunk => chunk.type === "acTL").data.readUInt32BE(0),
+            durationMs: chunks.filter(chunk => chunk.type === "fcTL").reduce((sum, chunk) => sum + 1000 * chunk.data.readUInt16BE(20) / (chunk.data.readUInt16BE(22) || 100), 0),
+        } : gifAnimation(bytes);
         assert.equal(animation.frames, entry.encodedFrames, entry.animated);
         assert.equal(animation.durationMs, entry.durationMs, entry.animated);
         assert.ok(entry.uniqueFrames > 1, entry.animated);
         assert.equal(entry.pixelAlphaTimelineVerified, true);
         const view = [entry.view === "back" && "back", entry.shiny && "shiny"].filter(Boolean).join("/");
-        assert.deepEqual(nativeSprites.local[String(entry.pokemonId)][view], { animated: entry.animated, static: entry.static });
+        assert.deepEqual((correctedSprites.local[String(entry.pokemonId)] || nativeSprites.local[String(entry.pokemonId)])[view], { animated: entry.animated, static: entry.static });
     }
 });
 

@@ -941,3 +941,18 @@ test("immutable SHA-named 2D sprites are reused without re-downloading while mut
  assert.equal(await (await worker.asset(dynamic)).text(),"sprite 2");
  assert.equal(await (await worker.asset(dynamic)).text(),"sprite 3");
 });
+
+test("scenarios refresh online and remain available offline", async () => {
+  let revision="first", online=true;
+  const worker=await serviceWorker(async () => {
+    if(!online)throw new TypeError("offline");
+    return new Response(revision,{headers:{"content-type":"image/svg+xml"}});
+  });
+  const url=`${origin}/scenes/rota-campestre.svg`;
+  assert.equal(await (await worker.asset(url)).text(),"first");
+  revision="second";
+  assert.equal(await (await worker.asset(url)).text(),"second");
+  online=false;
+  assert.equal(await (await worker.asset(url)).text(),"second");
+  assert.equal(await (await (await worker.caches.open(assetCacheName)).match(url)).text(),"second");
+});

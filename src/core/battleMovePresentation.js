@@ -1,3 +1,4 @@
+import powerOverrides from "../data/battle-move-power-overrides.json" with {type:"json"};
 import { getZMovePower, maxMovePower, normalizeGimmickState } from "./battleGimmicks.js";
 
 const typeMoves=Object.freeze({
@@ -50,16 +51,21 @@ const exclusiveZPower=Object.freeze({
  "pikanium-z":210,"pikashunium-z":195,"primarium-z":195,
  "snorlium-z":210,"solganium-z":200,"ultranecrozium-z":200,
 });
-const canonicalSpecies=token=>String(token?.gimmickState?.base?.speciesName||token?.speciesName||"").replace(/-(?:gmax|mega(?:-[xy])?)$/,"");
+const canonicalSpecies=token=>{
+ const base=token?.gimmickState?.base||token;
+ const species=String(base.speciesName||"").replace(/-(?:gmax|mega(?:-[xy])?)$/,"");
+ return species.startsWith("urshifu")?String(base.formName||species).replace(/-gmax$/,""):species.startsWith("toxtricity")?"toxtricity":species;
+};
 const safeType=move=>String(move?.type?.name||"").toLowerCase();
-const isDamage=move=>Number(move?.power)>0&&["physical","special"].includes(move?.damage_class?.name);
+const isDamage=move=>["physical","special"].includes(move?.damage_class?.name);
 export const battleMovePresentation=(token,move,{useZMove=false}={})=>{
  if(!token||!move?.name)return null;
  const type=safeType(move),active=normalizeGimmickState(token.gimmickState,token).active;
+ if(move.name==="struggle")return {kind:"normal",label:move.name,type,power:move.power,source:move.name,secondary:"base",note:""};
  if(useZMove&&isDamage(move)){
    const label=namedZ[String(token.item||"").toLowerCase()]||typeMoves[type]?.[1];
    if(!label)return null;
-   return {kind:"z",label,type,power:exclusiveZPower[String(token.item||"").toLowerCase()]||getZMovePower(move.power),source:move.name,
+   return {kind:"z",label,type,power:exclusiveZPower[String(token.item||"").toLowerCase()]??powerOverrides.z[move.name]??getZMovePower(move.power),source:move.name,
      note:"Energia Z consumida nesta batalha",secondary:"none"};
  }
  if(["dyna","gmax"].includes(active)){
@@ -70,7 +76,7 @@ export const battleMovePresentation=(token,move,{useZMove=false}={})=>{
    const label=unique?.[1]||typeMoves[type]?.[0];
    if(!label)return null;
    const power=unique&&["G-Max Drum Solo","G-Max Fireball","G-Max Hydrosnipe"].includes(unique[1])?160
-     :maxMovePower(move.power);
+     :powerOverrides.max[move.name]??maxMovePower(move.power,type);
    return {kind:unique?"gmax-move":"max",label,type,power,source:move.name,
      secondary:unique?"signature":type,note:unique?"Efeito G-Max próprio da espécie":"Efeito Max por tipo"};
  }
@@ -81,17 +87,18 @@ export const battleMovePresentation=(token,move,{useZMove=false}={})=>{
 export const moveVariantForResolution=(move,presentation)=>{
  if(!presentation||presentation.kind==="normal")return move;
  if(presentation.kind==="tera-move")return {...move,type:{name:presentation.type}};
- const isStatus=presentation.kind==="max-guard";
+ const evoboost=presentation.label==="Extreme Evoboost", guard=presentation.kind==="max-guard";
+ const isStatus=guard||evoboost;
  return {...move,name:presentation.label.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-$/,""),
-   power:presentation.power,type:{name:presentation.type},
-   target:isStatus?{name:"user"}:move.target,
-   accuracy:isStatus?null:move.accuracy,
-   priority:isStatus?4:move.priority,
+   power:isStatus||presentation.label==="Guardian of Alola"?0:presentation.power,type:{name:presentation.type},
+   target:{name:isStatus?"user":presentation.label==="Clangorous Soulblaze"?"all-opponents":"selected-pokemon"},
+   accuracy:null,
+   priority:guard?4:evoboost?0:move.priority,
    damage_class:{name:isStatus?"status":move.damage_class?.name},
    // Original move-specific flinch, recoil and status effects must not leak
    // into a completely different Z/Max move.
-   effect_chance:null,stat_changes:[],effect_entries:[],
-   meta:{...move.meta,category:isStatus?{name:"unique"}:{name:"damage"},ailment:{name:"none"},ailment_chance:0,stat_chance:0,
+   effect_chance:null,stat_changes:evoboost?["attack","defense","special-attack","special-defense","speed"].map(name=>({stat:{name},change:2})):[],effect_entries:[],
+   meta:{...move.meta,category:evoboost?{name:"net-good-stats"}:guard?{name:"unique"}:{name:"damage"},ailment:{name:"none"},ailment_chance:0,stat_chance:evoboost?100:0,
      flinch_chance:0,drain:0,healing:0,min_hits:null,max_hits:null,
      min_turns:null,max_turns:null,crit_rate:0},
  };

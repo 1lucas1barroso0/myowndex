@@ -138,6 +138,24 @@ try{
     if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
     await page.locator(".room-token").first().click();
     assert.equal(await page.locator(".battle-gimmick-panel").count(),0,"No unlocked ability means no false buttons");
+    await setPhase("interpretacao");
+    if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
+    const sceneNote=page.getByRole("textbox",{name:"Descrição da cena",exact:true});
+    await sceneNote.fill("Uma Silicobra explora a areia.");
+    const dirtyUpdate=await page.evaluate(async()=>{
+      const tasks=[];
+      window.dispatchEvent(new CustomEvent("myowndex:prepare-update",{detail:{tasks}}));
+      return Promise.all(tasks);
+    });
+    assert.ok(dirtyUpdate.includes(false),"Automatic update must preserve a focused unsaved note");
+    await page.locator(".room-notes-panel summary").click();
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.sceneNotes==="Uma Silicobra explora a areia.");
+    const savedUpdate=await page.evaluate(async()=>{
+      const tasks=[];
+      window.dispatchEvent(new CustomEvent("myowndex:prepare-update",{detail:{tasks}}));
+      return Promise.all(tasks);
+    });
+    assert.ok(!savedUpdate.includes(false),"Saved notes should allow an update");
     for(const width of [320,390,768,1280]){
       await page.setViewportSize({width,height:844});
       if(await mobile.isVisible())await mobile.getByRole("button",{name:"Equipe",exact:true}).click();

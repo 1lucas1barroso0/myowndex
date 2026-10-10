@@ -199,8 +199,8 @@ self.addEventListener("fetch", event => {
       return { response, maintenance: rememberAsset(request, response.clone()) };
     } catch (error) {
       try {
-        const cached = (await (await caches.open(CACHE_NAME)).match(request))
-          || (await (await caches.open(ASSET_CACHE_NAME)).match(request));
+        const cached = (await (await caches.open(ASSET_CACHE_NAME)).match(request))
+          || (await (await caches.open(CACHE_NAME)).match(request));
         if (cached) return { response: cached };
       } catch { /* Never swallow the original network failure. */ }
       throw error;

@@ -104,3 +104,19 @@ test("real forms and converted attacks have distinct identities while their orig
  assert.equal(converted.type.name,"water");
  assert.equal(tera.type.name,"normal");
 });
+
+test("all damaging exclusive Z-Moves use their fixed official power, not a generic conversion",()=>{
+ const cases=[
+  ["aloraichium-z",175],["decidium-z",180],["incinium-z",180],
+  ["kommonium-z",185],["lunalium-z",200],["lycanium-z",190],
+  ["marshadium-z",195],["mewnium-z",185],["mimikium-z",190],
+  ["pikanium-z",210],["pikashunium-z",195],["primarium-z",195],
+  ["snorlium-z",210],["solganium-z",200],["ultranecrozium-z",200],
+ ];
+ for(const [item,power] of cases){
+  const user={...pokemon(),item};
+  const presentation=battleMovePresentation(user,move("signature","fire",90),{useZMove:true});
+  assert.equal(presentation.power,power,item);
+  assert.equal(moveVariantForResolution(move("signature","fire",90),presentation).power,power,item);
+ }
+});

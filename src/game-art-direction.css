@@ -1080,21 +1080,18 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-storage-tit
   width: 100%; align-self: start; padding: 0 .25rem;
 }
 html .app-root.game-edition.handheld-edition .pc-mascot-stage {
-  position: relative; display: grid; place-items: center;
-  isolation: isolate; width: 100%; min-height: 11rem;
-  padding: .5rem; border: 1px solid color-mix(in srgb,var(--joy-blue) 38%,var(--ui-line));
-  border-radius: .65rem; overflow: visible;
-  background: color-mix(in srgb,var(--joy-blue) 9%,var(--ui-panel));
+  display: grid; place-items: center; width: 100%; min-height: 9.5rem;
+  padding: .25rem; border: 0; border-radius: 0; overflow: visible;
+  background: transparent; box-shadow: none;
 }
 html .app-root.game-edition.handheld-edition .pc-mascot-stage::before {
-  content: ""; position: absolute; inset: .5rem; pointer-events: none;
-  border: 1px solid color-mix(in srgb,var(--joy-blue) 22%,transparent);
-  border-radius: .3rem;
+  content: none; display: none;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-mascot-stage .pokemon-companion {
   width: clamp(7.5rem,11vw,9.3rem) !important; height: clamp(7.5rem,11vw,9.3rem) !important;
   max-width: 100%; min-width: 0; margin: auto !important;
   display: grid !important; place-items: center; background: transparent !important;
+  border: none !important; outline: none !important; box-shadow: none !important;
 }
 html .app-root.game-edition.handheld-edition .pc-mascot-stage .pokemon-companion > .pokemon-sized-sprite {
   width: 100% !important; height: 100% !important; max-width: 100% !important;

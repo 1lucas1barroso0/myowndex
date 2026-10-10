@@ -1,6 +1,6 @@
 {
   "name": "myowndex",
-  "version": "2.0.19",
+  "version": "2.0.20",
   "description": "Explore a Pokédex, crie equipes e viva sua aventura Pokémon com o MyOwnDex.",
   "private": true,
   "homepage": "https://myowndex.vercel.app",
@@ -21,7 +21,11 @@
     "test": "node --test tests/*.unit.test.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
-    "freshness": "node scripts/verificar-fontes-atuais.mjs"
+    "freshness": "node scripts/verificar-fontes-atuais.mjs",
+    "sprites:prepare": "node scripts/materializar-sprites-2d.mjs",
+    "predev": "npm run sprites:prepare",
+    "prebuild": "npm run sprites:prepare",
+    "pretest": "npm run sprites:prepare"
   },
   "dependencies": {
     "fflate": "0.8.3",

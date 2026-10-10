@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import PokemonSprite from "./PokemonSprite.jsx";
 
 // Decorative partners have one home each. Pokémon in teams, search results and
 // the battle field are functional data and do not use this registry.
@@ -19,7 +20,6 @@ export const POKEMON_COMPANIONS = Object.freeze({
 // is requested or its animated asset cannot be loaded.
 export default function PokemonCompanion({ place, className = "", eager = false }) {
     const companion = POKEMON_COMPANIONS[place];
-    const [failedAnimation, setFailedAnimation] = useState(null);
     if (!companion) return null;
     return (
         <span
@@ -28,18 +28,14 @@ export default function PokemonCompanion({ place, className = "", eager = false 
             data-companion-id={companion.id}
             aria-hidden="true"
         >
-            <picture>
-                <source media="(prefers-reduced-motion: reduce)" srcSet={`/sprites/companions/${companion.id}.png`} />
-                <img
-                    src={failedAnimation === companion.id ? `/sprites/companions/${companion.id}.png` : `/sprites/companions/${companion.id}.gif`}
-                    alt=""
-                    width="96"
-                    height="96"
-                    loading={eager ? "eager" : "lazy"}
-                    decoding="async"
-                    onError={() => setFailedAnimation(companion.id)}
-                />
-            </picture>
+            <PokemonSprite
+                src={`/sprites/companions/${companion.id}.gif`}
+                candidates={[`/sprites/companions/${companion.id}.png`]}
+                pokemonId={companion.id}
+                strictAppearance
+                alt=""
+                loading={eager ? "eager" : "lazy"}
+            />
         </span>
     );
 }

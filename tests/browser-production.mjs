@@ -1,6 +1,7 @@
 // Read-only smoke check for the public game after a release. Browser actions
 // may update this disposable context's local state, never a remote account.
 import assert from 'node:assert/strict';
+import {isPokemonSpriteSource2D} from '../src/core/pokemonSpriteSources.js';
 import fs from 'node:fs';
 import packageJson from '../package.json' with {type:'json'};
 const {chromium}=await import(process.env.MYOWNDEX_PLAYWRIGHT_MODULE || 'playwright');
@@ -21,7 +22,7 @@ async function check(label){
  const result=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,dialogs:[...document.querySelectorAll('[role="dialog"]')].filter(element=>element.getClientRects().length).map(element=>({width:element.clientWidth,scroll:element.scrollWidth})),brand:document.querySelector('img.app-brand-icon')?.currentSrc}));
  assert.equal(result.scroll,result.width,`${label}: no horizontal page overflow`);
  for(const dialog of result.dialogs)assert.ok(dialog.scroll<=dialog.width+1,`${label}: no horizontal dialog overflow`);
- assert.match(result.brand,/myowndex-dex-v104-96\.png(?:\?|$)/,`${label}: the new Pokédex do MyOwnDex is visible`);
+ assert.match(result.brand,/myowndex-dex-v105-96\.png(?:\?|$)/,`${label}: the new Pokédex do MyOwnDex is visible`);
  report.push({label,...result});
 }
 async function waitForRelease(){
@@ -41,16 +42,16 @@ async function waitForRelease(){
 }
 async function auditIdentity(){
  const metadata=await page.evaluate(()=>({brand:document.querySelector('img.app-brand-icon')?.getAttribute('src'),icons:[...document.querySelectorAll('link[rel="icon"]')].map(element=>({url:element.getAttribute('href'),size:Number(element.getAttribute('sizes')?.split('x')[0])})),apple:document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href'),shortcut:document.querySelector('link[rel="shortcut icon"]')?.getAttribute('href'),manifest:document.querySelector('link[rel="manifest"]')?.getAttribute('href'),og:document.querySelector('meta[property="og:image"]')?.getAttribute('content'),twitter:document.querySelector('meta[name="twitter:image"]')?.getAttribute('content')}));
- assert.match(metadata.brand,/myowndex-dex-v104-96\.png(?:\?|$)/);
- assert.match(metadata.apple,/myowndex-dex-v104-180\.png$/);
- assert.match(metadata.shortcut,/myowndex-dex-v104-96\.png$/);
+ assert.match(metadata.brand,/myowndex-dex-v105-96\.png(?:\?|$)/);
+ assert.match(metadata.apple,/myowndex-dex-v105-180\.png$/);
+ assert.match(metadata.shortcut,/myowndex-dex-v105-96\.png$/);
  assert.ok(metadata.icons.some(icon=>icon.size===32),'The browser has a dedicated readable favicon');
- for(const icon of metadata.icons)assert.match(icon.url,/myowndex-dex-v104-(?:32|96)\.png$/);
+ for(const icon of metadata.icons)assert.match(icon.url,/myowndex-dex-v105-(?:32|96)\.png$/);
  assert.ok(metadata.og);assert.equal(metadata.og,metadata.twitter,'Shared links use the same Pokédex do MyOwnDex');
  const response=await context.request.get(new URL(metadata.manifest,baseUrl).href);assert.equal(response.status(),200);const manifest=await response.json();
  assert.deepEqual(manifest.categories,['games']);assert.equal(manifest.shortcuts.length,4);
- for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v104-96\.png$/);
- for(const icon of manifest.icons)assert.match(icon.src,/myowndex-dex-v104-(?:app-|maskable-)?\d+\.png$/);
+ for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v105-96\.png$/);
+ for(const icon of manifest.icons)assert.match(icon.src,/myowndex-dex-v105-(?:app-|maskable-)?\d+\.png$/);
  const assets=[...metadata.icons,{url:metadata.apple,size:180},{url:metadata.shortcut,size:96},...manifest.icons.map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0])})),{url:metadata.og,size:512}];
  const origin=new URL(baseUrl).origin;
  for(const asset of assets){
@@ -62,9 +63,10 @@ async function auditIdentity(){
 }
 async function auditAnimatedCard(name){
  await page.locator('#pokemon-search').fill(name);const card=page.getByRole('button',{name:`Consultar ${name} na Pokédex`,exact:true});await card.waitFor();await card.scrollIntoViewIfNeeded();
- const image=card.locator('.pokemon-sized-sprite');
+ const image=card.locator('.pokemon-sized-sprite > .pokemon-sprite-image');
  await page.waitForFunction(name=>{const card=[...document.querySelectorAll('.dex-entry-main')].find(element=>element.getAttribute('aria-label')===`Consultar ${name} na Pokédex`),image=card?.querySelector('img');return image?.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;},name);
- const src=await image.getAttribute('src');assert.match(src,/\.gif(?:\?|$)/);
+ const src=await image.getAttribute('src');assert.ok(isPokemonSpriteSource2D(src),'Public motion uses 2D art, never rendered 3D models');assert.match(src,/\.(?:gif|apng)(?:\?|$)/);
+ await page.waitForTimeout(600);
  const first=await image.screenshot();let changed=false;
  for(let frame=0;frame<10&&!changed;frame++){await page.waitForTimeout(150);changed=!first.equals(await image.screenshot());}
  assert.ok(changed,`${name}: a visible authored frame changes after loading`);
@@ -77,8 +79,9 @@ async function auditReversibleForm(){
  await record.getByRole('button',{name:/Adicionar à equipe/}).waitFor();
  const selector=record.getByLabel('Forma',{exact:true});
  await selector.selectOption('deoxys-attack');
- await page.waitForFunction(()=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite');return image?.alt==='Deoxys Attack'&&image.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;});
- const src=await record.locator('.record-sprite-stage .pokemon-sized-sprite').getAttribute('src');
+ await page.waitForFunction(()=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite > .pokemon-sprite-image');return image?.alt==='Deoxys Attack'&&image.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;});
+ const src=await record.locator('.record-sprite-stage .pokemon-sized-sprite > .pokemon-sprite-image').getAttribute('src');
+ assert.ok(isPokemonSpriteSource2D(src),'Reversible forms preserve 2D art');
  assert.match(src,/\/(?:10001|deoxys-attack)\.gif(?:\?|$)/,'Consulting a reversible form retains its own animation');
  assert.equal(await selector.inputValue(),'deoxys-attack');
  report.push({label:'Deoxys Attack remains accessible in its shared Dex entry',src});
@@ -91,7 +94,7 @@ async function auditCosmeticForm(){
  await appearance.waitFor();
  assert.equal(await appearance.locator('option').count(),28,'All twenty-eight Unown appearances remain inside one entry');
  await appearance.selectOption('10001');
- await page.waitForFunction(()=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite');return image?.dataset.pokemonMotion==='animated'&&/\/201-b\.gif(?:\?|$)/.test(image.currentSrc)&&image.complete&&image.naturalWidth>0;});
+ await page.waitForFunction(()=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite > .pokemon-sprite-image');return image?.dataset.pokemonMotion==='animated'&&/\/201-b\.gif(?:\?|$)/.test(image.currentSrc)&&image.complete&&image.naturalWidth>0;});
  assert.equal(await appearance.inputValue(),'10001');
  report.push({label:'Unown appearances are consultable without duplicating Dex entries',appearances:28,selected:'B'});
  await page.getByRole('button',{name:'Fechar registro da Pokédex',exact:true}).click();

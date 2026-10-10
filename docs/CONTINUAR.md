@@ -1,6 +1,9 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.19.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.20.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+
+A direção vigente é exclusivamente 2D, com cores vivas e arte oficial ou comunitária de autoria/procedência registrada. A marca usa a obra humana de Carol Liao/toicon; os cenários usam mapas compostos de tiles humanos licenciados. GIFs de modelos 3D e arte gerada não são alternativas de recuperação. Retratos enquadram o corpo, e a escala física compartilhada do campo é linear; o uso anterior de escala comprimida foi substituído. Sprites fora da tela, cobertos por um diálogo ou em aba oculta suspendem a animação sem alterar o jogo. Consulte `DIRECAO-ARTISTICA-2.0.20.md` e seus registros de procedência. As revisões descritas abaixo são histórico de decisões, e suas políticas visuais são substituídas quando divergirem desta direção.
+
 
 Este arquivo descreve como retomar trabalho sem carregar estado antigo como se ainda fosse atual. A fonte de verdade é, nesta ordem:
 

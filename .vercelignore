@@ -8,4 +8,5 @@ node_modules
 *.tsbuildinfo
 docs
 tests
-scripts
+scripts/*
+!scripts/materializar-sprites-2d.mjs

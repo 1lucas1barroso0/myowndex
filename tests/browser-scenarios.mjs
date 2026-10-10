@@ -159,7 +159,7 @@ try {
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('myowndex_local_room_v1')).snapshot.scenario === 'floresta');
     assert.deepEqual(preservedState(await state()), baseline);
     checks.push('Native scenario picker works from the keyboard');
-    const little = field.locator('.room-token').filter({ has: page.locator('img[src="/sprites/10.png"]') });
+    const little = field.locator('.room-token[aria-label^="Caterpie,"]');
     await little.focus(); await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('myowndex_local_room_v1')).snapshot.tokens.find(token => token.id === 'little').x === 27);
     await page.keyboard.press('Shift+ArrowLeft');
@@ -170,6 +170,8 @@ try {
     assert.deepEqual(moved.hitKillProtectionDisabled, baseline.hitKillProtectionDisabled);
     checks.push('Pokémon move with arrow keys and Shift while preserving PP and protection');
     await page.emulateMedia({ reducedMotion: 'reduce' });
+    await little.scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector('.room-token[aria-label^="Caterpie,"] .pokemon-sized-sprite')?.dataset.pokemonMotion === 'static');
     assert.equal(await little.locator('img').evaluate(element => getComputedStyle(element).animationName), 'none');
     checks.push('Reduced motion keeps the field still');
     assert.deepEqual(remoteRoomRequests, [], 'The audit never creates or edits remote adventures');

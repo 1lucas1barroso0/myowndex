@@ -1,5 +1,6 @@
 // Optional browser check: see docs/VALIDACAO.md for the Playwright setup.
 import assert from 'node:assert/strict';
+import {isPokemonSpriteSource2D} from '../src/core/pokemonSpriteSources.js';
 const {chromium}=await import(process.env.MYOWNDEX_PLAYWRIGHT_MODULE || 'playwright');
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -8,6 +9,7 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.MY
 const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'});
 const page=await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const report=[];const baseUrl=process.env.MYOWNDEX_SMOKE_URL || 'http://localhost:3000';
+const source2D=source=>{const url=new URL(source,baseUrl);return isPokemonSpriteSource2D(url.origin===new URL(baseUrl).origin?url.pathname+url.search+url.hash:source);};
 async function check(label){
  const metrics=await page.evaluate(()=>{
   const width=innerWidth;
@@ -19,9 +21,34 @@ async function check(label){
 async function nav(label){await page.getByRole('button',{name:label,exact:true}).click();await page.waitForTimeout(100)}
 async function waitForVisibleSprites(){
  await page.waitForFunction(()=>{
-  const visible=element=>{const r=element.getBoundingClientRect();return element.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight&&!element.closest('[inert]');};
-  return [...document.querySelectorAll('.pokemon-companion img,.pokemon-card-sprite-frame .pokemon-sized-sprite')].filter(visible).every(element=>element.complete&&element.naturalWidth>0&&element.naturalHeight>0);
+  const modal=[...document.querySelectorAll('[role="dialog"][aria-modal="true"],dialog[open]')].filter(element=>element.getClientRects().length&&!element.closest('[inert]')).at(-1);
+  const visible=element=>{const frame=element.closest('.pokemon-sized-sprite')||element,r=frame.getBoundingClientRect();return frame.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight&&!element.closest('[inert]')&&(!modal||modal.contains(element));};
+  return [...document.querySelectorAll('.pokemon-companion img,.pokemon-card-sprite-frame .pokemon-sized-sprite > .pokemon-sprite-image')].filter(visible).every(element=>element.complete&&element.naturalWidth>0&&element.naturalHeight>0);
  },null,{timeout:30000});
+}
+// Optional review artifacts reuse the real flows below. Their isolated theme
+// and viewport changes are restored so they cannot alter functional checks.
+async function capturePresentation(name, anchor){
+ const directory=process.env.MYOWNDEX_VISUAL_CAPTURE_DIR;
+ if(!directory)return;
+ fs.mkdirSync(directory,{recursive:true});
+ const viewport=page.viewportSize();
+ const theme=await page.locator('html').getAttribute('data-theme');
+ const scroll=await page.evaluate(()=>({x:scrollX,y:scrollY}));
+ try{
+  for(const width of [390,768,1280])for(const appearance of ['day','night']){
+   await page.setViewportSize({width,height:844});
+   await page.evaluate(value=>{document.documentElement.dataset.theme=value;},appearance);
+   if(anchor)await anchor.scrollIntoViewIfNeeded();
+   await waitForVisibleSprites();await page.waitForTimeout(600);
+   const path=`${directory}/${name}-${width}-${appearance}.png`;
+   await page.screenshot({path});
+   report.push({label:`Visual artifact: ${name}, ${width}, ${appearance}`,path});
+  }
+ }finally{
+  await page.setViewportSize(viewport);
+  await page.evaluate(({theme,scroll})=>{if(theme===null)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=theme;scrollTo(scroll.x,scroll.y);},{theme,scroll});
+ }
 }
 async function auditDexIdentity(){
  const metadata=await page.evaluate(()=>({
@@ -33,11 +60,11 @@ async function auditDexIdentity(){
   og:document.querySelector('meta[property="og:image"]')?.getAttribute('content'),
   twitter:document.querySelector('meta[name="twitter:image"]')?.getAttribute('content'),
  }));
- assert.match(metadata.brand,/myowndex-dex-v104-96\.png(?:\?|$)/,'Header uses the new Pokédex do MyOwnDex identity');
- assert.match(metadata.apple,/myowndex-dex-v104-180\.png$/,'Apple installation uses its actual PNG, not an unrelated SVG');
- assert.match(metadata.shortcut,/myowndex-dex-v104-96\.png$/,'Shortcut uses the same Pokédex do MyOwnDex');
+ assert.match(metadata.brand,/myowndex-dex-v105-96\.png(?:\?|$)/,'Header uses the new Pokédex do MyOwnDex identity');
+ assert.match(metadata.apple,/myowndex-dex-v105-180\.png$/,'Apple installation uses its actual PNG, not an unrelated SVG');
+ assert.match(metadata.shortcut,/myowndex-dex-v105-96\.png$/,'Shortcut uses the same Pokédex do MyOwnDex');
  assert.ok(metadata.icons.some(icon=>icon.size===32),'The browser has a legible dedicated favicon');
- for(const icon of metadata.icons)assert.match(icon.url,/myowndex-dex-v104-(?:32|96)\.png$/,'Every browser icon uses the new identity');
+ for(const icon of metadata.icons)assert.match(icon.url,/myowndex-dex-v105-(?:32|96)\.png$/,'Every browser icon uses the new identity');
  assert.equal(metadata.og,metadata.twitter,'Shared links use one Pokédex do MyOwnDex image');
  assert.ok(metadata.og,'Shared-link image is present');
  const localPath=url=>{const parsed=new URL(url,baseUrl);return parsed.pathname+parsed.search;};
@@ -45,9 +72,9 @@ async function auditDexIdentity(){
  assert.equal(manifestResponse.status(),200);
  const manifest=await manifestResponse.json();
  assert.deepEqual(manifest.categories,['games']);
- for(const icon of manifest.icons) assert.match(icon.src,/myowndex-dex-v104-(?:app-|maskable-)?\d+\.png$/,'PWA icons share the same master');
+ for(const icon of manifest.icons) assert.match(icon.src,/myowndex-dex-v105-(?:app-|maskable-)?\d+\.png$/,'PWA icons share the same master');
  assert.equal(manifest.shortcuts.length,4,'Every main game area keeps its installed shortcut');
- for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v104-96\.png$/,'Installed shortcuts use the same new Pokédex do MyOwnDex');
+ for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v105-96\.png$/,'Installed shortcuts use the same new Pokédex do MyOwnDex');
  const images=[{url:metadata.brand,size:96,transparent:true},...metadata.icons.map(icon=>({...icon,transparent:true})),{url:metadata.apple,size:180,opaque:true},{url:metadata.shortcut,size:96,transparent:true},...manifest.icons.filter(icon=>icon.type==='image/png').map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0]),opaque:true})),{url:localPath(metadata.og),size:512,opaque:true}];
  for(const image of images){
   const result=await page.evaluate(async ({url,size})=>{
@@ -94,7 +121,7 @@ async function auditCompactLoading(){
    assert.ok(metrics.height<=200,'A pending view uses a compact loading area');
    assert.ok(metrics.imageWidth>=48&&metrics.imageWidth<=120,'The sole loading identity remains readable without dominating the screen');
    assert.ok(metrics.left>=0&&metrics.right<=width);
-   assert.match(metrics.src,/myowndex-dex-v104-96\.png(?:\?|$)/);
+   assert.match(metrics.src,/myowndex-dex-v105-96\.png(?:\?|$)/);
    report.push({label:`Compact loading ${width}`, ...metrics});
   }
   await loadingPage.emulateMedia({reducedMotion:'reduce'});
@@ -110,11 +137,13 @@ async function auditVisibleModernAnimations(){
  for(const name of ['Toedscool','Scovillain']){
   await page.locator('#pokemon-search').fill(name);
   const card=page.getByRole('button',{name:`Consultar ${name} na Pokédex`,exact:true});await card.waitFor();await card.scrollIntoViewIfNeeded();
-  const image=card.locator('.pokemon-sized-sprite');
+  const image=card.locator('.pokemon-sized-sprite > .pokemon-sprite-image');
   await page.waitForFunction(name=>{const card=[...document.querySelectorAll('.dex-entry-main')].find(element=>element.getAttribute('aria-label')===`Consultar ${name} na Pokédex`),image=card?.querySelector('img');return image?.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;},name);
   const animation=await image.evaluate(element=>({src:element.currentSrc,animation:getComputedStyle(element).animationName,transform:getComputedStyle(element).transform}));
-  assert.match(animation.src,/\.gif(?:\?|$)/,`${name} loads an authored animation rather than a static recovery image`);
+  assert.ok(source2D(animation.src),'Visible frame changes come from authored 2D art');
+  assert.match(animation.src,/\.(?:gif|apng)(?:\?|$)/,`${name} loads an authored animation rather than a static recovery image`);
   assert.equal(animation.animation,'none');assert.equal(animation.transform,'none','Sprite motion comes from its artwork rather than moving the whole card');
+  await page.waitForTimeout(600); // A card entrance must not be mistaken for sprite-frame motion.
   const frames=new Set();
   for(let frame=0;frame<10&&frames.size<2;frame++){
    frames.add(createHash('sha256').update(await image.screenshot()).digest('hex'));
@@ -127,7 +156,7 @@ async function auditVisibleModernAnimations(){
   const stillFrame=await image.screenshot();await page.waitForTimeout(150);assert.ok(stillFrame.equals(await image.screenshot()),`${name} respects reduced motion`);
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.waitForFunction(name=>{const card=[...document.querySelectorAll('.dex-entry-main')].find(element=>element.getAttribute('aria-label')===`Consultar ${name} na Pokédex`),image=card?.querySelector('img');return image?.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;},name);
-  assert.equal(await image.getAttribute('src'),animation.src,'Animation returns without replacing the Pokémon');
+  assert.equal(new URL(await image.getAttribute('src'),baseUrl).href,animation.src,'Animation returns without replacing the Pokémon');
   report.push({label:`${name} visibly animates and respects reduced motion`,frames:frames.size,src:animation.src,staticSource});
  }
  await page.locator('#pokemon-search').fill('');await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).waitFor();
@@ -149,14 +178,15 @@ async function auditConsultableAppearances(){
   if(entry.count)assert.equal(count,entry.count,`${entry.name}: all appearances stay available in one entry`);
   else assert.ok(count>=18,`${entry.name}: the complete type selection remains available`);
   if(entry.id)await appearance.selectOption(entry.id);else await appearance.selectOption({label:entry.type});
-  const image=record.locator('.record-sprite-stage .pokemon-sized-sprite');
-  await page.waitForFunction(()=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite');return image?.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;});
+  const image=record.locator('.record-sprite-stage .pokemon-sized-sprite > .pokemon-sprite-image');
+  await page.waitForFunction(()=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite > .pokemon-sprite-image');return image?.dataset.pokemonMotion==='animated'&&image.complete&&image.naturalWidth>0;});
   // The form request can resolve after the base portrait has already loaded.
   // Wait for the chosen identity, rather than auditing that stale base image.
-  await page.waitForFunction(pattern=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite');return image?.complete&&image.naturalWidth>0&&new RegExp(pattern).test(image.currentSrc);},entry.sprite.source);
-  const src=await image.getAttribute('src');assert.match(src,entry.sprite,`${entry.name}: the selected appearance never falls back to an unrelated base portrait`);
+  await page.waitForFunction(pattern=>{const image=document.querySelector('.record-sprite-stage .pokemon-sized-sprite > .pokemon-sprite-image');return image?.complete&&image.naturalWidth>0&&new RegExp(pattern).test(image.currentSrc);},entry.sprite.source);
+  const src=await image.getAttribute('src');assert.ok(isPokemonSpriteSource2D(src),'Each selected appearance stays 2D');assert.match(src,entry.sprite,`${entry.name}: the selected appearance never falls back to an unrelated base portrait`);
   if(entry.id)assert.equal(await appearance.inputValue(),entry.id);
   if(entry.type)assert.deepEqual(await record.locator('.record-type-chip').allTextContents(),[entry.type],`${entry.name}: the chosen type accompanies its portrait`);
+  await page.waitForTimeout(600);
   const first=await image.screenshot();let changed=false;for(let frame=0;frame<10&&!changed;frame++){await page.waitForTimeout(150);changed=!first.equals(await image.screenshot());}
   assert.ok(changed,`${entry.name}: its chosen appearance has visible authored motion`);
   await check(`Consultable ${entry.name} appearance`);
@@ -169,20 +199,22 @@ async function auditRepeatedMotionPreferences(){
  await page.setViewportSize({width:1920,height:1080});
  await page.emulateMedia({reducedMotion:'no-preference'});
  const sprites=page.locator('.dex-entry-main .pokemon-sized-sprite');
+ const visited=new Set();
+ const recordLoaded=async()=>{for(const index of await sprites.evaluateAll(frames=>frames.flatMap((frame,index)=>{const image=frame.querySelector('img');return image?.complete&&image.naturalWidth>0&&image.naturalHeight>0?[index]:[]})))visited.add(index);};
  const count=await sprites.count();
  assert.ok(count>=60,'Repeated motion changes are tested with at least sixty mounted Pokémon');
  for(let index=0;index<count;index+=8){
   await sprites.nth(index).scrollIntoViewIfNeeded();
-  await waitForVisibleSprites();
+  await waitForVisibleSprites();await recordLoaded();
  }
- await sprites.last().scrollIntoViewIfNeeded();await waitForVisibleSprites();
- const loaded=await sprites.evaluateAll(images=>images.filter(image=>image.complete&&image.naturalWidth>0&&image.naturalHeight>0).length);
+ await sprites.last().scrollIntoViewIfNeeded();await waitForVisibleSprites();await recordLoaded();
+ const loaded=visited.size;
  assert.ok(loaded>=60,'Sixty actual sprite images load before switching motion preferences');
  await sprites.first().scrollIntoViewIfNeeded();
  const errorsBefore=errors.length;
  for(let cycle=0;cycle<10;cycle+=1){
   await page.emulateMedia({reducedMotion:'reduce'});
-  await page.waitForFunction(()=>[...document.querySelectorAll('.dex-entry-main .pokemon-sized-sprite')].every(image=>image.dataset.pokemonMotion==='static'));
+  await page.waitForFunction(()=>[...document.querySelectorAll('.dex-entry-main .pokemon-sized-sprite')].filter(frame=>{const r=frame.getBoundingClientRect();return r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight;}).every(frame=>frame.dataset.pokemonMotion==='static'));
   await waitForVisibleSprites();
   assert.deepEqual(errors.slice(errorsBefore),[],`Motion reduction cycle ${cycle+1} has no React or browser errors`);
   await page.emulateMedia({reducedMotion:'no-preference'});
@@ -220,7 +252,7 @@ for(const viewport of deviceMatrix){
   if(view==='dex')await page.locator('.dex-entry-main').first().scrollIntoViewIfNeeded();
   await waitForVisibleSprites();
   const spriteAudit=await page.evaluate(()=>{
-   const visible=element=>{const r=element.getBoundingClientRect();return element.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight&&!element.closest('[inert]');};
+   const visible=element=>{const frame=element.closest('.pokemon-sized-sprite')||element,r=frame.getBoundingClientRect();return frame.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight&&!element.closest('[inert]');};
    const clippingAncestor=element=>{
     const r=element.getBoundingClientRect();
     for(let parent=element.parentElement;parent&&parent!==document.body;parent=parent.parentElement){
@@ -230,9 +262,9 @@ for(const viewport of deviceMatrix){
     return null;
    };
    return {
-   companions:[...document.querySelectorAll('.pokemon-companion img')].filter(visible).map(e=>{const r=e.getBoundingClientRect();return {src:e.currentSrc,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,background:getComputedStyle(e).backgroundColor,clippedBy:clippingAncestor(e)};}),
+   companions:[...document.querySelectorAll('.pokemon-companion img')].filter(visible).map(e=>{const frame=e.closest('.pokemon-sized-sprite')||e,r=frame.getBoundingClientRect();return {src:e.currentSrc,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,background:getComputedStyle(e).backgroundColor,clippedBy:clippingAncestor(frame)};}),
    dexStages:[...document.querySelectorAll('.pokemon-card-sprite-frame')].slice(0,8).map(e=>{const s=getComputedStyle(e);return {backgroundImage:s.backgroundImage,backgroundColor:s.backgroundColor};}),
-   dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].filter(visible).map(e=>{const r=e.getBoundingClientRect(),f=e.closest('.pokemon-card-sprite-frame')?.getBoundingClientRect();return {transform:getComputedStyle(e).transform,naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,background:getComputedStyle(e).backgroundColor,clippedBy:clippingAncestor(e),rect:{left:r.left,right:r.right,top:r.top,bottom:r.bottom},frame:f?{left:f.left,right:f.right,top:f.top,bottom:f.bottom}:null};}),
+   dexSprites:[...document.querySelectorAll('.pokemon-card-sprite-frame .pokemon-sized-sprite')].filter(visible).map(e=>{const r=e.getBoundingClientRect(),i=e.querySelector('img'),f=e.closest('.pokemon-card-sprite-frame')?.getBoundingClientRect();return {transform:i?getComputedStyle(i).transform:'none',naturalWidth:i?.naturalWidth,naturalHeight:i?.naturalHeight,background:getComputedStyle(e).backgroundColor,clippedBy:clippingAncestor(e),rect:{left:r.left,right:r.right,top:r.top,bottom:r.bottom},frame:f?{left:f.left,right:f.right,top:f.top,bottom:f.bottom}:null};}),
    identity:[...document.querySelectorAll('img.app-brand-icon')].map(e=>e.getAttribute('src'))
   };});
   report.at(-1).spriteAudit=spriteAudit;
@@ -256,7 +288,8 @@ for(const viewport of deviceMatrix){
   fs.writeFileSync(process.env.MYOWNDEX_BROWSER_REPORT || '/tmp/myowndex-browser-report.json',JSON.stringify({report,errors},null,2));
   for(const sprite of spriteAudit.companions){
    assert.ok(sprite.naturalWidth>0&&sprite.naturalHeight>0,`companion must load at ${viewport.width}x${viewport.height}`);
-   assert.match(sprite.src,/\.gif(?:$|\?)/,`decorative companion must use authored animated GIF: ${sprite.src}`);
+   assert.match(sprite.src,/\.(?:gif|apng)(?:$|\?)/,`decorative companion must use authored animation: ${sprite.src}`);
+   assert.ok(source2D(sprite.src),`decorative companion uses verified 2D art: ${sprite.src}`);
    assert.ok(sprite.left>=-1&&sprite.right<=viewport.width+1,`companion must stay horizontally reachable at ${viewport.width}x${viewport.height}`);
    assert.equal(sprite.clippedBy,null,`companion must not be clipped by an ancestor at ${viewport.width}x${viewport.height}`);
   }
@@ -272,7 +305,7 @@ for(const viewport of deviceMatrix){
     if(sprite.frame){assert.ok(sprite.rect.left>=sprite.frame.left-1&&sprite.rect.right<=sprite.frame.right+1,'Dex sprite must stay inside its stage horizontally');assert.ok(sprite.rect.top>=sprite.frame.top-1&&sprite.rect.bottom<=sprite.frame.bottom+1,'Dex sprite must stay inside its stage vertically');}
    }
   }
-  for(const src of spriteAudit.identity) assert.match(src,/myowndex-dex-v104-96\.png(?:\?|$)/);
+  for(const src of spriteAudit.identity) assert.match(src,/myowndex-dex-v105-96\.png(?:\?|$)/);
  }
 }
 await page.getByRole('button',{name:'Entrar ou criar conta',exact:true}).click();
@@ -280,19 +313,23 @@ const accountDialog=page.locator('.account-dialog');
 for(const label of ['Entrar','Criar conta','Recuperar acesso']){
  await accountDialog.getByRole('button',{name:label,exact:true}).click();
  for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:844});await check(`${width}-account-${label}`)}
+ if(label==='Entrar')await capturePresentation('account',accountDialog.locator('h2'));
 }
 await page.getByRole('button',{name:'Fechar conta',exact:true}).click();
 await page.getByRole('button',{name:'Gerar Pokémon',exact:true}).first().click();
 const generatorDialog=page.locator('.generator-dialog');
 for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:844});await check(`${width}-generator-basic`)}
+await capturePresentation('generator-basic',generatorDialog.locator('h2'));
 for(const details of await generatorDialog.locator('.generator-customize').all())if(!await details.evaluate(element=>element.open))await details.locator(':scope > summary').click();
 for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:844});await check(`${width}-generator-options`)}
+await capturePresentation('generator-options',generatorDialog.locator('.generator-options'));
 await page.getByRole('button',{name:'Fechar gerador',exact:true}).click();
 await page.setViewportSize({width:390,height:844});await page.getByRole('radio',{name:'Claro',exact:true}).click();
 await nav('Abrir a Pokédex');await page.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).click();
 await page.getByRole('button',{name:'Adicionar à equipe',exact:false}).waitFor({timeout:30000});
 for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:844});for(const tab of ['Perfil','Tipos','Movimentos']){await page.getByRole('tab',{name:tab,exact:false}).click();await page.waitForTimeout(180);await check(`${width}-record-${tab}`)} }
 await page.setViewportSize({width:390,height:844});await page.getByRole('tab',{name:'Perfil',exact:false}).click();await page.locator('.record-shell').evaluate(e=>e.scrollTop=0);await page.waitForTimeout(250);await page.screenshot({path:'/tmp/myowndex-clean-record-390.png'});
+await capturePresentation('record',page.locator('.record-header'));
 await page.getByRole('button',{name:'Adicionar à equipe',exact:false}).click();
 await page.locator('.pc-partner-card').first().waitFor();await page.locator('.pc-partner-card').first().click();
 await page.getByLabel('Apelido',{exact:true}).fill('Venusaur parceiro com nome comprido para verificar o espaço');
@@ -302,6 +339,7 @@ for(const width of [320,390,768,1280]){
  for(const summary of ['Progresso da jornada','Características e transformações','Treinamento']){const s=page.locator('.pokemon-editor summary').filter({hasText:summary});if(!await s.evaluate(e=>e.parentElement.open))await s.click();await s.scrollIntoViewIfNeeded();await check(`${width}-editor-${summary}`)}
 }
 await page.setViewportSize({width:1280,height:900});await page.locator('.editor-header').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/myowndex-clean-editor.png'});
+await capturePresentation('editor',page.locator('.editor-header'));
 await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Compartilhar',exact:true}).click();await check('390-link-share');await page.getByRole('radio',{name:'Box inteira',exact:false}).click();
 await page.getByRole('button',{name:'Gerar código',exact:false}).click();try {await page.getByLabel('Código de compartilhamento',{exact:true}).waitFor({timeout:5000});}catch(e){console.log('FAILBODY',await page.locator('body').innerText());console.log('ERRORS',JSON.stringify(errors));await page.screenshot({path:'/tmp/myowndex-flow-fail.png'});throw e;}await check('link-code');
 const code=await page.getByLabel('Código de compartilhamento',{exact:true}).inputValue();console.log('SHARE',code.length);
@@ -310,6 +348,7 @@ await page.getByRole('button',{name:'Importar Pokémon ou Box',exact:false}).cli
 await nav('Abrir o Guia do Treinador');await page.getByLabel('Pesquisar regras').fill('dano');await page.locator('.guide-rule-body').first().scrollIntoViewIfNeeded();await check('guide-open-rules');await page.screenshot({path:'/tmp/myowndex-clean-guide.png'});
 await page.getByLabel('Pesquisar regras').fill('');await page.locator('.guide-rule-card summary').first().click();await check('guide-one-open-rule');
 await page.getByRole('button',{name:'Abrir Dados',exact:true}).click();const diceDialog=page.getByRole('dialog',{name:'Dados',exact:true});await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).click();await diceDialog.locator('.local-dice-result').waitFor();await diceDialog.locator('.local-dice-history > summary').filter({hasText:'1 rolagem'}).waitFor();assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/1 rolagem/);
+await capturePresentation('dice-result',diceDialog.locator('.local-dice-result'));
 for(let index=0;index<40;index+=1) await diceDialog.getByRole('button',{name:'Rolar 2d6',exact:true}).click();
 await page.waitForFunction(()=>/41 rolagens/.test(document.querySelector('.local-dice-history > summary')?.textContent||''));
 assert.match(await diceDialog.locator('.local-dice-history > summary').innerText(),/41 rolagens/);

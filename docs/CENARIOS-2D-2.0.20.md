@@ -1,0 +1,20 @@
+# Cenários 2D e enquadramento dos Pokémon — 2.0.20
+
+Os nove cenários ativos passam a usar mapas montados com pixels de tiles publicados por Kenney. Rota tem caminho e placas; floresta tem árvores e clareira; cidade tem casas e ruas; praia tem mar, areia e cais; caverna tem pedra e tochas; neve tem chão nevado e pinheiros; estádio tem quadra, bancos e bandeiras; laboratório tem bancadas, monitores e recipientes; Mundo Distorcido tem ilhas isoladas no vazio.
+
+As imagens ficam locais e mantêm as nove URLs anteriores. Somadas, têm 38.447 bytes. Não há fontes remotas, bibliotecas de mapas, iluminação 3D, filtros de desfoque ou arte produzida por um gerador de imagens. O script define o chão com cores planas e organiza os tiles originais. Casas, árvores e equipamentos recebem ampliação uniforme de 2× pelo vizinho mais próximo: cada pixel original vira um bloco de quatro pixels da mesma cor, sem suavização, filtro ou recoloração. Os pisos amplos usam verde vivo, azul, dourado ou pedra escura; a neve conserva o branco. A câmera deixa a área central livre para os Pokémon. Clima e terreno continuam separados do cenário e seguem as mesmas regras.
+
+O Campo mede os Pokémon com uma escala comum e linear, usando a altura documentada da identidade que aparece: espécies, formas, transformações e disfarces. A câmera considera também a largura dos quadros originais para acomodar corpos compridos. O alvo de toque conserva pelo menos 44 px, independentemente do tamanho do corpo. Os retratos abaixo do campo usam enquadramento individual; um Pokémon pequeno continua em destaque sem fingir ser tão grande quanto outro. Selecioná-lo mostra um retrato maior, nome, nível, medida da Pokédex e HP quando a fase pede essa informação. A animação vem dos quadros do sprite, sem um segundo movimento artificial de flutuação.
+
+Fontes e autoria:
+
+- [Roguelike/RPG pack](https://kenney.nl/assets/roguelike-rpg-pack), publicado em 2015: Kenney Vleugels, com colaboração de Lynn Evers.
+- [Tiny Town](https://kenney.nl/assets/tiny-town), publicado em 2023: Kenney.
+- [Tiny Ski](https://kenney.nl/assets/tiny-ski), publicado em 2023: Kenney.
+- [Tiny Dungeon](https://kenney.nl/assets/tiny-dungeon), publicado em 2022: Kenney.
+
+As quatro fontes disponibilizam os materiais sob [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), permitindo uso, adaptação e redistribuição. Os textos de licença originais ficam em `public/scenes/source/`. Os arquivos originais, URLs, data de consulta e hashes SHA-256 ficam no mesmo diretório. A composição e a geometria plana do chão são específicas do MyOwnDex; os pixels dos objetos permanecem os dos autores citados. As ilustrações vetoriais anteriores permanecem disponíveis no histórico do Git, mas deixam de ser a arte ativa do campo.
+
+Reprodução: execute `python3 scripts/reproduzir-cenarios-2d.py` com Pillow disponível. O script não acessa a rede e gera as nove imagens e o manifesto a partir dos PNG originais conservados no projeto. Os testes conferem as dimensões reais, hashes dos pixels, licença, variedade e orçamento dos arquivos. As matrizes de navegador verificam cenários, teclado, toque, temas e tamanhos de tela, preservando HP, PP, proteção e andamento da batalha.
+
+Validação realizada em 9 de outubro de 2026, na compilação local de produção: `browser-scenarios.mjs` passou por 108 estados — 54 cenários/temas/tamanhos de tela e 54 combinações de clima/terreno. Nenhuma violação WCAG A/AA, controle fora da tela, alvo de toque abaixo de 44 px, erro de execução ou requisição a aventuras remotas. Foram registradas 72 capturas de campos e seis galerias. `browser-adventure-scene.mjs` passou pelas quatro fases e 14 verificações, incluindo iniciativa preservada, seleção sem deslocamento, escala linear Caterpie/Onix, retratos, encaixe de 320 a 1280 px nos dois temas e movimento reduzido. As galerias de 390 px confirmam que casas e máquinas continuam visíveis no recorte mobile. A reprodução dos nove SVG e do manifesto também manteve hashes idênticos.

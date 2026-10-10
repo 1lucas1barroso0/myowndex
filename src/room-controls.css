@@ -491,7 +491,7 @@ html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team > 
   background: var(--ui-raised);
   border-radius: .25rem;
 }
-html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team img{
+html .app-root.game-edition.handheld-edition .room-team-entry .room-mini-team .pokemon-sized-sprite{
   width: 48px;
   height: 48px;
   object-fit: contain;

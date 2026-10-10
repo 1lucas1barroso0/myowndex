@@ -8,7 +8,7 @@
     "Plugins/Elite Battle DX/[000] Scripts/Battle Core/Battler Bitmaps.rb",
     "PBS/EBDX/pokemon.txt"
   ],
-  "license": "Published open-source fan resource; no SPDX license file; full contributor attribution required. Pokémon artwork retains its original owners.",
+  "license": "Published open-source fan resource; no SPDX license file; full contributor attribution required. Pok\u00e9mon artwork retains its original owners.",
   "assets": [
     {
       "pokemonId": 993,
@@ -5587,60 +5587,6 @@
       "staticSha256": "891b03b8444042a1e226aa14b80479d0ce8af874b4824d8977c4636a68609fc4"
     },
     {
-      "pokemonId": 10084,
-      "name": "PIKACHU_6",
-      "view": "back",
-      "shiny": false,
-      "url": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Back/PIKACHU_6.png",
-      "sourcePath": "Graphics/Pokemon/Back/PIKACHU_6.png",
-      "sourceBlob": "d196b9f6087bd589c818d8851589c1ebeef0c181",
-      "sourceSha256": "237bd48654527db02dcd76aff0caaf377b2224df1282a9064f1e1d4755c0a2f7",
-      "sourceBytes": 4828,
-      "frameSize": [
-        49,
-        49
-      ],
-      "nativeFrames": 10,
-      "uniqueFrames": 10,
-      "encodedFrames": 10,
-      "durationMs": 1000,
-      "frameDurationMs": 100,
-      "gifBytes": 13702,
-      "gifSha256": "1a953903cfda40ccefcfe09b02e3b4cfbe0bdddf3f208a900143589399de7e3b",
-      "pixelAlphaTimelineVerified": true,
-      "identityNote": "Back view authored in the exact EBDX file named in sourcePath. Terapagos _1=Terastal, _2=Stellar; Pikachu _6=Libre; Venusaur/Blastoise _2=Gigantamax; Rillaboom/Inteleon _1=Gigantamax; Urshifu _2=Single Strike Gmax, _3=Rapid Strike Gmax. Visual review performed against source sprite set.",
-      "animated": "/sprites/native/10084-back.gif",
-      "static": "/sprites/native/10084-back.png",
-      "staticSha256": "fa340fd235ef9d2006abeb25dd22cb478c57874db57cea8c1309da74c9394097"
-    },
-    {
-      "pokemonId": 10084,
-      "name": "PIKACHU_6",
-      "view": "back",
-      "shiny": true,
-      "url": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Back%20shiny/PIKACHU_6.png",
-      "sourcePath": "Graphics/Pokemon/Back shiny/PIKACHU_6.png",
-      "sourceBlob": "9b74e4b1ebd34d0b65c78e77e0bfaa21bf7628d1",
-      "sourceSha256": "7742532296532e54caac611e1e3584becdf26a09cdecd1df6b9610c9424a3f29",
-      "sourceBytes": 4968,
-      "frameSize": [
-        49,
-        49
-      ],
-      "nativeFrames": 10,
-      "uniqueFrames": 10,
-      "encodedFrames": 10,
-      "durationMs": 1000,
-      "frameDurationMs": 100,
-      "gifBytes": 13708,
-      "gifSha256": "578e0d7ba9b2ca3e3921df6d3aff202da69329ac9341a68e3b73e33ddab76483",
-      "pixelAlphaTimelineVerified": true,
-      "identityNote": "Back view authored in the exact EBDX file named in sourcePath. Terapagos _1=Terastal, _2=Stellar; Pikachu _6=Libre; Venusaur/Blastoise _2=Gigantamax; Rillaboom/Inteleon _1=Gigantamax; Urshifu _2=Single Strike Gmax, _3=Rapid Strike Gmax. Visual review performed against source sprite set.",
-      "animated": "/sprites/native/10084-back-shiny.gif",
-      "static": "/sprites/native/10084-back-shiny.png",
-      "staticSha256": "a42dbc8f80ee408556eb123c9b9cd2e985b88d8f04a3c2bdaf61a3e5a4b843a7"
-    },
-    {
       "pokemonId": 10195,
       "name": "VENUSAUR_2",
       "view": "back",
@@ -6125,5 +6071,13 @@
       "rejectionReason": "Shiny source has exactly the same visible colors as normal; official shiny Mega Barbaracle differs."
     }
   ],
-  "identityProof": "Mega identities follow PBS/pokemon_forms.txt at the same source commit; front/back and shiny are kept separate."
+  "identityProof": "Mega identities follow PBS/pokemon_forms.txt at the same source commit; front/back and shiny are kept separate.",
+  "correctedIdentities": [
+    {
+      "pokemonId": 10084,
+      "previousSource": "PIKACHU_6 (Pop Star)",
+      "correctSource": "PIKACHU_7 (Libre)",
+      "replacementProvenance": "/sprites/native/provenance-2d.json"
+    }
+  ]
 }

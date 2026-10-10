@@ -9,6 +9,7 @@ import { clearStorageScope, getStorageScope, listStoredAccountScopes, readDurabl
 
 const origin = "https://myowndex.vercel.app";
 const shellCacheName = `myowndex-shell-v${JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version}`;
+const assetCacheName = "myowndex-assets-v2";
 const catalogue = "https://pokeapi.co/api/v2/pokemon/";
 const flushUrl = catalogue + "_flush_test";
 const requestKey = request => new URL(typeof request === "string" ? request : request.url, origin).href;
@@ -16,7 +17,7 @@ class MemoryCache {
   entries = new Map();
   async match(request) { return this.entries.get(requestKey(request))?.clone(); }
   async put(request, response) {
-    this.entries.set(requestKey(request), new Response(await response.text(), { status: response.status, headers: response.headers }));
+    this.entries.set(requestKey(request), new Response(await response.arrayBuffer(), { status: response.status, headers: response.headers }));
   }
   async delete(request) { return this.entries.delete(requestKey(request)); }
   async keys() { return [...this.entries.keys()].map(url => new Request(url)); }
@@ -428,10 +429,10 @@ async function serviceWorker(fetcher) {
     self: { location: { origin }, addEventListener: (name, fn) => callbacks.set(name, fn), clients: { claim: async () => {} } },
   });
   vm.runInContext(await readFile(new URL("../public/sw.js", import.meta.url), "utf8"), context);
-  const asset = async url => {
+  const asset = async (url, options) => {
     let response;
     const maintenance = [];
-    callbacks.get("fetch")({ request: new Request(url), respondWith: value => { response = value; }, waitUntil: value => maintenance.push(value) });
+    callbacks.get("fetch")({ request: new Request(url, options), respondWith: value => { response = value; }, waitUntil: value => maintenance.push(value) });
     const result = await response;
     await Promise.all(maintenance);
     return result;
@@ -452,28 +453,43 @@ test("offline asset LRU is bounded across concurrent tabs, pins the shell, and i
   assert.equal(await (await worker.asset(`${origin}/sprites/pokemon/0.png`)).text(), `${origin}/sprites/pokemon/0.png`);
   const requests = worker.calls();
   await worker.asset(`${origin}/sprites/pokemon/500.png`);
-  const cache = await worker.caches.open("myowndex-assets-v1");
+  const cache = await worker.caches.open(assetCacheName);
   assert.equal((await cache.keys()).length, 500);
   assert.ok(await cache.match(`${origin}/sprites/pokemon/0.png`));
   assert.equal(await cache.match(`${origin}/sprites/pokemon/1.png`), undefined);
   assert.equal(worker.calls(), requests + 1);
   assert.equal(await (await worker.asset(`${origin}/fonts/VT323-Regular.ttf`)).text(), "pinned font");
   assert.equal(await (await pinned.match("/")).text(), "offline shell");
-  for (const url of [`${origin}/api/rooms/private`, "https://raw.githubusercontent.com/other/private/main/secret.txt"]) {
-    let intercepted = false;
-    worker.callbacks.get("fetch")({ request: new Request(url), respondWith: () => { intercepted = true; }, waitUntil: () => {} });
-    assert.equal(intercepted, false);
+  for (const [url, options] of [
+    [`${origin}/api/rooms/private?token=secret`],
+    [`${origin}/api/account/boxes`],
+    [`${origin}/sprites/native/private.apng`, { method: "POST" }],
+    [`${origin}/sprites/native/component.apng`, { headers: { RSC: "1" } }],
+    [`${origin}/sprites/native/component.apng?_rsc=private`],
+    ["https://raw.githubusercontent.com/other/private/main/secret.txt"],
+  ]) {
+    assert.equal(await worker.asset(url, options), undefined, `${url} must remain outside offline asset interception`);
   }
   assert.equal(await (await unrelated.match("/private")).text(), "private upload");
 });
 
-test("worker activation removes only obsolete MyOwnDex shell and asset caches", async () => {
+test("worker activation discards old sprite appearances while preserving current assets, catalogue data and unrelated caches", async () => {
   const worker = await serviceWorker();
-  for (const name of ["myowndex-shell-v10.0.0", shellCacheName, "myowndex-assets-v0", "myowndex-assets-v1", "myowndex-api-v5", "another-app-cache"]) await worker.caches.open(name);
+  const libreUrl = `${origin}/sprites/native/pikachu-libre.gif`;
+  for (const name of ["myowndex-shell-v10.0.0", shellCacheName, "myowndex-assets-v0", "myowndex-assets-v1", assetCacheName, "myowndex-api-v5", "another-app-cache"]) await worker.caches.open(name);
+  await (await worker.caches.open("myowndex-assets-v1")).put(libreUrl, new Response("old incorrect appearance"));
+  await (await worker.caches.open(assetCacheName)).put(`${origin}/sprites/native/preserved.apng`, new Response("current authored animation"));
+  await (await worker.caches.open("myowndex-api-v5")).put(catalogue + "25", Response.json({ id: 25 }));
+  await (await worker.caches.open("another-app-cache")).put("/private", new Response("untouched private content"));
   let activation;
   worker.callbacks.get("activate")({ waitUntil: task => { activation = task; } });
   await activation;
-  assert.deepEqual(await worker.caches.keys(), [shellCacheName, "myowndex-assets-v1", "myowndex-api-v5", "another-app-cache"]);
+  assert.deepEqual(await worker.caches.keys(), [shellCacheName, assetCacheName, "myowndex-api-v5", "another-app-cache"]);
+  assert.equal(await (await (await worker.caches.open(assetCacheName)).match(`${origin}/sprites/native/preserved.apng`)).text(), "current authored animation");
+  assert.deepEqual(await (await (await worker.caches.open("myowndex-api-v5")).match(catalogue + "25")).json(), { id: 25 });
+  assert.equal(await (await (await worker.caches.open("another-app-cache")).match("/private")).text(), "untouched private content");
+  assert.equal(await (await worker.asset(libreUrl)).text(), libreUrl, "an unchanged URL must fetch its corrected artwork after migration");
+  assert.equal(worker.calls(), 1);
 });
 
 test("public sprites use credential-free CORS and opaque fallbacks never consume offline quota", async () => {
@@ -486,7 +502,7 @@ test("public sprites use credential-free CORS and opaque fallbacks never consume
   assert.equal(await (await worker.asset(url)).text(), "public sprite");
   assert.equal(calls[0].options.mode, "cors");
   assert.equal(calls[0].options.credentials, "omit");
-  assert.ok(await (await worker.caches.open("myowndex-assets-v1")).match(url));
+  assert.ok(await (await worker.caches.open(assetCacheName)).match(url));
 
   const opaque = { ok: false, type: "opaque", clone() { return this; } };
   const fallback = await serviceWorker(async (_request, options) => {
@@ -495,7 +511,53 @@ test("public sprites use credential-free CORS and opaque fallbacks never consume
   });
   assert.strictEqual(await fallback.asset(url), opaque, "the browser can still display the original response");
   assert.equal(fallback.calls(), 2);
-  assert.equal((await (await fallback.caches.open("myowndex-assets-v1")).keys()).length, 0);
+  assert.equal((await (await fallback.caches.open(assetCacheName)).keys()).length, 0);
+});
+
+test("offline sprites preserve binary GIF, PNG and APNG bytes and serve them after the network disconnects", async () => {
+  const bytes = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff, 0xc0, 0x80, 0x7f]);
+  let connected = true;
+  const worker = await serviceWorker(async request => {
+    if (!connected) throw new TypeError("offline");
+    const extension = new URL(request.url).pathname.split(".").at(-1);
+    return new Response(bytes, { headers: { "content-type": `image/${extension}` } });
+  });
+  const urls = ["gif", "png", "apng"].map(extension => `${origin}/sprites/native/authored-loop.${extension}`);
+  for (const url of urls) assert.deepEqual(new Uint8Array(await (await worker.asset(url)).arrayBuffer()), bytes);
+  connected = false;
+  const calls = worker.calls();
+  for (const url of urls) {
+    const response = await worker.asset(url);
+    assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes, url);
+    assert.equal(response.headers.get("x-myowndex-bytes"), String(bytes.byteLength));
+  }
+  assert.equal(worker.calls(), calls, "every warmed animation remains available without another network request");
+});
+
+test("only pixel-art source directories enter the external sprite cache, including Smogon pixels and BW", async () => {
+  const worker = await serviceWorker();
+  const commit = "a".repeat(40);
+  const accepted = [
+    `https://raw.githubusercontent.com/PokeAPI/sprites/${commit}/sprites/pokemon/versions/generation-v/black-white/animated/25.gif`,
+    `https://raw.githubusercontent.com/smogon/sprites/${commit}/src/bw/pikachu.gif`,
+    `https://raw.githubusercontent.com/smogon/sprites/${commit}/src/pixels/toedscool.gif`,
+  ];
+  for (const url of accepted) {
+    assert.equal((await worker.asset(url)).status, 200);
+    assert.ok(await (await worker.caches.open(assetCacheName)).match(url), url);
+  }
+  const calls = worker.calls();
+  for (const url of [
+    `https://raw.githubusercontent.com/PokeAPI/sprites/${commit}/sprites/pokemon/other/showdown/948.gif`,
+    `https://raw.githubusercontent.com/PokeAPI/sprites/${commit}/sprites/pokemon/other/home/948.png`,
+    `https://raw.githubusercontent.com/PokeAPI/sprites/${commit}/sprites/pokemon/other/official-artwork/948.png`,
+    `https://raw.githubusercontent.com/smogon/sprites/${commit}/src/models/toedscool.gif`,
+    "https://raw.githubusercontent.com/smogon/sprites/main/src/pixels/toedscool.gif",
+  ]) {
+    assert.equal(await worker.asset(url), undefined, url);
+    assert.equal(await (await worker.caches.open(assetCacheName)).match(url), undefined);
+  }
+  assert.equal(worker.calls(), calls, "unapproved artwork falls through to the browser without worker interception");
 });
 
 class MemoryIndexedDB {
@@ -824,7 +886,7 @@ test('catalogue caching stops under disk pressure while Boxes and network reques
 test('worker asset caching bounds bytes, includes warmed language catalogues, and works with storage disabled', async () => {
   const worker = await serviceWorker(async request => new Response(requestKey(request).includes('huge') ? 'x'.repeat(5 * 1024 * 1024) : 'x'.repeat(3 * 1024 * 1024)));
   for (let index = 0; index < 6; index++) await worker.asset(`${origin}/catalog/v1/species-${index}.json`);
-  const cache = await worker.caches.open('myowndex-assets-v1');
+  const cache = await worker.caches.open(assetCacheName);
   assert.equal((await cache.keys()).length, 5);
   assert.ok(await cache.match(`${origin}/catalog/v1/species-5.json`));
   assert.equal(await cache.match(`${origin}/catalog/v1/species-0.json`), undefined);

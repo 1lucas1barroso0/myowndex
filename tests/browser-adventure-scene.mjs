@@ -7,10 +7,11 @@ const proxy = process.env.MYOWNDEX_BROWSER_PROXY || process.env.HTTPS_PROXY || p
 const browser = await chromium.launch({ headless: true, executablePath: process.env.MYOWNDEX_BROWSER_EXECUTABLE || undefined, args: ['--no-sandbox'], ...(proxy ? { proxy: { server: proxy, bypass: 'localhost,127.0.0.1,::1' } } : {}) });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
 const page = await context.newPage();
-const errors = [], checks = [];
+const errors = [], checks = [], remoteRoomRequests = [];
 page.on('pageerror', error => errors.push(error.message));
 const token = (id, name, speciesId, side, x, y) => ({ id, name, speciesId, speciesName: name.toLowerCase(), sprite: `/sprites/${speciesId}.png`, side, x, y, level: 20, currentHp: 20, maxHp: 20, stats: { hp: 20, attack: 5, defense: 5, 'special-attack': 5, 'special-defense': 5, speed: 5 }, types: ['normal'], moves: ['', '', '', ''], pp: [null, null, null, null] });
 const seed = normalizeRoomSnapshot({ ...createRoomSnapshot('Nossa cena'), phase: 'batalha', hitKillProtectionUsed: ['token:little'], tokens: [token('little', 'Caterpie', 10, 'ally', 25, 75), token('large', 'Onix', 95, 'opponent', 75, 25)] });
+await context.route('**/api/rooms/**', route => { remoteRoomRequests.push(`${route.request().method()} ${new URL(route.request().url()).pathname}`); return route.abort(); });
 await context.route('https://pokeapi.co/api/v2/**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 1, name: 'bulbasaur', abilities: [], moves: [], stats: [], types: [{ type: { name: 'grass' } }], sprites: {}, species: { name: 'bulbasaur' }, flavor_text_entries: [] }) }));
 await context.addInitScript(seed => {
     if (localStorage.getItem('adventure-scene-seeded')) return;
@@ -63,7 +64,7 @@ try {
     assert.equal(await capture.count(), 1);
     assert.deepEqual((await state()).initiative, initial.initiative);
     assert.deepEqual((await state()).hitKillProtectionUsed, initial.hitKillProtectionUsed, 'Returning to an active battle must not restore protection');
-    const little = page.locator('.room-token').filter({ has: page.locator('img[src="/sprites/10.png"]') });
+    const little = page.locator('.room-token[aria-label^="Caterpie,"]');
     await little.click();
     const selected = await state();
     assert.equal(selected.tokens.find(t => t.id === 'little').x, 25);
@@ -71,9 +72,11 @@ try {
     assert.equal(await page.locator('.battlefield-focus').count(), 1);
     assert.equal(await page.locator('.room-token-status-card').count(), 0);
     checks.push('Selecting a Pokémon leaves coordinates unchanged and docks its readable HUD below the field');
-    const sizes = await page.locator('.room-token img').evaluateAll(images => images.map(i => ({ id: i.src.match(/(\d+)\.png/)[1], scale: Number(getComputedStyle(i).scale), width: i.getBoundingClientRect().width })));
-    assert.ok(sizes.find(s => s.id === '10').scale < sizes.find(s => s.id === '95').scale);
-    assert.ok(sizes.find(s => s.id === '10').width < sizes.find(s => s.id === '95').width);
+    const sizes = await page.locator('.room-token .pokemon-sized-sprite').evaluateAll(frames => frames.map(frame => ({ heightDm: Number(frame.dataset.pokemonHeightDm), scale: Number(frame.dataset.pokemonScale), height: frame.getBoundingClientRect().height })));
+    const caterpie = sizes.find(frame => frame.heightDm === 3), onix = sizes.find(frame => frame.heightDm === 88);
+    assert.ok(Math.abs(caterpie.scale / onix.scale - 3 / 88) < 1e-8);
+    assert.ok(Math.abs(caterpie.height / onix.height - 3 / 88) < 1e-6);
+    assert.equal(await page.locator('.battlefield-party-strip button').count(), 2);
     checks.push('Dex heights keep Caterpie visually smaller than Onix while retaining large targets');
     for (const theme of ['normal', 'night']) for (const width of [320,390,768,1280]) {
         await page.setViewportSize({ width, height: 844 });
@@ -82,9 +85,12 @@ try {
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ reducedMotion: 'reduce' });await pane('Campo');
+    await little.scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector('.room-token[aria-label^="Caterpie,"] .pokemon-sized-sprite')?.dataset.pokemonMotion === 'static');
     assert.equal(await page.locator('.room-token img').first().evaluate(e => getComputedStyle(e).animationName), 'none');
-    checks.push('Reduced motion stops decorative breathing');
+    checks.push('Reduced motion uses the same identity without animated frames');
     await page.locator('.battlefield-card').screenshot({ path: '/tmp/myowndex-adventure-field-390.png' });
+    assert.deepEqual(remoteRoomRequests, [], 'The isolated local adventure never creates or edits remote rooms');
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ count: checks.length, checks, errors }, null, 2));
+    console.log(JSON.stringify({ count: checks.length, checks, errors, remoteRoomRequests }, null, 2));
 } finally { await browser.close(); }

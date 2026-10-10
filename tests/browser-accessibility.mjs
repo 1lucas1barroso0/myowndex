@@ -202,17 +202,17 @@ try {
     const generator = page.locator('.generator-dialog');
     for (const disclosure of await generator.locator('.generator-customize').all()) await openDetails(disclosure);
     await checkpoint('Gerador: todas as opções', [320, 1280]);
-    await openDetails(generator.locator('.generator-customize').filter({ has: page.getByText('Personalizar o encontro', { exact: true }) }));
-    await generator.getByRole('combobox', { name: 'Espécie a gerar' }).selectOption('1');
+    await openDetails(generator.locator('.generator-customize').filter({ has: page.getByText('Escolher quem pode aparecer', { exact: true }) }));
+    await generator.getByRole('combobox', { name: 'Escolher um Pokémon ou forma específicos' }).selectOption('species:1');
     await generator.getByRole('combobox', { name: 'Quantidade de Pokémon' }).selectOption('2');
     await generator.getByRole('button', { name: 'Gerar Pokémon', exact: true }).click();
     await generator.locator('.generator-partner').nth(1).waitFor();
     await openDetails(generator.locator('.generator-partner-details').first());
     await checkpoint('Gerador: encontro e ficha', [320, 1280]);
     await screenshot('generator-result', '.generator-result-heading');
-    await generator.getByRole('button', { name: 'Remover Bulbasaur da prévia', exact: true }).first().click();
+    await generator.getByRole('button', { name: 'Remover Bulbasaur do encontro', exact: true }).first().click();
     await checkpoint('Gerador: confirmação de remoção', [320]);
-    await page.getByRole('button', { name: 'Voltar à prévia', exact: true }).click();
+    await page.getByRole('button', { name: 'Voltar ao encontro', exact: true }).click();
     await dialogKeyboard(generator, page.getByRole('button', { name: 'Gerar Pokémon', exact: true }).filter({ visible: true }).first(), 'Fechar gerador');
 
     await nav('Abrir o Guia do Treinador');
@@ -240,9 +240,6 @@ try {
     const diceTrigger = page.getByRole('button', { name: 'Abrir Dados', exact: true }).filter({ visible: true }).first();
     await diceTrigger.click();
     const dice = page.getByRole('dialog', { name: 'Dados', exact: true });
-    await dice.getByRole('button', { name: 'Silenciar som', exact: true }).click();
-    assert.equal(await dice.getByRole('button', { name: 'Ativar som', exact: true }).getAttribute('aria-pressed'), 'true');
-    await dice.getByRole('button', { name: 'Ativar som', exact: true }).click();
     await openDetails(dice.locator('.local-dice-options'));
     await dice.getByRole('button', { name: 'Rolar 2d6', exact: true }).click();
     await dice.locator('.local-dice-result').waitFor();

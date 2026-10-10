@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import nativeSprites from "../src/data/native-sprites.json" with { type: "json" };
+import { getPokemonSpriteIdentity, getPokemonSpriteProvenance } from "../src/core/pokemonSpriteSources.js";
 
 const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 const asset = url => {
@@ -117,5 +118,63 @@ test("Mega Barbaracle shiny uses its exact authored menu icon and native 250ms c
     assert.equal(icon.nativeCycleMs, durationMs);
     assert.equal(digest(await asset(icon.static)), icon.assets[icon.static.split("/").at(-1)].sha256);
     assert.deepEqual(nativeSprites.local["10298"].shiny, { animated: icon.animated, static: icon.static });
-    assert.equal(nativeSprites.local["10298"]["back/shiny"], undefined, "a front menu icon must never stand in for a back angle");
+    const back = nativeSprites.local["10298"]["back/shiny"];
+    assert.notEqual(back.animated, icon.animated, "a front menu icon must never stand in for a back angle");
+    assert.equal(getPokemonSpriteProvenance(back.animated).kind, "battle-pixel");
+});
+
+test("the new immutable 2D imports retain exact hashes, authored frame duration and separate reduced-motion art", async () => {
+    const provenance = JSON.parse(await readFile("public/sprites/native/provenance-2d.json", "utf8"));
+    assert.match(provenance.commit, /^[a-f0-9]{40}$/);
+    assert.ok(provenance.assets.length >= 1300);
+    const checked = new Set();
+    for (const entry of provenance.assets) {
+        assert.equal(entry.pixelAlphaTimelineVerified, true);
+        assert.equal(entry.losslessEncodingVerified, true);
+        assert.ok(entry.uniqueFrames > 1, `${entry.key}/${entry.view} is not one translated still`);
+        assert.equal(entry.durationMs, entry.sourceFrames * entry.nativeFrameDurationMs);
+        assert.match(entry.sourceURL, new RegExp(`/${provenance.commit}/Graphics/Pokemon/`));
+        const current = nativeSprites.local[entry.key][entry.view];
+        assert.deepEqual(current, { animated: entry.animated, static: entry.static });
+        for (const [url, expected] of [[entry.animated, entry.animatedSha256], [entry.static, entry.staticSha256]]) {
+            assert.ok(url.includes(expected.slice(0, 24)), "immutable URL follows its exact content");
+            if (!checked.has(url)) {
+                const bytes = await asset(url);
+                assert.equal(digest(bytes), expected, url);
+                if (url.endsWith(".gif")) {
+                    const meta = gifAnimation(bytes);
+                    assert.equal(meta.durationMs, entry.durationMs, url);
+                    assert.ok(meta.frames > 1);
+                } else {
+                    const chunks = pngChunks(bytes);
+                    if (url.endsWith(".apng")) {
+                        const frames = chunks.filter(chunk => chunk.type === "fcTL");
+                        assert.ok(frames.length > 1, url);
+                        const duration = frames.reduce((sum, chunk) => sum + 1000 * chunk.data.readUInt16BE(20) / (chunk.data.readUInt16BE(22) || 100), 0);
+                        assert.equal(duration, entry.durationMs, url);
+                    } else assert.ok(chunks.every(chunk => chunk.type !== "acTL"), "reduced motion never decodes an animation");
+                }
+                checked.add(url);
+            }
+            assert.equal(getPokemonSpriteProvenance(url).dimension, "2d");
+        }
+    }
+    const libre = provenance.assets.filter(entry => entry.key === "10084");
+    assert.equal(libre.length, 4);
+    assert.ok(libre.every(entry => entry.sourcePath.includes("PIKACHU_7.png")), "Libre is not the Pop Star costume");
+    assert.ok(provenance.rejectedAssets.some(entry => entry.key === "10212" && entry.reviewNote.includes("Malformed sheet")));
+});
+
+test("decorative BW masters have immutable provenance and truthful animation timing", async () => {
+    const provenance = JSON.parse(await readFile("public/sprites/native/provenance-companions.json", "utf8"));
+    assert.equal(provenance.assets.length, 8);
+    for (const entry of provenance.assets) {
+        assert.equal(digest(await readFile(`public${entry.animated}`)), entry.animatedSha256);
+        assert.equal(digest(await readFile(`public${entry.static}`)), entry.staticSha256);
+        const animation = gifAnimation(await readFile(`public${entry.animated}`));
+        assert.equal(animation.frames, entry.frames);
+        assert.equal(animation.durationMs, entry.durationMs);
+        assert.equal(getPokemonSpriteIdentity(entry.animated).key, entry.key);
+        assert.equal(getPokemonSpriteProvenance(entry.animated).dimension, "2d");
+    }
 });

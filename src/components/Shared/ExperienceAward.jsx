@@ -8,12 +8,14 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
     const [baseXp, setBaseXp] = useState(1);
     const [manualXp, setManualXp] = useState(null);
     const [battle, setBattle] = useState(Boolean(battleContext));
-    const [context, setContext] = useState(() => ({
+    // Without an explicit override, battle data always tracks the active scene.
+    const [contextOverride, setContextOverride] = useState(null);
+    const context = contextOverride || {
         winnerMaxLevel: battleContext?.winnerMaxLevel ?? winnerLevel,
         opponentMaxLevel: battleContext?.opponentMaxLevel ?? winnerLevel,
         winnerCount: battleContext?.winnerCount ?? 1,
         opponentCount: battleContext?.opponentCount ?? 1,
-    }));
+    };
     const [busy, setBusy] = useState(false);
     const [received, setReceived] = useState(null);
     const [error, setError] = useState("");
@@ -47,19 +49,14 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
         setBaseXp(1);
         setManualXp(null);
         setBattle(Boolean(battleContext));
-        setContext({
-            winnerMaxLevel: battleContext?.winnerMaxLevel ?? winnerLevel,
-            opponentMaxLevel: battleContext?.opponentMaxLevel ?? winnerLevel,
-            winnerCount: battleContext?.winnerCount ?? 1,
-            opponentCount: battleContext?.opponentCount ?? 1,
-        });
+        setContextOverride(null);
         setReceived(null);
         setError("");
     };
 
     const changeContext = (key, value, maximum) => {
         setError("");
-        setContext(current => ({ ...current, [key]: value === "" ? "" : integerInRange(value, 1, maximum, 1) }));
+        setContextOverride(current => ({ ...(current || context), [key]: value === "" ? "" : integerInRange(value, 1, maximum, 1) }));
     };
 
     return <details className="experience-award">
@@ -73,7 +70,7 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
             </fieldset>
             <div className="experience-battle-context">
                 {battleContext ? <div className="experience-context-auto"><strong>Batalha reconhecida</strong><span>O MyOwnDex já conhece os níveis e os Pokémon envolvidos.</span></div>
-                : <label className="experience-battle-toggle"><input type="checkbox" checked={battle} disabled={locked} onChange={event => { setBattle(event.target.checked); if (event.target.checked && !battleContext) setContext(current => ({ ...current, winnerMaxLevel: winnerLevel })); }} />Considerar os dois lados da batalha</label>}
+                : <label className="experience-battle-toggle"><input type="checkbox" checked={battle} disabled={locked} onChange={event => setBattle(event.target.checked)} />Considerar os dois lados da batalha</label>}
                 {battle && <details className="experience-context-editor">
                     <summary>{battleContext?"Conferir dados da batalha":"Informar participantes e níveis"}</summary>
                     <div className="experience-sides">

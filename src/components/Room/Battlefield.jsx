@@ -140,7 +140,6 @@ export default function Battlefield({
     const sceneReferenceHeight = visibleTokens.length
         ? Math.max(...visibleTokens.map(token => fieldPresentation(token).physicalSpan))
         : 10;
-    const selectedHeight = selectedToken ? getPokemonDisplayHeight({ src: selectedDisplay.sprite, pokemonId: displayedPokemonId(selectedToken, selectedDisplay) }) : null;
 
     const canMoveToken = token => role === "narrator"
         || (snapshot.settings.allowPlayerMovement && token.ownerPlayerId === playerId);
@@ -242,7 +241,7 @@ export default function Battlefield({
 
             {!compact && <div className={`battlefield-board ${visibleTokens.length ? "has-pokemon" : "is-empty-field"} scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`} style={{ "--field-token-size": `${visibleTokens.length > 8 ? 4 : visibleTokens.length > 4 ? 5 : 7}rem` }}>
                 <img className="battlefield-scenery" src={`/scenes/${snapshot.scenario}.svg`} alt="" aria-hidden="true" draggable="false" />
-                {battle && <><div className="battlefield-center-line" /><div className="battlefield-side-label label-opponent">Oponentes</div><div className="battlefield-side-label label-ally">Aliados</div></>}
+                {battle && <><div className="battlefield-side-label label-opponent">Oponentes</div><div className="battlefield-side-label label-ally">Aliados</div></>}
                 {visibleTokens.map(token => {
                     const position = drag?.tokenId === token.id ? drag : token;
                     const protectionKey = getHitKillProtectionKey(token);
@@ -304,7 +303,7 @@ export default function Battlefield({
 
             {selectedToken && !compact && <div className={`battlefield-focus side-${selectedToken.side}`} aria-live="polite">
                 <PokemonSprite src={selectedDisplay.sprite} pokemonId={displayedPokemonId(selectedToken, selectedDisplay)} className="battlefield-focus-sprite" alt="" />
-                <span className="battlefield-focus-identity"><strong>{selectedDisplay.name}</strong><small>Nv. {selectedToken.level}{selectedHeight ? ` · ${(selectedHeight / 10).toLocaleString("pt-BR")} m` : ""}{selectedToken.status ? ` · ${STATUS_LABELS[selectedToken.status] || formatName(selectedToken.status)}` : ""}</small></span>
+                <span className="battlefield-focus-identity"><strong>{selectedDisplay.name}</strong><small>Nv. {selectedToken.level}{selectedToken.status ? ` · ${STATUS_LABELS[selectedToken.status] || formatName(selectedToken.status)}` : ""}</small></span>
                 {battle && snapshot.settings.showHp && <span className="battlefield-focus-health"><span className={`room-token-hp is-${getHpTone(selectedToken)}`} aria-hidden="true"><span style={{ width: `${selectedToken.maxHp ? clamp(selectedToken.currentHp / selectedToken.maxHp * 100, 0, 100) : 0}%` }} /></span><strong>HP {selectedToken.currentHp} de {selectedToken.maxHp}</strong></span>}
             </div>}
             <div className="battlefield-footer">

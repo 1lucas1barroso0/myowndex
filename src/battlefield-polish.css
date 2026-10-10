@@ -118,3 +118,14 @@ html .app-root.game-edition.handheld-edition .battlefield-scenery {
    aspect-ratio: 3 / 2; min-height: 0;
  }
 }
+
+/* Scene interaction: do not draw a white underline beneath selected sprites. */
+html .app-root.game-edition.handheld-edition .room-token:is(.is-selected,.is-current,:focus-visible) .room-token-sprite-shell::after,
+html .app-root.game-edition.handheld-edition .room-token .room-token-sprite-shell::after {
+    display: none !important; content: none !important;
+}
+html .app-root.game-edition.handheld-edition .room-token:focus-visible {
+    outline: 3px solid var(--ui-blue) !important;
+    outline-offset: 3px;
+}
+html .app-root.game-edition.handheld-edition .battlefield-center-line { display: none !important; }

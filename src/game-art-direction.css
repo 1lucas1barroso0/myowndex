@@ -1056,3 +1056,15 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-compan
 html .app-root.game-edition.handheld-edition .pc-sidebar .pc-box-list {
  margin-top: .35rem; margin-bottom: .9rem;
 }
+
+/* The PC mascot sits on the column axis, without a lopsided vacant slot. */
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading {
+ display: flex !important; flex-direction: column; align-items: center !important;
+ justify-content: center !important;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-storage-title {
+ align-self: stretch; width: 100%;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion {
+ align-self: center; margin-inline: auto !important;
+}

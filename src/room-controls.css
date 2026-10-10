@@ -832,3 +832,49 @@ html .app-root.game-edition.handheld-edition .combat-special-block{
 .token-growth-reserve{ margin: 0; color: var(--ui-muted); font-size: .875rem; line-height: 1.6; }
 
 html .confirm-dialog-shell .room-secondary-button{ background: var(--ui-raised) !important; color: var(--ui-ink) !important; border-color: var(--ui-line) !important; }
+
+/* One rhythm for battle controls and small, explicit voluntary HP costs. */
+html .app-root.game-edition.handheld-edition .token-hp-payment {
+ display: flex; align-items: stretch; gap: .5rem; padding: .75rem;
+ border: 1px solid var(--ui-line); border-radius: .25rem; background: var(--ui-raised);
+ min-width: 0;
+}
+html .app-root.game-edition.handheld-edition .token-hp-payment label { flex: 0 0 4.25rem; min-width: 0; }
+html .app-root.game-edition.handheld-edition .token-hp-payment input {
+ width: 100%; height: 48px; min-width: 0; font: inherit; color: var(--ui-ink);
+ border: 1px solid var(--ui-control-line); border-radius: .25rem; background: var(--ui-panel);
+ padding: .4rem .3rem .4rem .65rem;
+}
+html .app-root.game-edition.handheld-edition .token-hp-payment .token-self-damage-action {
+ flex: 1; min-width: 0; min-height: 48px !important; justify-content: center;
+ font-size: .9rem !important; text-transform: none;
+}
+html .app-root.game-edition.handheld-edition .token-experience {
+ grid-column: 1 / -1; display: grid; gap: .75rem; padding: 1rem;
+ border: 1px solid var(--ui-line); border-radius: .25rem; background: var(--ui-raised);
+ min-width: 0;
+}
+html .app-root.game-edition.handheld-edition .token-experience h3 {
+ font-size: 1rem; margin: 0; color: var(--ui-ink);
+}
+html .app-root.game-edition.handheld-edition .token-experience .token-xp-control {
+ padding: 0; border: 0; background: transparent; min-width: 0;
+}
+html .app-root.game-edition.handheld-edition .token-experience .experience-award {
+ grid-column: 1 / -1; margin: 0; min-width: 0;
+}
+html .app-root.game-edition.handheld-edition .token-modifiers > summary strong:empty { display: none; }
+html .app-root.game-edition.handheld-edition .token-inspector > :is(.token-tera,.token-remove) {
+ min-height: 48px !important; height: 48px; box-sizing: border-box;
+ display: inline-flex; align-items: center; justify-content: center;
+ font-size: .875rem !important; padding: .6rem .8rem;
+}
+html .app-root.game-edition.handheld-edition .token-inspector > label .room-select { min-height: 48px !important; }
+html .app-root.game-edition.handheld-edition .adventure-dice-tool .room-tool-body {
+ padding: .75rem 0 .2rem; min-width: 0;
+}
+html .app-root.game-edition.handheld-edition .adventure-dice-tool .local-dice-panel { min-width: 0; }
+@media (max-width: 540px) {
+ html .app-root.game-edition.handheld-edition .token-hp-payment { padding: .55rem; }
+ html .app-root.game-edition.handheld-edition .token-experience { padding: .75rem; }
+}

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
@@ -77,6 +78,8 @@ import CaptureAssistant from "./CaptureAssistant.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
 import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
 import AdventurePhaseControl from "./AdventurePhaseControl.jsx";
+
+const AdventureDicePanel = dynamic(() => import("../Shared/LocalDicePanel.jsx"));
 
 const connectionLabels = {
     connected: "Aventura conectada",
@@ -270,7 +273,7 @@ function NoteField({ label, value, privateNote, disabled, onCommit }) {
     useEffect(() => setDraft(value || ""), [value]);
     return (
         <label className={`room-note ${privateNote ? "is-private" : ""}`} htmlFor={noteId}>
-            <span id={`${noteId}-label`}>{label}{privateNote ? " • só Narrador" : ""}</span>
+            <span id={`${noteId}-label`}>{label}{privateNote ? " • só o narrador consegue ver" : ""}</span>
             <textarea
                 id={noteId}
                 aria-labelledby={`${noteId}-label`}
@@ -298,6 +301,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
     const [selectedTeamId, setSelectedTeamId] = useState(teams[0]?.id || "");
     const [selectedTeamPokemonId, setSelectedTeamPokemonId] = useState(teams[0]?.pokemon[0]?.id || "");
     const [selectedTokenId, setSelectedTokenId] = useState("");
+    const [selfCostHp, setSelfCostHp] = useState(1);
+    const [diceOpen, setDiceOpen] = useState(false);
+    useEffect(() => { setSelfCostHp(1); }, [selectedTokenId]);
     const [selectedBenchTokenId, setSelectedBenchTokenId] = useState("");
     const [mobilePane, setMobilePane] = useState("field");
     const [ending, setEnding] = useState(false);
@@ -914,11 +920,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         }
     };
 
-    const applySelectedDamage = ({ selfInflicted = false } = {}) => {
+    const applySelectedDamage = ({ selfInflicted = false, amount = 1 } = {}) => {
         if (!selectedToken || role !== "narrator" || selectedToken.currentHp <= 0) return;
         if (selfInflicted) {
             updateToken(
-                { currentHp: Math.max(0, selectedToken.currentHp - 1) },
+                { currentHp: Math.max(0, selectedToken.currentHp - integerInRange(amount, 1, selectedToken.currentHp, 1)) },
                 { selfInflictedHpLoss: true },
             );
             return;
@@ -1575,39 +1581,46 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     role="status"
                                     aria-live="polite"
                                     aria-label={`Proteção contra hit kill: ${selectedProtectionState === "lost"
-                                        ? "encerrada por autocusto nesta batalha"
+                                        ? "indisponível após pagar HP nesta batalha"
                                         : selectedProtectionState === "used"
-                                            ? "consumida nesta batalha"
-                                            : "pronta para agir no HP máximo"}`}
+                                            ? "indisponível, já utilizada nesta batalha"
+                                            : selectedToken.currentHp === selectedToken.maxHp ? "disponível" : "indisponível, requer HP cheio"}`}
                                 >
                                     <i className="token-hit-kill-led" aria-hidden="true" />
                                     <span className="token-hit-kill-copy">
                                         <small>Proteção contra hit kill</small>
                                         <strong>
-                                            {selectedProtectionState === "lost"
-                                                ? "Encerrada por autocusto"
-                                                : selectedProtectionState === "used"
-                                                    ? "Consumida nesta batalha"
-                                                    : selectedToken.currentHp === selectedToken.maxHp ? "Pronta" : "Precisa de HP cheio"}
+                                            {selectedProtectionState === "available" && selectedToken.currentHp === selectedToken.maxHp ? "Disponível" : "Indisponível"}
                                         </strong>
                                     </span>
                                     <span className="token-hit-kill-meter" aria-hidden="true"><i /></span>
                                 </div></summary><HitKillExplanation expanded /></details>
                                 {role === "narrator" && selectedToken.currentHp > 0 && (
-                                    <button
-                                        type="button"
-                                        className="token-self-damage-action"
-                                        onClick={() => applySelectedDamage({ selfInflicted: true })}
-                                        aria-label="Registrar 1 ponto de autocusto; isso encerra a proteção contra hit kill nesta batalha"
-                                        title="Use apenas quando o próprio Pokémon reduzir o próprio HP"
-                                    >
-                                        <span>Registrar autocusto</span>
-                                        <strong>−1 HP</strong>
-                                    </button>
+                                    <div className="token-hp-payment" role="group" aria-label="Pagar HP do próprio Pokémon">
+                                        <label htmlFor="token-hp-payment-amount">
+                                            <span className="sr-only">Quantidade de HP a pagar</span>
+                                            <input
+                                                id="token-hp-payment-amount"
+                                                type="number"
+                                                inputMode="numeric"
+                                                min="1"
+                                                max={selectedToken.currentHp}
+                                                value={Math.min(selfCostHp, selectedToken.currentHp)}
+                                                onChange={event => setSelfCostHp(integerInRange(event.target.value, 1, selectedToken.currentHp, 1))}
+                                                aria-label="HP a pagar"
+                                            />
+                                        </label>
+                                        <button type="button" className="token-self-damage-action"
+                                            onClick={() => applySelectedDamage({ selfInflicted: true, amount: selfCostHp })}
+                                            title="O Pokémon perde a quantidade escolhida de HP e sua proteção contra hit kill nesta batalha"
+                                        >Pagar HP</button>
+                                    </div>
                                 )}
                             </div>
-                            <div className="token-xp-control">
-                                <label htmlFor="room-token-xp">XP</label>
+                            <section className="token-experience" aria-label="Experiência do Pokémon">
+                                <h3>Experiência</h3>
+                                <div className="token-xp-control">
+                                <label htmlFor="room-token-xp">XP atual</label>
                                 <input
                                     id="room-token-xp"
                                     type="number"
@@ -1619,8 +1632,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     onChange={event => updateToken({ xp: event.target.value })}
                                     onBlur={() => applySelectedExperience(selectedToken.xp)}
                                 />
-                                <small className="token-xp-next-level">{selectedToken.level >= 200 ? "Nível máximo · 200" : `Meta: ${formatNumberPtBr(getNextLevelXp(selectedToken.level))} XP`}</small>
-                            </div>
+                                <small className="token-xp-next-level">{selectedToken.level >= 200 ? "Nível máximo · 200" : `Até o próximo nível: ${formatNumberPtBr(Math.max(0, getNextLevelXp(selectedToken.level) - selectedToken.xp))} XP`}</small>
+                                </div>
+                                {role === "narrator" && <ExperienceAward key={selectedToken.id} winnerLevel={selectedToken.level} battleContext={getRoomBattleRewardContext(snapshot, selectedToken.id)} onAward={awardSelectedExperience} disabled={busy} />}
+                            </section>
                             <label>
                                 <span>Condição</span>
                                 <RoomSelect aria-label="Condição" value={selectedToken.status} disabled={role !== "narrator"} onChange={event => updateToken({ status: event.target.value })}>
@@ -1640,7 +1655,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     <small>HP, condição, PP, item consumido e proteção contra Hit Kill continuam vinculados ao próprio Pokémon.</small>
                                 </div>
                             )}
-                            {role === "narrator" && <ExperienceAward key={selectedToken.id} winnerLevel={selectedToken.level} battleContext={getRoomBattleRewardContext(snapshot, selectedToken.id)} onAward={awardSelectedExperience} disabled={busy} />}
                             {selectedToken.pendingEvs > 0 && <p className="token-growth-reserve">{selectedToken.pendingEvs} EVs para distribuir na ficha do PC.</p>}
                             {selectedToken.volatileEffects?.length > 0 && (
                                 <div className="token-volatile-list" role="group" aria-label="Efeitos temporários ativos">
@@ -1671,7 +1685,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     <strong>
                                         {Object.values(selectedToken.stages || {}).filter(value => value !== 0).length
                                             ? `${formatCount(Object.values(selectedToken.stages || {}).filter(value => value !== 0).length, "modificador")} ${Object.values(selectedToken.stages || {}).filter(value => value !== 0).length === 1 ? "ativo" : "ativos"}`
-                                            : "Todos neutros"}
+                                            : ""}
                                     </strong>
                                 </summary>
                                 <div className="token-modifier-grid">
@@ -1751,6 +1765,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 </section>
 
                 <aside className="room-tools">
+                    <details className="room-tool adventure-dice-tool" onToggle={event => setDiceOpen(event.currentTarget.open)}>
+                        <summary><span><strong>Rolagens da aventura</strong></span></summary>
+                        <div className="room-tool-body">
+                            {diceOpen && <AdventureDicePanel context="aventura" compact showHeading={false} {...dicePokemonContext} />}
+                        </div>
+                    </details>
                     {snapshot.phase === "batalha" && <CombatAssistant
                         role={role}
                         playerId={session.playerId}

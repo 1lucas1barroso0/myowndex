@@ -67,7 +67,7 @@ export const getGimmickChoices = (token, {phase="batalha"}={})=>{
  const state=normalizeGimmickState(token.gimmickState,token);
  if(state.active)return [];
  const used=new Set(state.used);
- const locked=used.has("mega")||used.has("tera")||used.has("dyna")||used.has("gmax");
+ const locked=used.has("mega")||used.has("tera")||used.has("dyna")||used.has("gmax")||used.has("z");
  if(locked)return [];
  const options=[];
  if(megaFormFor(token)&&!used.has("mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:"Mega Stone correspondente equipada"});
@@ -82,7 +82,7 @@ export const getGimmickChoices = (token, {phase="batalha"}={})=>{
 export const canUseZMove = (token,move) => {
  if(!token || !move || !Array.isArray(token.moves) || !token.moves.includes(slug(move.name)) || token.currentHp<=0)return false;
  const state=normalizeGimmickState(token.gimmickState,token);
- if(state.active||state.used.includes("z")||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status"||!Number.isFinite(move.power)||move.power<=0)return false;
+ if(state.active||state.used.some(id=>["z","mega","tera","dyna","gmax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status"||!Number.isFinite(move.power)||move.power<=0)return false;
  const crystal=slug(token.item),specific=SPECIFIC_Z[crystal];
  if(specific) {
    const species=baseSpecies(token);

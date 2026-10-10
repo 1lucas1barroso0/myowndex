@@ -76,6 +76,7 @@ import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
 import CaptureAssistant from "./CaptureAssistant.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
+import BattleGimmickPanel from "./BattleGimmickPanel.jsx";
 import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
 import AdventurePhaseControl from "./AdventurePhaseControl.jsx";
 
@@ -1716,6 +1717,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     ))}
                                 </div>
                             )}
+                            <BattleGimmickPanel
+                                token={selectedToken}
+                                snapshot={snapshot}
+                                role={role}
+                                onTokenChange={replaceSelectedToken}
+                                onNotice={text => setNotice?.({ tone: "blue", text })}
+                            />
                             <SpecialMechanicsPanel
                                 token={selectedToken}
                                 snapshot={snapshot}

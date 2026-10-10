@@ -42,6 +42,14 @@ const namedZ=Object.freeze({
  "solganium-z":"Searing Sunraze Smash","tapunium-z":"Guardian of Alola",
  "ultranecrozium-z":"Light That Burns the Sky",
 });
+// Powers are fixed for exclusive Z-Moves, not derived from their base attack.
+const exclusiveZPower=Object.freeze({
+ "aloraichium-z":175,"decidium-z":180,"incinium-z":180,
+ "kommonium-z":185,"lunalium-z":200,"lycanium-z":190,
+ "marshadium-z":195,"mewnium-z":185,"mimikium-z":190,
+ "pikanium-z":210,"pikashunium-z":195,"primarium-z":195,
+ "snorlium-z":210,"solganium-z":200,"ultranecrozium-z":200,
+});
 const canonicalSpecies=token=>String(token?.gimmickState?.base?.speciesName||token?.speciesName||"").replace(/-(?:gmax|mega(?:-[xy])?)$/,"");
 const safeType=move=>String(move?.type?.name||"").toLowerCase();
 const isDamage=move=>Number(move?.power)>0&&["physical","special"].includes(move?.damage_class?.name);
@@ -51,7 +59,7 @@ export const battleMovePresentation=(token,move,{useZMove=false}={})=>{
  if(useZMove&&isDamage(move)){
    const label=namedZ[String(token.item||"").toLowerCase()]||typeMoves[type]?.[1];
    if(!label)return null;
-   return {kind:"z",label,type,power:getZMovePower(move.power),source:move.name,
+   return {kind:"z",label,type,power:exclusiveZPower[String(token.item||"").toLowerCase()]||getZMovePower(move.power),source:move.name,
      note:"Energia Z consumida nesta batalha",secondary:"none"};
  }
  if(["dyna","gmax"].includes(active)){

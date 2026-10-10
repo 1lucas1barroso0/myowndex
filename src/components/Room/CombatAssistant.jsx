@@ -27,6 +27,7 @@ import { getTraitMoveBlock } from "../../core/traitMechanics.js";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import { getCurrentMoveReference } from "../../core/championsMoves.js";
 import { canUseZMove } from "../../core/battleGimmicks.js";
+import { battleMovePresentation } from "../../core/battleMovePresentation.js";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
@@ -107,6 +108,7 @@ export default function CombatAssistant({
     }, [activeId, activeTokenExists]);
 
     useEffect(() => {
+        setUseZMove(false);
         setCalledMoveName("");
         setCalledMoveData(null);
         setResult(null);
@@ -147,6 +149,7 @@ export default function CombatAssistant({
 
     const moves = useMemo(() => attacker?.moves?.filter(Boolean) || [], [attacker]);
     const zAvailable=canUseZMove(attacker,moveData,snapshot) && !getMoveSpecialProfile(moveData) && snapshot.phase==="batalha";
+    const presentedMove=moveData?battleMovePresentation(attacker,moveData,{useZMove:useZMove&&zAvailable}):null;
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
     const needsCalledMove = specialProfile?.id === "called-move";
     const resolvedMoveData = needsCalledMove ? calledMoveData : moveData;
@@ -335,7 +338,7 @@ export default function CombatAssistant({
                         <span>Movimento</span>
                         <RoomSelect aria-label="Movimento" value={moveName} disabled={!moves.length || Boolean(snapshot.initiative.length && attacker?.declaredMove)} onChange={event => void selectMove(event.target.value)}>
                             <option value="">{moves.length ? "Escolha um movimento" : "Sem movimentos na ficha"}</option>
-                            {moves.map(move => <option key={move} value={move}>{formatName(move)}</option>)}
+                            {moves.map(move => <option key={move} value={move}>{move===moveName && presentedMove?.kind!=="normal" && presentedMove?.label ? `${presentedMove.label} · ${formatName(move)}` : formatName(move)}</option>)}
                         </RoomSelect>
                     </label>
                     {(!compact || !resolutionProfile || resolutionProfile.requiresDamageContest) && <label>
@@ -399,7 +402,8 @@ export default function CombatAssistant({
 
                 {resolvedMoveData && (
                     <div className={`combat-automation${compact ? " combat-field-preview" : ""}`} aria-live="polite">
-                        <span>{formatType(resolvedMoveData.type?.name)}</span>
+                        <span>{formatType(presentedMove?.type||resolvedMoveData.type?.name)}</span>
+                        {presentedMove?.kind!=="normal" && presentedMove?.label && <span className={`combat-special-move is-${presentedMove.kind}`}>{presentedMove.label} · Poder {presentedMove.power}</span>}
                         <span>{formatDamageClass(resolvedMoveData.damage_class?.name)}</span>
                         <span>PP {formatNumberPtBr(ppState.remaining ?? moveData.pp ?? 0)} de {formatNumberPtBr(ppState.maximum ?? moveData.pp ?? 0)}</span>
                         {needsCalledMove && calledMoveData && <span>Chamado por {formatName(moveData.name)}</span>}
@@ -476,6 +480,9 @@ export default function CombatAssistant({
                         {compact && <summary>Detalhes da jogada</summary>}
                         <ResultDetailsBody {...(compact ? { className: "combat-result-detail-body" } : {})}>
                         {result.conditionNotes?.map(note => <p key={note}>{note}</p>)}
+                        {result.usedMove?.kind && result.usedMove.kind!=="normal" && <div className={`combat-move-reveal is-${result.usedMove.kind}`} role="status">
+                            <strong>{result.usedMove.name}</strong><small>{formatType(result.usedMove.type)} · Poder {result.usedMove.power} · Origem: {formatName(result.usedMove.baseMove)}</small>
+                        </div>}
                         <div className="combat-result-metric is-resolution">
                             <small>Forma de resolução</small>
                             <strong>{result.resolutionLabel}</strong>

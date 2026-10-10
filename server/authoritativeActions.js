@@ -29,7 +29,8 @@ import { getTraitMoveBlock, isWeatherSuppressed, isAbilityActive } from "../src/
 import { checkActionConditions } from "../src/core/battleConditions.js";
 import { CAPTURE_BALLS, captureTrainerKey, rollCapture } from "../src/core/capture.js";
 import { getCurrentMoveReference } from "../src/core/championsMoves.js";
-import { canUseZMove, getZMovePower, maxMovePower, normalizeGimmickState } from "../src/core/battleGimmicks.js";
+import { canUseZMove, normalizeGimmickState } from "../src/core/battleGimmicks.js";
+import { battleMovePresentation, moveVariantForResolution } from "../src/core/battleMovePresentation.js";
 
 const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "start-battle"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
@@ -499,7 +500,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     if(zMove && (needsCalledMove || specialProfile || !canUseZMove(attacker,move,room))) throw new AuthoritativeActionError("Este Pokémon não pode usar esse movimento Z com o cristal equipado.",409);
     const gigantism=normalizeGimmickState(attacker.gimmickState,attacker).active;
     const maxActive=["dyna","gmax"].includes(gigantism);
-    if(maxActive && move.damage_class?.name==="status")throw new AuthoritativeActionError("Use um movimento ofensivo em Dynamax; Max Guard requer resolução defensiva própria.",409);
+    // Every status move becomes Max Guard while Dynamaxed.
     if (needsCalledMove && (!calledMove || slug(calledMove.name) !== request.calledMoveName)) {
         throw new AuthoritativeActionError("Confirme o movimento resultante antes de resolver a jogada.");
     }
@@ -511,8 +512,9 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     // Resolve that attempt so PP and the action are spent; a failed caller
     // cannot execute its called move.
     const resolvedMove = needsCalledMove && !specialBlock ? calledMove : move;
-    const gimmickMove = zMove ? {...resolvedMove,power:getZMovePower(resolvedMove.power),stat_changes:[],meta:{...resolvedMove.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,flinch_chance:0}} : maxActive && resolvedMove.power > 0 ? {...resolvedMove,power:maxMovePower(resolvedMove.power),stat_changes:[],meta:{...resolvedMove.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,flinch_chance:0}} : resolvedMove;
-    const maxField= maxActive && resolvedMove.power>0 ? ({
+    const presentation = battleMovePresentation(attacker,resolvedMove,{useZMove:zMove});
+    const gimmickMove = moveVariantForResolution(resolvedMove,presentation);
+    const maxField= maxActive && presentation?.kind==="max" ? ({
       fire:{weather:"sol"},water:{weather:"chuva"},rock:{weather:"areia"},ice:{weather:"neve"},
       electric:{terrain:"eletrico"},grass:{terrain:"gramado"},psychic:{terrain:"psiquico"},fairy:{terrain:"nevoa"}
     })[resolvedMove.type?.name]||null : null;
@@ -660,6 +662,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const result = {
         ...representative,
         conditionNotes: conditionCheck.notes,
+        usedMove: {name:presentation?.label||resolvedMove.name,kind:presentation?.kind||"normal",type:presentation?.type||resolvedMove.type?.name,baseMove:move.name,power:presentation?.power??resolvedMove.power},
         hit: connected,
         moveConnected: connected,
         damageHit,
@@ -687,7 +690,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             attackerId: attacker.id,
             defenderName: affectedTargets.map(token => token.name).join(", ") || representative.profile.target.label,
             defenderId: defender?.id || "",
-            moveName: `${zMove?"Z-":maxActive?"Max-":""}${formatName(resolvedMove.name)}`,
+            moveName: presentation?.label||formatName(resolvedMove.name),
             selectedMoveName: formatName(move.name),
             calledMoveName: needsCalledMove ? formatName(resolvedMove.name) : "",
             hit: connected,

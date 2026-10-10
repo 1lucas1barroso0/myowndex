@@ -73,6 +73,7 @@ export const moveVariantForResolution=(move,presentation)=>{
  const isStatus=presentation.kind==="max-guard";
  return {...move,name:presentation.label.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-$/,""),
    power:presentation.power,type:{name:presentation.type},
+   target:isStatus?{name:"user"}:move.target,
    damage_class:{name:isStatus?"status":move.damage_class?.name},
    // Original move-specific flinch, recoil and status effects must not leak
    // into a completely different Z/Max move.

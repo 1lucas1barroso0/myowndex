@@ -34,7 +34,8 @@ const displayedPokemonId = (token, display) => display.disguised
 const fieldPresentation = token => {
     const display = getBattleDisplayIdentity(token);
     const pokemonId = displayedPokemonId(token, display);
-    const height = getPokemonDisplayHeight({ src: display.sprite, pokemonId });
+    const growing=["dyna","gmax"].includes(token.gimmickState?.active);
+    const height = getPokemonDisplayHeight({ src: growing ? token.gimmickState?.base?.sprite || display.sprite : display.sprite, pokemonId: growing ? token.gimmickState?.base?.speciesId || pokemonId : pokemonId });
     const sources = getPokemonSpriteSources({ src: display.sprite, pokemonId });
     const bodyAspect = Math.max(1, ...[...sources.animated, ...sources.static].map(source => {
         const bounds = getPokemonSpriteFraming(source);
@@ -68,6 +69,7 @@ const Token = ({
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
     const gimmick = token.gimmickState?.active || "";
+    const shapeLabel = gimmick==="mega" ? "Mega Evolução" : gimmick==="gmax" ? "Gigantamax" : gimmick==="dyna" ? "Dynamax" : gimmick==="tera" ? `Tipo Tera ${formatType(token.teraType)}` : "";
 
     return (
     <button
@@ -93,6 +95,7 @@ const Token = ({
         aria-label={`${display.name}, nível ${token.level}${showHp ? `, ${token.currentHp} de ${token.maxHp} pontos de vida` : ""}${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${gimmick ? `, mecânica ${gimmick} ativa` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
+            {shapeLabel && <span className={`room-token-gimmick-mark mark-${gimmick}`} aria-hidden="true">{gimmick==="tera" ? <><span className="crystal-symbol">◆</span><small>{formatType(token.teraType)}</small></> : gimmick==="mega" ? "✦" : "◈"}</span>}
             {display.sprite ? (
                 <PokemonSprite
                     src={display.sprite}
@@ -317,7 +320,7 @@ export default function Battlefield({
                             onKeyMove={handleKeyMove}
                             movementHelpId={movementHelpId}
                             sceneReferenceHeight={sceneReferenceHeight}
-                            visualSceneScale={resize?.tokenId === token.id ? resize.scale : token.sceneScale ?? 1}
+                            visualSceneScale={(resize?.tokenId === token.id ? resize.scale : token.sceneScale ?? 1) * (["dyna","gmax"].includes(token.gimmickState?.active) ? 1.4 : 1)}
                         />
                         {selectedTokenId === token.id && canMoveToken(token) && <button
                             type="button"

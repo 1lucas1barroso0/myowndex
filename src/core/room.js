@@ -216,6 +216,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         name: asText(source.name).slice(0, 80) || "Pokémon",
         speciesName: asText(source.speciesName).toLowerCase(),
         speciesId: integerInRange(source.speciesId, 0, 99999, 0),
+        shiny: Boolean(source.shiny),
         sprite: asText(source.sprite).slice(0, 500),
         weight: integerInRange(source.weight, 0, 999999, 0),
         side: ["ally", "opponent", "neutral"].includes(source.side) ? source.side : "ally",

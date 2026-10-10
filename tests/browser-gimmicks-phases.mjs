@@ -35,6 +35,19 @@ const setPhase=async id=>{
 };
 try{
     await page.goto(base,{waitUntil:"domcontentloaded"});
+    const colors=await page.evaluate(async()=>{
+        const image=new Image();
+        image.src="/scenes/arena.svg?v=worlds3";
+        await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;});
+        const canvas=document.createElement("canvas");canvas.width=480;canvas.height=320;
+        const ctx=canvas.getContext("2d",{willReadFrequently:true});
+        ctx.drawImage(image,0,0);
+        const rgb=(x,y)=>[...ctx.getImageData(x,y,1,1).data].slice(0,3);
+        return {upper:rgb(240,146),lower:rgb(240,174),button:rgb(240,160)};
+    });
+    assert.ok(colors.upper[0]>colors.upper[1]*1.35 && colors.upper[0]>colors.upper[2]*1.2,"upper half of Poké Ball must be red");
+    assert.ok(colors.lower.every(c=>c>225),"lower half of Poké Ball must be white");
+    assert.ok(colors.button.every(c=>c>180),"button must remain visible");
     await page.getByRole("button",{name:"Abrir a Central da Aventura",exact:true}).click();
     await page.locator(".room-app").waitFor();
     const mobile=page.locator(".room-mobile-nav");

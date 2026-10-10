@@ -14,6 +14,7 @@ import {
   getPokemonSprite,
   mergeRoomConflictSnapshot,
   normalizeRoomSnapshot,
+  normalizeRoomToken,
   ROOM_PHASES,
   ROOM_SCENARIOS,
   swapTeamPokemonInSnapshot,

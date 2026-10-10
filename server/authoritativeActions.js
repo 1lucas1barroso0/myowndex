@@ -590,7 +590,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             // also keeps the priority frozen when HP/abilities change after rolling.
             movePriority: room.initiative.length && attacker.declaredMove === move.name
                 ? attacker.priority
-                : getEffectiveMovePriority({ token: attacker, move }),
+                : getEffectiveMovePriority({ token: attacker, move: gimmickMove }),
         });
 
         if (role === "narrator") {

@@ -1538,6 +1538,8 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
 const PRIORITY_HEALING_MOVES = new Set(["absorb", "bitter-blade", "bouncy-bubble", "draining-kiss", "drain-punch", "dream-eater", "floral-healing", "giga-drain", "healing-wish", "heal-order", "heal-pulse", "horn-leech", "jungle-healing", "leech-life", "life-dew", "lunar-blessing", "lunar-dance", "matcha-gotcha", "mega-drain", "milk-drink", "moonlight", "morning-sun", "oblivion-wing", "parabolic-charge", "purify", "recover", "rest", "revival-blessing", "roost", "shore-up", "slack-off", "soft-boiled", "strength-sap", "swallow", "synthesis", "wish"]);
 export const getEffectiveMovePriority = ({ token, move }) => {
     if (!move) return 0;
+    const maxActive=["dyna","gmax"].includes(normalizeGimmickState(token?.gimmickState,token).active);
+    if(maxActive)return move.damage_class?.name==="status"?4:0;
     const ability = isAbilityActive(token) ? traitSlug(token?.ability) : "";
     let priority = integerInRange(move.priority, -7, 7, 0);
     if (ability === "prankster" && move.damage_class?.name === "status") priority += 1;

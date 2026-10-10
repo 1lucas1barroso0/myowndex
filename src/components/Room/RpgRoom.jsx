@@ -1511,16 +1511,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         <strong>{snapshot.phase==="exploracao"?"Explorar e encontrar":snapshot.phase==="interpretacao"?"Interpretar e decidir":snapshot.phase==="batalha"?"Combate em turnos":"Cuidar e preparar"}</strong>
                         <small>{snapshot.phase==="exploracao"?"Explore o cenário, procure Pokémon e tente capturá-los.":snapshot.phase==="interpretacao"?"Converse e registre as escolhas nas notas da cena.":snapshot.phase==="batalha"?"Declare os movimentos, resolva as ações e acompanhe a iniciativa.":"Descanse, trate condições e prepare os Pokémon para continuar."}</small>
                     </div>
-                    <Battlefield
-                        snapshot={snapshot}
-                        role={role}
-                        playerId={session.playerId}
-                        selectedTokenId={selectedTokenId}
-                        onSelectToken={setSelectedTokenId}
-                        onSnapshotChange={handleBattlefieldChange}
-                        onChoosePokemon={choosePokemon}
-                        compact={false}
-                    />
                     {snapshot.phase === "batalha" && <BattleGimmickPanel
                         snapshot={snapshot}
                         role={role}
@@ -1543,6 +1533,16 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         }}
                         onNotice={text => setNotice?.({tone:"blue",text})}
                     />}
+                    <Battlefield
+                        snapshot={snapshot}
+                        role={role}
+                        playerId={session.playerId}
+                        selectedTokenId={selectedTokenId}
+                        onSelectToken={setSelectedTokenId}
+                        onSnapshotChange={handleBattlefieldChange}
+                        onChoosePokemon={choosePokemon}
+                        compact={false}
+                    />
                     {snapshot.phase === "batalha" && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
                         onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}
                         onRoll={generateInitiative} onAdvance={nextTurn} />}

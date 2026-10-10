@@ -1,11 +1,12 @@
 import React, { useId, useRef, useState } from "react";
-import { createExperienceAwardId, getChallengeReward } from "../../core/experience.js";
+import { createExperienceAwardId, getChallengeReward, resolveChallengeAward } from "../../core/experience.js";
 import { integerInRange } from "../../core/math.js";
 
 /** One challenge, one receipt. The same receipt is reused if saving fails. */
 export default function ExperienceAward({ onAward, disabled = false, winnerLevel = 1, battleContext = null }) {
     const fieldId = useId();
     const [baseXp, setBaseXp] = useState(1);
+    const [manualXp, setManualXp] = useState(null);
     const [battle, setBattle] = useState(Boolean(battleContext));
     const [context, setContext] = useState(() => ({
         winnerMaxLevel: battleContext?.winnerMaxLevel ?? winnerLevel,
@@ -18,9 +19,10 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
     const [error, setError] = useState("");
     const receiptRef = useRef(null);
     const savingRef = useRef(false);
-    const reward = getChallengeReward({ baseXp, battle, ...context });
+    const automatic = getChallengeReward({ baseXp, battle, ...context });
+    const reward = resolveChallengeAward(automatic, manualXp);
     const locked = disabled || busy || Boolean(received);
-    const complete = !battle || Object.values(context).every(value => Number.isInteger(Number(value)) && Number(value) > 0);
+    const complete = Boolean(reward) && (!battle || Object.values(context).every(value => Number.isInteger(Number(value)) && Number(value) > 0));
 
     const award = async () => {
         if (locked || !complete || savingRef.current) return;
@@ -43,6 +45,7 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
     const newChallenge = () => {
         receiptRef.current = null;
         setBaseXp(1);
+        setManualXp(null);
         setBattle(Boolean(battleContext));
         setContext({
             winnerMaxLevel: battleContext?.winnerMaxLevel ?? winnerLevel,
@@ -82,12 +85,34 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
                     </fieldset>)}
                 </div>}
             </details>
+            <dl className="experience-breakdown" aria-label="Cálculo automático de XP">
+                <div><dt>XP-base</dt><dd>{automatic.baseXp}</dd></div>
+                <div><dt>Reduções na base</dt><dd>{automatic.penalties ? `−${automatic.penalties}` : "0"}</dd></div>
+                <div><dt>Base após reduções</dt><dd>{automatic.adjustedBaseXp}</dd></div>
+                <div><dt>Multiplicador</dt><dd>×{automatic.multiplier}</dd></div>
+                <div><dt>Resultado automático</dt><dd>{automatic.xp} XP</dd></div>
+            </dl>
+            <p className="experience-formula-note">As reduções vêm antes dos multiplicadores. A recompensa mínima é 1 XP. Cada XP recebido concede 2 EVs.</p>
+            {automatic.reasons.length > 0 && <ul className="experience-reasons">{automatic.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
+            <details className="experience-manual-choice">
+                <summary>Ajuste manual do Narrador</summary>
+                <label className="experience-manual-toggle">
+                    <input type="checkbox" checked={manualXp !== null} disabled={locked}
+                      onChange={event => { setError(""); setManualXp(event.target.checked ? String(automatic.xp) : null); }} />
+                    Substituir o resultado automático
+                </label>
+                {manualXp !== null && <label className="experience-manual-field">XP a conceder
+                    <input type="number" min="1" max="999999" step="1" inputMode="numeric"
+                        value={manualXp} disabled={locked} onChange={event => { setError(""); setManualXp(event.target.value); }} />
+                </label>}
+                {manualXp !== null && <small>O valor manual substitui o resultado calculado. Os EVs continuam sendo o dobro do XP.</small>}
+            </details>
             <dl className="experience-reward-preview" aria-live="polite">
-                <div><dt>XP</dt><dd>{complete ? reward.xp : "—"}</dd></div>
+                <div><dt>XP final</dt><dd>{complete ? reward.xp : "—"}</dd></div>
                 <div><dt>EVs para treinar</dt><dd>{complete ? reward.evs : "—"}</dd></div>
             </dl>
-            {complete && reward.reasons.length > 0 && <ul className="experience-reasons">{reward.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
             {received ? <div className="experience-received"><p role="status">{received.xp} XP e {received.evs} EVs registrados.</p><button type="button" onClick={newChallenge}>Novo desafio</button></div> : <button type="button" className="room-primary-button experience-confirm" disabled={locked || !complete} onClick={() => void award()}>{busy ? "Registrando…" : complete ? `Receber ${reward.xp} XP` : "Complete a batalha"}</button>}
+            {!complete && manualXp !== null && <p role="alert" className="experience-error">Informe um valor inteiro de 1 a 999999 XP.</p>}
             {error && <p role="alert" className="experience-error">{error}</p>}
         </div>
     </details>;

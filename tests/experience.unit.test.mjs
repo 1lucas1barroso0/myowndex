@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { applyPokemonExperienceAward, createExperienceAwardId, normalizeGrowthData,
-    allocatePokemonEvs, getAllocatedEvTotal, getChallengeReward, getFriendshipScale,
+    allocatePokemonEvs, getAllocatedEvTotal, getChallengeReward, resolveChallengeAward, getFriendshipScale,
     adjustPokemonFriendship, EXPERIENCE_AWARD_LIMIT } from "../src/core/experience.js";
 import { normalizePokemon, compactPokemon } from "../src/core/team.js";
 import { normalizeAccountDocument, mergeAccountDocuments, recordAccountChanges } from "../src/core/accountDocument.js";
@@ -188,4 +188,15 @@ test("changing phases during an active order never refreshes battle resources or
     });
     const restored = changeRoomPhase(changeRoomPhase(active, "exploracao"), "batalha");
     assert.deepEqual(restored, active);
+});
+
+// Narrator corrections are deliberate overrides; the canonical battle
+// calculator and 2 EV per XP invariant remain unchanged.
+test("narrator manual XP uses explicit bounds, preserves auto math, and doubles EVs", () => {
+    const automatic = getChallengeReward({ baseXp: 3, winnerMaxLevel: 10, opponentMaxLevel: 20, winnerCount: 2, opponentCount: 4 });
+    assert.equal(automatic.xp, 12);
+    assert.deepEqual([resolveChallengeAward(automatic).xp, resolveChallengeAward(automatic).evs], [12, 24]);
+    assert.deepEqual([resolveChallengeAward(automatic, "7").xp, resolveChallengeAward(automatic, "7").evs], [7, 14]);
+    for (const invalid of ["", "0", "1.5", "1000000", "-1", "abc"]) assert.equal(resolveChallengeAward(automatic, invalid), null);
+    assert.equal(getChallengeReward({ baseXp: 3, winnerMaxLevel: 10, opponentMaxLevel: 20, winnerCount: 2, opponentCount: 4 }).xp, 12);
 });

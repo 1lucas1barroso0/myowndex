@@ -170,7 +170,7 @@ def snow():
 def arena():
     image = scene(None, "#14a45a")
     for y in [2, 3, 16, 17]:
-        for x in range(WIDTH):
+        for x in range(1, WIDTH - 1):
             put(image, (38, 8), x, y)
     for x, source in [(6, (50, 0)), (10, (50, 3)), (19, (50, 6)), (23, (50, 3))]:
         put(image, source, x, 1)

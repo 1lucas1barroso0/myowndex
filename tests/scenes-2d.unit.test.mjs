@@ -99,3 +99,15 @@ test("the authored terrain details remain reproducible from the source manifest"
     assert.equal((svg.match(/<image\b/g) || []).length, 1);
   }
 });
+
+test("generated landmarks remain inset, collision-checked, with no random SVG graffiti", async () => {
+    const generator = (await read("scripts/reproduzir-cenarios-2d.py")).toString();
+    assert.match(generator, /def reserve\(image, name, x, y, width, height\):/);
+    assert.match(generator, /raise ValueError\(f"\{name\}: overlaps/);
+    const decorations = JSON.parse(await read("public/scenes/source/decorations.json"));
+    for (const scene of ROOM_SCENARIOS) {
+        assert.equal(decorations[scene.id], "", scene.id + " must not paint grass over sprites or landmarks");
+        const svg = (await read("public/scenes/" + scene.id + ".svg")).toString();
+        assert.doesNotMatch(svg, /terrain-mark|terrain-grain|data-scene-details/);
+    }
+});

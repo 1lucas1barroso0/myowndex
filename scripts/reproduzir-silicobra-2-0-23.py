@@ -29,7 +29,7 @@ def run() -> None:
         with urllib.request.urlopen(url, timeout=40) as stream:
             source = stream.read()
         assert len(source) == entry["sourceBytes"] and sha256(source) == entry["sourceSha256"]
-        git_sha = hashlib.sha1(b"blob " + str(len(source)).encode() + b"\\0" + source).hexdigest()
+        git_sha = hashlib.sha1(b"blob " + str(len(source)).encode() + bytes([0]) + source).hexdigest()
         assert git_sha == entry["sourceBlob"]
         sheet = Image.open(io.BytesIO(source)).convert("RGBA")
         w, h = sheet.size

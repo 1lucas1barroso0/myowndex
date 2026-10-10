@@ -533,7 +533,7 @@ test("offline sprites preserve binary GIF, PNG and APNG bytes and serve them aft
     assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes, url);
     assert.equal(response.headers.get("x-myowndex-bytes"), String(bytes.byteLength));
   }
-  assert.equal(worker.calls(), calls, "every warmed animation remains available without another network request");
+  assert.equal(worker.calls(), calls + urls.length, "online-first refresh checks connectivity and falls back to the warmed animations");
 });
 
 test("only pixel-art source directories enter the external sprite cache, including Smogon pixels and BW", async () => {

@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 const proxyServer = process.env.MYOWNDEX_BROWSER_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
 const browser=await chromium.launch({headless:true,executablePath:process.env.MYOWNDEX_BROWSER_EXECUTABLE || undefined,args:['--no-sandbox'],...(proxyServer ? {proxy:{server:proxyServer,bypass:'localhost,127.0.0.1,::1'}} : {})});
 const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'});
-const page=await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
+let page=await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(30000);
 const report=[];const baseUrl=process.env.MYOWNDEX_SMOKE_URL || 'http://localhost:3000';
 const source2D=source=>{const url=new URL(source,baseUrl);return isPokemonSpriteSource2D(url.origin===new URL(baseUrl).origin?url.pathname+url.search+url.hash:source);};
 async function check(label){
@@ -342,6 +342,21 @@ console.log('QA editor: preparing screenshot');
 await page.setViewportSize({width:1280,height:900});await page.locator('.editor-header').scrollIntoViewIfNeeded({timeout:15000});await page.screenshot({path:'/tmp/myowndex-clean-editor.png',animations:'disabled',timeout:15000});
 console.log('QA editor: screenshot completed');
 await capturePresentation('editor',page.locator('.editor-header'));
+// Release decoded animation frames before the sharing/room stress test, keeping
+// the browser context so player-owned local data is preserved and revalidated.
+await page.waitForTimeout(800);
+await page.close();
+page=await context.newPage();
+page.setDefaultTimeout(30000);
+page.on('pageerror',error=>errors.push(error.message));
+await page.goto(baseUrl,{waitUntil:'domcontentloaded'});
+await nav('Abrir o PC do Bill');
+await page.locator('.pc-partner-card').first().waitFor();
+await page.locator('.pc-partner-card').first().click();
+const savedNickname=page.getByLabel('Apelido',{exact:true});
+await savedNickname.waitFor();
+assert.match(await savedNickname.inputValue(),/parceiro com nome comprido/,'Editor state persists across a renderer restart');
+console.log('QA editor: renderer restarted, saved progress verified');
 await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Compartilhar',exact:true}).click();await check('390-link-share');await page.getByRole('radio',{name:'Box inteira',exact:false}).click();
 await page.getByRole('button',{name:'Gerar código',exact:false}).click();try {await page.getByLabel('Código de compartilhamento',{exact:true}).waitFor({timeout:5000});}catch(e){console.log('FAILBODY',await page.locator('body').innerText());console.log('ERRORS',JSON.stringify(errors));await page.screenshot({path:'/tmp/myowndex-flow-fail.png'});throw e;}await check('link-code');
 const code=await page.getByLabel('Código de compartilhamento',{exact:true}).inputValue();console.log('SHARE',code.length);

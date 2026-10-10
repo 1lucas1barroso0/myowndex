@@ -66,10 +66,13 @@ export const battleMovePresentation=(token,move,{useZMove=false}={})=>{
    return {kind:unique?"gmax-move":"max",label,type,power,source:move.name,
      secondary:unique?"signature":type,note:unique?"Efeito G-Max próprio da espécie":"Efeito Max por tipo"};
  }
- return {kind:"normal",label:move.name,type,power:move.power||0,source:move.name,secondary:"base",note:""};
+ const teraBlast=active==="tera"&&token.teraType&&move.name==="tera-blast";
+ return {kind:teraBlast?"tera-move":"normal",label:move.name,type:teraBlast?token.teraType:type,
+   power:move.power||0,source:move.name,secondary:teraBlast?"tera":"base",note:teraBlast?"Tera Blast adota o Tipo Tera":""};
 };
 export const moveVariantForResolution=(move,presentation)=>{
  if(!presentation||presentation.kind==="normal")return move;
+ if(presentation.kind==="tera-move")return {...move,type:{name:presentation.type}};
  const isStatus=presentation.kind==="max-guard";
  return {...move,name:presentation.label.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-$/,""),
    power:presentation.power,type:{name:presentation.type},

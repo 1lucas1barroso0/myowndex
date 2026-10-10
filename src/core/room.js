@@ -529,6 +529,7 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
             ? pokemon.customTypes
             : pokemon?.species?.types?.map(entry => entry?.type?.name),
         teraType: pokemon?.teraType || "",
+        shiny: Boolean(pokemon?.shiny),
         teraActive: false,
         dynamaxLevel: pokemon?.dynamaxLevel ?? 0,
         canGMax: Boolean(pokemon?.canGMax || String(pokemon?.species?.name||"").endsWith("-gmax")),

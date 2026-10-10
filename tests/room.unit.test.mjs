@@ -866,3 +866,24 @@ test("Yawn becomes sleep at end of the following round", () => {
   assert.equal(result.effects[0].kind, "status");
   assert.deepEqual(result.effects[0].sources, ["bocejo"]);
 });
+
+test("multiple selected partners can join simultaneously without importing every Box member", () => {
+    const roster = normalizeTeam({ ...team, id: "multi-pick", shareId: "multi-pick",
+        pokemon: [
+            { ...team.pokemon[0], id: "multi-one" },
+            { ...team.pokemon[0], id: "multi-two" },
+            { ...team.pokemon[0], id: "multi-three" },
+        ],
+    });
+    const first = addTeamToSnapshot(createRoomSnapshot("Seleção livre"), roster, "ally", "", {
+        activePokemonIds: ["multi-one", "multi-three"], benchRemaining: true,
+    });
+    assert.deepEqual(first.tokens.map(token => token.pokemonId), ["multi-one", "multi-three"]);
+    assert.deepEqual(first.room.benchTokens.map(token => token.pokemonId), ["multi-two"]);
+    const second = addTeamToSnapshot(first.room, roster, "ally", "", {
+        activePokemonIds: ["multi-one", "multi-two"], benchRemaining: true,
+    });
+    assert.deepEqual(second.tokens.map(token => token.pokemonId), ["multi-two"]);
+    assert.equal(second.room.tokens.length, 3);
+    assert.equal(second.room.benchTokens.length, 0);
+});

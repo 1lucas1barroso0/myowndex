@@ -1,0 +1,73 @@
+/* Weather belongs to the shared 2D world. Two low-contrast, noninteractive
+   layers move independently; the art, tokens and controls keep their fidelity. */
+html .app-root.game-edition.handheld-edition .battlefield-board:is(.weather-chuva,.weather-neve,.weather-sol,.weather-areia,.weather-nevoa)::before,
+html .app-root.game-edition.handheld-edition .battlefield-board:is(.weather-chuva,.weather-neve,.weather-sol,.weather-areia,.weather-nevoa)::after {
+  content: ""; position: absolute; inset: -18%; pointer-events: none;
+  display: block; border: 0; border-radius: 0;
+  background-repeat: repeat; will-change: transform,opacity;
+  mix-blend-mode: normal;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board:is(.weather-chuva,.weather-neve,.weather-sol,.weather-areia,.weather-nevoa)::before{ z-index: 1; }
+html .app-root.game-edition.handheld-edition .battlefield-board:is(.weather-chuva,.weather-neve,.weather-sol,.weather-areia,.weather-nevoa)::after{ z-index: 8; }
+
+/* Rain has distant fine drops and sparser, faster foreground streaks. */
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-chuva::before{
+  opacity: .35; background-image: repeating-linear-gradient(107deg,transparent 0 24px,#b5def388 24px 25px,transparent 25px 43px);
+  background-size: 92px 100px; animation: myowndex-rain-back 1.45s linear infinite;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-chuva::after{
+  opacity: .52; background-image: repeating-linear-gradient(106deg,transparent 0 49px,#e7f9ff9c 49px 50px,transparent 50px 92px);
+  background-size: 127px 118px; animation: myowndex-rain-front .88s linear infinite;
+}
+/* Snow uses two distinct depths; no full-screen white veil. */
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-neve::before{
+  opacity: .55; background-image: radial-gradient(circle,#d9f6ffad 0 1px,transparent 1.5px),radial-gradient(circle,#ecfaffb3 0 1.5px,transparent 2px);
+  background-size: 47px 53px,81px 67px; background-position: 3px 10px,29px 35px; animation: myowndex-snow-back 12s linear infinite;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-neve::after{
+  opacity: .78; background-image: radial-gradient(circle,#ffffffd9 0 2px,transparent 2.6px),radial-gradient(circle,#f3ffffc9 0 1px,transparent 1.7px);
+  background-size: 108px 89px,69px 97px; background-position: 17px 28px,51px 5px; animation: myowndex-snow-front 8s linear infinite;
+}
+/* Strong sunlight: warm breathable illumination, never an opaque disk. */
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-sol::before{
+  opacity: .5; background-image: radial-gradient(ellipse at 84% 13%,#fff8cd8c 0,#ffdd8b50 25%,transparent 66%);
+  background-size: 100% 100%; animation: myowndex-sun-glow 7s ease-in-out infinite alternate;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-sol::after{
+  opacity: .3; background-image: radial-gradient(circle at 84% 15%,#ffffffb3 0 1.5%,#fff1b65c 3%,transparent 35%),linear-gradient(120deg,transparent 25%,#ffe7a523 47%,transparent 73%);
+  background-size: 100% 100%; animation: myowndex-sun-drift 11s ease-in-out infinite alternate;
+}
+/* Sand flows sideways in two staggered depths with fine dust. */
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-areia::before{
+  opacity: .28; background-image: repeating-linear-gradient(163deg,transparent 0 24px,#c9a36a80 24px 27px,transparent 27px 66px);
+  background-size: 148px 102px; animation: myowndex-sand-back 9s linear infinite;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-areia::after{
+  opacity: .44; background-image: radial-gradient(ellipse,#e9cb96ac 0 2px,transparent 4px),repeating-linear-gradient(165deg,transparent 0 70px,#e4bb7c66 70px 71px,transparent 71px 130px);
+  background-size: 53px 39px,175px 110px; animation: myowndex-sand-front 6s linear infinite;
+}
+/* Fog travels in soft bands without hiding the creatures or the stage. */
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-nevoa::before{
+  opacity: .46; background-image: linear-gradient(90deg,transparent 0%,#d9ebeb60 27%,#f3fff183 55%,transparent 91%);
+  background-size: 68% 100%; animation: myowndex-fog-back 17s ease-in-out infinite alternate;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.weather-nevoa::after{
+  opacity: .37; background-image: radial-gradient(ellipse at 48% 50%,#f6ffffb5 0,transparent 72%);
+  background-size: 78% 55%; background-repeat: repeat-x; animation: myowndex-fog-front 13s ease-in-out infinite alternate;
+}
+@keyframes myowndex-rain-back { from { transform: translate(-5%, -7%); } to { transform: translate(4%, 10%); } }
+@keyframes myowndex-rain-front { from { transform: translate(-5%, -9%); } to { transform: translate(5%, 11%); } }
+@keyframes myowndex-snow-back { from { transform: translate(-3%, -8%); } to { transform: translate(3%, 9%); } }
+@keyframes myowndex-snow-front { from { transform: translate(2%, -10%); } to { transform: translate(-2%, 11%); } }
+@keyframes myowndex-sun-glow { from { opacity: .3; transform: scale(.98) translate(-1%, 0); } to { opacity: .55; transform: scale(1.025) translate(1%, .5%); } }
+@keyframes myowndex-sun-drift { from { opacity: .2; transform: translate(-1%, 1%); } to { opacity: .37; transform: translate(1%, -1%); } }
+@keyframes myowndex-sand-back { from { transform: translate(-11%, 2%); } to { transform: translate(12%, -1%); } }
+@keyframes myowndex-sand-front { from { transform: translate(-8%, 1%); } to { transform: translate(11%, -1%); } }
+@keyframes myowndex-fog-back { from { transform: translate(-14%, -1%); } to { transform: translate(12%, 2%); } }
+@keyframes myowndex-fog-front { from { transform: translate(10%, 2%); } to { transform: translate(-12%, -2%); } }
+@media (prefers-reduced-motion: reduce) {
+  html .app-root.game-edition.handheld-edition .battlefield-board:is(.weather-chuva,.weather-neve,.weather-sol,.weather-areia,.weather-nevoa)::before,
+  html .app-root.game-edition.handheld-edition .battlefield-board:is(.weather-chuva,.weather-neve,.weather-sol,.weather-areia,.weather-nevoa)::after{
+    animation: none !important; will-change: auto; transform: none !important;
+  }
+}

@@ -310,32 +310,6 @@ html .app-root.game-edition.handheld-edition :is(.dex-entry,.pc-partner-card,.ro
   }
 }
 
-/* App installation is a first-class path, not an unlabelled browser trick. */
-html .app-root.game-edition.handheld-edition .app-install-button {
-    font: inherit; font-size: .875rem !important; font-weight: 750 !important;
-    color: var(--journey-red); background: #fff !important;
-    border: 1px solid rgba(255,255,255,.9);
-    border-radius: .4rem; padding: .55rem .8rem; min-height: 44px;
-    white-space: normal; cursor: pointer;
-}
-.app-install-dialog-backdrop {
-    position: fixed; z-index: 2000; inset: 0; background: #06172bbd;
-    display: grid; place-items: center; padding: 1rem;
-}
-.app-install-dialog {
-    width: min(100%, 35rem); max-height: 90dvh; overflow-y: auto;
-    padding: clamp(1.1rem, 3vw, 1.6rem);
-    border: 2px solid var(--ui-blue); border-radius: .7rem;
-    background: var(--ui-panel); color: var(--ui-ink);
-    box-shadow: 0 12px 40px #0003;
-}
-.app-install-dialog header {
-    display: flex; justify-content: space-between; gap: 1rem; align-items: center;
-}
-.app-install-dialog h2 { font-size: 1.25rem; margin: 0; }
-.app-install-dialog header button { font-size: 1.5rem; min-width: 44px; min-height: 44px; }
-.app-install-dialog p { font-size: .95rem; line-height: 1.55; margin: .9rem 0; }
-.app-install-dialog > button { min-height: 48px; width: 100%; margin-top: .75rem; }
 /* Standalone mode gets true app chrome, safe areas and an immersive play area.
    Browser navigation is never hidden on the ordinary website. */
 @media (display-mode: standalone), (display-mode: fullscreen) {

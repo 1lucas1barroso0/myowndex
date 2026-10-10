@@ -63,10 +63,10 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
     };
 
     return <details className="experience-award">
-        <summary>Ganhar XP de desafio</summary>
+        <summary>Ganhar XP</summary>
         <div className="experience-award-body">
             <fieldset disabled={locked} className="experience-base-choice">
-                <legend>Recompensa do desafio</legend>
+                <legend>Recompensas pelo desafio</legend>
                 <div role="group" aria-label="XP do desafio">
                     {[1, 2, 3].map(value => <button key={value} type="button" aria-pressed={baseXp === value} onClick={() => setBaseXp(value)}>{value} XP</button>)}
                 </div>

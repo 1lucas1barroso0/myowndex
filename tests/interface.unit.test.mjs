@@ -617,3 +617,22 @@ test("local dice submit has no click-count throttle", async () => {
   assert.doesNotMatch(panel, /event\.detail\s*>\s*1/);
   assert.match(panel, /setHistory\(current=>mergeLocalRolls\(\[receipt\],current\)\)/);
 });
+
+test("optional Box multi-selection, battle utilities, Porygon centerpiece and XP copy stay consistent", async () => {
+  const [room, pc, experience, art, controls] = await Promise.all([
+    read("src/components/Room/RpgRoom.jsx"),
+    read("src/components/Teambuilder/Teambuilder.jsx"),
+    read("src/components/Shared/ExperienceAward.jsx"),
+    read("src/game-art-direction.css"),
+    read("src/room-controls.css"),
+  ]);
+  assert.match(room, /activePokemonIds: requested/);
+  assert.match(room, /Escolher vários Pokémon/);
+  assert.match(room, /chosenTeamPokemonIds.includes\(pokemon.id\)/);
+  assert.match(room, /token-management-grid/);
+  assert.match(controls, /room-team-multiple-choice/);
+  assert.match(pc, /pc-mascot-stage/);
+  assert.match(art, /\.pc-mascot-stage/);
+  assert.match(experience, /<summary>Ganhar XP<\/summary>/);
+  assert.match(experience, /<legend>Recompensas pelo desafio<\/legend>/);
+});

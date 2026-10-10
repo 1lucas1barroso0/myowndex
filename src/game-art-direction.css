@@ -1068,3 +1068,34 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-storage-tit
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion {
  align-self: center; margin-inline: auto !important;
 }
+
+/* Porygon anchors the PC's identity with a larger, clear pixel-art display.
+   No circular sprite shadow, fake loading strips or repetitive decoration. */
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading {
+  display: grid !important; grid-template-columns: minmax(0,1fr);
+  gap: .65rem; padding: .6rem !important; margin-bottom: .5rem !important;
+  background: var(--ui-panel);
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-storage-title {
+  width: 100%; align-self: start; padding: 0 .25rem;
+}
+html .app-root.game-edition.handheld-edition .pc-mascot-stage {
+  position: relative; display: grid; place-items: center;
+  isolation: isolate; width: 100%; min-height: 11rem;
+  padding: .5rem; border: 1px solid color-mix(in srgb,var(--joy-blue) 38%,var(--ui-line));
+  border-radius: .65rem; overflow: visible;
+  background: color-mix(in srgb,var(--joy-blue) 9%,var(--ui-panel));
+}
+html .app-root.game-edition.handheld-edition .pc-mascot-stage::before {
+  content: ""; position: absolute; inset: .5rem; pointer-events: none;
+  border: 1px solid color-mix(in srgb,var(--joy-blue) 22%,transparent);
+  border-radius: .3rem;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-mascot-stage .pokemon-companion {
+  width: clamp(7.5rem,11vw,9.3rem) !important; height: clamp(7.5rem,11vw,9.3rem) !important;
+  max-width: 100%; min-width: 0; margin: auto !important;
+  display: grid !important; place-items: center; background: transparent !important;
+}
+html .app-root.game-edition.handheld-edition .pc-mascot-stage .pokemon-companion > .pokemon-sized-sprite {
+  width: 100% !important; height: 100% !important; max-width: 100% !important;
+}

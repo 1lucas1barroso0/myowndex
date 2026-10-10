@@ -338,7 +338,9 @@ for(const width of [320,390,768,1280]){
  await page.locator('.editor-header').scrollIntoViewIfNeeded();await check(`${width}-editor`);
  for(const summary of ['Progresso da jornada','Características e transformações','Treinamento']){const s=page.locator('.pokemon-editor summary').filter({hasText:summary});if(!await s.evaluate(e=>e.parentElement.open))await s.click();await s.scrollIntoViewIfNeeded();await check(`${width}-editor-${summary}`)}
 }
-await page.setViewportSize({width:1280,height:900});await page.locator('.editor-header').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/myowndex-clean-editor.png'});
+console.log('QA editor: preparing screenshot');
+await page.setViewportSize({width:1280,height:900});await page.locator('.editor-header').scrollIntoViewIfNeeded({timeout:15000});await page.screenshot({path:'/tmp/myowndex-clean-editor.png',animations:'disabled',timeout:15000});
+console.log('QA editor: screenshot completed');
 await capturePresentation('editor',page.locator('.editor-header'));
 await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Compartilhar',exact:true}).click();await check('390-link-share');await page.getByRole('radio',{name:'Box inteira',exact:false}).click();
 await page.getByRole('button',{name:'Gerar código',exact:false}).click();try {await page.getByLabel('Código de compartilhamento',{exact:true}).waitFor({timeout:5000});}catch(e){console.log('FAILBODY',await page.locator('body').innerText());console.log('ERRORS',JSON.stringify(errors));await page.screenshot({path:'/tmp/myowndex-flow-fail.png'});throw e;}await check('link-code');

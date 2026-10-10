@@ -87,3 +87,20 @@ test("battle move dropdown descriptions use the transformed move identities",()=
  assert.equal(items[0].label,"G-Max Wildfire");
  assert.equal(items[1].label,"Max Guard");
 });
+
+test("real forms and converted attacks have distinct identities while their original move and PP remain stable",()=>{
+ const species=["charizard-gmax","kingler-gmax","rillaboom-gmax"];
+ const attacks=[move("flamethrower","fire"),move("surf","water"),move("razor-leaf","grass",60,"physical")];
+ for(let i=0;i<species.length;i++){
+  const token=pokemon("gmax",species[i]),source=attacks[i],shown=battleMovePresentation(token,source);
+  assert.match(shown.label,/^G-Max /);
+  const converted=moveVariantForResolution(source,shown);
+  assert.notEqual(converted.name,source.name);
+  assert.equal(source.pp,10);
+  assert.equal(converted.power,shown.power);
+ }
+ const tera=move("tera-blast","normal",80);
+ const converted=moveVariantForResolution(tera,battleMovePresentation(pokemon("tera"),tera));
+ assert.equal(converted.type.name,"water");
+ assert.equal(tera.type.name,"normal");
+});

@@ -57,10 +57,12 @@ try{
     await page.locator(".room-app").waitFor();
     const mobile=page.locator(".room-mobile-nav");
     if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
+    if(await mobile.isVisible())await mobile.getByRole("button",{name:"Equipe",exact:true}).click();
     const entry=page.getByRole("combobox",{name:"Quem entra em campo"});
     assert.equal(await entry.inputValue(),"","No Pokémon preselected from the Box");
     const action=page.getByRole("button",{name:/Adicionar.*como aliado/});
     assert.equal(await action.isDisabled(),true);
+    if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
     await page.locator(".room-token").first().click();
     await page.locator(".token-inspector").waitFor();
     assert.equal(await page.locator("#room-token-xp").count(),0,"Stored XP is read-only in adventure");

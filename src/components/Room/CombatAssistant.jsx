@@ -146,7 +146,7 @@ export default function CombatAssistant({
     }, [moveName, moveRefresh]);
 
     const moves = useMemo(() => attacker?.moves?.filter(Boolean) || [], [attacker]);
-    const zAvailable=canUseZMove(attacker,moveData) && !getMoveSpecialProfile(moveData) && snapshot.phase==="batalha";
+    const zAvailable=canUseZMove(attacker,moveData,snapshot) && !getMoveSpecialProfile(moveData) && snapshot.phase==="batalha";
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
     const needsCalledMove = specialProfile?.id === "called-move";
     const resolvedMoveData = needsCalledMove ? calledMoveData : moveData;

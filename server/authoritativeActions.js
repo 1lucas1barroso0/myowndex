@@ -172,6 +172,7 @@ export const normalizeAuthoritativeRequest = input => {
     if (!attackerId || !moveName) {
         throw new AuthoritativeActionError("Escolha o Pokémon e o movimento antes de resolver a jogada.");
     }
+    if(input.useZMove!==undefined && typeof input.useZMove!=="boolean")throw new AuthoritativeActionError("A escolha de movimento Z deve ser verdadeira ou falsa.");
     return {
         requestId,
         action,
@@ -181,6 +182,7 @@ export const normalizeAuthoritativeRequest = input => {
         moveName,
         calledMoveName,
         mode: requiredMode(input.mode),
+        useZMove:input.useZMove===true,
     };
 };
 
@@ -510,6 +512,10 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     // cannot execute its called move.
     const resolvedMove = needsCalledMove && !specialBlock ? calledMove : move;
     const gimmickMove = zMove ? {...resolvedMove,power:getZMovePower(resolvedMove.power),stat_changes:[],meta:{...resolvedMove.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,flinch_chance:0}} : maxActive && resolvedMove.power > 0 ? {...resolvedMove,power:maxMovePower(resolvedMove.power),stat_changes:[],meta:{...resolvedMove.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,flinch_chance:0}} : resolvedMove;
+    const maxField= maxActive && resolvedMove.power>0 ? ({
+      fire:{weather:"sol"},water:{weather:"chuva"},rock:{weather:"areia"},ice:{weather:"neve"},
+      electric:{terrain:"eletrico"},grass:{terrain:"gramado"},psychic:{terrain:"psiquico"},fairy:{terrain:"nevoa"}
+    })[resolvedMove.type?.name]||null : null;
     const ppState = getMovePpState(attacker, move, request.moveName);
     if (ppState.remaining != null && ppState.remaining <= 0) {
         throw new AuthoritativeActionError("Este movimento está sem PP.", 409);
@@ -666,8 +672,8 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const nextSnapshot = role === "narrator"
         ? {
             ...room,
-            ...(consequences.fieldChange?.weather ? { weather: consequences.fieldChange.weather } : {}),
-            ...(consequences.fieldChange?.terrain ? { terrain: consequences.fieldChange.terrain } : {}),
+            ...(maxField?.weather||consequences.fieldChange?.weather ? { weather: maxField?.weather||consequences.fieldChange.weather } : {}),
+            ...(maxField?.terrain||consequences.fieldChange?.terrain ? { terrain: maxField?.terrain||consequences.fieldChange.terrain } : {}),
             tokens: workingTokens,
             hitKillProtectionUsed: workingHitKillProtectionUsed,
             hitKillProtectionDisabled: workingHitKillProtectionDisabled,

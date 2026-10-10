@@ -1044,3 +1044,15 @@ html .app-root.game-edition.handheld-edition .rpg-journey-body{
   background:var(--ui-panel) !important;
 }
 /* Icons and genuine state meters (HP, EVs, XP, loading) stay visible. */
+
+/* Porygon's former loading decoration no longer reserves empty header space. */
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading {
+ min-height: 0; margin-bottom: .25rem; padding: .3rem .4rem .15rem !important; gap: .4rem;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion {
+ width: clamp(5.3rem, 10vw, 6.2rem) !important;
+ height: clamp(5.3rem, 10vw, 6.2rem) !important;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar .pc-box-list {
+ margin-top: .35rem; margin-bottom: .9rem;
+}

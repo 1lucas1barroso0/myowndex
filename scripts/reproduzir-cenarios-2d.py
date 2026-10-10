@@ -12,6 +12,7 @@ SOURCE = ROOT / "public/scenes/source/kenney-roguelike.png"
 SHEET = Image.open(SOURCE).convert("RGBA")
 SHEETS = {name: Image.open(ROOT / f"public/scenes/source/kenney-{name}.png").convert("RGBA") for name in ["tiny-town", "tiny-ski", "tiny-dungeon"]}
 WIDTH, HEIGHT = 30, 20
+DECORATIONS = json.loads((ROOT / 'public/scenes/source/decorations.json').read_text(encoding='utf-8'))
 
 
 def tile(x, y, source="rpg"):
@@ -232,7 +233,8 @@ manifest = {
         "license": "CC0-1.0",
         "sourceSha256": hashlib.sha256((ROOT / f"public/scenes/source/kenney-{name}.png").read_bytes()).hexdigest(),
     } for name in ["tiny-town", "tiny-ski", "tiny-dungeon"]],
-    "method": "Chão de cores planas definido no código; marcos dos autores preservados, recortados e montados em escala uniforme de 1× ou 2×, sem redesenho, recoloração, filtro ou geração de arte.",
+    "method": "Tiles Kenney (CC0) mantidos pixel a pixel; pequenos detalhes vetoriais autorais de terreno em camadas reprodutíveis, sem filtros ou dependências.",
+    "decorations": "public/scenes/source/decorations.json",
     "scenes": [],
 }
 for identity, title, features, build in SCENES:
@@ -242,6 +244,7 @@ for identity, title, features, build in SCENES:
     png = buffer.getvalue()
     encoded = base64.b64encode(png).decode("ascii")
     svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {WIDTH * 16} {HEIGHT * 16}"><title>{title}</title><image width="{WIDTH * 16}" height="{HEIGHT * 16}" image-rendering="pixelated" href="data:image/png;base64,{encoded}"/></svg>\n'
+    svg = svg.replace("</svg>", DECORATIONS[identity] + "</svg>")
     destination = ROOT / f"public/scenes/{identity}.svg"
     destination.write_text(svg, encoding="utf-8")
     manifest["scenes"].append({"id": identity, "title": title, "features": features, "width": pixels.width, "height": pixels.height, "pixelSha256": hashlib.sha256(pixels.tobytes()).hexdigest(), "bytes": destination.stat().st_size})

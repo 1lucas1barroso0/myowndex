@@ -100,3 +100,21 @@ html .app-root.game-edition.handheld-edition .battlefield-party-strip button > s
 @media (forced-colors: active){
   html .app-root.game-edition.handheld-edition .battlefield-party-strip button[aria-pressed="true"]{ outline-color: Highlight; }
 }
+
+/* Full-bleed 2D board: occupy the available scene column, without cropping. */
+html .app-root.game-edition.handheld-edition .battlefield-board,
+html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon,
+html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field {
+  width: 100%; max-width: none; aspect-ratio: 3 / 2;
+  height: auto; min-height: 0; margin-inline: 0;
+}
+html .app-root.game-edition.handheld-edition .battlefield-scenery {
+  object-fit: contain; object-position: center; width: 100%; height: 100%;
+}
+@media (max-width: 540px) {
+ html .app-root.game-edition.handheld-edition .battlefield-board,
+ html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon,
+ html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field {
+   aspect-ratio: 3 / 2; min-height: 0;
+ }
+}

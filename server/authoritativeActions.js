@@ -31,6 +31,7 @@ import { CAPTURE_BALLS, captureTrainerKey, rollCapture } from "../src/core/captu
 import { getCurrentMoveReference } from "../src/core/championsMoves.js";
 import { canUseZMove, normalizeGimmickState } from "../src/core/battleGimmicks.js";
 import { battleMovePresentation, moveVariantForResolution } from "../src/core/battleMovePresentation.js";
+import { applyMaxMoveSecondary } from "../src/core/battleMoveEffects.js";
 
 const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "start-battle"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
@@ -514,10 +515,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const resolvedMove = needsCalledMove && !specialBlock ? calledMove : move;
     const presentation = battleMovePresentation(attacker,resolvedMove,{useZMove:zMove});
     const gimmickMove = moveVariantForResolution(resolvedMove,presentation);
-    const maxField= maxActive && presentation?.kind==="max" ? ({
-      fire:{weather:"sol"},water:{weather:"chuva"},rock:{weather:"areia"},ice:{weather:"neve"},
-      electric:{terrain:"eletrico"},grass:{terrain:"gramado"},psychic:{terrain:"psiquico"},fairy:{terrain:"nevoa"}
-    })[resolvedMove.type?.name]||null : null;
+
     const ppState = getMovePpState(attacker, move, request.moveName);
     if (ppState.remaining != null && ppState.remaining <= 0) {
         throw new AuthoritativeActionError("Este movimento está sem PP.", 409);
@@ -658,10 +656,12 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         (sum, entry) => sum + integerInRange(entry.previewHitKill?.appliedDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
         0,
     );
-    const resolvedMaxField=connected?maxField:null;
+    const secondary=applyMaxMoveSecondary({tokens:workingTokens,attackerId:attacker.id,presentation,connected});
+    workingTokens=secondary.tokens;
     const result = {
         ...representative,
         conditionNotes: conditionCheck.notes,
+        specialMoveNotes:secondary.notes,
         usedMove: {name:presentation?.label||resolvedMove.name,kind:presentation?.kind||"normal",type:presentation?.type||resolvedMove.type?.name,baseMove:move.name,power:presentation?.power??resolvedMove.power},
         hit: connected,
         moveConnected: connected,
@@ -676,8 +676,8 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const nextSnapshot = role === "narrator"
         ? {
             ...room,
-            ...(resolvedMaxField?.weather||consequences.fieldChange?.weather ? { weather: resolvedMaxField?.weather||consequences.fieldChange.weather } : {}),
-            ...(resolvedMaxField?.terrain||consequences.fieldChange?.terrain ? { terrain: resolvedMaxField?.terrain||consequences.fieldChange.terrain } : {}),
+            ...(secondary.field.weather||consequences.fieldChange?.weather ? { weather: secondary.field.weather||consequences.fieldChange.weather } : {}),
+            ...(secondary.field.terrain||consequences.fieldChange?.terrain ? { terrain: secondary.field.terrain||consequences.fieldChange.terrain } : {}),
             tokens: workingTokens,
             hitKillProtectionUsed: workingHitKillProtectionUsed,
             hitKillProtectionDisabled: workingHitKillProtectionDisabled,
@@ -710,7 +710,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             ppAfter: consequences.ppAfter,
             fumble: targetResults.some(entry => entry.resolution.attackTest?.fumble),
             defenderFumble: targetResults.some(entry => entry.resolution.defenseTest?.fumble),
-            specialNarrative: [...(zMove?[`${attacker.name} utilizou sua única energia Z nesta batalha.`]:maxActive?[`${attacker.name} usou um Max Move.`]:[]),...conditionCheck.notes, ...consequences.specialNarratives].join(" "),
+            specialNarrative: [...secondary.notes,...(zMove?[`${attacker.name} utilizou sua única energia Z nesta batalha.`]:maxActive?[`${attacker.name} usou um Max Move.`]:[]),...conditionCheck.notes, ...consequences.specialNarratives].join(" "),
         }
         : {
             label: `simulação de ${formatName(resolvedMove.name)}`,

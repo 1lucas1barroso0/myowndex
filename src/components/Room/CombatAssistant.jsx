@@ -483,6 +483,7 @@ export default function CombatAssistant({
                         {result.usedMove?.kind && result.usedMove.kind!=="normal" && <div className={`combat-move-reveal is-${result.usedMove.kind}`} role="status">
                             <strong>{result.usedMove.name}</strong><small>{formatType(result.usedMove.type)} · Poder {result.usedMove.power} · Origem: {formatName(result.usedMove.baseMove)}</small>
                         </div>}
+                        {result.specialMoveNotes?.map((note,index)=><p key={`gimmick-note-${index}`} className="combat-special-explanation">{note}</p>)}
                         <div className="combat-result-metric is-resolution">
                             <small>Forma de resolução</small>
                             <strong>{result.resolutionLabel}</strong>

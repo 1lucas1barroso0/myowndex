@@ -74,11 +74,12 @@ export const moveVariantForResolution=(move,presentation)=>{
  return {...move,name:presentation.label.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-$/,""),
    power:presentation.power,type:{name:presentation.type},
    target:isStatus?{name:"user"}:move.target,
+   accuracy:isStatus?null:move.accuracy,
    damage_class:{name:isStatus?"status":move.damage_class?.name},
    // Original move-specific flinch, recoil and status effects must not leak
    // into a completely different Z/Max move.
    effect_chance:null,stat_changes:[],effect_entries:[],
-   meta:{...move.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,
+   meta:{...move.meta,category:isStatus?{name:"unique"}:{name:"damage"},ailment:{name:"none"},ailment_chance:0,stat_chance:0,
      flinch_chance:0,drain:0,healing:0,min_hits:null,max_hits:null,
      min_turns:null,max_turns:null,crit_rate:0},
  };

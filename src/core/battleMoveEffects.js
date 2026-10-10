@@ -55,9 +55,11 @@ export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected})=
   if(condition){
     updated=updated.map(token=>{
       if(token.currentHp<=0||token.hidden||token.captured||safeSide(token)===safeSide(user)||token.status)return token;
+      if(condition==="paralysis"&&token.types?.includes("electric"))return token;
+      if(condition==="poison"&&(token.types?.includes("poison")||token.types?.includes("steel")))return token;
       return {...token,status:condition};
     });
-    notes.push(`${label}: ${condition} nos oponentes sem condição, conforme imunidades aplicáveis.`);
+    notes.push(`${label}: ${condition} nos oponentes elegíveis.`);
   }
   if(label==="G-Max Sweetness"){
     updated=updated.map(token=>safeSide(token)===safeSide(user)?{...token,status:"",sleepTurns:null,freezeTurns:null,toxicCounter:0}:token);

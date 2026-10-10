@@ -125,3 +125,20 @@ test("each full-width environment is a distinct, authored game world, not a plac
         known.add(art);
     }
 });
+
+
+test("scenes keep natural open play space and distinct locations without obstructive props", async () => {
+    const art = JSON.parse(await read("public/scenes/source/decorations.json"));
+    assert.match(art.floresta, /data-natural-grove="no-trail-no-camp"/);
+    assert.doesNotMatch(art.floresta, /data-campsite|data-pathway|trail-marker/);
+    assert.match(art.caverna, /data-cave-floor="clear-no-bridge"/);
+    assert.doesNotMatch(art.caverna, /<rect x="154" y="183" width="167"/);
+    assert.match(art.arena, /data-court="continuous-oval-no-rectangular-platforms"/);
+    assert.match(art.arena, /<ellipse cx="240" cy="160"/);
+    assert.match(art.laboratorio, /data-lab="asymmetric-side-consoles-open-center"/);
+    assert.match(art.distorcao, /data-distortion="off-center-islands-open-center"/);
+    for(const id of ["floresta","caverna","arena","laboratorio","distorcao"]) {
+        const svg = (await read(`public/scenes/${id}.svg`)).toString();
+        assert.ok(svg.includes(art[id]), `source and output must agree: ${id}`);
+    }
+});

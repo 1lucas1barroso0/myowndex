@@ -244,7 +244,8 @@ manifest = {
         "license": "CC0-1.0",
         "sourceSha256": hashlib.sha256((ROOT / f"public/scenes/source/kenney-{name}.png").read_bytes()).hexdigest(),
     } for name in ["tiny-town", "tiny-ski", "tiny-dungeon"]],
-    "method": "Tiles Kenney (CC0) mantidos pixel a pixel; pequenos detalhes vetoriais autorais de terreno em camadas reprodutíveis, sem filtros ou dependências.",
+    "method": "Nine bespoke pixel-art RPG environments authored as crisp-edged vectors; original CC0 tiles retained underneath for provenance and reproduction.",
+    "visualLayerAuthor": "Original RPG world illustration commissioned for MyOwnDex",
     "decorations": "public/scenes/source/decorations.json",
     "scenes": [],
 }

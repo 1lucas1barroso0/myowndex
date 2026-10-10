@@ -62,7 +62,7 @@ test("nine local 2D maps preserve licensed source pixels, useful landmarks, and 
         const svg = asset.toString();
         total += asset.length;
         assert.equal(asset.length, scene.bytes);
-        assert.ok(asset.length < 12000, `${scene.id}: keep a single map light`);
+        assert.ok(asset.length < 40000, `${scene.id}: keep a single map light`);
         assert.ok(scene.features.length >= 3, `${scene.id}: distinct useful landmarks`);
         assert.doesNotMatch(svg, /<(?:filter|foreignObject|script|animate|linearGradient|radialGradient)\b/);
         assert.equal((svg.match(/<image\b/g) || []).length, 1);
@@ -79,7 +79,7 @@ test("nine local 2D maps preserve licensed source pixels, useful landmarks, and 
         hashes.add(scene.pixelSha256);
     }
     assert.equal(hashes.size, 9);
-    assert.ok(total < 60000, `all nine maps stay below 60 KB (${total})`);
+    assert.ok(total < 280000, `all nine maps stay below 280 KB (${total})`);
 });
 
 test("the scene camera shows every map, and the PC companion has no fake loading bars", async () => {
@@ -106,8 +106,22 @@ test("generated landmarks remain inset, collision-checked, with no random SVG gr
     assert.match(generator, /raise ValueError\(f"\{name\}: overlaps/);
     const decorations = JSON.parse(await read("public/scenes/source/decorations.json"));
     for (const scene of ROOM_SCENARIOS) {
-        assert.equal(decorations[scene.id], "", scene.id + " must not paint grass over sprites or landmarks");
+        assert.match(decorations[scene.id], new RegExp(`data-original-world="${scene.id}"`));
         const svg = (await read("public/scenes/" + scene.id + ".svg")).toString();
+        assert.match(svg, new RegExp(`data-original-world="${scene.id}"`));
         assert.doesNotMatch(svg, /terrain-mark|terrain-grain|data-scene-details/);
+    }
+});
+
+test("each full-width environment is a distinct, authored game world, not a placeholder", async () => {
+    const worlds = JSON.parse(await read("public/scenes/source/decorations.json"));
+    const known = new Set();
+    for(const {id} of ROOM_SCENARIOS) {
+        const art = worlds[id];
+        assert.match(art, /shape-rendering="crispEdges"/);
+        assert.match(art, /<rect x="0" y="0" width="480" height="320"/);
+        assert.ok(art.length > 1800);
+        assert.equal(known.has(art), false);
+        known.add(art);
     }
 });

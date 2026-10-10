@@ -300,8 +300,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
     const [connection, setConnection] = useState("connecting");
     const [error, setError] = useState("");
     const [selectedTeamId, setSelectedTeamId] = useState(teams[0]?.id || "");
-    const [selectedTeamPokemonId, setSelectedTeamPokemonId] = useState(teams[0]?.pokemon[0]?.id || "");
-    const [selectedTeamPokemonIds, setSelectedTeamPokemonIds] = useState(teams[0]?.pokemon[0]?.id ? [teams[0].pokemon[0].id] : []);
+    const [selectedTeamPokemonId, setSelectedTeamPokemonId] = useState("");
+    const [selectedTeamPokemonIds, setSelectedTeamPokemonIds] = useState([]);
     const [selectedTokenId, setSelectedTokenId] = useState("");
     const [selfCostHp, setSelfCostHp] = useState(1);
     const [diceOpen, setDiceOpen] = useState(false);
@@ -345,9 +345,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
     const snapshot = useMemo(() => normalizeRoomSnapshot(room?.snapshot), [room?.snapshot]);
     const role = session?.role || "";
     const selectedTeam = teams.find(team => team.id === selectedTeamId) || teams[0] || null;
-    const selectedTeamPokemon = selectedTeam?.pokemon.find(pokemon => pokemon.id === selectedTeamPokemonId)
-        || selectedTeam?.pokemon[0]
-        || null;
+    const selectedTeamPokemon = selectedTeam?.pokemon.find(pokemon => pokemon.id === selectedTeamPokemonId) || null;
     const chosenTeamPokemonIds = selectedTeamPokemonIds.filter(id => selectedTeam?.pokemon.some(pokemon => pokemon.id === id));
     const belongsToSelectedBox = token => token.teamId === selectedTeam?.id
         || Boolean(token.teamShareId && token.teamShareId === selectedTeam?.shareId);
@@ -865,6 +863,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             return;
         }
         commitSnapshot(result.room);
+        if(result.tokens.length===1) setSelectedTokenId(result.tokens[0].id);
         const enteredIds = new Set(result.tokens.map(token => token.pokemonId));
         setSelectedTeamPokemonIds(current => current.filter(id => !enteredIds.has(id)));
         await sendEvent("system", {
@@ -1034,69 +1033,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 setNotice?.({ tone: "blue", text: `${removed.name} voltou à cena.${latest.initiative.length ? " Participa da próxima ordem." : ""}` });
             },
         });
-    };
-
-    const applySelectedExperience = (nextXp, announce = true) => {
-        if (!selectedToken || role !== "narrator") return;
-        const normalizedXp = integerInRange(nextXp, 0, 999999, selectedToken.xp);
-        if (selectedToken.level >= 200) {
-            updateToken({ xp: normalizedXp });
-            return;
-        }
-        const goal = getNextLevelXp(selectedToken.level);
-        if (normalizedXp < goal) {
-            updateToken({ xp: normalizedXp });
-            return;
-        }
-        const sourceTeam = teams.find(team => team.id === selectedToken.teamId);
-        const sourcePokemon = sourceTeam?.pokemon.find(pokemon => pokemon.id === selectedToken.pokemonId);
-        if (!sourceTeam || !sourcePokemon) {
-            updateToken({ level: selectedToken.level + 1, xp: 0 });
-            if (announce) {
-                setNotice?.({ tone: "blue", text: `${selectedToken.name} alcançou o nível ${selectedToken.level + 1}!` });
-                void sendEvent("system", { text: `${selectedToken.name} alcançou o nível ${selectedToken.level + 1}!` });
-            }
-            return;
-        }
-        const nextPokemon = {
-            ...sourcePokemon,
-            level: selectedToken.level + 1,
-            rpg: { ...sourcePokemon.rpg, xp: 0 },
-        };
-        const recalculated = createTokenFromPokemon(nextPokemon, sourceTeam, 0, selectedToken.side);
-        const hpGrowth = Math.max(0, recalculated.maxHp - selectedToken.maxHp);
-        const levelledToken = {
-            ...selectedToken,
-            level: nextPokemon.level,
-            xp: 0,
-            maxHp: recalculated.maxHp,
-            currentHp: selectedToken.currentHp === 0 ? 0 : Math.min(recalculated.maxHp, selectedToken.currentHp + hpGrowth),
-            stats: recalculated.stats,
-            originalStats: recalculated.originalStats,
-        };
-        const nextToken = { ...levelledToken, stats: calculateStagedStats(levelledToken) };
-        const synchronizedPokemon = {
-            ...nextPokemon,
-            rpg: {
-                ...nextPokemon.rpg,
-                currentHp: nextToken.currentHp,
-                status: nextToken.status,
-                pp: nextToken.pp,
-            },
-        };
-        const nextTeam = {
-            ...sourceTeam,
-            pokemon: sourceTeam.pokemon.map(pokemon => pokemon.id === synchronizedPokemon.id ? synchronizedPokemon : pokemon),
-        };
-        setTeams(current => current.map(team => team.id === nextTeam.id ? touchTeam(nextTeam) : team));
-        commitSnapshot({
-            ...snapshot,
-            tokens: snapshot.tokens.map(token => token.id === selectedToken.id ? nextToken : token),
-        });
-        if (announce) {
-            setNotice?.({ tone: "blue", text: `${selectedToken.name} alcançou o nível ${nextPokemon.level}!` });
-            void sendEvent("system", { text: `${selectedToken.name} alcançou o nível ${nextPokemon.level}!` });
-        }
     };
 
     const awardSelectedExperience = async reward => {
@@ -1469,8 +1405,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                         onChange={event => {
                                             const nextTeam = teams.find(team => team.id === event.target.value);
                                             setSelectedTeamId(event.target.value);
-                                            setSelectedTeamPokemonId(nextTeam?.pokemon[0]?.id || "");
-                                            setSelectedTeamPokemonIds(nextTeam?.pokemon[0]?.id ? [nextTeam.pokemon[0].id] : []);
+                                            setSelectedTeamPokemonId("");
+                                            setSelectedTeamPokemonIds([]);
                                         }}
                                     >
                                         {teams.map(team => <option key={team.id} value={team.id}>{team.name} · {team.pokemon.length} de 6</option>)}
@@ -1485,7 +1421,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                         disabled={!selectedTeam?.pokemon.length}
                                         onChange={event => { setSelectedTeamPokemonId(event.target.value); setSelectedTeamPokemonIds([event.target.value]); }}
                                     >
-                                        {!selectedTeam?.pokemon.length && <option value="">Esta Box está vazia</option>}
+                                        <option value="">{selectedTeam?.pokemon.length ? "Escolha um Pokémon da Box" : "Esta Box está vazia"}</option>
                                         {selectedTeam?.pokemon.map(pokemon => (
                                             <option key={pokemon.id} value={pokemon.id}>
                                                 {pokemon.nickname || formatName(pokemon.species?.species?.name || pokemon.species?.name)}
@@ -1519,10 +1455,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                                                 ? [...new Set([...current, pokemon.id])]
                                                                 : current.filter(id => id !== pokemon.id));
                                                         }} />
-                                                    <span>{name}</span>
-                                                    {inField && <small>Em campo</small>}
-                                                    {!inField && inBench?.currentHp <= 0 && <small>Indisponível</small>}
-                                                    {!inField && inBench?.currentHp > 0 && <small>No banco</small>}
+                                                    <span className="room-roster-name">{name}</span>
+                                                    {inField && <small className="room-roster-status">Em campo</small>}
+                                                    {!inField && inBench?.currentHp <= 0 && <small className="room-roster-status">Indisponível</small>}
+                                                    {!inField && inBench?.currentHp > 0 && <small className="room-roster-status">No banco</small>}
                                                 </label>;
                                             })}
                                         </div>
@@ -1585,6 +1521,28 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         onChoosePokemon={choosePokemon}
                         compact={false}
                     />
+                    {snapshot.phase === "batalha" && <BattleGimmickPanel
+                        snapshot={snapshot}
+                        role={role}
+                        selectedTokenId={selectedTokenId}
+                        onSelectToken={setSelectedTokenId}
+                        onTokenChange={nextToken => {
+                            if(role!=="narrator" || !nextToken?.id) return;
+                            const latest=snapshotRef.current;
+                            if(!latest.tokens.some(token=>token.id===nextToken.id)) return;
+                            commitSnapshot({...latest,tokens:latest.tokens.map(token=>token.id===nextToken.id?nextToken:token)});
+                        }}
+                        onOpenZ={() => {
+                            setMobilePane("tools");
+                            window.requestAnimationFrame(() => {
+                                const section=document.querySelector(".room-tools .room-tool:has(> summary) > summary");
+                                const combat=[...document.querySelectorAll(".room-tools .room-tool")].find(node=>node.querySelector(":scope > summary")?.textContent?.includes("Resolver um movimento"));
+                                if(combat){combat.open=true;combat.scrollIntoView({block:"start",behavior:"smooth"});combat.querySelector("select")?.focus({preventScroll:true});}
+                                else section?.focus();
+                            });
+                        }}
+                        onNotice={text => setNotice?.({tone:"blue",text})}
+                    />}
                     {snapshot.phase === "batalha" && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
                         onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}
                         onRoll={generateInitiative} onAdvance={nextTurn} />}
@@ -1670,21 +1628,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                 )}
                             </div>
                             <section className="token-experience" aria-label="Experiência do Pokémon">
-                                <h3>Experiência</h3>
-                                <div className="token-xp-control">
-                                <label htmlFor="room-token-xp">XP atual</label>
-                                <input
-                                    id="room-token-xp"
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    max="999999"
-                                    value={selectedToken.xp}
-                                    disabled={role !== "narrator"}
-                                    onChange={event => updateToken({ xp: event.target.value })}
-                                    onBlur={() => applySelectedExperience(selectedToken.xp)}
-                                />
-                                <small className="token-xp-next-level">{selectedToken.level >= 200 ? "Nível máximo · 200" : `Até o próximo nível: ${formatNumberPtBr(Math.max(0, getNextLevelXp(selectedToken.level) - selectedToken.xp))} XP`}</small>
+                                <header className="token-experience-heading"><h3>Experiência</h3><span>Nível {selectedToken.level}</span></header>
+                                <div className="token-xp-readout">
+                                    <span><small>XP atual</small><strong>{formatNumberPtBr(selectedToken.xp)}</strong></span>
+                                    <span><small>Próximo nível</small><strong>{selectedToken.level >= 200 ? "Máximo" : `${formatNumberPtBr(Math.max(0, getNextLevelXp(selectedToken.level) - selectedToken.xp))} XP`}</strong></span>
+                                    {selectedToken.level < 200 && <progress aria-label="Progresso até o próximo nível" max={Math.max(1,getNextLevelXp(selectedToken.level))} value={Math.min(selectedToken.xp,getNextLevelXp(selectedToken.level))}/>}
                                 </div>
                                 {role === "narrator" && <ExperienceAward key={selectedToken.id} winnerLevel={selectedToken.level} battleContext={getRoomBattleRewardContext(snapshot, selectedToken.id)} onAward={awardSelectedExperience} disabled={busy} />}
                             </section>
@@ -1717,14 +1665,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     ))}
                                 </div>
                             )}
-                            <BattleGimmickPanel
-                                token={selectedToken}
-                                snapshot={snapshot}
-                                role={role}
-                                onTokenChange={replaceSelectedToken}
-                                onNotice={text => setNotice?.({ tone: "blue", text })}
-                            />
-                            {snapshot.phase === "batalha" && <SpecialMechanicsPanel
+                             {snapshot.phase === "batalha" && <SpecialMechanicsPanel
                                 token={selectedToken}
                                 snapshot={snapshot}
                                 role={role}

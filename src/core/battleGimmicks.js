@@ -51,7 +51,7 @@ const SPECIFIC_Z = Object.freeze({
 "ultranecrozium-z":["necrozma","photon-geyser"],
 });
 const baseline = token => ({
-speciesName:slug(token.speciesName),speciesId:token.speciesId,sprite:token.sprite,shiny:Boolean(token.shiny),
+speciesName:slug(token.speciesName),speciesId:token.speciesId,sprite:token.sprite,shiny:Boolean(token.shiny),formName:slug(token.formName),
 types:[...(token.types||[])],originalTypes:[...(token.originalTypes||[])],
 ability:token.ability,stats:{...token.stats},originalStats:{...token.originalStats},
 maxHp:token.maxHp,currentHp:token.currentHp,

@@ -546,7 +546,7 @@ test("game art direction is imported last and preserves the approved content lay
     read("app/globals.css"),
     read("src/game-art-direction.css"),
   ]);
-  assert.ok(globals.trimEnd().endsWith('@import "../src/game-art-direction.css";\n@import "../src/living-pokemon.css";'));
+  assert.ok(globals.trimEnd().endsWith('@import "../src/game-art-direction.css";\n@import "../src/living-pokemon.css";\n@import "../src/weather-effects.css";'));
   for (const selector of [".adventure-intro", ".room-lobby-card", ".dex-entry-main", ".local-dice-dialog", ".account-dialog"]) {
     assert.ok(art.includes(selector), `missing art-direction treatment for ${selector}`);
   }

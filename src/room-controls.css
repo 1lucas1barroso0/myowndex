@@ -878,3 +878,66 @@ html .app-root.game-edition.handheld-edition .adventure-dice-tool .local-dice-pa
  html .app-root.game-edition.handheld-edition .token-hp-payment { padding: .55rem; }
  html .app-root.game-edition.handheld-edition .token-experience { padding: .75rem; }
 }
+
+/* Compact optional multiple Pokémon choices, with no mandatory all-Box action. */
+html .app-root.game-edition.handheld-edition .room-team-entry > .room-team-multiple {
+  grid-column: 1 / -1; min-width: 0; margin: 0;
+  border: 1px solid var(--ui-line); border-radius: .4rem; background: var(--ui-panel);
+}
+html .app-root.game-edition.handheld-edition .room-team-multiple > summary {
+  cursor: pointer; padding: .6rem .7rem; min-height: 44px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: .5rem;
+  font-size: .875rem; font-weight: 700; color: var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .room-team-multiple > summary small {
+  margin-left: auto; font-weight: 500; color: var(--ui-muted);
+}
+html .app-root.game-edition.handheld-edition .room-team-multiple-list {
+  display: grid; gap: .35rem; padding: .5rem .6rem;
+}
+html .app-root.game-edition.handheld-edition .room-team-multiple-choice {
+  display: flex; align-items: center; gap: .5rem;
+  min-height: 44px; min-width: 0; padding: .3rem .4rem;
+  border-radius: .3rem; background: var(--ui-raised);
+  font-size: .82rem; color: var(--ui-ink);
+}
+html .app-root.game-edition.handheld-edition .room-team-multiple-choice > span {
+  flex: 1; min-width: 0; overflow-wrap: anywhere;
+}
+html .app-root.game-edition.handheld-edition .room-team-multiple-choice input {
+  width: 18px; height: 18px; flex-shrink: 0; margin: 0;
+  accent-color: var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .room-team-multiple-choice small {
+  color: var(--ui-muted); font-size: .72rem !important;
+}
+html .app-root.game-edition.handheld-edition .room-team-multiple > p {
+  padding: .25rem .7rem .65rem; margin: 0; color: var(--ui-muted);
+  font-size: .75rem !important; line-height: 1.4;
+}
+html .app-root.game-edition.handheld-edition .room-team-entry .room-button-row button {
+  min-height: 48px; height: auto; line-height: 1.4;
+  padding: .6rem .45rem; white-space: normal;
+}
+/* Battle utilities share rows and sizes, with the removal action last. */
+html .app-root.game-edition.handheld-edition .token-inspector > .token-management-grid {
+  grid-column: 1 / -1; display: grid; min-width: 0;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,13rem),1fr));
+  align-items: end; gap: .9rem; padding: 1rem;
+  border: 1px solid var(--ui-line); border-radius: .5rem;
+  background: var(--ui-raised);
+}
+html .app-root.game-edition.handheld-edition .token-management-grid > label {
+  display: grid; min-width: 0; gap: .45rem;
+}
+html .app-root.game-edition.handheld-edition .token-management-grid > label > span {
+  color: var(--ui-muted); font-size: .875rem; line-height: 1.35;
+}
+html .app-root.game-edition.handheld-edition .token-management-grid :is(.room-select,.token-tera,.token-remove) {
+  width: 100%; min-width: 0; min-height: 52px !important;
+  height: auto !important; box-sizing: border-box; margin: 0;
+}
+html .app-root.game-edition.handheld-edition .token-management-grid :is(.token-tera,.token-remove) {
+  padding: .6rem .7rem; display: flex; align-items: center;
+  justify-content: center; text-align: center; white-space: normal;
+}

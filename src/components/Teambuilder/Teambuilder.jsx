@@ -381,7 +381,7 @@ export default function Teambuilder({ envProps }) {
             <aside className="pc-sidebar" aria-label="Boxes do PC">
                 <header className="pc-sidebar-heading">
                     <div className="pc-storage-title"><h2>Boxes</h2><span className="pc-box-count" aria-hidden="true">{teams.length}</span><span className="sr-only">{formatCount(teams.length, "Box", "Boxes")} no PC</span></div>
-                    <PokemonCompanion place="pc" eager />
+                    <div className="pc-mascot-stage"><PokemonCompanion place="pc" eager /></div>
                 </header>
                 <div className="pc-box-list">
                 {teams.map(team => (

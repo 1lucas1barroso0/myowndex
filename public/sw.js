@@ -179,8 +179,10 @@ self.addEventListener("fetch", event => {
     ));
   if (!reusableAsset) return;
 
-  const immutable = sameOrigin && url.pathname.startsWith("/_next/static/")
-    || url.hostname === "raw.githubusercontent.com" && (/^\/PokeAPI\/sprites\/[a-f0-9]{40}\//.test(url.pathname)
+  const immutable = sameOrigin && (
+      url.pathname.startsWith("/_next/static/")
+      || /^\/sprites\/native\/2d-[a-f0-9]{24}\.(?:gif|png|apng)$/.test(url.pathname)
+    ) || url.hostname === "raw.githubusercontent.com" && (/^\/PokeAPI\/sprites\/[a-f0-9]{40}\//.test(url.pathname)
       || /^\/smogon\/sprites\/[a-f0-9]{40}\//.test(url.pathname));
   respondAndMaintain(event, (async () => {
     // Hash-addressed build files and commit-pinned images never change.
@@ -191,7 +193,7 @@ self.addEventListener("fetch", event => {
         const core = await (await caches.open(CACHE_NAME)).match(request);
         if (core) return { response: core };
         const cached = await (await caches.open(ASSET_CACHE_NAME)).match(request);
-        if (cached) return { response: cached, maintenance: rememberAsset(request, cached.clone()) };
+        if (cached) return { response: cached };
       } catch { /* CacheStorage is optional. */ }
     }
     try {

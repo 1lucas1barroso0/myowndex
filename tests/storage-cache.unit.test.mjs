@@ -929,3 +929,15 @@ test("version endpoint and RSC/private traffic are never intercepted by the work
   }
   assert.equal(worker.calls(),0);
 });
+
+test("immutable SHA-named 2D sprites are reused without re-downloading while mutable sprites still refresh",async()=>{
+ let calls=0;
+ const worker=await serviceWorker(async()=>{calls++;return new Response("sprite "+calls)});
+ const immutable=`${origin}/sprites/native/2d-003053cc01e7afd315790eb4.gif`;
+ const dynamic=`${origin}/sprites/native/legacy-sprite.gif`;
+ assert.equal(await (await worker.asset(immutable)).text(),"sprite 1");
+ assert.equal(await (await worker.asset(immutable)).text(),"sprite 1");
+ assert.equal(calls,1,"same SHA must not consume transfer twice");
+ assert.equal(await (await worker.asset(dynamic)).text(),"sprite 2");
+ assert.equal(await (await worker.asset(dynamic)).text(),"sprite 3");
+});

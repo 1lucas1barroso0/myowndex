@@ -101,3 +101,8 @@ A correção **2.0.22** elimina os traços decorativos sob Porygon e apresenta t
 
 
 A revisão 2.0.22 reforça a atualização automática de instalações PWA: o navegador consulta uma rota sem cache quando volta à conexão, quando a aba reaparece e periodicamente; versões novas são promovidas sem botão de instalação/atualização. Recursos com nomes mutáveis passam por revalidação online, mas recursos de build com hash permanecem em cache imutável e disponíveis offline. Antes de recarregar, a aplicação conclui gravações pendentes; se o salvamento falhar, adia a troca em vez de arriscar dados. Dispositivos offline continuam operando com sua última versão disponível e atualizam ao reconectar. O cache de aplicação jamais apaga Boxes, aventuras, IndexedDB ou logins.
+
+
+### Proteção dos 10 GB de deployments
+
+O plano Hobby da Vercel reserva 10 GB de Deployment Storage **para a equipe inteira**, não somente para o MyOwnDex. As versões anteriores são tratadas pela política oficial de retenção da Vercel; não fazemos exclusão manual de deployments ativos. O build executa uma auditoria do diretório público, bloqueia arquivos temporários, arquivos individuais com mais de 4 MiB e crescimento dos arquivos públicos além de 140 MiB, e verifica a integridade/quantidade de sprites do manifesto. ZIPs originais são usados apenas durante a compilação e ficam excluídos do rastreamento das funções de produção. Sprites 2D com hash no nome são reaproveitados localmente sem downloads repetidos; o conteúdo mutável continua revalidado. Dados de jogadores, Boxes, contas e aventuras não participam desta limpeza. O consumo real da equipe deve ser acompanhado em Vercel **Usage > Deployment Storage**, pois arquivos do Next.js e versões retidas também ocupam espaço.

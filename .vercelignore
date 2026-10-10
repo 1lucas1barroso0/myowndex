@@ -10,3 +10,19 @@ docs
 tests
 scripts/*
 !scripts/materializar-sprites-2d.mjs
+
+# Build and QA byproducts do not belong to the deployment source.
+coverage
+playwright-report
+test-results
+artifacts
+screenshots
+tmp
+*.log
+*.tmp
+*.bak
+*.tsbuildinfo
+
+# Keep the verified sprite ZIPs: scripts/materializar-sprites-2d.mjs
+# needs them BEFORE build. The Next output trace excludes ZIPs at runtime.
+!scripts/verificar-deployment.mjs

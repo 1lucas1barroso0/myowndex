@@ -25,6 +25,7 @@
     "sprites:prepare": "node scripts/materializar-sprites-2d.mjs",
     "predev": "npm run sprites:prepare",
     "prebuild": "npm run sprites:prepare",
+    "postbuild": "node scripts/verificar-deployment.mjs",
     "pretest": "npm run sprites:prepare"
   },
   "dependencies": {

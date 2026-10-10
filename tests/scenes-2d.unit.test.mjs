@@ -81,3 +81,12 @@ test("nine local 2D maps preserve licensed source pixels, useful landmarks, and 
     assert.equal(hashes.size, 9);
     assert.ok(total < 60000, `all nine maps stay below 60 KB (${total})`);
 });
+
+test("the scene camera shows every map, and the PC companion has no fake loading bars", async () => {
+    const camera = (await read("src/battlefield-polish.css")).toString();
+    const art = (await read("src/game-art-direction.css")).toString();
+    assert.match(camera, /\.battlefield-board\.is-empty-field\s*\{[\s\S]*?aspect-ratio:\s*3\s*\/\s*2/);
+    assert.match(camera, /\.battlefield-scenery\s*\{[^}]*object-fit:\s*contain/);
+    assert.doesNotMatch(camera, /\.battlefield-scenery\s*\{[^}]*object-fit:\s*cover/);
+    assert.match(art, /\.pc-sidebar-heading::after\s*\{\s*content:\s*none;\s*display:\s*none;/);
+});

@@ -762,26 +762,15 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading{
   overflow:visible !important;
   min-height:7rem;
   margin:0 0 .8rem;
-  padding:.85rem 1rem 1.35rem !important;
+  padding:.85rem 1rem 1rem !important;
   border-radius:.85rem;
   background:var(--joy-paper);
 }
+/* Let Porygon be the focal point; the three detached blue bars were not
+   progress information and looked like a broken loading indicator. */
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading::after{
-  content:"";
-  position:absolute;
-  left:1rem;
-  bottom:.6rem;
-  width:3rem;
-  max-width:calc(100% - 2rem);
-  height:.3rem;
-  border-radius:999px;
-  background:linear-gradient(90deg,
-    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 0 25%,
-    transparent 25% 37.5%,
-    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 37.5% 62.5%,
-    transparent 62.5% 75%,
-    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 75% 100%);
-  pointer-events:none;
+  content:none;
+  display:none;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
   margin:0;

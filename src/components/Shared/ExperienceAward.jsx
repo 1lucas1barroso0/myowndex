@@ -60,7 +60,7 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
     };
 
     return <details className="experience-award">
-        <summary>Receber XP</summary>
+        <summary>Ganhar XP de desafio</summary>
         <div className="experience-award-body">
             <fieldset disabled={locked} className="experience-base-choice">
                 <legend>Recompensa do desafio</legend>

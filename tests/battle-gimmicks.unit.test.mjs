@@ -78,3 +78,11 @@ test("story phases preserve team and make battle transitions explicit",()=>{
  assert.equal(changeRoomPhase(room,"batalha").battleStarted,true);
  assert.equal(endGimmick(base(),{reset:true}).gimmickState.active,"");
 });
+
+test("a marked G-Max factor never grants Gigantamax to a species without that form",()=>{
+ const c={...base(),item:"",teraType:"",dynamaxLevel:7,canGMax:true};
+ assert.ok(getGimmickChoices(c).some(x=>x.id==="gmax"));
+ const invalid={...c,speciesName:"bulbasaur",item:""};
+ assert.ok(getGimmickChoices(invalid).some(x=>x.id==="dyna"));
+ assert.equal(getGimmickChoices(invalid).some(x=>x.id==="gmax"),false);
+});

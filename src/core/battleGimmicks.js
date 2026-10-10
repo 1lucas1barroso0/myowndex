@@ -22,6 +22,15 @@ const stones = [
 ["tyranitar","tyranitarite"],["venusaur","venusaurite"]
 ];
 const STONE_TO_SPECIES = new Map(stones.map(([species,item])=>[item,species]));
+const GMAX_SPECIES = new Set([
+  "venusaur","charizard","blastoise","butterfree","pikachu","meowth",
+  "machamp","gengar","kingler","lapras","eevee","snorlax",
+  "garbodor","melmetal","rillaboom","cinderace","inteleon",
+  "corviknight","orbeetle","drednaw","coalossal","flapple","appletun",
+  "sandaconda","toxtricity","centiskorch","hatterene","grimmsnarl",
+  "alcremie","copperajah","duraludon","urshifu"
+]);
+const gmaxEligible = token => GMAX_SPECIES.has(baseSpecies(token).split("-")[0]);
 const NORMAL_CRYSTALS = new Map(Object.entries({
 normal:"normalium-z",fighting:"fightinium-z",flying:"flyinium-z",poison:"poisonium-z",
 ground:"groundium-z",rock:"rockium-z",bug:"buginium-z",ghost:"ghostium-z",
@@ -85,7 +94,7 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  const level=integerInRange(token.dynamaxLevel,0,10,0);
  if(level>0&&!used.has("dyna")&&!used.has("gmax")){
    options.push({id:"dyna",label:"Dynamax",hint:`Nível Dynamax ${level} • 3 rodadas`});
-   if(Boolean(token.canGMax))options.push({id:"gmax",label:"Gigantamax",form:`${baseSpecies(token)}-gmax`,hint:"Fator Gigantamax na ficha • 3 rodadas"});
+   if(Boolean(token.canGMax) && gmaxEligible(token))options.push({id:"gmax",label:"Gigantamax",form:`${baseSpecies(token)}-gmax`,hint:"Fator Gigantamax na ficha • 3 rodadas"});
  }
  return options;
 };

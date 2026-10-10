@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.23.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.24.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+
+A revisão 2.0.24 registra a auditoria da herança da 2.0.22 (113 pacotes originais intactos), preserva a origem da 2.0.23 e automatiza G-Max Befuddle, Stun Shock, Smite, Gold Rush (confusão) e Snooze com testes. Os demais efeitos especiais guiados pelo Narrador continuam explicitamente identificados e não são descritos como automáticos. Veja docs/AUDITORIA-2.0.22-2.0.24.md.
 
 Na revisão 2.0.23, testes de regressão, transformações especiais, seleção das Boxes, atualização automática e correções na arte da Silicobra foram recuperados dos 21 objetos originais interrompidos. O catálogo de sprites passa a 2.617 imagens em 114 pacotes; os 113 pacotes anteriores são preservados e o pacote adicional, verificável por hash, contém apenas os oito sprites corrigidos. Consulte `docs/RECUPERACAO-2.0.23.md`.
 

@@ -52,6 +52,15 @@ export function getChallengeReward({ baseXp = 1, winnerMaxLevel, opponentMaxLeve
         winnerMaxLevel: winnerLevel, opponentMaxLevel: opponentLevel, winnerCount: winners, opponentCount: opponents };
 }
 
+/** An explicit narrator override changes the granted amount, not the RPG's
+ * default base/penalty/multiplier arithmetic. EVs always remain 2 per XP. */
+export const resolveChallengeAward = (calculated, manualXp = null) => {
+    if (manualXp === null) return { ...calculated, source: "automatic" };
+    const value = Number(manualXp);
+    if (!Number.isSafeInteger(value) || value < 1 || value > 999999) return null;
+    return { ...calculated, xp: value, evs: value * 2, source: "manual" };
+};
+
 export const getFriendshipScale = raw => Math.floor(integerInRange(raw, 0, 255, 0) / 10);
 export const adjustPokemonFriendship = (pokemon, delta) => ({ ...pokemon,
     friendship: integerInRange(integerInRange(pokemon?.friendship, 0, 255, 70) + integerInRange(delta, -255, 255, 0), 0, 255, 70) });

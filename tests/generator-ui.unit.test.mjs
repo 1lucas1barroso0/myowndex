@@ -25,3 +25,9 @@ test("choosing an exact Pokémon clears random-pool filters", async () => {
     assert.ok(chooseBlock.includes(expected), expected);
   }
 });
+
+test("generator explanation uses the requested natural heading", async () => {
+  const source = await readFile(new URL("../src/components/Generator/GeneratorModal.jsx", import.meta.url), "utf8");
+  assert.match(source, /Como funciona o gerador/);
+  assert.doesNotMatch(source, /Como funciona o sorteio/);
+});

@@ -48,7 +48,19 @@ def area(image, source, left, top, width, height):
             put(image, source, x, y)
 
 
+def reserve(image, name, x, y, width, height):
+    """Keep important landmarks fully inside the map and apart from each other."""
+    if x < 1 or y < 1 or x + width > WIDTH - 1 or y + height > HEIGHT - 1:
+        raise ValueError(f"{name}: incomplete at edge ({x}, {y}, {width}, {height})")
+    used = image.info.setdefault("occupied_landmarks", [])
+    for other, left, top, right, bottom in used:
+        if x < right and left < x + width and y < bottom and top < y + height:
+            raise ValueError(f"{name}: overlaps {other}")
+    used.append((name, x, y, x + width, y + height))
+
+
 def tree(image, x, y, evergreen=False, scale=1):
+    reserve(image, "pinheiro" if evergreen else "arvore", x, y, scale if evergreen else 3 * scale, 2 * scale if evergreen else 3 * scale)
     if evergreen:
         put(image, (4, 0, "tiny-town"), x, y, scale)
         put(image, (4, 1, "tiny-town"), x, y + scale, scale)
@@ -59,6 +71,7 @@ def tree(image, x, y, evergreen=False, scale=1):
 
 
 def house(image, left, top, roof=0, scale=1):
+    reserve(image, "casa", left, top, 4 * scale, 4 * scale)
     # Four roof/wall tiles form a familiar little town house. Original pixels
     # and tile orientation are retained; maps never distort the Pokémon art.
     for y in range(2):
@@ -75,49 +88,47 @@ def route():
     for y in range(HEIGHT):
         middle = 14 + (1 if 5 <= y < 12 else -1 if y >= 12 else 0)
         ground(image, "#e99a2e", middle - 1, y, 3, 1)
-    for x, y in [(5, 1), (21, 2), (5, 14), (21, 14)]:
-        tree(image, x, y, scale=2)
-    for x, y in [(9, 6), (20, 12), (10, 16), (21, 7)]:
+    for x, y in [(3, 2), (23, 2), (3, 14), (23, 14)]:
+        tree(image, x, y, scale=1)
+    for x, y in [(9, 6), (21, 12), (10, 17), (21, 7)]:
         put(image, (2, 0, "tiny-town"), x, y)
     put(image, (11, 6, "tiny-town"), 18, 4)
-    put(image, (11, 6, "tiny-town"), 10, 14)
+    put(image, (11, 6, "tiny-town"), 11, 13)
     return image
 
 
 def forest():
     image = scene(None, "#08783b")
-    for y in [0, 16]:
-        for x in range(0, 29, 3):
-            tree(image, x, y, evergreen=True, scale=2)
-    for y in [5, 10]:
-        for x in [0, 4, 22, 26]:
-            tree(image, x, y, scale=2)
-    for x, y in [(9, 7), (19, 14), (11, 15), (20, 6)]:
+    # Border groves stay inside the scene; the centre is reserved for Pokémon.
+    for x, y in [(3, 2), (8, 2), (20, 2), (25, 2),
+                 (3, 16), (8, 16), (20, 16), (25, 16)]:
+        tree(image, x, y, evergreen=True)
+    for x, y in [(3, 7), (23, 7), (3, 12), (23, 12)]:
+        tree(image, x, y)
+    for x, y in [(11, 7), (18, 14), (10, 13), (20, 7)]:
         put(image, (5, 2, "tiny-town"), x, y)
     return image
 
-
 def town():
     image = scene(None, "#3478a2")
-    ground(image, "#182e48", 0, 10, WIDTH, 4)
+    ground(image, "#182e48", 0, 10, WIDTH, 3)
     ground(image, "#182e48", 14, 0, 2, HEIGHT)
-    house(image, 5, 0, scale=2)
-    house(image, 18, 0, roof=4, scale=2)
-    ground(image, "#17a64a", 5, 15, 7, 5)
-    ground(image, "#17a64a", 19, 15, 7, 5)
-    for x, y in [(5, 14), (20, 14)]:
-        tree(image, x, y, scale=2)
+    house(image, 3, 2)
+    house(image, 22, 2, roof=4)
+    ground(image, "#17a64a", 3, 14, 8, 6)
+    ground(image, "#17a64a", 19, 14, 8, 6)
+    for x, y in [(5, 15), (22, 15)]:
+        tree(image, x, y)
     for x in [9, 21]:
-        put(image, (38, 8), x, 8, 2)
+        put(image, (38, 8), x, 8)
     return image
-
 
 def beach():
     image = scene(None, "#f5bf35")
     for y in range(HEIGHT):
         coast = 12 + (y // 5) % 2
         ground(image, "#007cba", 0, y, coast, 1)
-    for x, y in [(18, 3), (22, 16), (24, 6)]:
+    for x, y in [(18, 3), (23, 15), (25, 6)]:
         put(image, (28, 9), x, y, 2)
     area(image, (5, 2), 7, 13, 8, 1)
     for x in [7, 10, 13]:
@@ -147,10 +158,10 @@ def cave():
 
 def snow():
     image = scene(None, "#effaff")
-    for x, y in [(6, 3), (9, 3), (21, 3), (24, 3), (6, 15), (23, 15)]:
+    for x, y in [(4, 3), (9, 3), (20, 3), (25, 3), (4, 14), (25, 14)]:
         put(image, (6, 0, "tiny-ski"), x, y, 2)
         put(image, (6, 1, "tiny-ski"), x, y + 2, 2)
-    for x, y in [(8, 8), (22, 10), (12, 17)]:
+    for x, y in [(8, 9), (21, 10), (11, 16)]:
         put(image, (9, 6, "tiny-ski"), x, y, 2)
     ground(image, "#4ab3e8", 14, 0, 2, HEIGHT)
     return image
@@ -159,7 +170,7 @@ def snow():
 def arena():
     image = scene(None, "#14a45a")
     for y in [2, 3, 16, 17]:
-        for x in range(WIDTH):
+        for x in range(1, WIDTH - 1):
             put(image, (38, 8), x, y)
     for x, source in [(6, (50, 0)), (10, (50, 3)), (19, (50, 6)), (23, (50, 3))]:
         put(image, source, x, 1)

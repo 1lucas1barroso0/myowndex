@@ -383,7 +383,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             </header>
             {!draftReady ? <p role="status" className="generator-notice">Abrindo seu encontro…</p> : <div className="generator-content">
                 <form className={`generator-options${results.length ? '' : ' generator-empty'}`} onSubmit={requestGeneration} aria-busy={busy}>
-                    <details className="generator-customize"><summary>Como funciona o sorteio</summary><p className="generator-intro">Cada entrada da Pokédex tem a mesma chance de ser escolhida; se ela tiver formas possíveis, o MyOwnDex sorteia a forma só depois. Você escolhe quem pode aparecer nos filtros.</p></details>
+                    <details className="generator-customize"><summary>Como funciona o gerador</summary><p className="generator-intro">Cada entrada da Pokédex tem a mesma chance de ser escolhida; se ela tiver formas possíveis, o MyOwnDex sorteia a forma só depois. Você escolhe quem pode aparecer nos filtros.</p></details>
 
                     <section className="generator-setting-group" aria-labelledby="generator-encounter-title">
                         <div className="generator-setting-heading">

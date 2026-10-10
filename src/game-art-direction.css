@@ -762,26 +762,15 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading{
   overflow:visible !important;
   min-height:7rem;
   margin:0 0 .8rem;
-  padding:.85rem 1rem 1.35rem !important;
+  padding:.85rem 1rem 1rem !important;
   border-radius:.85rem;
   background:var(--joy-paper);
 }
+/* Let Porygon be the focal point; the three detached blue bars were not
+   progress information and looked like a broken loading indicator. */
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading::after{
-  content:"";
-  position:absolute;
-  left:1rem;
-  bottom:.6rem;
-  width:3rem;
-  max-width:calc(100% - 2rem);
-  height:.3rem;
-  border-radius:999px;
-  background:linear-gradient(90deg,
-    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 0 25%,
-    transparent 25% 37.5%,
-    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 37.5% 62.5%,
-    transparent 62.5% 75%,
-    color-mix(in srgb,var(--joy-blue) 75%,var(--joy-paper)) 75% 100%);
-  pointer-events:none;
+  content:none;
+  display:none;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
   margin:0;
@@ -970,3 +959,88 @@ html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.d
 html .app-root.game-edition.handheld-edition .guide-hero .pokemon-companion{
   flex:0 0 auto !important;
 }
+
+/* 2.0.21: A single visual grammar for selected controls and real content.
+   Yellow remains an accent on the red brand. Blue, green and neutral controls
+   use their own readable selection and focus states. */
+html .app-root.game-edition.handheld-edition :is(
+  .pc-box-button.is-selected,
+  .pc-partner-card.is-selected,
+  .local-dice-pages button[aria-pressed="true"],
+  .local-dice-tabs button[aria-pressed="true"],
+  .dex-favorite[aria-pressed="true"]
+){
+  background:var(--ui-selected) !important;
+  color:var(--ui-ink) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-favorite[aria-pressed="true"]{
+  color:var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .room-phase-options button.is-selected{
+  box-shadow:inset 0 -3px var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .pc-main-panel{
+  border-top-color:var(--joy-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .nav-capsule.is-active{
+  box-shadow:0 3px 0 #ffffff52,0 8px 18px #6711262b !important;
+}
+html .app-root.game-edition.handheld-edition .nav-capsule.is-active .nav-emblem{
+  background:#fffdf6 !important;
+  color:#243b40 !important;
+}
+html .app-root.game-edition.handheld-edition .app-actions .global-dice-button[aria-expanded="true"]{
+  background:#fffdf6 !important;
+  border-color:#fffdf6 !important;
+  color:#243b40 !important;
+}
+html .app-root.game-edition.handheld-edition .is-player .room-role-mark{
+  background:var(--ui-selected) !important;
+  color:var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .room-role-mark{
+  background:var(--joy-paper-soft) !important;
+}
+html .app-root.game-edition.handheld-edition .account-pages button[aria-pressed="true"]{
+  box-shadow:inset 0 -3px var(--joy-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .guide-damage-limit-value strong{
+  background:var(--ui-selected) !important;
+  color:var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition :is(.dex-heading,.guide-hero)::after{
+  content:none !important;
+  display:none !important;
+}
+html .app-root.game-edition.handheld-edition .dex-entry-main::before{
+  content:none !important;
+  display:none !important;
+}
+html .app-root.game-edition.handheld-edition .dex-entry-main{
+  border-bottom:1px solid var(--joy-line) !important;
+}
+html .app-root.game-edition.handheld-edition .dex-entry.is-favorite .dex-entry-main{
+  border-bottom-color:var(--joy-blue) !important;
+}
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite,
+html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-sprite,
+html .pokemon-companion > .pokemon-sized-sprite{
+  filter:none !important;
+}
+html .app-root.game-edition.handheld-edition :is(.pokemon-card-sprite-frame,.record-sprite-stage,.record-evolution-stage,.pc-partner-sprite){
+  background:transparent !important;
+}
+html .app-root.game-edition.handheld-edition .rpg-journey-panel{
+  border:1px solid var(--ui-line) !important;
+  border-left:4px solid var(--ui-blue) !important;
+  background:var(--ui-panel) !important;
+  color:var(--ui-ink) !important;
+  box-shadow:none !important;
+}
+html .app-root.game-edition.handheld-edition .rpg-journey-panel > summary{
+  background:transparent !important;
+}
+html .app-root.game-edition.handheld-edition .rpg-journey-body{
+  background:var(--ui-panel) !important;
+}
+/* Icons and genuine state meters (HP, EVs, XP, loading) stay visible. */

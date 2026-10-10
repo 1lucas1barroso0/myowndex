@@ -66,7 +66,7 @@ html .app-root .pc-welcome-partners .pokemon-sized-sprite { width:80px; height:8
 /* The essentials stay visible; secondary configuration is opened on demand. */
 html .app-root.game-edition.handheld-edition .pokemon-editor { border:0 !important; padding:0 !important; box-shadow:none !important; background:transparent !important; }
 html .app-root .editor-header { display:grid; grid-template-columns:132px minmax(0,1fr) 104px; grid-template-areas:"portrait identity level"; align-items:center; gap:1.25rem 1.5rem; margin-bottom:2rem; padding-bottom:1.75rem; border-bottom:1px solid var(--ui-line); }
-html .app-root .editor-portrait { grid-area:portrait; width:132px; height:132px; object-fit:contain; background:radial-gradient(ellipse at 50% 90%,var(--ui-selected) 0 30%,transparent 31%); }
+html .app-root .editor-portrait { grid-area:portrait; width:132px; height:132px; object-fit:contain; background:transparent; }
 html .app-root .editor-identity { grid-area:identity; display:grid; gap:.75rem; min-width:0; }
 html .app-root .editor-header > .editor-field { grid-area:level; }
 html .app-root .editor-field { display:grid; gap:.6rem; min-width:0; align-content:start; }
@@ -107,7 +107,7 @@ html .app-root .editor-move-facts > div { min-width:0; padding-bottom:.5rem; bor
 html .app-root .editor-move-facts dt { font-size:.875rem; color:var(--ui-muted); }
 html .app-root .editor-move-facts dd { font-weight:750; }
 html .app-root .editor-wide-field { grid-column:1/-1; }
-html .app-root.game-edition.handheld-edition .rpg-journey-panel { background:var(--ui-selected) !important; color:var(--ui-ink) !important; border-color:var(--ui-blue) !important; }
+html .app-root.game-edition.handheld-edition .rpg-journey-panel { background:var(--ui-panel) !important; color:var(--ui-ink) !important; border-color:var(--ui-line) !important; border-left:4px solid var(--ui-blue) !important; }
 html .app-root.game-edition.handheld-edition .rpg-journey-summary-copy > strong { color:var(--ui-ink) !important; }
 html .app-root.game-edition.handheld-edition .rpg-journey-summary-copy > small { color:var(--ui-muted) !important; }
 html .app-root.game-edition.handheld-edition .rpg-journey-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:1.5rem; background:transparent !important; border:0 !important; }

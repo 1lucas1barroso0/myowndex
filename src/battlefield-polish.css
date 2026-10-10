@@ -5,14 +5,33 @@ html .app-root.game-edition.handheld-edition .battlefield-environment > summary{
 html .app-root.game-edition.handheld-edition .battlefield-environment[open] .battlefield-selectors{ gap: 1rem; padding: .4rem 0 .2rem; }
 html .app-root.game-edition.handheld-edition .battlefield-selectors{ grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
 html .app-root.game-edition.handheld-edition .battlefield-selectors .room-select{ min-height: 48px; }
-html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon{ min-height: 20rem; height: clamp(20rem, 38vw, 28rem); }
+/* The licensed maps are 480 × 320. Frame the whole landscape instead of
+   magnifying and cropping its center to fill an arbitrary ribbon. */
+html .app-root.game-edition.handheld-edition .battlefield-board,
+html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon,
+html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field{
+  width: min(100%, 60rem);
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 3 / 2;
+  margin-inline: auto;
+  background-color: #263e47;
+}
+html .app-root.game-edition.handheld-edition .battlefield-card{
+  background: var(--ui-raised);
+}
+html .app-root.game-edition.handheld-edition .battlefield-board{
+  border: 3px solid var(--ui-control-line);
+  border-radius: .45rem;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--ui-ink) 12%, transparent);
+}
 html .app-root.game-edition.handheld-edition .battlefield-board{ touch-action: pan-y; border-block: 2px solid #173446; box-shadow: none; }
 html .app-root.game-edition.handheld-edition .battlefield-board::after{ opacity: .3; }
 html .app-root.game-edition.handheld-edition .battlefield-board.weather-sol::after{ background: radial-gradient(circle at 80% 12%, #fff1ad 0 2%, #ffe6a24d 8%, transparent 32%); }
 html .app-root.game-edition.handheld-edition .battlefield-board.weather-areia::after{ background: repeating-linear-gradient(165deg, transparent 0 2rem, #d7a66166 2rem 2.4rem); }
 html .app-root.game-edition.handheld-edition .battlefield-board.weather-nevoa::after{ background: linear-gradient(90deg, #e9f1e922, #e9f1e999, #e9f1e922); }
 html .app-root.game-edition.handheld-edition .battlefield-board::before{ content: none; }
-html .app-root.game-edition.handheld-edition .battlefield-scenery{ position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: center; image-rendering: pixelated; pointer-events: none; user-select: none; z-index: 0; }
+html .app-root.game-edition.handheld-edition .battlefield-scenery{ position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: contain; object-position: center; image-rendering: pixelated; pointer-events: none; user-select: none; z-index: 0; }
 html .app-root.game-edition.handheld-edition .battlefield-pixel-grid{ display: none; }
 html .app-root.game-edition.handheld-edition .battlefield-board .battlefield-depth{ display: none; }
 html .app-root.game-edition.handheld-edition .battlefield-center-line{ height: 2px; opacity: .25; box-shadow: none; }
@@ -44,7 +63,13 @@ html .app-root.game-edition.handheld-edition .battlefield-footer{ justify-conten
 html .app-root.game-edition.handheld-edition .battlefield-footer > span:last-child{ margin-left: auto; }
 html .app-root.game-edition.handheld-edition .is-compact-scene .battlefield-footer > span:last-child{ margin-left: 0; }
 @media (max-width: 540px){
-  html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon{ min-height: 18rem; height: 21rem; }
+  html .app-root.game-edition.handheld-edition .battlefield-board,
+  html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon,
+  html .app-root.game-edition.handheld-edition .battlefield-board.is-empty-field{
+    aspect-ratio: 4 / 3;
+    height: auto;
+    min-height: 18rem;
+  }
   html .app-root.game-edition.handheld-edition .battlefield-footer > span:last-child{ margin-left: 0; }
 }
 @media (forced-colors: active){

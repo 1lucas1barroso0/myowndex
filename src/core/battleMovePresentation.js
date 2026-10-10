@@ -78,6 +78,7 @@ export const moveVariantForResolution=(move,presentation)=>{
    power:presentation.power,type:{name:presentation.type},
    target:isStatus?{name:"user"}:move.target,
    accuracy:isStatus?null:move.accuracy,
+   priority:isStatus?4:move.priority,
    damage_class:{name:isStatus?"status":move.damage_class?.name},
    // Original move-specific flinch, recoil and status effects must not leak
    // into a completely different Z/Max move.

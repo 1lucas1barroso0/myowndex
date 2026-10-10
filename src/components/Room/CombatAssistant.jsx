@@ -27,7 +27,7 @@ import { getTraitMoveBlock } from "../../core/traitMechanics.js";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import { getCurrentMoveReference } from "../../core/championsMoves.js";
 import { canUseZMove } from "../../core/battleGimmicks.js";
-import { battleMovePresentation } from "../../core/battleMovePresentation.js";
+import { battleMovePresentation, moveVariantForResolution } from "../../core/battleMovePresentation.js";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
@@ -161,21 +161,22 @@ export default function CombatAssistant({
         return ()=>{live=false;};
     },[attackerId,gimmickActive,moveListKey]);
     const zAvailable=canUseZMove(attacker,moveData,snapshot) && getMoveSpecialProfile(moveData)?.id!=="called-move" && snapshot.phase==="batalha";
-    const presentedMove=moveData?battleMovePresentation(attacker,moveData,{useZMove:useZMove&&zAvailable}):null;
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
     const needsCalledMove = specialProfile?.id === "called-move";
     const resolvedMoveData = needsCalledMove ? calledMoveData : moveData;
+    const presentedMove=resolvedMoveData?battleMovePresentation(attacker,resolvedMoveData,{useZMove:useZMove&&zAvailable}):null;
+    const previewMove=resolvedMoveData?moveVariantForResolution(resolvedMoveData,presentedMove):null;
     const resolutionProfile = useMemo(
-        () => resolvedMoveData ? getMoveResolutionProfile(resolvedMoveData) : null,
-        [resolvedMoveData],
+        () => previewMove ? getMoveResolutionProfile(previewMove) : null,
+        [previewMove],
     );
     const selectableTargets = useMemo(
-        () => resolvedMoveData ? getSelectableMoveTargets(tokens, attacker, resolvedMoveData) : [],
-        [tokens, attacker, resolvedMoveData],
+        () => previewMove ? getSelectableMoveTargets(tokens, attacker, previewMove) : [],
+        [tokens, attacker, previewMove],
     );
     const affectedTargets = useMemo(
-        () => resolvedMoveData ? getAffectedMoveTargets(tokens, attacker, defender, resolvedMoveData) : [],
-        [tokens, attacker, defender, resolvedMoveData],
+        () => previewMove ? getAffectedMoveTargets(tokens, attacker, defender, previewMove) : [],
+        [tokens, attacker, defender, previewMove],
     );
 
     useEffect(() => {

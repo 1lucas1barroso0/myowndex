@@ -68,3 +68,21 @@ html .app-root.game-edition.handheld-edition .room-token.is-gimmick:is(.gimmick-
   }
 }
 @keyframes gimmick-halo{from{opacity:.25;transform:scale(.93)}to{opacity:.72;transform:scale(1.03)}}
+
+html .app-root.game-edition.handheld-edition .battle-gimmick-panel{
+  margin:.85rem 0;padding:1rem;border-left:4px solid var(--ui-blue);box-sizing:border-box;
+}
+html .app-root.game-edition.handheld-edition .battle-gimmick-panel header{align-items:end;}
+html .app-root.game-edition.handheld-edition .battle-gimmick-panel header > span{
+  display:grid;flex:1 1 10rem;gap:.25rem;min-width:0;
+}
+html .app-root.game-edition.handheld-edition .gimmick-pokemon-choice{display:grid;gap:.35rem;flex:1 1 11rem;min-width:0;}
+html .app-root.game-edition.handheld-edition .gimmick-pokemon-choice > span{font-size:.78rem;color:var(--ui-muted);}
+html .app-root.game-edition.handheld-edition .gimmick-pokemon-choice .room-select{min-height:44px;width:100%;min-width:0;}
+html .app-root.game-edition.handheld-edition .battle-z-shortcut{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.25rem .5rem;padding:.8rem;
+  border:1px solid var(--ui-control-line);border-radius:.4rem;background:var(--ui-raised);
+  color:var(--ui-ink);text-align:left;min-height:54px;align-items:center;cursor:pointer;
+}
+html .app-root.game-edition.handheld-edition .battle-z-shortcut small{grid-column:1;line-height:1.45;}
+html .app-root.game-edition.handheld-edition .battle-z-shortcut > span{grid-column:2;grid-row:1/3;font-size:1.5rem;}

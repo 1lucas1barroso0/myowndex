@@ -71,10 +71,12 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
                     {[1, 2, 3].map(value => <button key={value} type="button" aria-pressed={baseXp === value} onClick={() => setBaseXp(value)}>{value} XP</button>)}
                 </div>
             </fieldset>
-            <details className="experience-battle-context">
-                <summary>Ajustar pela batalha</summary>
-                <label className="experience-battle-toggle"><input type="checkbox" checked={battle} disabled={locked} onChange={event => { setBattle(event.target.checked); if (event.target.checked && !battleContext) setContext(current => ({ ...current, winnerMaxLevel: winnerLevel })); }} />Usar os dois lados da batalha</label>
-                {battle && <div className="experience-sides">
+            <div className="experience-battle-context">
+                {battleContext ? <div className="experience-context-auto"><strong>Batalha reconhecida</strong><span>O MyOwnDex já conhece os níveis e os Pokémon envolvidos.</span></div>
+                : <label className="experience-battle-toggle"><input type="checkbox" checked={battle} disabled={locked} onChange={event => { setBattle(event.target.checked); if (event.target.checked && !battleContext) setContext(current => ({ ...current, winnerMaxLevel: winnerLevel })); }} />Considerar os dois lados da batalha</label>}
+                {battle && <details className="experience-context-editor">
+                    <summary>{battleContext?"Conferir dados da batalha":"Informar participantes e níveis"}</summary>
+                    <div className="experience-sides">
                     {[
                         { title: "Vencedor", prefix: "winner" },
                         { title: "Adversário", prefix: "opponent" },
@@ -83,8 +85,9 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
                         <label htmlFor={`${fieldId}-${side.prefix}-level`}>Maior nível<input id={`${fieldId}-${side.prefix}-level`} type="number" inputMode="numeric" min="1" max="200" step="1" value={context[`${side.prefix}MaxLevel`]} onChange={event => changeContext(`${side.prefix}MaxLevel`, event.target.value, 200)} /></label>
                         <label htmlFor={`${fieldId}-${side.prefix}-count`}>Pokémon que lutaram<input id={`${fieldId}-${side.prefix}-count`} type="number" inputMode="numeric" min="1" max="40" step="1" value={context[`${side.prefix}Count`]} onChange={event => changeContext(`${side.prefix}Count`, event.target.value, 40)} /></label>
                     </fieldset>)}
-                </div>}
-            </details>
+                    </div>
+                </details>}
+            </div>
             <dl className="experience-breakdown" aria-label="Cálculo automático de XP">
                 <div><dt>XP-base</dt><dd>{automatic.baseXp}</dd></div>
                 <div><dt>Reduções na base</dt><dd>{automatic.penalties ? `−${automatic.penalties}` : "0"}</dd></div>
@@ -112,7 +115,7 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
                 <div><dt>EVs para treinar</dt><dd>{complete ? reward.evs : "—"}</dd></div>
             </dl>
             {received ? <div className="experience-received"><p role="status">{received.xp} XP e {received.evs} EVs registrados.</p><button type="button" onClick={newChallenge}>Novo desafio</button></div> : <button type="button" className="room-primary-button experience-confirm" disabled={locked || !complete} onClick={() => void award()}>{busy ? "Registrando…" : complete ? `Receber ${reward.xp} XP` : "Complete a batalha"}</button>}
-            {!complete && manualXp !== null && <p role="alert" className="experience-error">Informe um valor inteiro de 1 a 999999 XP.</p>}
+            {!complete && manualXp !== null && <p role="alert" className="experience-error">Informe um valor inteiro.</p>}
             {error && <p role="alert" className="experience-error">{error}</p>}
         </div>
     </details>;

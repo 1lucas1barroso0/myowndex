@@ -70,11 +70,11 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
             {role !== "narrator" ? <p>Combine a tentativa com o Narrador. O resultado aparecerá no Diário.</p> : <form onSubmit={capture}>
                 <fieldset className="combat-grid capture-fields" disabled={busy}>
                     <legend className="sr-only">Preparar captura</legend>
-                    <label><span>Equipe em campo</span><RoomSelect aria-label="Equipe em campo" value={trainerTokenId} disabled={!trainers.length} onChange={event => setTrainer(event.target.value)} required>
+                    <label><span>Pokémon ajudando</span><RoomSelect aria-label="Pokémon ajudando" value={trainerTokenId} disabled={!trainers.length} onChange={event => setTrainer(event.target.value)} required>
                         <option value="">{trainers.length ? "Escolha um Pokémon" : "Sem Pokémon em campo"}</option>
                         {trainers.map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
                     </RoomSelect></label>
-                    <label><span>Alvo selvagem</span><RoomSelect aria-label="Alvo selvagem" value={targetId} disabled={!targets.length} onChange={event => { setTarget(event.target.value); setWild(false); }} required>
+                    <label><span>Alvo da captura</span><RoomSelect aria-label="Alvo da captura" value={targetId} disabled={!targets.length} onChange={event => { setTarget(event.target.value); setWild(false); }} required>
                         <option value="">{targets.length ? "Escolha um alvo" : "Sem alvo selvagem"}</option>
                         {targets.map(token => <option key={token.id} value={token.id}>{token.name}</option>)}
                     </RoomSelect></label>

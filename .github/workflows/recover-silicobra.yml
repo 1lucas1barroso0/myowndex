@@ -1,0 +1,45 @@
+name: Restaurar ZIP original da Silicobra
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/recover-silicobra.yml"
+      - "scripts/reproduzir-silicobra-2-0-23.py"
+      - "public/sprites/native/provenance-silicobra.json"
+      - "assets/sprites-2d/index.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: myowndex-silicobra-recovery
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'recovery/myowndex-2.0.23-restored-20261010'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperar somente a branch isolada
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Preparar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Instalar Pillow fixado
+        run: python -m pip install --disable-pip-version-check 'Pillow==12.3.0'
+      - name: Reproduzir e comprovar bytes dos oito sprites
+        run: python scripts/reproduzir-silicobra-2-0-23.py
+      - name: Guardar pacote corrigido sem tocar na main
+        run: |
+          git add assets/sprites-2d/sprites-2d-113.zip
+          if git diff --cached --quiet; then
+            echo "Pacote já tem hash correto."
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'restore: save complete hash-verified Silicobra zip'
+          git push origin HEAD:refs/heads/recovery/myowndex-2.0.23-restored-20261010

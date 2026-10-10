@@ -970,3 +970,30 @@ html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.d
 html .app-root.game-edition.handheld-edition .guide-hero .pokemon-companion{
   flex:0 0 auto !important;
 }
+
+/* 2.0.20 follow-up: one quiet, continuous scan beneath the opening mascot.
+   Avoid three chunky marks which read as missing UI rather than loading. */
+html .opening-progress {
+  position: relative;
+  width: 4.5rem;
+  height: .2rem;
+  margin-top: .4rem;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--joy-blue) 18%, transparent);
+}
+html .opening-progress i { display: none !important; }
+html .opening-progress::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
+  border-radius: inherit;
+  background: var(--joy-blue);
+  animation: opening-scan 1.4s ease-in-out infinite alternate;
+}
+@keyframes opening-scan { from { transform: translateX(0); } to { transform: translateX(140%); } }
+@media (prefers-reduced-motion: reduce) {
+  html .opening-progress::after { animation: none; transform: translateX(70%); }
+}

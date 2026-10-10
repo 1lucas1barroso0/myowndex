@@ -1,6 +1,6 @@
-const CACHE_NAME = "myowndex-shell-v2.0.21-app";
+const CACHE_NAME = "myowndex-shell-v2.0.22-app";
 const CACHE_PREFIX = "myowndex-shell-";
-const ASSET_CACHE_NAME = "myowndex-assets-v2";
+const ASSET_CACHE_NAME = "myowndex-assets-v3";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";
 const ASSET_CACHE_LIMIT = 500;
 const ASSET_CACHE_BYTES = 16 * 1024 * 1024;
@@ -8,8 +8,8 @@ const ASSET_ENTRY_BYTES = 4 * 1024 * 1024;
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
-  "/manifest.webmanifest?v=2.0.21",
-  "/icons/myowndex-dex-v105-96.png?v=2.0.21",
+  "/manifest.webmanifest?v=2.0.22",
+  "/icons/myowndex-dex-v105-96.png?v=2.0.22",
   "/icons/myowndex-dex-v105-32.png",
   "/icons/myowndex-dex-v105-192.png",
   "/icons/myowndex-dex-v105-512.png",
@@ -21,13 +21,17 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => Promise.all(
-      CORE_ASSETS.map(asset => fetch(asset)
+  // Promote a fully installed release automatically, including installed PWAs.
+  // Offline precaching is best-effort; failure never blocks the browser update.
+  event.waitUntil((async () => {
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      await Promise.all(CORE_ASSETS.map(asset => fetch(asset, { cache: "no-store" })
         .then(response => response.ok ? cache.put(asset, response) : undefined)
-        .catch(() => undefined))
-    )).catch(() => undefined)
-  );
+        .catch(() => undefined)));
+    } catch { /* CacheStorage may be denied or full. */ }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("message", event => {
@@ -116,7 +120,8 @@ const rememberAsset = (request, response) => {
     // so one tab cannot make concurrent eviction remove another pending put.
     const latest = await cache.match(request);
     await cache.delete(request);
-    await cache.put(request, latest || prepared.response);
+    // Online revalidation must overwrite old bytes, even at the same URL.
+    await cache.put(request, prepared.response);
     const keys = await cache.keys();
     const weights = await Promise.all(keys.map(async key => {
       const cached = await cache.match(key);
@@ -174,14 +179,31 @@ self.addEventListener("fetch", event => {
     ));
   if (!reusableAsset) return;
 
+  const immutable = sameOrigin && url.pathname.startsWith("/_next/static/")
+    || url.hostname === "raw.githubusercontent.com" && (/^\/PokeAPI\/sprites\/[a-f0-9]{40}\//.test(url.pathname)
+      || /^\/smogon\/sprites\/[a-f0-9]{40}\//.test(url.pathname));
   respondAndMaintain(event, (async () => {
+    // Hash-addressed build files and commit-pinned images never change.
+    // Everything else is network-first, avoiding permanently stale sprites,
+    // fonts and icons when the origin publishes new bytes at the same path.
+    if (immutable) {
+      try {
+        const core = await (await caches.open(CACHE_NAME)).match(request);
+        if (core) return { response: core };
+        const cached = await (await caches.open(ASSET_CACHE_NAME)).match(request);
+        if (cached) return { response: cached, maintenance: rememberAsset(request, cached.clone()) };
+      } catch { /* CacheStorage is optional. */ }
+    }
     try {
-      const core = await (await caches.open(CACHE_NAME)).match(request);
-      if (core) return { response: core };
-      const cached = await (await caches.open(ASSET_CACHE_NAME)).match(request);
-      if (cached) return { response: cached, maintenance: rememberAsset(request, cached.clone()) };
-    } catch { /* Optional offline caches never prevent a network response. */ }
-    const response = await fetchAsset(request);
-    return { response, maintenance: rememberAsset(request, response.clone()) };
+      const response = await fetchAsset(request);
+      return { response, maintenance: rememberAsset(request, response.clone()) };
+    } catch (error) {
+      try {
+        const cached = (await (await caches.open(CACHE_NAME)).match(request))
+          || (await (await caches.open(ASSET_CACHE_NAME)).match(request));
+        if (cached) return { response: cached };
+      } catch { /* Never swallow the original network failure. */ }
+      throw error;
+    }
   })());
 });

@@ -997,3 +997,63 @@ html .opening-progress::after {
 @media (prefers-reduced-motion: reduce) {
   html .opening-progress::after { animation: none; transform: translateX(70%); }
 }
+
+/* Visual audit follow-up: yellow remains an accent on the red navigation,
+   not a universal selection/background color. */
+html:root:not([data-theme="night"]) {
+  --ui-selected: #e9f3fa;
+}
+html .app-root.game-edition.handheld-edition .rpg-journey-panel {
+  background: var(--ui-panel) !important;
+  border-color: var(--ui-line) !important;
+  box-shadow: none !important;
+}
+html .app-root.game-edition.handheld-edition .rpg-journey-panel > summary {
+  background: var(--ui-raised) !important;
+}
+html .app-root.game-edition.handheld-edition .editor-portrait,
+html .app-root.game-edition.handheld-edition .record-sprite-stage {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html .pokemon-companion::before,
+html .app-root.game-edition.handheld-edition .pokemon-companion::before {
+  display: none !important;
+  content: none !important;
+}
+html .app-root.game-edition.handheld-edition :is(.pc-box-button.is-selected,
+ .pc-partner-card.is-selected, .editor-gender-controls button[aria-pressed="true"],
+ .experience-base-choice button[aria-pressed="true"]) {
+  background: var(--ui-selected) !important;
+  border-color: var(--ui-blue) !important;
+}
+html .app-root.game-edition.handheld-edition :is(.pc-action-button.is-share,
+ .pc-catalog-status, .pokemon-ev-budget) {
+  background: var(--ui-raised) !important;
+}
+/* Consistent, slim and legible range/meter chrome rather than bright blocks. */
+html .app-root.game-edition.handheld-edition input[type="range"] {
+  accent-color: var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition input[type="range"]::-webkit-slider-runnable-track {
+  height: .4rem;
+  border-radius: 999px;
+  background: var(--ui-selected);
+}
+html .app-root.game-edition.handheld-edition input[type="range"]::-moz-range-track {
+  height: .4rem;
+  border-radius: 999px;
+  background: var(--ui-selected);
+}
+html .app-root.game-edition.handheld-edition input[type="range"]::-moz-range-progress {
+  height: .4rem;
+  border-radius: 999px;
+  background: var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition :is(progress, meter) {
+  accent-color: var(--ui-blue);
+  max-width: 100%;
+}
+html[data-theme="night"] .app-root.game-edition.handheld-edition .rpg-journey-panel {
+  background: var(--ui-panel) !important;
+}

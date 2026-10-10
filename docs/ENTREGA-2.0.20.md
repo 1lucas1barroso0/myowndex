@@ -10,6 +10,8 @@ A base publicada é o merge do PR #67, `493d945d2b74bc1a06b999077b6dd5d069dea71d
 
 Nenhuma dependência de produção foi adicionada. Os 2.609 arquivos novos são distribuídos em 113 pacotes sem perda e verificados antes de desenvolver, testar ou compilar. O navegador recebe imagens individuais; não baixa os pacotes. A divisão resolve o limite de envio da integração sem alterar pixels, quadros, transparência ou duração.
 
+Na retomada, a fonte e os três pacotes anteriores foram preservados na árvore `7355027b7016e2efd2540c303f977b188fe8fff5`. A candidata final inclui o preparador dos sprites no envio à Vercel e atualiza a referência do Pokémon Showdown para uma correção posterior de callback histórico. A comparação pelo extrator confirma os mesmos 40 movimentos e 54 valores literais consumidos; nenhum catálogo, regra ou arquivo de arte foi regenerado. Os pacotes corrigidos são separados dos anteriores e conferidos contra a árvore final.
+
 ## Verificações executadas
 
 - 556 testes unitários: regras, integrações, procedência, identidade, enquadramento, cache offline e reconstrução dos sprites. Lint, tipos e compilação de produção aprovados.

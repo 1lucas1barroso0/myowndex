@@ -636,3 +636,12 @@ test("optional Box multi-selection, battle utilities, Porygon centerpiece and XP
   assert.match(experience, /<summary>Ganhar XP<\/summary>/);
   assert.match(experience, /<legend>Recompensas pelo desafio<\/legend>/);
 });
+
+test("adventure renders a full scene outside battle and keeps independent sprite resize gestures", async () => {
+    const room = await read("src/components/Room/RpgRoom.jsx");
+    const field = await read("src/components/Room/Battlefield.jsx");
+    assert.match(room, /compact=\{false\}/);
+    assert.match(field, /room-token-resize-handle/);
+    assert.match(field, /sceneScale: resize.scale/);
+    assert.match(field, /event.stopPropagation\(\)/);
+});

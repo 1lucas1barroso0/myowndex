@@ -887,3 +887,16 @@ test("multiple selected partners can join simultaneously without importing every
     assert.equal(second.room.tokens.length, 3);
     assert.equal(second.room.benchTokens.length, 0);
 });
+
+test("visual sprite size remains an optional normalized scene property", () => {
+    const room = createRoomSnapshot("Tamanho de cena");
+    const pokemon = addTeamToSnapshot(room, team, "ally").tokens[0];
+    assert.equal(pokemon.sceneScale, 1);
+    const token = normalizeRoomToken({ ...pokemon, sceneScale: 2.5 });
+    assert.equal(token.sceneScale, 2.5);
+    assert.equal(normalizeRoomToken({ ...pokemon, sceneScale: 40 }).sceneScale, 4);
+    assert.equal(normalizeRoomToken({ ...pokemon, sceneScale: .01 }).sceneScale, .25);
+    assert.equal(token.x, pokemon.x);
+    assert.equal(token.y, pokemon.y);
+    assert.equal(token.maxHp, pokemon.maxHp);
+});

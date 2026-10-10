@@ -312,58 +312,116 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
 
     useEffect(() => {
         if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return undefined;
+        let disposed = false;
+        let checking = false;
         let refreshing = false;
-        let offeredWorker = null;
         let registration = null;
-        let updateTimer = 0;
-        const offerUpdate = worker => {
-            if (!worker || offeredWorker === worker) return;
-            offeredWorker = worker;
-            setNotice({
-                tone: "blue",
-                text: "Uma nova versão do MyOwnDex está pronta.",
-                actionLabel: "Atualizar agora",
-                onAction: () => worker.postMessage({ type: "SKIP_WAITING" }),
-            });
+        let updateTimer = null;
+        let retryTimer = null;
+        const startedControlled = Boolean(navigator.serviceWorker.controller);
+        let hadController = startedControlled;
+
+        // A browser can be editing a Box or saving a remote adventure when
+        // an update finishes. Never replace that document mid-transaction.
+        const reloadAfterSaving = async () => {
+            if (disposed || refreshing || !navigator.onLine) return;
+            refreshing = true;
+            const tasks = [];
+            try {
+                window.dispatchEvent(new CustomEvent("myowndex:prepare-update", { detail: { tasks } }));
+                const saved = await teamSave.flush();
+                const others = await Promise.all(tasks);
+                if (saved === false || others.some(result => result === false)) {
+                    setNotice({ tone: "amber", text: "Uma atualização está pronta, mas há alterações ainda não salvas. O MyOwnDex tentará novamente após salvar." });
+                    refreshing = false;
+                    window.clearTimeout(retryTimer);
+                    retryTimer = window.setTimeout(reloadAfterSaving, 20000);
+                    return;
+                }
+                if (!disposed) window.location.reload();
+            } catch {
+                refreshing = false;
+                window.clearTimeout(retryTimer);
+                retryTimer = window.setTimeout(reloadAfterSaving, 20000);
+            }
         };
-        const watchRegistration = current => {
+
+        const promote = worker => {
+            if (worker && worker.state !== "redundant") worker.postMessage({ type: "SKIP_WAITING" });
+        };
+        const checkRelease = async () => {
+            if (disposed || checking || refreshing || !navigator.onLine) return;
+            checking = true;
+            try {
+                const response = await fetch("/api/version", {
+                    cache: "no-store",
+                    headers: { Accept: "application/json", "Cache-Control": "no-cache" },
+                });
+                if (!response.ok) return;
+                const release = await response.json();
+                if (typeof release.version !== "string" || !/^\d+\.\d+\.\d+$/.test(release.version)) return;
+                if (release.version !== APP_VERSION) {
+                    try { await registration?.update(); } catch { /* Browser update may be unavailable. */ }
+                    promote(registration?.waiting || registration?.installing);
+                    // Network-first navigation is still able to fetch the new
+                    // release if a browser refuses background SW promotion.
+                    window.clearTimeout(retryTimer);
+                    retryTimer = window.setTimeout(reloadAfterSaving, 2200);
+                }
+            } catch { /* While offline the last downloaded app remains usable. */ }
+            finally { checking = false; }
+        };
+        const watch = current => {
+            if (disposed) return;
             registration = current;
-            if (current.waiting && navigator.serviceWorker.controller) offerUpdate(current.waiting);
+            promote(current.waiting);
             current.addEventListener("updatefound", () => {
-                const installing = current.installing;
-                installing?.addEventListener("statechange", () => {
-                    if (installing.state === "installed" && navigator.serviceWorker.controller) offerUpdate(installing);
+                const next = current.installing;
+                if (!next) return;
+                next.addEventListener("statechange", () => {
+                    if (next.state === "installed") promote(next);
                 });
             });
-            current.update().catch(() => {});
-            updateTimer = window.setInterval(() => current.update().catch(() => {}), 60 * 60 * 1000);
+            void current.update().catch(() => {});
+            void checkRelease();
+            updateTimer = window.setInterval(() => {
+                void current.update().catch(() => {});
+                void checkRelease();
+            }, 2 * 60 * 1000);
         };
-        const register = () => navigator.serviceWorker
-            .register("/sw.js", { updateViaCache: "none" })
-            .then(watchRegistration)
-            .catch(() => {});
-        const checkForUpdate = () => registration?.update().catch(() => {});
-        const onVisible = () => {
-            if (document.visibilityState === "visible") checkForUpdate();
+        const register = () => {
+            void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" })
+                .then(watch).catch(() => { void checkRelease(); });
         };
         const onControllerChange = () => {
-            if (refreshing) return;
-            refreshing = true;
-            window.location.reload();
+            const shouldReload = hadController;
+            hadController = true;
+            // First-time SW takeover has not changed the JavaScript version.
+            if (shouldReload) void reloadAfterSaving();
+        };
+        const onReturn = () => {
+            if (document.visibilityState === "visible") {
+                void registration?.update().catch(() => {});
+                void checkRelease();
+            }
         };
         navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
-        document.addEventListener("visibilitychange", onVisible);
-        window.addEventListener("online", checkForUpdate);
+        document.addEventListener("visibilitychange", onReturn);
+        window.addEventListener("focus", onReturn);
+        window.addEventListener("online", onReturn);
         if (document.readyState === "complete") register();
         else window.addEventListener("load", register, { once: true });
         return () => {
+            disposed = true;
             window.removeEventListener("load", register);
-            window.removeEventListener("online", checkForUpdate);
-            document.removeEventListener("visibilitychange", onVisible);
+            window.removeEventListener("focus", onReturn);
+            window.removeEventListener("online", onReturn);
+            document.removeEventListener("visibilitychange", onReturn);
             navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
             window.clearInterval(updateTimer);
+            window.clearTimeout(retryTimer);
         };
-    }, []);
+    }, [teamSave]);
 
     useEffect(() => {
         const timer = window.setTimeout(() => setSearchTerm(searchInput.trim()), 140);

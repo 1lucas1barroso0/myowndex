@@ -94,8 +94,9 @@ const budgetedResponse = async response => {
 };
 
 const fetchAsset = request => {
-  if (new URL(request.url).origin === self.location.origin) return fetch(request);
-  return fetch(request, { mode: "cors", credentials: "omit" }).catch(() => fetch(request));
+  if (new URL(request.url).origin === self.location.origin) return fetch(request, { cache: "no-store" });
+  return fetch(request, { mode: "cors", credentials: "omit", cache: "no-store" })
+    .catch(() => fetch(request, { cache: "no-store" }));
 };
 
 const rememberPage = async response => {
@@ -118,7 +119,6 @@ const rememberAsset = (request, response) => {
     const cache = await caches.open(ASSET_CACHE_NAME);
     // Cache insertion order supplies recency. Reads and writes share a queue,
     // so one tab cannot make concurrent eviction remove another pending put.
-    const latest = await cache.match(request);
     await cache.delete(request);
     // Online revalidation must overwrite old bytes, even at the same URL.
     await cache.put(request, prepared.response);

@@ -678,6 +678,19 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         return saveQueueRef.current;
     }, [applyBundle, session, showError, storageScope]);
 
+    useEffect(() => {
+        const finishRoomWrites = event => {
+            const tasks = event.detail?.tasks;
+            if (!Array.isArray(tasks)) return;
+            tasks.push(saveQueueRef.current.then(
+                result => result !== false && pendingSavesRef.current === 0,
+                () => false,
+            ));
+        };
+        window.addEventListener("myowndex:prepare-update", finishRoomWrites);
+        return () => window.removeEventListener("myowndex:prepare-update", finishRoomWrites);
+    }, []);
+
     const sendEvent = useCallback(async (type, payload) => {
         if (!session) return;
         if (session.local) {

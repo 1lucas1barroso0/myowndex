@@ -36,7 +36,7 @@
       "sourceSha256": "d24e60a41e4ac7a745c0304dfde121143688557f40215f23221c29cfe683825f"
     }
   ],
-  "method": "Chão de cores planas definido no código; marcos dos autores preservados, recortados e montados em escala uniforme de 1× ou 2×, sem redesenho, recoloração, filtro ou geração de arte.",
+  "method": "Tiles Kenney (CC0) mantidos pixel a pixel; pequenos detalhes vetoriais autorais de terreno em camadas reprodutíveis, sem filtros ou dependências.",
   "scenes": [
     {
       "id": "rota",
@@ -50,7 +50,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "764228bd1f0aa50362f8622a1a417e140db019273a77ea2ce207bdc47d825fba",
-      "bytes": 5345
+      "bytes": 7215
     },
     {
       "id": "floresta",
@@ -63,7 +63,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "d50f7386edc17c5a1eadc83dc29b92c8d4e0bea0f0114edf0cb3d5ede512c3c7",
-      "bytes": 6235
+      "bytes": 7934
     },
     {
       "id": "cidade",
@@ -77,7 +77,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "cf48b55c8f3d328472a41d7354f27b3e52ace0681ff29d83de860dd749e5cef5",
-      "bytes": 4805
+      "bytes": 6268
     },
     {
       "id": "praia",
@@ -91,7 +91,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "b815b17bed8c7472da801807fc516fa247cf97330536a042aa1f9629d84b8781",
-      "bytes": 2660
+      "bytes": 4597
     },
     {
       "id": "caverna",
@@ -104,7 +104,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "417fd534ff94a41abf18aa16e49c5a23fcde699ea86abab06b103bffc069054a",
-      "bytes": 5406
+      "bytes": 7012
     },
     {
       "id": "neve",
@@ -118,7 +118,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "fa1656e2a01826ae0203b8e88ab1e057ad058f81453d7fdd2715d8e2112cb7b4",
-      "bytes": 3567
+      "bytes": 5344
     },
     {
       "id": "arena",
@@ -131,7 +131,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "c4a13af680e8398eb0f40531635c0e6dae5fcb761c042e2f2ce52bea8a18936f",
-      "bytes": 2987
+      "bytes": 4365
     },
     {
       "id": "laboratorio",
@@ -145,7 +145,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "f32d5869b144386408ec3a9d397aa843ef4567c63f15b4b67e1969ca91c6ba44",
-      "bytes": 2935
+      "bytes": 4223
     },
     {
       "id": "distorcao",
@@ -158,7 +158,8 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "13ba3a621cc59ea46e7bf52e260f5b8b6589ec34f7236084a30c68470a2012cc",
-      "bytes": 4507
+      "bytes": 6401
     }
-  ]
+  ],
+  "decorations": "public/scenes/source/decorations.json"
 }

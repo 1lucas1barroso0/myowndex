@@ -90,3 +90,12 @@ test("the scene camera shows every map, and the PC companion has no fake loading
     assert.doesNotMatch(camera, /\.battlefield-scenery\s*\{[^}]*object-fit:\s*cover/);
     assert.match(art, /\.pc-sidebar-heading::after\s*\{\s*content:\s*none;\s*display:\s*none;/);
 });
+
+test("the authored terrain details remain reproducible from the source manifest", async () => {
+  const layers = JSON.parse(await read("public/scenes/source/decorations.json"));
+  for (const [id, layer] of Object.entries(layers)) {
+    const svg = (await read("public/scenes/" + id + ".svg")).toString();
+    assert.ok(svg.includes(layer), id + ": the exported map matches its source");
+    assert.equal((svg.match(/<image\b/g) || []).length, 1);
+  }
+});

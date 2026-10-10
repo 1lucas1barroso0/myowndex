@@ -9,3 +9,10 @@
 - A versão e o cache offline avançam para 2.0.21.
 
 Não há alterações de sprites, tiles, regras, catálogos, sessões ou armazenamento. A composição dos mapas foi corrigida; o desenho original e sua licença permanecem os mesmos.
+
+## Contraste e fichas refinados
+
+- Amarelo permanece como acento na identidade vermelha; a seleção padrão adota azul suave legível em ambos os temas, sem preencher botões secundários com amarelo intenso.
+- Barras puramente decorativas nos cabeçalhos da Pokédex, do Guia e no topo das fichas de coleção foram removidas. Barras funcionais de HP, experiência, EVs e carregamento foram mantidas.
+- A área **Progresso da jornada** usa fundo neutro e faixa lateral azul, sem painel amarelado.
+- Fichas, evolução e editor não apresentam mais sombra oval padronizada nem fundo circular atrás dos sprites. As imagens e suas animações originais permanecem inalteradas.

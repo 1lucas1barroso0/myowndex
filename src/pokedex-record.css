@@ -13,9 +13,9 @@ html .app-root .record-cartridge-label small { font-size:inherit; }
 html .app-root .record-cartridge-label b { font-variant-numeric:tabular-nums; }
 html .app-root .record-cartridge-label > span { display:none; }
 html .app-root .record-form-label { color:var(--ui-muted); font-size:.95rem; }
-html .app-root .record-sprite-stage { display:grid; place-items:center; min-height:220px; position:relative; background:radial-gradient(ellipse at 50% 56%,color-mix(in srgb,var(--record-type) 16%,transparent) 0 42%,transparent 43%); }
-html .app-root .record-partner-sprite { width:240px; height:240px; max-width:100%; object-fit:contain; image-rendering:auto; filter:drop-shadow(0 10px 5px #222b3015); }
-html .app-root .record-sprite-ground { position:absolute; bottom:15px; width:65%; height:15px; border-radius:50%; background:#222b3010; }
+html .app-root .record-sprite-stage { display:grid; place-items:center; min-height:220px; position:relative; background:transparent; }
+html .app-root .record-partner-sprite { width:240px; height:240px; max-width:100%; object-fit:contain; image-rendering:auto; filter:none; }
+html .app-root .record-sprite-ground { display:none; }
 html .app-root .record-attributes { display:grid; gap:1.5rem; }
 html .app-root .record-types { display:flex; flex-wrap:wrap; gap:.5rem; }
 html .app-root .record-type-chip { display:inline-flex; align-items:center; min-height:28px; padding:.35rem .7rem; border-radius:.2rem; font-size:.875rem; font-weight:700; }
@@ -77,7 +77,7 @@ html .app-root .record-evolution-list { display:grid; gap:1.5rem; padding:1.5rem
 html .app-root .record-evolution-path { display:grid; grid-template-columns:repeat(var(--evolution-stages),minmax(0,1fr)); align-items:start; gap:.65rem; margin:0; padding:0; list-style:none; }
 html .app-root .record-evolution-node { display:grid; justify-items:center; align-content:start; gap:.65rem; min-width:0; position:relative; text-align:center; }
 html .app-root .record-evolution-node + .record-evolution-node::before { content:'›'; position:absolute; left:-.7rem; top:1.5rem; color:var(--ui-muted); font-size:1.5rem; font-weight:800; }
-html .app-root .record-evolution-stage { display:grid; place-items:center; width:88px; max-width:100%; height:88px; background:radial-gradient(ellipse at 50% 80%,color-mix(in srgb,var(--record-type) 10%,transparent) 0 38%,transparent 39%); border-bottom:3px solid transparent; }
+html .app-root .record-evolution-stage { display:grid; place-items:center; width:88px; max-width:100%; height:88px; background:transparent; border-bottom:3px solid transparent; }
 html .app-root .record-evolution-node.is-current .record-evolution-stage { border-bottom-color:var(--record-type); background:color-mix(in srgb,var(--record-type) 11%,var(--ui-panel)); }
 html .app-root .record-evolution-sprite { width:72px; max-width:100%; height:72px; object-fit:contain; image-rendering:pixelated; }
 html .app-root .record-evolution-name { max-width:100%; font-size:.9rem; font-weight:750; line-height:1.5; }

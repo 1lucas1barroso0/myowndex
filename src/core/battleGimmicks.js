@@ -145,7 +145,9 @@ export const applyGimmick = (token,id,{formData=null}={})=>{
    }));
    const originalStats={...changed.originalStats},stats={...changed.stats};
    for(const [key,v] of Object.entries(computed)){originalStats[key]=v.raw;stats[key]=v.stat;}
-   const spriteSources=getPokemonSpriteSources({src:token.shiny ? formData.sprites?.front_shiny||formData.sprites?.front_default : formData.sprites?.front_default,pokemonId:formData.id,shiny:Boolean(token.shiny)});
+   const exactArtwork=getPokemonSpriteSources({pokemonId:formData.id,shiny:Boolean(token.shiny)});
+   const spriteSources=exactArtwork.animated.length||exactArtwork.static.length?exactArtwork:
+     getPokemonSpriteSources({src:token.shiny ? formData.sprites?.front_shiny||formData.sprites?.front_default : formData.sprites?.front_default,pokemonId:formData.id,shiny:Boolean(token.shiny)});
    if(!spriteSources.animated.length&&!spriteSources.static.length)return {applied:false,token,reason:"Esta forma ainda não possui um sprite 2D confirmado."};
    changed={...changed,speciesName:formData.name,speciesId:formData.id,formName:formData.name,
       sprite:spriteSources.animated[0]||spriteSources.static[0]||formData.sprites?.front_default||token.sprite,

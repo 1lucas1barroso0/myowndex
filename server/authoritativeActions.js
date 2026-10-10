@@ -499,8 +499,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const needsCalledMove = specialProfile?.id === "called-move";
     const zMove=Boolean(request.useZMove);
     if(zMove && (needsCalledMove || specialProfile || !canUseZMove(attacker,move,room))) throw new AuthoritativeActionError("Este Pokémon não pode usar esse movimento Z com o cristal equipado.",409);
-    const gigantism=normalizeGimmickState(attacker.gimmickState,attacker).active;
-    const maxActive=["dyna","gmax"].includes(gigantism);
+    const maxActive=["dyna","gmax"].includes(normalizeGimmickState(attacker.gimmickState,attacker).active);
     // Every status move becomes Max Guard while Dynamaxed.
     if (needsCalledMove && (!calledMove || slug(calledMove.name) !== request.calledMoveName)) {
         throw new AuthoritativeActionError("Confirme o movimento resultante antes de resolver a jogada.");

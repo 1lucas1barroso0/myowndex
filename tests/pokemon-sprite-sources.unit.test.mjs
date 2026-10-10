@@ -6,10 +6,11 @@ import nativeCoverage from "../src/data/native-sprite-coverage.json" with { type
 import species from "../src/data/species.json" with { type: "json" };
 import forms from "../src/data/forms.json" with { type: "json" };
 import { buildDexCatalogue } from "../src/core/dexCatalogue.js";
-import { getPokemonSpriteSources } from "../src/core/pokemonSpriteSources.js";
+import { getPokemonSpriteIdentity, getPokemonSpriteProvenance, getPokemonSpriteSources, isPokemonSpriteSource2D } from "../src/core/pokemonSpriteSources.js";
 import { getPokemonSpriteScale, POKEMON_HEIGHTS } from "../src/core/pokemonHeights.js";
 
 const front = key => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${key}.png`;
+const pinned = key => front(key).replace("/master/", `/${animatedSprites.commit}/`);
 
 test("native Pokémon animation has a pinned availability index and offline static recovery", () => {
     assert.match(animatedSprites.commit, /^[0-9a-f]{40}$/);
@@ -36,13 +37,14 @@ test("regional and named cosmetic animations keep their exact identity", () => {
 test("shiny animation and recovery never fall back to the regular palette", () => {
     const choices = getPokemonSpriteSources({ pokemonId: 25, shiny: true });
     assert.ok(choices.animated[0].endsWith("/animated/shiny/25.gif"));
-    assert.equal(choices.static[0], front("shiny/25"));
+    assert.equal(choices.static[0], pinned("shiny/25"));
     assert.ok(!choices.static.includes("/sprites/25.png"));
     const fromToken = getPokemonSpriteSources({ pokemonId: 25, src: choices.animated[0] });
     assert.ok(fromToken.animated[0].endsWith("/animated/shiny/25.gif"));
     const missingShiny = getPokemonSpriteSources({ pokemonId: 715, shiny: true });
-    assert.ok(missingShiny.animated[0].endsWith("/other/showdown/shiny/715.gif"));
-    assert.equal(missingShiny.static[0], front("shiny/715"));
+    assert.equal(missingShiny.animated[0], nativeSprites.local["715"].shiny.animated);
+    assert.equal(missingShiny.static[0], nativeSprites.local["715"].shiny.static);
+    assert.ok([...missingShiny.animated, ...missingShiny.static].every(isPokemonSpriteSource2D));
 });
 
 test("missing animations never invent URLs or erase fixed form appearance", () => {
@@ -60,24 +62,25 @@ test("missing animations never invent URLs or erase fixed form appearance", () =
         assert.ok(choices.static.every(url => url.includes(`/${view}/25.png`)), view);
     }
     const source = front("forms/999999");
-    assert.deepEqual(getPokemonSpriteSources({ pokemonId: 25, src: source }), { animated: [], static: [source] });
+    assert.deepEqual(getPokemonSpriteSources({ pokemonId: 25, src: source }), { animated: [], static: [] });
 });
 
 test("null sprites and absent resources remain safe and use only valid fallback identities", () => {
     assert.deepEqual(getPokemonSpriteSources({ src: null, pokemonId: null, candidates: null }), { animated: [], static: [] });
     const choices = getPokemonSpriteSources({ pokemonId: 1025, src: null });
     assert.equal(choices.animated[0], nativeSprites.local["1025"][""].animated);
-    assert.ok(choices.static.includes(front(1025)));
+    assert.equal(choices.static[0], nativeSprites.local["1025"][""].static);
+    assert.ok(!choices.static.includes(front(1025)), "an unverified modern PNG cannot become a 3D fallback");
     assert.deepEqual(getPokemonSpriteSources({ pokemonId: 0, spriteKey: "../../25", candidates: [null, ""] }), { animated: [], static: [] });
 });
 
-test("Toedscool and Scovillain use verified exact Showdown animations in every available angle and palette", () => {
-    assert.match(animatedSprites.showdownTree, /^[0-9a-f]{40}$/);
-    for (const id of [948, 952]) for (const view of ["", "shiny", "back", "back/shiny"]) {
+test("Toedscool, Scovillain and Cinderace use verified authored 2D in every angle and palette", () => {
+    for (const id of [815, 948, 952]) for (const view of ["", "shiny", "back", "back/shiny"]) {
         const src = front(`${view ? `${view}/` : ""}${id}`);
         const choices = getPokemonSpriteSources({ pokemonId: id, src });
-        assert.ok(animatedSprites.showdown[view].includes(String(id)));
-        assert.ok(choices.animated[0].endsWith(`/other/showdown/${view ? `${view}/` : ""}${id}.gif`));
+        assert.equal(choices.animated[0], nativeSprites.local[String(id)][view].animated);
+        assert.equal(choices.static[0], nativeSprites.local[String(id)][view].static);
+        assert.ok([...choices.animated, ...choices.static].every(isPokemonSpriteSource2D));
         assert.ok(choices.static.every(url => !url.endsWith(".gif")));
     }
 });
@@ -155,12 +158,76 @@ test("cosmetic form-resource IDs resolve to their exact sprite keys instead of b
             const formUrl = front(`forms/${shiny ? "shiny/" : ""}${entry.formId}`);
             const fromForm = getPokemonSpriteSources({ pokemonId: entry.pokemonId, src: formUrl });
             const fromKey = getPokemonSpriteSources({ pokemonId: entry.pokemonId, spriteKey: entry.spriteKey, shiny });
-            assert.ok(fromForm.animated.length, `${entry.name}${shiny ? " shiny" : ""}`);
+            const auditedGap = nativeCoverage.missingForms.some(gap => gap.formId === String(entry.formId) && gap.view === (shiny ? "shiny" : ""));
+            assert.equal(fromForm.animated.length === 0, auditedGap, `${entry.name}${shiny ? " shiny" : ""}: unavailable art must stay explicit`);
             assert.deepEqual(fromForm.animated, fromKey.animated, entry.name);
         }
     }
     const unknownUrl = front("forms/999999");
     assert.ok(getPokemonSpriteSources({ spriteKey: "666-sun", src: unknownUrl, strictAppearance: true }).animated.every(url => url.endsWith("/666-sun.gif")));
+});
+
+test("3D historical room tokens migrate to the same exact 2D identity without becoming candidates", () => {
+    for (const id of [815, 948, 952]) for (const view of ["", "shiny", "back", "back/shiny"]) {
+        const token = `https://raw.githubusercontent.com/PokeAPI/sprites/old-commit/sprites/pokemon/other/showdown/${view ? `${view}/` : ""}${id}.gif`;
+        assert.equal(isPokemonSpriteSource2D(token), false);
+        const choices = getPokemonSpriteSources({ src: token });
+        assert.equal(choices.animated[0], nativeSprites.local[String(id)][view].animated);
+        assert.equal(choices.static[0], nativeSprites.local[String(id)][view].static);
+        assert.ok(!choices.animated.includes(token));
+    }
+    const token = "https://raw.githubusercontent.com/smogon/sprites/master/src/models/smaushold-b-s.gif";
+    assert.deepEqual(getPokemonSpriteIdentity(token), { key: "10257", view: "back/shiny" });
+    assert.equal(getPokemonSpriteSources({ src: token }).animated[0], nativeSprites.local["10257"]["back/shiny"].animated);
+    for (const token of [front("other/home/815"), front("other/official-artwork/815"), front("forms/999999")]) {
+        assert.equal(getPokemonSpriteProvenance(token), null);
+        assert.ok(getPokemonSpriteSources({ src: token }).static.every(isPokemonSpriteSource2D));
+    }
+});
+
+test("every selected catalogue animation and recovery has positive 2D provenance", () => {
+    for (const id of Object.keys(nativeSprites.pokemonResources)) for (const view of ["", "shiny", "back", "back/shiny"]) {
+        const choices = getPokemonSpriteSources({ src: front(`${view ? `${view}/` : ""}${id}`) });
+        for (const url of [...choices.animated, ...choices.static]) {
+            assert.ok(isPokemonSpriteSource2D(url), `${id}/${view}: ${url}`);
+            assert.equal(getPokemonSpriteProvenance(url).verified, true);
+        }
+    }
+    assert.equal(isPokemonSpriteSource2D("https://example.com/unverified.gif"), false, "moving bytes do not establish authored 2D provenance");
+    assert.equal(getPokemonSpriteProvenance(null), null);
+});
+
+test("local decorative masters retain their own exact BW animation and provenance", () => {
+    for (const [key, master] of Object.entries(nativeSprites.companions)) {
+        const choices = getPokemonSpriteSources({ src: master.animated, candidates: [master.static], pokemonId: Number(key), strictAppearance: true });
+        assert.deepEqual(choices, { animated: [master.animated], static: [master.static] });
+        assert.ok([...choices.animated, ...choices.static].every(isPokemonSpriteSource2D));
+    }
+});
+
+test("historical native tokens keep their appearance when current immutable art replaces them", () => {
+    for (const [token, identity] of Object.entries(nativeSprites.legacyTokens)) {
+        assert.deepEqual(getPokemonSpriteIdentity(token, { spriteKey: identity.key, shiny: identity.view.includes("shiny") }), identity, token);
+        const current = nativeSprites.local[identity.key]?.[identity.view];
+        const choices = getPokemonSpriteSources({ src: token });
+        assert.ok(choices.animated.includes(current.animated), token);
+        assert.ok(choices.static.includes(current.static), token);
+    }
+    assert.ok(!getPokemonSpriteSources({ src: "/sprites/native/10084-back.gif" }).animated.includes("/sprites/native/10084-back.gif"), "the old Pop Star drawing must not be shown as Libre");
+});
+
+test("content deduplication preserves contextual form identity and exact palette", () => {
+    for (const [base, form, view] of [["758", "10129", ""], ["133", "10159", "female"]]) {
+        const source = nativeSprites.local[base][view].animated;
+        assert.equal(source, nativeSprites.local[form][view].animated, "fixture really shares authored pixels");
+        assert.deepEqual(getPokemonSpriteIdentity(source, { pokemonId: Number(form) }), { key: form, view });
+        assert.deepEqual(getPokemonSpriteIdentity(source, { pokemonId: Number(base) }), { key: base, view });
+    }
+    const source = nativeSprites.local["1000"].back.animated;
+    assert.equal(source, nativeSprites.local["1000"]["back/shiny"].animated);
+    assert.deepEqual(getPokemonSpriteIdentity(source, { pokemonId: 1000, shiny: false }), { key: "1000", view: "back" });
+    assert.deepEqual(getPokemonSpriteIdentity(source, { pokemonId: 1000, shiny: true }), { key: "1000", view: "back/shiny" });
+    assert.deepEqual(getPokemonSpriteIdentity(nativeSprites.local["10033"][""].animated, { pokemonId: 3 }), { key: "10033", view: "" }, "a distinct Mega appearance must not become the original species");
 });
 
 test("mixed source candidates cannot erase shiny palettes, back angles or visible gender differences", () => {
@@ -174,10 +241,10 @@ test("mixed source candidates cannot erase shiny palettes, back angles or visibl
     assert.equal(lowPower.animated[0], nativeSprites.local["10268"].shiny.animated);
 });
 
-test("official heights keep small Pokémon visible and preserve increasing proportions", () => {
+test("physical height remains linear while portraits choose their own framing", () => {
     const increasing = [1, 3, 4, 12, 24, 145, 1000];
     const scales = increasing.map(height => getPokemonSpriteScale(0, height));
-    assert.ok(scales.every(value => value > 0.72 && value < 1));
+    assert.deepEqual(scales, increasing.map(height => height / 10));
     assert.ok(scales.every((value, index) => index === 0 || value > scales[index - 1]));
     assert.equal(getPokemonSpriteScale(25), getPokemonSpriteScale(0, POKEMON_HEIGHTS[25]));
     assert.ok(getPokemonSpriteScale(10114) > getPokemonSpriteScale(103));

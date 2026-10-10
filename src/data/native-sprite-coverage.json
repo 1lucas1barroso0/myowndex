@@ -1,4 +1,6 @@
 {
+  "schemaVersion": 2,
+  "artPolicy": "verified-authored-2d-only",
   "catalogueCommit": "2ee1c422ad9f3831245dab0ac2a5cd1aae61cd72",
   "nationalSpecies": 1025,
   "dexEntries": 1112,
@@ -6,6 +8,26 @@
   "formIds": 1579,
   "missingResources": [
     {
+      "id": "10190",
+      "name": "eternatus-eternamax",
+      "view": "back"
+    },
+    {
+      "id": "10190",
+      "name": "eternatus-eternamax",
+      "view": "back/shiny"
+    },
+    {
+      "id": "10212",
+      "name": "corviknight-gmax",
+      "view": ""
+    },
+    {
+      "id": "10212",
+      "name": "corviknight-gmax",
+      "view": "shiny"
+    },
+    {
       "id": "10264",
       "name": "koraidon-limited-build",
       "view": ""
@@ -143,16 +165,41 @@
     {
       "id": "10271",
       "name": "miraidon-glide-mode",
-      "view": "back/shiny"
-    },
-    {
-      "id": "10298",
-      "name": "barbaracle-mega",
       "view": "back/shiny"
     }
   ],
   "missingForms": [
     {
+      "formId": "10344",
+      "key": "854-antique",
+      "view": ""
+    },
+    {
+      "formId": "10344",
+      "key": "854-antique",
+      "view": "shiny"
+    },
+    {
+      "formId": "10345",
+      "key": "855-antique",
+      "view": ""
+    },
+    {
+      "formId": "10345",
+      "key": "855-antique",
+      "view": "shiny"
+    },
+    {
+      "formId": "10381",
+      "key": "10212",
+      "view": ""
+    },
+    {
+      "formId": "10381",
+      "key": "10212",
+      "view": "shiny"
+    },
+    {
       "formId": "10433",
       "key": "10264-limited-build",
       "view": ""
@@ -220,8 +267,316 @@
     {
       "formId": "10440",
       "key": "10271-glide-mode",
+      "view": "shiny"
+    },
+    {
+      "formId": "10447",
+      "key": "1012-artisan",
+      "view": ""
+    },
+    {
+      "formId": "10447",
+      "key": "1012-artisan",
+      "view": "shiny"
+    },
+    {
+      "formId": "10448",
+      "key": "1013-masterpiece",
+      "view": ""
+    },
+    {
+      "formId": "10448",
+      "key": "1013-masterpiece",
       "view": "shiny"
     }
   ],
-  "missingDex": []
+  "missingDex": [],
+  "resourceCombinations": 5404,
+  "animatedResourceCombinations": 5372,
+  "formCombinations": 3158,
+  "animatedFormCombinations": 3134,
+  "missingStaticResources": [
+    {
+      "id": "10190",
+      "name": "eternatus-eternamax",
+      "view": "back"
+    },
+    {
+      "id": "10190",
+      "name": "eternatus-eternamax",
+      "view": "back/shiny"
+    },
+    {
+      "id": "10212",
+      "name": "corviknight-gmax",
+      "view": ""
+    },
+    {
+      "id": "10212",
+      "name": "corviknight-gmax",
+      "view": "shiny"
+    },
+    {
+      "id": "10264",
+      "name": "koraidon-limited-build",
+      "view": ""
+    },
+    {
+      "id": "10264",
+      "name": "koraidon-limited-build",
+      "view": "shiny"
+    },
+    {
+      "id": "10264",
+      "name": "koraidon-limited-build",
+      "view": "back"
+    },
+    {
+      "id": "10264",
+      "name": "koraidon-limited-build",
+      "view": "back/shiny"
+    },
+    {
+      "id": "10265",
+      "name": "koraidon-sprinting-build",
+      "view": ""
+    },
+    {
+      "id": "10265",
+      "name": "koraidon-sprinting-build",
+      "view": "shiny"
+    },
+    {
+      "id": "10265",
+      "name": "koraidon-sprinting-build",
+      "view": "back"
+    },
+    {
+      "id": "10265",
+      "name": "koraidon-sprinting-build",
+      "view": "back/shiny"
+    },
+    {
+      "id": "10266",
+      "name": "koraidon-swimming-build",
+      "view": ""
+    },
+    {
+      "id": "10266",
+      "name": "koraidon-swimming-build",
+      "view": "shiny"
+    },
+    {
+      "id": "10266",
+      "name": "koraidon-swimming-build",
+      "view": "back"
+    },
+    {
+      "id": "10266",
+      "name": "koraidon-swimming-build",
+      "view": "back/shiny"
+    },
+    {
+      "id": "10267",
+      "name": "koraidon-gliding-build",
+      "view": ""
+    },
+    {
+      "id": "10267",
+      "name": "koraidon-gliding-build",
+      "view": "shiny"
+    },
+    {
+      "id": "10267",
+      "name": "koraidon-gliding-build",
+      "view": "back"
+    },
+    {
+      "id": "10267",
+      "name": "koraidon-gliding-build",
+      "view": "back/shiny"
+    },
+    {
+      "id": "10269",
+      "name": "miraidon-drive-mode",
+      "view": ""
+    },
+    {
+      "id": "10269",
+      "name": "miraidon-drive-mode",
+      "view": "shiny"
+    },
+    {
+      "id": "10269",
+      "name": "miraidon-drive-mode",
+      "view": "back"
+    },
+    {
+      "id": "10269",
+      "name": "miraidon-drive-mode",
+      "view": "back/shiny"
+    },
+    {
+      "id": "10270",
+      "name": "miraidon-aquatic-mode",
+      "view": ""
+    },
+    {
+      "id": "10270",
+      "name": "miraidon-aquatic-mode",
+      "view": "shiny"
+    },
+    {
+      "id": "10270",
+      "name": "miraidon-aquatic-mode",
+      "view": "back"
+    },
+    {
+      "id": "10270",
+      "name": "miraidon-aquatic-mode",
+      "view": "back/shiny"
+    },
+    {
+      "id": "10271",
+      "name": "miraidon-glide-mode",
+      "view": ""
+    },
+    {
+      "id": "10271",
+      "name": "miraidon-glide-mode",
+      "view": "shiny"
+    },
+    {
+      "id": "10271",
+      "name": "miraidon-glide-mode",
+      "view": "back"
+    },
+    {
+      "id": "10271",
+      "name": "miraidon-glide-mode",
+      "view": "back/shiny"
+    }
+  ],
+  "missingStaticForms": [
+    {
+      "formId": "10344",
+      "key": "854-antique",
+      "view": ""
+    },
+    {
+      "formId": "10344",
+      "key": "854-antique",
+      "view": "shiny"
+    },
+    {
+      "formId": "10345",
+      "key": "855-antique",
+      "view": ""
+    },
+    {
+      "formId": "10345",
+      "key": "855-antique",
+      "view": "shiny"
+    },
+    {
+      "formId": "10381",
+      "key": "10212",
+      "view": ""
+    },
+    {
+      "formId": "10381",
+      "key": "10212",
+      "view": "shiny"
+    },
+    {
+      "formId": "10433",
+      "key": "10264-limited-build",
+      "view": ""
+    },
+    {
+      "formId": "10433",
+      "key": "10264-limited-build",
+      "view": "shiny"
+    },
+    {
+      "formId": "10434",
+      "key": "10265-sprinting-build",
+      "view": ""
+    },
+    {
+      "formId": "10434",
+      "key": "10265-sprinting-build",
+      "view": "shiny"
+    },
+    {
+      "formId": "10435",
+      "key": "10266-swimming-build",
+      "view": ""
+    },
+    {
+      "formId": "10435",
+      "key": "10266-swimming-build",
+      "view": "shiny"
+    },
+    {
+      "formId": "10436",
+      "key": "10267-gliding-build",
+      "view": ""
+    },
+    {
+      "formId": "10436",
+      "key": "10267-gliding-build",
+      "view": "shiny"
+    },
+    {
+      "formId": "10438",
+      "key": "10269-drive-mode",
+      "view": ""
+    },
+    {
+      "formId": "10438",
+      "key": "10269-drive-mode",
+      "view": "shiny"
+    },
+    {
+      "formId": "10439",
+      "key": "10270-aquatic-mode",
+      "view": ""
+    },
+    {
+      "formId": "10439",
+      "key": "10270-aquatic-mode",
+      "view": "shiny"
+    },
+    {
+      "formId": "10440",
+      "key": "10271-glide-mode",
+      "view": ""
+    },
+    {
+      "formId": "10440",
+      "key": "10271-glide-mode",
+      "view": "shiny"
+    },
+    {
+      "formId": "10447",
+      "key": "1012-artisan",
+      "view": ""
+    },
+    {
+      "formId": "10447",
+      "key": "1012-artisan",
+      "view": "shiny"
+    },
+    {
+      "formId": "10448",
+      "key": "1013-masterpiece",
+      "view": ""
+    },
+    {
+      "formId": "10448",
+      "key": "1013-masterpiece",
+      "view": "shiny"
+    }
+  ]
 }

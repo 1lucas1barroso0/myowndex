@@ -2,12 +2,15 @@ Arte dos Pokémon — MyOwnDex
 
 Pokémon e seus personagens pertencem a Nintendo, Game Freak e The Pokémon Company. O MyOwnDex é um projeto de fãs. A arte utilizada mantém seus autores e as condições de cada fonte.
 
-PokéAPI e Pokémon Showdown
-As animações e imagens dos catálogos públicos estão fixadas nestes repositórios:
+PokéAPI — animação 2D de Black/White
+Sprites oficiais de Game Freak, distribuídos pelo catálogo público fixado abaixo. As oito espécies decorativas usam masters locais de Black/White; hashes e duração: /sprites/native/provenance-companions.json. A licença do código ou do catálogo não transfere os direitos da arte Pokémon.
 https://github.com/PokeAPI/sprites
 Commit: d72f64eb74912747cb5c5579061ced4842ba0a98
+
+Pokémon Showdown / Smogon
 https://github.com/smogon/sprites
-Commit: bad55c7b7e7292f459366505460d41dcab08d4cd
+Commit histórico: bad55c7b7e7292f459366505460d41dcab08d4cd
+Os tokens de modelos 3D são mantidos apenas para identificar aparências guardadas e migrá-las para a arte 2D atual. Esses renders não são exibidos. Os trabalhos 2D comunitários utilizados por meio do EBDX conservam os créditos originais de cada artista.
 
 Open-Source EBDX Renovation Project
 Folhas animadas publicadas por ChromeValiant, com os créditos dos projetos Smogon Scarlet/Violet Sprite Project, Sprites Animados e todos os demais artistas e compiladores preservados na lista integral abaixo. Inclui aparências recentes ausentes das outras fontes, como Iron Jugulis, Iron Boulder, Iron Crown, Ogerpon com suas quatro máscaras e Megaevoluções de Pokémon Legends: Z-A.
@@ -17,8 +20,11 @@ Fonte: https://github.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EB
 Commit: 836bb026ba8f6c3b3ee3bb6d461c510263953a02
 Créditos integrais: /sprites/native/credits-ebdx.md
 Proveniência e verificação dos arquivos: /sprites/native/provenance-ebdx.json
+Lote 2D atual, hashes, fontes e rejeições: /sprites/native/provenance-2d.json
 
-As folhas de batalha foram separadas apenas nos quadros que já possuíam. Cores, transparência, sequência e ritmo nativo de 100 ms por quadro foram preservados e comparados após a conversão. Mega Barbaracle Shiny usa seu ícone original de menu, com as duas poses e o ciclo nativo de 250 ms, sem redesenho ou recoloração. Essa animação de menu tem proveniência própria: /sprites/native/provenance-menu-icon.json.
+As folhas de batalha foram separadas apenas nos quadros que já possuíam. Cores, transparência, sequência e ritmo nativo de 100 ms por quadro foram preservados e comparados após a conversão. Mega Barbaracle Shiny usa seu ícone original de menu, com as duas poses e o ciclo nativo de 250 ms, sem redesenho ou recoloração. Essa animação de menu tem proveniência própria: /sprites/native/provenance-menu-icon.json. O sprite traseiro Shiny encontrado nesta atualização possui arte de batalha e procedência próprias; não reutiliza o ícone frontal.
+
+Pikachu Libre utiliza a folha correta PIKACHU_7. O import traseiro antigo PIKACHU_6 era Pop Star e foi retirado da seleção; a migração preserva os registros já guardados. As novas URLs imutáveis são deduplicadas pelo conteúdo, sem apagar os créditos por aparência.
 
 A origem se apresenta como um recurso aberto para projetos de fãs, mas não declara uma licença SPDX específica. Não apresentamos esses materiais como MIT ou CC0. Arquivos que não representam a aparência correta foram rejeitados e estão identificados na proveniência.
 

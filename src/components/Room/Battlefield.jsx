@@ -3,6 +3,9 @@ import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
 import { clampFinite, safeDivide } from "../../core/math.js";
+import { getPokemonDisplayHeight } from "../../core/pokemonHeights.js";
+import { getPokemonSpriteFraming } from "../../core/pokemonSpriteFraming.js";
+import { getPokemonSpriteSources } from "../../core/pokemonSpriteSources.js";
 import { ROOM_SCENARIOS, ROOM_TERRAINS, ROOM_WEATHERS, STATUS_LABELS } from "../../core/room.js";
 import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
 import { getTraitStatus } from "../../core/traitMechanics.js";
@@ -24,6 +27,25 @@ const getHpTone = token => {
     return "healthy";
 };
 
+const displayedPokemonId = (token, display) => display.disguised
+    ? token.specialState?.illusion?.speciesId || token.speciesId
+    : token.speciesId;
+
+const fieldPresentation = token => {
+    const display = getBattleDisplayIdentity(token);
+    const pokemonId = displayedPokemonId(token, display);
+    const height = getPokemonDisplayHeight({ src: display.sprite, pokemonId });
+    const sources = getPokemonSpriteSources({ src: display.sprite, pokemonId });
+    const bodyAspect = Math.max(1, ...[...sources.animated, ...sources.static].map(source => {
+        const bounds = getPokemonSpriteFraming(source);
+        return bounds.bodyWidth / bounds.bodyHeight;
+    }));
+    // One camera scale fits both height and breadth. It never compresses the
+    // ratio between Pokémon or stretches an artist's original sprite.
+    const physicalSpan = height ? height * bodyAspect : 10;
+    return { display, pokemonId, height, physicalSpan };
+};
+
 const Token = ({
     token,
     isCurrent,
@@ -40,6 +62,7 @@ const Token = ({
     onPointerCancel,
     onKeyMove,
     movementHelpId,
+    sceneReferenceHeight,
 }) => {
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
@@ -71,7 +94,9 @@ const Token = ({
             {display.sprite ? (
                 <PokemonSprite
                     src={display.sprite}
-                    pokemonId={display.disguised ? token.specialState?.illusion?.speciesId || token.speciesId : token.speciesId}
+                    pokemonId={displayedPokemonId(token, display)}
+                    framing="scene"
+                    scaleReferenceHeight={sceneReferenceHeight}
                     alt=""
                     className={`room-token-sprite pixelated ${mirrored && token.side === "ally" ? "is-mirrored" : ""}`}
                     fallbackClassName="room-token-fallback"
@@ -112,6 +137,10 @@ export default function Battlefield({
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId);
     const selectedDisplay = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
     const visibleTokens = snapshot.tokens.filter(token => !token.hidden && !token.captured);
+    const sceneReferenceHeight = visibleTokens.length
+        ? Math.max(...visibleTokens.map(token => fieldPresentation(token).physicalSpan))
+        : 10;
+    const selectedHeight = selectedToken ? getPokemonDisplayHeight({ src: selectedDisplay.sprite, pokemonId: displayedPokemonId(selectedToken, selectedDisplay) }) : null;
 
     const canMoveToken = token => role === "narrator"
         || (snapshot.settings.allowPlayerMovement && token.ownerPlayerId === playerId);
@@ -240,6 +269,7 @@ export default function Battlefield({
                             onPointerCancel={() => setDrag(null)}
                             onKeyMove={handleKeyMove}
                             movementHelpId={movementHelpId}
+                            sceneReferenceHeight={sceneReferenceHeight}
                         />
                     );
                 })}
@@ -254,8 +284,27 @@ export default function Battlefield({
                 <div className="battlefield-pixel-grid" aria-hidden="true" />
             </div>}
 
+            {!compact && visibleTokens.length > 0 && <div className="battlefield-party-strip" role="group" aria-label="Pokémon em cena">
+                {visibleTokens.map(token => {
+                    const display = getBattleDisplayIdentity(token);
+                    const current = currentTokenId === token.id;
+                    return <button
+                        type="button"
+                        key={token.id}
+                        className={`side-${token.side}${current ? " is-current" : ""}`}
+                        aria-label={`Ver ${display.name}${current ? ", turno atual" : ""}`}
+                        aria-pressed={selectedTokenId === token.id}
+                        onClick={() => onSelectToken(selectedTokenId === token.id ? "" : token.id)}
+                    >
+                        <PokemonSprite src={display.sprite} pokemonId={displayedPokemonId(token, display)} alt="" />
+                        <span>{display.name}</span>
+                    </button>;
+                })}
+            </div>}
+
             {selectedToken && !compact && <div className={`battlefield-focus side-${selectedToken.side}`} aria-live="polite">
-                <span className="battlefield-focus-identity"><strong>{selectedDisplay.name}</strong><small>Nv. {selectedToken.level}{selectedToken.status ? ` · ${STATUS_LABELS[selectedToken.status] || formatName(selectedToken.status)}` : ""}</small></span>
+                <PokemonSprite src={selectedDisplay.sprite} pokemonId={displayedPokemonId(selectedToken, selectedDisplay)} className="battlefield-focus-sprite" alt="" />
+                <span className="battlefield-focus-identity"><strong>{selectedDisplay.name}</strong><small>Nv. {selectedToken.level}{selectedHeight ? ` · ${(selectedHeight / 10).toLocaleString("pt-BR")} m` : ""}{selectedToken.status ? ` · ${STATUS_LABELS[selectedToken.status] || formatName(selectedToken.status)}` : ""}</small></span>
                 {battle && snapshot.settings.showHp && <span className="battlefield-focus-health"><span className={`room-token-hp is-${getHpTone(selectedToken)}`} aria-hidden="true"><span style={{ width: `${selectedToken.maxHp ? clamp(selectedToken.currentHp / selectedToken.maxHp * 100, 0, 100) : 0}%` }} /></span><strong>HP {selectedToken.currentHp} de {selectedToken.maxHp}</strong></span>}
             </div>}
             <div className="battlefield-footer">

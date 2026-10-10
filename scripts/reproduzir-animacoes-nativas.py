@@ -77,7 +77,7 @@ def transparent_crop(frames, padding=2):
     return cropped, proof
 
 
-def gif(frames, output, comment):
+def gif(frames, output, comment=None, durations=None, optimize=False):
     colors = sorted({pixel[:3] for image in frames for pixel in image.get_flattened_data() if pixel[3]})
     assert len(colors) <= 255
     assert all(pixel[3] in (0, 255) for image in frames for pixel in image.get_flattened_data())
@@ -90,8 +90,53 @@ def gif(frames, output, comment):
         image.putpalette(palette)
         image.putdata(bytes(indices[pixel[:3]] if pixel[3] else 0 for pixel in frame.get_flattened_data()))
         encoded.append(image)
-    encoded[0].save(output, save_all=True, append_images=encoded[1:], duration=100,
-                    loop=0, transparency=0, disposal=2, optimize=False, comment=comment)
+    options = {'save_all': True, 'append_images': encoded[1:], 'duration': durations or 100,
+               'loop': 0, 'transparency': 0, 'disposal': 2, 'optimize': optimize}
+    if comment is not None:
+        options['comment'] = comment
+    encoded[0].save(output, **options)
+
+
+def reproduce_2d(source, directory):
+    """Rebuild the content-addressed batch without guessing poses or palettes."""
+    meta = json.loads((PUBLIC / 'sprites/native/provenance-2d.json').read_text())
+    written = set()
+    for entry in meta['assets']:
+        raw = (source / entry['sourcePath']).read_bytes()
+        assert digest(raw) == entry['sourceSha256'], entry['sourcePath']
+        blob = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+        assert blob == entry['sourceBlob'], entry['sourcePath']
+        image = Image.open(source / entry['sourcePath']).convert('RGBA')
+        width, height = image.size
+        assert width == height * entry['sourceFrames']
+        assert [height, height] == entry['sourceFrameSize']
+        frames = [image.crop((index * height, 0, (index + 1) * height, height))
+                  for index in range(entry['sourceFrames'])]
+        boxes = [frame.getchannel('A').getbbox() for frame in frames]
+        union = [min(box[0] for box in boxes), min(box[1] for box in boxes),
+                 max(box[2] for box in boxes), max(box[3] for box in boxes)]
+        assert union == entry['bodyBounds'], 'Authored frame bounds changed'
+        crop = entry['cropBox']
+        frames = [frame.crop(crop) for frame in frames]
+        assert list(frames[0].size) == entry['frameSize']
+        assert len({digest(frame.tobytes()) for frame in frames}) == entry['uniqueFrames']
+        durations = [entry['nativeFrameDurationMs']] * len(frames)
+        output = target(directory, entry['animated'])
+        if entry['animated'] not in written:
+            if output.suffix == '.gif':
+                gif(frames, output, durations=durations, optimize=True)
+            else:
+                frames[0].save(output, format='PNG', save_all=True, append_images=frames[1:],
+                               duration=durations, loop=0, disposal=0, blend=0)
+            verify_timeline(frames, durations, output)
+            assert digest(output.read_bytes()) == entry['animatedSha256'], output
+            written.add(entry['animated'])
+        static = target(directory, entry['static'])
+        if entry['static'] not in written:
+            frames[0].save(static, format='PNG')
+            assert digest(static.read_bytes()) == entry['staticSha256'], static
+            written.add(entry['static'])
+    return len(meta['assets'])
 
 
 def target(directory, url):
@@ -187,14 +232,18 @@ def reproduce_pmd(source, directory):
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('--ebdx', type=pathlib.Path)
+parser.add_argument('--ebdx-2d', type=pathlib.Path,
+                    help='Reproduce the new 2D batch from the pinned EBDX source.')
 parser.add_argument('--pmd', type=pathlib.Path)
 parser.add_argument('--output', type=pathlib.Path, required=True)
 args = parser.parse_args()
-if not args.ebdx and not args.pmd:
+if not args.ebdx and not args.ebdx_2d and not args.pmd:
     parser.error('Provide at least one unmodified pinned source repository.')
 count = 0
 if args.ebdx:
     count += reproduce_ebdx(args.ebdx, args.output)
+if args.ebdx_2d:
+    count += reproduce_2d(args.ebdx_2d, args.output)
 if args.pmd:
     count += reproduce_pmd(args.pmd, args.output)
 print(f'Verified {count} native animation timelines; immutable bytes reproduced in {args.output}.')

@@ -1,32 +1,43 @@
-// Every surface uses the same original Pokédex do MyOwnDex artwork, including small favicons.
-import { ImageResponse } from "next/og.js";
-import { createElement } from "react";
+// Human-authored Pokédex illustration: Carol Liao / toicon.com, CC BY 4.0 (2017).
+// Only palette, background and framing are adapted; every device path is preserved.
+import sharp from "sharp";
+import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const iconDirectory = new URL("../public/icons/", import.meta.url);
-const master = await readFile(new URL("myowndex-dex-v104-master.png", iconDirectory));
-const source = `data:image/png;base64,${master.toString("base64")}`;
-const backgroundColor = "#fff7e8";
+const identity = "myowndex-dex-v105";
+const original = await readFile(new URL(`${identity}-original.svg`, iconDirectory));
+const sourceSha256 = "337e0187c6fbadf7700a643354a1cd9f03a3670564e590d869de49c95025d1b0";
+if (createHash("sha256").update(original).digest("hex") !== sourceSha256) {
+  throw new Error("The preserved human-authored SVG differs from the verified upstream source.");
+}
+const palette = {
+  "#FF786E": "#ee2947", "#BE5652": "#b80f31", "#6BC4D2": "#22bdf0",
+  "#CCCCCC": "#0b3152", "#EFEAE0": "#0b3152", "#FFC865": "#18b5f0", "#BE9148": "#0475b7",
+};
+let artworkSource = original.toString("utf8")
+  // The first inner group is the original decorative teal circle, not the device.
+  .replace(/<g>\s*<g>[\s\S]*?<\/g>/, "<g>")
+  .replace('viewBox="0 0 64 64"', 'viewBox="1 4 59 59"');
+for (const [previous, next] of Object.entries(palette)) artworkSource = artworkSource.replaceAll(previous, next);
+artworkSource = artworkSource.replace("<title property=", "<!-- MyOwnDex adaptation: colors and framing; Carol Liao / toicon.com, CC BY 4.0. -->\n<title property=");
+const drawing = Buffer.from(artworkSource);
+await writeFile(new URL(`${identity}-source.svg`, iconDirectory), drawing);
+const backgroundColor = { r: 11, g: 49, b: 82, alpha: 1 };
+
+await writeFile(new URL(`${identity}-master.png`, iconDirectory),
+  await sharp(drawing).resize(1024, 1024).png({ compressionLevel: 9 }).toBuffer());
 
 async function renderIcon(size, { suffix = String(size), opaque = true, maskable = false } = {}) {
-  // The essential silhouette stays inside Android's central 80% safe circle.
-  const artworkSize = maskable ? Math.floor(size * 0.7) : size;
-  const response = new ImageResponse(
-    createElement("div", {
-      style: {
-        display: "flex",
-        width: "100%",
-        height: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: opaque ? backgroundColor : "transparent",
-      },
-    }, createElement("img", { src: source, width: artworkSize, height: artworkSize, alt: "" })),
-    { width: size, height: size },
-  );
-  const target = new URL(`myowndex-dex-v104-${suffix}.png`, iconDirectory);
-  const content = Buffer.from(await response.arrayBuffer());
+  // The flat open device fits Android's central 80% safe circle at this framing.
+  const artworkSize = maskable ? Math.floor(size * 0.78) : size;
+  const artwork = await sharp(drawing).resize(artworkSize, artworkSize).png({ compressionLevel: 9 }).toBuffer();
+  const content = opaque
+    ? await sharp({ create: { width: size, height: size, channels: 4, background: backgroundColor } })
+      .composite([{ input: artwork, gravity: "centre" }]).png({ compressionLevel: 9 }).toBuffer()
+    : artwork;
+  const target = new URL(`${identity}-${suffix}.png`, iconDirectory);
   await writeFile(target, content);
   process.stdout.write(`${fileURLToPath(target)} (${content.byteLength} bytes)\n`);
 }

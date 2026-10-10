@@ -297,14 +297,14 @@ html .app-root.game-edition.handheld-edition .local-field-preview {
   border-left: 3px solid var(--ui-blue);
   background: var(--ui-raised);
 }
-html .app-root.game-edition.handheld-edition .local-field-preview > :is(img,.pokemon-sprite-fallback) {
+html .app-root.game-edition.handheld-edition .local-field-preview > :is(.pokemon-sized-sprite,.pokemon-sprite-fallback) {
   flex: 0 0 64px;
   width: 64px;
   height: 64px;
   object-fit: contain;
   image-rendering: pixelated;
 }
-html .app-root.game-edition.handheld-edition .local-field-preview > span {
+html .app-root.game-edition.handheld-edition .local-field-preview > span:not(.pokemon-sized-sprite) {
   display: grid;
   gap: .25rem;
 }
@@ -355,7 +355,7 @@ html .app-root.game-edition.handheld-edition .local-pokemon-roster button {
   text-align: left;
   border-left-width: 3px;
 }
-html .app-root.game-edition.handheld-edition .local-pokemon-roster :is(img,.pokemon-sprite-fallback) {
+html .app-root.game-edition.handheld-edition .local-pokemon-roster :is(.pokemon-sized-sprite,.pokemon-sprite-fallback) {
   width: 56px;
   height: 56px;
   flex: 0 0 56px;
@@ -464,7 +464,7 @@ html .app-root.game-edition.handheld-edition .local-field-turn-position {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-html .app-root.game-edition.handheld-edition .local-field-turn-list :is(img,.pokemon-sprite-fallback) {
+html .app-root.game-edition.handheld-edition .local-field-turn-list :is(.pokemon-sized-sprite,.pokemon-sprite-fallback) {
   width: 40px;
   height: 40px;
   object-fit: contain;
@@ -535,7 +535,7 @@ html .app-root.game-edition.handheld-edition .local-field-dispute-result {
   color: var(--ui-ink);
   background: var(--ui-selected);
 }
-html .app-root.game-edition.handheld-edition .local-field-dispute-result > :is(img,.pokemon-sprite-fallback) {
+html .app-root.game-edition.handheld-edition .local-field-dispute-result > :is(.pokemon-sized-sprite,.pokemon-sprite-fallback) {
   width: 56px;
   height: 56px;
   object-fit: contain;

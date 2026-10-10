@@ -128,7 +128,7 @@ test("decorative partners use animated transparent GIF masters and one Pokédex 
     readFile("public/sw.js","utf8"),
   ]);
   for(const text of source){
-    assert.match(text,/myowndex-dex-v104-/);
+    assert.match(text,/myowndex-dex-v105-/);
     assert.doesNotMatch(text,/myowndex-rotomdex-v101|myowndex-(?:icon|maskable)-v100|favicon-v100/);
   }
 });

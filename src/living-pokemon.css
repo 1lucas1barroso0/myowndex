@@ -1,14 +1,61 @@
 /* Pokémon move in their own sprite frames. The layout gives them room without
    inventing a second idle motion or changing their place on the field. */
-html .pokemon-sized-sprite[data-pokemon-motion] {
+html .pokemon-sized-sprite {
+  display: inline-block;
+  position: relative;
+  width: 4rem;
+  height: 4rem;
+  flex: none;
+  vertical-align: middle;
+  overflow: hidden;
+  container-type: size;
   animation: none !important;
   translate: none !important;
-  object-position: center bottom;
-  image-rendering: pixelated;
 }
 
+html .pokemon-sized-sprite > .pokemon-sprite-image,
+html .app-root.game-edition.handheld-edition .pokemon-sized-sprite > .pokemon-sprite-image {
+  position: absolute !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  image-rendering: pixelated;
+  animation: none !important;
+  translate: none !important;
+  transform: none !important;
+}
+
+/* Fit the union of all authored frames, including tails and wing tips.
+   This is a camera crop of transparent margins; every pixel moves exactly as
+   its artist drew it, and one uniform factor preserves the body's anatomy. */
+@supports (width: 1cqw) {
+  html .pokemon-sized-sprite[data-pokemon-crop="authored-frames"] > .pokemon-sprite-image,
+  html .app-root.game-edition.handheld-edition .pokemon-sized-sprite[data-pokemon-crop="authored-frames"] > .pokemon-sprite-image {
+    --sprite-fit: min(calc(100cqw / var(--sprite-body-width)), calc(100cqh / var(--sprite-body-height)));
+    width: calc(var(--sprite-fit) * var(--sprite-canvas-width)) !important;
+    height: calc(var(--sprite-fit) * var(--sprite-canvas-height)) !important;
+    left: calc((100cqw - var(--sprite-fit) * var(--sprite-body-width)) / 2 - var(--sprite-fit) * var(--sprite-body-x));
+    top: calc(100cqh - var(--sprite-fit) * (var(--sprite-body-height) + var(--sprite-body-y)));
+    object-fit: fill !important;
+  }
+}
+
+/* A portrait has its own camera framing. Only bodies sharing one scene use
+   the common, linear Pokédex scale. Neither setting stretches the artwork. */
+html .pokemon-sized-sprite[data-pokemon-framing="portrait"] { scale: 1; }
+html .pokemon-sized-sprite:is([data-pokemon-motion="pending"],[data-pokemon-motion="paused"]) { opacity: 0; }
+
 /* Small turn portraits still need to read as Pokémon, rather than tiny marks.
-   Their physical scale stays bounded and comes from the same Pokédex heights. */
+   Each portrait is framed independently of physical scene scale. */
 html .app-root.game-edition.handheld-edition :is(.turn-order-list,.round-choice-identity) :is(.pokemon-sized-sprite,.pokemon-sprite-fallback) {
   width: 3.5rem;
   height: 3.5rem;

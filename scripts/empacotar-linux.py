@@ -42,7 +42,11 @@ for path in root.rglob("*"):
     if not path.is_file() or path.is_symlink() or path.is_relative_to(output):
         continue
     relative = path.relative_to(root)
-    if excluded.intersection(relative.parts) or path.name.endswith((".tsbuildinfo", ".log", ".pyc")) or path.name == "next-env.d.ts":
+    if relative.parent.as_posix() == "public/sprites/native" and path.name.startswith("2d-"):
+        # These exact bytes are supplied by the verified ZIPs; npm lifecycle
+        # prepares their individual public URLs before dev, tests and builds.
+        continue
+    if excluded.intersection(relative.parts) or any(part.startswith(".next") for part in relative.parts) or path.name.endswith((".tsbuildinfo", ".log", ".pyc")) or path.name == "next-env.d.ts":
         continue
     if path.name.startswith(".env") and path.name != ".env.example":
         continue

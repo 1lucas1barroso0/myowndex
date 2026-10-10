@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "sourceKind": "authored-battle-pixel-2d",
+  "source": "PokeAPI/sprites",
+  "commit": "d72f64eb74912747cb5c5579061ced4842ba0a98",
+  "authors": "Game Freak; original Black/White sprite animation distributed by PokeAPI/sprites. Pok\u00e9mon rights remain with their owners.",
+  "modifications": "GIF animation masters unchanged; PNG recovery masters keep transparent padding.",
+  "assets": [
+    {
+      "key": "132",
+      "animated": "/sprites/companions/132.gif",
+      "static": "/sprites/companions/132.png",
+      "animatedSha256": "a5a2affd970a6e87b83f565814aab909d51257d9b4ee6c201c83c37a3d64149d",
+      "staticSha256": "57567a3971b2262783eecf8b9d4b80a200b87069b36ab95868f664066876ea5b",
+      "frames": 41,
+      "durationMs": 4200,
+      "sourceURL": "https://raw.githubusercontent.com/PokeAPI/sprites/d72f64eb74912747cb5c5579061ced4842ba0a98/sprites/pokemon/versions/generation-v/black-white/animated/132.gif"
+    },
+    {
+      "key": "133",
+      "animated": "/sprites/companions/133.gif",
+      "static": "/sprites/companions/133.png",
+      "animatedSha256": "cc9ebb27b89737099672aaf47fc47167c26725db720def18d26aa66190caf17b",
+      "staticSha256": "56ad4ec369aadb71218b080e6a67b85eea97b3cd63f9d3097d63d9b4b7483df9",
+      "frames": 67,
+      "durationMs": 6700,
+      "sourceURL": "https://raw.githubusercontent.com/PokeAPI/sprites/d72f64eb74912747cb5c5579061ced4842ba0a98/sprites/pokemon/versions/generation-v/black-white/animated/133.gif"
+    },
+    {
+      "key": "137",
+      "animated": "/sprites/companions/137.gif",
+      "static": "/sprites/companions/137.png",
+      "animatedSha256": "d0a8b8a9ac2af1c9e21f7ccb22023b0cbb917519eaeb6445646142dffbe3362b",
+      "staticSha256": "eb7afddad23b85c181f4393e9c430c238ebd934d18c41b2708c0b896ac5db160",
+      "frames": 32,
+      "durationMs": 3200,
+      "sourceURL": "https://raw.githubusercontent.com/PokeAPI/sprites/d72f64eb74912747cb5c5579061ced4842ba0a98/sprites/pokemon/versions/generation-v/black-white/animated/137.gif"
+    },
+    {
+      "key": "164",
+      "animated": "/sprites/companions/164.gif",
+      "static": "/sprites/companions/164.png",
+      "animatedSha256": "f75adc1b65ce5cb147be4789d5c178c2ae9d529b79730b2c706a68f95991553b",
+      "staticSha256": "ba5cb282888d1ee6a9c4cd971deef905c1a80478d9ce3eabaa0d8811134cf98c",
+      "frames": 45,
+      "durationMs": 8500,
+      "sourceURL": "https://raw.githubusercontent.com/PokeAPI/sprites/d72f64eb74912747cb5c5579061ced4842ba0a98/sprites/pokemon/versions/generation-v/black-white/animated/164.gif"
+    },
+    {
+      "key": "25",
+      "animated": "/sprites/companions/25.gif",
+      "static": "/sprites/companions/25.png",
+      "animatedSha256": "0ddc94c6f8cd432e3fd8972b4eca2a7b72fbfaf130c1970726089feb6fdbacc0",
+      "staticSha256": "80d30eb1b9f2a05eb4a216d53034e2a0bb16f2619ec43d281f36d601e5819c2c",
+      "frames": 58,
+      "durationMs": 6000,
+      "sourceURL": "https://raw.githubusercontent.com/PokeAPI/sprites/d72f64eb74912747cb5c5579061ced4842ba0a98/sprites/pokemon/versions/generation-v/black-white/animated/25.gif"
+    },
+    {
+      "key": "258",
+      "animated": "/sprites/companions/258.gif",
+      "static": "/sprites/companions/258.png",
+      "animatedSha256": "9346e3b54e5645e64a31791559846554ed69d313b58b48eff500787b97a2b161",
+      "staticSha256": "27aa6f6a6d376d173109f4c29786ad66bcf2f17bf6a26a45725225652e0cef76",
+      "frames": 82,
+      "durationMs": 5820,
+      "sourceURL": "https://raw.githubusercontent.com/PokeAPI/sprites/d72f64eb74912747cb5c5579061ced4842ba0a98/sprites/pokemon/versions/generation-v/black-white/animated/258.gif"
+    },
+    {
+      "key": "494",
+      "animated": "/sprites/companions/494.gif",
+      "static": "/sprites/companions/494.png",
+      "animatedSha256": "36bff3bf4f4d7192b745edc2e6e5ded596c6a8916aa78c2663b74c0ac2933bfe",
+      "staticSha256": "eecbeb34e9cf0a43efca8c6dcd66e6c140ba71606e8c10394008720b6a6bced0",
+      "frames": 80,
+      "durationMs": 6300,
+      "sourceURL": "https://raw.githubusercontent.com/PokeAPI/sprites/d72f64eb74912747cb5c5579061ced4842ba0a98/sprites/pokemon/versions/generation-v/black-white/animated/494.gif"
+    },
+    {
+      "key": "54",
+      "animated": "/sprites/companions/54.gif",
+      "static": "/sprites/companions/54.png",
+      "animatedSha256": "236d243cd1bbc26d11705f1ef410dea61da56241dcb15733bafc16825427835a",
+      "staticSha256": "c6cee8266a57cb24657c8230b5f43bc22872b185c871b3ccf66cae8e52da0952",
+      "frames": 43,
+      "durationMs": 5400,
+      "sourceURL": "https://raw.githubusercontent.com/PokeAPI/sprites/d72f64eb74912747cb5c5579061ced4842ba0a98/sprites/pokemon/versions/generation-v/black-white/animated/54.gif"
+    }
+  ]
+}

@@ -3,26 +3,26 @@
 /* One presentation system. index.css retains the adventure's spatial rules;
    these tokens also serve older controls so modules never invent a palette. */
 html:root{
-  --ui-canvas: #edf4f3;
-  --ui-panel: #fffdf6;
-  --ui-raised: #f0f5ee;
-  --ui-ink: #243b40;
-  --ui-muted: #52666a;
-  --ui-line: #b5c8c8;
-  --ui-control-line: #748e91;
-  --ui-accent: #bb2444;
-  --ui-blue: #17689f;
-  --ui-selected: #e5f3fc;
-  --ui-shadow: 0 4px 0 #20373c12, 0 10px 24px #20373c08;
-  --play-radius: 1rem;
+  --ui-canvas: #ffffff;
+  --ui-panel: #ffffff;
+  --ui-raised: #ffffff;
+  --ui-ink: #172f45;
+  --ui-muted: #3b5368;
+  --ui-line: #678699;
+  --ui-control-line: #527184;
+  --ui-accent: #bf1633;
+  --ui-blue: #005d9e;
+  --ui-selected: #ffdc3b;
+  --ui-shadow: 0 3px 0 #172f4524;
+  --play-radius: .8rem;
   --play-control-radius: .65rem;
   --play-shadow: var(--ui-shadow);
-  --journey-red: #cf2844;
-  --journey-dark: #243b40;
+  --journey-red: #d91936;
+  --journey-dark: #172f45;
   --journey-white: #ffffff;
-  --journey-gold: #f2c655;
-  --journey-teal: #127566;
-  --journey-focus: #226cae;
+  --journey-gold: #ffd62e;
+  --journey-teal: #007b45;
+  --journey-focus: #005d9e;
   --dex-bezel: var(--ui-ink);
   --dex-screen-highlight: var(--ui-panel);
   --dex-screen: var(--ui-panel);
@@ -37,25 +37,25 @@ html:root{
   --line: var(--ui-line);
 }
 html[data-theme="night"]{
-  --ui-canvas: #142939;
-  --ui-panel: #203847;
-  --ui-raised: #294454;
-  --ui-ink: #f5f9f3;
-  --ui-muted: #c2d6dc;
-  --ui-line: #587584;
+  --ui-canvas: #102337;
+  --ui-panel: #183a56;
+  --ui-raised: #214c6c;
+  --ui-ink: #ffffff;
+  --ui-muted: #e0eef9;
+  --ui-line: #789cac;
   --ui-control-line: #88a3b0;
-  --ui-accent: #f894a5;
-  --ui-blue: #91cdf7;
-  --ui-selected: #294d65;
+  --ui-accent: #ff7588;
+  --ui-blue: #79d6ff;
+  --ui-selected: #115985;
   --ui-shadow: 0 4px 0 #091a25, 0 12px 28px #06131d26;
-  --journey-teal: #91ddca;
+  --journey-teal: #70efa7;
   --journey-focus: #f2c655;
 }
 html{ scroll-padding-top: 1rem !important; }
 html body{ margin: 0 !important; overflow: auto; min-height: 100dvh !important; background: var(--ui-canvas) !important; color: var(--ui-ink) !important; }
 html .app-root.game-edition.handheld-edition{
   --module-color: var(--ui-accent);
-  --dex-radius-shell: .35rem; --dex-radius-panel: .3rem; --dex-radius-control: .25rem; display: flex !important; flex-direction: column !important; height: auto !important; min-height: 100dvh !important; overflow: visible !important; color: var(--ui-ink) !important; background: linear-gradient(118deg, transparent 0 69%, #222b3004 69% 80%, transparent 80%), var(--ui-canvas) !important; font-family: "Trebuchet MS", system-ui, -apple-system, "Segoe UI", sans-serif !important; font-size: 1rem !important; line-height: 1.5 !important;
+  --dex-radius-shell: .35rem; --dex-radius-panel: .3rem; --dex-radius-control: .25rem; display: flex !important; flex-direction: column !important; height: auto !important; min-height: 100dvh !important; overflow: visible !important; color: var(--ui-ink) !important; background: var(--ui-canvas) !important; font-family: "Trebuchet MS", system-ui, -apple-system, "Segoe UI", sans-serif !important; font-size: 1rem !important; line-height: 1.5 !important;
 }
 html .app-root.game-edition.handheld-edition.view-teambuilder{ --module-color: var(--ui-blue); }
 html .app-root.game-edition.handheld-edition.view-guide{ --module-color: var(--journey-teal); }
@@ -107,8 +107,7 @@ html .app-root.game-edition.handheld-edition .dex-entry-main{ display: flex !imp
 html .app-root.game-edition.handheld-edition .dex-entry-main:hover{ transform: translateY(-2px) !important; border-color: var(--ui-accent) !important; background: var(--ui-selected) !important; }
 html .app-root.game-edition.handheld-edition .dex-number{ font-family: "Dex Pixel",monospace !important; font-size: 1.2rem !important; color: var(--ui-muted) !important; padding-right: 2rem !important; }
 html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{ display: grid !important; place-items: center !important; width: 100% !important; height: 114px !important; margin: .35rem 0 .5rem !important; border: 0 !important; border-radius: 0 !important; background: radial-gradient(ellipse at 50% 80%,#226cae12 0 30%,transparent 31%) !important; }
-html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame img{ width: 112px !important; height: 112px !important; object-fit: contain !important; }
-html .app-root.game-edition.handheld-edition .dex-entry-main:hover img{ animation: journey-partner-hop .7s steps(2,end) infinite !important; }
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{ width: 112px !important; height: 112px !important; object-fit: contain !important; }
 html .app-root.game-edition.handheld-edition .pokemon-card-name{ font-size: 1rem !important; font-weight: 800 !important; text-transform: capitalize !important; }
 html .app-root.game-edition.handheld-edition .dex-generation-mark{ font-size: .875rem !important; color: var(--ui-muted) !important; margin-top: .35rem !important; }
 html .app-root.game-edition.handheld-edition .dex-favorite{ position: absolute !important; right: .25rem !important; top: .25rem !important; display: grid !important; place-items: center !important; width: 44px !important; height: 44px !important; border: 0 !important; border-radius: .25rem !important; background: transparent !important; color: var(--ui-muted) !important; }
@@ -144,12 +143,12 @@ html .pokemon-companion::before{
   background: var(--companion-ground);
   opacity: .6;
 }
-html .pokemon-companion picture{
+html .pokemon-companion > .pokemon-sized-sprite{
   display: block;
   width: 100%;
   height: 100%;
 }
-html .pokemon-companion img{
+html .pokemon-companion > .pokemon-sized-sprite{
   display: block;
   width: 100% !important;
   height: 100% !important;

@@ -1,24 +1,24 @@
-/* MyOwnDex 2.0.16 — joyful field-guide direction.
+/* MyOwnDex 2.0.20 — vivid two-dimensional game direction.
    This file is intentionally presentation-only. Game rules, storage, RNG and
    document structure live elsewhere. The target is matte, warm and playful:
-   a field journal that happens to be a game tool, never a glossy dashboard. */
+   a Pokémon game with crisp menus, readable cards and authentic sprite frames. */
 
 html:root{
   --joy-paper: var(--ui-panel);
-  --joy-paper-soft: color-mix(in srgb,var(--ui-panel) 84%,#f3ead6);
-  --joy-paper-cool: color-mix(in srgb,var(--ui-panel) 88%,#dff4f3);
+  --joy-paper-soft: var(--ui-raised);
+  --joy-paper-cool: var(--ui-raised);
   --joy-ink: var(--ui-ink);
   --joy-line: color-mix(in srgb,var(--ui-ink) 18%,var(--ui-line));
   --joy-line-strong: color-mix(in srgb,var(--ui-ink) 31%,var(--ui-line));
-  --joy-red: #cf2844;
-  --joy-red-dark: #9f1e38;
-  --joy-blue: #2277ad;
-  --joy-teal: #128174;
-  --joy-gold: #f2c655;
-  --joy-violet: #7d63a8;
-  --joy-shadow: 0 2px 0 #18343a12, 0 8px 18px #18343a0c;
-  --joy-float: 0 4px 0 #142d3317, 0 18px 42px #0b202a2a;
-  --joy-radius: 1rem;
+  --joy-red: #d91936;
+  --joy-red-dark: #a60d29;
+  --joy-blue: #006bb1;
+  --joy-teal: #007b45;
+  --joy-gold: #ffd62e;
+  --joy-violet: #7633b7;
+  --joy-shadow: 0 3px 0 #172f4524;
+  --joy-float: 0 4px 0 #142d3366;
+  --joy-radius: .8rem;
   --joy-control-radius: .7rem;
 }
 html[data-theme="night"]{
@@ -27,34 +27,18 @@ html[data-theme="night"]{
   --joy-line: color-mix(in srgb,var(--ui-ink) 20%,var(--ui-line));
   --joy-line-strong: color-mix(in srgb,var(--ui-ink) 36%,var(--ui-line));
   --joy-shadow: 0 2px 0 #02090d70, 0 10px 20px #02090d3d;
-  --joy-float: 0 4px 0 #02090d80, 0 20px 48px #02090d8c;
+  --joy-float: 0 4px 0 #02090d80;
 }
 
 /* ---------- World and handheld frame ---------- */
 html .app-root.game-edition.handheld-edition{
-  background:
-    linear-gradient(90deg,color-mix(in srgb,var(--journey-teal) 4%,transparent) 1px,transparent 1px) 0 0/28px 28px,
-    linear-gradient(color-mix(in srgb,var(--ui-blue) 3%,transparent) 1px,transparent 1px) 0 0/28px 28px,
-    var(--ui-canvas) !important;
+  background:var(--ui-canvas) !important;
 }
 html .app-root.game-edition.handheld-edition .app-header{
   position:relative;
   overflow:hidden;
-  border-bottom:4px solid #8f1832 !important;
-  background:var(--joy-red) !important;
-  box-shadow:0 3px 0 #243b4010 !important;
-}
-html .app-root.game-edition.handheld-edition .app-header::before{
-  content:"";
-  position:absolute;
-  inset:-50% auto -50% 14%;
-  width:7rem;
-  transform:skewX(-25deg);
-  background:#ffffff0d;
-  pointer-events:none;
 }
 html .app-root.game-edition.handheld-edition .app-header::after{
-  content:"";
   position:absolute;
   inset:-50% 10% -50% auto;
   width:5rem;
@@ -67,21 +51,14 @@ html .app-root.game-edition.handheld-edition .app-header-shell{
   z-index:1;
 }
 html .app-root.game-edition.handheld-edition .app-brand-icon{
-  width:2.65rem;
-  height:2.65rem;
-  border-radius:.75rem;
   filter:drop-shadow(0 2px 0 #6d132737);
 }
 html .app-root.game-edition.handheld-edition .nav-capsule{
   border:1px solid #ffffff39 !important;
-  background:#ffffff0b !important;
   box-shadow:none !important;
 }
 html .app-root.game-edition.handheld-edition .nav-capsule.is-active{
   transform:none !important;
-  border-color:#243b40 !important;
-  background:#243b40 !important;
-  box-shadow:0 3px 0 var(--joy-gold) !important;
 }
 html .app-root.game-edition.handheld-edition .nav-emblem{
   background:#fffdf6 !important;
@@ -123,13 +100,6 @@ html .pokemon-companion::before,
 html :is(.generator-heading,.account-dialog-heading) .pokemon-companion::before{
   content:none !important;
   display:none !important;
-}
-html .pokemon-companion{
-  background:transparent !important;
-  isolation:auto !important;
-}
-html .pokemon-companion img{
-  filter:drop-shadow(0 4px 1px #18343a21) !important;
 }
 html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero) .pokemon-companion{
   filter:none !important;
@@ -234,10 +204,7 @@ html .app-root.game-edition.handheld-edition .adventure-intro{
   position:relative;
   overflow:hidden;
   border:1px solid var(--joy-line) !important;
-  border-left:5px solid var(--joy-red) !important;
   border-radius:var(--joy-radius) !important;
-  background:
-    linear-gradient(90deg,var(--joy-paper) 0 76%,color-mix(in srgb,var(--joy-gold) 11%,var(--joy-paper)) 76%) !important;
   box-shadow:var(--joy-shadow) !important;
 }
 html .app-root.game-edition.handheld-edition .adventure-intro::before,
@@ -259,39 +226,24 @@ html .app-root.game-edition.handheld-edition .room-lobby-card{
 html .app-root.game-edition.handheld-edition .room-lobby-card.is-player{
   border-top-color:var(--joy-blue) !important;
 }
-html .app-root.game-edition.handheld-edition .room-lobby-card::before{
-  content:"";
-  position:absolute;
-  width:4.25rem;
-  height:1rem;
-  right:-.7rem;
-  top:1rem;
-  transform:rotate(35deg);
-  border-radius:.2rem;
-  background:color-mix(in srgb,var(--joy-red) 13%,transparent);
-  pointer-events:none;
-}
-html .app-root.game-edition.handheld-edition .room-lobby-card.is-player::before{
-  background:color-mix(in srgb,var(--joy-blue) 14%,transparent);
-}
 html .app-root.game-edition.handheld-edition .room-lobby-card > header{
   padding-bottom:.7rem !important;
-  border-bottom:1px dashed var(--joy-line);
+  border-bottom:2px solid var(--joy-line);
 }
 html .app-root.game-edition.handheld-edition .room-role-mark{
   border:0 !important;
   border-radius:.75rem !important;
-  background:color-mix(in srgb,var(--joy-red) 10%,var(--joy-paper)) !important;
+  background:var(--joy-gold) !important;
   color:var(--joy-red) !important;
   box-shadow:none !important;
 }
 html .app-root.game-edition.handheld-edition .is-player .room-role-mark{
-  background:color-mix(in srgb,var(--joy-blue) 10%,var(--joy-paper)) !important;
+  background:var(--joy-gold) !important;
   color:var(--joy-blue) !important;
 }
 html .app-root.game-edition.handheld-edition .room-local-entry{
-  border:1px dashed color-mix(in srgb,var(--joy-teal) 50%,var(--joy-line)) !important;
-  background:color-mix(in srgb,var(--joy-teal) 6%,var(--joy-paper)) !important;
+  border:2px solid var(--joy-teal) !important;
+  background:var(--joy-paper) !important;
   box-shadow:none !important;
 }
 html .app-root.game-edition.handheld-edition .room-local-entry b{
@@ -309,10 +261,7 @@ html .app-root.game-edition.handheld-edition .dex-heading{
 html .app-root.game-edition.handheld-edition .dex-heading::after{
   content:"";
   position:absolute;
-  inset:auto 0 0;
-  height:3px;
   border-radius:999px;
-  background:linear-gradient(90deg,var(--joy-red) 0 34%,var(--joy-gold) 34% 48%,var(--joy-teal) 48% 67%,var(--joy-blue) 67% 83%,transparent 83%);
 }
 html .app-root.game-edition.handheld-edition .dex-count{
   border:1px solid var(--joy-line) !important;
@@ -325,25 +274,16 @@ html .app-root.game-edition.handheld-edition .dex-more-filters{
   background:var(--joy-paper) !important;
   box-shadow:var(--joy-shadow) !important;
 }
-html .app-root.game-edition.handheld-edition .dex-grid{
-  gap:.8rem !important;
-}
 html .app-root.game-edition.handheld-edition .dex-entry-main{
   position:relative;
-  overflow:hidden;
-  min-height:14.5rem;
   border:1px solid var(--joy-line) !important;
-  border-bottom:3px solid color-mix(in srgb,var(--joy-blue) 35%,var(--joy-line)) !important;
   border-radius:var(--joy-radius) !important;
-  background:var(--joy-paper) !important;
   box-shadow:var(--joy-shadow) !important;
 }
 html .app-root.game-edition.handheld-edition .dex-entry-main::before{
   content:"";
   position:absolute;
   inset:0 0 auto;
-  height:.45rem;
-  background:linear-gradient(90deg,color-mix(in srgb,var(--joy-blue) 38%,transparent),color-mix(in srgb,var(--joy-teal) 24%,transparent),transparent);
   pointer-events:none;
 }
 html .app-root.game-edition.handheld-edition .dex-number{
@@ -354,19 +294,10 @@ html .app-root.game-edition.handheld-edition .dex-number{
   background:var(--ui-raised);
   font-size:1rem !important;
 }
-html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
-  position:relative;
-  height:7.6rem !important;
-  margin:.55rem 0 .55rem !important;
-  border:0 !important;
-  border-radius:.8rem !important;
-  background:transparent !important;
-  box-shadow:none !important;
-}
 html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
   content:none !important;
 }
-html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame img{
+html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
   filter:drop-shadow(0 4px 1px #18343a1c);
 }
 html .app-root.game-edition.handheld-edition .pokemon-card-name{
@@ -379,8 +310,8 @@ html .app-root.game-edition.handheld-edition .dex-favorite{
   box-shadow:none !important;
 }
 html .app-root.game-edition.handheld-edition .dex-favorite[aria-pressed="true"]{
-  background:color-mix(in srgb,var(--joy-gold) 20%,var(--joy-paper)) !important;
-  color:#96701d !important;
+  background:var(--joy-gold) !important;
+  color:#172f45 !important;
 }
 html .app-root.game-edition.handheld-edition .dex-entry.is-favorite .dex-entry-main{
   border-bottom-color:var(--joy-gold) !important;
@@ -398,20 +329,12 @@ html .app-root.game-edition.handheld-edition .guide-hero{
   position:relative;
   overflow:hidden;
   border:1px solid var(--joy-line) !important;
-  border-left:5px solid var(--joy-teal) !important;
-  background:
-    linear-gradient(90deg,var(--joy-paper) 0 78%,color-mix(in srgb,var(--joy-teal) 8%,var(--joy-paper)) 78%) !important;
   box-shadow:var(--joy-shadow) !important;
 }
 html .app-root.game-edition.handheld-edition .guide-hero::after{
   content:"";
   position:absolute;
-  left:1rem;
-  bottom:.55rem;
-  width:4.5rem;
-  height:.3rem;
   border-radius:999px;
-  background:var(--joy-gold);
   opacity:.8;
 }
 html .app-root.game-edition.handheld-edition .guide-reference{
@@ -427,9 +350,6 @@ html .app-root.game-edition.handheld-edition .guide-section-number{
 }
 
 /* ---------- PC: cozy storage, not enterprise inventory ---------- */
-html .app-root.game-edition.handheld-edition .pc-sidebar{
-  border-top:3px solid var(--joy-blue) !important;
-}
 html .app-root.game-edition.handheld-edition .pc-main-panel{
   border-top:3px solid var(--joy-gold) !important;
 }
@@ -461,7 +381,7 @@ html .app-root.game-edition.handheld-edition .local-dice-dialog::before{
 }
 html .app-root.game-edition.handheld-edition .local-dice-dialog-heading{
   border-bottom:1px solid var(--joy-line) !important;
-  background:color-mix(in srgb,var(--joy-blue) 5%,var(--joy-paper)) !important;
+  background:var(--joy-paper) !important;
 }
 html .app-root.game-edition.handheld-edition .local-dice-dialog-close{
   border:1px solid var(--joy-line) !important;
@@ -502,7 +422,7 @@ html .app-root.game-edition.handheld-edition .local-dice-tabs button{
 }
 html .app-root.game-edition.handheld-edition .local-dice-tabs button[aria-pressed="true"]{
   border-color:var(--joy-blue) !important;
-  background:color-mix(in srgb,var(--joy-blue) 8%,var(--joy-paper)) !important;
+  background:var(--ui-selected) !important;
   box-shadow:inset 0 -3px var(--joy-blue) !important;
 }
 html .app-root.game-edition.handheld-edition .local-dice-submit .room-primary-button{
@@ -515,7 +435,7 @@ html .app-root.game-edition.handheld-edition .local-dice-result{
   border:1px solid color-mix(in srgb,var(--joy-blue) 35%,var(--joy-line)) !important;
   border-left:4px solid var(--joy-blue) !important;
   border-radius:.85rem !important;
-  background:color-mix(in srgb,var(--joy-blue) 4%,var(--joy-paper)) !important;
+  background:var(--joy-paper) !important;
   box-shadow:none !important;
 }
 html .app-root.game-edition.handheld-edition .local-dice-total{
@@ -535,7 +455,7 @@ html .app-root.game-edition.handheld-edition .local-dice-history{
 /* ---------- Trainer Card: personal save/profile, never SaaS chrome ---------- */
 .account-overlay{
   background:#0b1c27ad !important;
-  backdrop-filter:blur(2px);
+  backdrop-filter:none;
 }
 .account-dialog{
   border:1px solid var(--joy-line-strong) !important;
@@ -549,7 +469,7 @@ html .app-root.game-edition.handheld-edition .local-dice-history{
 }
 .account-dialog-heading{
   border-bottom:1px solid var(--joy-line) !important;
-  background:color-mix(in srgb,var(--joy-gold) 7%,var(--joy-paper)) !important;
+  background:var(--joy-paper) !important;
 }
 .account-dialog-heading h2{
   margin:0 !important;
@@ -602,7 +522,7 @@ html .app-root.game-edition.handheld-edition .local-dice-history{
   border:1px solid color-mix(in srgb,var(--joy-blue) 32%,var(--joy-line)) !important;
   border-left:4px solid var(--joy-blue) !important;
   border-radius:.9rem !important;
-  background:color-mix(in srgb,var(--joy-blue) 5%,var(--joy-paper)) !important;
+  background:var(--joy-paper) !important;
   box-shadow:none !important;
 }
 .account-trainer-card::before{
@@ -619,7 +539,7 @@ html .app-root.game-edition.handheld-edition .local-dice-history{
 }
 .generator-heading{
   border-bottom:1px solid var(--joy-line) !important;
-  background:color-mix(in srgb,var(--joy-violet) 6%,var(--joy-paper)) !important;
+  background:var(--joy-paper) !important;
 }
 .generator-partner,
 .generator-save{
@@ -652,13 +572,9 @@ html .app-root.game-edition.handheld-edition .game-release b{
     padding:1rem !important;
   }
   html .app-root.game-edition.handheld-edition .dex-entry-main{
-    min-height:13rem;
     padding:.75rem !important;
   }
-  html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
-    height:6.8rem !important;
-  }
-  html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame img{
+  html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
     width:96px !important;
     height:96px !important;
   }
@@ -734,28 +650,22 @@ html :is(.generator-heading,.account-dialog-heading) .pokemon-companion::after{
   content:none !important;
   display:none !important;
 }
-html .pokemon-companion img{
+html .pokemon-companion > .pokemon-sized-sprite{
   display:block !important;
   width:100% !important;
   height:100% !important;
   max-width:100% !important;
   max-height:100% !important;
-  object-fit:contain !important;
-  object-position:center bottom !important;
   background:transparent !important;
   image-rendering:pixelated;
   filter:drop-shadow(0 5px 1px #17343c26) !important;
-  animation:none !important;
-  transform:none !important;
 }
 
 /* Headers should feel like game destinations, not blank forms. */
 html .app-root.game-edition.handheld-edition .app-header{
-  background:
-    linear-gradient(112deg,transparent 0 13%,#ffffff12 13% 26%,transparent 26% 74%,#8f183224 74% 84%,transparent 84%),
-    linear-gradient(180deg,#dc3151 0%,#cf2844 58%,#bd203e 100%) !important;
+  background:var(--joy-red) !important;
   border-bottom:4px solid #8f1832 !important;
-  box-shadow:0 3px 0 #17343c12,0 9px 24px #8f183216 !important;
+  box-shadow:0 3px 0 #172f4524 !important;
 }
 html .app-root.game-edition.handheld-edition .app-header::before{
   content:"" !important;
@@ -764,21 +674,12 @@ html .app-root.game-edition.handheld-edition .app-header::before{
   width:auto;
   height:3px;
   transform:none;
-  background:linear-gradient(90deg,var(--joy-gold) 0 24%,#61c7df 24% 48%,#fff7e8 48% 72%,var(--joy-gold) 72% 100%);
+  background:var(--joy-gold);
   opacity:.85;
   pointer-events:none;
 }
 html .app-root.game-edition.handheld-edition .app-header::after{
-  content:"" !important;
-  position:absolute;
-  inset:12% auto auto 9%;
-  width:7rem;
-  height:7rem;
-  border:1px dashed #ffffff24;
-  border-radius:1.4rem;
-  transform:rotate(19deg);
-  background:transparent;
-  pointer-events:none;
+  content:none !important;
 }
 html .app-root.game-edition.handheld-edition .nav-capsule{
   background:#ffffff0d !important;
@@ -806,12 +707,12 @@ html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.d
   padding:1.1rem 1.25rem !important;
   border:1px solid var(--joy-line) !important;
   border-radius:1rem !important;
-  box-shadow:0 3px 0 #17343c12,0 10px 22px #17343c0b !important;
+  box-shadow:var(--joy-shadow) !important;
 }
 html .app-root.game-edition.handheld-edition .adventure-intro{
   border-left:5px solid var(--joy-red) !important;
   background:
-    linear-gradient(105deg,color-mix(in srgb,var(--joy-red) 7%,var(--joy-paper)) 0 24%,var(--joy-paper) 24% 72%,color-mix(in srgb,var(--joy-gold) 11%,var(--joy-paper)) 72%) !important;
+    var(--joy-paper) !important;
 }
 html .app-root.game-edition.handheld-edition .guide-hero{
   display:flex !important;
@@ -820,7 +721,7 @@ html .app-root.game-edition.handheld-edition .guide-hero{
   gap:1rem !important;
   border-left:5px solid var(--joy-teal) !important;
   background:
-    linear-gradient(105deg,color-mix(in srgb,var(--joy-teal) 8%,var(--joy-paper)) 0 24%,var(--joy-paper) 24% 74%,color-mix(in srgb,var(--joy-gold) 10%,var(--joy-paper)) 74%) !important;
+    var(--joy-paper) !important;
 }
 html .app-root.game-edition.handheld-edition .guide-hero::after{
   width:5.4rem !important;
@@ -838,7 +739,7 @@ html .app-root.game-edition.handheld-edition .dex-heading{
   margin-bottom:1rem !important;
   border-left:5px solid var(--joy-blue) !important;
   background:
-    linear-gradient(105deg,color-mix(in srgb,var(--joy-blue) 7%,var(--joy-paper)) 0 24%,var(--joy-paper) 24% 72%,color-mix(in srgb,var(--joy-gold) 10%,var(--joy-paper)) 72%) !important;
+    var(--joy-paper) !important;
 }
 html .app-root.game-edition.handheld-edition .dex-heading::after{
   inset:auto 1rem .55rem 1rem !important;
@@ -849,8 +750,6 @@ html .app-root.game-edition.handheld-edition .dex-title{ grid-area:title; }
 html .app-root.game-edition.handheld-edition .dex-count{ grid-area:count; justify-self:start; }
 html .app-root.game-edition.handheld-edition .dex-companion{ grid-area:partner; }
 html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
-  width:9rem !important;
-  height:9rem !important;
   margin:0 .1rem 0 0 !important;
   align-self:center;
 }
@@ -865,7 +764,7 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading{
   margin:0 0 .8rem;
   padding:.85rem 1rem 1.35rem !important;
   border-radius:.85rem;
-  background:linear-gradient(105deg,color-mix(in srgb,var(--joy-blue) 8%,var(--joy-paper)),var(--joy-paper) 58%,color-mix(in srgb,var(--joy-gold) 9%,var(--joy-paper)));
+  background:var(--joy-paper);
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading::after{
   content:"";
@@ -885,8 +784,6 @@ html .app-root.game-edition.handheld-edition .pc-sidebar-heading::after{
   pointer-events:none;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
-  width:8.2rem !important;
-  height:8.2rem !important;
   margin:0;
 }
 
@@ -901,13 +798,12 @@ html .app-root.game-edition.handheld-edition .dex-entry:nth-child(4n+4){ --dex-c
 html .app-root.game-edition.handheld-edition .dex-entry-main{
   min-height:14rem !important;
   overflow:visible !important;
-  border-bottom:3px solid color-mix(in srgb,var(--dex-card-accent,var(--joy-blue)) 52%,var(--joy-line)) !important;
-  background:
-    linear-gradient(180deg,color-mix(in srgb,var(--dex-card-accent,var(--joy-blue)) 4%,var(--joy-paper)) 0 1.7rem,var(--joy-paper) 1.7rem) !important;
+  border-bottom:3px solid var(--dex-card-accent,var(--joy-blue)) !important;
+  background:var(--joy-paper) !important;
 }
 html .app-root.game-edition.handheld-edition .dex-entry-main::before{
   height:.35rem !important;
-  background:linear-gradient(90deg,var(--dex-card-accent,var(--joy-blue)) 0 52%,transparent 88%) !important;
+  background:var(--dex-card-accent,var(--joy-blue)) !important;
 }
 html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
   position:relative !important;
@@ -916,32 +812,23 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame{
   grid-template-rows:minmax(0,1fr);
   grid-template-columns:minmax(0,1fr);
   width:100% !important;
-  height:8.3rem !important;
+  height:9rem !important;
   margin:.35rem 0 .45rem !important;
   padding:.2rem !important;
-  overflow:visible !important;
   border:0 !important;
   border-radius:0 !important;
-  background:transparent !important;
   box-shadow:none !important;
-}
-html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::before,
-html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame::after{
-  content:none !important;
-  display:none !important;
 }
 html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
   min-width:0;
   min-height:0;
-  width:min(8rem,86%) !important;
-  height:min(8rem,86%) !important;
+  width:min(9rem,100%) !important;
+  height:min(9rem,100%) !important;
   max-width:100% !important;
   max-height:100% !important;
   object-fit:contain !important;
-  object-position:center bottom !important;
   transform:none !important;
   transform-origin:center bottom !important;
-  background:transparent !important;
   filter:drop-shadow(0 5px 1px #17343c24) !important;
 }
 html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-sprite{
@@ -974,8 +861,8 @@ html .app-root.game-edition.handheld-edition .pc-partner-card .pokemon-sized-spr
     height:7.1rem !important;
   }
   html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon-sized-sprite{
-    width:min(6.8rem,92%) !important;
-    height:min(6.8rem,92%) !important;
+    width:min(7.1rem,100%) !important;
+    height:min(7.1rem,100%) !important;
   }
   html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
     width:6.7rem !important;
@@ -1004,8 +891,6 @@ html :is(.account-dialog-heading,.generator-heading){
 }
 html :is(.account-dialog-heading,.generator-heading) .pokemon-companion,
 html .app-root.game-edition.handheld-edition .local-dice-dialog-heading .pokemon-companion{
-  width:5.8rem !important;
-  height:5.8rem !important;
   margin:0 !important;
   padding:.45rem !important;
   flex:none;
@@ -1040,7 +925,7 @@ html .pokemon-companion{
   min-width:5.1rem !important;
   min-height:5.1rem !important;
 }
-html .pokemon-companion img{
+html .pokemon-companion > .pokemon-sized-sprite{
   object-fit:contain !important;
   object-position:center bottom !important;
   animation:none !important;

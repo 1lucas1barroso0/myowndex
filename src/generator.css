@@ -44,7 +44,7 @@ html .generator-heading .pokemon-companion.companion-compact { width:80px; heigh
 .generator-partner.is-saved { border-top-color:var(--ui-blue); }
 .generator-partner-heading { display:flex; gap:.7rem; justify-content:space-between; flex-wrap:wrap; align-items:flex-start; }
 .generator-dialog .generator-partner-choice { display:flex; gap:.6rem; align-items:center; flex:1 1 15rem; min-width:0; }
-.generator-partner-choice img { width:76px; height:76px; object-fit:contain; image-rendering:pixelated; flex:none; }
+.generator-partner-choice .pokemon-sized-sprite { width:76px; height:76px; object-fit:contain; image-rendering:pixelated; flex:none; }
 .generator-partner-choice > span:last-child { min-width:0; display:grid; gap:.3rem; }
 .generator-partner-choice strong { min-width:0; font-size:1.05rem; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:pretty; }
 .generator-partner-choice small { font-size:.875rem; color:var(--ui-muted); }
@@ -117,7 +117,7 @@ body:has(.generator-overlay) > .confirm-dialog-overlay { z-index:1200 !important
 .generator-setting-heading small,
 .generator-field-help {
   color: var(--ui-muted);
-  font-size: .82rem;
+  font-size: .875rem;
   font-weight: 500;
   line-height: 1.45;
 }

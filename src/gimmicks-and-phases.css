@@ -137,3 +137,25 @@ html .app-root.game-edition.handheld-edition .combat-special-explanation{
 }
 @keyframes gimmick-mark-pulse{from{opacity:.7;scale:.95}to{opacity:1;scale:1.07}}
 @keyframes gimmick-reveal{from{opacity:.5;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+html .app-root.game-edition.handheld-edition .gimmick-move-preview{
+ display:grid;gap:.5rem;padding-top:.65rem;border-top:1px solid var(--ui-line);min-width:0;
+}
+html .app-root.game-edition.handheld-edition .gimmick-move-preview > strong{
+ color:var(--ui-ink);font-size:.85rem;
+}
+html .app-root.game-edition.handheld-edition .gimmick-move-preview ul{
+ list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));
+ gap:.5rem;padding:0;margin:0;min-width:0;
+}
+html .app-root.game-edition.handheld-edition .gimmick-move-preview li{
+ display:grid;gap:.2rem;padding:.65rem;min-width:0;background:var(--ui-raised);
+ border:1px solid var(--ui-line);border-radius:.4rem;overflow-wrap:anywhere;
+ color:var(--ui-ink);
+}
+html .app-root.game-edition.handheld-edition .gimmick-move-preview li.is-changed{
+ border-left:3px solid var(--ui-blue);
+}
+html .app-root.game-edition.handheld-edition .gimmick-move-preview li small{
+ font-size:.75rem;line-height:1.45;
+}

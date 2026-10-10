@@ -150,6 +150,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     scenario: "rota",
     weather: "limpo",
     terrain: "nenhum",
+    gmaxHazards: [],
     sceneNotes: "",
     gmNotes: "",
     tokens: [],
@@ -322,6 +323,8 @@ export const normalizeRoomSnapshot = value => {
         scenario: ROOM_SCENARIOS.some(scene => scene.id === source.scenario) ? source.scenario : fallback.scenario,
         weather: ROOM_WEATHERS.some(weather => weather.id === source.weather) ? source.weather : fallback.weather,
         terrain: ROOM_TERRAINS.some(terrain => terrain.id === source.terrain) ? source.terrain : fallback.terrain,
+        gmaxHazards: asArray(source.gmaxHazards).slice(0,8).filter(entry=>entry&&["ally","opponent"].includes(entry.side)&&["fire","grass","water","rock"].includes(entry.type))
+            .map(entry=>({id:asText(entry.id).slice(0,45),label:asText(entry.label).slice(0,70),side:entry.side,type:entry.type,turns:integerInRange(entry.turns,1,4,1)})),
         sceneNotes: asText(source.sceneNotes).slice(0, 4000),
         gmNotes: asText(source.gmNotes).slice(0, 6000),
         tokens: resolvedTokens,
@@ -372,6 +375,7 @@ export const startNewRoomBattle = snapshot => {
         tokens: room.tokens.map(token => resetToken(token, true)),
         benchTokens: room.benchTokens.map(token => resetToken(token, false)),
         trainerInterventions: [],
+        gmaxHazards: [],
         hitKillProtectionUsed: [],
         hitKillProtectionDisabled: [],
         hitKillSurvivalGrace: [],
@@ -1020,6 +1024,10 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         const healingSources = [];
         const volatileEffects = [];
 
+        for(const hazard of room.gmaxHazards){
+            if(hazard.side!==token.side||token.types.includes(hazard.type)||activeAbility==="magic-guard")continue;
+            damageEvents.push({amount:residualAmount(token.maxHp,1/6),source:hazard.label,allowSurvivalTrait:true});
+        }
         normalizeVolatileEffects(token.volatileEffects).forEach(effect => {
             if (effect.id === "yawn") {
                 const turns = integerInRange(effect.turns, 0, 99, 0) - 1;
@@ -1514,6 +1522,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         room: {
             ...room,
             tokens:tokens.map(advanceGimmickRound),
+            gmaxHazards:room.gmaxHazards.map(entry=>({...entry,turns:entry.turns-1})).filter(entry=>entry.turns>0),
             hitKillProtectionUsed,
             hitKillProtectionDisabled,
             hitKillSurvivalGrace,

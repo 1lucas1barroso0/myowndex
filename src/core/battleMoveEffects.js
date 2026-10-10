@@ -32,11 +32,15 @@ const GUIDED_SIGNATURES=new Set([
  "G-Max Depletion","G-Max One Blow","G-Max Rapid Flow",
 ]);
 const safeSide=token=>token?.side||"neutral";
+const lingering=Object.freeze({
+ "G-Max Vine Lash":"grass","G-Max Wildfire":"fire",
+ "G-Max Cannonade":"water","G-Max Volcalith":"rock",
+});
 export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected})=>{
   if(!presentation||!connected||!["max","gmax-move"].includes(presentation.kind))
-    return {tokens,field:{},notes:[]};
+    return {tokens,field:{},hazards:[],notes:[]};
   const user=tokens.find(t=>t.id===attackerId);
-  if(!user)return {tokens,field:{},notes:[]};
+  if(!user)return {tokens,field:{},hazards:[],notes:[]};
   const label=presentation.label;
   const notes=[];
   let updated=tokens;
@@ -72,6 +76,11 @@ export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected})=
     });
     notes.push("G-Max Finale: aliados recuperaram 1/6 do HP máximo.");
   }
-  if(GUIDED_SIGNATURES.has(label))notes.push(`${label}: efeito secundário específico requer arbitragem do Narrador; o dano e o PP foram resolvidos automaticamente.`);
-  return {tokens:updated,field:FIELD_SECONDARIES[label]||{},notes};
+  const type=lingering[label];
+  const hazards=type && user.side!=="neutral"
+    ?[{id:label.toLowerCase().replace(/[^a-z0-9]+/g,"-"),label,side:user.side==="ally"?"opponent":"ally",type,turns:4}]
+    : [];
+  if(hazards.length)notes.push(`${label}: 4 rodadas de dano residual nos adversários que não são do tipo ${type}.`);
+  if(GUIDED_SIGNATURES.has(label)&&!hazards.length)notes.push(`${label}: efeito secundário específico requer arbitragem do Narrador; o dano e o PP foram resolvidos automaticamente.`);
+  return {tokens:updated,field:FIELD_SECONDARIES[label]||{},hazards,notes};
 };

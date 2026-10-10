@@ -657,6 +657,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     );
     const secondary=applyMaxMoveSecondary({tokens:workingTokens,attackerId:attacker.id,presentation,connected});
     workingTokens=secondary.tokens;
+    const newHazards=[...room.gmaxHazards.filter(old=>!secondary.hazards.some(next=>old.id===next.id&&old.side===next.side)),...secondary.hazards];
     const result = {
         ...representative,
         conditionNotes: conditionCheck.notes,
@@ -678,6 +679,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             ...(secondary.field.weather||consequences.fieldChange?.weather ? { weather: secondary.field.weather||consequences.fieldChange.weather } : {}),
             ...(secondary.field.terrain||consequences.fieldChange?.terrain ? { terrain: secondary.field.terrain||consequences.fieldChange.terrain } : {}),
             tokens: workingTokens,
+            gmaxHazards:newHazards,
             hitKillProtectionUsed: workingHitKillProtectionUsed,
             hitKillProtectionDisabled: workingHitKillProtectionDisabled,
             hitKillSurvivalGrace: workingHitKillSurvivalGrace,

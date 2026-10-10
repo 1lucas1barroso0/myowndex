@@ -150,6 +150,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     scenario: "rota",
     weather: "limpo",
     terrain: "nenhum",
+    gmaxHazards: [],
     sceneNotes: "",
     gmNotes: "",
     tokens: [],
@@ -216,6 +217,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         name: asText(source.name).slice(0, 80) || "Pokémon",
         speciesName: asText(source.speciesName).toLowerCase(),
         speciesId: integerInRange(source.speciesId, 0, 99999, 0),
+        shiny: Boolean(source.shiny),
         sprite: asText(source.sprite).slice(0, 500),
         weight: integerInRange(source.weight, 0, 999999, 0),
         side: ["ally", "opponent", "neutral"].includes(source.side) ? source.side : "ally",
@@ -321,6 +323,8 @@ export const normalizeRoomSnapshot = value => {
         scenario: ROOM_SCENARIOS.some(scene => scene.id === source.scenario) ? source.scenario : fallback.scenario,
         weather: ROOM_WEATHERS.some(weather => weather.id === source.weather) ? source.weather : fallback.weather,
         terrain: ROOM_TERRAINS.some(terrain => terrain.id === source.terrain) ? source.terrain : fallback.terrain,
+        gmaxHazards: asArray(source.gmaxHazards).slice(0,8).filter(entry=>entry&&["ally","opponent"].includes(entry.side)&&["fire","grass","water","rock"].includes(entry.type))
+            .map(entry=>({id:asText(entry.id).slice(0,45),label:asText(entry.label).slice(0,70),side:entry.side,type:entry.type,turns:integerInRange(entry.turns,1,4,1)})),
         sceneNotes: asText(source.sceneNotes).slice(0, 4000),
         gmNotes: asText(source.gmNotes).slice(0, 6000),
         tokens: resolvedTokens,
@@ -371,6 +375,7 @@ export const startNewRoomBattle = snapshot => {
         tokens: room.tokens.map(token => resetToken(token, true)),
         benchTokens: room.benchTokens.map(token => resetToken(token, false)),
         trainerInterventions: [],
+        gmaxHazards: [],
         hitKillProtectionUsed: [],
         hitKillProtectionDisabled: [],
         hitKillSurvivalGrace: [],
@@ -528,6 +533,7 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
             ? pokemon.customTypes
             : pokemon?.species?.types?.map(entry => entry?.type?.name),
         teraType: pokemon?.teraType || "",
+        shiny: Boolean(pokemon?.shiny),
         teraActive: false,
         dynamaxLevel: pokemon?.dynamaxLevel ?? 0,
         canGMax: Boolean(pokemon?.canGMax || String(pokemon?.species?.name||"").endsWith("-gmax")),
@@ -1018,6 +1024,10 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         const healingSources = [];
         const volatileEffects = [];
 
+        for(const hazard of room.gmaxHazards){
+            if(hazard.side!==token.side||token.types.includes(hazard.type)||activeAbility==="magic-guard")continue;
+            damageEvents.push({amount:residualAmount(token.maxHp,1/6),source:hazard.label,allowSurvivalTrait:true});
+        }
         normalizeVolatileEffects(token.volatileEffects).forEach(effect => {
             if (effect.id === "yawn") {
                 const turns = integerInRange(effect.turns, 0, 99, 0) - 1;
@@ -1512,6 +1522,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         room: {
             ...room,
             tokens:tokens.map(advanceGimmickRound),
+            gmaxHazards:room.gmaxHazards.map(entry=>({...entry,turns:entry.turns-1})).filter(entry=>entry.turns>0),
             hitKillProtectionUsed,
             hitKillProtectionDisabled,
             hitKillSurvivalGrace,
@@ -1527,6 +1538,8 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
 const PRIORITY_HEALING_MOVES = new Set(["absorb", "bitter-blade", "bouncy-bubble", "draining-kiss", "drain-punch", "dream-eater", "floral-healing", "giga-drain", "healing-wish", "heal-order", "heal-pulse", "horn-leech", "jungle-healing", "leech-life", "life-dew", "lunar-blessing", "lunar-dance", "matcha-gotcha", "mega-drain", "milk-drink", "moonlight", "morning-sun", "oblivion-wing", "parabolic-charge", "purify", "recover", "rest", "revival-blessing", "roost", "shore-up", "slack-off", "soft-boiled", "strength-sap", "swallow", "synthesis", "wish"]);
 export const getEffectiveMovePriority = ({ token, move }) => {
     if (!move) return 0;
+    const maxActive=["dyna","gmax"].includes(normalizeGimmickState(token?.gimmickState,token).active);
+    if(maxActive)return move.damage_class?.name==="status"?4:0;
     const ability = isAbilityActive(token) ? traitSlug(token?.ability) : "";
     let priority = integerInRange(move.priority, -7, 7, 0);
     if (ability === "prankster" && move.damage_class?.name === "status") priority += 1;

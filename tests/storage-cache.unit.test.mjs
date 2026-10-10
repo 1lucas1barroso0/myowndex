@@ -11,7 +11,7 @@ const origin = "https://myowndex.vercel.app";
 const packageVersion = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")).version;
 const shellCacheName = (await readFile(new URL("../public/sw.js", import.meta.url), "utf8")).match(/^const CACHE_NAME = "([^"]+)";/m)?.[1];
 assert.ok(shellCacheName?.startsWith(`myowndex-shell-v${packageVersion}`), "shell cache must remain tied to the app version");
-const assetCacheName = "myowndex-assets-v2";
+const assetCacheName = "myowndex-assets-v3";
 const catalogue = "https://pokeapi.co/api/v2/pokemon/";
 const flushUrl = catalogue + "_flush_test";
 const requestKey = request => new URL(typeof request === "string" ? request : request.url, origin).href;
@@ -428,7 +428,7 @@ async function serviceWorker(fetcher) {
   const context = vm.createContext({
     URL, Response, Headers, Promise, caches,
     fetch: async (request, options) => { calls++; return fetcher ? fetcher(request, options) : new Response(requestKey(request)); },
-    self: { location: { origin }, addEventListener: (name, fn) => callbacks.set(name, fn), clients: { claim: async () => {} } },
+    self: { location: { origin }, addEventListener: (name, fn) => callbacks.set(name, fn), skipWaiting: async () => {}, clients: { claim: async () => {} } },
   });
   vm.runInContext(await readFile(new URL("../public/sw.js", import.meta.url), "utf8"), context);
   const asset = async (url, options) => {
@@ -460,7 +460,7 @@ test("offline asset LRU is bounded across concurrent tabs, pins the shell, and i
   assert.ok(await cache.match(`${origin}/sprites/pokemon/0.png`));
   assert.equal(await cache.match(`${origin}/sprites/pokemon/1.png`), undefined);
   assert.equal(worker.calls(), requests + 1);
-  assert.equal(await (await worker.asset(`${origin}/fonts/VT323-Regular.ttf`)).text(), "pinned font");
+  assert.equal(await (await worker.asset(`${origin}/fonts/VT323-Regular.ttf`)).text(), `${origin}/fonts/VT323-Regular.ttf`, "online fonts are revalidated");
   assert.equal(await (await pinned.match("/")).text(), "offline shell");
   for (const [url, options] of [
     [`${origin}/api/rooms/private?token=secret`],
@@ -533,7 +533,7 @@ test("offline sprites preserve binary GIF, PNG and APNG bytes and serve them aft
     assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes, url);
     assert.equal(response.headers.get("x-myowndex-bytes"), String(bytes.byteLength));
   }
-  assert.equal(worker.calls(), calls, "every warmed animation remains available without another network request");
+  assert.equal(worker.calls(), calls + urls.length, "online-first refresh checks connectivity and falls back to the warmed animations");
 });
 
 test("only pixel-art source directories enter the external sprite cache, including Smogon pixels and BW", async () => {
@@ -896,4 +896,48 @@ test('worker asset caching bounds bytes, includes warmed language catalogues, an
   assert.equal(await cache.match(`${origin}/catalog/v1/huge.json`), undefined);
   worker.caches.open = async () => { throw new Error('Storage unavailable'); };
   assert.equal((await worker.asset(`${origin}/sprites/pokemon/25.png`)).status, 200);
+});
+
+test("a new installed worker activates automatically and never removes player-owned stores", async () => {
+  const worker = await serviceWorker();
+  const privateCache = await worker.caches.open("myowndex-player-private");
+  await privateCache.put("/record", new Response("saved"));
+  let finished;
+  worker.callbacks.get("install")({waitUntil: task => { finished = task; }});
+  await finished;
+  assert.ok(await (await worker.caches.open(shellCacheName)).match("/"));
+  assert.equal((await privateCache.match("/record")).status, 200);
+});
+test("mutable sprites refresh online at the same URL, then use newest offline copy", async () => {
+  let revision="first", online=true;
+  const worker=await serviceWorker(async () => {
+    if(!online)throw new TypeError("offline");
+    return new Response(revision,{headers:{"content-type":"image/png"}});
+  });
+  const url=`${origin}/sprites/pokemon/25.png`;
+  assert.equal(await (await worker.asset(url)).text(),"first");
+  revision="second";
+  assert.equal(await (await worker.asset(url)).text(),"second");
+  online=false;
+  assert.equal(await (await worker.asset(url)).text(),"second");
+  assert.equal(await (await (await worker.caches.open(assetCacheName)).match(url)).text(),"second");
+});
+test("version endpoint and RSC/private traffic are never intercepted by the worker", async () => {
+  const worker=await serviceWorker();
+  for(const url of [`${origin}/api/version`,`${origin}/api/account/session`,`${origin}/api/rooms/private`]){
+    assert.equal(await worker.asset(url),undefined,url);
+  }
+  assert.equal(worker.calls(),0);
+});
+
+test("immutable SHA-named 2D sprites are reused without re-downloading while mutable sprites still refresh",async()=>{
+ let calls=0;
+ const worker=await serviceWorker(async()=>{calls++;return new Response("sprite "+calls)});
+ const immutable=`${origin}/sprites/native/2d-003053cc01e7afd315790eb4.gif`;
+ const dynamic=`${origin}/sprites/native/legacy-sprite.gif`;
+ assert.equal(await (await worker.asset(immutable)).text(),"sprite 1");
+ assert.equal(await (await worker.asset(immutable)).text(),"sprite 1");
+ assert.equal(calls,1,"same SHA must not consume transfer twice");
+ assert.equal(await (await worker.asset(dynamic)).text(),"sprite 2");
+ assert.equal(await (await worker.asset(dynamic)).text(),"sprite 3");
 });

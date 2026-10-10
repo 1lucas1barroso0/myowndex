@@ -1,15 +1,40 @@
-import React, { useState } from "react";
-import { applyGimmick, getGimmickChoices, normalizeGimmickState } from "../../core/battleGimmicks.js";
+import React, { useEffect, useState } from "react";
+import { applyGimmick, canUseZMove, getGimmickChoices, normalizeGimmickState } from "../../core/battleGimmicks.js";
 import { fetchCached, formatName } from "../../core/mechanics.js";
+import { getCurrentMoveReference } from "../../core/championsMoves.js";
+import { getMoveSpecialProfile } from "../../core/specialMechanics.js";
 import RoomSelect from "../Shared/RoomSelect.jsx";
+import { battleMovePresentation } from "../../core/battleMovePresentation.js";
 
 const headings={mega:"Mega Evolução",tera:"Terastalização",dyna:"Dynamax",gmax:"Gigantamax"};
-const canPrepareZ = token => token.item?.endsWith("-z")
-    && token.moves?.some(Boolean)
-    && token.currentHp>0
-    && !normalizeGimmickState(token.gimmickState,token).used.includes("z");
 export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSelectToken,onTokenChange,onOpenZ,onNotice}){
     const [busy,setBusy]=useState("");
+    const [zDetails,setZDetails]=useState({});
+    const [moveDetails,setMoveDetails]=useState({});
+    const zLoadKey=snapshot.tokens.filter(t=>String(t.item||"").endsWith("-z")).map(t=>t.moves?.join("|")).join("~");
+    useEffect(()=>{
+        let current=true;
+        const names=[...new Set(snapshot.tokens.filter(t=>String(t.item||"").endsWith("-z")).flatMap(t=>t.moves||[]).filter(Boolean))];
+        if(!names.length){setZDetails({});return;}
+        Promise.all(names.map(async name=>{
+          try { return [name,getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`))]; }
+          catch { return [name,null]; }
+        })).then(entries=>{if(current)setZDetails(Object.fromEntries(entries));});
+        return ()=>{current=false;};
+    },[zLoadKey]);
+    const movesKey=snapshot.tokens.filter(t=>["dyna","gmax"].includes(t.gimmickState?.active))
+        .map(t=>[t.id,t.gimmickState?.active,(t.moves||[]).join("|")].join(":")).join("~");
+    useEffect(()=>{
+        let live=true;
+        const names=[...new Set(snapshot.tokens.filter(t=>["dyna","gmax"].includes(t.gimmickState?.active))
+            .flatMap(t=>t.moves||[]).filter(Boolean))];
+        Promise.all(names.map(async name=>{
+            try{return [name,getCurrentMoveReference(await fetchCached("https://pokeapi.co/api/v2/move/"+encodeURIComponent(name)))];}
+            catch{return [name,null];}
+        })).then(rows=>{if(live)setMoveDetails(Object.fromEntries(rows));});
+        return ()=>{live=false;};
+    },[movesKey]);
+    const canPrepareZ=candidate=>candidate.moves?.some(name=>canUseZMove(candidate,zDetails[name],snapshot) && getMoveSpecialProfile(zDetails[name])?.id!=="called-move");
     const eligible=snapshot.tokens.filter(candidate=>
         (getGimmickChoices(candidate,{phase:snapshot.phase,snapshot}).length>0
         || Boolean(normalizeGimmickState(candidate.gimmickState,candidate).active)
@@ -18,6 +43,10 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
     const token=eligible.find(candidate=>candidate.id===selectedTokenId)||eligible[0];
     const state=normalizeGimmickState(token.gimmickState,token);
     const options=getGimmickChoices(token,{phase:snapshot.phase,snapshot});
+    const changedMoves=(token.moves||[]).filter(Boolean).map(name=>{
+        const shown=moveDetails[name]?battleMovePresentation(token,moveDetails[name]):null;
+        return {name,translated:shown?.label||formatName(name),changed:!!shown&&shown.kind!=="normal"};
+    });
     const activate=async choice=>{
         if(role!=="narrator"||busy)return;
         setBusy(choice.id);
@@ -65,5 +94,12 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
             <small>Escolha o golpe no painel Resolver um movimento. Só libera ataques compatíveis com o Z-Crystal.</small>
             <span aria-hidden="true">›</span>
         </button>}
+        {state.active && changedMoves.some(move=>move.changed) &&
+          <div className="gimmick-move-preview" aria-label="Movimentos transformados">
+            <strong>Movimentos nesta forma</strong>
+            <ul>{changedMoves.map(move=><li key={move.name} className={move.changed?"is-changed":""}>
+              <span>{move.translated}</span>{move.changed&&<small>Original: {formatName(move.name)}</small>}
+            </li>)}</ul>
+          </div>}
     </section>;
 }

@@ -27,6 +27,7 @@ import { getTraitMoveBlock } from "../../core/traitMechanics.js";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import { getCurrentMoveReference } from "../../core/championsMoves.js";
 import { canUseZMove } from "../../core/battleGimmicks.js";
+import { battleMovePresentation, moveVariantForResolution } from "../../core/battleMovePresentation.js";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
@@ -85,6 +86,7 @@ export default function CombatAssistant({
     const [defenderId, setDefenderId] = useState(snapshot.tokens.find(token => token.id !== activeId)?.id || "");
     const [moveName, setMoveName] = useState("");
     const [moveData, setMoveData] = useState(null);
+    const [moveDetails,setMoveDetails]=useState({});
     const [loadingMove, setLoadingMove] = useState(false);
     const [moveLoadError, setMoveLoadError] = useState(false);
     const [moveRefresh, setMoveRefresh] = useState(0);
@@ -107,6 +109,7 @@ export default function CombatAssistant({
     }, [activeId, activeTokenExists]);
 
     useEffect(() => {
+        setUseZMove(false);
         setCalledMoveName("");
         setCalledMoveData(null);
         setResult(null);
@@ -146,21 +149,34 @@ export default function CombatAssistant({
     }, [moveName, moveRefresh]);
 
     const moves = useMemo(() => attacker?.moves?.filter(Boolean) || [], [attacker]);
-    const zAvailable=canUseZMove(attacker,moveData,snapshot) && !getMoveSpecialProfile(moveData) && snapshot.phase==="batalha";
+    const gimmickActive=attacker?.gimmickState?.active||"";
+    const moveListKey=moves.join("|");
+    useEffect(()=>{
+        let live=true;
+        if(!["dyna","gmax"].includes(gimmickActive)){setMoveDetails({});return;}
+        Promise.all(moveListKey.split("|").filter(Boolean).map(async id=>{
+            try{return [id,getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(id)}`))];}
+            catch{return [id,null];}
+        })).then(rows=>{if(live)setMoveDetails(Object.fromEntries(rows));});
+        return ()=>{live=false;};
+    },[attackerId,gimmickActive,moveListKey]);
+    const zAvailable=canUseZMove(attacker,moveData,snapshot) && getMoveSpecialProfile(moveData)?.id!=="called-move" && snapshot.phase==="batalha";
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
     const needsCalledMove = specialProfile?.id === "called-move";
     const resolvedMoveData = needsCalledMove ? calledMoveData : moveData;
+    const presentedMove=resolvedMoveData?battleMovePresentation(attacker,resolvedMoveData,{useZMove:useZMove&&zAvailable}):null;
+    const previewMove=resolvedMoveData?moveVariantForResolution(resolvedMoveData,presentedMove):null;
     const resolutionProfile = useMemo(
-        () => resolvedMoveData ? getMoveResolutionProfile(resolvedMoveData) : null,
-        [resolvedMoveData],
+        () => previewMove ? getMoveResolutionProfile(previewMove) : null,
+        [previewMove],
     );
     const selectableTargets = useMemo(
-        () => resolvedMoveData ? getSelectableMoveTargets(tokens, attacker, resolvedMoveData) : [],
-        [tokens, attacker, resolvedMoveData],
+        () => previewMove ? getSelectableMoveTargets(tokens, attacker, previewMove) : [],
+        [tokens, attacker, previewMove],
     );
     const affectedTargets = useMemo(
-        () => resolvedMoveData ? getAffectedMoveTargets(tokens, attacker, defender, resolvedMoveData) : [],
-        [tokens, attacker, defender, resolvedMoveData],
+        () => previewMove ? getAffectedMoveTargets(tokens, attacker, defender, previewMove) : [],
+        [tokens, attacker, defender, previewMove],
     );
 
     useEffect(() => {
@@ -335,7 +351,7 @@ export default function CombatAssistant({
                         <span>Movimento</span>
                         <RoomSelect aria-label="Movimento" value={moveName} disabled={!moves.length || Boolean(snapshot.initiative.length && attacker?.declaredMove)} onChange={event => void selectMove(event.target.value)}>
                             <option value="">{moves.length ? "Escolha um movimento" : "Sem movimentos na ficha"}</option>
-                            {moves.map(move => <option key={move} value={move}>{formatName(move)}</option>)}
+                            {moves.map(move => { const view=battleMovePresentation(attacker,moveDetails[move]|| (move===moveName?moveData:null));return <option key={move} value={move}>{view && view.kind!=="normal" ? `${view.label} · ${formatName(move)}` : formatName(move)}</option>; })}
                         </RoomSelect>
                     </label>
                     {(!compact || !resolutionProfile || resolutionProfile.requiresDamageContest) && <label>
@@ -399,7 +415,8 @@ export default function CombatAssistant({
 
                 {resolvedMoveData && (
                     <div className={`combat-automation${compact ? " combat-field-preview" : ""}`} aria-live="polite">
-                        <span>{formatType(resolvedMoveData.type?.name)}</span>
+                        <span>{formatType(presentedMove?.type||resolvedMoveData.type?.name)}</span>
+                        {presentedMove?.kind!=="normal" && presentedMove?.label && <span className={`combat-special-move is-${presentedMove.kind}`}>{presentedMove.label} · Poder {presentedMove.power}</span>}
                         <span>{formatDamageClass(resolvedMoveData.damage_class?.name)}</span>
                         <span>PP {formatNumberPtBr(ppState.remaining ?? moveData.pp ?? 0)} de {formatNumberPtBr(ppState.maximum ?? moveData.pp ?? 0)}</span>
                         {needsCalledMove && calledMoveData && <span>Chamado por {formatName(moveData.name)}</span>}
@@ -429,6 +446,10 @@ export default function CombatAssistant({
                 </button>
                 {result && (
                     <div className={`combat-result ${result.moveConnected ? "is-hit" : "is-miss"}${compact && role !== "narrator" ? " is-simulation" : ""}`} aria-live="polite">
+                        {result.usedMove?.kind && result.usedMove.kind!=="normal" && <div className={`combat-move-reveal is-${result.usedMove.kind}`} role="status">
+                            <strong>{result.usedMove.name}</strong>
+                            <small>{formatType(result.usedMove.type)} · {result.usedMove.power>0 ? `Poder ${result.usedMove.power}` : "Movimento de estado"} · Original: {formatName(result.usedMove.baseMove)}</small>
+                        </div>}
                         {compact && (
                             <div className="combat-result-summary">
                                 {result.blockedByCondition && <strong className="combat-result-outcome">Não conseguiu agir</strong>}
@@ -476,6 +497,8 @@ export default function CombatAssistant({
                         {compact && <summary>Detalhes da jogada</summary>}
                         <ResultDetailsBody {...(compact ? { className: "combat-result-detail-body" } : {})}>
                         {result.conditionNotes?.map(note => <p key={note}>{note}</p>)}
+                        
+                        {result.specialMoveNotes?.map((note,index)=><p key={`gimmick-note-${index}`} className="combat-special-explanation">{note}</p>)}
                         <div className="combat-result-metric is-resolution">
                             <small>Forma de resolução</small>
                             <strong>{result.resolutionLabel}</strong>

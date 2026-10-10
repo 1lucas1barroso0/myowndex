@@ -37,3 +37,31 @@ test("registry dependency versions match the tarballs recorded in package-lock",
     );
   }
 });
+
+test("release freshness endpoint and device auto-update preserve durable game state", async () => {
+  const [route, app, worker, room, vercel] = await Promise.all([
+    read("../app/api/version/route.ts"), read("../src/App.jsx"), read("../public/sw.js"),
+    read("../src/components/Room/RpgRoom.jsx"), read("../vercel.json")
+  ]);
+  assert.match(route,/dynamic = "force-dynamic"/);
+  assert.match(route,/packageInfo\.version/);
+  assert.match(route,/VERCEL_GIT_COMMIT_SHA/);
+  assert.match(app,/document\.documentElement\.dataset\.release/);
+  assert.match(route,/no-store/);
+  assert.match(app,/fetch\("\/api\/version"/);
+  assert.match(app,/cache: "no-store"/);
+  assert.match(app,/visibilitychange/);
+  assert.match(app,/addEventListener\("online"/);
+  assert.match(app,/2 \* 60 \* 1000/);
+  assert.match(app,/teamSave\.flush\(\)/);
+  assert.match(app,/myowndex:prepare-update/);
+  assert.match(room,/saveQueueRef\.current\.then/);
+  assert.match(worker,/await self\.skipWaiting\(\)/);
+  assert.match(worker,/await cache\.put\(request, prepared\.response\)/);
+  assert.match(worker,/url\.pathname\.startsWith\("\/_next\/static\/"/);
+  const headers=JSON.parse(vercel).headers;
+  for(const url of ["/","/sw.js","/manifest.webmanifest"]){
+    const rule=headers.find(h=>h.source===url);
+    assert.ok(rule?.headers.some(h=>h.key==="Cache-Control"&&h.value.includes("no-store")),url);
+  }
+});

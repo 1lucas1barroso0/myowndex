@@ -397,7 +397,8 @@ test("safe shell updates and both visual themes remain available without an inst
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.match(app, /Uma nova versão do MyOwnDex está pronta/);
+  assert.match(app, /myowndex:prepare-update/);
+  assert.match(app, /window\.location\.reload\(\)/);
   assert.match(app, /myowndex-dex-v105-96\.png/);
   assert.match(app, /app-header-primary/);
   assert.match(css, /min-height:\s*100dvh/);

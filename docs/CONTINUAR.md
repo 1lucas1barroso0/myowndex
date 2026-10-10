@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.21.** A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.22.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 Na 2.0.21, o mapa da aventura respeita a composição integral 3:2 (sem `object-fit: cover`), com enquadramento responsivo; o PC deixa Porygon livre da antiga barra de três traços. A atualização é somente visual e preserva os arquivos dos cenários, Pokémon, dados e regras.
 

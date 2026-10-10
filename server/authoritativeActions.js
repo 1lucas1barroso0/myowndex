@@ -29,7 +29,9 @@ import { getTraitMoveBlock, isWeatherSuppressed, isAbilityActive } from "../src/
 import { checkActionConditions } from "../src/core/battleConditions.js";
 import { CAPTURE_BALLS, captureTrainerKey, rollCapture } from "../src/core/capture.js";
 import { getCurrentMoveReference } from "../src/core/championsMoves.js";
-import { canUseZMove, getZMovePower, maxMovePower, normalizeGimmickState } from "../src/core/battleGimmicks.js";
+import { canUseZMove, normalizeGimmickState } from "../src/core/battleGimmicks.js";
+import { battleMovePresentation, moveVariantForResolution } from "../src/core/battleMovePresentation.js";
+import { applyMaxMoveSecondary } from "../src/core/battleMoveEffects.js";
 
 const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "start-battle"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
@@ -496,10 +498,9 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const specialProfile = getMoveSpecialProfile(move);
     const needsCalledMove = specialProfile?.id === "called-move";
     const zMove=Boolean(request.useZMove);
-    if(zMove && (needsCalledMove || specialProfile || !canUseZMove(attacker,move,room))) throw new AuthoritativeActionError("Este Pokémon não pode usar esse movimento Z com o cristal equipado.",409);
-    const gigantism=normalizeGimmickState(attacker.gimmickState,attacker).active;
-    const maxActive=["dyna","gmax"].includes(gigantism);
-    if(maxActive && move.damage_class?.name==="status")throw new AuthoritativeActionError("Use um movimento ofensivo em Dynamax; Max Guard requer resolução defensiva própria.",409);
+    if(zMove && (needsCalledMove || !canUseZMove(attacker,move,room))) throw new AuthoritativeActionError("Este Pokémon não pode usar esse movimento Z com o cristal equipado.",409);
+    const maxActive=["dyna","gmax"].includes(normalizeGimmickState(attacker.gimmickState,attacker).active);
+    // Every status move becomes Max Guard while Dynamaxed.
     if (needsCalledMove && (!calledMove || slug(calledMove.name) !== request.calledMoveName)) {
         throw new AuthoritativeActionError("Confirme o movimento resultante antes de resolver a jogada.");
     }
@@ -511,11 +512,9 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     // Resolve that attempt so PP and the action are spent; a failed caller
     // cannot execute its called move.
     const resolvedMove = needsCalledMove && !specialBlock ? calledMove : move;
-    const gimmickMove = zMove ? {...resolvedMove,power:getZMovePower(resolvedMove.power),stat_changes:[],meta:{...resolvedMove.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,flinch_chance:0}} : maxActive && resolvedMove.power > 0 ? {...resolvedMove,power:maxMovePower(resolvedMove.power),stat_changes:[],meta:{...resolvedMove.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,flinch_chance:0}} : resolvedMove;
-    const maxField= maxActive && resolvedMove.power>0 ? ({
-      fire:{weather:"sol"},water:{weather:"chuva"},rock:{weather:"areia"},ice:{weather:"neve"},
-      electric:{terrain:"eletrico"},grass:{terrain:"gramado"},psychic:{terrain:"psiquico"},fairy:{terrain:"nevoa"}
-    })[resolvedMove.type?.name]||null : null;
+    const presentation = battleMovePresentation(attacker,resolvedMove,{useZMove:zMove});
+    const gimmickMove = moveVariantForResolution(resolvedMove,presentation);
+
     const ppState = getMovePpState(attacker, move, request.moveName);
     if (ppState.remaining != null && ppState.remaining <= 0) {
         throw new AuthoritativeActionError("Este movimento está sem PP.", 409);
@@ -591,7 +590,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             // also keeps the priority frozen when HP/abilities change after rolling.
             movePriority: room.initiative.length && attacker.declaredMove === move.name
                 ? attacker.priority
-                : getEffectiveMovePriority({ token: attacker, move }),
+                : getEffectiveMovePriority({ token: attacker, move: gimmickMove }),
         });
 
         if (role === "narrator") {
@@ -656,10 +655,14 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         (sum, entry) => sum + integerInRange(entry.previewHitKill?.appliedDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
         0,
     );
-    const resolvedMaxField=connected?maxField:null;
+    const secondary=applyMaxMoveSecondary({tokens:workingTokens,attackerId:attacker.id,presentation,connected,terrain:room.terrain});
+    workingTokens=secondary.tokens;
+    const newHazards=[...room.gmaxHazards.filter(old=>!secondary.hazards.some(next=>old.id===next.id&&old.side===next.side)),...secondary.hazards];
     const result = {
         ...representative,
         conditionNotes: conditionCheck.notes,
+        specialMoveNotes:secondary.notes,
+        usedMove: {name:presentation?.label||resolvedMove.name,kind:presentation?.kind||"normal",type:presentation?.type||resolvedMove.type?.name,baseMove:move.name,power:presentation?.power??resolvedMove.power},
         hit: connected,
         moveConnected: connected,
         damageHit,
@@ -673,9 +676,10 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const nextSnapshot = role === "narrator"
         ? {
             ...room,
-            ...(resolvedMaxField?.weather||consequences.fieldChange?.weather ? { weather: resolvedMaxField?.weather||consequences.fieldChange.weather } : {}),
-            ...(resolvedMaxField?.terrain||consequences.fieldChange?.terrain ? { terrain: resolvedMaxField?.terrain||consequences.fieldChange.terrain } : {}),
+            ...(secondary.field.weather||consequences.fieldChange?.weather ? { weather: secondary.field.weather||consequences.fieldChange.weather } : {}),
+            ...(secondary.field.terrain||consequences.fieldChange?.terrain ? { terrain: secondary.field.terrain||consequences.fieldChange.terrain } : {}),
             tokens: workingTokens,
+            gmaxHazards:newHazards,
             hitKillProtectionUsed: workingHitKillProtectionUsed,
             hitKillProtectionDisabled: workingHitKillProtectionDisabled,
             hitKillSurvivalGrace: workingHitKillSurvivalGrace,
@@ -687,7 +691,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             attackerId: attacker.id,
             defenderName: affectedTargets.map(token => token.name).join(", ") || representative.profile.target.label,
             defenderId: defender?.id || "",
-            moveName: `${zMove?"Z-":maxActive?"Max-":""}${formatName(resolvedMove.name)}`,
+            moveName: presentation?.label||formatName(resolvedMove.name),
             selectedMoveName: formatName(move.name),
             calledMoveName: needsCalledMove ? formatName(resolvedMove.name) : "",
             hit: connected,
@@ -707,7 +711,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             ppAfter: consequences.ppAfter,
             fumble: targetResults.some(entry => entry.resolution.attackTest?.fumble),
             defenderFumble: targetResults.some(entry => entry.resolution.defenseTest?.fumble),
-            specialNarrative: [...(zMove?[`${attacker.name} utilizou sua única energia Z nesta batalha.`]:maxActive?[`${attacker.name} usou um Max Move.`]:[]),...conditionCheck.notes, ...consequences.specialNarratives].join(" "),
+            specialNarrative: [...secondary.notes,...(zMove?[`${attacker.name} utilizou sua única energia Z nesta batalha.`]:maxActive?[`${attacker.name} usou um Max Move.`]:[]),...conditionCheck.notes, ...consequences.specialNarratives].join(" "),
         }
         : {
             label: `simulação de ${formatName(resolvedMove.name)}`,

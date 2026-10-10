@@ -51,7 +51,7 @@ const SPECIFIC_Z = Object.freeze({
 "ultranecrozium-z":["necrozma","photon-geyser"],
 });
 const baseline = token => ({
-speciesName:slug(token.speciesName),speciesId:token.speciesId,sprite:token.sprite,
+speciesName:slug(token.speciesName),speciesId:token.speciesId,sprite:token.sprite,shiny:Boolean(token.shiny),formName:slug(token.formName),
 types:[...(token.types||[])],originalTypes:[...(token.originalTypes||[])],
 ability:token.ability,stats:{...token.stats},originalStats:{...token.originalStats},
 maxHp:token.maxHp,currentHp:token.currentHp,
@@ -145,8 +145,11 @@ export const applyGimmick = (token,id,{formData=null}={})=>{
    }));
    const originalStats={...changed.originalStats},stats={...changed.stats};
    for(const [key,v] of Object.entries(computed)){originalStats[key]=v.raw;stats[key]=v.stat;}
-   const spriteSources=getPokemonSpriteSources({src:formData.sprites?.front_default,pokemonId:formData.id});
-   changed={...changed,speciesName:formData.name,speciesId:formData.id,
+   const exactArtwork=getPokemonSpriteSources({pokemonId:formData.id,shiny:Boolean(token.shiny)});
+   const spriteSources=exactArtwork.animated.length||exactArtwork.static.length?exactArtwork:
+     getPokemonSpriteSources({src:token.shiny ? formData.sprites?.front_shiny||formData.sprites?.front_default : formData.sprites?.front_default,pokemonId:formData.id,shiny:Boolean(token.shiny)});
+   if(!spriteSources.animated.length&&!spriteSources.static.length)return {applied:false,token,reason:"Esta forma ainda não possui um sprite 2D confirmado."};
+   changed={...changed,speciesName:formData.name,speciesId:formData.id,formName:formData.name,
       sprite:spriteSources.animated[0]||spriteSources.static[0]||formData.sprites?.front_default||token.sprite,
       types:typeNames.length?typeNames:changed.types,originalTypes:typeNames.length?typeNames:changed.originalTypes,
       ability:formData.abilities?.[0]?.ability?.name||changed.ability,stats,originalStats};

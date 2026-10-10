@@ -75,3 +75,20 @@ html .app-root.game-edition.handheld-edition .battlefield-party-strip button > s
 @media (forced-colors: active){
   html .app-root.game-edition.handheld-edition .battlefield-party-strip button[aria-pressed="true"]{ outline-color: Highlight; }
 }
+
+/* 2.0.20 follow-up: source scenes use a 480×320 (3:2) viewBox.
+   The old 16:9/cover camera removed most of the top and bottom, especially
+   from empty exploration scenes. Preserve the entire licensed illustration. */
+html .app-root.game-edition.handheld-edition .battlefield-board {
+  aspect-ratio: 3 / 2;
+  height: auto !important;
+  min-height: 0 !important;
+}
+html .app-root.game-edition.handheld-edition .battlefield-board.has-pokemon {
+  height: auto !important;
+  min-height: 0 !important;
+}
+html .app-root.game-edition.handheld-edition .battlefield-scenery {
+  object-fit: contain;
+  object-position: center center;
+}

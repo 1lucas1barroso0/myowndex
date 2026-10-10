@@ -245,7 +245,7 @@ manifest = {
         "sourceSha256": hashlib.sha256((ROOT / f"public/scenes/source/kenney-{name}.png").read_bytes()).hexdigest(),
     } for name in ["tiny-town", "tiny-ski", "tiny-dungeon"]],
     "method": "Nine bespoke pixel-art RPG environments authored as crisp-edged vectors; original CC0 tiles retained underneath for provenance and reproduction.",
-    "visualLayerAuthor": "Original RPG world illustration commissioned for MyOwnDex",
+    "visualLayerAuthor": "Original pixel-vector RPG worlds authored for MyOwnDex",
     "decorations": "public/scenes/source/decorations.json",
     "scenes": [],
 }

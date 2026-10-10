@@ -132,7 +132,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "9ddae15e2376a51719f47f836a63c123f6fd96491a573ec22e6cfca26857eb23",
-      "bytes": 8798
+      "bytes": 8783
     },
     {
       "id": "laboratorio",
@@ -146,7 +146,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "f32d5869b144386408ec3a9d397aa843ef4567c63f15b4b67e1969ca91c6ba44",
-      "bytes": 13686
+      "bytes": 13656
     },
     {
       "id": "distorcao",

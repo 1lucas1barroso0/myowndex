@@ -1,0 +1,175 @@
+{
+  "repository": "ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX",
+  "commit": "836bb026ba8f6c3b3ee3bb6d461c510263953a02",
+  "publishedPack": "https://eeveeexpo.com/resources/1831/",
+  "upstreamPack": "https://eeveeexpo.com/resources/1544/",
+  "timingSource": [
+    "Plugins/Elite Battle DX/[000] Scripts/Battle Core/EBDX Wrapper.rb",
+    "Plugins/Elite Battle DX/[000] Scripts/Battle Core/Battler Bitmaps.rb",
+    "PBS/EBDX/pokemon.txt"
+  ],
+  "license": "Published open-source fan resource; no SPDX license file; full contributor attribution required. Pokémon artwork retains its original owners.",
+  "rejectedAssets": [
+    {
+      "pokemonId": 10298,
+      "name": "BARBARACLE_1",
+      "view": "front",
+      "shiny": true,
+      "url": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Front%20shiny/BARBARACLE_1.png",
+      "sourcePath": "Graphics/Pokemon/Front shiny/BARBARACLE_1.png",
+      "sourceBlob": "9dbde8153c5af143716d4b6ae8b7e73abb52bb26",
+      "sourceSha256": "0ae91d245340f9bb9f8fbb4d4d4066bc94bcf62343ad2257fb390a751565b759",
+      "sourceBytes": 28189,
+      "frameSize": [
+        97,
+        97
+      ],
+      "nativeFrames": 43,
+      "uniqueFrames": 36,
+      "encodedFrames": 43,
+      "durationMs": 4300,
+      "frameDurationMs": 100,
+      "gifBytes": 109229,
+      "gifSha256": "83ea074347610a9733dad34193a2b0875e23e1504f6baa0740f4a80e0829ca5a",
+      "pixelAlphaTimelineVerified": true,
+      "approved": false,
+      "rejectionReason": "Shiny source has exactly the same visible colors as normal; official shiny Mega Barbaracle differs."
+    },
+    {
+      "pokemonId": 10298,
+      "name": "BARBARACLE_1",
+      "view": "back",
+      "shiny": true,
+      "url": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Back%20shiny/BARBARACLE_1.png",
+      "sourcePath": "Graphics/Pokemon/Back shiny/BARBARACLE_1.png",
+      "sourceBlob": "fd7169c084e65ba2fd65e72811a1d15bfd55b4c1",
+      "sourceSha256": "ae2419a900d019444d9483640dd60dae991b07e05aed1d62aa3ebb9f107f37b2",
+      "sourceBytes": 28357,
+      "frameSize": [
+        97,
+        97
+      ],
+      "nativeFrames": 43,
+      "uniqueFrames": 29,
+      "encodedFrames": 43,
+      "durationMs": 4300,
+      "frameDurationMs": 100,
+      "gifBytes": 101431,
+      "gifSha256": "30df25b81d3710165c24d417c5a6e3ceb3749b76564695dc924fab5139370974",
+      "pixelAlphaTimelineVerified": true,
+      "approved": false,
+      "rejectionReason": "Shiny source has exactly the same visible colors as normal; official shiny Mega Barbaracle differs."
+    }
+  ],
+  "identityProof": "Mega identities follow PBS/pokemon_forms.txt at the same source commit; front/back and shiny are kept separate.",
+  "correctedIdentities": [
+    {
+      "pokemonId": 10084,
+      "previousSource": "PIKACHU_6 (Pop Star)",
+      "correctSource": "PIKACHU_7 (Libre)",
+      "replacementProvenance": "/sprites/native/provenance-2d.json"
+    }
+  ],
+  "assets": [
+    {
+      "pokemonId": 843,
+      "name": "SILICOBRA",
+      "view": "front",
+      "shiny": false,
+      "url": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Front/SILICOBRA.png",
+      "sourcePath": "Graphics/Pokemon/Front/SILICOBRA.png",
+      "sourceBlob": "6aa821559a77f4f2423da846ff5ff394e5aeef3e",
+      "sourceSha256": "6abe6b660f353bee480c1ce446c7414728e41b9c22afb65c86c666c139da68e3",
+      "sourceBytes": 7527,
+      "frameSize": [
+        50,
+        50
+      ],
+      "nativeFrames": 70,
+      "encodedFrames": 70,
+      "durationMs": 7000,
+      "frameDurationMs": 100,
+      "apngSha256": "8cc428641adea405743d58775c90eaa312e6cb1d42b66f128237581cc7bfaa87",
+      "pixelAlphaTimelineVerified": true,
+      "animated": "/sprites/native/2d-8cc428641adea405743d5877.apng",
+      "static": "/sprites/native/2d-9e6bcd64b07b9c4d8238cea6.png",
+      "staticSha256": "9e6bcd64b07b9c4d8238cea6d6bb0b169dfa9e46f3f532f9da6902c9a5d6b4e9",
+      "uniqueFrames": 30
+    },
+    {
+      "pokemonId": 843,
+      "name": "SILICOBRA",
+      "view": "front",
+      "shiny": true,
+      "url": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Front%20shiny/SILICOBRA.png",
+      "sourcePath": "Graphics/Pokemon/Front shiny/SILICOBRA.png",
+      "sourceBlob": "31e3e5ea966b5264769ebaa7be8e6ef68c811ad2",
+      "sourceSha256": "575f35cd35def5bbfaca83ff991e11a3f13ff24278ca1ff807247ad7bea9d801",
+      "sourceBytes": 7527,
+      "frameSize": [
+        50,
+        50
+      ],
+      "nativeFrames": 70,
+      "encodedFrames": 70,
+      "durationMs": 7000,
+      "frameDurationMs": 100,
+      "apngSha256": "c8316f2a7f65ce67e06a1954dc70c1bba85d411b3ee10fae4e8d0c018c322101",
+      "pixelAlphaTimelineVerified": true,
+      "animated": "/sprites/native/2d-c8316f2a7f65ce67e06a1954.apng",
+      "static": "/sprites/native/2d-f1641d24c05c2457e1165103.png",
+      "staticSha256": "f1641d24c05c2457e11651036f6538e40c8fac59cdf328936a5dcc3b0ac45578",
+      "uniqueFrames": 30
+    },
+    {
+      "pokemonId": 843,
+      "name": "SILICOBRA",
+      "view": "back",
+      "shiny": false,
+      "url": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Back/SILICOBRA.png",
+      "sourcePath": "Graphics/Pokemon/Back/SILICOBRA.png",
+      "sourceBlob": "4349a8103f5bd3c9fdb3246f63ab0d2c0e4676f6",
+      "sourceSha256": "347f92b664f17616f14be1d6b4c437464a1a664251f168b8afbe979d82e4e022",
+      "sourceBytes": 9588,
+      "frameSize": [
+        59,
+        59
+      ],
+      "nativeFrames": 70,
+      "encodedFrames": 70,
+      "durationMs": 7000,
+      "frameDurationMs": 100,
+      "apngSha256": "f43d660a20c13fbd352bf694a3d6467724af3e15d0d2162072dc8d2bed5d6b7a",
+      "pixelAlphaTimelineVerified": true,
+      "animated": "/sprites/native/2d-f43d660a20c13fbd352bf694.apng",
+      "static": "/sprites/native/2d-0e9710ca7b8b49ab00613262.png",
+      "staticSha256": "0e9710ca7b8b49ab00613262b03659dd2cd55f9ef40a6eb2598877414908f105",
+      "uniqueFrames": 30
+    },
+    {
+      "pokemonId": 843,
+      "name": "SILICOBRA",
+      "view": "back",
+      "shiny": true,
+      "url": "https://raw.githubusercontent.com/ChromeValiant/Pokemon-Essentials-21-With-Unofficial-EBDX/836bb026ba8f6c3b3ee3bb6d461c510263953a02/Graphics/Pokemon/Back%20shiny/SILICOBRA.png",
+      "sourcePath": "Graphics/Pokemon/Back shiny/SILICOBRA.png",
+      "sourceBlob": "2ca59c94369ce8c1ef683ddc6a0876f21272591f",
+      "sourceSha256": "067fe03ec4ab3f2a9f98ef44f6f704f8216dcbc57bf56ebc78b51f2b97ddf1de",
+      "sourceBytes": 9588,
+      "frameSize": [
+        59,
+        59
+      ],
+      "nativeFrames": 70,
+      "encodedFrames": 70,
+      "durationMs": 7000,
+      "frameDurationMs": 100,
+      "apngSha256": "34924a4cfda283d24bd496957ca3fc18fd1847963588b1e52f4f48b8c9d33614",
+      "pixelAlphaTimelineVerified": true,
+      "animated": "/sprites/native/2d-34924a4cfda283d24bd49695.apng",
+      "static": "/sprites/native/2d-83ee53f9ed7984674238cd84.png",
+      "staticSha256": "83ee53f9ed7984674238cd846967ec0e9eaed1af448b6fa1bb6f43edddd7c4a1",
+      "uniqueFrames": 30
+    }
+  ]
+}

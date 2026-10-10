@@ -1858,6 +1858,7 @@ export const calculateMoveResolution = ({
     const moveName = normalizeSlug(move?.name);
     const fixedDamage = (() => {
         if (!damageHit || !defender) return null;
+        if (moveName === "guardian-of-alola") return Math.max(1, Math.floor(integerInRange(defender.currentHp, 1, 99999, 1) * 3 / 4));
         if (moveName === "dragon-rage") return Math.max(1, convertToTTRPG(40));
         if (moveName === "sonic-boom") return Math.max(1, convertToTTRPG(20));
         if (["night-shade", "seismic-toss"].includes(moveName)) return Math.max(1, convertToTTRPG(integerInRange(attacker?.level, 1, 200, 1)));

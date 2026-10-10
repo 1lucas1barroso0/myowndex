@@ -31,7 +31,6 @@ import {
     changeRoomPhase,
     startNewRoomBattle,
     compactTeamOffer,
-    createTokenFromPokemon,
     createRoomSnapshot,
     declareRoomMove,
     getRoundMoveBlockReason,
@@ -271,7 +270,25 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
 function NoteField({ label, value, privateNote, disabled, onCommit }) {
     const [draft, setDraft] = useState(value || "");
     const noteId = useId();
-    useEffect(() => setDraft(value || ""), [value]);
+    const draftRef = useRef(draft);
+    const savedValueRef = useRef(value || "");
+    useEffect(() => {
+        if (draftRef.current === savedValueRef.current) {
+            draftRef.current = value || "";
+            setDraft(value || "");
+        }
+        savedValueRef.current = value || "";
+    }, [value]);
+    useEffect(() => {
+        const protectDraft = event => {
+            if (draftRef.current !== savedValueRef.current && Array.isArray(event.detail?.tasks)) {
+                // Keep the document open until the draft has been committed on blur.
+                event.detail.tasks.push(Promise.resolve(false));
+            }
+        };
+        window.addEventListener("myowndex:prepare-update", protectDraft);
+        return () => window.removeEventListener("myowndex:prepare-update", protectDraft);
+    }, []);
     return (
         <label className={`room-note ${privateNote ? "is-private" : ""}`} htmlFor={noteId}>
             <span id={`${noteId}-label`}>{label}{privateNote ? " • só o narrador consegue ver" : ""}</span>
@@ -282,7 +299,7 @@ function NoteField({ label, value, privateNote, disabled, onCommit }) {
                 disabled={disabled}
                 rows={3}
                 maxLength={privateNote ? 6000 : 4000}
-                onChange={event => setDraft(event.target.value)}
+                onChange={event => { draftRef.current = event.target.value; setDraft(event.target.value); }}
                 onBlur={() => draft !== value && onCommit(draft)}
             />
         </label>
@@ -354,12 +371,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         && !snapshot.benchTokens.some(token => belongsToSelectedBox(token) && token.pokemonId === id && token.currentHp <= 0));
     const selectedTeamPokemonToken = selectedTeamPokemon
         ? snapshot.tokens.find(token => token.pokemonId === selectedTeamPokemon.id && (
-            token.teamId === selectedTeam?.id
-            || (token.teamShareId && token.teamShareId === selectedTeam?.shareId)
-        )) || null
-        : null;
-    const selectedTeamPokemonBenchToken = selectedTeamPokemon
-        ? snapshot.benchTokens.find(token => token.pokemonId === selectedTeamPokemon.id && (
             token.teamId === selectedTeam?.id
             || (token.teamShareId && token.teamShareId === selectedTeam?.shareId)
         )) || null
@@ -1416,7 +1427,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                         className="room-wide-select"
                                         value={selectedTeam?.id || ""}
                                         onChange={event => {
-                                            const nextTeam = teams.find(team => team.id === event.target.value);
                                             setSelectedTeamId(event.target.value);
                                             setSelectedTeamPokemonId("");
                                             setSelectedTeamPokemonIds([]);
@@ -1754,14 +1764,14 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                             label="Descrição da cena"
                             value={snapshot.sceneNotes}
                             disabled={role !== "narrator"}
-                            onCommit={sceneNotes => commitSnapshot({ ...snapshot, sceneNotes })}
+                            onCommit={sceneNotes => commitSnapshot({ ...snapshotRef.current, sceneNotes })}
                         />
                         {role === "narrator" && (
                             <NoteField
                                 label="Notas do Narrador"
                                 value={snapshot.gmNotes}
                                 privateNote
-                                onCommit={gmNotes => commitSnapshot({ ...snapshot, gmNotes })}
+                                onCommit={gmNotes => commitSnapshot({ ...snapshotRef.current, gmNotes })}
                             />
                         )}
                     </div>

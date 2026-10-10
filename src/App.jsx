@@ -311,14 +311,15 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     }, []);
 
     useEffect(() => {
-        if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return undefined;
+        if (process.env.NODE_ENV !== "production") return undefined;
         let disposed = false;
         let checking = false;
         let refreshing = false;
         let registration = null;
         let updateTimer = null;
         let retryTimer = null;
-        const startedControlled = Boolean(navigator.serviceWorker.controller);
+        const serviceWorker = navigator.serviceWorker;
+        const startedControlled = Boolean(serviceWorker?.controller);
         let hadController = startedControlled;
 
         // A browser can be editing a Box or saving a remote adventure when
@@ -331,7 +332,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                 window.dispatchEvent(new CustomEvent("myowndex:prepare-update", { detail: { tasks } }));
                 const saved = await teamSave.flush();
                 const others = await Promise.all(tasks);
-                if (saved === false || others.some(result => result === false)) {
+                if (saved === false || teamSave.hasPending() || others.some(result => result === false)) {
                     setNotice({ tone: "amber", text: "Uma atualização está pronta, mas há alterações ainda não salvas. O MyOwnDex tentará novamente após salvar." });
                     refreshing = false;
                     window.clearTimeout(retryTimer);
@@ -386,13 +387,10 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
             });
             void current.update().catch(() => {});
             void checkRelease();
-            updateTimer = window.setInterval(() => {
-                void current.update().catch(() => {});
-                void checkRelease();
-            }, 2 * 60 * 1000);
         };
         const register = () => {
-            void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" })
+            if (!serviceWorker) { void checkRelease(); return; }
+            void serviceWorker.register("/sw.js", { updateViaCache: "none" })
                 .then(watch).catch(() => { void checkRelease(); });
         };
         const onControllerChange = () => {
@@ -407,7 +405,11 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                 void checkRelease();
             }
         };
-        navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+        serviceWorker?.addEventListener("controllerchange", onControllerChange);
+        updateTimer = window.setInterval(() => {
+            void registration?.update().catch(() => {});
+            void checkRelease();
+        }, 2 * 60 * 1000);
         document.addEventListener("visibilitychange", onReturn);
         window.addEventListener("focus", onReturn);
         window.addEventListener("online", onReturn);
@@ -419,7 +421,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
             window.removeEventListener("focus", onReturn);
             window.removeEventListener("online", onReturn);
             document.removeEventListener("visibilitychange", onReturn);
-            navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+            serviceWorker?.removeEventListener("controllerchange", onControllerChange);
             window.clearInterval(updateTimer);
             window.clearTimeout(retryTimer);
         };

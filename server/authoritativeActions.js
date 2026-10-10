@@ -496,7 +496,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const roundBlock = getRoundMoveBlockReason({ snapshot: room, token: attacker, move });
     if (roundBlock) throw new AuthoritativeActionError(roundBlock, 409);
     const specialProfile = getMoveSpecialProfile(move);
-    const needsCalledMove = specialProfile?.id === "called-move";
+    const needsCalledMove = specialProfile?.id === "called-move" && !["dyna","gmax"].includes(normalizeGimmickState(attacker.gimmickState,attacker).active);
     const zMove=Boolean(request.useZMove);
     if(zMove && (needsCalledMove || !canUseZMove(attacker,move,room))) throw new AuthoritativeActionError("Este Pokémon não pode usar esse movimento Z com o cristal equipado.",409);
     const maxActive=["dyna","gmax"].includes(normalizeGimmickState(attacker.gimmickState,attacker).active);
@@ -522,7 +522,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const traitBlock = getTraitMoveBlock({ move, attacker, defender });
     if (traitBlock?.attackerBlocked) throw new AuthoritativeActionError(`Item ativo: ${traitBlock.reason}.`, 409);
 
-    const conditionCheck = checkActionConditions({ token: attacker, move, ability: isAbilityActive(attacker) ? attacker.ability : "", random });
+    const conditionCheck = checkActionConditions({ token: attacker, move: gimmickMove, ability: isAbilityActive(attacker) ? attacker.ability : "", random });
     let conditionToken = { ...conditionCheck.token, lastActionRound: room.round };
     const activeMoveActions = Math.min(99999, integerInRange(attacker.activeMoveActions, 0, 99999, 0) + 1);
     let conditionNotes = [...conditionCheck.notes];

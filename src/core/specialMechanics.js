@@ -442,7 +442,7 @@ const MOVE_FAMILIES = [
         profile: moveProfile("retaliation", "Retaliação por dano anterior", "O valor depende do dano recebido e da ação anterior, portanto o Assistente preserva o contexto e pede o valor quando necessário.", "guided"),
     },
     {
-        names: ["pain-split", "endeavor", "super-fang", "natures-madness", "ruination", "final-gambit", "seismic-toss", "night-shade", "dragon-rage", "sonic-boom", "psywave"],
+        names: ["guardian-of-alola", "pain-split", "endeavor", "super-fang", "natures-madness", "ruination", "final-gambit", "seismic-toss", "night-shade", "dragon-rage", "sonic-boom", "psywave"],
         profile: moveProfile("fixed-hp", "Dano ou HP fora da fórmula comum", "Usa nível, HP atual, média ou valor fixo em vez do poder convencional.", "automatic"),
     },
     {

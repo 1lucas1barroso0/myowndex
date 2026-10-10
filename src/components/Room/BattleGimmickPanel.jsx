@@ -11,10 +11,10 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
     const [busy,setBusy]=useState("");
     const [zDetails,setZDetails]=useState({});
     const [moveDetails,setMoveDetails]=useState({});
-    const zLoadKey=snapshot.tokens.filter(t=>String(t.item||"").endsWith("-z")).map(t=>t.moves?.join("|")).join("~");
+    const zLoadKey=JSON.stringify([...new Set(snapshot.tokens.filter(t=>String(t.item||"").endsWith("-z")).flatMap(t=>t.moves||[]).filter(Boolean))].sort());
     useEffect(()=>{
         let current=true;
-        const names=[...new Set(snapshot.tokens.filter(t=>String(t.item||"").endsWith("-z")).flatMap(t=>t.moves||[]).filter(Boolean))];
+        const names=JSON.parse(zLoadKey);
         if(!names.length){setZDetails({});return;}
         Promise.all(names.map(async name=>{
           try { return [name,getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`))]; }
@@ -22,12 +22,10 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
         })).then(entries=>{if(current)setZDetails(Object.fromEntries(entries));});
         return ()=>{current=false;};
     },[zLoadKey]);
-    const movesKey=snapshot.tokens.filter(t=>["dyna","gmax"].includes(t.gimmickState?.active))
-        .map(t=>[t.id,t.gimmickState?.active,(t.moves||[]).join("|")].join(":")).join("~");
+    const movesKey=JSON.stringify([...new Set(snapshot.tokens.filter(t=>["dyna","gmax"].includes(t.gimmickState?.active)).flatMap(t=>t.moves||[]).filter(Boolean))].sort());
     useEffect(()=>{
         let live=true;
-        const names=[...new Set(snapshot.tokens.filter(t=>["dyna","gmax"].includes(t.gimmickState?.active))
-            .flatMap(t=>t.moves||[]).filter(Boolean))];
+        const names=JSON.parse(movesKey);
         Promise.all(names.map(async name=>{
             try{return [name,getCurrentMoveReference(await fetchCached("https://pokeapi.co/api/v2/move/"+encodeURIComponent(name)))];}
             catch{return [name,null];}

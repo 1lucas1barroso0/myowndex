@@ -162,7 +162,7 @@ export default function CombatAssistant({
     },[attackerId,gimmickActive,moveListKey]);
     const zAvailable=canUseZMove(attacker,moveData,snapshot) && getMoveSpecialProfile(moveData)?.id!=="called-move" && snapshot.phase==="batalha";
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
-    const needsCalledMove = specialProfile?.id === "called-move";
+    const needsCalledMove = specialProfile?.id === "called-move" && !["dyna","gmax"].includes(attacker?.gimmickState?.active);
     const resolvedMoveData = needsCalledMove ? calledMoveData : moveData;
     const presentedMove=resolvedMoveData?battleMovePresentation(attacker,resolvedMoveData,{useZMove:useZMove&&zAvailable}):null;
     const previewMove=resolvedMoveData?moveVariantForResolution(resolvedMoveData,presentedMove):null;
@@ -195,7 +195,7 @@ export default function CombatAssistant({
     const outOfPp = ppState.remaining != null && ppState.remaining <= 0;
     const hasRequiredTarget = !resolutionProfile?.target.requiresSelection || Boolean(defender);
     const originalSpecialBlock = moveData
-        ? getSpecialMoveBlockReason({ move: moveData, attacker, defender, round: snapshot.round })
+        ? getSpecialMoveBlockReason({ move: previewMove || moveData, attacker, defender, round: snapshot.round })
         : "";
     const originalTraitBlock = moveData ? getTraitMoveBlock({ move: moveData, attacker, defender }) : null;
     const roundBlock = moveData ? getRoundMoveBlockReason({ snapshot, token: attacker, move: moveData }) : "";

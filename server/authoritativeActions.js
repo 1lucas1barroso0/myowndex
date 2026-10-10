@@ -29,6 +29,7 @@ import { getTraitMoveBlock, isWeatherSuppressed, isAbilityActive } from "../src/
 import { checkActionConditions } from "../src/core/battleConditions.js";
 import { CAPTURE_BALLS, captureTrainerKey, rollCapture } from "../src/core/capture.js";
 import { getCurrentMoveReference } from "../src/core/championsMoves.js";
+import { canUseZMove, getZMovePower, maxMovePower, normalizeGimmickState } from "../src/core/battleGimmicks.js";
 
 const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "start-battle"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
@@ -42,7 +43,7 @@ const ACTION_KEYS = Object.freeze({
     initiative: new Set(["expectedRevision"]),
     "start-battle": new Set(["expectedRevision"]),
     "advance-turn": new Set(["expectedRevision"]),
-    combat: new Set(["expectedRevision", "attackerId", "defenderId", "moveName", "calledMoveName", "mode"]),
+    combat: new Set(["expectedRevision", "attackerId", "defenderId", "moveName", "calledMoveName", "mode", "useZMove"]),
     capture: new Set(["expectedRevision", "trainerTokenId", "targetId", "ball", "wildConfirmed"]),
 });
 
@@ -492,6 +493,11 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     if (roundBlock) throw new AuthoritativeActionError(roundBlock, 409);
     const specialProfile = getMoveSpecialProfile(move);
     const needsCalledMove = specialProfile?.id === "called-move";
+    const zMove=Boolean(request.useZMove);
+    if(zMove && (needsCalledMove || specialProfile || !canUseZMove(attacker,move))) throw new AuthoritativeActionError("Este Pokémon não pode usar esse movimento Z com o cristal equipado.",409);
+    const gigantism=normalizeGimmickState(attacker.gimmickState,attacker).active;
+    const maxActive=["dyna","gmax"].includes(gigantism);
+    if(maxActive && move.damage_class?.name==="status")throw new AuthoritativeActionError("Use um movimento ofensivo em Dynamax; Max Guard requer resolução defensiva própria.",409);
     if (needsCalledMove && (!calledMove || slug(calledMove.name) !== request.calledMoveName)) {
         throw new AuthoritativeActionError("Confirme o movimento resultante antes de resolver a jogada.");
     }
@@ -503,6 +509,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     // Resolve that attempt so PP and the action are spent; a failed caller
     // cannot execute its called move.
     const resolvedMove = needsCalledMove && !specialBlock ? calledMove : move;
+    const gimmickMove = zMove ? {...resolvedMove,power:getZMovePower(resolvedMove.power),stat_changes:[],meta:{...resolvedMove.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,flinch_chance:0}} : maxActive && resolvedMove.power > 0 ? {...resolvedMove,power:maxMovePower(resolvedMove.power),stat_changes:[],meta:{...resolvedMove.meta,ailment:{name:"none"},ailment_chance:0,stat_chance:0,flinch_chance:0}} : resolvedMove;
     const ppState = getMovePpState(attacker, move, request.moveName);
     if (ppState.remaining != null && ppState.remaining <= 0) {
         throw new AuthoritativeActionError("Este movimento está sem PP.", 409);
@@ -539,6 +546,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     };
     if (!conditionCheck.canAct) {
         room = { ...room, tokens: room.tokens.map(token => token.id === attacker.id ? { ...token, activeMoveActions } : token) };
+        if(zMove) room={...room,tokens:room.tokens.map(token=>token.id===attacker.id?{...token,gimmickState:{...normalizeGimmickState(token.gimmickState,token),used:[...new Set([...normalizeGimmickState(token.gimmickState,token).used,"z"])]}}:token)};
         const detail = `${attacker.name}: ${conditionNotes.join(" ")}`;
         return {
             result: { targetResults: [], conditionNotes, blockedByCondition: true, resolutionLabel: "Ação impedida", damage: 0, damageHit: false, moveConnected: false, consequences: role === "narrator" ? emptyConsequences() : null },
@@ -549,7 +557,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         };
     }
 
-    const affectedTargets = getAffectedMoveTargets(room.tokens, attacker, defender, resolvedMove);
+    const affectedTargets = getAffectedMoveTargets(room.tokens, attacker, defender, gimmickMove);
     const targetsToResolve = affectedTargets.length ? affectedTargets : [null];
     let workingTokens = room.tokens;
     let workingHitKillProtectionUsed = room.hitKillProtectionUsed;
@@ -566,7 +574,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         const resolution = calculateMoveResolution({
             attacker: currentAttacker,
             defender: currentTarget,
-            move: resolvedMove,
+            move: gimmickMove,
             mode: request.mode,
             random,
             round: room.round,
@@ -585,7 +593,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
                 tokens: workingTokens,
                 attackerId: attacker.id,
                 targetId: currentTarget?.id,
-                move: resolvedMove,
+                move: gimmickMove,
                 ppMove: move,
                 resolution,
                 random,
@@ -633,7 +641,8 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
 
     // Consume this attempt once, after the resolver's own eligibility checks.
     // A spread move resolves several targets but is still only one action.
-    workingTokens = workingTokens.map(token => token.id === attacker.id ? { ...token, activeMoveActions } : token);
+    workingTokens = workingTokens.map(token => token.id === attacker.id ? { ...token, activeMoveActions,
+      ...(zMove ? {gimmickState:{...normalizeGimmickState(token.gimmickState,token),used:[...new Set([...normalizeGimmickState(token.gimmickState,token).used,"z"])]}} : {}) } : token);
     const connected = targetResults.some(entry => entry.resolution.moveConnected);
     const damageHit = targetResults.some(entry => entry.resolution.damageHit);
     const representative = targetResults[0].resolution;
@@ -671,7 +680,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             attackerId: attacker.id,
             defenderName: affectedTargets.map(token => token.name).join(", ") || representative.profile.target.label,
             defenderId: defender?.id || "",
-            moveName: formatName(resolvedMove.name),
+            moveName: `${zMove?"Z-":maxActive?"Max-":""}${formatName(resolvedMove.name)}`,
             selectedMoveName: formatName(move.name),
             calledMoveName: needsCalledMove ? formatName(resolvedMove.name) : "",
             hit: connected,
@@ -691,7 +700,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
             ppAfter: consequences.ppAfter,
             fumble: targetResults.some(entry => entry.resolution.attackTest?.fumble),
             defenderFumble: targetResults.some(entry => entry.resolution.defenseTest?.fumble),
-            specialNarrative: [...conditionCheck.notes, ...consequences.specialNarratives].join(" "),
+            specialNarrative: [...(zMove?[`${attacker.name} utilizou sua única energia Z nesta batalha.`]:maxActive?[`${attacker.name} usou um Max Move.`]:[]),...conditionCheck.notes, ...consequences.specialNarratives].join(" "),
         }
         : {
             label: `simulação de ${formatName(resolvedMove.name)}`,

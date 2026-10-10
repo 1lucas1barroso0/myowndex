@@ -26,6 +26,7 @@ import {
 import { getTraitMoveBlock } from "../../core/traitMechanics.js";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import { getCurrentMoveReference } from "../../core/championsMoves.js";
+import { canUseZMove } from "../../core/battleGimmicks.js";
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
@@ -88,6 +89,7 @@ export default function CombatAssistant({
     const [moveLoadError, setMoveLoadError] = useState(false);
     const [moveRefresh, setMoveRefresh] = useState(0);
     const [mode, setMode] = useState("normal");
+    const [useZMove,setUseZMove] = useState(false);
     const [result, setResult] = useState(null);
     const [running, setRunning] = useState(false);
     const [calledMoveName, setCalledMoveName] = useState("");
@@ -144,6 +146,7 @@ export default function CombatAssistant({
     }, [moveName, moveRefresh]);
 
     const moves = useMemo(() => attacker?.moves?.filter(Boolean) || [], [attacker]);
+    const zAvailable=canUseZMove(attacker,moveData) && !getMoveSpecialProfile(moveData) && snapshot.phase==="batalha";
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
     const needsCalledMove = specialProfile?.id === "called-move";
     const resolvedMoveData = needsCalledMove ? calledMoveData : moveData;
@@ -195,6 +198,7 @@ export default function CombatAssistant({
     const automationTags = getMoveAutomationTags(resolvedMoveData);
 
     const selectMove = async name => {
+        setUseZMove(false);
         setMoveName(name);
         setMoveData(null);
         setResult(null);
@@ -235,6 +239,7 @@ export default function CombatAssistant({
                     moveName: moveData.name,
                     calledMoveName: needsCalledMove ? move.name : "",
                     mode,
+                    useZMove: Boolean(useZMove&&zAvailable),
                 });
                 setResult(compact
                     ? withFieldHealth(authoritative.result, authoritative.nextSnapshot?.tokens || tokens)
@@ -243,7 +248,7 @@ export default function CombatAssistant({
             }
             const resolved = resolveCombatAction({
                 snapshot, role,
-                request: { attackerId: attacker.id, defenderId: defender?.id || "", moveName: moveData.name, calledMoveName: needsCalledMove ? move.name : "", mode },
+                request: { attackerId: attacker.id, defenderId: defender?.id || "", moveName: moveData.name, calledMoveName: needsCalledMove ? move.name : "", mode, useZMove: Boolean(useZMove&&zAvailable) },
                 move: moveData, calledMove: needsCalledMove ? move : null,
             });
             setResult(compact
@@ -305,6 +310,10 @@ export default function CombatAssistant({
                 </span>
             </summary>
             <div className="room-tool-body">
+                {zAvailable && <label className="combat-z-trigger">
+                    <input type="checkbox" checked={useZMove} disabled={!canControlAttacker || running} onChange={event=>setUseZMove(event.target.checked)} />
+                    <span><strong>Usar Movimento Z</strong><small>Consumirá a energia do Z-Crystal em um único golpe nesta batalha.</small></span>
+                </label>}
                 <div className="combat-grid">
                     <label>
                         <span>Usuário</span>

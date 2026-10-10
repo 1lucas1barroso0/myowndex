@@ -656,6 +656,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         (sum, entry) => sum + integerInRange(entry.previewHitKill?.appliedDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
         0,
     );
+    const resolvedMaxField=connected?maxField:null;
     const result = {
         ...representative,
         conditionNotes: conditionCheck.notes,
@@ -672,8 +673,8 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const nextSnapshot = role === "narrator"
         ? {
             ...room,
-            ...(maxField?.weather||consequences.fieldChange?.weather ? { weather: maxField?.weather||consequences.fieldChange.weather } : {}),
-            ...(maxField?.terrain||consequences.fieldChange?.terrain ? { terrain: maxField?.terrain||consequences.fieldChange.terrain } : {}),
+            ...(resolvedMaxField?.weather||consequences.fieldChange?.weather ? { weather: resolvedMaxField?.weather||consequences.fieldChange.weather } : {}),
+            ...(resolvedMaxField?.terrain||consequences.fieldChange?.terrain ? { terrain: resolvedMaxField?.terrain||consequences.fieldChange.terrain } : {}),
             tokens: workingTokens,
             hitKillProtectionUsed: workingHitKillProtectionUsed,
             hitKillProtectionDisabled: workingHitKillProtectionDisabled,

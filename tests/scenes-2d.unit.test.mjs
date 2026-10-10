@@ -142,3 +142,13 @@ test("scenes keep natural open play space and distinct locations without obstruc
         assert.ok(svg.includes(art[id]), `source and output must agree: ${id}`);
     }
 });
+
+test("stadium ball has red upper hemisphere, white lower hemisphere and central button",async()=>{
+    const svg=(await read("public/scenes/arena.svg")).toString();
+    const src=JSON.parse(await read("public/scenes/source/decorations.json")).arena;
+    assert.match(src,/data-stadium-pokeball="correct-top-red-bottom-white"/);
+    assert.match(src,/clipPath id="stadium-pokeball-upper"/);
+    assert.match(src,/fill="#d85d63" clip-path="url/);
+    assert.match(src,/r="6.5" fill="#f9f7ec"/);
+    assert.ok(svg.includes(src));
+});

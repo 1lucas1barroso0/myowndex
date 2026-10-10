@@ -20,7 +20,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
         })).then(entries=>{if(current)setZDetails(Object.fromEntries(entries));});
         return ()=>{current=false;};
     },[zLoadKey]);
-    const canPrepareZ=candidate=>candidate.moves?.some(name=>canUseZMove(candidate,zDetails[name],snapshot) && !getMoveSpecialProfile(zDetails[name]));
+    const canPrepareZ=candidate=>candidate.moves?.some(name=>canUseZMove(candidate,zDetails[name],snapshot) && getMoveSpecialProfile(zDetails[name])?.id!=="called-move");
     const eligible=snapshot.tokens.filter(candidate=>
         (getGimmickChoices(candidate,{phase:snapshot.phase,snapshot}).length>0
         || Boolean(normalizeGimmickState(candidate.gimmickState,candidate).active)

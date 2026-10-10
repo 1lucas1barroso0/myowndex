@@ -160,7 +160,7 @@ export default function CombatAssistant({
         })).then(rows=>{if(live)setMoveDetails(Object.fromEntries(rows));});
         return ()=>{live=false;};
     },[attackerId,gimmickActive,moveListKey]);
-    const zAvailable=canUseZMove(attacker,moveData,snapshot) && !getMoveSpecialProfile(moveData) && snapshot.phase==="batalha";
+    const zAvailable=canUseZMove(attacker,moveData,snapshot) && getMoveSpecialProfile(moveData)?.id!=="called-move" && snapshot.phase==="batalha";
     const presentedMove=moveData?battleMovePresentation(attacker,moveData,{useZMove:useZMove&&zAvailable}):null;
     const specialProfile = useMemo(() => getMoveSpecialProfile(moveData), [moveData]);
     const needsCalledMove = specialProfile?.id === "called-move";

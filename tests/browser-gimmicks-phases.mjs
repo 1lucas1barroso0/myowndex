@@ -116,6 +116,12 @@ try{
         return s.tokens[0].gimmickState?.active==="mega";
     },null,{timeout:20000});
     assert.equal((await snapshot()).tokens[0].speciesName,"charizard-mega-x");
+    assert.equal(await page.locator(".room-token.gimmick-mega .room-token-gimmick-mark").count(),1,
+      "The transformed Pokémon has visible artwork effects on the field");
+    const transformed=await snapshot();
+    assert.notEqual(transformed.tokens[0].sprite,"/sprites/6.png","Mega must replace the battle sprite");
+    assert.deepEqual(transformed.tokens[0].types,["fire","dragon"]);
+
     assert.equal(await page.locator(".room-token.gimmick-mega").count(),1);
     assert.equal(await page.locator(".gimmick-action").count(),0,"One-time transformations cannot be stacked");
     await page.getByRole("button",{name:"Retirar da cena"}).click();

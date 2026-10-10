@@ -87,3 +87,24 @@ test("a marked G-Max factor never grants Gigantamax to a species without that fo
  assert.ok(getGimmickChoices(invalid).some(x=>x.id==="dyna"));
  assert.equal(getGimmickChoices(invalid).some(x=>x.id==="gmax"),false);
 });
+
+test("official Mega form receives a distinct visible sprite, real typing and changed battle stats",()=>{
+ const c=base();
+ const form={
+  name:"charizard-mega-x",id:10034,
+  sprites:{front_default:"/sprites/6.png"},
+  types:[{type:{name:"fire"}},{type:{name:"dragon"}}],
+  stats:[["hp",78],["attack",130],["defense",111],["special-attack",130],["special-defense",85],["speed",100"]].map(([name,base_stat])=>({stat:{name},base_stat})),
+  abilities:[{ability:{name:"tough-claws"}}]
+ };
+ const result=applyGimmick(c,"mega",{formData:form});
+ assert.equal(result.applied,true);
+ assert.equal(result.token.speciesName,"charizard-mega-x");
+ assert.equal(result.token.speciesId,10034);
+ assert.notEqual(result.token.sprite,c.sprite);
+ assert.deepEqual(result.token.types,["fire","dragon"]);
+ assert.equal(result.token.ability,"tough-claws");
+ const restored=endGimmick(result.token);
+ assert.equal(restored.speciesName,"charizard");
+ assert.equal(restored.sprite,c.sprite);
+});

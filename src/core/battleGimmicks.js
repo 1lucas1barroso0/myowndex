@@ -11,7 +11,7 @@ const stones = [
 ["camerupt","cameruptite"],["charizard","charizardite-x"],["charizard","charizardite-y"],
 ["diancie","diancite"],["gallade","galladite"],["garchomp","garchompite"],
 ["gardevoir","gardevoirite"],["gengar","gengarite"],["glalie","glalitite"],
-["gyarados","gyaradosite"],["heracross","heracronite"],["heracross","heracrossite"],["houndoom","houndoominite"],
+["gyarados","gyaradosite"],["heracross","heracronite"],["houndoom","houndoominite"],
 ["kangaskhan","kangaskhanite"],["latias","latiasite"],["latios","latiosite"],
 ["lopunny","lopunnite"],["lucario","lucarionite"],["manectric","manectite"],
 ["mawile","mawilite"],["medicham","medichamite"],["metagross","metagrossite"],
@@ -74,25 +74,26 @@ export const megaFormFor = token =>{
 const trainerGroupKey = token => token?.ownerPlayerId ? `player:${token.ownerPlayerId}`
     : token?.teamShareId ? `box:${token.teamShareId}`
     : token?.teamId ? `box:${token.teamId}` : "";
-export const trainerHasUsedGimmick = (token,snapshot) => {
+export const trainerHasUsedGimmick = (token,snapshot,kind="") => {
     const key=trainerGroupKey(token);
     if(!key || !snapshot)return false;
+    const family=kind==="gmax"||kind==="dyna"?["dyna","gmax"]:kind?[kind]:["mega","tera","dyna","gmax","z"];
     return [...(snapshot.tokens||[]),...(snapshot.benchTokens||[])].some(other=>
       other.id!==token.id && trainerGroupKey(other)===key
-      && normalizeGimmickState(other.gimmickState,other).used.some(id=>["mega","tera","dyna","gmax","z"].includes(id)));
+      && normalizeGimmickState(other.gimmickState,other).used.some(id=>family.includes(id)));
 };
 export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  if(!token || token.currentHp<=0 || phase!=="batalha")return [];
  const state=normalizeGimmickState(token.gimmickState,token);
- if(state.active || trainerHasUsedGimmick(token,snapshot))return [];
+ if(state.active)return [];
  const used=new Set(state.used);
  const locked=used.has("mega")||used.has("tera")||used.has("dyna")||used.has("gmax")||used.has("z");
  if(locked)return [];
  const options=[];
- if(megaFormFor(token)&&!used.has("mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:"Mega Stone correspondente equipada"});
- if(slug(token.teraType) && !used.has("tera"))options.push({id:"tera",label:"Terastalização",hint:`Tipo Tera: ${token.teraType}`});
+ if(megaFormFor(token)&&!used.has("mega")&&!trainerHasUsedGimmick(token,snapshot,"mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:"Mega Stone correspondente equipada"});
+ if(slug(token.teraType) && !used.has("tera")&&!trainerHasUsedGimmick(token,snapshot,"tera"))options.push({id:"tera",label:"Terastalização",hint:`Tipo Tera: ${token.teraType}`});
  const level=integerInRange(token.dynamaxLevel,0,10,0);
- if(level>0&&!used.has("dyna")&&!used.has("gmax")){
+ if(level>0&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
    options.push({id:"dyna",label:"Dynamax",hint:`Nível Dynamax ${level} • 3 rodadas`});
    if(Boolean(token.canGMax) && gmaxEligible(token))options.push({id:"gmax",label:"Gigantamax",form:`${baseSpecies(token)}-gmax`,hint:"Fator Gigantamax na ficha • 3 rodadas"});
  }
@@ -101,7 +102,7 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
 export const canUseZMove = (token,move,snapshot=null) => {
  if(!token || !move || !Array.isArray(token.moves) || !token.moves.includes(slug(move.name)) || token.currentHp<=0)return false;
  const state=normalizeGimmickState(token.gimmickState,token);
- if(trainerHasUsedGimmick(token,snapshot)||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status"||!Number.isFinite(move.power)||move.power<=0)return false;
+ if(trainerHasUsedGimmick(token,snapshot,"z")||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status"||!Number.isFinite(move.power)||move.power<=0)return false;
  const crystal=slug(token.item),specific=SPECIFIC_Z[crystal];
  if(specific) {
    const species=baseSpecies(token);

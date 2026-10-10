@@ -65,11 +65,12 @@ test("one trainer cannot stack gimmicks across Pokémon; another Box can",()=>{
  const other={...teammate,id:"third",teamId:"box-two"};
  const room={tokens:[used,teammate,other],benchTokens:[]};
  assert.equal(trainerHasUsedGimmick(teammate,room),true);
- assert.equal(getGimmickChoices(teammate,{snapshot:room}).length,0);
+ assert.ok(getGimmickChoices(teammate,{snapshot:room}).some(x=>x.id==="mega"));
+ assert.equal(getGimmickChoices(teammate,{snapshot:room}).some(x=>x.id==="tera"),false);
  assert.ok(getGimmickChoices(other,{snapshot:room}).length>0);
  assert.equal(canUseZMove({...teammate,item:"firium-z"},{
      name:"flamethrower",type:{name:"fire"},damage_class:{name:"special"},power:90,
- },room),false);
+ },room),true);
 });
 test("story phases preserve team and make battle transitions explicit",()=>{
  const room=createRoomSnapshot();

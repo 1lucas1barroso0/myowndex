@@ -76,7 +76,9 @@ test("Max side effects update battle stats and the weather only on connection",(
  const gmax=applyMaxMoveSecondary({tokens:[attacker,defender],attackerId:"a",
    presentation:{kind:"gmax-move",label:"G-Max Wildfire"},connected:true});
  assert.equal(gmax.field.weather,undefined,"signature moves cannot accidentally apply Max Flare's weather");
- assert.match(gmax.notes.join(" "),/Narrador/);
+ assert.equal(gmax.hazards[0].turns,4);
+ assert.equal(gmax.hazards[0].type,"fire");
+ assert.match(gmax.notes.join(" "),/4 rodadas/);
 });
 test("battle move dropdown descriptions use the transformed move identities",()=>{
  const token=pokemon("gmax","charizard-gmax");

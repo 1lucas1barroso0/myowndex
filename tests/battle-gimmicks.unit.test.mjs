@@ -94,7 +94,7 @@ test("official Mega form receives a distinct visible sprite, real typing and cha
   name:"charizard-mega-x",id:10034,
   sprites:{front_default:"/sprites/6.png"},
   types:[{type:{name:"fire"}},{type:{name:"dragon"}}],
-  stats:[["hp",78],["attack",130],["defense",111],["special-attack",130],["special-defense",85],["speed",100"]].map(([name,base_stat])=>({stat:{name},base_stat})),
+  stats:[["hp",78],["attack",130],["defense",111],["special-attack",130],["special-defense",85],["speed",100]].map(([name,base_stat])=>({stat:{name},base_stat})),
   abilities:[{ability:{name:"tough-claws"}}]
  };
  const result=applyGimmick(c,"mega",{formData:form});

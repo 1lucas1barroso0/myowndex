@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {applyGimmick,advanceGimmickRound,canUseZMove,endGimmick,getGimmickChoices,getZMovePower,megaFormFor,normalizeGimmickState,trainerHasUsedGimmick} from "../src/core/battleGimmicks.js";
-import {changeRoomPhase,createRoomSnapshot,normalizeRoomToken,startNewRoomBattle} from "../src/core/room.js";
+import {applyEndOfRoundEffects,changeRoomPhase,createRoomSnapshot,normalizeRoomToken,startNewRoomBattle} from "../src/core/room.js";
 
 const base=()=>normalizeRoomToken({
  id:"charizard",name:"Charizard",pokemonId:"chari",teamId:"box-one",
@@ -107,4 +107,19 @@ test("official Mega form receives a distinct visible sprite, real typing and cha
  const restored=endGimmick(result.token);
  assert.equal(restored.speciesName,"charizard");
  assert.equal(restored.sprite,c.sprite);
+});
+
+test("G-Max field effect remains for four rounds, damages eligible foes and resets on new battle",()=>{
+ const ally={...base(),id:"ally",teamId:"t1",side:"ally",item:"",teraType:"",currentHp:35};
+ const foe={...base(),id:"foe",teamId:"t2",side:"opponent",item:"",teraType:"",currentHp:35,types:["normal"],originalTypes:["normal"]};
+ let room={...createRoomSnapshot(),phase:"batalha",battleStarted:true,tokens:[ally,foe],
+  gmaxHazards:[{id:"g-max-wildfire",label:"G-Max Wildfire",side:"opponent",type:"fire",turns:4}]};
+ for(let round=3;round>=0;round--){
+  room=applyEndOfRoundEffects(room,()=>0.5).room;
+  assert.equal(room.gmaxHazards[0]?.turns??0,round);
+ }
+ assert.ok(room.tokens.find(token=>token.id==="foe").currentHp<35);
+ assert.equal(room.tokens.find(token=>token.id==="ally").currentHp,35);
+ const fresh=startNewRoomBattle(room);
+ assert.deepEqual(fresh.gmaxHazards,[]);
 });

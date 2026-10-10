@@ -655,7 +655,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
         (sum, entry) => sum + integerInRange(entry.previewHitKill?.appliedDamage, 0, MAX_SAFE_GAME_INTEGER, 0),
         0,
     );
-    const secondary=applyMaxMoveSecondary({tokens:workingTokens,attackerId:attacker.id,presentation,connected});
+    const secondary=applyMaxMoveSecondary({tokens:workingTokens,attackerId:attacker.id,presentation,connected,terrain:room.terrain});
     workingTokens=secondary.tokens;
     const newHazards=[...room.gmaxHazards.filter(old=>!secondary.hazards.some(next=>old.id===next.id&&old.side===next.side)),...secondary.hazards];
     const result = {

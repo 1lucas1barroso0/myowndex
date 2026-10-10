@@ -1,4 +1,4 @@
-import { applyStageChange } from "./automation.js";
+import { applyStageChange, getStatusBlockReason } from "./automation.js";
 
 // Shared with local narration and remote authoritative combat. Effects must be
 // applied only after the converted move actually connects.
@@ -36,7 +36,7 @@ const lingering=Object.freeze({
  "G-Max Vine Lash":"grass","G-Max Wildfire":"fire",
  "G-Max Cannonade":"water","G-Max Volcalith":"rock",
 });
-export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected})=>{
+export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected,terrain="nenhum"})=>{
   if(!presentation||!connected||!["max","gmax-move"].includes(presentation.kind))
     return {tokens,field:{},hazards:[],notes:[]};
   const user=tokens.find(t=>t.id===attackerId);
@@ -59,8 +59,7 @@ export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected})=
   if(condition){
     updated=updated.map(token=>{
       if(token.currentHp<=0||token.hidden||token.captured||safeSide(token)===safeSide(user)||token.status)return token;
-      if(condition==="paralysis"&&token.types?.includes("electric"))return token;
-      if(condition==="poison"&&(token.types?.includes("poison")||token.types?.includes("steel")))return token;
+      if(getStatusBlockReason(condition,token,user,{terrain}))return token;
       return {...token,status:condition};
     });
     notes.push(`${label}: ${condition} nos oponentes elegíveis.`);

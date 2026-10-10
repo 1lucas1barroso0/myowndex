@@ -129,3 +129,26 @@ html .app-root.game-edition.handheld-edition .room-token:focus-visible {
     outline-offset: 3px;
 }
 html .app-root.game-edition.handheld-edition .battlefield-center-line { display: none !important; }
+
+/* All four phases retain the RPG world. The battle phase adds controls, not a
+   different webpage; the movement and sprite-scale overlay stay independent. */
+html .app-root.game-edition.handheld-edition .battlefield-card.is-story-scene .battlefield-board {
+  display: block !important; aspect-ratio: 3 / 2;
+}
+html .app-root.game-edition.handheld-edition .room-token-resize-handle {
+  position: absolute; z-index: 12; translate: 1.5rem 1.1rem;
+  display: grid; place-items: center; min-width: 44px !important;
+  width: 44px; min-height: 44px !important; height: 44px;
+  color: white; font: inherit; font-size: 1.5rem;
+  background: #236fabed; border: 2px solid white; border-radius: .35rem;
+  box-shadow: 0 2px 0 #10243f90; cursor: nwse-resize;
+  touch-action: none;
+}
+html .app-root.game-edition.handheld-edition .room-token-resize-handle:focus-visible {
+  outline: 3px solid var(--journey-gold); outline-offset: 2px;
+}
+@media (max-width: 560px) {
+  html .app-root.game-edition.handheld-edition .room-token-resize-handle {
+    translate: 1rem .75rem;
+  }
+}

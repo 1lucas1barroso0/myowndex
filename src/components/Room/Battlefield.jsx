@@ -63,6 +63,7 @@ const Token = ({
     onKeyMove,
     movementHelpId,
     sceneReferenceHeight,
+    visualSceneScale,
 }) => {
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
@@ -97,6 +98,7 @@ const Token = ({
                     pokemonId={displayedPokemonId(token, display)}
                     framing="scene"
                     scaleReferenceHeight={sceneReferenceHeight}
+                    sceneScale={visualSceneScale}
                     alt=""
                     className={`room-token-sprite pixelated ${mirrored && token.side === "ally" ? "is-mirrored" : ""}`}
                     fallbackClassName="room-token-fallback"
@@ -119,6 +121,7 @@ export default function Battlefield({
 }) {
     const battle = snapshot.phase === "batalha";
     const [drag, setDrag] = useState(null);
+    const [resize, setResize] = useState(null);
     const movementHelpId = useId();
     const currentTokenId = battle ? snapshot.initiative[snapshot.turnIndex] || "" : "";
     const tokenById = useMemo(
@@ -175,6 +178,50 @@ export default function Battlefield({
         event.currentTarget.releasePointerCapture?.(event.pointerId);
     };
 
+    // Independent resize handle: the token's movement pointer handlers never
+    // see these events. Default size still uses the official physical ratio.
+    const startResize = (event, token) => {
+        if (!canMoveToken(token)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        setResize({
+            tokenId: token.id,
+            startX: event.clientX,
+            startY: event.clientY,
+            startScale: token.sceneScale ?? 1,
+            scale: token.sceneScale ?? 1,
+        });
+    };
+    const resizeMove = event => {
+        if (!resize) return;
+        const motion = (event.clientX - resize.startX) - (event.clientY - resize.startY);
+        const next = Math.round(clamp(resize.startScale + motion / 110, .25, 4) * 20) / 20;
+        setResize(previous => previous ? { ...previous, scale: next } : null);
+    };
+    const resizeFinish = (event, commit = true) => {
+        if (!resize) return;
+        event.stopPropagation();
+        if (commit && Math.abs(resize.scale - resize.startScale) >= .025) {
+            onSnapshotChange({
+                ...snapshot,
+                tokens: snapshot.tokens.map(token => token.id === resize.tokenId
+                    ? { ...token, sceneScale: resize.scale } : token),
+            });
+        }
+        setResize(null);
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+    };
+    const resizeKey = (event, token) => {
+        const delta = event.key === "ArrowUp" || event.key === "ArrowRight" ? .05
+            : event.key === "ArrowDown" || event.key === "ArrowLeft" ? -.05 : 0;
+        if (!delta) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const scale = Math.round(clamp((token.sceneScale ?? 1) + delta, .25, 4) * 20) / 20;
+        onSnapshotChange({ ...snapshot, tokens: snapshot.tokens.map(item =>
+            item.id === token.id ? { ...item, sceneScale: scale } : item) });
+    };
     const handleKeyMove = (token, delta) => {
         onSnapshotChange({
             ...snapshot,
@@ -251,8 +298,8 @@ export default function Battlefield({
                             ? "lost"
                             : "available";
                     return (
+                        <React.Fragment key={token.id}>
                         <Token
-                            key={token.id}
                             token={token}
                             position={position}
                             isCurrent={currentTokenId === token.id}
@@ -269,7 +316,22 @@ export default function Battlefield({
                             onKeyMove={handleKeyMove}
                             movementHelpId={movementHelpId}
                             sceneReferenceHeight={sceneReferenceHeight}
+                            visualSceneScale={resize?.tokenId === token.id ? resize.scale : token.sceneScale ?? 1}
                         />
+                        {selectedTokenId === token.id && canMoveToken(token) && <button
+                            type="button"
+                            className="room-token-resize-handle"
+                            style={{ left: `clamp(3.5rem, ${position.x}%, calc(100% - 3.5rem))`,
+                                top: `clamp(3.5rem, ${position.y}%, calc(100% - 3.5rem))` }}
+                            title="Arraste na diagonal para ampliar ou reduzir somente o sprite; setas também ajustam"
+                            aria-label={`Ajustar tamanho visual de ${token.name}. Setas aumentam ou reduzem o sprite.`}
+                            onPointerDown={event => startResize(event, token)}
+                            onPointerMove={resizeMove}
+                            onPointerUp={event => resizeFinish(event, true)}
+                            onPointerCancel={event => resizeFinish(event, false)}
+                            onKeyDown={event => resizeKey(event, token)}
+                        ><span aria-hidden="true">↗</span></button>}
+                        </React.Fragment>
                     );
                 })}
                 {!visibleTokens.length && (
@@ -283,7 +345,7 @@ export default function Battlefield({
                 <div className="battlefield-pixel-grid" aria-hidden="true" />
             </div>}
 
-            {!compact && visibleTokens.length > 0 && <div className="battlefield-party-strip" role="group" aria-label="Pokémon em cena">
+            {visibleTokens.length > 0 && <div className="battlefield-party-strip" role="group" aria-label="Pokémon em cena">
                 {visibleTokens.map(token => {
                     const display = getBattleDisplayIdentity(token);
                     const current = currentTokenId === token.id;

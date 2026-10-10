@@ -8,7 +8,9 @@ import { createScheduledSave } from "../src/core/scheduledSave.js";
 import { clearStorageScope, getStorageScope, listStoredAccountScopes, readDurableStorage, readStorage, removeDurableStorage, resolveStorageKey, setStorageScope, writeDurableStorage } from "../src/core/storage.js";
 
 const origin = "https://myowndex.vercel.app";
-const shellCacheName = `myowndex-shell-v${JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version}`;
+const packageVersion = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")).version;
+const shellCacheName = (await readFile(new URL("../public/sw.js", import.meta.url), "utf8")).match(/^const CACHE_NAME = "([^"]+)";/m)?.[1];
+assert.ok(shellCacheName?.startsWith(`myowndex-shell-v${packageVersion}`), "shell cache must remain tied to the app version");
 const assetCacheName = "myowndex-assets-v2";
 const catalogue = "https://pokeapi.co/api/v2/pokemon/";
 const flushUrl = catalogue + "_flush_test";

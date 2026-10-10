@@ -17,6 +17,7 @@ import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
 import PokemonCompanion from "./components/Shared/PokemonCompanion.jsx";
 import GameIcon from "./components/Shared/GameIcon.jsx";
+import AppInstallControl from "./components/Shared/AppInstallControl.jsx";
 import DexFilters from "./components/Pokedex/DexFilters.jsx";
 import { dexEntryFavoriteKeys, dexEntryGeneration, dexEntryNumber, dexEntryRegion, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
 import { buildDexCatalogue } from "./core/dexCatalogue.js";
@@ -567,6 +568,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                 <AccountButton client={client} onClick={onAccountOpen} />
                             </div>
                             <div className="app-preferences" role="group" aria-label="Preferências da jornada">
+                                <AppInstallControl />
                                 <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
                                 <AppearanceControl />
                             </div>

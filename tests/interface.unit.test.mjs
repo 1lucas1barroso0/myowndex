@@ -636,3 +636,26 @@ test("optional Box multi-selection, battle utilities, Porygon centerpiece and XP
   assert.match(experience, /<summary>Ganhar XP<\/summary>/);
   assert.match(experience, /<legend>Recompensas pelo desafio<\/legend>/);
 });
+
+test("adventure renders a full scene outside battle and keeps independent sprite resize gestures", async () => {
+    const room = await read("src/components/Room/RpgRoom.jsx");
+    const field = await read("src/components/Room/Battlefield.jsx");
+    assert.match(room, /compact=\{false\}/);
+    assert.match(field, /room-token-resize-handle/);
+    assert.match(field, /sceneScale: resize.scale/);
+    assert.match(field, /event.stopPropagation\(\)/);
+});
+
+test("install controls expose native prompt, browser guidance, and app-style standalone chrome", async () => {
+    const [install, manifest, css, app] = await Promise.all([
+        read("src/components/Shared/AppInstallControl.jsx"),
+        read("app/manifest.ts"), read("src/game-shell.css"), read("src/App.jsx"),
+    ]);
+    assert.match(install, /beforeinstallprompt/);
+    assert.match(install, /appinstalled/);
+    assert.match(install, /Instalar aplicativo/);
+    assert.match(manifest, /display: "standalone"/);
+    assert.match(manifest, /start_url: "\/\?abrir=aventura"/);
+    assert.match(css, /display-mode: standalone/);
+    assert.match(app, /<AppInstallControl \/>/);
+});

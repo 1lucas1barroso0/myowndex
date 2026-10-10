@@ -220,6 +220,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         side: ["ally", "opponent", "neutral"].includes(source.side) ? source.side : "ally",
         x: numberInRange(source.x, 4, 96, 50),
         y: numberInRange(source.y, 8, 92, 55),
+        sceneScale: numberInRange(source.sceneScale, 0.25, 4, 1),
         maxHp,
         currentHp,
         status: Object.prototype.hasOwnProperty.call(STATUS_LABELS, source.status) ? source.status : "",

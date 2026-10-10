@@ -1577,7 +1577,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         onSelectToken={setSelectedTokenId}
                         onSnapshotChange={handleBattlefieldChange}
                         onChoosePokemon={choosePokemon}
-                        compact={["interpretacao", "intervalo"].includes(snapshot.phase)}
+                        compact={false}
                     />
                     {snapshot.phase === "batalha" && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
                         onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}

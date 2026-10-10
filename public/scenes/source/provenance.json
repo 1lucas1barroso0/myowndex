@@ -36,7 +36,7 @@
       "sourceSha256": "d24e60a41e4ac7a745c0304dfde121143688557f40215f23221c29cfe683825f"
     }
   ],
-  "method": "Tiles Kenney (CC0) mantidos pixel a pixel; pequenos detalhes vetoriais autorais de terreno em camadas reprodutíveis, sem filtros ou dependências.",
+  "method": "Nine bespoke pixel-art RPG environments authored as crisp-edged vectors; original CC0 tiles retained underneath for provenance, offline reproduction, and audits.",
   "decorations": "public/scenes/source/decorations.json",
   "scenes": [
     {
@@ -51,7 +51,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "e45bc1c569251b9152e84824dc7e347d405656cf43229f2531394112e6558f20",
-      "bytes": 4749
+      "bytes": 17461
     },
     {
       "id": "floresta",
@@ -64,7 +64,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "70e529a7d83320dc64046f4823e45ec6c0bc1f01b1438654982ac8cf48fb305d",
-      "bytes": 5111
+      "bytes": 17086
     },
     {
       "id": "cidade",
@@ -78,7 +78,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "42539c5d15af76ba870cc6bef8b41904c119e5a47f21b82433107fdafcfc5abf",
-      "bytes": 4649
+      "bytes": 26046
     },
     {
       "id": "praia",
@@ -92,7 +92,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "a70e73394570bb72dabb33aeaa659bc7c69d6b7f185ee3feaabd98610724387f",
-      "bytes": 2664
+      "bytes": 18992
     },
     {
       "id": "caverna",
@@ -105,7 +105,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "417fd534ff94a41abf18aa16e49c5a23fcde699ea86abab06b103bffc069054a",
-      "bytes": 5406
+      "bytes": 14132
     },
     {
       "id": "neve",
@@ -119,7 +119,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "ccc59e780352d64b9e11644836dbfabcebd343927684b9f5b71ee5bdf2d804c5",
-      "bytes": 3439
+      "bytes": 17952
     },
     {
       "id": "arena",
@@ -132,7 +132,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "9ddae15e2376a51719f47f836a63c123f6fd96491a573ec22e6cfca26857eb23",
-      "bytes": 3043
+      "bytes": 37999
     },
     {
       "id": "laboratorio",
@@ -146,7 +146,7 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "f32d5869b144386408ec3a9d397aa843ef4567c63f15b4b67e1969ca91c6ba44",
-      "bytes": 2935
+      "bytes": 14142
     },
     {
       "id": "distorcao",
@@ -159,7 +159,8 @@
       "width": 480,
       "height": 320,
       "pixelSha256": "13ba3a621cc59ea46e7bf52e260f5b8b6589ec34f7236084a30c68470a2012cc",
-      "bytes": 4507
+      "bytes": 18112
     }
-  ]
+  ],
+  "visualLayerAuthor": "Original pixel-vector RPG worlds authored for MyOwnDex"
 }

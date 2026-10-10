@@ -14,6 +14,7 @@ export default function PokemonSprite({
     height,
     framing = "portrait",
     scaleReferenceHeight = 10,
+    sceneScale = 1,
     candidates = EMPTY_CANDIDATES,
     alt = "",
     className = "",
@@ -48,7 +49,7 @@ export default function PokemonSprite({
     const bounds = getPokemonSpriteFraming(source);
     const physicalHeight = getPokemonDisplayHeight({ src: source || src, pokemonId, height, spriteKey });
     const motion = !activity.ready ? "pending" : !activity.visible ? "paused" : /\.(?:gif|apng)(?:[?#].*)?$/i.test(source) ? "animated" : "static";
-    const scale = framing === "scene" ? getPokemonSpriteScale(pokemonId, physicalHeight, scaleReferenceHeight) : 1;
+    const scale = framing === "scene" ? getPokemonSpriteScale(pokemonId, physicalHeight, scaleReferenceHeight) * (Number.isFinite(Number(sceneScale)) ? Math.max(.25, Math.min(4, Number(sceneScale))) : 1) : 1;
     return (
         <span
             ref={frameRef}

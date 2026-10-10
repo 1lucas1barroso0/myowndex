@@ -67,11 +67,12 @@ const Token = ({
 }) => {
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
+    const gimmick = token.gimmickState?.active || "";
 
     return (
     <button
         type="button"
-        className={`room-token side-${token.side} ${canMove ? "can-move" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
+        className={`room-token side-${token.side} ${canMove ? "can-move" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${gimmick ? `is-gimmick gimmick-${gimmick}` : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
         style={{ left: `clamp(3.5rem, ${position.x}%, calc(100% - 3.5rem))`, top: `clamp(3.5rem, ${position.y}%, calc(100% - 3.5rem))` }}
         onClick={() => onSelect(isSelected ? "" : token.id)}
         onPointerDown={event => canMove && onPointerDown(event, token)}
@@ -89,7 +90,7 @@ const Token = ({
         }}
         aria-pressed={isSelected}
         aria-describedby={canMove ? movementHelpId : undefined}
-        aria-label={`${display.name}, nível ${token.level}${showHp ? `, ${token.currentHp} de ${token.maxHp} pontos de vida` : ""}${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
+        aria-label={`${display.name}, nível ${token.level}${showHp ? `, ${token.currentHp} de ${token.maxHp} pontos de vida` : ""}${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${gimmick ? `, mecânica ${gimmick} ativa` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
             {display.sprite ? (
@@ -287,7 +288,7 @@ export default function Battlefield({
             </div>}
 
             {!compact && <div className={`battlefield-board ${visibleTokens.length ? "has-pokemon" : "is-empty-field"} scene-${snapshot.scenario} weather-${snapshot.weather} terrain-${snapshot.terrain}`} style={{ "--field-token-size": `${visibleTokens.length > 8 ? 4 : visibleTokens.length > 4 ? 5 : 7}rem` }}>
-                <img className="battlefield-scenery" src={`/scenes/${snapshot.scenario}.svg?v=worlds2`} alt="" aria-hidden="true" draggable="false" />
+                <img className="battlefield-scenery" src={`/scenes/${snapshot.scenario}.svg?v=worlds3`} alt="" aria-hidden="true" draggable="false" />
                 {battle && <><div className="battlefield-side-label label-opponent">Oponentes</div><div className="battlefield-side-label label-ally">Aliados</div></>}
                 {visibleTokens.map(token => {
                     const position = drag?.tokenId === token.id ? drag : token;

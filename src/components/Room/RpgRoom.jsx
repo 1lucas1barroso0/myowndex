@@ -76,6 +76,7 @@ import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
 import CaptureAssistant from "./CaptureAssistant.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
+import BattleGimmickPanel from "./BattleGimmickPanel.jsx";
 import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
 import AdventurePhaseControl from "./AdventurePhaseControl.jsx";
 
@@ -867,7 +868,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         const enteredIds = new Set(result.tokens.map(token => token.pokemonId));
         setSelectedTeamPokemonIds(current => current.filter(id => !enteredIds.has(id)));
         await sendEvent("system", {
-            text: `${result.tokens.map(token => token.name).join(", ")} ${result.tokens.length === 1 ? "entrou" : "entraram"} em campo por ${selectedTeam.name}${side === "opponent" ? " no lado dos oponentes" : ""}.`,
+            text: `${result.tokens.map(token => token.name).join(", ")} ${result.tokens.length === 1 ? "entrou" : "entraram"} em campo por ${selectedTeam.name}${side === "opponent" ? " no lado dos oponentes" : side === "neutral" ? " sem lado" : ""}.`,
         });
     };
 
@@ -1538,6 +1539,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                                 Adicionar {availableRosterIds.length || ""} como oponente{availableRosterIds.length === 1 ? "" : "s"}
                                             </button>
                                         </div>
+                                        <button type="button" className="room-secondary-button" disabled={!availableRosterIds.length} onClick={() => addSelectedTeam("neutral")}>Adicionar sem lado</button>
                                         {selectedTeamPokemonToken && <button type="button" className="room-secondary-button" onClick={() => {
                                             setMobilePane("field");
                                             setSelectedTokenId(selectedTeamPokemonToken.id);
@@ -1545,7 +1547,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                                 const button = [...document.querySelectorAll(".room-token")].find(node => node.getAttribute("aria-label")?.startsWith(`${selectedTeamPokemonToken.name},`));
                                                 button?.focus();
                                             });
-                                        }}>{snapshot.phase === "intervalo" ? "Ver ficha" : "Ver no campo"}</button>}
+                                        }}>{"Ver no campo"}</button>}
                                     </>
                                 ) : (
                                     <button type="button" className="room-secondary-button" disabled={!selectedTeam?.pokemon.length} onClick={offerTeam}>Enviar ao Narrador</button>
@@ -1569,6 +1571,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         />
                     </div>
 
+                    <div className={`room-phase-context context-${snapshot.phase}`} role="status">
+                        <strong>{snapshot.phase==="exploracao"?"Explorar e encontrar":snapshot.phase==="interpretacao"?"Interpretar e decidir":snapshot.phase==="batalha"?"Combate em turnos":"Cuidar e preparar"}</strong>
+                        <small>{snapshot.phase==="exploracao"?"Explore o cenário, procure Pokémon e tente capturá-los.":snapshot.phase==="interpretacao"?"Converse e registre as escolhas nas notas da cena.":snapshot.phase==="batalha"?"Declare os movimentos, resolva as ações e acompanhe a iniciativa.":"Descanse, trate condições e prepare os Pokémon para continuar."}</small>
+                    </div>
                     <Battlefield
                         snapshot={snapshot}
                         role={role}
@@ -1583,7 +1589,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}
                         onRoll={generateInitiative} onAdvance={nextTurn} />}
 
-                    {selectedToken && ["batalha", "intervalo"].includes(snapshot.phase) && (
+                    {selectedToken && (
                         <section className="token-inspector">
                             <header className="token-inspector-header">
                                 <div className="token-inspector-identity">
@@ -1598,6 +1604,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                 </div>
                                 <button type="button" className="token-inspector-close" onClick={() => setSelectedTokenId("")} aria-label="Fechar ficha rápida">×</button>
                             </header>
+                            {snapshot.phase === "intervalo" && role === "narrator" && <div className="phase-rest-actions" role="group" aria-label="Cuidados no intervalo">
+                                <strong>Cuidados no intervalo</strong>
+                                <button type="button" disabled={selectedToken.currentHp >= selectedToken.maxHp} onClick={() => updateToken({currentHp:Math.min(selectedToken.maxHp,selectedToken.currentHp+Math.max(1,Math.ceil(selectedToken.maxHp/4)))})}>Descansar · recuperar ¼ do HP</button>
+                                <button type="button" disabled={!selectedToken.status} onClick={() => updateToken({status:"",sleepTurns:null,freezeTurns:null,toxicCounter:0})}>Tratar condição</button>
+                            </div>}
                             <div className="token-battle-vitals">
                                 <div className="token-hp-control">
                                     <span>HP</span>
@@ -1706,13 +1717,20 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     ))}
                                 </div>
                             )}
-                            <SpecialMechanicsPanel
+                            <BattleGimmickPanel
                                 token={selectedToken}
                                 snapshot={snapshot}
                                 role={role}
                                 onTokenChange={replaceSelectedToken}
                                 onNotice={text => setNotice?.({ tone: "blue", text })}
                             />
+                            {snapshot.phase === "batalha" && <SpecialMechanicsPanel
+                                token={selectedToken}
+                                snapshot={snapshot}
+                                role={role}
+                                onTokenChange={replaceSelectedToken}
+                                onNotice={text => setNotice?.({ tone: "blue", text })}
+                            />}
                             <TraitMechanicsPanel
                                 token={selectedToken}
                                 snapshot={snapshot}
@@ -1754,15 +1772,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                             </details>
                             {role === "narrator" && (
                                 <div className="token-management-grid">
-                                    {selectedToken.teraType && (
-                                        <button
-                                            type="button"
-                                            className={`token-tera ${selectedToken.teraActive ? "is-active" : ""}`}
-                                            onClick={() => updateToken({ teraActive: !selectedToken.teraActive })}
-                                        >
-                                            {selectedToken.teraActive ? `Tipo Tera ${formatType(selectedToken.teraType)} ativo` : `Terastalizar como ${formatType(selectedToken.teraType)}`}
-                                        </button>
-                                    )}
                                     <label>
                                         <span>Lado</span>
                                         <RoomSelect aria-label="Lado" value={selectedToken.side} onChange={event => updateToken({ side: event.target.value })}>

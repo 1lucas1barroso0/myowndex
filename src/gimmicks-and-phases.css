@@ -1,0 +1,70 @@
+
+/* Cartridge-like transformations use one compact panel, and never display an
+   unavailable gimmick as a clickable button. */
+html .app-root.game-edition.handheld-edition .battle-gimmick-panel{
+    display:grid;gap:.75rem;grid-column:1/-1;padding:1rem;
+    border:1px solid var(--ui-control-line);border-radius:.65rem;
+    background:var(--ui-panel);min-width:0;
+}
+html .app-root.game-edition.handheld-edition .battle-gimmick-panel header{
+    display:flex;flex-wrap:wrap;justify-content:space-between;gap:.4rem;
+    color:var(--ui-ink);align-items:center;
+}
+html .app-root.game-edition.handheld-edition .battle-gimmick-panel small{color:var(--ui-muted);font-size:.78rem;}
+html .app-root.game-edition.handheld-edition .battle-gimmick-actions{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:.65rem;
+}
+html .app-root.game-edition.handheld-edition .battle-gimmick-actions button{
+    display:grid;grid-template-columns:auto 1fr;gap:.25rem .6rem;min-width:0;min-height:70px;
+    align-items:center;padding:.7rem;border:2px solid var(--ui-control-line);
+    border-radius:.65rem;color:var(--ui-ink);background:var(--ui-raised);
+    text-align:left;cursor:pointer;
+}
+html .app-root.game-edition.handheld-edition .battle-gimmick-actions button:disabled{opacity:.5;cursor:not-allowed;}
+html .app-root.game-edition.handheld-edition .battle-gimmick-actions button small{grid-column:2;}
+html .app-root.game-edition.handheld-edition .gimmick-emblem{
+    grid-row:span 2;display:grid;place-items:center;width:2.65rem;height:2.65rem;
+    background:var(--ui-panel);border:2px solid currentColor;border-radius:50%;
+    font-size:1.5rem;font-weight:900;
+}
+html .app-root.game-edition.handheld-edition .gimmick-mega{border-color:#ae77dc!important;}
+html .app-root.game-edition.handheld-edition .gimmick-tera{border-color:#44b5bd!important;}
+html .app-root.game-edition.handheld-edition .gimmick-dyna{border-color:#ec839d!important;}
+html .app-root.game-edition.handheld-edition .gimmick-gmax{border-color:#f0a967!important;}
+html .app-root.game-edition.handheld-edition .battle-gimmick-current{
+    display:grid;gap:.2rem;padding:.8rem;border-radius:.45rem;
+    border-left:5px solid #62bbba;background:var(--ui-raised);color:var(--ui-ink);
+}
+html .app-root.game-edition.handheld-edition .room-phase-context {
+    display:grid;gap:.2rem;min-width:0;padding:.65rem .9rem;
+    border:1px solid var(--ui-line);border-left:4px solid var(--ui-blue);
+    background:var(--ui-raised);color:var(--ui-ink);
+}
+html .app-root.game-edition.handheld-edition .room-phase-context small{color:var(--ui-muted);font-size:.82rem;}
+html .app-root.game-edition.handheld-edition .room-phase-context.context-intervalo{border-left-color:#299b89;}
+html .app-root.game-edition.handheld-edition .room-phase-context.context-interpretacao{border-left-color:#a681cf;}
+html .app-root.game-edition.handheld-edition .room-phase-context.context-batalha{border-left-color:#d65e6d;}
+html .app-root.game-edition.handheld-edition .phase-rest-actions{
+    grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:.5rem;
+    padding:.75rem;background:var(--ui-raised);border-radius:.4rem;
+}
+html .app-root.game-edition.handheld-edition .phase-rest-actions strong{flex-basis:100%;}
+html .app-root.game-edition.handheld-edition .phase-rest-actions button{
+    min-height:44px;padding:.45rem .7rem;border:1px solid var(--ui-control-line);
+    background:var(--ui-panel);color:var(--ui-ink);border-radius:.35rem;
+}
+html .app-root.game-edition.handheld-edition .phase-rest-actions button:disabled{opacity:.4;}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite-shell{position:relative;}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite-shell::before{
+    content:"";position:absolute;inset:4%;pointer-events:none;z-index:0;
+    border:2px dashed #c6c9ef;border-radius:50%;opacity:.55;
+}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-tera .room-token-sprite-shell::before{border-color:#89ebeb;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-mega .room-token-sprite-shell::before{border-color:#cb9de2;}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick:is(.gimmick-dyna,.gimmick-gmax) .room-token-sprite-shell::before{border-color:#f7abc2;}
+@media(prefers-reduced-motion:no-preference){
+  html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite-shell::before{
+    animation:gimmick-halo 3s ease-in-out infinite alternate;
+  }
+}
+@keyframes gimmick-halo{from{opacity:.25;transform:scale(.93)}to{opacity:.72;transform:scale(1.03)}}

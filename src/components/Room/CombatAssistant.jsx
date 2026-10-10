@@ -446,6 +446,10 @@ export default function CombatAssistant({
                 </button>
                 {result && (
                     <div className={`combat-result ${result.moveConnected ? "is-hit" : "is-miss"}${compact && role !== "narrator" ? " is-simulation" : ""}`} aria-live="polite">
+                        {result.usedMove?.kind && result.usedMove.kind!=="normal" && <div className={`combat-move-reveal is-${result.usedMove.kind}`} role="status">
+                            <strong>{result.usedMove.name}</strong>
+                            <small>{formatType(result.usedMove.type)} · {result.usedMove.power>0 ? `Poder ${result.usedMove.power}` : "Movimento de estado"} · Original: {formatName(result.usedMove.baseMove)}</small>
+                        </div>}
                         {compact && (
                             <div className="combat-result-summary">
                                 {result.blockedByCondition && <strong className="combat-result-outcome">Não conseguiu agir</strong>}
@@ -493,9 +497,7 @@ export default function CombatAssistant({
                         {compact && <summary>Detalhes da jogada</summary>}
                         <ResultDetailsBody {...(compact ? { className: "combat-result-detail-body" } : {})}>
                         {result.conditionNotes?.map(note => <p key={note}>{note}</p>)}
-                        {result.usedMove?.kind && result.usedMove.kind!=="normal" && <div className={`combat-move-reveal is-${result.usedMove.kind}`} role="status">
-                            <strong>{result.usedMove.name}</strong><small>{formatType(result.usedMove.type)} · Poder {result.usedMove.power} · Origem: {formatName(result.usedMove.baseMove)}</small>
-                        </div>}
+                        
                         {result.specialMoveNotes?.map((note,index)=><p key={`gimmick-note-${index}`} className="combat-special-explanation">{note}</p>)}
                         <div className="combat-result-metric is-resolution">
                             <small>Forma de resolução</small>

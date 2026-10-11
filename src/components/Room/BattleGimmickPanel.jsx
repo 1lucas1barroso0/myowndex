@@ -82,7 +82,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
             {["dyna","gmax"].includes(state.active)&&state.rounds>0&&<small>{state.rounds} {state.rounds===1?"rodada restante":"rodadas restantes"}</small>}
             {state.active==="primal" && <small>Orb equipada • sem limite de três rodadas</small>}
             {state.active==="ultra" && state.rounds>0 && <small>Light That Burns the Sky fica disponível na próxima rodada</small>}
-            {state.active==="eternamax" && role==="narrator" && <button type="button" disabled={Boolean(busy)} onClick={()=>void onTokenChange(endGimmick(token))}>Encerrar Eternamax</button>}
+            {["eternamax","primal"].includes(state.active) && role==="narrator" && <button type="button" disabled={Boolean(busy)} onClick={()=>void onTokenChange(endGimmick(token))}>{state.active==="primal"?"Encerrar Reversão Primitiva":"Encerrar Eternamax"}</button>}
         </div> : options.length>0&&<div className="battle-gimmick-actions">
             {options.map(choice=><button type="button" key={choice.id} className={`gimmick-action gimmick-${choice.id}`}
               title={choice.hint} disabled={role!=="narrator"||Boolean(busy)}

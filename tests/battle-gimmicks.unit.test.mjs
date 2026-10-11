@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {applyGimmick,advanceGimmickRound,canUseZMove,endGimmick,getGimmickChoices,getZMovePower,megaFormFor,normalizeGimmickState,trainerHasUsedGimmick} from "../src/core/battleGimmicks.js";
-import {applyEndOfRoundEffects,changeRoomPhase,createRoomSnapshot,normalizeRoomToken,startNewRoomBattle} from "../src/core/room.js";
+import {applyEndOfRoundEffects,changeRoomPhase,createRoomSnapshot,normalizeRoomToken,startNewRoomBattle,swapTeamPokemonInSnapshot} from "../src/core/room.js";
 
 const base=()=>normalizeRoomToken({
  id:"charizard",name:"Charizard",pokemonId:"chari",teamId:"box-one",
@@ -215,4 +215,20 @@ test("Ultra Burst requires fused Necrozma with its Z-Crystal; Light That Burns t
      speciesName:original,formName:original,moves:["photon-geyser"]};
    assert.ok(!getGimmickChoices(wrong).some(x=>x.id==="ultra"));
  }
+});
+
+
+test("Primal Reversion ends on switching out and can recur after reentry",()=>{
+ const normal={...base(),id:"groudon-switch",teamId:"hoenn",speciesName:"groudon",speciesId:383,
+   formName:"groudon",item:"red-orb",teraType:""};
+ const active=applyGimmick(normal,"primal").token;
+ assert.equal(active.gimmickState.active,"primal");
+ const replacement={...base(),id:"backup",teamId:"hoenn",item:"",teraType:""};
+ const room={...createRoomSnapshot(),phase:"batalha",battleStarted:true,tokens:[active],benchTokens:[replacement]};
+ const switched=swapTeamPokemonInSnapshot(room,normal.id,replacement.id);
+ assert.equal(switched.swapped,true);
+ const recovered=switched.room.benchTokens.find(token=>token.id===normal.id);
+ assert.equal(recovered.speciesId,383);
+ assert.equal(recovered.gimmickState.active,"");
+ assert.ok(getGimmickChoices(recovered).some(x=>x.id==="primal"));
 });

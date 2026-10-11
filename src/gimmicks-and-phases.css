@@ -164,3 +164,7 @@ html .app-root.game-edition.handheld-edition .gimmick-move-preview li small{
 
 /* Aura and glow follow the actual scaled Pokémon, not its fixed click target. */
 html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-eternamax .room-token-sprite::before{border-color:#df98f8;}
+
+/* Primal and Ultra Burst use the same scalable sprite-attached cue. */
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-primal .room-token-sprite::before{border-color:#f6b96b;}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-ultra .room-token-sprite::before{border-color:#f6f18d;}

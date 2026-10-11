@@ -72,9 +72,43 @@ ability:token.ability,stats:{...token.stats},originalStats:{...token.originalSta
 maxHp:token.maxHp,currentHp:token.currentHp,
 });
 const baseState = () => ({active:"",used:[],rounds:0,base:null,form:""});
+// Official form identifiers remain verified via the PokeAPI species record.
+const EXCEPTIONAL_FORMS = Object.freeze({
+ "kyogre-primal": 10077,"groudon-primal": 10078,"rayquaza-mega":10079,"necrozma-ultra":10157,
+});
+// Immutable main-series form data, independent of API availability.
+const asForm = (name,id,height,types,ability,stats)=>Object.freeze({
+ name,id,height,
+ types:types.map(type=>({type:{name:type}})),
+ abilities:[{ability:{name:ability}}],
+ stats:Object.entries(stats).map(([name,base_stat])=>({stat:{name},base_stat})),
+});
+export const EXCEPTIONAL_FORM_DATA = Object.freeze({
+ "kyogre-primal":asForm("kyogre-primal",10077,98,["water"],"primordial-sea",
+   {hp:100,attack:150,defense:90,"special-attack":180,"special-defense":160,speed:90}),
+ "groudon-primal":asForm("groudon-primal",10078,50,["ground","fire"],"desolate-land",
+   {hp:100,attack:180,defense:160,"special-attack":150,"special-defense":90,speed:90}),
+ "rayquaza-mega":asForm("rayquaza-mega",10079,108,["dragon","flying"],"delta-stream",
+   {hp:105,attack:180,defense:100,"special-attack":180,"special-defense":100,speed:115}),
+ "necrozma-ultra":asForm("necrozma-ultra",10157,75,["psychic","dragon"],"neuroforce",
+   {hp:97,attack:167,defense:97,"special-attack":167,"special-defense":97,speed:129}),
+});
+const primalFormFor = token => {
+ const species=baseSpecies(token),item=slug(token?.item);
+ if(species==="kyogre" && item==="blue-orb" && Number(token.speciesId)===382)return "kyogre-primal";
+ if(species==="groudon" && item==="red-orb" && Number(token.speciesId)===383)return "groudon-primal";
+ return "";
+};
+const ultraFormFor = token => {
+ const form=formIdentity(token);
+ return slug(token?.item)==="ultranecrozium-z"
+   && ["necrozma-dusk","necrozma-dawn"].includes(form)
+   && [10155,10156].includes(Number(token.speciesId))
+   ? "necrozma-ultra" : "";
+};
 export const normalizeGimmickState = value=>{
- const used=[...new Set((Array.isArray(value?.used)?value.used:[]).filter(id=>["mega","tera","dyna","gmax","eternamax","z"].includes(id)))].slice(0,5);
- const active=["mega","tera","dyna","gmax","eternamax"].includes(value?.active)?value.active:"";
+ const used=[...new Set((Array.isArray(value?.used)?value.used:[]).filter(id=>["mega","tera","dyna","gmax","eternamax","primal","ultra","z"].includes(id)))].slice(0,8);
+ const active=["mega","tera","dyna","gmax","eternamax","primal","ultra"].includes(value?.active)?value.active:"";
  return {...baseState(),active,used,rounds:integerInRange(value?.rounds,0,3,0),
    base:value?.base&&typeof value.base==="object"?baseline(value.base):null,
    form:slug(value?.form).slice(0,80)};
@@ -82,6 +116,8 @@ export const normalizeGimmickState = value=>{
 const baseSpecies=token=>slug(token?.gimmickState?.base?.speciesName||token?.speciesName).replace(/-(?:mega(?:-[xy])?|gmax)$/,"");
 export const megaFormFor = token =>{
  const item=slug(token?.item),species=baseSpecies(token);
+ if(species==="rayquaza" && Number(token.speciesId)===384)
+   return (token.moves||[]).includes("dragon-ascent") && !item.endsWith("-z")?"rayquaza-mega":"";
  if(STONE_TO_SPECIES.get(item)!==species || /-(?:alola|galar|hisui|paldea)(?:-|$)/.test(formIdentity(token)))return "";
  const suffix=item.endsWith("-x")?"-x":item.endsWith("-y")?"-y":"";
  return `${species}-mega${suffix}`;
@@ -92,7 +128,7 @@ const trainerGroupKey = token => token?.ownerPlayerId ? `player:${token.ownerPla
 export const trainerHasUsedGimmick = (token,snapshot,kind="") => {
     const key=trainerGroupKey(token);
     if(!key || !snapshot)return false;
-    const family=kind==="gmax"||kind==="dyna"?["dyna","gmax"]:kind?[kind]:["mega","tera","dyna","gmax","eternamax","z"];
+    const family=kind==="gmax"||kind==="dyna"?["dyna","gmax"]:kind?[kind]:["mega","tera","dyna","gmax","eternamax","primal","ultra","z"];
     return [...(snapshot.tokens||[]),...(snapshot.benchTokens||[])].some(other=>
       other.id!==token.id && trainerGroupKey(other)===key
       && normalizeGimmickState(other.gimmickState,other).used.some(id=>family.includes(id)));
@@ -102,13 +138,20 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  const state=normalizeGimmickState(token.gimmickState,token);
  if(state.active)return [];
  const used=new Set(state.used);
- const locked=used.has("mega")||used.has("tera")||used.has("dyna")||used.has("gmax")||used.has("eternamax")||used.has("z");
+ const locked=["mega","tera","dyna","gmax","eternamax","ultra","z"].some(id=>used.has(id));
  if(locked)return [];
  const options=[];
+ const primal=primalFormFor(token),ultra=ultraFormFor(token);
+ // Primal Reversion is per Pokémon, without the once-per-trainer Mega limit.
+ if(primal)options.push({id:"primal",label:"Reversão Primitiva",form:primal,
+     hint:"Orb correspondente equipada • ativa enquanto estiver no campo"});
+ // Ultra Burst needs fused Necrozma plus Ultranecrozium Z, once per battle.
+ if(ultra)options.push({id:"ultra",label:"Ultra Burst",form:ultra,
+     hint:"Necrozma fundido + Ultranecrozium Z • uma vez por batalha"});
  // Eternamax is a Narrator-directed Eternatus boss form, not normal Dynamax.
  if((baseSpecies(token)==="eternatus" || token.speciesId===890) && !used.has("eternamax"))
    options.push({id:"eternamax",label:"Eternamax (Narrador)",form:"eternatus-eternamax",hint:"Forma especial de chefe • 100 m • duração controlada pelo Narrador"});
- if(megaFormFor(token)&&!used.has("mega")&&!trainerHasUsedGimmick(token,snapshot,"mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:"Mega Stone correspondente equipada"});
+ if(megaFormFor(token)&&!used.has("mega")&&!trainerHasUsedGimmick(token,snapshot,"mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:megaFormFor(token)==="rayquaza-mega"?"Dragon Ascent conhecido • sem Z-Crystal":"Mega Stone correspondente equipada"});
  if(slug(token.teraType) && !used.has("tera")&&!trainerHasUsedGimmick(token,snapshot,"tera"))options.push({id:"tera",label:"Terastalização",hint:`Tipo Tera: ${token.teraType}`});
  const level=integerInRange(token.dynamaxLevel,0,10,0);
  if(baseSpecies(token)!=="eternatus" && token.speciesId!==890 && level>0&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
@@ -120,8 +163,15 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
 export const canUseZMove = (token,move,snapshot=null) => {
  if(!token || !move || !Array.isArray(token.moves) || !token.moves.includes(slug(move.name)) || token.currentHp<=0)return false;
  const state=normalizeGimmickState(token.gimmickState,token);
- if(trainerHasUsedGimmick(token,snapshot,"z")||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax","eternamax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status")return false;
- const crystal=slug(token.item),specific=SPECIFIC_Z[crystal];
+ const crystal=slug(token.item);
+ const moveId=slug(move.name);
+ if(state.active==="ultra" && state.form==="necrozma-ultra"
+    && state.rounds===0 && crystal==="ultranecrozium-z"
+    && moveId==="photon-geyser" && !state.used.includes("z")
+    && !trainerHasUsedGimmick(token,snapshot,"z")
+    && slug(move.damage_class?.name)!=="status")return true;
+ if(trainerHasUsedGimmick(token,snapshot,"z")||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax","eternamax","primal","ultra"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status")return false;
+ const specific=SPECIFIC_Z[crystal];
  if(specific) {
    const form=formIdentity(token), species=baseSpecies(token).replace(/-alola$/, "");
    if(crystal==="pikashunium-z" && !/-cap$/.test(form))return false;
@@ -145,12 +195,18 @@ export const maxMovePower = (power,type="") =>{
 };
 export const applyGimmick = (token,id,{formData=null}={})=>{
  if(id==="eternamax" && !formData)formData=ETERNAMAX_FORM_DATA;
+ if(!formData && id!=="eternamax"){
+   const selection=getGimmickChoices(token).find(choice=>choice.id===id);
+   if(selection && EXCEPTIONAL_FORM_DATA[selection.form])formData=EXCEPTIONAL_FORM_DATA[selection.form];
+ }
  const option=getGimmickChoices(token).find(g=>g.id===id);
  if(!option)return {applied:false,token,reason:"Esta transformação não está disponível para este Pokémon."};
  if(id==="eternamax" && (token.speciesId!==890 || Number(formData?.id)!==10190)) return {applied:false,token,reason:"Eternamax só pode ser aplicada ao Eternatus na sua forma normal."};
+ if(EXCEPTIONAL_FORMS[option.form] && Number(formData?.id)!==EXCEPTIONAL_FORMS[option.form])
+   return {applied:false,token,reason:"A identidade desta forma oficial não corresponde ao Pokémon."};
  if(option.form && (!formData || slug(formData.name)!==option.form || !Array.isArray(formData.stats)))return {applied:false,token,reason:"Não foi possível confirmar a forma oficial."};
  const state=normalizeGimmickState(token.gimmickState,token);
- const nextState={...state,active:id,used:[...new Set([...state.used,id])],rounds:id==="dyna"||id==="gmax"?3:0,base:baseline(token),form:option.form||""};
+ const nextState={...state,active:id,used:[...new Set([...state.used,id])],rounds:id==="dyna"||id==="gmax"?3:id==="ultra"?1:0,base:baseline(token),form:option.form||""};
  let changed={...token,gimmickState:nextState,teraActive:id==="tera"};
  if(id==="dyna"||id==="gmax"){
    const ratio=1.5+integerInRange(token.dynamaxLevel,1,10,1)*.05;
@@ -197,6 +253,8 @@ export const endGimmick = (token,{reset=false}={})=>{
 };
 export const advanceGimmickRound = token => {
  const state=normalizeGimmickState(token.gimmickState,token);
+ if(state.active==="ultra" && state.rounds>0)
+   return {...token,gimmickState:{...state,rounds:state.rounds-1}};
  if(!["dyna","gmax"].includes(state.active))return token;
  if(state.rounds<=1)return endGimmick(token);
  return {...token,gimmickState:{...state,rounds:state.rounds-1}};

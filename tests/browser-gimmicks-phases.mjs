@@ -203,6 +203,37 @@ try{
     await boss.getByRole("button",{name:"Encerrar Eternamax"}).click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].gimmickState.active==="");
     assert.equal((await snapshot()).tokens[0].speciesId,890);
+    // Canonical exceptional forms must actually appear in the Narrator UI and
+    // operate offline, without Z-Crystals or Mega Stones being misapplied.
+    for(const entry of [
+      {id:384,name:"rayquaza",item:"",moves:["dragon-ascent"],className:"mega",form:10079},
+      {id:382,name:"kyogre",item:"blue-orb",moves:["surf"],className:"primal",form:10077},
+      {id:10155,name:"necrozma-dusk",item:"ultranecrozium-z",moves:["photon-geyser"],className:"ultra",form:10157}
+    ]){
+      await page.evaluate(e=>{
+        const key="myowndex_local_room_v1",room=JSON.parse(localStorage.getItem(key));
+        const token=room.snapshot.tokens[0];
+        room.snapshot.tokens=[{...token,id:"special-"+e.id,teamId:"special-"+e.id,
+           name:e.name,formName:e.name,speciesName:e.name,speciesId:e.id,item:e.item,
+           teraType:"",dynamaxLevel:0,moves:e.moves,sprite:"",
+           gimmickState:{active:"",used:[],rounds:0,base:null,form:""}}];
+        room.snapshot.phase="batalha";room.snapshot.battleStarted=true;room.snapshot.initiative=[];
+        localStorage.setItem(key,JSON.stringify(room));
+      },entry);
+      await page.reload({waitUntil:"domcontentloaded"});
+      await page.getByRole("button",{name:"Abrir a Central da Aventura",exact:true}).click();
+      if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
+      const special=page.locator(".battle-gimmick-panel");
+      await special.waitFor();
+      await special.locator(".gimmick-action.gimmick-"+entry.className).click();
+      await page.waitForFunction(id=>{
+        const room=JSON.parse(localStorage.getItem("myowndex_local_room_v1"));
+        return room.snapshot.tokens[0].speciesId===id;
+      },entry.form);
+      assert.equal((await snapshot()).tokens[0].speciesId,entry.form,
+          entry.name+" must enter the official form without fabricated requirements");
+      assert.equal(await page.locator(".room-token.gimmick-"+entry.className).count(),1);
+    }
     assert.deepEqual(errors,[]);
-    console.log("Passed phase controls, proportional gimmick overlays, and Eternamax boss form.");
+    console.log("Phases, scalable halos, Eternamax, Rayquaza, Primal Reversion and Ultra Burst passed.");
 }finally{await browser.close();}

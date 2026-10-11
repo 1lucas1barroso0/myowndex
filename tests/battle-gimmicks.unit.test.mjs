@@ -148,3 +148,71 @@ test("Eternamax is an Eternatus boss form, not an ordinary Dynamax",()=>{
  assert.equal(applyGimmick({...e,speciesId:6},"eternamax").applied,false);
  assert.equal(applyGimmick(e,"eternamax",{formData:{id:123,name:"eternatus-eternamax",stats:[]}}).applied,false);
 });
+
+
+test("Rayquaza uses Dragon Ascent instead of a Mega Stone, without Z-Crystal",()=>{
+ const ray={...base(),id:"ray",speciesName:"rayquaza",formName:"rayquaza",speciesId:384,item:"",
+     teraType:"",moves:["dragon-ascent","aerial-ace"],stats:{...base().stats}};
+ assert.equal(megaFormFor(ray),"rayquaza-mega");
+ assert.equal(megaFormFor({...ray,moves:["fly"]}),"");
+ assert.equal(megaFormFor({...ray,item:"flyinium-z"}),"");
+ assert.equal(megaFormFor({...ray,speciesId:25}),"");
+ const mega=applyGimmick(ray,"mega");
+ assert.equal(mega.applied,true);
+ assert.equal(mega.token.speciesId,10079);
+ assert.equal(mega.token.ability,"delta-stream");
+ assert.deepEqual(mega.token.types,["dragon","flying"]);
+ assert.equal(endGimmick(mega.token).speciesId,384);
+});
+
+test("Primal Reversion needs the correct Orb, changes statistics, and does not consume another trainer's Mega",()=>{
+ const kyogre={...base(),id:"kyogre",speciesId:382,speciesName:"kyogre",formName:"kyogre",item:"blue-orb",
+     teraType:"",teamId:"team-primal"};
+ const groudon={...base(),id:"groudon",speciesId:383,speciesName:"groudon",formName:"groudon",item:"red-orb",
+     teraType:"",teamId:"team-primal"};
+ for(const [pokemon,id,ability,types] of [[kyogre,10077,"primordial-sea",["water"]],[groudon,10078,"desolate-land",["ground","fire"]]]){
+     const option=getGimmickChoices(pokemon).find(x=>x.id==="primal");
+     assert.ok(option);
+     const change=applyGimmick(pokemon,"primal");
+     assert.equal(change.applied,true);
+     assert.equal(change.token.speciesId,id);
+     assert.equal(change.token.ability,ability);
+     assert.deepEqual(change.token.types,types);
+     assert.equal(change.token.maxHp,pokemon.maxHp);
+     assert.equal(advanceGimmickRound(change.token).gimmickState.active,"primal");
+     const released=endGimmick(change.token);
+     assert.equal(released.speciesId,pokemon.speciesId);
+     assert.ok(getGimmickChoices(released).some(x=>x.id==="primal"),"Primal Reversion can happen again on reentry");
+ }
+ assert.ok(!getGimmickChoices({...kyogre,item:"red-orb"}).some(x=>x.id==="primal"));
+ assert.ok(!getGimmickChoices({...groudon,item:"blue-orb"}).some(x=>x.id==="primal"));
+ const used=applyGimmick(kyogre,"primal").token;
+ const other={...base(),id:"charizard-other",teamId:"team-primal"};
+ assert.ok(getGimmickChoices(other,{snapshot:{tokens:[used,other],benchTokens:[]}}).some(x=>x.id==="mega"));
+ assert.ok(getGimmickChoices(groudon,{snapshot:{tokens:[used,groudon],benchTokens:[]}}).some(x=>x.id==="primal"));
+});
+
+test("Ultra Burst requires fused Necrozma with its Z-Crystal; Light That Burns the Sky waits one round",()=>{
+ const photon={name:"photon-geyser",type:{name:"psychic"},damage_class:{name:"special"},power:100};
+ for(const [id,name] of [[10155,"necrozma-dusk"],[10156,"necrozma-dawn"]]){
+     const necrozma={...base(),id:"necrozma-"+id,teamId:"boss-team",speciesId:id,
+         speciesName:name,formName:name,teraType:"",item:"ultranecrozium-z",moves:["photon-geyser","protect"]};
+     assert.ok(getGimmickChoices(necrozma).some(x=>x.id==="ultra"));
+     const change=applyGimmick(necrozma,"ultra");
+     assert.equal(change.applied,true);
+     assert.equal(change.token.speciesId,10157);
+     assert.equal(change.token.ability,"neuroforce");
+     assert.deepEqual(change.token.types,["psychic","dragon"]);
+     assert.equal(canUseZMove(change.token,photon),false,"No immediate same-round signature Z-Move");
+     const later=advanceGimmickRound(change.token);
+     assert.equal(later.gimmickState.active,"ultra");
+     assert.equal(canUseZMove(later,photon),true,"Signature Z-Move becomes available next round");
+     assert.equal(canUseZMove({...later,gimmickState:{...later.gimmickState,used:["ultra","z"]}},photon),false);
+     assert.equal(endGimmick(later).speciesId,id);
+ }
+ for(const original of ["necrozma","necrozma-ultra","necrozma-dusk"]){
+   const wrong={...base(),item:"ultranecrozium-z",teraType:"",speciesId:800,
+     speciesName:original,formName:original,moves:["photon-geyser"]};
+   assert.ok(!getGimmickChoices(wrong).some(x=>x.id==="ultra"));
+ }
+});

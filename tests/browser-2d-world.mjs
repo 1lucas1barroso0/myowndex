@@ -148,7 +148,7 @@ async function authoredMotion(name) {
 
 async function physicalScaleAndPortraits() {
     const token = (id, name, speciesId, side, x, y) => ({ id, name, speciesId, speciesName: speciesId === 669 ? 'flabebe' : 'wailord', sprite: `/sprites/${speciesId}.png`, side, x, y, level:20, currentHp:12, maxHp:20, stats:{ hp:20, attack:5, defense:5, 'special-attack':5, 'special-defense':5, speed:5 }, types:[speciesId === 669 ? 'fairy' : 'water'], moves:['tackle','','',''], pp:[9,null,null,null] });
-    const seed = normalizeRoomSnapshot({ ...createRoomSnapshot('Escala e retratos'), phase:'batalha', round:3, tokens:[token('world-tiny','Flabébé',669,'ally',30,75),token('world-giant','Wailord',321,'opponent',70,25)] });
+    const seed = normalizeRoomSnapshot({ ...createRoomSnapshot('Escala e retratos'), phase:'batalha', round:3, tokens:[{...token('world-tiny','Flabébé',669,'ally',30,75),sprite:''},{...token('world-giant','Wailord',321,'opponent',70,25),sprite:'/sprites/missing-legacy-321.png'}] });
     await page.evaluate(seed => {
         localStorage.setItem('myowndex_live_room_v1', JSON.stringify({ code:'LOCAL',key:'world-scale-audit',role:'narrator',displayName:'Narrador',local:true }));
         localStorage.setItem('myowndex_local_room_v1', JSON.stringify({ code:'LOCAL',title:seed.title,revision:0,updatedAt:new Date().toISOString(),snapshot:seed,players:[],events:[],media:[] }));
@@ -174,7 +174,9 @@ async function physicalScaleAndPortraits() {
         const tiny = scales.find(sprite=>sprite.height===1), giant = scales.find(sprite=>sprite.height===145);
         assert.ok(tiny&&giant,'The exact official 1dm and 145dm heights are retained');
         assert.ok(Math.abs(giant.scale/tiny.scale-145)<.001,'Shared scene scale keeps the exact 145:1 physical ratio');
-        assert.ok(tiny.frameHeight>0&&giant.frameHeight>0&&Math.abs(tiny.frameHeight-giant.frameHeight/145)<.025,'The rendered scene body frames actually use the documented physical ratio');
+        assert.ok(tiny.frameHeight>=31.5,'Flabébé is never reduced to an invisible speck, even beside Wailord');
+        assert.ok(giant.frameHeight>=tiny.frameHeight,'Larger Pokémon remain visibly larger');
+        assert.ok(Math.abs(giant.frameHeight-Math.max(32,giant.scale*112))<3,'Large sprites keep scene-relative dimensions when legible');
         for (const name of ['Flabébé','Wailord']) {
             const button = party.getByRole('button',{name:new RegExp(`^Ver ${name}(?:,|$)`)});
             await button.scrollIntoViewIfNeeded();

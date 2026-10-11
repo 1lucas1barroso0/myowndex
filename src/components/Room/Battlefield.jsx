@@ -34,7 +34,7 @@ const displayedPokemonId = (token, display) => display.disguised
 const fieldPresentation = token => {
     const display = getBattleDisplayIdentity(token);
     const pokemonId = displayedPokemonId(token, display);
-    const growing=["dyna","gmax"].includes(token.gimmickState?.active);
+    const growing=["dyna","gmax","eternamax"].includes(token.gimmickState?.active);
     const height = getPokemonDisplayHeight({ src: growing ? token.gimmickState?.base?.sprite || display.sprite : display.sprite, pokemonId: growing ? token.gimmickState?.base?.speciesId || pokemonId : pokemonId });
     const sources = getPokemonSpriteSources({ src: display.sprite, pokemonId });
     const bodyAspect = Math.max(1, ...[...sources.animated, ...sources.static].map(source => {
@@ -69,7 +69,7 @@ const Token = ({
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
     const gimmick = token.gimmickState?.active || "";
-    const shapeLabel = gimmick==="mega" ? "Mega Evolução" : gimmick==="gmax" ? "Gigantamax" : gimmick==="dyna" ? "Dynamax" : gimmick==="tera" ? `Tipo Tera ${formatType(token.teraType)}` : "";
+    const shapeLabel = gimmick==="eternamax" ? "Eternamax" : gimmick==="mega" ? "Mega Evolução" : gimmick==="gmax" ? "Gigantamax" : gimmick==="dyna" ? "Dynamax" : gimmick==="tera" ? `Tipo Tera ${formatType(token.teraType)}` : "";
 
     return (
     <button
@@ -95,8 +95,7 @@ const Token = ({
         aria-label={`${display.name}, nível ${token.level}${showHp ? `, ${token.currentHp} de ${token.maxHp} pontos de vida` : ""}${token.status ? `, ${STATUS_LABELS[token.status] || formatName(token.status)}` : ""}, ${HIT_KILL_FIELD_LABELS[protectionState]}${token.currentHp <= 0 ? ", não pode mais batalhar" : ""}${token.teraActive ? `, tipo Tera ${formatType(token.teraType)} ativo` : ""}${gimmick ? `, mecânica ${gimmick} ativa` : ""}${traits.ability ? `, habilidade ${formatName(traits.ability.id)} ${traits.abilityActive ? "ativa" : "suprimida"}` : ""}${traits.item ? `, item ${formatName(traits.item.id)} ${traits.itemConsumed ? "consumido" : "ativo"}` : ""}${display.transformed ? ", transformação ativa" : ""}${display.disguised ? ", aparência alterada" : ""}${canMove ? ", pode ser movido" : ""}`}
     >
         <span className="room-token-sprite-shell">
-            {shapeLabel && <span className={`room-token-gimmick-mark mark-${gimmick}`} aria-hidden="true">{gimmick==="tera" ? <><span className="crystal-symbol">◆</span><small>{formatType(token.teraType)}</small></> : gimmick==="mega" ? "✦" : "◈"}</span>}
-            {display.sprite ? (
+            {displayedPokemonId(token, display) > 0 || display.sprite ? (
                 <PokemonSprite
                     src={display.sprite}
                     pokemonId={displayedPokemonId(token, display)}
@@ -106,7 +105,9 @@ const Token = ({
                     alt=""
                     className={`room-token-sprite pixelated ${mirrored && token.side === "ally" ? "is-mirrored" : ""}`}
                     fallbackClassName="room-token-fallback"
-                />
+                >
+                    {shapeLabel && <span className={`room-token-gimmick-mark mark-${gimmick}`} aria-hidden="true">{gimmick==="tera" ? <><span className="crystal-symbol">◆</span><small>{formatType(token.teraType)}</small></> : gimmick==="mega" ? "✦" : "◈"}</span>}
+                </PokemonSprite>
             ) : <span className="room-token-fallback" aria-hidden="true">●</span>}
         </span>
     </button>

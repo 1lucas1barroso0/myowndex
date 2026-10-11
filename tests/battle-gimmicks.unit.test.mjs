@@ -123,3 +123,28 @@ test("G-Max field effect remains for four rounds, damages eligible foes and rese
  const fresh=startNewRoomBattle(room);
  assert.deepEqual(fresh.gmaxHazards,[]);
 });
+
+test("Eternamax is an Eternatus boss form, not an ordinary Dynamax",()=>{
+ const e={...base(),id:"eternatus",speciesId:890,speciesName:"eternatus",
+   formName:"eternatus",item:"",teraType:"poison",dynamaxLevel:10,canGMax:false,
+   maxHp:20,currentHp:20,types:["poison","dragon"],originalTypes:["poison","dragon"]};
+ const options=getGimmickChoices(e);
+ assert.ok(options.some(x=>x.id==="eternamax" && x.form==="eternatus-eternamax"));
+ assert.ok(!options.some(x=>["dyna","gmax"].includes(x.id)));
+ const next=applyGimmick(e,"eternamax");
+ assert.equal(next.applied,true);
+ assert.equal(next.token.speciesId,10190);
+ assert.equal(next.token.gimmickState.active,"eternamax");
+ assert.equal(next.token.gimmickState.rounds,0);
+ assert.match(next.token.sprite,/\/sprites\/native\//);
+ assert.ok(next.token.maxHp>e.maxHp);
+ assert.equal(advanceGimmickRound(next.token).gimmickState.active,"eternamax");
+ assert.equal(normalizeRoomToken(next.token).gimmickState.active,"eternamax");
+ const restored=endGimmick(next.token);
+ assert.equal(restored.speciesId,890);
+ assert.equal(restored.maxHp,e.maxHp);
+ assert.equal(restored.currentHp,e.currentHp);
+ assert.equal(restored.sprite,e.sprite);
+ assert.equal(applyGimmick({...e,speciesId:6},"eternamax").applied,false);
+ assert.equal(applyGimmick(e,"eternamax",{formData:{id:123,name:"eternatus-eternamax",stats:[]}}).applied,false);
+});

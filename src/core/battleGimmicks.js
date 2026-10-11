@@ -57,6 +57,14 @@ const SPECIFIC_Z = Object.freeze({
 "solganium-z":["solgaleo","sunsteel-strike"],"tapunium-z":["tapu","natures-madness"],
 "ultranecrozium-z":["necrozma","photon-geyser"],
 });
+// Official, boss-only Eternamax data stored locally for offline play.
+const ETERNAMAX_STATS=Object.freeze({hp:255,attack:115,defense:250,"special-attack":125,"special-defense":250,speed:130});
+export const ETERNAMAX_FORM_DATA=Object.freeze({
+ id:10190,name:"eternatus-eternamax",height:1000,
+ types:[{type:{name:"poison"}},{type:{name:"dragon"}}],
+ stats:Object.entries(ETERNAMAX_STATS).map(([name,base_stat])=>({stat:{name},base_stat})),
+ abilities:[{ability:{name:"pressure"}}],
+});
 const baseline = token => ({
 speciesName:slug(token.speciesName),speciesId:token.speciesId,sprite:token.sprite,shiny:Boolean(token.shiny),formName:slug(token.formName),
 types:[...(token.types||[])],originalTypes:[...(token.originalTypes||[])],
@@ -65,8 +73,8 @@ maxHp:token.maxHp,currentHp:token.currentHp,
 });
 const baseState = () => ({active:"",used:[],rounds:0,base:null,form:""});
 export const normalizeGimmickState = value=>{
- const used=[...new Set((Array.isArray(value?.used)?value.used:[]).filter(id=>["mega","tera","dyna","gmax","z"].includes(id)))].slice(0,5);
- const active=["mega","tera","dyna","gmax"].includes(value?.active)?value.active:"";
+ const used=[...new Set((Array.isArray(value?.used)?value.used:[]).filter(id=>["mega","tera","dyna","gmax","eternamax","z"].includes(id)))].slice(0,5);
+ const active=["mega","tera","dyna","gmax","eternamax"].includes(value?.active)?value.active:"";
  return {...baseState(),active,used,rounds:integerInRange(value?.rounds,0,3,0),
    base:value?.base&&typeof value.base==="object"?baseline(value.base):null,
    form:slug(value?.form).slice(0,80)};
@@ -84,7 +92,7 @@ const trainerGroupKey = token => token?.ownerPlayerId ? `player:${token.ownerPla
 export const trainerHasUsedGimmick = (token,snapshot,kind="") => {
     const key=trainerGroupKey(token);
     if(!key || !snapshot)return false;
-    const family=kind==="gmax"||kind==="dyna"?["dyna","gmax"]:kind?[kind]:["mega","tera","dyna","gmax","z"];
+    const family=kind==="gmax"||kind==="dyna"?["dyna","gmax"]:kind?[kind]:["mega","tera","dyna","gmax","eternamax","z"];
     return [...(snapshot.tokens||[]),...(snapshot.benchTokens||[])].some(other=>
       other.id!==token.id && trainerGroupKey(other)===key
       && normalizeGimmickState(other.gimmickState,other).used.some(id=>family.includes(id)));
@@ -94,13 +102,16 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  const state=normalizeGimmickState(token.gimmickState,token);
  if(state.active)return [];
  const used=new Set(state.used);
- const locked=used.has("mega")||used.has("tera")||used.has("dyna")||used.has("gmax")||used.has("z");
+ const locked=used.has("mega")||used.has("tera")||used.has("dyna")||used.has("gmax")||used.has("eternamax")||used.has("z");
  if(locked)return [];
  const options=[];
+ // Eternamax is a Narrator-directed Eternatus boss form, not normal Dynamax.
+ if((baseSpecies(token)==="eternatus" || token.speciesId===890) && !used.has("eternamax"))
+   options.push({id:"eternamax",label:"Eternamax (Narrador)",form:"eternatus-eternamax",hint:"Forma especial de chefe • 100 m • duração controlada pelo Narrador"});
  if(megaFormFor(token)&&!used.has("mega")&&!trainerHasUsedGimmick(token,snapshot,"mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:"Mega Stone correspondente equipada"});
  if(slug(token.teraType) && !used.has("tera")&&!trainerHasUsedGimmick(token,snapshot,"tera"))options.push({id:"tera",label:"Terastalização",hint:`Tipo Tera: ${token.teraType}`});
  const level=integerInRange(token.dynamaxLevel,0,10,0);
- if(level>0&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
+ if(baseSpecies(token)!=="eternatus" && token.speciesId!==890 && level>0&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
    options.push({id:"dyna",label:"Dynamax",hint:`Nível Dynamax ${level} • 3 rodadas`});
    if(Boolean(token.canGMax) && gmaxEligible(token))options.push({id:"gmax",label:"Gigantamax",form:gmaxFormFor(token),hint:"Fator Gigantamax na ficha • 3 rodadas"});
  }
@@ -109,7 +120,7 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
 export const canUseZMove = (token,move,snapshot=null) => {
  if(!token || !move || !Array.isArray(token.moves) || !token.moves.includes(slug(move.name)) || token.currentHp<=0)return false;
  const state=normalizeGimmickState(token.gimmickState,token);
- if(trainerHasUsedGimmick(token,snapshot,"z")||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status")return false;
+ if(trainerHasUsedGimmick(token,snapshot,"z")||state.active||state.used.some(id=>["z","mega","tera","dyna","gmax","eternamax"].includes(id))||!slug(token.item).endsWith("-z")||slug(move.damage_class?.name)==="status")return false;
  const crystal=slug(token.item),specific=SPECIFIC_Z[crystal];
  if(specific) {
    const form=formIdentity(token), species=baseSpecies(token).replace(/-alola$/, "");
@@ -133,8 +144,10 @@ export const maxMovePower = (power,type="") =>{
  return b>=150?150:b>=110?140:b>=75?130:b>=65?120:b>=55?110:b>=45?100:90;
 };
 export const applyGimmick = (token,id,{formData=null}={})=>{
+ if(id==="eternamax" && !formData)formData=ETERNAMAX_FORM_DATA;
  const option=getGimmickChoices(token).find(g=>g.id===id);
  if(!option)return {applied:false,token,reason:"Esta transformação não está disponível para este Pokémon."};
+ if(id==="eternamax" && (token.speciesId!==890 || Number(formData?.id)!==10190)) return {applied:false,token,reason:"Eternamax só pode ser aplicada ao Eternatus na sua forma normal."};
  if(option.form && (!formData || slug(formData.name)!==option.form || !Array.isArray(formData.stats)))return {applied:false,token,reason:"Não foi possível confirmar a forma oficial."};
  const state=normalizeGimmickState(token.gimmickState,token);
  const nextState={...state,active:id,used:[...new Set([...state.used,id])],rounds:id==="dyna"||id==="gmax"?3:0,base:baseline(token),form:option.form||""};
@@ -162,7 +175,14 @@ export const applyGimmick = (token,id,{formData=null}={})=>{
    changed={...changed,speciesName:formData.name,speciesId:formData.id,formName:formData.name,
       sprite:spriteSources.animated[0]||spriteSources.static[0]||formData.sprites?.front_default||token.sprite,
       types:typeNames.length?typeNames:changed.types,originalTypes:typeNames.length?typeNames:changed.originalTypes,
-      ability:id==="gmax"?changed.ability:formData.abilities?.[0]?.ability?.name||changed.ability,stats,originalStats};
+      ability:["gmax","eternamax"].includes(id)?changed.ability:formData.abilities?.[0]?.ability?.name||changed.ability,stats,originalStats};
+   if(id==="eternamax"){
+     const hpBase=formData.stats.find(entry=>entry?.stat?.name==="hp")?.base_stat;
+     if(!Number.isFinite(hpBase) || hpBase<=0)return {applied:false,token,reason:"A forma Eternamax não possui dados oficiais de HP verificáveis."};
+     const computedHp=calculateStat(hpBase,token.evs?.hp,token.ivs?.hp,token.level,1,true,formData.name);
+     const nextMaxHp=Math.max(1,convertToTTRPG(computedHp,true));
+     changed={...changed,maxHp:nextMaxHp,currentHp:token.currentHp<=0?0:Math.max(1,Math.ceil(nextMaxHp*token.currentHp/Math.max(1,token.maxHp)))};
+   }
    changed={...changed,stats:calculateStagedStats(changed)};
  }
  return {applied:true,token:changed};

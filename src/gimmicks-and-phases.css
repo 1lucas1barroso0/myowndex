@@ -31,6 +31,7 @@ html .app-root.game-edition.handheld-edition .gimmick-mega{border-color:#ae77dc!
 html .app-root.game-edition.handheld-edition .gimmick-tera{border-color:#44b5bd!important;}
 html .app-root.game-edition.handheld-edition .gimmick-dyna{border-color:#ec839d!important;}
 html .app-root.game-edition.handheld-edition .gimmick-gmax{border-color:#f0a967!important;}
+html .app-root.game-edition.handheld-edition .gimmick-eternamax{border-color:#a272cf!important;}
 html .app-root.game-edition.handheld-edition .battle-gimmick-current{
     display:grid;gap:.2rem;padding:.8rem;border-radius:.45rem;
     border-left:5px solid #62bbba;background:var(--ui-raised);color:var(--ui-ink);
@@ -54,16 +55,16 @@ html .app-root.game-edition.handheld-edition .phase-rest-actions button{
     background:var(--ui-panel);color:var(--ui-ink);border-radius:.35rem;
 }
 html .app-root.game-edition.handheld-edition .phase-rest-actions button:disabled{opacity:.4;}
-html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite-shell{position:relative;}
-html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite-shell::before{
-    content:"";position:absolute;inset:4%;pointer-events:none;z-index:0;
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite{position:relative;overflow:visible;isolation:isolate;}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite::before{
+    content:"";position:absolute;inset:-4%;pointer-events:none;z-index:0;
     border:2px dashed #c6c9ef;border-radius:50%;opacity:.55;
 }
-html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-tera .room-token-sprite-shell::before{border-color:#89ebeb;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
-html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-mega .room-token-sprite-shell::before{border-color:#cb9de2;}
-html .app-root.game-edition.handheld-edition .room-token.is-gimmick:is(.gimmick-dyna,.gimmick-gmax) .room-token-sprite-shell::before{border-color:#f7abc2;}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-tera .room-token-sprite::before{border-color:#89ebeb;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-mega .room-token-sprite::before{border-color:#cb9de2;}
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick:is(.gimmick-dyna,.gimmick-gmax,.gimmick-eternamax) .room-token-sprite::before{border-color:#f7abc2;}
 @media(prefers-reduced-motion:no-preference){
-  html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite-shell::before{
+  html .app-root.game-edition.handheld-edition .room-token.is-gimmick .room-token-sprite::before{
     animation:gimmick-halo 3s ease-in-out infinite alternate;
   }
 }
@@ -102,16 +103,17 @@ html .app-root.game-edition.handheld-edition .room-token .room-token-gimmick-mar
  top:-2.5rem;font-size:1.5rem;color:#bcf9ee;text-shadow:0 0 5px #42d4dd,0 0 13px #a7ffff;
 }
 html .app-root.game-edition.handheld-edition .room-token .room-token-gimmick-mark.mark-gmax,
-html .app-root.game-edition.handheld-edition .room-token .room-token-gimmick-mark.mark-dyna{
+html .app-root.game-edition.handheld-edition .room-token .room-token-gimmick-mark.mark-dyna,
+html .app-root.game-edition.handheld-edition .room-token .room-token-gimmick-mark.mark-eternamax{
  color:#ffa4bc;text-shadow:0 0 10px #ee4775,0 0 18px #fd91ba;
 }
-html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-tera .room-token-sprite-shell{
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-tera .room-token-sprite{
  filter:drop-shadow(0 0 .52rem #60c9d4);
 }
-html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-mega .room-token-sprite-shell{
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-mega .room-token-sprite{
  filter:drop-shadow(0 0 .45rem #c597ed);
 }
-html .app-root.game-edition.handheld-edition .room-token.is-gimmick:is(.gimmick-dyna,.gimmick-gmax) .room-token-sprite-shell{
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick:is(.gimmick-dyna,.gimmick-gmax) .room-token-sprite{
  filter:drop-shadow(0 0 .75rem #e65186);
 }
 html .app-root.game-edition.handheld-edition .combat-special-move{
@@ -159,3 +161,6 @@ html .app-root.game-edition.handheld-edition .gimmick-move-preview li.is-changed
 html .app-root.game-edition.handheld-edition .gimmick-move-preview li small{
  font-size:.875rem;line-height:1.45;
 }
+
+/* Aura and glow follow the actual scaled Pokémon, not its fixed click target. */
+html .app-root.game-edition.handheld-edition .room-token.is-gimmick.gimmick-eternamax .room-token-sprite::before{border-color:#df98f8;}

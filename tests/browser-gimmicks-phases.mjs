@@ -122,6 +122,20 @@ try{
     assert.notEqual(transformed.tokens[0].sprite,"/sprites/6.png","Mega must replace the battle sprite");
     assert.deepEqual(transformed.tokens[0].types,["fire","dragon"]);
 
+    const overlay=await page.locator(".room-token.gimmick-mega .room-token-sprite").evaluate(sprite=>{
+      const badge=sprite.contains(sprite.querySelector(".room-token-gimmick-mark"));
+      const initial=sprite.style.getPropertyValue("--pokemon-scale");
+      sprite.style.setProperty("--pokemon-scale","0.25");
+      const small=sprite.getBoundingClientRect().height;
+      sprite.style.setProperty("--pokemon-scale","2");
+      const large=sprite.getBoundingClientRect().height;
+      const ring=parseFloat(getComputedStyle(sprite,"::before").width);
+      sprite.style.setProperty("--pokemon-scale",initial);
+      return {badge,small,large,ring};
+    });
+    assert.ok(overlay.badge,"Gimmick emblem must be a child of the actual sprite frame");
+    assert.ok(overlay.large>overlay.small*2,"Visual effects resize alongside the Pokémon");
+    assert.ok(overlay.ring>overlay.small,"Aura cannot be stuck on a static board marker");
     assert.equal(await page.locator(".room-token.gimmick-mega").count(),1);
     assert.equal(await page.locator(".gimmick-action").count(),0,"One-time transformations cannot be stacked");
     await page.getByRole("button",{name:"Retirar da cena"}).click();
@@ -162,6 +176,33 @@ try{
       const metrics=await page.evaluate(()=>({w:innerWidth,scroll:document.documentElement.scrollWidth}));
       assert.ok(metrics.scroll<=metrics.w+1,"Page overflow at "+width+"px");
     }
+    await page.evaluate(()=>{
+      const key="myowndex_local_room_v1",entry=JSON.parse(localStorage.getItem(key));
+      const template=entry.snapshot.tokens[0];
+      entry.snapshot.phase="batalha";
+      entry.snapshot.battleStarted=true;
+      entry.snapshot.initiative=[];
+      entry.snapshot.tokens=[{...template,id:"eternatus-boss",pokemonId:"eternatus-boss",
+        teamId:"legendary-boss",name:"Eternatus",speciesName:"eternatus",speciesId:890,
+        formName:"eternatus",sprite:"",item:"",teraType:"poison",dynamaxLevel:10,
+        canGMax:false,currentHp:28,maxHp:28,
+        gimmickState:{active:"",used:[],rounds:0,base:null,form:""}}];
+      localStorage.setItem(key,JSON.stringify(entry));
+    });
+    await page.reload({waitUntil:"domcontentloaded"});
+    await page.getByRole("button",{name:"Abrir a Central da Aventura",exact:true}).click();
+    if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
+    const boss=page.locator(".battle-gimmick-panel");
+    await boss.waitFor();
+    assert.equal(await boss.locator(".gimmick-action.gimmick-dyna").count(),0);
+    await boss.getByRole("button",{name:/Eternamax/}).click();
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].gimmickState.active==="eternamax");
+    assert.equal((await snapshot()).tokens[0].speciesId,10190);
+    assert.match((await snapshot()).tokens[0].sprite,/\/sprites\/native\//);
+    assert.equal(await page.locator(".room-token.gimmick-eternamax .room-token-sprite .room-token-gimmick-mark").count(),1);
+    await boss.getByRole("button",{name:"Encerrar Eternamax"}).click();
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].gimmickState.active==="");
+    assert.equal((await snapshot()).tokens[0].speciesId,890);
     assert.deepEqual(errors,[]);
-    console.log("Passed 4 real phase controls, correct Mega form, neutral side and scene removal.");
+    console.log("Passed phase controls, proportional gimmick overlays, and Eternamax boss form.");
 }finally{await browser.close();}

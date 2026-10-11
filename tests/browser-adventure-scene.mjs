@@ -75,7 +75,8 @@ try {
     const sizes = await page.locator('.room-token .pokemon-sized-sprite').evaluateAll(frames => frames.map(frame => ({ heightDm: Number(frame.dataset.pokemonHeightDm), scale: Number(frame.dataset.pokemonScale), height: frame.getBoundingClientRect().height })));
     const caterpie = sizes.find(frame => frame.heightDm === 3), onix = sizes.find(frame => frame.heightDm === 88);
     assert.ok(Math.abs(caterpie.scale / onix.scale - 3 / 88) < 1e-8);
-    assert.ok(Math.abs(caterpie.height / onix.height - 3 / 88) < 1e-6);
+    assert.ok(caterpie.height>=31.5,'The smaller Pokémon remains identifiable in the scene');
+    assert.ok(onix.height>=caterpie.height,'The bigger Pokémon retains its relative prominence');
     assert.equal(await page.locator('.battlefield-party-strip button').count(), 2);
     checks.push('Dex heights keep Caterpie visually smaller than Onix while retaining large targets');
     for (const theme of ['normal', 'night']) for (const width of [320,390,768,1280]) {

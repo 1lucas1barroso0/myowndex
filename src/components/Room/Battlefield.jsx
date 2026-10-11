@@ -96,7 +96,7 @@ const Token = ({
     >
         <span className="room-token-sprite-shell">
             {shapeLabel && <span className={`room-token-gimmick-mark mark-${gimmick}`} aria-hidden="true">{gimmick==="tera" ? <><span className="crystal-symbol">◆</span><small>{formatType(token.teraType)}</small></> : gimmick==="mega" ? "✦" : "◈"}</span>}
-            {display.sprite ? (
+            {displayedPokemonId(token, display) > 0 || display.sprite ? (
                 <PokemonSprite
                     src={display.sprite}
                     pokemonId={displayedPokemonId(token, display)}

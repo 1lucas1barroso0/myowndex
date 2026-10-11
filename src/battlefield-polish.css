@@ -39,7 +39,15 @@ html .app-root.game-edition.handheld-edition .battlefield-side-label{ padding: .
 html .app-root.game-edition.handheld-edition .room-token{ display: grid; place-items: center; touch-action: pan-y; width: var(--field-token-size, 7rem); height: var(--field-token-size, 7rem); min-width: 44px; min-height: 44px; border: 0; padding: 0; outline: 0; background: transparent; box-shadow: none; filter: none; }
 html .app-root.game-edition.handheld-edition .room-token.can-move{ touch-action: none; }
 html .app-root.game-edition.handheld-edition .room-token-sprite-shell{ display: grid; align-items: end; justify-items: center; width: var(--field-token-size, 7rem); height: var(--field-token-size, 7rem); border: 0; border-radius: 0; box-shadow: none !important; background: transparent !important; }
-html .app-root.game-edition.handheld-edition .room-token-sprite{ width: calc(var(--field-token-size, 7rem) * var(--pokemon-aspect-ratio, 1)); height: var(--field-token-size, 7rem); max-width: none; object-fit: contain; scale: var(--pokemon-scale, 1); transform-origin: center bottom; filter: drop-shadow(0 2px 0 #10283c50); }
+/* A physical ratio remains in data-pokemon-scale. The on-screen scene camera
+   has a 32px readability floor: 0.1 m Pokémon cannot disappear next to giants.
+   Resize both dimensions uniformly so authored pixel art is never stretched. */
+html .app-root.game-edition.handheld-edition .room-token-sprite{
+  width: calc(max(2rem, calc(var(--field-token-size, 7rem) * var(--pokemon-scale, 1))) * var(--pokemon-aspect-ratio, 1));
+  height: max(2rem, calc(var(--field-token-size, 7rem) * var(--pokemon-scale, 1)));
+  max-width: none; object-fit: contain; scale: 1; transform-origin: center bottom;
+  filter: drop-shadow(0 2px 0 #10283c50);
+}
 html .app-root.game-edition.handheld-edition .room-token-sprite-shell::after{ content: none; }
 html .app-root.game-edition.handheld-edition .room-token.is-selected .room-token-sprite-shell::after,
 html .app-root.game-edition.handheld-edition .room-token:focus-visible .room-token-sprite-shell::after{ content: ""; position: absolute; inset: auto auto .2rem 50%; width: 1.4rem; height: 3px; border: 0; border-radius: 0; transform: translateX(-50%); background: #fff; box-shadow: 0 2px 0 #222b30; }

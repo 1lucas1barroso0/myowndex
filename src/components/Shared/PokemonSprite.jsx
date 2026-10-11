@@ -24,10 +24,18 @@ export default function PokemonSprite({
 }) {
     const frameRef = useRef(null);
     const [activity, setActivity] = useState({ ready: false, visible: false, reducedMotion: true });
-    const choices = useMemo(
-        () => getPokemonSpriteSources({ src, pokemonId, spriteKey, shiny, candidates, strictAppearance }),
-        [src, pokemonId, spriteKey, shiny, candidates, strictAppearance],
-    );
+    const choices = useMemo(() => {
+        const preferred = getPokemonSpriteSources({ src, pokemonId, spriteKey, shiny, candidates, strictAppearance });
+        // An old Box can contain no sprite path or a now-broken custom path.
+        // Keep its chosen artwork first, but recover from the catalogued,
+        // verified 2D appearance of the *same Pokémon* if loading fails.
+        if (strictAppearance || !(Number(pokemonId) > 0)) return preferred;
+        const safe = getPokemonSpriteSources({ pokemonId, spriteKey, shiny });
+        return {
+            animated: [...new Set([...preferred.animated, ...safe.animated])],
+            static: [...new Set([...preferred.static, ...safe.static])],
+        };
+    }, [src, pokemonId, spriteKey, shiny, candidates, strictAppearance]);
     const sources = activity.reducedMotion ? choices.static : [...choices.animated, ...choices.static];
     const sourceKey = sources.join("\n");
     const [recovery, setRecovery] = useState({ key: "", index: 0 });

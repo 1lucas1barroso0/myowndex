@@ -198,7 +198,7 @@ try{
     await boss.getByRole("button",{name:/Eternamax/}).click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].gimmickState.active==="eternamax");
     assert.equal((await snapshot()).tokens[0].speciesId,10190);
-    assert.match((await snapshot()).tokens[0].sprite,/sprites\\/native\\//);
+    assert.match((await snapshot()).tokens[0].sprite,/\/sprites\/native\//);
     assert.equal(await page.locator(".room-token.gimmick-eternamax .room-token-sprite .room-token-gimmick-mark").count(),1);
     await boss.getByRole("button",{name:"Encerrar Eternamax"}).click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].gimmickState.active==="");

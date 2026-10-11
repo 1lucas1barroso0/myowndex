@@ -1,3 +1,4 @@
+import zaForms from "../../data/mega-za-forms.json" with { type: "json" };
 import React, { useState, useEffect, useId, useMemo, useRef } from 'react';
 import { formatCanonicalItemName, RPG_STATUS_LABELS } from '../../core/copy.js';
 import { describeMove } from '../../core/descriptions.js';
@@ -182,6 +183,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const validItems = useMemo(() => {
         const names = [
             ...POKEMONDB_ITEMS,
+            ...zaForms.entries.map(form=>form.item),
             ...(Array.isArray(allItems) ? allItems.map(item => typeof item === "string" ? item : item?.name) : []),
             pk.item
         ].filter(Boolean);

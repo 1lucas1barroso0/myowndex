@@ -9,6 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/?abrir=aventura",
     scope: "/",
     display: "standalone",
+    // Fullscreen when supported; standalone on WebKit and other platforms.
+    display_override: ["fullscreen", "standalone"],
     background_color: "#0b3152",
     theme_color: "#d91936",
     orientation: "any",

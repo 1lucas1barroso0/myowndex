@@ -13,6 +13,9 @@ try {
     assert.equal(await page.getByRole("dialog",{name:"Instalar o MyOwnDex"}).count(),0);
     const manifest=await (await page.request.get(new URL("/manifest.webmanifest",baseUrl).href)).json();
     assert.equal(manifest.display,"standalone");
+    assert.deepEqual(manifest.display_override,["fullscreen","standalone"]);
+    assert.equal(manifest.id,"/");
+    assert.equal(manifest.scope,"/");
     assert.equal(manifest.start_url,"/?abrir=aventura");
     await page.getByRole("button",{name:"Abrir o PC do Bill"}).click();
     const stage=page.locator(".pc-mascot-stage");await stage.waitFor();

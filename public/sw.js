@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v2.0.26-app";
+const CACHE_NAME = "myowndex-shell-v2.0.27-app";
 const CACHE_PREFIX = "myowndex-shell-";
 const ASSET_CACHE_NAME = "myowndex-assets-v3";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";
@@ -8,7 +8,7 @@ const ASSET_ENTRY_BYTES = 4 * 1024 * 1024;
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
-  "/manifest.webmanifest?v=2.0.23",
+  "/manifest.webmanifest?v=2.0.27",
   "/icons/myowndex-dex-v105-96.png?v=2.0.23",
   "/icons/myowndex-dex-v105-32.png",
   "/icons/myowndex-dex-v105-192.png",

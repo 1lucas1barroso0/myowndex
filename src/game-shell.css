@@ -337,3 +337,14 @@ html .app-root.game-edition.handheld-edition :is(.dex-entry,.pc-partner-card,.ro
     html .app-root.game-edition.handheld-edition .app-main-shell { padding-block: .5rem !important; }
     html .app-root.game-edition.handheld-edition .device-footer { display: none !important; }
 }
+
+/* Native-style installed window, including iOS home-screen detection fallback. */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+    html, body, #__next { min-height: 100%; margin: 0; }
+    html, body { min-height: 100dvh; overscroll-behavior: none; background: #0b3152; }
+    .app-root.game-edition.handheld-edition {
+        min-height: 100dvh;
+        padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+    }
+}
+html[data-myowndex-installed="true"] .app-root.game-edition.handheld-edition { min-height: 100dvh; }

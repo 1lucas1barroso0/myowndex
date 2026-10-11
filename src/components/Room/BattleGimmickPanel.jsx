@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { applyGimmick, ETERNAMAX_FORM_DATA, EXCEPTIONAL_FORM_DATA, endGimmick, canUseZMove, getGimmickChoices, normalizeGimmickState } from "../../core/battleGimmicks.js";
+import { applyGimmick, ETERNAMAX_FORM_DATA, EXCEPTIONAL_FORM_DATA, getZAMegaFormData, endGimmick, canUseZMove, getGimmickChoices, normalizeGimmickState } from "../../core/battleGimmicks.js";
 import { fetchCached, formatName } from "../../core/mechanics.js";
 import { getCurrentMoveReference } from "../../core/championsMoves.js";
 import { getMoveSpecialProfile } from "../../core/specialMechanics.js";
@@ -52,6 +52,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
             let formData=null;
             if(choice.id==="eternamax")formData=ETERNAMAX_FORM_DATA;
             else if(EXCEPTIONAL_FORM_DATA[choice.form])formData=EXCEPTIONAL_FORM_DATA[choice.form];
+            else if(getZAMegaFormData(choice.form))formData=getZAMegaFormData(choice.form);
             else if(choice.form){
                 formData=await fetchCached(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(choice.form)}`);
                 if(!formData||formData.name!==choice.form)throw new Error("A forma oficial não pôde ser carregada.");

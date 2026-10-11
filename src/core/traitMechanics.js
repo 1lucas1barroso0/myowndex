@@ -1,3 +1,4 @@
+import { ordinaryWeather,specialWeatherMoveBlocked,specialWeatherFlyingDefense } from "./exceptionalWeather.js";
 import { formatEnglishName } from "./names.js";
 import {
     clampFinite as clamp,
@@ -509,6 +510,12 @@ export const getDamageTraitModifiers = ({ attacker, defender, move, effectivenes
     if (defenderAbility === "punk-rock" && moveHasTrait(move, "sound")) addModifier(entries, "ability", defenderAbility, 0.5, "Som amortecido por Punk Rock");
     if (defenderItem === "assault-vest" && damageClass === "special") addModifier(entries, "item", defenderItem, 2 / 3, "Assault Vest reduziu o dano especial");
 
+    if(specialWeatherMoveBlocked({weather,moveType}))addModifier(entries,"weather",weather,0,"Clima primordial anulou o golpe");
+    const gale=specialWeatherFlyingDefense({weather,defender,moveType});
+    if(gale!==1)addModifier(entries,"weather","delta-stream",gale,"Ventos fortes protegeram Flying");
+    if(defenderAbility==="tera-shell"&&defender.currentHp>=defender.maxHp&&effectiveness>0)
+      addModifier(entries,"ability","tera-shell",0.5/effectiveness,"Tera Shell reduziu a efetividade do golpe");
+    weather=ordinaryWeather(weather);
     if (weather === "chuva" && moveType === "water") addModifier(entries, "environment", "chuva", 1.5, "Chuva fortaleceu Water");
     if (weather === "chuva" && moveType === "fire") addModifier(entries, "environment", "chuva", 0.5, "Chuva enfraqueceu Fire");
     if (weather === "sol" && moveType === "fire") addModifier(entries, "environment", "sol", 1.5, "Sol fortaleceu Fire");

@@ -188,7 +188,7 @@ export const applyStageChange = (token, stat, change) => {
 
 export const getDefensiveTypes = token => {
     const teraType = normalizeSlug(token?.teraType);
-    if (token?.teraActive && teraType) return [teraType];
+    if (token?.teraActive && teraType && teraType!=="stellar") return [teraType];
     return asArray(token?.types).map(normalizeSlug).filter(Boolean);
 };
 
@@ -201,6 +201,7 @@ export const getMoveStab = (token, moveType) => {
     const teraType = normalizeSlug(token?.teraType);
     const originalMatch = originalTypes.includes(type);
     const teraMatch = Boolean(token?.teraActive && teraType === type);
+    if(token?.teraActive && teraType==="stellar")return originalMatch?2:1.2;
     if (originalMatch && teraMatch) return 2;
     if (originalMatch || teraMatch) return 1.5;
     return 1;

@@ -234,6 +234,40 @@ try{
           entry.name+" must enter the official form without fabricated requirements");
       assert.equal(await page.locator(".room-token.gimmick-"+entry.className).count(),1);
     }
+    // Spot-check the new 2D Mega corpus with stones, then Terapagos Stellar.
+    for(const entry of [
+      {id:149,name:"dragonite",item:"dragoninite",form:10281},
+      {id:26,name:"raichu",item:"raichunite-y",form:10305},
+      {id:998,name:"baxcalibur",item:"baxcalibrite",form:10325},
+      {id:10276,name:"terapagos-terastal",item:"",form:10277,ability:"tera-shell"}
+    ]){
+      await page.evaluate(e=>{
+        const key="myowndex_local_room_v1",room=JSON.parse(localStorage.getItem(key)),old=room.snapshot.tokens[0];
+        room.snapshot.tokens=[{...old,id:"new-form-"+e.id,teamId:"team-"+e.id,name:e.name,
+          speciesName:e.name,formName:e.name,speciesId:e.id,item:e.item,
+          ability:e.ability||"",teraType:"",gimmickState:{active:"",used:[],rounds:0,base:null,form:""}}];
+        room.snapshot.weather=e.id===10276?"chuva":"limpo";
+        room.snapshot.terrain=e.id===10276?"gramado":"nenhum";
+        room.snapshot.weatherClearedByTeraformZero=false;
+        room.snapshot.phase="batalha";room.snapshot.battleStarted=true;room.snapshot.initiative=[];
+        localStorage.setItem(key,JSON.stringify(room));
+      },entry);
+      await page.reload({waitUntil:"domcontentloaded"});
+      await page.getByRole("button",{name:"Abrir a Central da Aventura",exact:true}).click();
+      if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
+      const panel=page.locator(".battle-gimmick-panel");
+      await panel.waitFor();
+      await panel.locator(".gimmick-action.gimmick-"+(entry.id===10276?"tera":"mega")).click();
+      await page.waitForFunction(id=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].speciesId===id,entry.form);
+      const actual=await snapshot();
+      assert.equal(actual.tokens[0].speciesId,entry.form);
+      assert.ok(actual.tokens[0].sprite.includes("/sprites/native/"),"Exact 2D art "+entry.name);
+      if(entry.id===10276){
+        assert.equal(actual.weather,"limpo","Teraform Zero removes weather");
+        assert.equal(actual.terrain,"nenhum","Teraform Zero removes terrain");
+      }
+    }
+
     assert.deepEqual(errors,[]);
     console.log("Phases, scalable halos, Eternamax, Rayquaza, Primal Reversion and Ultra Burst passed.");
 }finally{await browser.close();}

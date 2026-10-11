@@ -8,6 +8,7 @@ const EMPTY_CANDIDATES = Object.freeze([]);
 
 export default function PokemonSprite({
     src = "",
+    children = null,
     pokemonId = 0,
     spriteKey = "",
     shiny = false,
@@ -30,68 +31,4 @@ export default function PokemonSprite({
         // Keep its chosen artwork first, but recover from the catalogued,
         // verified 2D appearance of the *same PokÃ©mon* if loading fails.
         if (strictAppearance || !(Number(pokemonId) > 0)) return preferred;
-        const safe = getPokemonSpriteSources({ pokemonId, spriteKey, shiny });
-        return {
-            // A working custom PNG outranks a catalog GIF. Only add animated
-            // alternatives when no preferred still image was supplied.
-            animated: preferred.static.length ? preferred.animated : [...new Set([...preferred.animated, ...safe.animated])],
-            static: [...new Set([...preferred.static, ...safe.static])],
-        };
-    }, [src, pokemonId, spriteKey, shiny, candidates, strictAppearance]);
-    const sources = activity.reducedMotion ? choices.static : [...choices.animated, ...choices.static];
-    const sourceKey = sources.join("\n");
-    const [recovery, setRecovery] = useState({ key: "", index: 0 });
-    const [unmeasuredSource, setUnmeasuredSource] = useState("");
-    const sourceIndex = recovery.key === sourceKey ? recovery.index : 0;
-    const source = sources[sourceIndex];
-    const hasSources = Boolean(choices.animated.length || choices.static.length);
-    const available = !activity.ready || Boolean(source);
-    useEffect(() => hasSources ? subscribeSpriteActivity(frameRef.current, setActivity) : undefined, [hasSources, available]);
-
-    if (!hasSources || !available) {
-        return (
-            <span ref={frameRef} className={fallbackClassName} role={alt ? "img" : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : true}>
-                <span aria-hidden="true">â—‡</span>
-            </span>
-        );
-    }
-
-    const bounds = getPokemonSpriteFraming(source);
-    const physicalHeight = getPokemonDisplayHeight({ src: source || src, pokemonId, height, spriteKey });
-    const motion = !activity.ready ? "pending" : !activity.visible ? "paused" : /\.(?:gif|apng)(?:[?#].*)?$/i.test(source) ? "animated" : "static";
-    const scale = framing === "scene" ? getPokemonSpriteScale(pokemonId, physicalHeight, scaleReferenceHeight) * (Number.isFinite(Number(sceneScale)) ? Math.max(.25, Math.min(4, Number(sceneScale))) : 1) : 1;
-    return (
-        <span
-            ref={frameRef}
-            className={`pokemon-sized-sprite ${className}`}
-            data-pokemon-motion={motion}
-            data-pokemon-framing={framing}
-            data-pokemon-crop={bounds.known && unmeasuredSource !== source ? "authored-frames" : "full-image"}
-            data-pokemon-height-dm={physicalHeight ?? undefined}
-            data-pokemon-scale={scale}
-            style={{
-                "--pokemon-scale": scale,
-                "--pokemon-aspect-ratio": bounds.bodyWidth / bounds.bodyHeight,
-                "--sprite-canvas-width": bounds.width,
-                "--sprite-canvas-height": bounds.height,
-                "--sprite-body-x": bounds.x,
-                "--sprite-body-y": bounds.y,
-                "--sprite-body-width": bounds.bodyWidth,
-                "--sprite-body-height": bounds.bodyHeight,
-            }}
-        >
-            <img
-                src={activity.visible ? source : undefined}
-                alt={alt}
-                className="pokemon-sprite-image"
-                data-pokemon-motion={motion}
-                loading={loading}
-                decoding="async"
-                onLoad={event => {
-                    if (bounds.known && (event.currentTarget.naturalWidth !== bounds.width || event.currentTarget.naturalHeight !== bounds.height)) setUnmeasuredSource(source);
-                }}
-                onError={() => activity.visible && setRecovery({ key: sourceKey, index: sourceIndex + 1 })}
-            />
-        </span>
-    );
-}
+        const safe = getPokemonSpriteSources({ pokemonId, spriteKey,¶»§q«^

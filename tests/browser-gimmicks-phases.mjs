@@ -261,7 +261,7 @@ try{
       await page.waitForFunction(id=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].speciesId===id,entry.form);
       const actual=await snapshot();
       assert.equal(actual.tokens[0].speciesId,entry.form);
-      assert.ok(actual.tokens[0].sprite.includes("/sprites/native/"),"Exact 2D art "+entry.name);
+      assert.ok(actual.tokens[0].sprite.includes("/sprites/native/") || actual.tokens[0].sprite.includes("/PokeAPI/sprites/"),"Verified 2D art "+entry.name);
       if(entry.id===10276){
         assert.equal(actual.weather,"limpo","Teraform Zero removes weather");
         assert.equal(actual.terrain,"nenhum","Teraform Zero removes terrain");

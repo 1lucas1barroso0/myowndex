@@ -739,7 +739,7 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
 
 const prepareTokenForSwitch = tokenInput => {
     const active=normalizeGimmickState(tokenInput?.gimmickState,tokenInput).active;
-    let token = ["dyna","gmax"].includes(active) ? endGimmick(tokenInput) : tokenInput;
+    let token = ["dyna","gmax","primal"].includes(active) ? endGimmick(tokenInput) : tokenInput;
     const revertedTransform = revertBattleTransform(token);
     if (revertedTransform.applied) token = revertedTransform.token;
     const revertedCopy = revertTemporaryMoveCopies(token);

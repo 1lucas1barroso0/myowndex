@@ -69,7 +69,7 @@ const Token = ({
     const display = getBattleDisplayIdentity(token);
     const traits = getTraitStatus(token);
     const gimmick = token.gimmickState?.active || "";
-    const shapeLabel = gimmick==="eternamax" ? "Eternamax" : gimmick==="mega" ? "Mega Evolução" : gimmick==="gmax" ? "Gigantamax" : gimmick==="dyna" ? "Dynamax" : gimmick==="tera" ? `Tipo Tera ${formatType(token.teraType)}` : "";
+    const shapeLabel = ["primal","ultra"].includes(gimmick) ? gimmick : gimmick==="eternamax" ? "Eternamax" : gimmick==="mega" ? "Mega Evolução" : gimmick==="gmax" ? "Gigantamax" : gimmick==="dyna" ? "Dynamax" : gimmick==="tera" ? `Tipo Tera ${formatType(token.teraType)}` : "";
 
     return (
     <button

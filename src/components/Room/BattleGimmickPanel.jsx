@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { applyGimmick, ETERNAMAX_FORM_DATA, endGimmick, canUseZMove, getGimmickChoices, normalizeGimmickState } from "../../core/battleGimmicks.js";
+import { applyGimmick, ETERNAMAX_FORM_DATA, EXCEPTIONAL_FORM_DATA, endGimmick, canUseZMove, getGimmickChoices, normalizeGimmickState } from "../../core/battleGimmicks.js";
 import { fetchCached, formatName } from "../../core/mechanics.js";
 import { getCurrentMoveReference } from "../../core/championsMoves.js";
 import { getMoveSpecialProfile } from "../../core/specialMechanics.js";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import { battleMovePresentation } from "../../core/battleMovePresentation.js";
 
-const headings={mega:"Mega Evolução",tera:"Terastalização",dyna:"Dynamax",gmax:"Gigantamax",eternamax:"Eternamax"};
+const headings={mega:"Mega Evolução",tera:"Terastalização",dyna:"Dynamax",gmax:"Gigantamax",eternamax:"Eternamax",primal:"Reversão Primitiva",ultra:"Ultra Burst"};
 export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSelectToken,onTokenChange,onOpenZ,onNotice}){
     const [busy,setBusy]=useState("");
     const [zDetails,setZDetails]=useState({});
@@ -51,6 +51,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
         try{
             let formData=null;
             if(choice.id==="eternamax")formData=ETERNAMAX_FORM_DATA;
+            else if(EXCEPTIONAL_FORM_DATA[choice.form])formData=EXCEPTIONAL_FORM_DATA[choice.form];
             else if(choice.form){
                 formData=await fetchCached(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(choice.form)}`);
                 if(!formData||formData.name!==choice.form)throw new Error("A forma oficial não pôde ser carregada.");
@@ -78,13 +79,15 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
         {state.active ? <div className={`battle-gimmick-current is-${state.active}`} role="status">
             <b>{headings[state.active]||"Forma especial"} ativa</b>
             {state.active==="tera"&&<small>Tipo Tera: {formatName(token.teraType)}</small>}
-            {state.rounds>0&&<small>{state.rounds} {state.rounds===1?"rodada restante":"rodadas restantes"}</small>}
-            {state.active==="eternamax" && role==="narrator" && <button type="button" disabled={Boolean(busy)} onClick={()=>void onTokenChange(endGimmick(token))}>Encerrar Eternamax</button>}
+            {["dyna","gmax"].includes(state.active)&&state.rounds>0&&<small>{state.rounds} {state.rounds===1?"rodada restante":"rodadas restantes"}</small>}
+            {state.active==="primal" && <small>Orb equipada • sem limite de três rodadas</small>}
+            {state.active==="ultra" && state.rounds>0 && <small>Light That Burns the Sky fica disponível na próxima rodada</small>}
+            {["eternamax","primal"].includes(state.active) && role==="narrator" && <button type="button" disabled={Boolean(busy)} onClick={()=>void onTokenChange(endGimmick(token))}>{state.active==="primal"?"Encerrar Reversão Primitiva":"Encerrar Eternamax"}</button>}
         </div> : options.length>0&&<div className="battle-gimmick-actions">
             {options.map(choice=><button type="button" key={choice.id} className={`gimmick-action gimmick-${choice.id}`}
               title={choice.hint} disabled={role!=="narrator"||Boolean(busy)}
               onClick={()=>void activate(choice)}>
-                <span className="gimmick-emblem" aria-hidden="true">{({mega:"✧",tera:"◇",dyna:"◈",gmax:"◆",eternamax:"✺"})[choice.id]}</span>
+                <span className="gimmick-emblem" aria-hidden="true">{({mega:"✧",tera:"◇",dyna:"◈",gmax:"◆",eternamax:"✺",primal:"◉",ultra:"✦"})[choice.id]}</span>
                 <strong>{busy===choice.id?"Ativando…":choice.label}</strong>
                 <small>{choice.hint}</small>
             </button>)}

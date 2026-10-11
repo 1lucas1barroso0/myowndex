@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.27.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.28.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 A 2.0.27 integra 49 identidades técnicas das novas Megaevoluções de Pokémon Legends: Z-A e Mega Dimension, com 2D correto da coleção existente, pedras, stats, tipos, habilidades registradas e restrições para formas variantes. Também inclui Tera Shift de Terapagos, Tera Shell, transformação Stellar e Teraform Zero, com reversão em trocas, além de clima primordial (chuva intensa, sol extremo e ventos fortes) com as proteções de batalha e limpeza quando fontes deixam o campo. Fonte e limitações detalhadas em docs/Z-A-TERAPAGOS-CLIMA-2.0.27.md.
 
@@ -112,3 +112,11 @@ Arquivos com versão ou intervalo de PR no próprio nome, como `REFINO-11.5.md`,
 ## Publicação
 
 O estado só é considerado publicado depois que o CI do commit final passa e o deployment de produção correspondente fica pronto no domínio principal. Um build local ou Preview aprovado, isoladamente, não prova que produção está atualizada.
+
+
+## 2.0.28 — Instalação e manipulação do campo
+
+- O manifesto da aplicação instalada prefere o modo de tela cheia quando o navegador e o sistema o suportam, mantendo standalone onde fullscreen não é suportado. Janelas normais continuam abrindo como site.
+- Launch handler incentiva a reutilização da janela instalada, quando suportado. Ícones, escopo, atalhos, viewport e service worker permanecem ativos. iOS/iPadOS, Firefox e certos sistemas podem manter suas próprias barras e gestos do sistema; nenhuma aplicação web consegue ocultar universalmente controles impostos pelo navegador/SO.
+- O arraste de todas as espécies, inclusive Eternamax, utiliza como alvo também a imagem redimensionada. A captura de ponteiro mantém o movimento quando o cursor deixa a figura, sem desviar gestos de redimensionamento ou movimentos de teclado; arrastar uma imagem não inicia o download ou drag nativo do browser.
+- O cache offline preserva dados e sprites disponíveis, mas a primeira execução, acesso à rede e alguns navegadores exigem instalação online; não prometer recursos nativos sem API.

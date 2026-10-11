@@ -160,3 +160,19 @@ html .app-root.game-edition.handheld-edition .room-token-resize-handle:focus-vis
     translate: 1rem .75rem;
   }
 }
+
+/* A visually large Pokémon is draggable across its visible sprite, not only
+   the fixed-size ground anchor. Pointer capture keeps mobile gestures stable. */
+html .app-root.game-edition.handheld-edition .room-token.can-move .room-token-sprite,
+html .app-root.game-edition.handheld-edition .room-token.can-move .pokemon-sprite-image{
+    pointer-events:auto;
+    touch-action:none;
+    -webkit-user-drag:none;
+    user-select:none;
+    -webkit-user-select:none;
+    cursor:grab;
+}
+html .app-root.game-edition.handheld-edition .room-token.can-move:active .room-token-sprite,
+html .app-root.game-edition.handheld-edition .room-token.can-move:active .pokemon-sprite-image{
+    cursor:grabbing;
+}

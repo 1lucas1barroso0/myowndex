@@ -88,6 +88,7 @@ export default function PokemonSprite({
                 data-pokemon-motion={motion}
                 loading={loading}
                 decoding="async"
+                draggable={false}
                 onLoad={event => {
                     if (bounds.known && (event.currentTarget.naturalWidth !== bounds.width || event.currentTarget.naturalHeight !== bounds.height)) setUnmeasuredSource(source);
                 }}

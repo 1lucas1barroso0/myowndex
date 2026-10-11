@@ -200,6 +200,33 @@ try{
     assert.equal((await snapshot()).tokens[0].speciesId,10190);
     assert.match((await snapshot()).tokens[0].sprite,/\/sprites\/native\//);
     assert.equal(await page.locator(".room-token.gimmick-eternamax .room-token-sprite .room-token-gimmick-mark").count(),1);
+    // Even an exceptionally large image remains draggable from the artwork
+    // OUTSIDE the fixed ground marker, not just a small central hit target.
+    const giant=page.locator(".room-token.gimmick-eternamax");
+    const hit=await giant.evaluate(button=>{
+      const artwork=button.querySelector(".room-token-sprite");
+      const outer=button.getBoundingClientRect(),sprite=artwork.getBoundingClientRect();
+      return {outer:{x:outer.x,y:outer.y,w:outer.width,h:outer.height},
+        sprite:{x:sprite.x,y:sprite.y,w:sprite.width,h:sprite.height},
+        pointer:getComputedStyle(artwork).pointerEvents};
+    });
+    assert.equal(hit.pointer,"auto","Enlarged artwork must receive pointer events");
+    assert.ok(hit.sprite.h>hit.outer.h,"Eternamax overflows the small ground marker");
+    const left=hit.sprite.x+hit.sprite.w/2;
+    const top=hit.sprite.y+Math.min(hit.sprite.h/4,hit.outer.h*0.8);
+    assert.ok(top<hit.outer.y,"Drag test touches the large artwork outside ground marker");
+    const beforeDrag=(await snapshot()).tokens[0];
+    await page.mouse.move(left,top);
+    await page.mouse.down();
+    await page.mouse.move(left+65,top+26,{steps:7});
+    await page.mouse.up();
+    await page.waitForFunction(previous=>{
+      const t=JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0];
+      return t.x!==previous.x || t.y!==previous.y;
+    },{x:beforeDrag.x,y:beforeDrag.y});
+    const moved=(await snapshot()).tokens[0];
+    assert.ok(moved.x>beforeDrag.x,"Eternamax moves when dragging its full-size visible sprite");
+    assert.equal(moved.sceneScale,beforeDrag.sceneScale,"Dragging does not resize the sprite");
     await boss.getByRole("button",{name:"Encerrar Eternamax"}).click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].gimmickState.active==="");
     assert.equal((await snapshot()).tokens[0].speciesId,890);

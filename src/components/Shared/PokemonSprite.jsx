@@ -32,7 +32,9 @@ export default function PokemonSprite({
         if (strictAppearance || !(Number(pokemonId) > 0)) return preferred;
         const safe = getPokemonSpriteSources({ pokemonId, spriteKey, shiny });
         return {
-            animated: [...new Set([...preferred.animated, ...safe.animated])],
+            // A working custom PNG outranks a catalog GIF. Only add animated
+            // alternatives when no preferred still image was supplied.
+            animated: preferred.static.length ? preferred.animated : [...new Set([...preferred.animated, ...safe.animated])],
             static: [...new Set([...preferred.static, ...safe.static])],
         };
     }, [src, pokemonId, spriteKey, shiny, candidates, strictAppearance]);

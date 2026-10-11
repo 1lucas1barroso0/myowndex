@@ -136,7 +136,7 @@ test("Eternamax is an Eternatus boss form, not an ordinary Dynamax",()=>{
  assert.equal(next.token.speciesId,10190);
  assert.equal(next.token.gimmickState.active,"eternamax");
  assert.equal(next.token.gimmickState.rounds,0);
- assert.match(next.token.sprite,/sprites\\/native\\//);
+ assert.match(next.token.sprite,/\/sprites\/native\//);
  assert.ok(next.token.maxHp>e.maxHp);
  assert.equal(advanceGimmickRound(next.token).gimmickState.active,"eternamax");
  assert.equal(normalizeRoomToken(next.token).gimmickState.active,"eternamax");

@@ -32,3 +32,7 @@ Os sete ícones necessários às superfícies do jogo somam menos de 80 KiB. O m
 ## Histórico
 
 v101, v103 e v104 são revisões históricas. Seus arquivos e registros de procedência permanecem preservados; não são apresentados como marca vigente. A orientação de 2.0.19 sobre pintura, mestre v104 e fundo creme foi substituída por esta direção 2D com autoria humana.
+
+## Atualização técnica 2.0.29
+
+Os aliases de distribuição `myowndex-dex-v105-r2-*.png` são cópias byte a byte dos PNGs v105 originais para que navegadores atualizem a sugestão de instalação, os atalhos e favicons usando URLs novas. Não há mudança na obra, pintura, licença ou autoria. O arquivo `myowndex-dex-v105-source.svg` e todos os derivados originais continuam preservados, bem como a identidade de aplicação `/`. O caminho do manifesto não muda entre versões. A reprodução dos ícones originais permanece em `scripts/atualizar-icones.mjs`.

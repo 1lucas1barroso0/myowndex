@@ -9,11 +9,17 @@ const page=await context.newPage(),errors=[];
 page.on("pageerror",error=>errors.push(error.message));
 try{
   await page.goto(base,{waitUntil:"domcontentloaded"});
-  const installedManifest=await page.evaluate(async()=>fetch("/manifest.webmanifest").then(r=>r.json()));
+  const manifestUrl=await page.locator('link[rel="manifest"]').getAttribute("href");
+  assert.equal(manifestUrl,"/manifest.webmanifest","Stable manifest URL keeps the same installed PWA identity");
+  const installedManifest=await page.evaluate(async()=>fetch("/manifest.webmanifest",{cache:"no-store"}).then(r=>r.json()));
   assert.equal(installedManifest.display,"standalone");
   assert.deepEqual(installedManifest.display_override,["fullscreen","standalone"]);
   assert.equal(installedManifest.scope,"/");
   assert.ok(installedManifest.icons.some(icon=>icon.purpose==="maskable"));
+  assert.ok(installedManifest.icons.every(icon=>icon.src.includes("/icons/myowndex-dex-v105-r2-")));
+  assert.equal(installedManifest.id,"/");
+  const browserIcon=await page.locator('link[rel="apple-touch-icon"]').getAttribute("href");
+  assert.equal(browserIcon,"/icons/myowndex-dex-v105-r2-180.png");
   for(const path of ["/api/version","/sw.js"]){
     const response=await context.request.get(new URL(path,base).href,{headers:{"Cache-Control":"no-cache"}});
     assert.equal(response.status(),200,path);
@@ -36,6 +42,11 @@ try{
   assert.equal(await page.evaluate(()=>localStorage.getItem("myowndex-cache-update-qa")),"preserved");
   assert.equal(await page.locator(".app-root").getAttribute("data-version"),packageJson.version);
   assert.ok(await page.locator("html").getAttribute("data-release"));
+  // The browser's app-installation registry cannot be controlled by a page.
+  // A normal tab must continue serving data and a valid canonical manifest.
+  assert.equal(await page.evaluate(()=>matchMedia("(display-mode: standalone)").matches),false);
+  assert.equal(await page.evaluate(()=>matchMedia("(display-mode: fullscreen)").matches),false);
+  assert.equal(await page.evaluate(()=>localStorage.getItem("myowndex-cache-update-qa")),"preserved");
   assert.deepEqual(errors,[]);
   console.log("PASS release endpoint no-store, active PWA, current version and retained local data");
 }finally{await browser.close();}

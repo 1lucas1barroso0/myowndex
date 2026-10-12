@@ -185,7 +185,7 @@ try{
       entry.snapshot.tokens=[{...template,id:"eternatus-boss",pokemonId:"eternatus-boss",
         teamId:"legendary-boss",name:"Eternatus",speciesName:"eternatus",speciesId:890,
         formName:"eternatus",sprite:"",item:"",teraType:"poison",dynamaxLevel:10,
-        canGMax:false,currentHp:28,maxHp:28,
+        canGMax:false,currentHp:28,maxHp:28,sceneScale:4,
         gimmickState:{active:"",used:[],rounds:0,base:null,form:""}}];
       localStorage.setItem(key,JSON.stringify(entry));
     });
@@ -213,7 +213,9 @@ try{
     assert.equal(hit.pointer,"auto","Enlarged artwork must receive pointer events");
     assert.ok(hit.sprite.h>hit.outer.h,"Eternamax overflows the small ground marker");
     const left=hit.sprite.x+hit.sprite.w/2;
-    const top=hit.sprite.y+Math.min(hit.sprite.h/4,hit.outer.h*0.8);
+    // The game camera fits the tallest Pokémon at normal zoom. Explicitly
+    // enlarge it to exercise the hit area beyond the small ground marker.
+    const top=hit.outer.y-Math.min(16,Math.max(5,(hit.outer.y-hit.sprite.y)/2));
     assert.ok(top<hit.outer.y,"Drag test touches the large artwork outside ground marker");
     const beforeDrag=(await snapshot()).tokens[0];
     await page.mouse.move(left,top);

@@ -183,7 +183,7 @@ test("offline support caches the shell and sprites but never private room APIs",
   assert.match(worker, /SKIP_WAITING/);
   assert.doesNotMatch(worker, /then\(\(\) => self\.skipWaiting\(\)\)/);
   assert.match(worker, /request\.headers\.get\("RSC"\)/);
-  assert.match(worker, /myowndex-dex-v105-96\.png/);
+  assert.match(worker, /myowndex-dex-v105-r2-96\.png/);
   assert.doesNotMatch(worker, /myowndex-rotomdex-v101|myowndex-(?:icon|app|maskable|shortcut).*v91|favicon-v91/);
   assert.match(app, /document\.readyState === "complete"/);
   assert.match(app, /updateViaCache: "none"/);
@@ -392,7 +392,7 @@ test("safe shell updates and both visual themes remain available without an inst
   assert.match(manifest, /myowndex-dex-v105-/);
   assert.match(manifest, /purpose:\s*"maskable"/);
   assert.match(manifest, /shortcuts:/);
-  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-dex-v105-96\.png"/);
+  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-dex-v105-r2-96\.png"/);
   assert.match(layout, /myowndex-dex-v105-/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);

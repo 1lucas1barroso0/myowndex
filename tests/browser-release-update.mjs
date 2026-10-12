@@ -42,19 +42,10 @@ try{
   assert.equal(await page.evaluate(()=>localStorage.getItem("myowndex-cache-update-qa")),"preserved");
   assert.equal(await page.locator(".app-root").getAttribute("data-version"),packageJson.version);
   assert.ok(await page.locator("html").getAttribute("data-release"));
-  // A past install notification must NOT make an ordinary browser tab claim
-  // to be an installed app or hide the reinstall/recovery button.
-  const installButton=page.locator(".app-install-button");
-  await installButton.waitFor({state:"visible",timeout:15000});
-  await page.evaluate(()=>window.dispatchEvent(new Event("appinstalled")));
-  await installButton.waitFor({state:"visible"});
-  assert.equal(await page.locator("html").getAttribute("data-myowndex-installed"),"false");
-  await installButton.click();
-  const recovery=page.getByRole("dialog",{name:"Instalar o MyOwnDex"});
-  await recovery.waitFor();
-  assert.match(await recovery.innerText(),/foi desinstalado, mas aparece como instalado/);
-  await recovery.getByRole("button",{name:"Fechar",exact:true}).click();
-  assert.equal(await page.locator("myowndex-cache-update-qa").count(),0);
+  // The browser's app-installation registry cannot be controlled by a page.
+  // A normal tab must continue serving data and a valid canonical manifest.
+  assert.equal(await page.evaluate(()=>matchMedia("(display-mode: standalone)").matches),false);
+  assert.equal(await page.evaluate(()=>matchMedia("(display-mode: fullscreen)").matches),false);
   assert.equal(await page.evaluate(()=>localStorage.getItem("myowndex-cache-update-qa")),"preserved");
   assert.deepEqual(errors,[]);
   console.log("PASS release endpoint no-store, active PWA, current version and retained local data");

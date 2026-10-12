@@ -348,3 +348,10 @@ html .app-root.game-edition.handheld-edition :is(.dex-entry,.pc-partner-card,.ro
     }
 }
 html[data-myowndex-installed="true"] .app-root.game-edition.handheld-edition { min-height: 100dvh; }
+
+/* Installed PWA: reduce touch highlight noise without affecting browser tabs. */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+    html .app-root.game-edition.handheld-edition :is(button,a,input,textarea,select) {
+        -webkit-tap-highlight-color: transparent;
+    }
+}

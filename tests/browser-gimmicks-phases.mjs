@@ -185,7 +185,7 @@ try{
       entry.snapshot.tokens=[{...template,id:"eternatus-boss",pokemonId:"eternatus-boss",
         teamId:"legendary-boss",name:"Eternatus",speciesName:"eternatus",speciesId:890,
         formName:"eternatus",sprite:"",item:"",teraType:"poison",dynamaxLevel:10,
-        canGMax:false,currentHp:28,maxHp:28,
+        canGMax:false,currentHp:28,maxHp:28,sceneScale:4,
         gimmickState:{active:"",used:[],rounds:0,base:null,form:""}}];
       localStorage.setItem(key,JSON.stringify(entry));
     });
@@ -200,6 +200,35 @@ try{
     assert.equal((await snapshot()).tokens[0].speciesId,10190);
     assert.match((await snapshot()).tokens[0].sprite,/\/sprites\/native\//);
     assert.equal(await page.locator(".room-token.gimmick-eternamax .room-token-sprite .room-token-gimmick-mark").count(),1);
+    // Even an exceptionally large image remains draggable from the artwork
+    // OUTSIDE the fixed ground marker, not just a small central hit target.
+    const giant=page.locator(".room-token.gimmick-eternamax");
+    const hit=await giant.evaluate(button=>{
+      const artwork=button.querySelector(".room-token-sprite");
+      const outer=button.getBoundingClientRect(),sprite=artwork.getBoundingClientRect();
+      return {outer:{x:outer.x,y:outer.y,w:outer.width,h:outer.height},
+        sprite:{x:sprite.x,y:sprite.y,w:sprite.width,h:sprite.height},
+        pointer:getComputedStyle(artwork).pointerEvents};
+    });
+    assert.equal(hit.pointer,"auto","Enlarged artwork must receive pointer events");
+    assert.ok(hit.sprite.h>hit.outer.h,"Eternamax overflows the small ground marker");
+    const left=hit.sprite.x+hit.sprite.w/2;
+    // The game camera fits the tallest Pokémon at normal zoom. Explicitly
+    // enlarge it to exercise the hit area beyond the small ground marker.
+    const top=hit.outer.y-Math.min(16,Math.max(5,(hit.outer.y-hit.sprite.y)/2));
+    assert.ok(top<hit.outer.y,"Drag test touches the large artwork outside ground marker");
+    const beforeDrag=(await snapshot()).tokens[0];
+    await page.mouse.move(left,top);
+    await page.mouse.down();
+    await page.mouse.move(left+65,top+26,{steps:7});
+    await page.mouse.up();
+    await page.waitForFunction(previous=>{
+      const t=JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0];
+      return t.x!==previous.x || t.y!==previous.y;
+    },{x:beforeDrag.x,y:beforeDrag.y});
+    const moved=(await snapshot()).tokens[0];
+    assert.ok(moved.x>beforeDrag.x,"Eternamax moves when dragging its full-size visible sprite");
+    assert.equal(moved.sceneScale,beforeDrag.sceneScale,"Dragging does not resize the sprite");
     await boss.getByRole("button",{name:"Encerrar Eternamax"}).click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].gimmickState.active==="");
     assert.equal((await snapshot()).tokens[0].speciesId,890);
@@ -234,6 +263,40 @@ try{
           entry.name+" must enter the official form without fabricated requirements");
       assert.equal(await page.locator(".room-token.gimmick-"+entry.className).count(),1);
     }
+    // Spot-check the new 2D Mega corpus with stones, then Terapagos Stellar.
+    for(const entry of [
+      {id:149,name:"dragonite",item:"dragoninite",form:10281},
+      {id:26,name:"raichu",item:"raichunite-y",form:10305},
+      {id:998,name:"baxcalibur",item:"baxcalibrite",form:10325},
+      {id:10276,name:"terapagos-terastal",item:"",form:10277,ability:"tera-shell"}
+    ]){
+      await page.evaluate(e=>{
+        const key="myowndex_local_room_v1",room=JSON.parse(localStorage.getItem(key)),old=room.snapshot.tokens[0];
+        room.snapshot.tokens=[{...old,id:"new-form-"+e.id,teamId:"team-"+e.id,name:e.name,
+          speciesName:e.name,formName:e.name,speciesId:e.id,item:e.item,
+          ability:e.ability||"",teraType:"",gimmickState:{active:"",used:[],rounds:0,base:null,form:""}}];
+        room.snapshot.weather=e.id===10276?"chuva":"limpo";
+        room.snapshot.terrain=e.id===10276?"gramado":"nenhum";
+        room.snapshot.weatherClearedByTeraformZero=false;
+        room.snapshot.phase="batalha";room.snapshot.battleStarted=true;room.snapshot.initiative=[];
+        localStorage.setItem(key,JSON.stringify(room));
+      },entry);
+      await page.reload({waitUntil:"domcontentloaded"});
+      await page.getByRole("button",{name:"Abrir a Central da Aventura",exact:true}).click();
+      if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
+      const panel=page.locator(".battle-gimmick-panel");
+      await panel.waitFor();
+      await panel.locator(".gimmick-action.gimmick-"+(entry.id===10276?"tera":"mega")).click();
+      await page.waitForFunction(id=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].speciesId===id,entry.form);
+      const actual=await snapshot();
+      assert.equal(actual.tokens[0].speciesId,entry.form);
+      assert.ok(actual.tokens[0].sprite.includes("/sprites/native/") || actual.tokens[0].sprite.includes("/PokeAPI/sprites/"),"Verified 2D art "+entry.name);
+      if(entry.id===10276){
+        assert.equal(actual.weather,"limpo","Teraform Zero removes weather");
+        assert.equal(actual.terrain,"nenhum","Teraform Zero removes terrain");
+      }
+    }
+
     assert.deepEqual(errors,[]);
     console.log("Phases, scalable halos, Eternamax, Rayquaza, Primal Reversion and Ultra Burst passed.");
 }finally{await browser.close();}

@@ -1,4 +1,4 @@
-import React, { useId, useMemo, useState } from "react";
+import React, { useId, useMemo, useRef, useState } from "react";
 import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
@@ -61,6 +61,7 @@ const Token = ({
     onPointerMove,
     onPointerUp,
     onPointerCancel,
+    onDragStart,
     onKeyMove,
     movementHelpId,
     sceneReferenceHeight,
@@ -76,11 +77,12 @@ const Token = ({
         type="button"
         className={`room-token side-${token.side} ${canMove ? "can-move" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${gimmick ? `is-gimmick gimmick-${gimmick}` : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
         style={{ left: `clamp(3.5rem, ${position.x}%, calc(100% - 3.5rem))`, top: `clamp(3.5rem, ${position.y}%, calc(100% - 3.5rem))` }}
-        onClick={() => onSelect(isSelected ? "" : token.id)}
+        onClick={event => onSelect(token.id, isSelected, event)}
         onPointerDown={event => canMove && onPointerDown(event, token)}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
+        onDragStart={onDragStart}
         onKeyDown={event => {
             if (!canMove || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
             event.preventDefault();
@@ -126,6 +128,8 @@ export default function Battlefield({
 }) {
     const battle = snapshot.phase === "batalha";
     const [drag, setDrag] = useState(null);
+    const dragRef = useRef(null);
+    const movedPointerRef = useRef(false);
     const [resize, setResize] = useState(null);
     const movementHelpId = useId();
     const currentTokenId = battle ? snapshot.initiative[snapshot.turnIndex] || "" : "";
@@ -152,35 +156,68 @@ export default function Battlefield({
     const canMoveToken = token => role === "narrator"
         || (snapshot.settings.allowPlayerMovement && token.ownerPlayerId === playerId);
 
+    // The moving sprite may be much larger than its board anchor. Keeping
+    // the active pointer in a ref avoids stale React renders during a drag.
     const updatePosition = (event, commit = false) => {
-        if (!drag) return;
+        const active = dragRef.current;
+        if (!active || event.pointerId !== active.pointerId) return;
         const rect = event.currentTarget.closest(".battlefield-board")?.getBoundingClientRect();
-        if (!rect) return;
-        const deltaX = event.clientX - drag.startClientX;
-        const deltaY = event.clientY - drag.startClientY;
-        const x = clamp(drag.startX + deltaX / rect.width * 100, 4, 96);
-        const y = clamp(drag.startY + deltaY / rect.height * 100, 8, 92);
-        setDrag(current => current ? { ...current, x, y } : current);
-        if (commit && Math.hypot(deltaX, deltaY) > 3) {
-            onSnapshotChange({
-                ...snapshot,
-                tokens: snapshot.tokens.map(token => token.id === drag.tokenId ? { ...token, x, y } : token),
-            });
+        if (!rect || !rect.width || !rect.height) return;
+        const deltaX = event.clientX - active.startClientX;
+        const deltaY = event.clientY - active.startClientY;
+        const x = clamp(active.startX + deltaX / rect.width * 100, 4, 96);
+        const y = clamp(active.startY + deltaY / rect.height * 100, 8, 92);
+        if (Math.hypot(deltaX, deltaY) > 4) movedPointerRef.current = true;
+        const next = { ...active, x, y };
+        if (commit) {
+            dragRef.current = null;
+            setDrag(null);
+            if (movedPointerRef.current) {
+                onSnapshotChange({
+                    ...snapshot,
+                    tokens: snapshot.tokens.map(token => token.id === active.tokenId ? { ...token, x, y } : token),
+                });
+            }
+        } else {
+            dragRef.current = next;
+            setDrag(next);
         }
-        if (commit) setDrag(null);
     };
 
     const handlePointerDown = (event, token) => {
+        if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
         event.preventDefault();
+        // Pointer capture keeps a large Pokémon moving even if the cursor
+        // leaves its image, the board, or the viewport during the gesture.
         event.currentTarget.setPointerCapture?.(event.pointerId);
         event.currentTarget.focus({ preventScroll: true });
-        setDrag({ tokenId: token.id, x: token.x, y: token.y, startX: token.x, startY: token.y, startClientX: event.clientX, startClientY: event.clientY });
+        movedPointerRef.current = false;
+        const next = { pointerId: event.pointerId, tokenId: token.id, x: token.x, y: token.y,
+            startX: token.x, startY: token.y, startClientX: event.clientX, startClientY: event.clientY };
+        dragRef.current = next;
+        setDrag(next);
     };
 
     const handlePointerUp = event => {
-        if (!drag) return;
+        if (!dragRef.current || dragRef.current.pointerId !== event.pointerId) return;
         updatePosition(event, true);
-        event.currentTarget.releasePointerCapture?.(event.pointerId);
+        if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+    };
+    const handlePointerCancel = event => {
+        if (!dragRef.current || dragRef.current.pointerId !== event.pointerId) return;
+        dragRef.current = null;
+        setDrag(null);
+        movedPointerRef.current = false;
+    };
+    const handleTokenSelect = (tokenId, isSelected, event) => {
+        if (movedPointerRef.current) {
+            event.preventDefault();
+            movedPointerRef.current = false;
+            return;
+        }
+        onSelectToken(isSelected ? "" : tokenId);
     };
 
     // Independent resize handle: the token's movement pointer handlers never
@@ -313,11 +350,12 @@ export default function Battlefield({
                             mirrored={snapshot.settings.mirrorSprites}
                             showHp={battle && snapshot.settings.showHp}
                             protectionState={protectionState}
-                            onSelect={onSelectToken}
+                            onSelect={handleTokenSelect}
                             onPointerDown={handlePointerDown}
                             onPointerMove={event => updatePosition(event, false)}
                             onPointerUp={handlePointerUp}
-                            onPointerCancel={() => setDrag(null)}
+                            onPointerCancel={handlePointerCancel}
+                            onDragStart={event => event.preventDefault()}
                             onKeyMove={handleKeyMove}
                             movementHelpId={movementHelpId}
                             sceneReferenceHeight={sceneReferenceHeight}

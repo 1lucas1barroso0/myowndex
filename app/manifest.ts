@@ -14,6 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#0b3152",
     theme_color: "#d91936",
     orientation: "any",
+    launch_handler: { client_mode: "navigate-existing" },
     lang: "pt-BR",
     icons: [
       { src: "/icons/myowndex-dex-v105-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

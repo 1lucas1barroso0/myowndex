@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.27.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.28.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 A revisão 2.0.27 implementa as 49 variantes oficiais registradas da nova leva de Megaevoluções de Legends: Z-A e Mega Dimension, com itens e identidade exatos, atributos e sprites 2D próprios; introduz Tera Shift, Terastal e Stellar do Terapagos e os climas Primordial Sea, Desolate Land e Delta Stream; reforça o modo instalado imersivo de PWA com preferência por fullscreen e fallback para standalone sem mudar a identidade instalada. Registro técnico detalhado em docs/REVISAO-2.0.27.md. A aparência de app sem barras é garantida apenas nos modos instalados que os navegadores oferecem; o sistema pode manter barras de status e controles próprios.
 
@@ -112,3 +112,10 @@ Arquivos com versão ou intervalo de PR no próprio nome, como `REFINO-11.5.md`,
 ## Publicação
 
 O estado só é considerado publicado depois que o CI do commit final passa e o deployment de produção correspondente fica pronto no domínio principal. Um build local ou Preview aprovado, isoladamente, não prova que produção está atualizada.
+
+## 2.0.28 — Instalação e manipulação do campo
+
+- O manifesto da aplicação instalada prefere o modo de tela cheia quando o navegador e o sistema o suportam, mantendo standalone onde fullscreen não é suportado. Janelas normais continuam abrindo como site.
+- Launch handler incentiva a reutilização da janela instalada, quando suportado. Ícones, escopo, atalhos, viewport e service worker permanecem ativos. iOS/iPadOS, Firefox e certos sistemas podem manter suas próprias barras e gestos do sistema; nenhuma aplicação web consegue ocultar universalmente controles impostos pelo navegador/SO.
+- O arraste de todas as espécies, inclusive Eternamax, utiliza como alvo também a imagem redimensionada. A captura de ponteiro mantém o movimento quando o cursor deixa a figura, sem desviar gestos de redimensionamento ou movimentos de teclado; arrastar uma imagem não inicia o download ou drag nativo do browser.
+- O cache offline preserva dados e sprites disponíveis, mas a primeira execução, acesso à rede e alguns navegadores exigem instalação online; não prometer recursos nativos sem API.

@@ -9,6 +9,11 @@ const page=await context.newPage(),errors=[];
 page.on("pageerror",error=>errors.push(error.message));
 try{
   await page.goto(base,{waitUntil:"domcontentloaded"});
+  const installedManifest=await page.evaluate(async()=>fetch("/manifest.webmanifest").then(r=>r.json()));
+  assert.equal(installedManifest.display,"standalone");
+  assert.deepEqual(installedManifest.display_override,["fullscreen","standalone"]);
+  assert.equal(installedManifest.scope,"/");
+  assert.ok(installedManifest.icons.some(icon=>icon.purpose==="maskable"));
   for(const path of ["/api/version","/sw.js"]){
     const response=await context.request.get(new URL(path,base).href,{headers:{"Cache-Control":"no-cache"}});
     assert.equal(response.status(),200,path);

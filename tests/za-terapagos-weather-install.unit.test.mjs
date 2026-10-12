@@ -106,5 +106,6 @@ test("PWA declares one stable application identity and an immersive browser-free
  assert.match(ui,/navigator.standalone === true/);
  assert.match(ui,/if \(installed\) return null/);
  const sw=readFileSync("public/sw.js","utf8");
- assert.match(sw,/manifest\.webmanifest\?v=2\.0\.27/);
+ const {version}=JSON.parse(readFileSync("package.json","utf8"));
+ assert.ok(sw.includes(`/manifest.webmanifest?v=${version}`),"PWA cache manifest must track the release version");
 });

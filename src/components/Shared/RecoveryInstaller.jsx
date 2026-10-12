@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import App from "../../App.jsx";
 import ErrorBoundary from "../ErrorBoundary.jsx";
 
@@ -104,7 +105,7 @@ export default function RecoveryInstaller() {
                         disabled={!confirmed || busy} onClick={() => void requestInstall()}>
                         {busy ? "Abrindo instalação…" : "Instalar MyOwnDex de recuperação"}
                     </button>
-                    <a className="pwa-rescue-secondary" href="/">Abrir MyOwnDex no navegador</a>
+                    <Link className="pwa-rescue-secondary" href="/">Abrir MyOwnDex no navegador</Link>
                 </div>
                 <p className="pwa-rescue-note">Se o navegador não abrir o instalador, toque no botão acima e siga a orientação exibida. Não limpe os dados do site para tentar resolver o problema.</p>
             </section>

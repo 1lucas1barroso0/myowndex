@@ -47,6 +47,47 @@ try{
   assert.equal(await page.evaluate(()=>matchMedia("(display-mode: standalone)").matches),false);
   assert.equal(await page.evaluate(()=>matchMedia("(display-mode: fullscreen)").matches),false);
   assert.equal(await page.evaluate(()=>localStorage.getItem("myowndex-cache-update-qa")),"preserved");
+  // Recovery is a distinct *opt-in* PWA, never a mutation of the canonical app.
+  // It must work even on a browser with an old installation record, without
+  // deleting any origin storage or altering the ordinary application's id.
+  const rescueManifestResponse=await context.request.get(new URL("/manifest-resgate.webmanifest",base).href);
+  assert.equal(rescueManifestResponse.status(),200);
+  assert.match(rescueManifestResponse.headers()["content-type"]||"",/application\/manifest\+json/);
+  assert.match(rescueManifestResponse.headers()["cache-control"]||"",/no-store/);
+  const rescueManifest=await rescueManifestResponse.json();
+  assert.equal(rescueManifest.id,"/myowndex-resgate");
+  assert.equal(rescueManifest.scope,installedManifest.scope);
+  assert.equal(rescueManifest.start_url,"/reinstalar?abrir=aventura");
+  assert.equal(rescueManifest.display,installedManifest.display);
+  assert.deepEqual(rescueManifest.icons,installedManifest.icons,"Recovery reuses the approved v105 artwork");
+  assert.ok(rescueManifest.shortcuts.every(item=>item.url.startsWith("/reinstalar?abrir=")));
+  await page.goto(new URL("/reinstalar",base).href,{waitUntil:"domcontentloaded"});
+  await page.getByRole("heading",{name:"Recuperar a instalação no celular"}).waitFor();
+  assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"),"/manifest-resgate.webmanifest");
+  const nativeInstall=page.getByRole("button",{name:"Instalar MyOwnDex de recuperação"});
+  assert.equal(await nativeInstall.isDisabled(),true);
+  await page.getByRole("checkbox",{name:/Entendi que este é um caminho alternativo/}).check();
+  assert.equal(await nativeInstall.isEnabled(),true);
+  // Headless Chromium may not offer beforeinstallprompt automatically. The
+  // fallback must give honest instructions rather than pretending to install.
+  await nativeInstall.click();
+  await page.getByRole("dialog",{name:"Instalação pelo navegador"}).waitFor();
+  await page.getByRole("button",{name:"Entendi",exact:true}).click();
+  assert.equal(await page.evaluate(()=>localStorage.getItem("myowndex-cache-update-qa")),"preserved");
+  // Test the native user-choice path without installing an OS/WebAPK package.
+  await page.evaluate(()=>{
+    window.__myowndexRescueTestPrompt=false;
+    const event=new Event("beforeinstallprompt",{cancelable:true});
+    event.prompt=async()=>{window.__myowndexRescueTestPrompt=true;};
+    event.userChoice=Promise.resolve({outcome:"accepted",platform:"web"});
+    window.dispatchEvent(event);
+  });
+  await nativeInstall.click();
+  await page.waitForFunction(()=>window.__myowndexRescueTestPrompt===true);
+  assert.equal(await page.evaluate(()=>localStorage.getItem("myowndex-cache-update-qa")),"preserved");
+  await page.goto(base,{waitUntil:"domcontentloaded"});
+  assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"),"/manifest.webmanifest");
+  assert.equal((await page.evaluate(async()=>fetch("/manifest.webmanifest").then(r=>r.json()))).id,"/");
   assert.deepEqual(errors,[]);
   console.log("PASS release endpoint no-store, active PWA, current version and retained local data");
 }finally{await browser.close();}

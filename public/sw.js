@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v2.0.29-app";
+const CACHE_NAME = "myowndex-shell-v2.0.30-app";
 const CACHE_PREFIX = "myowndex-shell-";
 const ASSET_CACHE_NAME = "myowndex-assets-v3";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";
@@ -9,7 +9,9 @@ const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
-  "/icons/myowndex-dex-v105-96.png?v=2.0.29",
+  "/manifest-resgate.webmanifest",
+  "/reinstalar?abrir=aventura",
+  "/icons/myowndex-dex-v105-96.png?v=2.0.30",
   "/icons/myowndex-dex-v105-r2-32.png",
   "/icons/myowndex-dex-v105-r2-192.png",
   "/icons/myowndex-dex-v105-r2-app-512.png",
@@ -98,11 +100,14 @@ const fetchAsset = request => {
     .catch(() => fetch(request, { cache: "no-store" }));
 };
 
-const rememberPage = async response => {
+const rememberPage = async (response, request) => {
   if (!canStore(response)) return response;
   try {
     const cache = await caches.open(CACHE_NAME);
-    await cache.put(ROOT_FALLBACK, response);
+    // Never poison the game's offline root fallback with the opt-in installer
+    // or another HTML route: each separate page caches under its own URL.
+    const key = new URL(request.url).pathname === "/" ? ROOT_FALLBACK : request;
+    await cache.put(key, response);
   } catch {
     // O cache offline é complementar e nunca deve interromper a navegação.
   }
@@ -157,7 +162,7 @@ self.addEventListener("fetch", event => {
   if (request.mode === "navigate") {
     respondAndMaintain(event,
       fetch(request)
-        .then(response => ({ response, maintenance: rememberPage(response.clone()) }))
+        .then(response => ({ response, maintenance: rememberPage(response.clone(), request) }))
         .catch(async () => {
           try {
             const cache = await caches.open(CACHE_NAME);

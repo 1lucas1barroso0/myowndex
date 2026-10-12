@@ -96,7 +96,7 @@ test("PWA declares one stable application identity and an immersive browser-free
  assert.match(manifest,/scope: "\/"/);
  assert.match(manifest,/display: "standalone"/);
  assert.match(manifest,/display_override: \["fullscreen", "standalone"\]/);
- assert.match(manifest,/myowndex-dex-v105-maskable-512/);
+ assert.match(manifest,/myowndex-dex-v105-r2-maskable-512/);
  const metadata=readFileSync("app/layout.tsx","utf8");
  assert.match(metadata,/appleWebApp/);
  assert.match(metadata,/viewportFit: "cover"/);
@@ -104,8 +104,9 @@ test("PWA declares one stable application identity and an immersive browser-free
  assert.match(ui,/display-mode: standalone/);
  assert.match(ui,/display-mode: fullscreen/);
  assert.match(ui,/navigator.standalone === true/);
- assert.match(ui,/if \(installed\) return null/);
+ assert.match(ui,/if \(inAppWindow\) return null/);
  const sw=readFileSync("public/sw.js","utf8");
  const {version}=JSON.parse(readFileSync("package.json","utf8"));
- assert.ok(sw.includes(`/manifest.webmanifest?v=${version}`),"PWA cache manifest must track the release version");
+ assert.ok(sw.includes('"/manifest.webmanifest"'),"SW precaches canonical manifest without changing its URL");
+ assert.ok(sw.includes(`myowndex-shell-v${version}-app`),"SW cache must track the release version");
 });

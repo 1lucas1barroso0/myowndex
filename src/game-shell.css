@@ -355,3 +355,33 @@ html[data-myowndex-installed="true"] .app-root.game-edition.handheld-edition { m
         -webkit-tap-highlight-color: transparent;
     }
 }
+
+/* Opt-in PWA recovery route: self-contained mobile-first presentation. */
+.pwa-rescue-page, .pwa-rescue-loading {
+  min-height: 100dvh; padding: max(1.5rem, env(safe-area-inset-top)) 1rem max(1.5rem, env(safe-area-inset-bottom));
+  background: #0b3152; color: #14253a; font-family: system-ui, -apple-system, sans-serif;
+}
+.pwa-rescue-loading { color: white; display: grid; place-items: center; }
+.pwa-rescue-page { display: grid; place-items: center; }
+.pwa-rescue-card, .pwa-rescue-dialog {
+  background: #fff; border: 3px solid #1b2838; border-radius: 1rem;
+  padding: clamp(1.25rem, 4vw, 2rem); width: min(100%, 38rem); max-height: min(95dvh, 55rem);
+  overflow: auto; box-shadow: 0 .5rem 0 #001524a0;
+}
+.pwa-rescue-card > img { display: block; width: 6rem; height: 6rem; object-fit: contain; margin: 0 auto 1rem; }
+.pwa-rescue-card h1 { font-size: clamp(1.45rem, 4vw, 2rem); line-height: 1.2; margin: .4rem 0 1rem; color: #0b3152; }
+.pwa-rescue-card p, .pwa-rescue-dialog p { line-height: 1.55; margin: .75rem 0; overflow-wrap: break-word; }
+.pwa-rescue-eyebrow { text-align: center; color: #8b2530; font-weight: 750; font-size: .85rem; }
+.pwa-rescue-confirm { margin: 1rem 0; padding: .8rem; background: #e8f2f8; display: flex; align-items: start; gap: .7rem; border-radius: .5rem; cursor: pointer; }
+.pwa-rescue-confirm input { margin: .3rem 0 0; width: 1.2rem; height: 1.2rem; flex: 0 0 auto; accent-color: #b41632; }
+.pwa-rescue-actions { display: grid; gap: .65rem; margin: 1.25rem 0 .75rem; }
+.pwa-rescue-primary, .pwa-rescue-secondary { min-height: 48px; display: grid; place-items: center; padding: .7rem 1rem; border-radius: .5rem; text-align: center; font: inherit; font-weight: 750; }
+.pwa-rescue-primary { background: #ba1630; border: 2px solid #871027; color: white; cursor: pointer; }
+.pwa-rescue-primary:disabled { opacity: .6; cursor: not-allowed; }
+.pwa-rescue-secondary { background: white; border: 2px solid #0b3152; color: #0b3152; text-decoration: none; }
+.pwa-rescue-primary:focus-visible, .pwa-rescue-secondary:focus-visible, .pwa-rescue-confirm input:focus-visible { outline: 3px solid #e5a600; outline-offset: 3px; }
+.pwa-rescue-note { color: #425264; font-size: .85rem; }
+.pwa-rescue-backdrop { position: fixed; inset: 0; background: #071b2bbb; display: grid; place-items: center; padding: 1rem; z-index: 9999; }
+.pwa-rescue-dialog { max-height: 90dvh; }
+.pwa-rescue-dialog h2 { margin: 0 0 1rem; line-height: 1.3; color: #0b3152; }
+@media (prefers-reduced-motion: reduce) { .pwa-rescue-page *, .pwa-rescue-backdrop * { scroll-behavior: auto !important; } }

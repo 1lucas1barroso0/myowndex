@@ -1286,9 +1286,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
     );
     const handleBattlefieldChange = nextSnapshot => {
         if (role === "narrator") {
-            const latest=snapshotRef.current;
-            const fieldChanged=nextSnapshot.weather!==latest.weather||nextSnapshot.terrain!==latest.terrain;
-            commitSnapshot(fieldChanged?{...nextSnapshot,weatherClearedByTeraformZero:false}:nextSnapshot);
+            const manualWeather=nextSnapshot.weather!==snapshotRef.current.weather;
+            commitSnapshot(manualWeather?{...nextSnapshot,weatherClearedByTeraformZero:false}:nextSnapshot);
             return;
         }
         const changed = nextSnapshot.tokens.find(nextToken => {
@@ -1546,8 +1545,11 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                             const latest=snapshotRef.current;
                             if(!latest.tokens.some(token=>token.id===nextToken.id)) return;
                             const tokens=latest.tokens.map(token=>token.id===nextToken.id?nextToken:token);
-                            const newStellar=nextToken.speciesId===10277&&!latest.tokens.some(token=>token.id===nextToken.id&&token.speciesId===10277);
-                            commitSnapshot(newStellar?{...latest,tokens,weather:"limpo",terrain:"nenhum",weatherClearedByTeraformZero:true}:{...latest,tokens});
+                            const becameStellar=Number(nextToken.speciesId)===10277 &&
+                                !latest.tokens.some(token=>token.id===nextToken.id&&Number(token.speciesId)===10277);
+                            commitSnapshot(becameStellar?
+                                {...latest,tokens,weather:"limpo",terrain:"nenhum",weatherClearedByTeraformZero:true}:
+                                {...latest,tokens});
                         }}
                         onOpenZ={() => {
                             setMobilePane("tools");

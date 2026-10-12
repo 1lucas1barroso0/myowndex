@@ -23,15 +23,15 @@ const stones = [
 ["tyranitar","tyranitarite"],["venusaur","venusaurite"]
 ];
 const STONE_TO_SPECIES = new Map(stones.map(([species,item])=>[item,species]));
-const ZA_MEGA_FORMS=new Map(zaForms.entries.map(entry=>[entry.name,entry]));
-export const getZAMegaForms=()=>zaForms.entries;
-export const getZAMegaFormData=key=>ZA_MEGA_FORM_DATA.get(slug(key))||null;
-const ZA_MEGA_FORM_DATA=new Map(zaForms.entries.map(entry=>[entry.name,{
+const ZA_MEGA_FORMS = new Map(zaForms.entries.map(entry => [entry.name,entry]));
+export const getZAMegaForms = () => zaForms.entries;
+const ZA_MEGA_FORM_DATA = new Map(zaForms.entries.map(entry=>[entry.name,{
  id:entry.id,name:entry.name,height:entry.height,
  types:entry.types.map(type=>({type:{name:type}})),
  abilities:entry.ability?[{ability:{name:entry.ability}}]:[],
  stats:Object.entries(entry.stats).map(([name,base_stat])=>({stat:{name},base_stat})),
 }]));
+export const getZAMegaFormData = key => ZA_MEGA_FORM_DATA.get(slug(key))||null;
 const GMAX_SPECIES = new Set([
   "venusaur","charizard","blastoise","butterfree","pikachu","meowth",
   "machamp","gengar","kingler","lapras","eevee","snorlax",
@@ -104,33 +104,38 @@ export const EXCEPTIONAL_FORM_DATA = Object.freeze({
    {hp:97,attack:167,defense:97,"special-attack":167,"special-defense":97,speed:129}),
 });
 export const TERAPAGOS_FORMS=Object.freeze({
- terastal:asForm("terapagos-terastal",10276,3,["normal"],"tera-shell",{hp:95,attack:95,defense:110,"special-attack":105,"special-defense":110,speed:85}),
- stellar:asForm("terapagos-stellar",10277,17,["normal"],"teraform-zero",{hp:160,attack:105,defense:110,"special-attack":130,"special-defense":110,speed:85}),
+ terastal:asForm("terapagos-terastal",10276,3,["normal"],"tera-shell",
+   {hp:95,attack:95,defense:110,"special-attack":105,"special-defense":110,speed:85}),
+ stellar:asForm("terapagos-stellar",10277,17,["normal"],"teraform-zero",
+   {hp:160,attack:105,defense:110,"special-attack":130,"special-defense":110,speed:85}),
 });
 const rebuildWithForm=(token,data)=>{
- const nature=NATURES[token.nature]||NATURES.hardy,stats={...token.stats},originalStats={...token.originalStats};
+ const nature=NATURES[token.nature]||NATURES.hardy;
+ const stats={...token.stats},originalStats={...token.originalStats};
  for(const entry of data.stats){
-  const key=entry.stat.name,factor=nature.up===key?1.1:nature.down===key?0.9:1;
-  const raw=calculateStat(entry.base_stat,token.evs?.[key],token.ivs?.[key],token.level,factor,key==="hp",data.name);
-  originalStats[key]=raw;stats[key]=Math.max(1,convertToTTRPG(raw,key==="hp"));
+   const key=entry.stat.name,factor=nature.up===key?1.1:nature.down===key?0.9:1;
+   const raw=calculateStat(entry.base_stat,token.evs?.[key],token.ivs?.[key],token.level,factor,key==="hp",data.name);
+   originalStats[key]=raw;stats[key]=Math.max(1,convertToTTRPG(raw,key==="hp"));
  }
- const maxHp=Math.max(1,stats.hp),currentHp=token.currentHp<=0?0:Math.max(1,Math.min(maxHp,Math.ceil(token.currentHp/Math.max(1,token.maxHp)*maxHp)));
- const sprite=getPokemonSpriteSources({pokemonId:data.id,shiny:Boolean(token.shiny)});
+ const maxHp=Math.max(1,stats.hp),currentHp=token.currentHp<=0?0:
+   Math.max(1,Math.min(maxHp,Math.ceil(token.currentHp/Math.max(1,token.maxHp)*maxHp)));
+ const art=getPokemonSpriteSources({pokemonId:data.id,shiny:Boolean(token.shiny)});
  return {...token,stats,originalStats,maxHp,currentHp,speciesId:data.id,speciesName:data.name,formName:data.name,
-  ability:data.abilities?.[0]?.ability?.name||token.ability,sprite:sprite.animated[0]||sprite.static[0]||token.sprite,
-  types:data.types.map(e=>e.type.name),originalTypes:data.types.map(e=>e.type.name)};
+   ability:data.abilities?.[0]?.ability?.name||token.ability,sprite:art.animated[0]||art.static[0]||token.sprite,
+   types:data.types.map(x=>x.type.name),originalTypes:data.types.map(x=>x.type.name)};
 };
 export const activateTeraShift=token=>{
  if(Number(token?.speciesId)!==1024||slug(token.ability)!=="tera-shift"||token.currentHp<=0)return token;
- const base={speciesId:token.speciesId,speciesName:token.speciesName,formName:token.formName,sprite:token.sprite,
-  ability:token.ability,types:token.types,originalTypes:token.originalTypes,maxHp:token.maxHp,stats:token.stats,originalStats:token.originalStats};
+ const base={speciesId:token.speciesId,speciesName:token.speciesName,formName:token.formName,
+   sprite:token.sprite,ability:token.ability,types:token.types,originalTypes:token.originalTypes,
+   maxHp:token.maxHp,stats:token.stats,originalStats:token.originalStats};
  return {...rebuildWithForm(token,TERAPAGOS_FORMS.terastal),teraShiftBase:base};
 };
 export const restoreTeraShift=token=>{
  if(!token?.teraShiftBase)return token;
  const former=token.gimmickState?.active?endGimmick(token):token,base=token.teraShiftBase;
- const hp=former.currentHp<=0?0:Math.max(1,Math.min(base.maxHp,Math.ceil(former.currentHp/Math.max(1,former.maxHp)*base.maxHp)));
- return {...former,...base,currentHp:hp,teraShiftBase:null,teraActive:false};
+ const currentHp=former.currentHp<=0?0:Math.max(1,Math.min(base.maxHp,Math.ceil(former.currentHp/Math.max(1,former.maxHp)*base.maxHp)));
+ return {...former,...base,currentHp,teraShiftBase:null,teraActive:false};
 };
 const primalFormFor = token => {
  const species=baseSpecies(token),item=slug(token?.item);
@@ -157,8 +162,8 @@ export const megaFormFor = token =>{
  const item=slug(token?.item),species=baseSpecies(token);
  if(species==="rayquaza" && Number(token.speciesId)===384)
    return (token.moves||[]).includes("dragon-ascent") && !item.endsWith("-z")?"rayquaza-mega":"";
- const za=zaForms.entries.find(entry=>entry.item===item && Number(token.speciesId)===entry.baseId);
- if(za)return za.name;
+ const fromZA=zaForms.entries.find(form=>form.item===item && Number(token.speciesId)===form.baseId);
+ if(fromZA)return fromZA.name;
  if(STONE_TO_SPECIES.get(item)!==species || /-(?:alola|galar|hisui|paldea)(?:-|$)/.test(formIdentity(token)))return "";
  const suffix=item.endsWith("-x")?"-x":item.endsWith("-y")?"-y":"";
  return `${species}-mega${suffix}`;
@@ -193,7 +198,7 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  if((baseSpecies(token)==="eternatus" || token.speciesId===890) && !used.has("eternamax"))
    options.push({id:"eternamax",label:"Eternamax (Narrador)",form:"eternatus-eternamax",hint:"Forma especial de chefe • 100 m • duração controlada pelo Narrador"});
  if(megaFormFor(token)&&!used.has("mega")&&!trainerHasUsedGimmick(token,snapshot,"mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:megaFormFor(token)==="rayquaza-mega"?"Dragon Ascent conhecido • sem Z-Crystal":"Mega Stone correspondente equipada"});
- if((slug(token.teraType)||Number(token.speciesId)===10276)&&!used.has("tera")&&!trainerHasUsedGimmick(token,snapshot,"tera"))options.push({id:"tera",label:"Terastalização",hint:Number(token.speciesId)===10276?"Terapagos: forma Stellar":"Tipo Tera: "+token.teraType});
+ if((slug(token.teraType)||Number(token.speciesId)===10276) && !used.has("tera")&&!trainerHasUsedGimmick(token,snapshot,"tera"))options.push({id:"tera",label:"Terastalização",hint:Number(token.speciesId)===10276?"Terapagos assume a forma Stellar":`Tipo Tera: ${token.teraType}`});
  const level=integerInRange(token.dynamaxLevel,0,10,0);
  if(baseSpecies(token)!=="eternatus" && token.speciesId!==890 && level>0&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
    options.push({id:"dyna",label:"Dynamax",hint:`Nível Dynamax ${level} • 3 rodadas`});
@@ -241,11 +246,12 @@ export const applyGimmick = (token,id,{formData=null}={})=>{
    if(selection && ZA_MEGA_FORM_DATA.has(selection.form))formData=ZA_MEGA_FORM_DATA.get(selection.form);
    else if(selection && EXCEPTIONAL_FORM_DATA[selection.form])formData=EXCEPTIONAL_FORM_DATA[selection.form];
  }
- const stellarTerapagos=id==="tera"&&Number(token?.speciesId)===10276;
+ const stellarTerapagos=id==="tera" && Number(token?.speciesId)===10276;
  const option=getGimmickChoices(token).find(g=>g.id===id);
  if(!option)return {applied:false,token,reason:"Esta transformação não está disponível para este Pokémon."};
  if(id==="eternamax" && (token.speciesId!==890 || Number(formData?.id)!==10190)) return {applied:false,token,reason:"Eternamax só pode ser aplicada ao Eternatus na sua forma normal."};
- if(ZA_MEGA_FORMS.has(option.form) && Number(formData?.id)!==ZA_MEGA_FORMS.get(option.form).id) return {applied:false,token,reason:"Identidade oficial da Megaevolução incorreta."};
+ if(ZA_MEGA_FORMS.has(option.form) && Number(formData?.id)!==ZA_MEGA_FORMS.get(option.form).id)
+   return {applied:false,token,reason:"Dados de outra forma não podem ser aplicados nesta Megaevolução."};
  if(EXCEPTIONAL_FORMS[option.form] && Number(formData?.id)!==EXCEPTIONAL_FORMS[option.form])
    return {applied:false,token,reason:"A identidade desta forma oficial não corresponde ao Pokémon."};
  if(option.form && (!formData || slug(formData.name)!==option.form || !Array.isArray(formData.stats)))return {applied:false,token,reason:"Não foi possível confirmar a forma oficial."};
@@ -276,7 +282,7 @@ export const applyGimmick = (token,id,{formData=null}={})=>{
    changed={...changed,speciesName:formData.name,speciesId:formData.id,formName:formData.name,
       sprite:spriteSources.animated[0]||spriteSources.static[0]||formData.sprites?.front_default||token.sprite,
       types:typeNames.length?typeNames:changed.types,originalTypes:typeNames.length?typeNames:changed.originalTypes,
-      ability:["gmax","eternamax"].includes(id)?changed.ability:(ZA_MEGA_FORMS.has(option.form)?formData.abilities?.[0]?.ability?.name||"":formData.abilities?.[0]?.ability?.name||changed.ability),stats,originalStats};
+      ability:["gmax","eternamax"].includes(id)?changed.ability:formData.abilities?.[0]?.ability?.name||changed.ability,stats,originalStats};
    if(id==="eternamax"){
      const hpBase=formData.stats.find(entry=>entry?.stat?.name==="hp")?.base_stat;
      if(!Number.isFinite(hpBase) || hpBase<=0)return {applied:false,token,reason:"A forma Eternamax não possui dados oficiais de HP verificáveis."};

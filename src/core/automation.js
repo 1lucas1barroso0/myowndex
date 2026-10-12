@@ -201,7 +201,7 @@ export const getMoveStab = (token, moveType) => {
     const teraType = normalizeSlug(token?.teraType);
     const originalMatch = originalTypes.includes(type);
     const teraMatch = Boolean(token?.teraActive && teraType === type);
-    if(token?.teraActive && teraType==="stellar")return originalMatch?2:1.2;
+    if (token?.teraActive && teraType==="stellar") return originalMatch?2:1.2;
     if (originalMatch && teraMatch) return 2;
     if (originalMatch || teraMatch) return 1.5;
     return 1;

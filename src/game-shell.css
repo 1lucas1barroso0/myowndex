@@ -338,15 +338,19 @@ html .app-root.game-edition.handheld-edition :is(.dex-entry,.pc-partner-card,.ro
     html .app-root.game-edition.handheld-edition .device-footer { display: none !important; }
 }
 
-/* Installed game: occupy the visual viewport and honor notches, home bars,
-   and tablet/desktop safe areas. Web tabs keep their browser controls. */
+/* Native-style installed window, including iOS home-screen detection fallback. */
 @media (display-mode: standalone), (display-mode: fullscreen) {
-    html { min-height: 100%; background: #0b3152; }
-    html, body { min-height: 100dvh; width: 100%; margin: 0; overscroll-behavior: none; }
-    html .app-root.game-edition.handheld-edition {
+    html, body, #__next { min-height: 100%; margin: 0; }
+    html, body { min-height: 100dvh; overscroll-behavior: none; background: #0b3152; }
+    .app-root.game-edition.handheld-edition {
         min-height: 100dvh;
         padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
     }
+}
+html[data-myowndex-installed="true"] .app-root.game-edition.handheld-edition { min-height: 100dvh; }
+
+/* Installed PWA: reduce touch highlight noise without affecting browser tabs. */
+@media (display-mode: standalone), (display-mode: fullscreen) {
     html .app-root.game-edition.handheld-edition :is(button,a,input,textarea,select) {
         -webkit-tap-highlight-color: transparent;
     }

@@ -2,7 +2,7 @@
 
 **Versão atual: 2.0.28.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
-A 2.0.27 integra 49 identidades técnicas das novas Megaevoluções de Pokémon Legends: Z-A e Mega Dimension, com 2D correto da coleção existente, pedras, stats, tipos, habilidades registradas e restrições para formas variantes. Também inclui Tera Shift de Terapagos, Tera Shell, transformação Stellar e Teraform Zero, com reversão em trocas, além de clima primordial (chuva intensa, sol extremo e ventos fortes) com as proteções de batalha e limpeza quando fontes deixam o campo. Fonte e limitações detalhadas em docs/Z-A-TERAPAGOS-CLIMA-2.0.27.md.
+A revisão 2.0.27 implementa as 49 variantes oficiais registradas da nova leva de Megaevoluções de Legends: Z-A e Mega Dimension, com itens e identidade exatos, atributos e sprites 2D próprios; introduz Tera Shift, Terastal e Stellar do Terapagos e os climas Primordial Sea, Desolate Land e Delta Stream; reforça o modo instalado imersivo de PWA com preferência por fullscreen e fallback para standalone sem mudar a identidade instalada. Registro técnico detalhado em docs/REVISAO-2.0.27.md. A aparência de app sem barras é garantida apenas nos modos instalados que os navegadores oferecem; o sistema pode manter barras de status e controles próprios.
 
 A revisão 2.0.26 faz uma auditoria de condições oficiais além de Eternamax: Mega Rayquaza só precisa conhecer Dragon Ascent (mas não pode segurar Z-Crystal); Kyogre e Groudon têm Reversão Primitiva com as suas Orbs correspondentes, sem bloquear a Mega de outros parceiros nem limitar revirações sucessivas; Necrozma Dusk Mane e Dawn Wings têm Ultra Burst com Ultranecrozium Z e a liberação do Z-Move de Photon Geyser apenas após uma rodada. Os quatro perfis de forma (tipos, habilidades, atributos e altura) são confirmados e disponíveis sem depender de rede. Ativação de Primal Reversion é guiada pelo Narrador no RPG, em vez de simular uma ativação automática não implementada. O relatório em docs/FORMAS-OFICIAIS-2.0.26.md explica a cobertura, as restrições e as formas novas que ainda exigem fontes verificadas.
 
@@ -112,7 +112,6 @@ Arquivos com versão ou intervalo de PR no próprio nome, como `REFINO-11.5.md`,
 ## Publicação
 
 O estado só é considerado publicado depois que o CI do commit final passa e o deployment de produção correspondente fica pronto no domínio principal. Um build local ou Preview aprovado, isoladamente, não prova que produção está atualizada.
-
 
 ## 2.0.28 — Instalação e manipulação do campo
 

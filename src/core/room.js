@@ -1,4 +1,4 @@
-import { resolveExceptionalWeather, ordinaryWeather } from "./exceptionalWeather.js";
+import { resolveExceptionalWeather,ordinaryWeather,specialWeatherMoveBlocked } from "./exceptionalWeather.js";
 import {
     calculateDefenses,
     calculateStat,
@@ -113,9 +113,9 @@ export const ROOM_WEATHERS = [
     { id: "neve", label: "Neve" },
     { id: "areia", label: "Tempestade de areia" },
     { id: "nevoa", label: "Névoa" },
-    { id: "chuva-intensa",label:"Chuva primordial" },
-    { id: "sol-extremo",label:"Sol extremo" },
-    { id: "ventos-fortes",label:"Ventos fortes" },
+    { id: "chuva-intensa", label: "Chuva primordial" },
+    { id: "sol-extremo", label: "Sol extremo" },
+    { id: "ventos-fortes", label: "Ventos fortes" },
 ];
 
 export const ROOM_TERRAINS = [
@@ -273,7 +273,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         volatileEffects,
         specialState: normalizeSpecialState(source.specialState),
         traitState: normalizeTraitState(source.traitState, source.item, source.ability),
-        teraShiftBase:source.teraShiftBase&&typeof source.teraShiftBase==="object"?source.teraShiftBase:null,
+        teraShiftBase: source.teraShiftBase && typeof source.teraShiftBase==="object" ? source.teraShiftBase : null,
         hidden: Boolean(source.hidden),
     };
     return { ...token, stats: calculateStagedStats(token) };
@@ -326,9 +326,9 @@ export const normalizeRoomSnapshot = value => {
             ? integerInRange(source.turnIndex, 0, initiative.length - 1, 0)
             : 0,
         scenario: ROOM_SCENARIOS.some(scene => scene.id === source.scenario) ? source.scenario : fallback.scenario,
-        weather:source.weatherClearedByTeraformZero?"limpo":resolveExceptionalWeather(ROOM_WEATHERS.some(weather=>weather.id===source.weather)?source.weather:fallback.weather,resolvedTokens),
-        weatherClearedByTeraformZero:Boolean(source.weatherClearedByTeraformZero),
+        weather: source.weatherClearedByTeraformZero ? "limpo" : resolveExceptionalWeather(ROOM_WEATHERS.some(weather => weather.id === source.weather) ? source.weather : fallback.weather,resolvedTokens),
         terrain: ROOM_TERRAINS.some(terrain => terrain.id === source.terrain) ? source.terrain : fallback.terrain,
+        weatherClearedByTeraformZero: Boolean(source.weatherClearedByTeraformZero),
         gmaxHazards: asArray(source.gmaxHazards).slice(0,8).filter(entry=>entry&&["ally","opponent"].includes(entry.side)&&["fire","grass","water","rock"].includes(entry.type))
             .map(entry=>({id:asText(entry.id).slice(0,45),label:asText(entry.label).slice(0,70),side:entry.side,type:entry.type,turns:integerInRange(entry.turns,1,4,1)})),
         sceneNotes: asText(source.sceneNotes).slice(0, 4000),
@@ -594,7 +594,7 @@ const activateEnteredTokens = (room, tokenInput, enteredIdInput) => {
         "orichalcum-pulse": "sol",
         "sand-stream": "areia",
         "snow-warning": "neve",
-        "delta-stream":"ventos-fortes",
+        "delta-stream": "ventos-fortes",
     };
     const terrainAbilities = {
         "electric-surge": "eletrico",
@@ -673,7 +673,7 @@ const activateEnteredTokens = (room, tokenInput, enteredIdInput) => {
         const changed = applyStageChange(consumed.token, seed[1], 1);
         return recordTraitEvent(changed, { kind: "item", sourceId: itemId, label: "Semente ativada", detail: `Terreno ${terrain}`, round: room.round });
     });
-    return {tokens:combined,weather:weatherClearedByTeraformZero?"limpo":resolveExceptionalWeather(weather,combined),terrain,weatherClearedByTeraformZero};
+    return { tokens: combined, weather:weatherClearedByTeraformZero?"limpo":resolveExceptionalWeather(weather,combined), terrain, weatherClearedByTeraformZero };
 };
 
 export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlayerId = "", options = {}) => {
@@ -735,9 +735,9 @@ export const addTeamToSnapshot = (snapshot, teamInput, side = "ally", ownerPlaye
 
     const normalizedRoom = normalizeRoomSnapshot({
         ...room,
-        weather:activated.weather,
-        terrain:activated.terrain,
-        weatherClearedByTeraformZero:activated.weatherClearedByTeraformZero,
+        weather: activated.weather,
+        terrain: activated.terrain,
+        weatherClearedByTeraformZero: activated.weatherClearedByTeraformZero,
         tokens: combined,
         benchTokens: [...remainingBenchTokens, ...benchTokens],
     });
@@ -829,9 +829,9 @@ export const swapTeamPokemonInSnapshot = (snapshot, outgoingTokenId, incomingTok
         tokens: activated.tokens,
         benchTokens,
         initiative,
-        weather:activated.weather,
-        terrain:activated.terrain,
-        weatherClearedByTeraformZero:activated.weatherClearedByTeraformZero,
+        weather: activated.weather,
+        terrain: activated.terrain,
+        weatherClearedByTeraformZero: activated.weatherClearedByTeraformZero,
     });
     return {
         room: normalizedRoom,
@@ -984,7 +984,7 @@ const END_ROUND_STATUS_BERRIES = Object.freeze({
 
 export const applyEndOfRoundEffects = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
-    const effectiveWeather = ordinaryWeather(isWeatherSuppressed(room.tokens)?"limpo":room.weather);
+    const effectiveWeather = ordinaryWeather(isWeatherSuppressed(room.tokens) ? "limpo" : room.weather);
     const effects = [];
     const leechHealing = [];
     let hitKillProtectionUsed = room.hitKillProtectionUsed;
@@ -1684,7 +1684,7 @@ export const buildInitiative = (snapshot, random) => {
         ? { ...token, battleParticipated: true, battleEntryLevel: token.battleEntryLevel || token.level } : token) };
     if (room.initiative.length) throw new RangeError("A rodada já começou. Encerre os turnos antes de rolar uma nova iniciativa.");
     const results = room.tokens.filter(token => !token.hidden && !token.captured && token.currentHp > 0).map(token => {
-        const traitState = getInitiativeTraitState(token, { weather:ordinaryWeather(isWeatherSuppressed(room.tokens)?"limpo":room.weather), round: room.round });
+        const traitState = getInitiativeTraitState(token, { weather: ordinaryWeather(isWeatherSuppressed(room.tokens) ? "limpo" : room.weather), round: room.round });
         const originalSpeed = finiteNumberOrNull(token?.originalStats?.speed);
         const stagedSpeed = originalSpeed != null
             ? Math.max(1, Math.floor(originalSpeed * stageMultiplier(normalizeStageMap(token?.stages).speed)))
@@ -1837,10 +1837,11 @@ export const calculateMoveResolution = ({
     const typeSensitiveStatusMoves = new Set(["thunder-wave"]);
     const typeBlocked = effectiveness === 0
         && (profile.requiresDamageContest || typeSensitiveStatusMoves.has(normalizeSlug(move?.name)));
+    const weatherMoveBlocked=specialWeatherMoveBlocked({weather,moveType,weatherSuppressed});
     const specialBlockReason = getSpecialMoveBlockReason({ move, attacker, defender, round });
     const abilityBlock = getAbilityMoveBlock({ move, attacker, defender, effectiveness });
     const traitBlock = getTraitMoveBlock({ move, attacker, defender }) || getMovePriorityBlock({ token: attacker, move, defender, terrain, priority: movePriority });
-    const moveConnected = accuracyTest.success && !typeBlocked && !specialBlockReason && !abilityBlock && !traitBlock;
+    const moveConnected = accuracyTest.success && !typeBlocked && !specialBlockReason && !abilityBlock && !traitBlock && !weatherMoveBlocked;
     const damageHit = profile.requiresDamageContest && contestSuccess && moveConnected;
     const hit = moveConnected;
     const criticalMultiplier = attackTest?.critical ? 1.5 : 1;
@@ -1956,6 +1957,7 @@ export const calculateMoveResolution = ({
         multiHitTraits,
         effectiveness,
         typeBlocked,
+        weatherMoveBlocked,
         specialBlockReason,
         abilityBlock,
         traitBlock,

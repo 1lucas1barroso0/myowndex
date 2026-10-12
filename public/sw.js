@@ -9,10 +9,9 @@ const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
-  "/icons/myowndex-dex-v105-r2-96.png?v=2.0.29",
+  "/icons/myowndex-dex-v105-96.png?v=2.0.29",
   "/icons/myowndex-dex-v105-r2-32.png",
   "/icons/myowndex-dex-v105-r2-192.png",
-  "/icons/myowndex-dex-v105-r2-app-512.png",
   "/icons/myowndex-dex-v105-r2-app-512.png",
   "/icons/myowndex-dex-v105-r2-180.png",
   "/icons/myowndex-dex-v105-r2-96.png",

@@ -11,6 +11,9 @@ test("canonical PWA remains untouched and Android recovery uses a distinct fixed
  assert.match(main,/id: "\/"/);
  assert.match(main,/start_url: "\/\?abrir=aventura"/);
  assert.match(alternate,/id: "\/myowndex-resgate"/);
+ assert.match(alternate,/name: "MyOwnDex"/);
+ assert.match(alternate,/short_name: "MyOwnDex"/);
+ assert.doesNotMatch(alternate,/name: "MyOwnDex \(Recuperação\)"|short_name: "MyOwnDex Resgate"/);
  assert.match(alternate,/start_url: "\/reinstalar\?abrir=aventura"/);
  assert.match(alternate,/import baseManifest from "\.\.\/manifest"/);
  assert.match(alternate,/\.\.\.canonical/);

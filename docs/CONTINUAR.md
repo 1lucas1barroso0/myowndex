@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.30.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.31.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 A revisão 2.0.27 implementa as 49 variantes oficiais registradas da nova leva de Megaevoluções de Legends: Z-A e Mega Dimension, com itens e identidade exatos, atributos e sprites 2D próprios; introduz Tera Shift, Terastal e Stellar do Terapagos e os climas Primordial Sea, Desolate Land e Delta Stream; reforça o modo instalado imersivo de PWA com preferência por fullscreen e fallback para standalone sem mudar a identidade instalada. Registro técnico detalhado em docs/REVISAO-2.0.27.md. A aparência de app sem barras é garantida apenas nos modos instalados que os navegadores oferecem; o sistema pode manter barras de status e controles próprios.
 
@@ -136,3 +136,10 @@ O estado só é considerado publicado depois que o CI do commit final passa e o 
 - Precache somente os dois manifestos e o ponto de entrada alternativo necessários; não registrar um segundo service worker e não apagar caches, contas, Boxes ou aventuras.
 - O service worker distingue a raiz `/` de outros caminhos ao salvar a versão offline: abrir o guia não substitui o HTML offline da Pokédex.
 - Verificar por testes reais: os dois manifests com identidades diferentes mas mesmas imagens, entrada da instalação alternativa, ausência de reset de dados e cache de navegação isolado. A reinstalação física de WebAPK precisa ser confirmada no dispositivo, não pode ser prometida só com testes em Chromium.
+
+## 2.0.31: nome do ícone de recuperação
+
+- O PWA alternativo instalado a partir de `/reinstalar` usa `name: "MyOwnDex"` e `short_name: "MyOwnDex"`, idênticos ao aplicativo principal. O termo “Resgate” fica apenas no ID técnico interno estável `/myowndex-resgate`, invisível como nome do aplicativo.
+- O `id` alternativo, `scope`, `start_url`, arquivos dos ícones v105 e armazenamento compartilhado permanecem inalterados. Não deve surgir um terceiro aplicativo por mudança de ID.
+- O botão da página alternativa passa a dizer “Instalar MyOwnDex”. Verificação unitária e navegador confirmam os dois campos exibíveis dos manifestos, a identidade alternativa e a preservação dos dados.
+- Um atalho já instalado pode manter seu nome antigo até o sistema processar o novo manifesto ou até reinstalação; a web não consegue renomear diretamente um WebAPK ainda armazenado pelo Android.

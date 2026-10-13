@@ -56,6 +56,8 @@ try{
   assert.match(rescueManifestResponse.headers()["cache-control"]||"",/no-store/);
   const rescueManifest=await rescueManifestResponse.json();
   assert.equal(rescueManifest.id,"/myowndex-resgate");
+  assert.equal(rescueManifest.name,"MyOwnDex");
+  assert.equal(rescueManifest.short_name,"MyOwnDex");
   assert.equal(rescueManifest.scope,installedManifest.scope);
   assert.equal(rescueManifest.start_url,"/reinstalar?abrir=aventura");
   assert.equal(rescueManifest.display,installedManifest.display);
@@ -64,7 +66,7 @@ try{
   await page.goto(new URL("/reinstalar",base).href,{waitUntil:"domcontentloaded"});
   await page.getByRole("heading",{name:"Recuperar a instalação no celular"}).waitFor();
   assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"),"/manifest-resgate.webmanifest");
-  const nativeInstall=page.getByRole("button",{name:"Instalar MyOwnDex de recuperação"});
+  const nativeInstall=page.getByRole("button",{name:"Instalar MyOwnDex"});
   assert.equal(await nativeInstall.isDisabled(),true);
   await page.getByRole("checkbox",{name:/Entendi que este é um caminho alternativo/}).check();
   assert.equal(await nativeInstall.isEnabled(),true);

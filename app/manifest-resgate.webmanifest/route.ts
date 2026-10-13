@@ -11,8 +11,8 @@ export function GET(): Response {
   const canonical = baseManifest();
   return Response.json({
     ...canonical,
-    name: "MyOwnDex (Recuperação)",
-    short_name: "MyOwnDex Resgate",
+    name: "MyOwnDex",
+    short_name: "MyOwnDex",
     id: "/myowndex-resgate",
     start_url: "/reinstalar?abrir=aventura",
     scope: "/",

@@ -103,7 +103,7 @@ export default function RecoveryInstaller() {
                 <div className="pwa-rescue-actions">
                     <button ref={trigger} type="button" className="pwa-rescue-primary"
                         disabled={!confirmed || busy} onClick={() => void requestInstall()}>
-                        {busy ? "Abrindo instalação…" : "Instalar MyOwnDex de recuperação"}
+                        {busy ? "Abrindo instalação…" : "Instalar MyOwnDex"}
                     </button>
                     <Link className="pwa-rescue-secondary" href="/">Abrir MyOwnDex no navegador</Link>
                 </div>

@@ -226,7 +226,7 @@ try {
     for (let index = 0; index < stats.length; index++) {
         assert.equal(await page.getByRole('spinbutton', { name: `IVs de ${stats[index]}`, exact: true }).inputValue(), String(ivs[index]));
         assert.equal(await page.getByRole('spinbutton', { name: `EVs de ${stats[index]}`, exact: true }).inputValue(), String(evs[index]));
-        assert.equal(await page.getByRole('slider', { name: `Ajustar EVs de ${stats[index]}`, exact: true }).inputValue(), String(evs[index]));
+        assert.equal(await page.getByRole('slider').count(), 0);
     }
     assert.match(await page.locator('.pokemon-ev-budget').innerText(), /324 EVs/);
     await check('six-stat-ivs-evs-persist-after-reload');
@@ -237,7 +237,7 @@ try {
             await training.locator(':scope > summary').scrollIntoViewIfNeeded();
             assert.equal(await page.locator('.pokemon-stat-row').count(), 6);
             assert.equal(await training.locator('input[type="number"]').count(), 12);
-            assert.equal(await training.locator('input[type="range"]').count(), 6);
+            assert.equal(await training.locator('input[type="range"]').count(), 0);
             await check(`${theme}-${width}-training-six-stats`);
             if (theme === 'Claro' && width === 320) await screenshot('/tmp/polish-training-light-320.png', '.pokemon-training-heading');
             if (theme === 'Escuro' && width === 1280) await screenshot('/tmp/polish-training-dark-1280.png', '.pokemon-training-heading');

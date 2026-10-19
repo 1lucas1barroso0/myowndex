@@ -289,7 +289,7 @@ try {
     await page.getByLabel('Nome da Box', { exact: true }).fill('Equipe da floresta e do jardim com uma identificação bastante comprida');
     await page.locator('.pc-partner-card').first().click();
     await page.getByLabel('Natureza', { exact: true }).selectOption('sassy');
-    for (const name of ['Progresso da jornada', 'Características e transformações', 'Treinamento'])
+    for (const name of ['Progresso da jornada', 'Características', 'Formas e transformações', 'Treinamento'])
         await openDetails(page.locator('.pokemon-editor details').filter({ has: page.locator(':scope > summary', { hasText: name }) }).first());
     await page.getByLabel('Condição', { exact: true }).selectOption('bad-poison');
     await page.getByLabel('Tipo Tera', { exact: true }).selectOption('electric');
@@ -299,7 +299,7 @@ try {
     });
     await page.reload();
     await page.locator('.pc-partner-card').first().click();
-    for (const name of ['Progresso da jornada', 'Características e transformações', 'Treinamento'])
+    for (const name of ['Progresso da jornada', 'Características', 'Formas e transformações', 'Treinamento'])
         await openDetails(page.locator('.pokemon-editor details').filter({ has: page.locator(':scope > summary', { hasText: name }) }).first());
     for (let index = 0; index < stats.length; index++) {
         assert.equal(await page.getByRole('spinbutton', { name: `IVs de ${stats[index]}`, exact: true }).inputValue(), String(ivs[index]));

@@ -400,22 +400,16 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <datalist id={abilityListId}>{validAbs.map(ability => { const value = typeof ability === "string" ? ability : ability?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
             <datalist id={moveListId}>{validMoves.map(move => { const value = typeof move === "string" ? move : move?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
 
-            <header className="editor-header">
-                <PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" />
+            <header className="editor-header" style={{ "--summary-type": TYPE_COLORS[pk.species?.types?.[0]?.type?.name] || "var(--ui-blue)" }}>
+                <div className="editor-portrait-stage"><span className="editor-summary-caption">Resumo</span><PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" /></div>
                 <div className="editor-identity">
                     <label className="editor-field">
                         <span className="editor-label">Apelido</span>
                         <input type="text" value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, nickname: event.target.value })} className="editor-input editor-nickname" />
                     </label>
                     <span className="editor-species-name">{formatName(pk.formKey || pk.species?.name || "")}</span>
-                    {forms.length > 1 && <label className="editor-field form-switch">
-                        <span className="editor-label">Forma</span>
-                        <RoomSelect aria-label="Forma" className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
-                            {forms.map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}{entry.is_default ? " · padrão" : ""}</option>)}
-                        </RoomSelect>
-                    </label>}
-                    {switchingForm && <span role="status" className="sr-only">Consultando forma…</span>}
-                    {formError && <span role="alert" className="editor-error">{formError}</span>}
+                    <div className="editor-summary-types" aria-label="Tipos deste Pokémon">{(isHackmon && customT.length ? customT : (pk.species?.types || []).map(entry => entry.type?.name)).filter(Boolean).map(type => <span key={type} style={{ backgroundColor: TYPE_COLORS[type], color: TYPE_TEXT_COLORS[type] }}>{formatType(type)}</span>)}</div>
+                    <div className="editor-summary-health"><strong>HP {rpg.currentHp ?? displayedMaxHp} / {displayedMaxHp}</strong><span>{RPG_STATUS_LABELS[rpg.status || ""] || "Sem condição"}</span></div>
                 </div>
                 <label className="editor-field editor-level">
                     <span className="editor-label">Nível</span>
@@ -468,6 +462,31 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 </div>
             </div>
 
+            <details className="editor-disclosure editor-characteristics">
+                <summary>Características</summary>
+                <div className="editor-disclosure-body editor-basics-grid">
+                    <FriendshipControl pokemon={pk} onChange={updatePk} isTTRPG={isTTRPG} />
+                    <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} />Shiny</label></div>
+                    {isHackmon && [0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><RoomSelect aria-label={`Tipo personalizado ${index + 1}`} value={customT[index] || ""} onChange={event => { dismissKeyboard(); const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>)}
+                </div>
+            </details>
+            <details className="editor-disclosure editor-forms">
+                <summary>Formas e transformações</summary>
+                <div className="editor-disclosure-body editor-basics-grid">
+                    {forms.length > 1 && <label className="editor-field form-switch">
+                        <span className="editor-label">Forma</span>
+                        <RoomSelect aria-label="Forma" className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
+                            {forms.map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}{entry.is_default ? " · padrão" : ""}</option>)}
+                        </RoomSelect>
+                    </label>}
+                    {switchingForm && <span role="status" className="sr-only">Consultando forma…</span>}
+                    {formError && <span role="alert" className="editor-error">{formError}</span>}
+                    <label className="editor-field"><span className="editor-label">Tipo Tera</span><RoomSelect aria-label="Tipo Tera" value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
+                    <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" inputMode="numeric" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
+                    <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Gigantamax</label></div>
+                </div>
+            </details>
+
             {(pk.ability || pk.item) && <details className="editor-disclosure editor-trait-reference">
                 <summary>Consultar habilidade e item</summary>
                 <div className="editor-disclosure-body">
@@ -475,6 +494,55 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     {pk.item && <ItemCard name={pk.item} detail={traitDetails.item} versionGroup={referenceVersion} compact />}
                 </div>
             </details>}
+
+            <section className="editor-stat-summary" aria-labelledby={`${fieldId}-stats-heading`}>
+                <h3 id={`${fieldId}-stats-heading`}>{isTTRPG ? "Atributos do RPG" : "Atributos"}</h3>
+                <dl>{pk.species?.stats?.map(stat => {
+                    const name = stat.stat?.name; if (!name) return null;
+                    const base = isHackmon && pk.customStats?.[name] !== undefined ? pk.customStats[name] : stat.base_stat || 0;
+                    const value = calculateStat(base, pk.evs?.[name] ?? 0, pk.ivs?.[name] ?? 31, pk.level, getMulti(name), name === "hp", pk.species?.name);
+                    return <div key={name}><dt>{STAT_MAP[name] || name}</dt><dd>{isTTRPG ? convertToTTRPG(value, name === "hp") : value}</dd></div>;
+                })}</dl>
+                <details className="editor-move-description editor-stat-help">
+                    <summary>Entender os atributos</summary>
+                    <ul>
+                        <li><strong>HP:</strong> energia do Pokémon. Com zero HP, ele fica fora de combate.</li>
+                        <li><strong>Ataque e Defesa:</strong> força e proteção contra movimentos físicos.</li>
+                        <li><strong>Ataque Especial e Defesa Especial:</strong> força e proteção contra movimentos especiais.</li>
+                        <li><strong>Velocidade:</strong> ajuda a definir a ordem dos turnos.</li>
+                    </ul>
+                </details>
+            </section>
+            <details className="editor-disclosure pokemon-training-panel">
+                <summary>
+                    <span className="pokemon-training-heading"><strong>Treinamento</strong><small>IVs e EVs</small></span>
+                    <span className={`pokemon-ev-budget ${evTotal > 510 ? "is-over-limit" : ""}`}><strong>{evTotal} EVs</strong><small>{rpg.pendingEvs > 0 ? `${rpg.pendingEvs} para treinar` : "Limite: 510"}</small></span>
+                </summary>
+                <div className="editor-disclosure-body">
+                    <EvTraining pokemon={pk} onChange={updatePk} />
+                    <div className="pokemon-training-toolbar">
+                        <p>IVs de 0 a 31 · EVs até 252 por atributo</p>
+                        <button type="button" onClick={() => randomize("ivs")} className="editor-training-random">⚄ Sortear IVs</button>
+                    </div>
+                    <details className="editor-move-description editor-training-help">
+                        <summary>O que são IVs e EVs?</summary>
+                        <p><strong>IVs</strong> são as características naturais do Pokémon. <strong>EVs</strong> são pontos ganhos com treinamento. Ambos influenciam seus atributos.</p>
+                    </details>
+                    <div className="pokemon-stat-list">{pk.species?.stats?.map(stat => {
+                        const name = stat.stat?.name; if (!name) return null;
+                        const base = isHackmon && pk.customStats?.[name] !== undefined ? pk.customStats[name] : stat.base_stat || 0;
+                        const ev = pk.evs?.[name] ?? 0; const iv = pk.ivs?.[name] ?? 31;
+                        return <div key={name} className="pokemon-stat-row">
+                            <h4>{STAT_MAP[name] || name}</h4>
+                            <div className="pokemon-stat-controls">
+                                <label><span>Base</span>{isHackmon ? <input type="number" aria-label={`Base de ${STAT_MAP[name] || name}`} min="1" max="255" value={base} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, customStats: { ...(pk.customStats || {}), [name]: event.target.value === "" ? "" : integerInRange(event.target.value, 1, 255, 1) } })} className="editor-input" /> : <output aria-label={`Base de ${STAT_MAP[name] || name}`}>{base}</output>}</label>
+                                <label><span>IVs</span><input type="number" inputMode="numeric" step="1" onWheel={event => event.currentTarget.blur()} aria-label={`IVs de ${STAT_MAP[name] || name}`} min="0" max="31" value={iv} onKeyDown={handleEnter} onChange={event => handleChange("ivs", name, event.target.value)} className="editor-input" /></label>
+                                <label className="pokemon-stat-ev"><span>EVs</span><input type="number" inputMode="numeric" step="1" aria-label={`EVs de ${STAT_MAP[name] || name}`} min="0" max="252" value={ev} onWheel={event => event.currentTarget.blur()} onKeyDown={handleEnter} onChange={event => handleChange("evs", name, event.target.value)} className="editor-input" /></label>
+                            </div>
+                        </div>;
+                    })}</div>
+                </div>
+            </details>
 
             <section className="editor-moves" aria-labelledby={`${fieldId}-moves-heading`}>
                 <header className="editor-section-heading"><h3 id={`${fieldId}-moves-heading`}>Movimentos</h3><span>{pk.moves?.filter(Boolean).length || 0} de 4</span></header>
@@ -523,65 +591,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 </div>
             </details>
 
-            <details className="editor-disclosure editor-characteristics">
-                <summary>Características e transformações</summary>
-                <div className="editor-disclosure-body editor-basics-grid">
-                    <FriendshipControl pokemon={pk} onChange={updatePk} isTTRPG={isTTRPG} />
-                    <label className="editor-field"><span className="editor-label">Tipo Tera</span><RoomSelect aria-label="Tipo Tera" value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
-                    <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" inputMode="numeric" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
-                    <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Gigantamax</label><label><input type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} />Shiny</label></div>
-                    {isHackmon && [0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><RoomSelect aria-label={`Tipo personalizado ${index + 1}`} value={customT[index] || ""} onChange={event => { dismissKeyboard(); const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>)}
-                </div>
-            </details>
-
-            <section className="editor-stat-summary" aria-labelledby={`${fieldId}-stats-heading`}>
-                <h3 id={`${fieldId}-stats-heading`}>{isTTRPG ? "Atributos do RPG" : "Atributos"}</h3>
-                <dl>{pk.species?.stats?.map(stat => {
-                    const name = stat.stat?.name; if (!name) return null;
-                    const base = isHackmon && pk.customStats?.[name] !== undefined ? pk.customStats[name] : stat.base_stat || 0;
-                    const value = calculateStat(base, pk.evs?.[name] ?? 0, pk.ivs?.[name] ?? 31, pk.level, getMulti(name), name === "hp", pk.species?.name);
-                    return <div key={name}><dt>{STAT_MAP[name] || name}</dt><dd>{isTTRPG ? convertToTTRPG(value, name === "hp") : value}</dd></div>;
-                })}</dl>
-                <details className="editor-move-description editor-stat-help">
-                    <summary>Entender os atributos</summary>
-                    <ul>
-                        <li><strong>HP:</strong> energia do Pokémon. Com zero HP, ele fica fora de combate.</li>
-                        <li><strong>Ataque e Defesa:</strong> força e proteção contra movimentos físicos.</li>
-                        <li><strong>Ataque Especial e Defesa Especial:</strong> força e proteção contra movimentos especiais.</li>
-                        <li><strong>Velocidade:</strong> ajuda a definir a ordem dos turnos.</li>
-                    </ul>
-                </details>
-            </section>
-            <details className="editor-disclosure pokemon-training-panel">
-                <summary>
-                    <span className="pokemon-training-heading"><strong>Treinamento</strong><small>IVs e EVs</small></span>
-                    <span className={`pokemon-ev-budget ${evTotal > 510 ? "is-over-limit" : ""}`}><strong>{evTotal} EVs</strong><small>{rpg.pendingEvs > 0 ? `${rpg.pendingEvs} para treinar` : "Limite: 510"}</small></span>
-                </summary>
-                <div className="editor-disclosure-body">
-                    <EvTraining pokemon={pk} onChange={updatePk} />
-                    <div className="pokemon-training-toolbar">
-                        <p>IVs de 0 a 31 · EVs até 252 por atributo</p>
-                        <button type="button" onClick={() => randomize("ivs")} className="editor-training-random">⚄ Sortear IVs</button>
-                    </div>
-                    <details className="editor-move-description editor-training-help">
-                        <summary>O que são IVs e EVs?</summary>
-                        <p><strong>IVs</strong> são as características naturais do Pokémon. <strong>EVs</strong> são pontos ganhos com treinamento. Ambos influenciam seus atributos.</p>
-                    </details>
-                    <div className="pokemon-stat-list">{pk.species?.stats?.map(stat => {
-                        const name = stat.stat?.name; if (!name) return null;
-                        const base = isHackmon && pk.customStats?.[name] !== undefined ? pk.customStats[name] : stat.base_stat || 0;
-                        const ev = pk.evs?.[name] ?? 0; const iv = pk.ivs?.[name] ?? 31;
-                        return <div key={name} className="pokemon-stat-row">
-                            <h4>{STAT_MAP[name] || name}</h4>
-                            <div className="pokemon-stat-controls">
-                                <label><span>Base</span>{isHackmon ? <input type="number" aria-label={`Base de ${STAT_MAP[name] || name}`} min="1" max="255" value={base} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, customStats: { ...(pk.customStats || {}), [name]: event.target.value === "" ? "" : integerInRange(event.target.value, 1, 255, 1) } })} className="editor-input" /> : <output aria-label={`Base de ${STAT_MAP[name] || name}`}>{base}</output>}</label>
-                                <label><span>IVs</span><input type="number" aria-label={`IVs de ${STAT_MAP[name] || name}`} min="0" max="31" value={iv} onKeyDown={handleEnter} onChange={event => handleChange("ivs", name, event.target.value)} className="editor-input" /></label>
-                                <div className="pokemon-stat-ev"><span>EVs</span><div><input type="range" aria-label={`Ajustar EVs de ${STAT_MAP[name] || name}`} min="0" max="252" step="1" value={ev === "" ? 0 : ev} onChange={event => handleChange("evs", name, event.target.value)} /><input type="number" aria-label={`EVs de ${STAT_MAP[name] || name}`} min="0" max="252" value={ev} onKeyDown={handleEnter} onChange={event => handleChange("evs", name, event.target.value)} className="editor-input" /></div></div>
-                            </div>
-                        </div>;
-                    })}</div>
-                </div>
-            </details>
         </section>
     );
 }

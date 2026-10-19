@@ -333,7 +333,7 @@ await page.getByLabel('Apelido',{exact:true}).fill('Venusaur parceiro com nome c
 for(const width of [320,390,768,1280]){
  await page.setViewportSize({width,height:900});
  await page.locator('.editor-header').scrollIntoViewIfNeeded();await check(`${width}-editor`);
- for(const summary of ['Progresso da jornada','Mega, Z-Move, Dynamax e Tera','Treinamento']){const s=page.locator('.pokemon-editor summary').filter({hasText:summary});if(!await s.evaluate(e=>e.parentElement.open))await s.click();await s.scrollIntoViewIfNeeded();await check(`${width}-editor-${summary}`)}
+ for(const summary of ['Progresso da jornada','Mecânicas de batalha','Treinamento']){const s=page.locator('.pokemon-editor summary').filter({hasText:summary});if(!await s.evaluate(e=>e.parentElement.open))await s.click();await s.scrollIntoViewIfNeeded();await check(`${width}-editor-${summary}`)}
 }
 console.log('QA editor: preparing screenshot');
 await page.setViewportSize({width:1280,height:900});await page.locator('.editor-header').scrollIntoViewIfNeeded({timeout:15000});await page.screenshot({path:'/tmp/myowndex-clean-editor.png',animations:'disabled',timeout:15000});

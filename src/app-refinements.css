@@ -15,7 +15,7 @@ html .app-root.game-edition.handheld-edition .app-tool-actions > .global-dice-bu
 html .app-root.game-edition.handheld-edition .app-tool-actions > .global-generator-button { --tool-tone:#9256c6; }
 html .app-root.game-edition.handheld-edition .app-tool-actions > .account-header-button { --tool-tone:#bd7139; }
 html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) > .pokemon-companion { display:grid !important; place-items:center; width:36px !important; height:32px !important; min-width:0 !important; margin:0 !important; padding:0 !important; background:none !important; border:0 !important; box-shadow:none !important; }
-html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion :is(.pokemon-sized-sprite,img) { width:32px !important; height:32px !important; min-height:0 !important; object-fit:contain; }
+html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion > .pokemon-sized-sprite { width:32px !important; height:32px !important; min-height:0 !important; object-fit:contain; }
 html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button)[aria-expanded=true] { outline:2px solid var(--journey-gold); outline-offset:2px; }
 html .app-root .editor-shiny { display:inline-flex; align-items:center; gap:.4rem; min-height:44px; width:fit-content; color:var(--ui-ink); font-size:.875rem; font-weight:700; }
 html .app-root .editor-friendship { padding-block:.75rem; border-top:1px solid var(--ui-line); }

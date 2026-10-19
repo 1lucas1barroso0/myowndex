@@ -448,8 +448,8 @@ export default function Teambuilder({ envProps }) {
                         </div>
 
                         {(envLoading || envError) && (
-                            <div className="pc-catalog-status" role="status">
-                                {envLoading ? "Carregando catálogo…" : envError}
+                            <div className={envLoading && !envError ? "sr-only" : "pc-catalog-status"} role="status">
+                                {envError || "Carregando catálogo…"}
                             </div>
                         )}
 

@@ -425,7 +425,7 @@ export default function CombatAssistant({
                             : automationTags.map(tag => <span key={tag}>{tag}</span>)}
                     </div>
                 )}
-                {(!compact || !resolutionProfile || (resolutionProfile.target.requiresSelection && !defender) || (needsCalledMove && !calledMoveData)) && <p className="combat-target-note" role={moveLoadError && !moveData ? "alert" : loadingMove && !moveData ? "status" : undefined}>{targetDescription}</p>}
+                {(!compact || !resolutionProfile || (resolutionProfile.target.requiresSelection && !defender) || (needsCalledMove && !calledMoveData)) && <p className={loadingMove && !moveData && !moveLoadError ? "sr-only" : "combat-target-note"} role={moveLoadError && !moveData ? "alert" : loadingMove && !moveData ? "status" : undefined}>{targetDescription}</p>}
                 {moveName && moveLoadError && !moveData && <button type="button" onClick={() => { retryMoveRequested.current = true; setMoveRefresh(current => current + 1); }}>Tentar novamente</button>}
                 {originalSpecialBlock && <p className="combat-special-block">Falhará: {originalSpecialBlock}. A tentativa usa PP e a ação.</p>}
                 {originalTraitBlock?.attackerBlocked && <p className="combat-special-block">Item ativo: {originalTraitBlock.reason}.</p>}

@@ -267,7 +267,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
         setPending("");setNotice(pending==="apply"?"Progresso registrado nas Boxes.":pending==="reset"?"Campo limpo.":"Pokémon retirado do campo.");
     };
 
-    if(!ready)return <p role="status">Abrindo o campo…</p>;
+    if(!ready)return <p role="status" className="sr-only">Abrindo o campo…</p>;
     return <div className="local-pokemon-dice">
         {sceneSnapshot && <p className="local-pokemon-context">Campo da aventura · rodada {snapshot.round}</p>}
         <fieldset className="local-pokemon-workbench" disabled={busy || adding || accountApplying}><legend className="sr-only">Configurar e resolver jogadas Pokémon</legend>

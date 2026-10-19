@@ -387,7 +387,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                         )}
                     </div>
                     
-                    {formIdentity?.formId && !appearanceReady && <div className="record-section-note" role={appearanceError ? 'alert' : 'status'}>
+                    {formIdentity?.formId && !appearanceReady && <div className={appearanceError ? "record-section-note" : "sr-only"} role={appearanceError ? 'alert' : 'status'}>
                         {appearanceError ? <>Esta aparência não abriu. <button type="button" className="record-state-button" onClick={() => setAppearanceAttempt(attempt => attempt + 1)}>Tentar novamente</button></> : 'Consultando aparência…'}
                     </div>}
                     <button type="button" disabled={!appearanceReady} onClick={() => {
@@ -528,7 +528,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                     <div ref={evolutionListRef} className="record-evolution-list" aria-busy={Boolean(evolutionPending)}>
                                         {evolutionPending && <span className="sr-only" role="status">Consultando {formatName(evolutionPending)}…</span>}
                                         {evolutionError && <p className="record-section-note" role="alert">{evolutionError}</p>}
-                                        {evolutionStatus === "loading" ? <p role="status" className="record-section-note">Consultando a linha evolutiva…</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">Não foi possível abrir a linha evolutiva agora.</p> : evolutionPaths.length > 0 ? evolutionPaths.map((path, idx) => (
+                                        {evolutionStatus === "loading" ? <p role="status" className="sr-only">Consultando a linha evolutiva…</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">Não foi possível abrir a linha evolutiva agora.</p> : evolutionPaths.length > 0 ? evolutionPaths.map((path, idx) => (
                                             <ol key={idx} className="record-evolution-path" aria-label={evolutionPaths.length > 1 ? `Caminho evolutivo ${idx + 1}` : "Caminho evolutivo"} style={{ "--evolution-stages": path.length }}>
                                                 {path.map((node, i) => (
                                                         <li key={node.name + i} className={`record-evolution-node ${String(node.speciesId) === String(baseInfo.id) ? "is-current" : ""}`} aria-current={String(node.speciesId) === String(baseInfo.id) ? "step" : undefined}>

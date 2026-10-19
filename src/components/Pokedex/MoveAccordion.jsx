@@ -82,7 +82,7 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
 
             <div ref={panelRef} id={panelId} hidden={!isOpen} role="region" tabIndex={-1} aria-labelledby={`${panelId}-toggle`} aria-busy={isOpen && !data && !loadError} className="record-move-panel">
                 {isOpen && (<>
-                    {!data && !loadError ? <p role="status" className="record-section-note">Consultando movimento…</p> : loadError ? (
+                    {!data && !loadError ? <p role="status" className="sr-only">Consultando movimento…</p> : loadError ? (
                         <div className="record-load-retry">
                             <p role="alert">Não foi possível abrir este movimento.</p>
                             <button type="button" onClick={retry}>Tentar novamente</button>
@@ -98,7 +98,7 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
                                 <div><dt>Precisão</dt><dd>{versionData.accuracy == null || versionData.accuracy === true ? "Sem teste" : `${versionData.accuracy}%`}</dd></div>
                                 <div><dt><abbr title="Usos disponíveis do movimento">PP</abbr></dt><dd>{versionData.pp ?? "—"}</dd></div>
                             </dl>
-                            {shownReference ? <ReferenceText {...shownReference} label="Efeito do movimento" defaultLanguage="pt-BR" className="record-move-description" /> : <p className="record-section-note" role="status">{catalogReady ? 'Este registro não trouxe uma descrição.' : 'Consultando descrição…'}</p>}
+                            {shownReference ? <ReferenceText {...shownReference} label="Efeito do movimento" defaultLanguage="pt-BR" className="record-move-description" /> : <p className={catalogReady ? "record-section-note" : "sr-only"} role="status">{catalogReady ? 'Este registro não trouxe uma descrição.' : 'Consultando descrição…'}</p>}
                             {moveData.latest_details?.length > 1 && <div className="record-move-methods" role="group" aria-label="Formas de aprender este movimento">
                                 {[...new Set(moveData.latest_details.map(methodLabel))].map(method => <span key={method}>{method}</span>)}
                             </div>}

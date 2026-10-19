@@ -414,7 +414,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                             {forms.map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}{entry.is_default ? " · padrão" : ""}</option>)}
                         </RoomSelect>
                     </label>}
-                    {switchingForm && <span role="status">Consultando forma…</span>}
+                    {switchingForm && <span role="status" className="sr-only">Consultando forma…</span>}
                     {formError && <span role="alert" className="editor-error">{formError}</span>}
                 </div>
                 <label className="editor-field editor-level">

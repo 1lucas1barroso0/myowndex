@@ -36,10 +36,10 @@ function OpeningScreen() {
         <span className="opening-progress" aria-hidden="true"><i /><i /><i /></span>
     </div>;
 }
-const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: OpeningScreen });
+const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: () => null });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
-const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: OpeningScreen });
-const RpgRoom = dynamic(() => import("./components/Room/RpgRoom.jsx"), { loading: OpeningScreen });
+const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: () => null });
+const RpgRoom = dynamic(() => import("./components/Room/RpgRoom.jsx"), { loading: () => null });
 const AccountModal = dynamic(() => import("./components/Account/AccountModal.jsx"), { loading: () => null });
 const LocalDiceDialog = dynamic(() => import("./components/Shared/LocalDiceDialog.jsx"), { loading: () => null });
 const GeneratorModal = dynamic(() => import("./components/Generator/GeneratorModal.jsx"), { loading: () => null });

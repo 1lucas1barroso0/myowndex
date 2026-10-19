@@ -1075,3 +1075,37 @@ html .app-root.game-edition.handheld-edition .pc-mascot-stage .pokemon-companion
 html .app-root.game-edition.handheld-edition .pc-sidebar .pc-box-list {
   margin-top: .35rem; margin-bottom: .9rem;
 }
+
+/* Three navigation tools have equal importance and hit areas, with distinct,
+   restrained accents. They wrap as a unit without truncation or overlap. */
+html .app-root.game-edition.handheld-edition .app-tool-actions {
+    display:grid; grid-template-columns:repeat(3,minmax(0,max-content));
+    gap:clamp(.4rem,1.3vw,.75rem); align-items:stretch; max-width:100%;
+}
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) {
+    display:inline-flex; justify-content:center; align-items:center;
+    box-sizing:border-box; min-width:0; min-height:48px; gap:.5rem;
+    padding:.7rem clamp(.65rem,1.2vw,1rem); margin:0;
+    color:#fff !important; font-size:clamp(.8rem,1.2vw,.95rem); font-weight:750;
+    line-height:1.3; border-radius:.55rem !important;
+    border:1px solid #ffffffa8 !important;
+    box-shadow:inset 0 -3px var(--tool-accent) !important;
+    background:#ffffff12 !important; transition:background .16s ease,border-color .16s ease;
+}
+html .app-root.game-edition.handheld-edition .app-tool-actions > .global-generator-button { --tool-accent:#a8e5ff; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > .global-dice-button { --tool-accent:#ffdc88; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > .account-header-button { --tool-accent:#c1f3d5; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button):is(:hover,:focus-visible) {
+    background:#ffffff28 !important; border-color:#fff !important;
+}
+html .app-root.game-edition.handheld-edition .app-tool-actions :is(svg) { flex:0 0 auto; }
+@media (max-width:600px) {
+    html .app-root.game-edition.handheld-edition .app-tool-actions {
+        width:100%; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem;
+    }
+    html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) {
+        min-width:0; max-width:100%; min-height:48px; padding:.6rem .3rem;
+        gap:clamp(.22rem,.9vw,.45rem); font-size:clamp(.72rem,2.9vw,.875rem);
+    }
+    html .app-root.game-edition.handheld-edition .app-tool-actions :is(svg) { width:1.15rem; height:1.15rem; }
+}

@@ -87,6 +87,11 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-weather.mjs
+      - name: Confirmar avisos compactos e cabeçalho das Boxes
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-compact-feedback.mjs
       - name: Navegar pela linha evolutiva sem mover a Pokédex
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

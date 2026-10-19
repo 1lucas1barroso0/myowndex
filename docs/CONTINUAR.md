@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.33.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.34.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 A revisão 2.0.27 implementa as 49 variantes oficiais registradas da nova leva de Megaevoluções de Legends: Z-A e Mega Dimension, com itens e identidade exatos, atributos e sprites 2D próprios; introduz Tera Shift, Terastal e Stellar do Terapagos e os climas Primordial Sea, Desolate Land e Delta Stream; reforça o modo instalado imersivo de PWA com preferência por fullscreen e fallback para standalone sem mudar a identidade instalada. Registro técnico detalhado em docs/REVISAO-2.0.27.md. A aparência de app sem barras é garantida apenas nos modos instalados que os navegadores oferecem; o sistema pode manter barras de status e controles próprios.
 
@@ -155,3 +155,10 @@ A base aprovada em produção é b2b4ad3 (2.0.31). A checagem obrigatória de fo
 ## 2.0.33: navegação sem deslocamento acumulado
 
 A linha evolutiva mantém sua posição visível ao consultar outros membros na mesma ficha. O anúncio de carregamento não ocupa espaço na lista, e a ancoragem usa uma posição absoluta limitada ao conteúdo, sem somar deslocamentos a cada clique. Rolagem manual, toque e navegação por outros controles liberam a posição imediatamente. O teste de navegador verifica quatro ciclos completos de ida e volta, carregamento lento, altura estável e rolagem manual em 320, 768 e 1280 px. A base é a 2.0.32 aprovada; regras, identidades de formas, artes e pacotes não mudam.
+
+
+## 2.0.34: avisos compactos e carregamentos discretos
+
+Avisos globais mantêm texto e ações na mesma faixa, com quebra natural do texto e alvos de toque de 44 px. Desfazer, dispensar, alertas de falha e avisos offline permanecem disponíveis, sem truncar mensagens. O cabeçalho das Boxes reúne título e Porygon animado numa linha, com 80–96 px para o Pokémon. Foram consolidadas as antigas sobreposições desse cabeçalho.
+
+A abertura inicial continua centralizada. Carregamentos transitórios de módulos, referências, formas, campo local e catálogo deixam de inserir faixas de texto no layout; os anúncios aos leitores de tela, estados desabilitados e erros são preservados. Sem novas dependências, mudanças de regras, dados ou artes. Teste de navegador cobre notificações reais de remoção/desfazer e o cabeçalho em 320, 390, 768 e 1280 px, simulando o modo instalado.

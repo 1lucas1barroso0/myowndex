@@ -62,7 +62,7 @@ export default function TraitReference({ kind, url, name, detail, isHidden, comp
                 {isHidden && <span className="record-ability-badge">Oculta</span>}
             </header>
             {shownReference ? <ReferenceText {...shownReference} label="Como funciona" defaultLanguage="pt-BR" />
-                : pending ? <p className="record-section-note" role="status">Consultando descrição…</p>
+                : pending ? <p className="sr-only" role="status">Consultando descrição…</p>
                     : <p className="record-section-note" role="status">{error
                         ? 'Não foi possível carregar esta descrição.'
                         : 'A fonte deste registro ainda não fornece uma descrição.'}</p>}

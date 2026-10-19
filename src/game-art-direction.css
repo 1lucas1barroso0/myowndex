@@ -1045,54 +1045,33 @@ html .app-root.game-edition.handheld-edition .rpg-journey-body{
 }
 /* Icons and genuine state meters (HP, EVs, XP, loading) stay visible. */
 
-/* Porygon's former loading decoration no longer reserves empty header space. */
+/* A single compact PC heading: title and animated mascot share the same row. */
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading {
- min-height: 0; margin-bottom: .25rem; padding: .3rem .4rem .15rem !important; gap: .4rem;
-}
-html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion {
- width: clamp(5.3rem, 10vw, 6.2rem) !important;
- height: clamp(5.3rem, 10vw, 6.2rem) !important;
-}
-html .app-root.game-edition.handheld-edition .pc-sidebar .pc-box-list {
- margin-top: .35rem; margin-bottom: .9rem;
-}
-
-/* The PC mascot sits on the column axis, without a lopsided vacant slot. */
-html .app-root.game-edition.handheld-edition .pc-sidebar-heading {
- display: flex !important; flex-direction: column; align-items: center !important;
- justify-content: center !important;
-}
-html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-storage-title {
- align-self: stretch; width: 100%;
-}
-html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion {
- align-self: center; margin-inline: auto !important;
-}
-
-/* Porygon anchors the PC's identity with a larger, clear pixel-art display.
-   No circular sprite shadow, fake loading strips or repetitive decoration. */
-html .app-root.game-edition.handheld-edition .pc-sidebar-heading {
-  display: grid !important; grid-template-columns: minmax(0,1fr);
-  gap: .65rem; padding: .6rem !important; margin-bottom: .5rem !important;
+  display: grid !important; grid-template-columns: minmax(0,1fr) auto;
+  align-items: center !important; gap: .5rem; min-height: 0;
+  padding: .35rem .5rem !important; margin-bottom: .5rem !important;
   background: var(--ui-panel);
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-storage-title {
-  width: 100%; align-self: start; padding: 0 .25rem;
+  width: auto; align-self: center; padding: 0;
 }
 html .app-root.game-edition.handheld-edition .pc-mascot-stage {
-  display: grid; place-items: center; width: 100%; min-height: 9.5rem;
-  padding: .25rem; border: 0; border-radius: 0; overflow: visible;
+  display: grid; place-items: center; width: clamp(5rem,9vw,6rem); min-height: 0;
+  padding: 0; border: 0; border-radius: 0; overflow: visible;
   background: transparent; box-shadow: none;
 }
 html .app-root.game-edition.handheld-edition .pc-mascot-stage::before {
   content: none; display: none;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pc-mascot-stage .pokemon-companion {
-  width: clamp(7.5rem,11vw,9.3rem) !important; height: clamp(7.5rem,11vw,9.3rem) !important;
+  width: clamp(5rem,9vw,6rem) !important; height: clamp(5rem,9vw,6rem) !important;
   max-width: 100%; min-width: 0; margin: auto !important;
   display: grid !important; place-items: center; background: transparent !important;
   border: none !important; outline: none !important; box-shadow: none !important;
 }
 html .app-root.game-edition.handheld-edition .pc-mascot-stage .pokemon-companion > .pokemon-sized-sprite {
   width: 100% !important; height: 100% !important; max-width: 100% !important;
+}
+html .app-root.game-edition.handheld-edition .pc-sidebar .pc-box-list {
+  margin-top: .35rem; margin-bottom: .9rem;
 }

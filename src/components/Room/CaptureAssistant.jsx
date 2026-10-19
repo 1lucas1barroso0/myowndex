@@ -81,7 +81,7 @@ export default function CaptureAssistant({ role, snapshot, remote, onAuthoritati
                     <label><span>Poké Ball</span><RoomSelect aria-label="Poké Ball" value={ball} onChange={event => setBall(event.target.value)}>{Object.entries(CAPTURE_BALLS).map(([key, info]) => <option key={key} value={key}>{info.label}</option>)}</RoomSelect></label>
                     <label className="capture-confirmation"><input type="checkbox" checked={wildConfirmed} onChange={event => setWild(event.target.checked)} required /><span>O alvo é selvagem e a captura é permitida.</span></label>
                 </fieldset>
-                {speciesLoadState === "loading" && <p role="status">Calculando a chance de captura…</p>}
+                {speciesLoadState === "loading" && <p role="status" className="sr-only">Calculando a chance de captura…</p>}
                 {speciesLoadState === "error" && <div><p role="alert">Não foi possível consultar este alvo.</p><button type="button" onClick={() => { retrySpeciesRequested.current = true; setSpeciesRefresh(current => current + 1); }}>Tentar novamente</button></div>}
                 {calculation && <dl className="capture-metrics">
                     <div><dt>Chance · d100</dt><dd>{calculation.chance}%</dd></div>

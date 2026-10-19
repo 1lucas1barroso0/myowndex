@@ -100,36 +100,30 @@ async function auditCompactLoading(){
  const loadingContext=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
  const loadingPage=await loadingContext.newPage();const loadingErrors=[];
  loadingPage.on('pageerror',error=>loadingErrors.push(error.message));
- let release;const gate=new Promise(resolve=>{release=resolve;});let heldChunks=0;
+ let release,holdStarted;const gate=new Promise(resolve=>{release=resolve;});
+ const held=new Promise(resolve=>{holdStarted=resolve;});let heldChunks=0;
  try{
   await loadingPage.goto(baseUrl);await loadingPage.getByRole('button',{name:'Consultar Venusaur na Pokédex',exact:true}).waitFor();
-  // Hold only the newly requested view code. The real shell remains usable,
-  // and the delay is controlled by this test rather than by the network.
-  await loadingContext.route('**/_next/static/chunks/*.js',async route=>{heldChunks++;await gate;await route.continue();});
+  // Deliberately delay real view code: no transient panel should occupy the play area.
+  await loadingContext.route('**/_next/static/chunks/*.js',async route=>{heldChunks++;holdStarted();await gate;await route.continue();});
   await loadingPage.getByRole('button',{name:'Abrir o PC do Bill',exact:true}).click();
-  const opening=loadingPage.locator('.account-opening');await opening.waitFor();
-  assert.ok(heldChunks>0,'The loading state is tested while an actual view chunk is pending');
-  assert.equal(await opening.getAttribute('role'),'status');
-  assert.equal(await opening.getAttribute('aria-label'),'Carregando MyOwnDex','The compact loading indicator remains announced to assistive technology');
-  assert.equal(await opening.locator('img').count(),1,'Loading shows one identity instead of competing characters');
-  assert.equal((await opening.innerText()).trim(),'','Loading has no visible instructions, title or version');
-  assert.equal(await opening.locator('.pokemon-companion').count(),0);
-  await opening.locator('img').evaluate(image=>image.complete&&image.naturalWidth>0||new Promise(resolve=>image.addEventListener('load',resolve,{once:true})));
+  let timeout;
+  try{await Promise.race([held,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('No pending view chunk captured')),10000);})]);}
+  finally{clearTimeout(timeout);}
+  assert.ok(heldChunks>0,'An actual view chunk must be pending');
+  assert.equal(await loadingPage.locator('.account-opening').count(),0,'View loading is intentionally hidden instead of inserting a panel');
+  await loadingPage.getByRole('main',{name:'PC do Bill',exact:true}).waitFor();
+  assert.equal(await loadingPage.locator('.app-scroll-area > [role="status"]').innerText(),'PC do Bill','The destination is still announced to assistive technology');
   for(const width of [280,390,1280]){
    await loadingPage.setViewportSize({width,height:844});
-   const metrics=await opening.evaluate(element=>{const r=element.getBoundingClientRect(),image=element.querySelector('img'),i=image.getBoundingClientRect();return {width:innerWidth,scroll:document.documentElement.scrollWidth,height:r.height,imageWidth:i.width,left:i.left,right:i.right,src:image.currentSrc};});
-   assert.equal(metrics.scroll,metrics.width,'Loading does not overflow the screen');
-   assert.ok(metrics.height<=200,'A pending view uses a compact loading area');
-   assert.ok(metrics.imageWidth>=48&&metrics.imageWidth<=120,'The sole loading identity remains readable without dominating the screen');
-   assert.ok(metrics.left>=0&&metrics.right<=width);
-   assert.match(metrics.src,/myowndex-dex-v105-96\.png(?:\?|$)/);
-   report.push({label:`Compact loading ${width}`, ...metrics});
+   const metrics=await loadingPage.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,indicators:document.querySelectorAll('.app-main-shell .account-opening').length}));
+   assert.equal(metrics.scroll,metrics.width,'A pending view does not overflow the screen');
+   assert.equal(metrics.indicators,0,'No off-center loading decoration or text is exposed');
+   report.push({label:`Hidden view loading ${width}`,...metrics});
   }
   await loadingPage.emulateMedia({reducedMotion:'reduce'});
-  const animated=await opening.locator('*').evaluateAll(elements=>elements.filter(element=>{const style=getComputedStyle(element);return style.animationName!=='none'&&style.animationDuration!=='0s';}).map(element=>element.className));
-  assert.deepEqual(animated,[],'Loading respects a request to reduce motion');
+  assert.equal(await loadingPage.locator('.app-main-shell .opening-progress').count(),0,'Hidden loading introduces no animation');
   release();await loadingPage.locator('.pc-sidebar').waitFor();
-  assert.equal(await opening.count(),0,'The pending indicator leaves when the real view becomes available');
   assert.deepEqual(loadingErrors,[]);
  }finally{release();await loadingContext.close();}
 }

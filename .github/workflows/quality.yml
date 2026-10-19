@@ -73,7 +73,7 @@ jobs:
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
-        run: node tests/browser-reference.mjs
+        run: node tests/browser-moves-mobile.mjs
       - name: Testar matriz real de telas, sprites e Dados
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

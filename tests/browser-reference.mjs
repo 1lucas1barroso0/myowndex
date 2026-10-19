@@ -181,10 +181,10 @@ try {
     assert.equal(await fact(moveField, 'Poder').innerText(), '4');
     assert.equal(await fact(moveField, 'Precisão').innerText(), '95%');
     await editor.getByLabel('Movimento 2', { exact: true }).fill('growl');
-    const growl = editor.locator('.editor-move-field').nth(1);
-    await growl.locator('summary').waitFor({ timeout: 30000 });
-    await growl.locator('summary').click();
-    assert.equal(await growl.getByLabel('PP atual', { exact: true }).inputValue(), await fact(growl, 'PP máximo').innerText());
+    const editorGrowl = editor.locator('.editor-move-field').nth(1);
+    await editorGrowl.locator('summary').waitFor({ timeout: 30000 });
+    await editorGrowl.locator('summary').click();
+    assert.equal(await editorGrowl.getByLabel('PP atual', { exact: true }).inputValue(), await fact(editorGrowl, 'PP máximo').innerText());
     const selectedPp = await fact(moveField, 'PP máximo').innerText();
     assert.equal(await moveField.getByLabel('PP atual', { exact: true }).inputValue(), selectedPp);
     checks.push({ label: 'PC RPG respects selected-game PP and accuracy' });

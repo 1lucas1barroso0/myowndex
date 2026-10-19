@@ -186,7 +186,7 @@ html .app-root.game-edition.handheld-edition .friendship-help > summary { min-he
   html .app-root.game-edition.handheld-edition .app-header-primary,
   html .app-root.game-edition.handheld-edition .app-actions { flex-direction:column !important; gap:.35rem !important; }
   html .app-root.game-edition.handheld-edition .app-actions { padding-top:.35rem !important; }
-  html .app-root.game-edition.handheld-edition .app-nav { width:100%; gap:.35rem !important; }
+  html .app-root.game-edition.handheld-edition .app-nav { width:100%; flex:0 0 auto !important; gap:.35rem !important; }
   html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { flex-direction:row !important; font-size:.8rem !important; padding:.25rem !important; gap:.2rem !important; }
   html .app-root.game-edition.handheld-edition .nav-emblem { width:18px !important; height:18px !important; flex:0 0 18px; }
   html .app-root.game-edition.handheld-edition .nav-emblem .game-icon { width:17px !important; height:17px !important; }

@@ -298,7 +298,7 @@ html .app-root.game-edition.handheld-edition .editor-header {
   border: 1px solid var(--ui-line);
   border-radius: var(--play-radius);
   background: var(--ui-raised);
-  border-left: 4px solid var(--ui-blue);
+  border-left: 4px solid var(--summary-type,var(--ui-blue));
 }
 html .app-root.game-edition.handheld-edition .editor-move-field {
   border-radius: var(--play-radius);

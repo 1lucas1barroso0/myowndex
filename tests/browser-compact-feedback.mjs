@@ -22,6 +22,34 @@ try {
   const header=await heading.boundingBox();assert.ok(header.height<=115,`Boxes heading remains compact at ${width}px: ${header.height}`);
   const mascot=await page.locator('.pc-mascot-stage .pokemon-companion').boundingBox();assert.ok(mascot.width>=79&&mascot.height>=79,'The animated mascot stays visible');
   await page.getByRole('button',{name:'Abrir ficha de Bulbasaur, nível 5',exact:true}).click();
+  const editor=page.locator('.pokemon-editor');
+  await editor.locator('.editor-header').scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>{const image=document.querySelector('.editor-header .pokemon-sprite-image');return image?.currentSrc&&image.complete&&image.naturalWidth>0;});
+  const characteristics=editor.locator('.editor-characteristics');
+  await characteristics.locator(':scope > summary').click();
+  assert.equal(await characteristics.getByLabel('Shiny',{exact:true}).count(),1);
+  assert.equal(await characteristics.getByLabel('Tipo Tera',{exact:true}).count(),0,'Characteristics do not mix in transformations');
+  const forms=editor.locator('.editor-forms');
+  await forms.locator(':scope > summary').click();
+  await forms.getByLabel('Tipo Tera',{exact:true}).selectOption('fire');
+  assert.equal(await forms.getByLabel('Gigantamax',{exact:true}).count(),1);
+  assert.equal(await forms.getByLabel('Shiny',{exact:true}).count(),0,'Transformations do not mix in appearance');
+  const training=editor.locator('.pokemon-training-panel');
+  await training.locator(':scope > summary').click();
+  assert.equal(await training.locator('.pokemon-stat-row').count(),6);
+  assert.equal(await page.getByRole('slider').count(),0,'Direct values replace draggable controls');
+  const ev=training.getByRole('spinbutton',{name:'EVs de HP',exact:true});
+  await ev.fill('84');
+  await training.getByRole('spinbutton',{name:'IVs de HP',exact:true}).fill('17');
+  await ev.focus();await ev.hover();await page.mouse.wheel(0,120);
+  assert.equal(await ev.inputValue(),'84','Scrolling must not change EVs');
+  await page.waitForFunction(()=>{
+   const partner=JSON.parse(localStorage.getItem('myowndex_rotom_v4')).teams[0].pokemon[0];
+   return partner.evs.hp===84&&partner.ivs.hp===17&&partner.teraType==='fire';
+  });
+  const summary=editor.locator('.editor-stat-summary');
+  assert.ok(await summary.boundingBox());
+  assert.equal(await editor.locator('.editor-summary-health').count(),1);
   await page.getByRole('button',{name:'Remover da Box',exact:true}).click();
   await page.getByRole('alertdialog').getByRole('button',{name:'Remover parceiro',exact:true}).click();
   const notice=page.locator('.status-notice').filter({hasText:'Bulbasaur saiu da Box.'});await notice.waitFor();
@@ -34,7 +62,7 @@ try {
   await page.getByRole('button',{name:'Dispensar aviso',exact:true}).click();assert.equal(await page.locator('.status-notice').count(),0);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   assert.deepEqual(errors,[]);
-  console.log(`PASS compact feedback ${width}px standalone: header ${Math.round(header.height)}px, notice ${Math.round(box.height)}px, undo, dismissal and touch targets`);
+  console.log(`PASS compact feedback ${width}px standalone: header ${Math.round(header.height)}px, notice ${Math.round(box.height)}px, undo, dismissal, direct EV/IV values, separated forms and touch targets`);
   await context.close();
  }
 }finally{await browser.close();}

@@ -3,6 +3,7 @@ import test from "node:test";
 import { formatName, formatType } from "../src/core/mechanics.js";
 import { cleanDescription, describeSpecies, describeTrait } from "../src/core/descriptions.js";
 import { getAbilityProfile, getItemProfile } from "../src/core/traitMechanics.js";
+import { getFallbackMoveText } from "../src/core/catalogText.js";
 
 test("catalogue names retain English spelling, punctuation and acronyms without changing IDs", () => {
     const examples = [
@@ -48,4 +49,15 @@ test("species category uses its original English name even when a translated cat
     assert.match(description.facts.join(" "), /Grassland/);
     assert.match(description.facts.join(" "), /Medium Slow/);
     assert.match(description.facts.join(" "), /0,7 m.*6,9 kg/);
+});
+
+test("move descriptions remain available from official text, preferring a selected historical game's flavor", () => {
+    const move = {
+        effect_entries: [{ language: { name: "en" }, effect: "Current effect." }],
+        flavor_text_entries: [{ language: { name: "en" }, flavor_text: "Historic in-game effect." }],
+    };
+    assert.equal(getFallbackMoveText(move, { historical: true }).original, "Historic in-game effect.");
+    assert.equal(getFallbackMoveText(move, { historical: false }).original, "Current effect.");
+    assert.equal(getFallbackMoveText({ effect_entries: [] }).original, "");
+    assert.equal(getFallbackMoveText(null).original, "");
 });

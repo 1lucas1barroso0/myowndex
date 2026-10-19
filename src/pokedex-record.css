@@ -177,3 +177,9 @@ html .app-root :is(.record-trait-card,.reference-text,.record-game-picker) :is(b
     html .app-root .record-move-name { grid-column:1; grid-row:1; }
     html .app-root .record-move-chevron { grid-column:2; grid-row:1/3; }
 }
+
+/* Family navigation changes the open record, never the list behind it. */
+html .app-root .record-evolution-member { display:grid; justify-items:center; align-content:start; gap:.65rem; width:100%; min-width:0; min-height:44px; padding:0; border:0; border-radius:.35rem; background:transparent; color:inherit; font:inherit; text-align:center; cursor:pointer; }
+html .app-root .record-evolution-member:hover .record-evolution-name { text-decoration:underline; text-underline-offset:.2em; }
+html .app-root .record-evolution-member:focus-visible { outline:3px solid var(--ui-blue); outline-offset:3px; }
+html .app-root .record-evolution-member[aria-disabled="true"] { cursor:wait; }

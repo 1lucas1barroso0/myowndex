@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "source": {
     "repository": "smogon/pokemon-showdown",
-    "commit": "de9d7f93083c1f7f40d48f8da3a6b4dd09141110",
-    "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/de9d7f93083c1f7f40d48f8da3a6b4dd09141110/data/mods/champions/moves.ts",
-    "sha256": "4471bcc8eb98f4697d040953008330d7951d0bcc70688f3c85e77099b28ea228",
-    "bytes": 18642
+    "commit": "7b02eb39878f4b486f658a752b38c161379bd352",
+    "url": "https://raw.githubusercontent.com/smogon/pokemon-showdown/7b02eb39878f4b486f658a752b38c161379bd352/data/mods/champions/moves.ts",
+    "sha256": "7830b5386ef0aad255ec8d02f9f2d35c1b89a5ecbb44c7ecb000892127b55e19",
+    "bytes": 18827
   },
   "moves": {
     "growth": {

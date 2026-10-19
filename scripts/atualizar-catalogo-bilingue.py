@@ -20,8 +20,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / 'public/catalog/v1'
-PIN = '2ee1c422ad9f3831245dab0ac2a5cd1aae61cd72'
-SHOWDOWN_PIN = '41898849ebabde360b26f918d79d52bd2c929a98'
+PIN = '6fd69dfe90465ba96534f6816fc817737d1f97f6'
+SHOWDOWN_PIN = '7b02eb39878f4b486f658a752b38c161379bd352'
 CSV_ROOT = f'https://raw.githubusercontent.com/PokeAPI/pokeapi/{PIN}/data/v2/csv/'
 FILES = ['versions', 'version_groups', 'pokemon_species_names', 'pokemon_species_flavor_text',
          'ability_names', 'ability_prose', 'abilities', 'ability_flavor_text',
@@ -359,11 +359,11 @@ def main():
             found = species_entries.setdefault(species_id, [])
             if not any(value[0] == record['version'] for value in found):
                 found.append([record['version'], text_key(en), 27])
-    translations = prepare_translations(sorted(english), translations, names, args.translate_missing)
     reviewed_path = ROOT / 'scripts/catalogo-ajustes-pt.json'
     reviewed = json.loads(reviewed_path.read_text()) if reviewed_path.exists() else {}
     assert not set(reviewed).difference(english), 'An editorial review must correspond to an actual pinned English source'
     translations.update(reviewed)
+    translations = prepare_translations(sorted(english), translations, names, args.translate_missing)
     all_texts = {text_key(text): [text, translations[text]] for text in sorted(english)}
     assert len(all_texts) == len(english), 'Text hash collision'
     labels = {row['identifier']: label(row['identifier']) for row in versions.values()}

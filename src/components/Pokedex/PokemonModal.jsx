@@ -6,7 +6,7 @@ import { getLearnsetGames, resolveLearnsetGame } from '../../core/referenceGames
 import pokedexEntries from '../../data/pokedex-entries.json';
 import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
-import { getFormLearnsetFallback, resolveFormEvolutionPaths } from '../../core/formEvolution.js';
+import { getEvolutionRecordTarget, getFormLearnsetFallback, resolveFormEvolutionPaths } from '../../core/formEvolution.js';
 import { applyRecordAppearance, getPokemonRecordForms } from '../../core/pokemonRecordForms.js';
 import AbilityCard from './AbilityCard.jsx';
 import MoveAccordion from './MoveAccordion.jsx';
@@ -58,6 +58,9 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
     const [loadError, setLoadError] = useState("");
     const [retryAttempt, setRetryAttempt] = useState(0);
     const [evolutionStatus, setEvolutionStatus] = useState("loading");
+    const [evolutionPending, setEvolutionPending] = useState("");
+    const [evolutionError, setEvolutionError] = useState("");
+    const evolutionRequestRef = useRef(0);
     const dialogRef = useRef(null);
     const closeRef = useRef(null);
     const onCloseRef = useRef(onClose);
@@ -70,6 +73,9 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
 
     useEffect(() => {
         let mounted = true;
+        evolutionRequestRef.current += 1;
+        setEvolutionPending("");
+        setEvolutionError("");
         setBaseInfo(null);
         setActiveForm(null);
         setFormIdentity(initialForm);
@@ -116,12 +122,12 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                 setEvolutionStatus("ready");
             }
         }).catch(() => mounted && setLoadError("Não foi possível abrir este Pokémon. Tente novamente."));
-        return () => mounted = false;
+        return () => { mounted = false; evolutionRequestRef.current += 1; };
     }, [speciesUrl, initialForm, retryAttempt]);
 
     useEffect(() => {
         let mounted = true;
-        setFormAppearance(null);
+        setFormAppearance(current => current?.id === formIdentity?.formId ? current : null);
         setAppearanceError(false);
         if (!formIdentity?.formId) return () => { mounted = false; };
         fetchCached(`https://pokeapi.co/api/v2/pokemon-form/${formIdentity.formId}/`, { forceRefresh: retryAttempt > 0 || appearanceAttempt > 0 })
@@ -139,7 +145,6 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
         if (activeForm?.url) {
             setLearnsetVersion('auto');
             setRecordVersion('auto');
-            setFormData(null);
             setLoadError("");
             fetchCached(activeForm.url, { forceRefresh: retryAttempt > 0 }).then(async data => {
                 if (!mounted) return;
@@ -251,6 +256,42 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
     const evolutionPaths = useMemo(() => resolveFormEvolutionPaths(evoChain, {
         name: activeForm?.name, formKey: formIdentity?.formKey, speciesId: baseInfo?.id,
     }), [evoChain, activeForm?.name, formIdentity?.formKey, baseInfo?.id]);
+    const openEvolutionMember = async node => {
+        const target = getEvolutionRecordTarget(node);
+        if (!target || evolutionPending) return;
+        const request = ++evolutionRequestRef.current;
+        setEvolutionPending(node.name);
+        setEvolutionError("");
+        try {
+            const refresh = { forceRefresh: Boolean(evolutionError) };
+            const species = await fetchCached(target.speciesUrl, refresh);
+            const variety = species?.varieties?.find(entry => entry.pokemon?.name === target.pokemonName)?.pokemon;
+            if (!variety?.url || String(species.id) !== extractId(target.speciesUrl)) throw new Error("Missing exact evolution member");
+            const [pokemon, appearance] = await Promise.all([
+                fetchCached(variety.url, refresh),
+                target.initialForm?.formId
+                    ? fetchCached(`https://pokeapi.co/api/v2/pokemon-form/${target.initialForm.formId}/`, refresh)
+                    : Promise.resolve(null),
+            ]);
+            if (!pokemon || pokemon.name !== target.pokemonName
+                || (target.initialForm?.formId && (appearance?.id !== target.initialForm.formId || appearance?.pokemon?.name !== pokemon.name))) {
+                throw new Error("Evolution identity mismatch");
+            }
+            if (request !== evolutionRequestRef.current) return;
+            // Change this record atomically: keep the dialog, family and background list mounted.
+            setBaseInfo(species);
+            setActiveForm(variety);
+            setFormData(pokemon);
+            setFormIdentity(target.initialForm);
+            setFormAppearance(appearance);
+            setAppearanceError(false);
+            setRecordHistory([]);
+        } catch {
+            if (request === evolutionRequestRef.current) setEvolutionError("Este Pokémon não abriu. Tente novamente.");
+        } finally {
+            if (request === evolutionRequestRef.current) setEvolutionPending("");
+        }
+    };
     const selectedMoveGame = learnsetGames.find(game => game.value === moveVersion);
     const handleTabKeyDown = event => {
         const index = RECORD_TABS.findIndex(item => item.id === tab);
@@ -462,11 +503,17 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                 
                                 <div>
                                     <h3 className="record-section-title">Linha evolutiva</h3>
-                                    <div className="record-evolution-list">
+                                    <div className="record-evolution-list" aria-busy={Boolean(evolutionPending)}>
+                                        {evolutionPending && <p className="record-section-note" role="status">Consultando {formatName(evolutionPending)}…</p>}
+                                        {evolutionError && <p className="record-section-note" role="alert">{evolutionError}</p>}
                                         {evolutionStatus === "loading" ? <p role="status" className="record-section-note">Consultando a linha evolutiva…</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">Não foi possível abrir a linha evolutiva agora.</p> : evolutionPaths.length > 0 ? evolutionPaths.map((path, idx) => (
                                             <ol key={idx} className="record-evolution-path" aria-label={evolutionPaths.length > 1 ? `Caminho evolutivo ${idx + 1}` : "Caminho evolutivo"} style={{ "--evolution-stages": path.length }}>
                                                 {path.map((node, i) => (
                                                         <li key={node.name + i} className={`record-evolution-node ${String(node.speciesId) === String(baseInfo.id) ? "is-current" : ""}`} aria-current={String(node.speciesId) === String(baseInfo.id) ? "step" : undefined}>
+                                                            <button type="button" className="record-evolution-member"
+                                                                aria-label={`Ver ${formatName(node.name)} na ficha`}
+                                                                aria-disabled={Boolean(evolutionPending)}
+                                                                onClick={() => openEvolutionMember(node)}>
                                                             <div className="record-evolution-stage">
                                                                 <PokemonSprite
                                                                     pokemonId={node.id}
@@ -476,6 +523,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                                                 />
                                                             </div>
                                                             <span className="record-evolution-name">{formatName(node.name)}</span>
+                                                            </button>
                                                         </li>
                                                 ))}
                                             </ol>

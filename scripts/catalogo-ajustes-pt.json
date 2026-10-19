@@ -604,5 +604,11 @@
   "Lowers the target's Sp. Atk by 1.": "Reduz o Ataque Especial do alvo em 1 estágio.",
   "With a hot flame on its forehead, the user hurls itself at its target. It lowers the user’s Defense, Sp. Def, and Speed stats.": "Com uma chama ardente na testa, quem usa se lança contra o alvo. Isso reduz sua própria Defesa, Defesa Especial e Velocidade.",
   "The user feigns crying to make the foe feel flustered, sharply lowering its Sp. Def stat.": "Quem usa finge chorar para desconcertar o alvo, reduzindo muito a Defesa Especial dele.",
-  "Cloaked in flames, the user dances and flaps its wings. It may also raise the user’s Sp. Atk stat.": "Envolto em chamas, quem usa dança e bate as asas. Isso também pode aumentar o Ataque Especial de quem usa."
+  "Cloaked in flames, the user dances and flaps its wings. It may also raise the user’s Sp. Atk stat.": "Envolto em chamas, quem usa dança e bate as asas. Isso também pode aumentar o Ataque Especial de quem usa.",
+  "Evolves Scyther into Kleavor when used.": "Use para evoluir Scyther para Kleavor.",
+  "Changes Arceus to the Normal type when used in Legends: Arceus.": "Quando usada em Pokémon Legends: Arceus, muda Arceus para o tipo Normal.",
+  "When used on Arceus in Legends: Arceus, changes it to the Normal type. When Arceus uses Judgment, Arceus and the move change to a type that is most effective against the target.": "Quando usada em Arceus em Pokémon Legends: Arceus, muda seu tipo para Normal. Ao usar Judgment, Arceus e o movimento adotam um tipo com a maior efetividade contra o alvo.",
+  "In Legends: Arceus, Arceus's Judgment changes type to be supereffective.": "Em Pokémon Legends: Arceus, Judgment de Arceus adota um tipo superefetivo contra o alvo.",
+  "Evolves Ursaring into Ursaluna when used during a full moon.": "Use durante a lua cheia para evoluir Ursaring para Ursaluna.",
+  "When this Pokémon enters battle, it copies a random opponent's ability. This ability cannot copy Flower Gift, Forecast, Illusion, Imposter, Multitype, Trace, or Zen Mode.": "Ao entrar em batalha, este Pokémon copia a habilidade de um oponente escolhido ao acaso. Não pode copiar Flower Gift, Forecast, Illusion, Imposter, Multitype, Trace nem Zen Mode."
 }

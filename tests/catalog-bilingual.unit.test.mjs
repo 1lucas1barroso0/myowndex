@@ -20,7 +20,7 @@ const files = await Promise.all(proof.outputs.map(async output => {
 const byName = name => files.find(({ output }) => output.file.endsWith(`/${name}.json`))?.data;
 
 test('local bilingual catalogue has reproducible hashes, real source versions and complete pairs', () => {
-    assert.equal(proof.sourceCommit, '2ee1c422ad9f3831245dab0ac2a5cd1aae61cd72');
+    assert.equal(proof.sourceCommit, '6fd69dfe90465ba96534f6816fc817737d1f97f6');
     assert.equal(files.length, 14);
     const unique = new Map();
     for (const { output, bytes, data } of files) {
@@ -43,14 +43,14 @@ test('local bilingual catalogue has reproducible hashes, real source versions an
         }
     }
     assert.equal(unique.size, proof.englishTexts);
-    assert.equal(unique.size, 20738);
+    assert.equal(unique.size, 20743);
     for (const [table, source] of Object.entries(proof.sources)) {
         assert.equal(source.url, `https://raw.githubusercontent.com/PokeAPI/pokeapi/${proof.sourceCommit}/data/v2/csv/${table}.csv`);
         assert.match(source.sha256, /^[a-f0-9]{64}$/);
         assert.ok(source.bytes > 0);
     }
     for (const source of [...Object.values(proof.mechanicsSources), ...Object.values(proof.moveMetadataSources)]) {
-        assert.equal(source.commit, '41898849ebabde360b26f918d79d52bd2c929a98');
+        assert.equal(source.commit, '7b02eb39878f4b486f658a752b38c161379bd352');
         assert.ok(source.url.includes(`/${source.commit}/data/`));
         assert.match(source.sha256, /^[a-f0-9]{64}$/);
         assert.ok(source.bytes > 0);
@@ -97,7 +97,7 @@ test('every species and every referenced description resolves to its actual pair
     };
     assert.deepEqual(coverage('ability'), [374, 314, 59]);
     assert.deepEqual(coverage('move'), [937, 881, 0]);
-    assert.deepEqual(coverage('item'), [2222, 530, 542]);
+    assert.deepEqual(coverage('item'), [2222, 534, 538]);
 });
 
 const fetchFromFiles = async (url, options) => {

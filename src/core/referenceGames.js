@@ -165,3 +165,15 @@ export const getPokemonReferenceForMode = (pokemon, selectedGame, { experienceMo
     const generation = Number(extractId(selectedGame?.generation?.url)) || getReferenceGameGeneration(selectedGame);
     return generation ? getPokemonAtGeneration(pokemon, generation) : pokemon;
 };
+
+/** Remakes and Legends titles have their own mechanics, not those of their generation. */
+export const getReferenceBattleMechanics = (version, experienceMode = 'rpg') => {
+    const name = typeof version === 'string' ? version : versionRow(version)?.[1];
+    if (experienceMode !== 'game') return { mega: true, z: true, dynamax: true, tera: true };
+    return {
+        mega: ['x-y', 'omega-ruby-alpha-sapphire', 'sun-moon', 'ultra-sun-ultra-moon', 'lets-go-pikachu-lets-go-eevee', 'legends-za', 'mega-dimension', 'champions'].includes(name),
+        z: ['sun-moon', 'ultra-sun-ultra-moon'].includes(name),
+        dynamax: ['sword-shield', 'the-isle-of-armor', 'the-crown-tundra'].includes(name),
+        tera: ['scarlet-violet', 'the-teal-mask', 'the-indigo-disk'].includes(name),
+    };
+};

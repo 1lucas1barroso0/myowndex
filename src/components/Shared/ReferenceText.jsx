@@ -1,4 +1,5 @@
 import React, { useId, useState } from 'react';
+import './ReferenceText.css';
 import { formatReferenceText } from '../../core/pokedexRecord.js';
 
 /** Original and local Portuguese prose share one place; names stay in English. */
@@ -18,12 +19,11 @@ export default function ReferenceText({ original, portuguese, originalLanguage =
         <div className={`reference-text ${className}`}>
             <div className="reference-text-toolbar">
                 <small title={sourceLabel ? `Referência: ${sourceLabel}` : undefined}>{label}</small>
-                {original && portuguese && <button type="button" className="reference-language-toggle" aria-label={toggleLabel} title={toggleLabel} aria-pressed={translated} aria-controls={textId} onClick={() => setLanguage(value => value === 'pt-BR' ? 'en' : 'pt-BR')}>
-                    {translated ? 'Ver original' : 'Ver português'}
-                </button>}
             </div>
             <p id={textId} lang={textLanguage} aria-live="polite" aria-atomic="true">{text}</p>
-
+            {original && portuguese && <button type="button" className="reference-language-toggle" aria-label={toggleLabel} title={toggleLabel} aria-pressed={translated} aria-controls={textId} onClick={() => setLanguage(value => value === 'pt-BR' ? 'en' : 'pt-BR')}>
+                    {translated ? 'Ver original' : 'Ver português'}
+                </button>}
         </div>
     );
 }

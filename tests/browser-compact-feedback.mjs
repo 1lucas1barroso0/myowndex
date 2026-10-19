@@ -25,11 +25,10 @@ try {
   const editor=page.locator('.pokemon-editor');
   await editor.locator('.editor-header').scrollIntoViewIfNeeded();
   await page.waitForFunction(()=>{const image=document.querySelector('.editor-header .pokemon-sprite-image');return image?.currentSrc&&image.complete&&image.naturalWidth>0;});
-  const characteristics=editor.locator('.editor-characteristics');
-  await characteristics.locator(':scope > summary').click();
+  const characteristics=editor.locator('.editor-identity');
   assert.equal(await characteristics.getByLabel('Shiny',{exact:true}).count(),1);
   assert.equal(await characteristics.getByLabel('Tipo Tera',{exact:true}).count(),0,'Characteristics do not mix in transformations');
-  const forms=editor.locator('.editor-forms');
+  const forms=editor.locator('.editor-battle-mechanics');
   await forms.locator(':scope > summary').click();
   await forms.getByLabel('Tipo Tera',{exact:true}).selectOption('fire');
   assert.equal(await forms.getByLabel('Gigantamax',{exact:true}).count(),1);

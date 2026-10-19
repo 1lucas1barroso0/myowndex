@@ -69,6 +69,16 @@ jobs:
           for i in {1..60}; do curl -fsS http://127.0.0.1:3000 >/dev/null && exit 0; sleep 1; done
           cat /tmp/myowndex-browser.log
           exit 1
+      - name: Conferir topo, painéis, foco e navegação do aplicativo
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-app-shell.mjs
+      - name: Conferir a recompensa de XP, treinamento e amizade na ficha
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-growth.mjs
       - name: Conferir movimentos, PP históricos, descrições e teclado mobile
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

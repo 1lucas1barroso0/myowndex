@@ -42,13 +42,14 @@ export function getChallengeReward({ baseXp = 1, winnerMaxLevel, opponentMaxLeve
     const reasons = [];
     if (battle) {
         if (opponentLevel >= 2 * winnerLevel) { multiplier *= 2; reasons.push("Adversário com pelo menos o dobro do maior nível: ×2."); }
-        else if (winnerLevel >= 2 * opponentLevel) { penalties += 1; reasons.push("Vencedor com pelo menos o dobro do maior nível: −1 na base."); }
+        else if (winnerLevel >= 2 * opponentLevel) { penalties += 1; reasons.push("Vencedor com pelo menos o dobro do maior nível: −1 XP."); }
         if (opponents >= 2 * winners) { multiplier *= 2; reasons.push("Adversário com pelo menos o dobro de Pokémon em batalha: ×2."); }
-        else if (winners >= 2 * opponents) { penalties += 1; reasons.push("Vencedor com pelo menos o dobro de Pokémon em batalha: −1 na base."); }
+        else if (winners >= 2 * opponents) { penalties += 1; reasons.push("Vencedor com pelo menos o dobro de Pokémon em batalha: −1 XP."); }
     }
-    const adjustedBaseXp = base - penalties;
-    const xp = Math.max(1, adjustedBaseXp * multiplier);
-    return { baseXp: base, adjustedBaseXp, penalties, multiplier, xp, evs: xp * 2, reasons,
+    const multipliedXp = base * multiplier;
+    const adjustedBaseXp = multipliedXp - penalties;
+    const xp = Math.max(1, adjustedBaseXp);
+    return { baseXp: base, multipliedXp, adjustedBaseXp, penalties, multiplier, xp, evs: xp * 2, reasons,
         winnerMaxLevel: winnerLevel, opponentMaxLevel: opponentLevel, winnerCount: winners, opponentCount: opponents };
 }
 

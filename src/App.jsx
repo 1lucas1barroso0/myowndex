@@ -150,10 +150,22 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const [dexVariantMode, setDexVariantMode] = useState("grouped");
     const [dexMinNumber, setDexMinNumber] = useState("");
     const [dexMaxNumber, setDexMaxNumber] = useState("");
+    useEffect(() => {
+        const previous = window.history.scrollRestoration;
+        window.history.scrollRestoration = "manual";
+        return () => { window.history.scrollRestoration = previous; };
+    }, []);
+    const screenScroll = useRef({});
+    const currentView = useRef(view);
+    useEffect(() => { currentView.current = view; }, [view]);
     const setView = useCallback(next => {
+        if (currentView.current === next) return;
+        const area = document.getElementById("main-content");
+        screenScroll.current[currentView.current] = area?.scrollTop || 0;
+        currentView.current = next;
         setViewState(next);
         if (viewFromUrl(window.location.href) !== next) window.history.pushState({}, "", urlForView(window.location.href, next));
-        window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "instant" }));
+        window.requestAnimationFrame(() => document.getElementById("main-content")?.scrollTo({ top: screenScroll.current[next] || 0, behavior: "instant" }));
     }, []);
     const [online, setOnline] = useState(true);
     const [notice, setNotice] = useState(null);
@@ -227,10 +239,10 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
             setFavorites(Array.isArray(storedFavorites) ? storedFavorites.filter(id => typeof id === "string" && (/^\d+$/.test(id) || /^form:[a-z0-9-]{1,120}$/.test(id))) : []);
             setModeBooted(true);
         });
-        const onPop = () => setViewState(viewFromUrl(window.location.href) || "pokedex");
+        const onPop = () => setView(viewFromUrl(window.location.href) || "pokedex");
         window.addEventListener("popstate", onPop);
         return () => { active = false; window.removeEventListener("popstate", onPop); };
-    }, [scope]);
+    }, [scope, setView]);
 
     useEffect(() => {
         const incoming = receivedDocument?.document;
@@ -624,8 +636,8 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
 
                         <div className="app-actions">
                             <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada">
-                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><GameIcon name="generator" />Gerar</button>
-                                <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onClick={() => setDiceOpen(true)}><GameIcon name="dice" />Dados</button>
+                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar Pokémon</span></button>
+                                <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onClick={() => setDiceOpen(true)}><PokemonCompanion place="dice" eager /><span>Dados</span></button>
                                 <AccountButton client={client} onClick={onAccountOpen} />
                             </div>
                             <div className="app-preferences" role="group" aria-label="Preferências da jornada">

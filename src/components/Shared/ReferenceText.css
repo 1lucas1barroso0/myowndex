@@ -1,0 +1,7 @@
+/* This component is used outside the Pokédex, including a direct PC launch. */
+html .app-root .reference-text { display:grid; gap:.5rem; min-width:0; padding-block:.5rem; }
+html .app-root .reference-text-toolbar { display:flex; min-width:0; }
+html .app-root .reference-text-toolbar > small { color:var(--ui-muted); font-size:.875rem; font-weight:700; line-height:1.5; }
+html .app-root .reference-text > p { margin:0; color:var(--ui-ink); font-size:1rem; line-height:1.65; overflow-wrap:anywhere; }
+html .app-root .reference-text > .reference-language-toggle { justify-self:start; display:inline-flex; align-items:center; min-height:44px; width:auto; max-width:100%; margin:0; padding:.4rem .7rem; border:1px solid var(--ui-line); border-radius:.65rem; background:var(--ui-panel); color:var(--ui-blue); font-size:.875rem; font-weight:700; line-height:1.4; }
+html .app-root .reference-language-toggle:focus-visible { outline:3px solid var(--ui-blue); outline-offset:2px; }

@@ -1,0 +1,71 @@
+/* The viewport owns app chrome; only the active screen scrolls. */
+html .app-root.game-edition.handheld-edition { height:100dvh !important; min-height:0 !important; overflow:hidden !important; box-sizing:border-box; }
+html .app-root.game-edition.handheld-edition .app-header { flex:0 0 auto; }
+html .app-root.game-edition.handheld-edition .app-scroll-area { flex:1 1 0 !important; min-height:0 !important; overflow-y:auto !important; overflow-x:hidden !important; padding:.75rem !important; }
+html .app-root.game-edition.handheld-edition .app-header-row { gap:.5rem !important; }
+html .app-root.game-edition.handheld-edition .app-header-primary { gap:.5rem !important; }
+html .app-root.game-edition.handheld-edition .app-tool-actions { flex:1 1 20rem; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { box-shadow:none !important; }
+/* Stable, compact controls shared by the installed app and web entry. */
+html .app-root.game-edition.handheld-edition .app-header :is(button,.nav-capsule):is(:hover,:active,:focus) { transform:none !important; translate:none !important; scale:none !important; }
+html .app-root.game-edition.handheld-edition .app-header :is(button,.nav-capsule) { transition:background-color .12s,color .12s,border-color .12s !important; touch-action:manipulation; }
+html .app-root.game-edition.handheld-edition .app-tool-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.5rem; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { display:flex; flex-direction:column; justify-content:center; gap:.15rem !important; min-width:0; min-height:70px; padding:.35rem .5rem !important; font-size:.875rem !important; line-height:1.2; text-align:center; background:var(--ui-panel) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-line) !important; border-bottom:3px solid var(--tool-tone) !important; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > .global-dice-button { --tool-tone:#e9ba28; background:#fff2b6 !important; color:#243b40 !important; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > .global-generator-button { --tool-tone:#9256c6; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > .account-header-button { --tool-tone:#bd7139; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) > .pokemon-companion { display:grid !important; place-items:center; width:36px !important; height:32px !important; min-width:0 !important; margin:0 !important; padding:0 !important; background:none !important; border:0 !important; box-shadow:none !important; }
+html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion :is(.pokemon-sized-sprite,img) { width:32px !important; height:32px !important; min-height:0 !important; object-fit:contain; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button)[aria-expanded=true] { outline:2px solid var(--journey-gold); outline-offset:2px; }
+html .app-root .editor-shiny { display:inline-flex; align-items:center; gap:.4rem; min-height:44px; width:fit-content; color:var(--ui-ink); font-size:.875rem; font-weight:700; }
+html .app-root .editor-friendship { padding-block:.75rem; border-top:1px solid var(--ui-line); }
+html .app-root .editor-battle-mechanics .editor-field-note { grid-column:1 / -1; margin:0; }
+@media (max-width:700px) {
+ html .app-root.game-edition.handheld-edition .app-header-shell { padding:.35rem .75rem !important; }
+ html .app-root.game-edition.handheld-edition :is(.app-header-row,.app-header-primary) { gap:.35rem !important; }
+ html .app-root.game-edition.handheld-edition .app-nav { gap:.35rem !important; }
+ html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { min-height:48px !important; padding:.3rem !important; flex-direction:row !important; gap:.25rem !important; font-size:.875rem !important; }
+ html .app-root.game-edition.handheld-edition .nav-emblem { width:24px !important; height:24px !important; }
+ html .app-root.game-edition.handheld-edition .nav-emblem .game-icon { width:17px !important; height:17px !important; }
+ html .app-root.game-edition.handheld-edition .app-actions { gap:.35rem !important; padding-top:.35rem !important; }
+ html .app-root.game-edition.handheld-edition .app-preferences { gap:.25rem !important; }
+ html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button { min-height:44px; font-size:.875rem !important; }
+ html .app-root.game-edition.handheld-edition .app-main-shell { padding-top:.75rem !important; }
+ /* All three tools open as app sheets, with the same frame and close position. */
+ html :is(.generator-overlay,.account-overlay) { padding:0; align-items:flex-end; }
+ html :is(.generator-dialog,.account-dialog),
+ html .app-root.game-edition.handheld-edition dialog.local-dice-dialog { width:100% !important; max-width:100% !important; height:min(760px,92dvh); max-height:92dvh !important; margin:0 !important; border-radius:1rem 1rem 0 0 !important; border-width:4px 0 0; box-shadow:0 -8px 32px #0003; }
+ html .app-root.game-edition.handheld-edition dialog.local-dice-dialog { position:fixed; inset:auto 0 0; }
+ html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) { min-height:72px; gap:.5rem; padding:.6rem 1rem !important; flex:none; }
+ html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) h2 { font-size:1.2rem !important; margin:0; }
+ html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) .companion-compact { width:40px !important; height:40px !important; min-width:0 !important; }
+ html :is(.generator-dialog-content,.account-dialog-content,.local-dice-dialog-content) { padding:1rem !important; padding-bottom:max(1rem,env(safe-area-inset-bottom)) !important; overscroll-behavior:contain; }
+}
+@media (max-width:420px) {
+ html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { flex-direction:column !important; }
+ html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { font-size:.875rem !important; }
+}
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) > .pokemon-companion { min-height:0 !important; max-height:32px !important; flex:0 0 32px !important; }
+@media (max-width:700px) {
+ html .app-root.game-edition.handheld-edition .app-preferences { flex-wrap:nowrap; justify-content:space-between; }
+ html .app-root.game-edition.handheld-edition .app-preferences :is(.game-style-options,.appearance-options) button { padding:.25rem .35rem !important; gap:.2rem !important; }
+ html .app-root.game-edition.handheld-edition .appearance-options .game-icon { width:14px; height:14px; }
+}
+@media (max-width:360px) {
+ html .app-root.game-edition.handheld-edition .appearance-options .game-icon { display:none; }
+ html .app-root.game-edition.handheld-edition .app-preferences :is(.game-style-options,.appearance-options) { gap:0 !important; padding:.1rem; }
+ html .app-root.game-edition.handheld-edition .app-preferences :is(.game-style-options,.appearance-options) button { padding:.25rem !important; }
+}
+@media (max-width:300px) {
+ html .app-root.game-edition.handheld-edition .app-header-shell { padding-inline:.5rem !important; }
+}
+@media (orientation:landscape) and (max-height:500px) and (min-width:540px) {
+ html .app-root.game-edition.handheld-edition .app-brand-cluster { display:none; }
+ html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { flex-direction:row !important; min-height:44px !important; }
+ html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { flex-direction:row; min-height:44px; }
+}
+@media (max-width:300px) {
+ html .app-root.game-edition.handheld-edition .app-preferences { gap:0 !important; }
+ html .app-root.game-edition.handheld-edition .app-preferences :is(.game-style-options,.appearance-options) { padding:0 !important; }
+ html .app-root.game-edition.handheld-edition .app-preferences .game-style-options button { min-width:44px !important; }
+}

@@ -22,7 +22,7 @@ async function nav(label){await page.getByRole('button',{name:label,exact:true})
 async function waitForVisibleSprites(){
  await page.waitForFunction(()=>{
   const modal=[...document.querySelectorAll('[role="dialog"][aria-modal="true"],dialog[open]')].filter(element=>element.getClientRects().length&&!element.closest('[inert]')).at(-1);
-  const visible=element=>{const frame=element.closest('.pokemon-sized-sprite')||element,r=frame.getBoundingClientRect();return frame.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight&&!element.closest('[inert]')&&(!modal||modal.contains(element));};
+  const visible=element=>{const frame=element.closest('.pokemon-sized-sprite')||element,r=frame.getBoundingClientRect(),clip=frame.closest('.app-scroll-area')?.getBoundingClientRect();return frame.getClientRects().length&&r.right>0&&r.bottom>Math.max(0,clip?.top||0)&&r.left<innerWidth&&r.top<Math.min(innerHeight,clip?.bottom??innerHeight)&&!element.closest('[inert]')&&(!modal||modal.contains(element));};
   return [...document.querySelectorAll('.pokemon-companion img,.pokemon-card-sprite-frame .pokemon-sized-sprite > .pokemon-sprite-image')].filter(visible).every(element=>element.complete&&element.naturalWidth>0&&element.naturalHeight>0);
  },null,{timeout:30000});
 }
@@ -209,7 +209,7 @@ async function auditRepeatedMotionPreferences(){
  const errorsBefore=errors.length;
  for(let cycle=0;cycle<10;cycle+=1){
   await page.emulateMedia({reducedMotion:'reduce'});
-  await page.waitForFunction(()=>[...document.querySelectorAll('.dex-entry-main .pokemon-sized-sprite')].filter(frame=>{const r=frame.getBoundingClientRect();return r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight;}).every(frame=>frame.dataset.pokemonMotion==='static'));
+  await page.waitForFunction(()=>[...document.querySelectorAll('.dex-entry-main .pokemon-sized-sprite')].filter(frame=>{const r=frame.getBoundingClientRect(),clip=frame.closest('.app-scroll-area')?.getBoundingClientRect();return r.right>0&&r.bottom>Math.max(0,clip?.top||0)&&r.left<innerWidth&&r.top<Math.min(innerHeight,clip?.bottom??innerHeight);}).every(frame=>frame.dataset.pokemonMotion==='static'));
   await waitForVisibleSprites();
   assert.deepEqual(errors.slice(errorsBefore),[],`Motion reduction cycle ${cycle+1} has no React or browser errors`);
   await page.emulateMedia({reducedMotion:'no-preference'});
@@ -247,10 +247,12 @@ for(const viewport of deviceMatrix){
   if(view==='dex')await page.locator('.dex-entry-main').first().scrollIntoViewIfNeeded();
   await waitForVisibleSprites();
   const spriteAudit=await page.evaluate(()=>{
-   const visible=element=>{const frame=element.closest('.pokemon-sized-sprite')||element,r=frame.getBoundingClientRect();return frame.getClientRects().length&&r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight&&!element.closest('[inert]');};
+   const visible=element=>{const frame=element.closest('.pokemon-sized-sprite')||element,r=frame.getBoundingClientRect(),clip=frame.closest('.app-scroll-area')?.getBoundingClientRect();return frame.getClientRects().length&&r.right>0&&r.bottom>Math.max(0,clip?.top||0)&&r.left<innerWidth&&r.top<Math.min(innerHeight,clip?.bottom??innerHeight)&&!element.closest('[inert]');};
    const clippingAncestor=element=>{
     const r=element.getBoundingClientRect();
     for(let parent=element.parentElement;parent&&parent!==document.body;parent=parent.parentElement){
+     // Scrolling past the viewport is expected; cropping inside a card is not.
+     if(parent.matches('.app-root,.app-scroll-area'))continue;
      const style=getComputedStyle(parent),p=parent.getBoundingClientRect();
      if((/(hidden|clip)/.test(style.overflowX)&&(r.left<p.left-.5||r.right>p.right+.5))||(/(hidden|clip)/.test(style.overflowY)&&(r.top<p.top-.5||r.bottom>p.bottom+.5)))return {tag:parent.tagName,cls:parent.className,overflowX:style.overflowX,overflowY:style.overflowY};
     }
@@ -331,7 +333,7 @@ await page.getByLabel('Apelido',{exact:true}).fill('Venusaur parceiro com nome c
 for(const width of [320,390,768,1280]){
  await page.setViewportSize({width,height:900});
  await page.locator('.editor-header').scrollIntoViewIfNeeded();await check(`${width}-editor`);
- for(const summary of ['Progresso da jornada','Características', 'Formas e transformações','Treinamento']){const s=page.locator('.pokemon-editor summary').filter({hasText:summary});if(!await s.evaluate(e=>e.parentElement.open))await s.click();await s.scrollIntoViewIfNeeded();await check(`${width}-editor-${summary}`)}
+ for(const summary of ['Progresso da jornada','Mega Evolução, Z-Move, Dynamax e Tera','Treinamento']){const s=page.locator('.pokemon-editor summary').filter({hasText:summary});if(!await s.evaluate(e=>e.parentElement.open))await s.click();await s.scrollIntoViewIfNeeded();await check(`${width}-editor-${summary}`)}
 }
 console.log('QA editor: preparing screenshot');
 await page.setViewportSize({width:1280,height:900});await page.locator('.editor-header').scrollIntoViewIfNeeded({timeout:15000});await page.screenshot({path:'/tmp/myowndex-clean-editor.png',animations:'disabled',timeout:15000});
@@ -378,7 +380,7 @@ for(const width of [320,390,768,1280,1440]){await page.setViewportSize({width,he
 await page.setViewportSize({width:1280,height:1000});await page.screenshot({path:'/tmp/myowndex-clean-room.png',fullPage:true});
 await page.setViewportSize({width:1280,height:900});
 await page.evaluate(()=>document.documentElement.style.zoom='2');for(const view of ['Abrir a Pokédex','Abrir o PC do Bill','Abrir o Guia do Treinador','Abrir a Central da Aventura']){await nav(view);await check(`zoom-200-${view}`)}await page.evaluate(()=>document.documentElement.style.zoom='1');
-await page.emulateMedia({reducedMotion:'reduce',colorScheme:'dark'});await page.getByRole('radio',{name:'Escuro',exact:true}).click();assert.equal(await page.locator('html').getAttribute('data-theme'),'night');assert.equal(await page.locator('.appearance-options [role=radio]').count(),2);await nav('Abrir o Guia do Treinador');const companion=page.locator('[data-companion-place="guide"] img');assert.equal(await companion.evaluate(e=>getComputedStyle(e).animationName),'none');await page.waitForFunction(()=>{const image=document.querySelector('[data-companion-place="guide"] img');return image?.currentSrc.endsWith('/164.png')&&image.complete&&image.naturalWidth>0;});assert.match(await companion.evaluate(element=>element.currentSrc),/\/164\.png$/,'Reduced motion renders the static master');await check('dark-reduced-motion');
+await page.emulateMedia({reducedMotion:'reduce',colorScheme:'dark'});await page.getByRole('radio',{name:'Escuro',exact:true}).click();assert.equal(await page.locator('html').getAttribute('data-theme'),'night');assert.equal(await page.locator('.appearance-options [role=radio]').count(),2);await nav('Abrir o Guia do Treinador');const companion=page.locator('[data-companion-place="guide"] img');await companion.scrollIntoViewIfNeeded();assert.equal(await companion.evaluate(e=>getComputedStyle(e).animationName),'none');await page.waitForFunction(()=>{const image=document.querySelector('[data-companion-place="guide"] img');return image?.currentSrc.endsWith('/164.png')&&image.complete&&image.naturalWidth>0;});assert.match(await companion.evaluate(element=>element.currentSrc),/\/164\.png$/,'Reduced motion renders the static master');await check('dark-reduced-motion');
 await nav('Abrir o PC do Bill');
 await page.waitForTimeout(1000);
 await page.evaluate(()=>{

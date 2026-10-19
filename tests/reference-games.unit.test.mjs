@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getLearnsetGames, getMoveAtVersion, getMoveReferenceForMode, resolveLearnsetGame } from '../src/core/referenceGames.js';
+import { getReferenceBattleMechanics, getLearnsetGames, getMoveAtVersion, getMoveReferenceForMode, resolveLearnsetGame } from '../src/core/referenceGames.js';
 import { filterMovesByLatestVersion } from '../src/core/mechanics.js';
 
 const group = (name, id) => ({ name, url: `https://pokeapi.co/api/v2/version-group/${id}/` });
@@ -70,4 +70,14 @@ test('preferred game changes PP, power and accuracy in RPG, Jogos and Livre with
     assert.equal(latest.pp, 35);
     assert.equal(latest.power, 40);
     assert.deepEqual(move, original);
+});
+
+
+test('battle mechanics follow the chosen title rather than its generation', () => {
+    for (const game of ['firered-leafgreen', 'brilliant-diamond-shining-pearl', 'legends-arceus']) assert.deepEqual(getReferenceBattleMechanics(game, 'game'), { mega: false, z: false, dynamax: false, tera: false });
+    assert.deepEqual(getReferenceBattleMechanics('ultra-sun-ultra-moon', 'game'), { mega: true, z: true, dynamax: false, tera: false });
+    assert.deepEqual(getReferenceBattleMechanics('sword-shield', 'game'), { mega: false, z: false, dynamax: true, tera: false });
+    assert.deepEqual(getReferenceBattleMechanics('scarlet-violet', 'game'), { mega: false, z: false, dynamax: false, tera: true });
+    assert.equal(getReferenceBattleMechanics('champions', 'game').mega, true);
+    for (const mode of ['rpg', 'free']) assert.deepEqual(getReferenceBattleMechanics('firered-leafgreen', mode), { mega: true, z: true, dynamax: true, tera: true });
 });

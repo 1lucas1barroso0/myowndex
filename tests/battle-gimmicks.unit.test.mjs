@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {applyGimmick,advanceGimmickRound,canUseZMove,endGimmick,getGimmickChoices,getZMovePower,megaFormFor,normalizeGimmickState,trainerHasUsedGimmick} from "../src/core/battleGimmicks.js";
+import {applyGimmick,advanceGimmickRound,canUseZMove,endGimmick,getGimmickChoices,getZMovePower,gmaxEligible,megaFormFor,normalizeGimmickState,trainerHasUsedGimmick} from "../src/core/battleGimmicks.js";
 import {applyEndOfRoundEffects,changeRoomPhase,createRoomSnapshot,normalizeRoomToken,startNewRoomBattle,swapTeamPokemonInSnapshot} from "../src/core/room.js";
 
 const base=()=>normalizeRoomToken({
@@ -12,6 +12,10 @@ const base=()=>normalizeRoomToken({
  originalStats:{hp:175,attack:87,defense:60,"special-attack":80,"special-defense":65,speed:85},
  moves:["flamethrower","protect","",""],pp:[15,10,null,null],
  evs:{},ivs:{},nature:"hardy",stages:{},
+});
+test("the ficha and battlefield use the same Gigantamax species eligibility",()=>{
+ for(const speciesName of ["charizard","charizard-gmax","toxtricity-low-key","urshifu-rapid-strike"])assert.equal(gmaxEligible({speciesName}),true,speciesName);
+ for(const speciesName of ["gyarados","bulbasaur","steelix","meowth-alola","meowth-galar",""])assert.equal(gmaxEligible({speciesName}),false,speciesName);
 });
 test("mega stone requires the matching species, item and surviving Pokémon",()=>{
  const c=base();

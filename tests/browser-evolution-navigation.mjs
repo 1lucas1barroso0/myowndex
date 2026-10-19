@@ -17,10 +17,13 @@ try {
  for(const width of [320,768,1280]){
   const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
   const page=await context.newPage(),errors=[];
+  page.setDefaultTimeout(15000);
   page.on('pageerror',e=>errors.push(e.message));
   let failIvysaur=false;
+  let slowEvolution=false;
   await context.route('https://pokeapi.co/api/v2/**',async route=>{
    const [,kind,key]=new URL(route.request().url()).pathname.match(/\/api\/v2\/([^/]+)\/([^/]+)/)||[];
+   if(slowEvolution && ['pokemon-species','pokemon'].includes(kind)) await new Promise(resolve=>setTimeout(resolve,180));
    if(failIvysaur&&kind==='pokemon-species'&&key==='2')return route.fulfill({status:503,json:{error:'isolated retry fixture'}});
    let body;
    if(kind==='pokemon-species')body=species(Number(key));
@@ -46,7 +49,55 @@ try {
    await dialog.getByRole('alert').filter({hasText:'Este Pokémon não abriu'}).waitFor();
    assert.equal(await dialog.getByRole('heading',{name:'Bulbasaur',exact:true}).count(),1,'Failed navigation keeps the current record');
    failIvysaur=false;
+   slowEvolution=true;
+   const before=await dialog.locator('.record-evolution-list').evaluate(e=>e.getBoundingClientRect().top);
+   await member('Ivysaur').evaluate(e=>e.click());
+   await dialog.locator('.record-evolution-list[aria-busy="true"]').waitFor();
+   const during=await dialog.locator('.record-evolution-list').evaluate(e=>e.getBoundingClientRect().top);
+   assert.ok(Math.abs(during-before)<=1,'Retry loading must not push the family down');
+   await dialog.getByRole('heading',{name:'Ivysaur',exact:true}).waitFor();
+   await dialog.locator('.record-evolution-list[aria-busy="false"]').waitFor();
+   slowEvolution=false;
   }
+  // Scroll once, then activate without Playwright's automatic scrollIntoView.
+  // Both the pending state and repeated back-and-forth navigation must stay put.
+  await member('Bulbasaur').evaluate(e=>e.click());
+  await dialog.locator('.record-evolution-list[aria-busy="false"]').waitFor();
+  await dialog.getByLabel('Registro de',{exact:true}).waitFor();
+  await page.evaluate(()=>document.fonts.ready);
+  await page.waitForTimeout(100);
+  await member('Ivysaur').scrollIntoViewIfNeeded();
+  const geometry=()=>dialog.evaluate(e=>({
+   family:e.querySelector('.record-evolution-list').getBoundingClientRect().top-e.getBoundingClientRect().top,
+   height:e.scrollHeight,scroll:e.scrollTop
+  }));
+  const initialGeometry=await geometry();
+
+  slowEvolution=true;
+  for(let cycle=0;cycle<4;cycle++){
+   for(const name of ['Ivysaur','Venusaur','Bulbasaur']){
+    const before=await geometry();
+
+    await member(name).evaluate(e=>e.click());
+    if(width!==320&&cycle===0&&name==='Ivysaur'){
+     await dialog.locator('.record-evolution-list[aria-busy="true"]').waitFor();
+     assert.ok(Math.abs((await geometry()).family-before.family)<=1,'Loading must not push the family down');
+    }
+    await dialog.getByRole('heading',{name,exact:true}).waitFor();
+    await dialog.locator('.record-evolution-list[aria-busy="false"]').waitFor();
+    await page.waitForTimeout(100);
+   }
+   const current=await geometry();
+   assert.ok(Math.abs(current.family-initialGeometry.family)<=2,`Family viewport must not drift after cycle ${cycle+1}: ${JSON.stringify({initialGeometry,current})}`);
+   assert.ok(Math.abs(current.height-initialGeometry.height)<=2,'Repeated navigation must not grow the record');
+  }
+  slowEvolution=false;
+  // A player's own scroll must remain free after navigation.
+  await dialog.hover();
+  const beforeWheel=await dialog.evaluate(e=>e.scrollTop);
+  await page.mouse.wheel(0,-180);
+  await page.waitForTimeout(150);
+  assert.ok(await dialog.evaluate((e,before)=>e.scrollTop<before,beforeWheel),'Manual scroll remains available');
   await member('Ivysaur').click();
   await dialog.getByRole('heading',{name:'Ivysaur',exact:true}).waitFor();
   assert.match(await dialog.locator('.record-cartridge-label').innerText(),/0002/);
@@ -73,7 +124,7 @@ try {
   await page.keyboard.press('Escape');
   assert.equal(await page.getByRole('dialog').count(),0);
   assert.deepEqual(errors,[]);
-  console.log(`PASS evolution navigation ${width}px: click, Enter, Space, regional identity, same dialog and background`);
+  console.log(`PASS evolution navigation ${width}px: click, Enter, Space, regional identity, same dialog and background; four stable navigation cycles and manual scroll`);
   await context.close();
  }
 } finally {await browser.close();}

@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { describeSpecies } from '../../core/descriptions.js';
 import { formatReferenceText, getPokedexRecord } from '../../core/pokedexRecord.js';
 import { getSpeciesRecordHistory, loadCatalogText } from '../../core/catalogText.js';
@@ -62,6 +62,8 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
     const [evolutionError, setEvolutionError] = useState("");
     const evolutionRequestRef = useRef(0);
     const dialogRef = useRef(null);
+    const evolutionListRef = useRef(null);
+    const evolutionViewportRef = useRef(null);
     const closeRef = useRef(null);
     const onCloseRef = useRef(onClose);
     const recordId = useId();
@@ -256,9 +258,24 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
     const evolutionPaths = useMemo(() => resolveFormEvolutionPaths(evoChain, {
         name: activeForm?.name, formKey: formIdentity?.formKey, speciesId: baseInfo?.id,
     }), [evoChain, activeForm?.name, formIdentity?.formKey, baseInfo?.id]);
+    // Preserve the family's viewport position, rather than accumulating scroll deltas.
+    // A deliberate scroll or another control immediately gives navigation back to the player.
+    useLayoutEffect(() => {
+        const dialog = dialogRef.current;
+        const family = evolutionListRef.current;
+        const anchor = evolutionViewportRef.current;
+        if (!dialog || !family || anchor == null) return;
+        const familyOffset = family.getBoundingClientRect().top - dialog.getBoundingClientRect().top + dialog.scrollTop;
+        const target = Math.max(0, Math.min(familyOffset - anchor, dialog.scrollHeight - dialog.clientHeight));
+        if (Math.abs(dialog.scrollTop - target) > .5) dialog.scrollTop = target;
+    });
+    const releaseEvolutionViewport = () => { evolutionViewportRef.current = null; };
     const openEvolutionMember = async node => {
         const target = getEvolutionRecordTarget(node);
         if (!target || evolutionPending) return;
+        if (evolutionListRef.current && dialogRef.current) {
+            evolutionViewportRef.current = evolutionListRef.current.getBoundingClientRect().top - dialogRef.current.getBoundingClientRect().top;
+        }
         const request = ++evolutionRequestRef.current;
         setEvolutionPending(node.name);
         setEvolutionError("");
@@ -272,6 +289,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                 target.initialForm?.formId
                     ? fetchCached(`https://pokeapi.co/api/v2/pokemon-form/${target.initialForm.formId}/`, refresh)
                     : Promise.resolve(null),
+                loadCatalogText('species', species.id).catch(() => null),
             ]);
             if (!pokemon || pokemon.name !== target.pokemonName
                 || (target.initialForm?.formId && (appearance?.id !== target.initialForm.formId || appearance?.pokemon?.name !== pokemon.name))) {
@@ -285,7 +303,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
             setFormIdentity(target.initialForm);
             setFormAppearance(appearance);
             setAppearanceError(false);
-            setRecordHistory([]);
+            setRecordHistory(getSpeciesRecordHistory(species.id, variety.name));
         } catch {
             if (request === evolutionRequestRef.current) setEvolutionError("Este Pokémon não abriu. Tente novamente.");
         } finally {
@@ -326,7 +344,11 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
 
     return (
         <div className="pokemon-modal-backdrop record-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={phase === "loading"} tabIndex={-1} className={`pokemon-modal-shell record-shell ${phase !== "ready" ? "record-state-shell" : ""}`} style={{ "--record-type": primaryColor }}>
+            <div ref={dialogRef}
+                onWheel={releaseEvolutionViewport} onTouchMove={releaseEvolutionViewport}
+                onPointerDown={event => { if (!event.target.closest('.record-evolution-member')) releaseEvolutionViewport(); }}
+                onKeyDown={event => { if (['Tab', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) releaseEvolutionViewport(); }}
+                role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={phase === "loading"} tabIndex={-1} className={`pokemon-modal-shell record-shell ${phase !== "ready" ? "record-state-shell" : ""}`} style={{ "--record-type": primaryColor }}>
                 <header className="record-topbar"><button ref={closeRef} type="button" aria-label="Fechar registro da Pokédex" onClick={onClose} className="record-close">
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg> Fechar
                 </button></header>
@@ -503,8 +525,8 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                 
                                 <div>
                                     <h3 className="record-section-title">Linha evolutiva</h3>
-                                    <div className="record-evolution-list" aria-busy={Boolean(evolutionPending)}>
-                                        {evolutionPending && <p className="record-section-note" role="status">Consultando {formatName(evolutionPending)}…</p>}
+                                    <div ref={evolutionListRef} className="record-evolution-list" aria-busy={Boolean(evolutionPending)}>
+                                        {evolutionPending && <span className="sr-only" role="status">Consultando {formatName(evolutionPending)}…</span>}
                                         {evolutionError && <p className="record-section-note" role="alert">{evolutionError}</p>}
                                         {evolutionStatus === "loading" ? <p role="status" className="record-section-note">Consultando a linha evolutiva…</p> : evolutionStatus === "unavailable" ? <p className="record-section-note">Não foi possível abrir a linha evolutiva agora.</p> : evolutionPaths.length > 0 ? evolutionPaths.map((path, idx) => (
                                             <ol key={idx} className="record-evolution-path" aria-label={evolutionPaths.length > 1 ? `Caminho evolutivo ${idx + 1}` : "Caminho evolutivo"} style={{ "--evolution-stages": path.length }}>

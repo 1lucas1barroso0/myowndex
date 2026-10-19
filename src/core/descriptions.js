@@ -166,11 +166,6 @@ export const describeMove = (move, { isTTRPG = false, historical = false } = {})
         facts.push("O movimento causa dano, mas o valor depende de sua regra especial ou do estado atual da batalha; não use um poder inventado.");
     }
 
-    const pp = asNumber(move.pp);
-    facts.push(pp > 0
-        ? `Possui ${pp} PP antes de ajustes de PP Up, PP Max ou regras de cópia.`
-        : "O catálogo não informa um valor comum de PP; confirme a regra própria antes de gastar um uso.");
-
     const priority = asNumber(move.priority);
     if (priority > 0) facts.push(`Tem prioridade +${priority} e entra antes de movimentos sem prioridade na mesma rodada.`);
     if (priority < 0) facts.push(`Tem prioridade ${priority} e normalmente acontece depois de movimentos sem prioridade.`);

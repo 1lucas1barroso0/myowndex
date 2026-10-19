@@ -142,7 +142,7 @@ test("descriptions explain what happens without hiding missing or foreign catalo
   assert.match(tackle.facts.join(" "), /escolher um Pokémon como alvo/);
   assert.match(tackle.facts.join(" "), /precisão base é 100%/);
   assert.match(tackle.facts.join(" "), /Exige contato direto/);
-  assert.match(tackle.facts.join(" "), /35 PP/);
+  assert.doesNotMatch(tackle.facts.join(" "), /35 PP/, "PP is already displayed in the dedicated move field");
   assert.equal(tackle.catalog.code, "en");
   assert.match(tackle.catalog.label, /inglês/);
 

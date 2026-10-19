@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.31.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
+**Versão atual: 2.0.32.** A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 
 A revisão 2.0.27 implementa as 49 variantes oficiais registradas da nova leva de Megaevoluções de Legends: Z-A e Mega Dimension, com itens e identidade exatos, atributos e sprites 2D próprios; introduz Tera Shift, Terastal e Stellar do Terapagos e os climas Primordial Sea, Desolate Land e Delta Stream; reforça o modo instalado imersivo de PWA com preferência por fullscreen e fallback para standalone sem mudar a identidade instalada. Registro técnico detalhado em docs/REVISAO-2.0.27.md. A aparência de app sem barras é garantida apenas nos modos instalados que os navegadores oferecem; o sistema pode manter barras de status e controles próprios.
 
@@ -143,3 +143,10 @@ O estado só é considerado publicado depois que o CI do commit final passa e o 
 - O `id` alternativo, `scope`, `start_url`, arquivos dos ícones v105 e armazenamento compartilhado permanecem inalterados. Não deve surgir um terceiro aplicativo por mudança de ID.
 - O botão da página alternativa passa a dizer “Instalar MyOwnDex”. Verificação unitária e navegador confirmam os dois campos exibíveis dos manifestos, a identidade alternativa e a preservação dos dados.
 - Um atalho já instalado pode manter seu nome antigo até o sistema processar o novo manifesto ou até reinstalação; a web não consegue renomear diretamente um WebAPK ainda armazenado pelo Android.
+
+
+## 2.0.32: linha evolutiva navegável
+
+Os membros da linha evolutiva são botões: toque, mouse, Enter e Espaço trocam a amostragem na mesma ficha, preservando a busca e a posição da Pokédex ao fundo. A seleção conserva a forma regional ou cosmética exata e seu número nacional. Falhas mantêm a ficha anterior e permitem nova tentativa. O teste de navegador cobre 320, 768 e 1280 px e foi incluído no CI.
+
+A base aprovada em produção é b2b4ad3 (2.0.31). A checagem obrigatória de fontes detectou oito arquivos externos atualizados. Os catálogos foram reconstruídos com os pins atuais da PokeAPI e do Showdown; seis traduções editoriais foram revisadas e persistidas. Os valores de batalha literais e o catálogo de movimentos permaneceram idênticos. As 2.617 artes e seus pacotes não foram alterados. A preparação do catálogo usa as traduções revisadas antes de verificar descrições pendentes, sem tradução online durante build ou uso.

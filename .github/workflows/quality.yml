@@ -77,6 +77,11 @@ jobs:
           set -o pipefail
           timeout --signal=TERM --kill-after=15s 420s node tests/browser-responsive.mjs | tee /tmp/myowndex-responsive.log
           echo "Matriz responsiva concluída."
+      - name: Conferir movimentos, PP históricos, descrições e teclado mobile
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-reference.mjs
       - name: Testar mundo 2D, acessibilidade e desempenho
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

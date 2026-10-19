@@ -39,8 +39,8 @@ await context.route('**/api/**', route => {
 const visibleSpriteState = () => page.locator('.pokemon-sized-sprite img').evaluateAll(images => {
     const modal = [...document.querySelectorAll('[role="dialog"][aria-modal="true"],dialog[open]')].filter(element => element.getClientRects().length && !element.closest('[inert]')).at(-1);
     const visible = image => {
-        const bounds = image.closest('.pokemon-sized-sprite').getBoundingClientRect(), style = getComputedStyle(image);
-        return bounds.width > 0 && bounds.height > 0 && bounds.right > 0 && bounds.bottom > 0 && bounds.left < innerWidth && bounds.top < innerHeight && style.visibility !== 'hidden' && style.display !== 'none' && !image.closest('[inert]') && (!modal || modal.contains(image));
+        const frame = image.closest('.pokemon-sized-sprite'), bounds = frame.getBoundingClientRect(), style = getComputedStyle(image), clip = frame.closest('.app-scroll-area')?.getBoundingClientRect();
+        return bounds.width > 0 && bounds.height > 0 && bounds.right > 0 && bounds.bottom > Math.max(0, clip?.top || 0) && bounds.left < innerWidth && bounds.top < Math.min(innerHeight, clip?.bottom ?? innerHeight) && style.visibility !== 'hidden' && style.display !== 'none' && !image.closest('[inert]') && (!modal || modal.contains(image));
     };
     return {
         mounted: images.length,
@@ -60,8 +60,8 @@ const settleSprites = async () => {
     await page.waitForFunction(() => {
         const modal = [...document.querySelectorAll('[role="dialog"][aria-modal="true"],dialog[open]')].filter(element => element.getClientRects().length && !element.closest('[inert]')).at(-1);
         return [...document.querySelectorAll('.pokemon-sized-sprite img')].filter(image => {
-            const r = image.closest('.pokemon-sized-sprite').getBoundingClientRect();
-            return r.width && r.height && r.right > 0 && r.bottom > 0 && r.left < innerWidth && r.top < innerHeight && !image.closest('[inert]') && (!modal || modal.contains(image));
+            const frame = image.closest('.pokemon-sized-sprite'), r = frame.getBoundingClientRect(), clip = frame.closest('.app-scroll-area')?.getBoundingClientRect();
+            return r.width && r.height && r.right > 0 && r.bottom > Math.max(0, clip?.top || 0) && r.left < innerWidth && r.top < Math.min(innerHeight, clip?.bottom ?? innerHeight) && !image.closest('[inert]') && (!modal || modal.contains(image));
         }).every(image => image.complete && image.naturalWidth > 0 && Number(getComputedStyle(image).opacity) > 0);
     });
     await page.waitForTimeout(500); // Finite entrance transitions must finish before contrast checks.
@@ -260,7 +260,7 @@ try {
     assert.ok(scrollReadyMs < 15000, 'Newly visible Pokémon appear under 4× CPU slowdown');
     performanceReport.push({ label: 'Catalogue scroll with 4× CPU slowdown', scrollReadyMs, ...afterScroll });
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-    await page.evaluate(() => scrollTo(0,0));
+    await page.evaluate(() => document.getElementById('main-content')?.scrollTo(0,0));
 
     for (const name of ['Toedscool', 'Scovillain', 'Cinderace']) await authoredMotion(name);
     await page.locator('#pokemon-search').fill('');

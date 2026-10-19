@@ -9,18 +9,21 @@ export default function ReferenceText({ original, portuguese, originalLanguage =
     const textLanguage = translated ? 'pt-BR' : originalLanguage;
     const text = formatReferenceText(translated ? portuguese : original, textLanguage);
     const toggleLabel = translated ? 'Ver texto original em inglês' : 'Ver tradução em português';
+    const sourceLabel = source === 'pokeapi' ? 'PokéAPI'
+        : source === 'pokemon-go' ? 'Pokémon GO'
+            : source === 'pokemon-showdown' ? 'Pokémon Showdown' : null;
     if (!text) return null;
 
     return (
         <div className={`reference-text ${className}`}>
             <div className="reference-text-toolbar">
-                <small>{label}</small>
+                <small title={sourceLabel ? `Referência: ${sourceLabel}` : undefined}>{label}</small>
                 {original && portuguese && <button type="button" className="reference-language-toggle" aria-label={toggleLabel} title={toggleLabel} aria-pressed={translated} aria-controls={textId} onClick={() => setLanguage(value => value === 'pt-BR' ? 'en' : 'pt-BR')}>
-                    {translated ? 'PT' : 'EN'}
+                    {translated ? 'Ver original' : 'Ver português'}
                 </button>}
             </div>
             <p id={textId} lang={textLanguage} aria-live="polite" aria-atomic="true">{text}</p>
-            {source && <small className="reference-text-source">{source === 'pokeapi' ? 'PokéAPI' : source === 'pokemon-go' ? 'Pokémon GO' : source === 'pokemon-showdown' ? 'Pokémon Showdown' : source}{translated && sourceKind === 'editorial' ? ' · Tradução MyOwnDex' : ''}</small>}
+
         </div>
     );
 }

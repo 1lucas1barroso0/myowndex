@@ -34,7 +34,7 @@ test('current move deltas match the pinned catalogue and leave API data and Engl
     assert.deepEqual(getCurrentMoveReference(current), current);
     assert.deepEqual(raw, old);
     assert.deepEqual(current.effect_entries, old.effect_entries);
-    assert.equal(getMoveReferenceForMode(raw, { id: 1, value: 'red-blue' }, 'rpg').pp, 5);
+    assert.equal(getMoveReferenceForMode(raw, { id: 1, value: 'red-blue' }, 'rpg').pp, 10, 'The explicit historic game takes precedence over the modern Champions override');
     assert.equal(getMoveReferenceForMode(raw, { id: 25, value: 'scarlet-violet' }, 'game').pp, 10);
     assert.equal(getCurrentMoveReference(fixture('milk-drink')).target.name, 'user-or-ally');
 });

@@ -87,6 +87,11 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-weather.mjs
+      - name: Navegar pela linha evolutiva sem mover a Pokédex
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-evolution-navigation.mjs
       - name: Testar transformações, lados e retirada em todas as fases
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

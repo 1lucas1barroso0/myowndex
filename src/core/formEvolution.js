@@ -62,3 +62,18 @@ export function getFormLearnsetFallback(identity, defaultPokemonName) {
     if (form && shouldSeparateDexVariant(form)) return null;
     return defaultPokemonName || null;
 }
+
+/** Resolve a family member to its species record and exact inherited appearance. */
+export function getEvolutionRecordTarget(node) {
+    if (!node) return null;
+    const form = formByName.get(node.name);
+    const speciesId = Number(node.speciesId || form?.speciesId || node.id);
+    if (!Number.isSafeInteger(speciesId) || speciesId <= 0) return null;
+    const pokemonName = node.pokemonName || form?.pokemonName || node.name;
+    if (!pokemonName) return null;
+    return {
+        speciesUrl: `https://pokeapi.co/api/v2/pokemon-species/${speciesId}/`,
+        pokemonName,
+        initialForm: form ? { ...form, formKey: form.name } : null,
+    };
+}

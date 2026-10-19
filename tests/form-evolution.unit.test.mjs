@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import index from '../src/data/form-evolutions.json' with { type: 'json' };
 import forms from '../src/data/forms.json' with { type: 'json' };
-import { getFormLearnsetFallback, resolveFormEvolutionPaths } from '../src/core/formEvolution.js';
+import { getEvolutionRecordTarget, getFormLearnsetFallback, resolveFormEvolutionPaths } from '../src/core/formEvolution.js';
 import { shouldSeparateDexVariant } from '../src/core/dexVariants.js';
 
 const chain = (...nodes) => nodes.map(([name, id]) => ({ name, id }));
@@ -138,4 +138,18 @@ test('the bounded offline index is pinned to the existing form catalogue and lea
     assert.deepEqual(names(resolveFormEvolutionPaths(bulbasaur, 'bulbasaur')), [['bulbasaur', 'ivysaur', 'venusaur']]);
     assert.equal(JSON.stringify(bulbasaur), before);
     assert.deepEqual(resolveFormEvolutionPaths([], 'bulbasaur'), []);
+});
+
+test('family navigation resolves species separately from regional and cosmetic Pokémon IDs', () => {
+    const regional = getEvolutionRecordTarget({ name:'rattata-alola', id:10091, speciesId:19, pokemonName:'rattata-alola' });
+    assert.equal(regional.speciesUrl,'https://pokeapi.co/api/v2/pokemon-species/19/');
+    assert.equal(regional.pokemonName,'rattata-alola');
+    assert.equal(regional.initialForm.formId,10193);
+    const cosmetic = getEvolutionRecordTarget({name:'scatterbug-polar',id:664,speciesId:664,pokemonName:'scatterbug'});
+    assert.equal(cosmetic.pokemonName,'scatterbug');
+    assert.equal(cosmetic.initialForm.formId,10271);
+    assert.equal(cosmetic.initialForm.formKey,'scatterbug-polar');
+    assert.equal(getEvolutionRecordTarget({name:'ivysaur',id:2}).speciesUrl,'https://pokeapi.co/api/v2/pokemon-species/2/');
+    assert.equal(getEvolutionRecordTarget(null),null);
+    assert.equal(getEvolutionRecordTarget({name:'invalid',id:-1}),null);
 });

@@ -183,3 +183,10 @@ html .app-root .record-evolution-member { display:grid; justify-items:center; al
 html .app-root .record-evolution-member:hover .record-evolution-name { text-decoration:underline; text-underline-offset:.2em; }
 html .app-root .record-evolution-member:focus-visible { outline:3px solid var(--ui-blue); outline-offset:3px; }
 html .app-root .record-evolution-member[aria-disabled="true"] { cursor:wait; }
+
+/* A language switch is an action, not a cryptic PT/EN status badge. */
+html .app-root .reference-language-toggle {
+    display:inline-flex; align-items:center; justify-content:center;
+    flex:0 1 auto; width:auto; max-width:100%; min-width:44px;
+    padding:.55rem .85rem; white-space:normal; text-align:center;
+}

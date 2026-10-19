@@ -180,18 +180,34 @@ try {
     const fact = (field, label) => field.locator('.editor-move-facts > div').filter({ has: page.locator('dt', { hasText: new RegExp(`^${label}$`) }) }).locator('dd');
     assert.equal(await fact(moveField, 'Poder').innerText(), '4');
     assert.equal(await fact(moveField, 'Precisão').innerText(), '95%');
-    await editor.getByLabel('Movimento 2', { exact: true }).fill('protect');
-    const protect = editor.locator('.editor-move-field').nth(1);
-    await protect.locator('summary').waitFor({ timeout: 30000 });
-    await protect.locator('summary').click();
-    assert.equal(await fact(protect, 'PP máximo').innerText(), '5');
-    assert.equal(await protect.getByLabel('PP atual', { exact: true }).inputValue(), '5');
-    checks.push({ label: 'PC RPG respects selected game power, accuracy and PP' });
+    await editor.getByLabel('Movimento 2', { exact: true }).fill('growl');
+    const growl = editor.locator('.editor-move-field').nth(1);
+    await growl.locator('summary').waitFor({ timeout: 30000 });
+    await growl.locator('summary').click();
+    assert.equal(await growl.getByLabel('PP atual', { exact: true }).inputValue(), await fact(growl, 'PP máximo').innerText());
+    const selectedPp = await fact(moveField, 'PP máximo').innerText();
+    assert.equal(await moveField.getByLabel('PP atual', { exact: true }).inputValue(), selectedPp);
+    checks.push({ label: 'PC RPG respects selected-game PP and accuracy' });
     await page.locator('.game-style-options [data-mode="game"]').click();
     await page.waitForFunction(() => document.querySelector('.editor-move-field .editor-move-facts dd')?.textContent === '35');
     assert.equal(await fact(moveField, 'Poder').innerText(), '35');
     assert.equal(await fact(moveField, 'Precisão').innerText(), '95%');
-    checks.push({ label: 'PC Jogos displays actual Red/Blue Tackle power/accuracy without overwriting the partner' });
+    assert.equal(await moveField.getByLabel('PP atual', { exact: true }).inputValue(), selectedPp);
+    await page.locator('.game-style-options [data-mode="free"]').click();
+    assert.equal(await fact(moveField, 'Poder').innerText(), '35');
+    assert.equal(await moveField.getByLabel('PP atual', { exact: true }).inputValue(), selectedPp);
+    checks.push({ label: 'PC Jogos and Livre retain preferred game PP, power and accuracy' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    const typed = editor.getByLabel('Movimento 3', { exact: true });
+    await typed.focus();
+    for (const letter of ['t', 'a', 'c']) {
+        await typed.press(letter);
+        assert.equal(await typed.evaluate(element => element === document.activeElement), true, 'Typing must preserve mobile focus');
+    }
+    assert.ok(await editor.locator('.editor-move-suggestions').count(), 'Move suggestions must not overlay or dismiss the keyboard');
+    await typed.fill('tackle');
+    assert.equal(await typed.evaluate(element => element === document.activeElement), true);
+    checks.push({ label: 'Mobile movement input keeps focus through successive keystrokes' });
     // An intentionally empty upstream description must finish loading. This
     // isolated fixture verifies a real source gap without inventing its rule.
     const emptyContext = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });

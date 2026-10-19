@@ -40,8 +40,9 @@ try {
     const reward = editor.locator(".experience-award");
     await openDetails(reward);
     await reward.getByRole("button", { name: "2 XP", exact: true }).click();
-    await openDetails(reward.locator(".experience-battle-context"));
-    await reward.getByLabel("Usar os dois lados da batalha", { exact: true }).check();
+
+    await reward.getByLabel("Considerar os dois lados da batalha", { exact: true }).check();
+    await openDetails(reward.locator(".experience-context-editor"));
     const winners = reward.getByRole("group", { name: "Vencedor", exact: true });
     const opponents = reward.getByRole("group", { name: "Adversário", exact: true });
     await winners.getByLabel("Maior nível", { exact: true }).fill("10");
@@ -61,22 +62,24 @@ try {
     passed("battle-two-disadvantages-times-four-one-receipt-and-sixteen-evs");
 
     await reward.getByRole("button", { name: "Novo desafio", exact: true }).click();
-    await reward.getByLabel("Usar os dois lados da batalha", { exact: true }).check();
+    await reward.getByLabel("Considerar os dois lados da batalha", { exact: true }).check();
+    await openDetails(reward.locator(".experience-context-editor"));
     await reward.getByRole("button", { name: "3 XP", exact: true }).click();
     await winners.getByLabel("Maior nível", { exact: true }).fill("40");
     await opponents.getByLabel("Maior nível", { exact: true }).fill("20");
     await opponents.getByLabel("Pokémon que lutaram", { exact: true }).fill("2");
-    assert.deepEqual(await reward.locator(".experience-reward-preview dd").allTextContents(), ["4", "8"]);
-    await reward.getByRole("button", { name: "Receber 4 XP", exact: true }).click();
-    await page.waitForFunction(() => JSON.parse(localStorage.getItem("myowndex_rotom_v4"))?.teams?.[0]?.pokemon?.[0]?.rpg?.pendingEvs === 24);
+    assert.deepEqual(await reward.locator(".experience-reward-preview dd").allTextContents(), ["5", "10"]);
+    await reward.getByRole("button", { name: "Receber 5 XP", exact: true }).click();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem("myowndex_rotom_v4"))?.teams?.[0]?.pokemon?.[0]?.rpg?.pendingEvs === 26);
     saved = await savedPokemon();
-    assert.equal(saved.rpg.xp, 4);
+    assert.equal(saved.rpg.xp, 5);
     assert.equal(saved.rpg.experienceAwards.length, 2);
     assert.equal(saved.friendship, 70);
-    passed("mixed-battle-advantage-and-disadvantage-reduce-base-before-multiplier");
+    passed("mixed-battle-advantage-and-disadvantage-subtract-after-multiplier");
 
     await reward.getByRole("button", { name: "Novo desafio", exact: true }).click();
-    await reward.getByLabel("Usar os dois lados da batalha", { exact: true }).check();
+    await reward.getByLabel("Considerar os dois lados da batalha", { exact: true }).check();
+    await openDetails(reward.locator(".experience-context-editor"));
     await opponents.getByLabel("Maior nível", { exact: true }).fill("");
     assert.equal(await reward.getByRole("button", { name: "Complete a batalha", exact: true }).isDisabled(), true);
     assert.deepEqual(await reward.locator(".experience-reward-preview dd").allTextContents(), ["—", "—"]);
@@ -92,7 +95,7 @@ try {
     await training.getByRole("spinbutton", { name: "EVs", exact: true }).fill("24");
     assert.equal(await training.getByRole("spinbutton", { name: "EVs", exact: true }).inputValue(), "2");
     await training.getByRole("button", { name: "Treinar", exact: true }).click();
-    await page.waitForFunction(() => JSON.parse(localStorage.getItem("myowndex_rotom_v4"))?.teams?.[0]?.pokemon?.[0]?.rpg?.pendingEvs === 22);
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem("myowndex_rotom_v4"))?.teams?.[0]?.pokemon?.[0]?.rpg?.pendingEvs === 24);
     saved = await savedPokemon();
     assert.equal(saved.evs.defense, 2);
     assert.equal(Object.values(saved.evs).reduce((sum, value) => sum + value, 0), 510);
@@ -105,7 +108,6 @@ try {
     assert.equal((await savedPokemon()).evs.defense, 2);
     passed("ev-allocation-respects-both-official-caps-and-deleting-reserve-preserves-training");
 
-    await openDetails(editor.locator(".editor-characteristics"));
     const friendship = editor.locator(".friendship-control");
     for (const [label, raw, rpg] of [["Aumentar Amizade em 5", 75, 7], ["Aumentar Amizade em 50", 125, 12], ["Diminuir Amizade em 5", 120, 12], ["Diminuir Amizade em 50", 70, 7]]) {
         await friendship.getByRole("button", { name: label, exact: true }).click();
@@ -149,7 +151,7 @@ try {
     assert.equal(await page.locator(".ev-training > header > strong").innerText(), "0");
     saved = await savedPokemon();
     assert.equal(saved.level, 11);
-    assert.equal(saved.rpg.xp, 4);
+    assert.equal(saved.rpg.xp, 5);
     assert.equal(saved.rpg.experienceAwards.length, 2);
     assert.equal(saved.friendship, 70);
     assert.equal(saved.rpg.notes, "Preservar a jornada");

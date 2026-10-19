@@ -32,7 +32,7 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
         loadCatalogText('move').then(() => {
             if (!active) return;
             const referenceVersion = referenceGame;
-            const versionData = getMoveReferenceForMode(data, { id: versionGroup?.id, value: versionGroup?.value }, isTTRPG ? 'rpg' : 'game');
+            const versionData = getMoveReferenceForMode(data, { id: versionGroup?.id, value: referenceGame }, isTTRPG ? 'rpg' : 'game');
             setReference({ ...getCatalogText('move', data?.name || moveData?.move?.name,
                 versionData, { versionGroup: referenceVersion }), versionData, key: referenceKey });
             setCatalogReady(true);

@@ -153,12 +153,6 @@ html .app-root .record-trait-heading h4 { margin:0; color:var(--ui-ink); font-si
 html .app-root .record-trait-card .record-trait-heading { padding-bottom:1rem; border-bottom:1px solid color-mix(in srgb,var(--trait-accent) 35%,var(--ui-line)); }
 html .app-root .record-trait-card .record-ability-badge { align-self:flex-start; padding:.3rem .6rem; font-size:.875rem; line-height:1.5; font-weight:650; }
 html .app-root .record-item-sprite { flex:0 0 48px; width:48px; height:48px; object-fit:contain; image-rendering:pixelated; background:var(--ui-panel); border-radius:.15rem; }
-html .app-root .reference-text { display:grid; gap:.75rem; min-width:0; }
-html .app-root .reference-text-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.75rem; min-width:0; }
-html .app-root .reference-text-toolbar > small { color:var(--ui-muted); font-size:.875rem; font-weight:700; line-height:1.5; }
-html .app-root .reference-language-toggle { display:grid; place-items:center; flex:0 0 48px; min-width:48px; min-height:44px; padding:.5rem .6rem; border:1px solid var(--ui-blue); border-radius:.2rem; background:var(--ui-panel); color:var(--ui-blue); font-size:.875rem; font-weight:800; }
-html .app-root .reference-language-toggle[aria-pressed=true] { background:var(--ui-selected); }
-html .app-root .reference-text > p { margin:0; color:var(--ui-ink); font-size:1rem; line-height:1.75; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:pretty; }
 html .app-root .record-trait-card .reference-text-source { padding-top:.75rem; border-top:1px solid var(--ui-line); }
 html .app-root .reference-text-source { color:var(--ui-muted); font-size:.875rem; line-height:1.6; }
 html .app-root .record-move-methods { display:flex; flex-wrap:wrap; gap:.5rem; }
@@ -183,10 +177,3 @@ html .app-root .record-evolution-member { display:grid; justify-items:center; al
 html .app-root .record-evolution-member:hover .record-evolution-name { text-decoration:underline; text-underline-offset:.2em; }
 html .app-root .record-evolution-member:focus-visible { outline:3px solid var(--ui-blue); outline-offset:3px; }
 html .app-root .record-evolution-member[aria-disabled="true"] { cursor:wait; }
-
-/* A language switch is an action, not a cryptic PT/EN status badge. */
-html .app-root .reference-language-toggle {
-    display:inline-flex; align-items:center; justify-content:center;
-    flex:0 1 auto; width:auto; max-width:100%; min-width:44px;
-    padding:.55rem .85rem; white-space:normal; text-align:center;
-}

@@ -4,7 +4,7 @@ import { cleanDescription } from './descriptions.js';
 // English source, keep the English decimal separator without changing its prose.
 export const formatReferenceText = (text, language = 'pt-BR') => /^en(?:-|$)/i.test(language)
     ? String(text || '').replace(/\b(\d{1,2}),(\d{1,2})%/g, '$1.$2%')
-    : String(text || '');
+    : String(text || '').replace(/\bHolder\b/g, 'quem segura o item');
 
 // Descriptions are paired during development, never translated by a runtime service.
 const preserveCatalogNames = text => cleanDescription(text)

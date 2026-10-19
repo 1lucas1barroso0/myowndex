@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getSamePokemonForms } from "../src/core/pokemonFormChoices.js";
+import { getSamePokemonForms, isSharedBattleForm } from "../src/core/pokemonFormChoices.js";
 
 const varieties = names => names.map((name, index) => ({
     is_default: index === 0,
@@ -88,4 +88,10 @@ test("catalogue choice filtering never rewrites historical Pokémon or removes i
     assert.deepEqual({ entries, identity }, snapshot);
     assert.deepEqual(getSamePokemonForms(null, identity), []);
     assert.deepEqual(getSamePokemonForms(entries, {}), []);
+});
+
+
+test("shared battle phenomena include Mega Z but exclude individual transformations and regional variants", () => {
+    for (const name of ["venusaur-mega", "charizard-mega-x", "mewtwo-mega-y", "absol-mega-z", "garchomp-mega-z", "lucario-mega-z", "pikachu-gmax"]) assert.equal(isSharedBattleForm(name), true, name);
+    for (const name of ["groudon-primal", "necrozma-ultra", "aegislash-blade", "wishiwashi-school", "raichu-alola", "ogerpon-wellspring-mask", "eternatus-eternamax"]) assert.equal(isSharedBattleForm(name), false, name);
 });

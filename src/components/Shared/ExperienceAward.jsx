@@ -87,12 +87,12 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
             </div>
             <dl className="experience-breakdown" aria-label="Cálculo automático de XP">
                 <div><dt>XP-base</dt><dd>{automatic.baseXp}</dd></div>
-                <div><dt>Reduções na base</dt><dd>{automatic.penalties ? `−${automatic.penalties}` : "0"}</dd></div>
-                <div><dt>Base após reduções</dt><dd>{automatic.adjustedBaseXp}</dd></div>
                 <div><dt>Multiplicador</dt><dd>×{automatic.multiplier}</dd></div>
+                <div><dt>XP multiplicada</dt><dd>{automatic.multipliedXp}</dd></div>
+                <div><dt>Reduções</dt><dd>{automatic.penalties ? `−${automatic.penalties}` : "0"}</dd></div>
                 <div><dt>Resultado automático</dt><dd>{automatic.xp} XP</dd></div>
             </dl>
-            <p className="experience-formula-note">As reduções vêm antes dos multiplicadores. A recompensa mínima é 1 XP. Cada XP recebido concede 2 EVs.</p>
+            <p className="experience-formula-note">Multiplique a XP-base e depois subtraia as reduções. A recompensa mínima é 1 XP. Cada XP recebido concede 2 EVs.</p>
             {automatic.reasons.length > 0 && <ul className="experience-reasons">{automatic.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
             <details className="experience-manual-choice">
                 <summary>Ajuste manual do Narrador</summary>

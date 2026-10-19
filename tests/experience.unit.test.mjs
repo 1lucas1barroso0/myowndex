@@ -28,13 +28,13 @@ test("challenge XP uses inclusive level and count thresholds, independently and 
     }
 });
 
-test("winner advantages reduce the base before mixed multipliers with a final minimum of one", () => {
+test("winner advantages subtract after multiplication with a final minimum of one", () => {
     const common = { baseXp: 3, winnerMaxLevel: 20, opponentMaxLevel: 10, winnerCount: 4, opponentCount: 2 };
     assert.deepEqual([getChallengeReward(common).xp, getChallengeReward(common).multiplier, getChallengeReward(common).penalties], [1, 1, 2]);
     const mixed = getChallengeReward({ ...common, winnerCount: 1, opponentCount: 2 });
-    assert.deepEqual([mixed.adjustedBaseXp, mixed.multiplier, mixed.xp, mixed.evs], [2, 2, 4, 8]);
+    assert.deepEqual([mixed.adjustedBaseXp, mixed.multiplier, mixed.xp, mixed.evs], [5, 2, 5, 10]);
     const minimum = getChallengeReward({ ...common, baseXp: 1, winnerCount: 1, opponentCount: 2 });
-    assert.deepEqual([minimum.adjustedBaseXp, minimum.multiplier, minimum.xp], [0, 2, 1]);
+    assert.deepEqual([minimum.adjustedBaseXp, minimum.multiplier, minimum.xp], [1, 2, 1]);
 });
 
 test("each integer acquisition grants double EVs once, including when a level resets XP", () => {

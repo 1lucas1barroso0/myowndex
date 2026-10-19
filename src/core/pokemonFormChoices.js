@@ -19,3 +19,6 @@ export const getSamePokemonForms = (varieties, identity) => {
         return true;
     });
 };
+
+/** Shared battle phenomena; Primal Reversion, Ultra Burst and individual forms stay separate. */
+export const isSharedBattleForm = name => /-(?:mega(?:-[xyz])?|gmax)$/.test(name || "");

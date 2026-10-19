@@ -203,6 +203,9 @@ try{
     // Even an exceptionally large image remains draggable from the artwork
     // OUTSIDE the fixed ground marker, not just a small central hit target.
     const giant=page.locator(".room-token.gimmick-eternamax");
+    // Activating the form scrolls to its controls. Bring the artwork back
+    // into the app's scrollport before sending viewport mouse coordinates.
+    await giant.scrollIntoViewIfNeeded();
     const hit=await giant.evaluate(button=>{
       const artwork=button.querySelector(".room-token-sprite");
       const outer=button.getBoundingClientRect(),sprite=artwork.getBoundingClientRect();

@@ -21,7 +21,7 @@ export default function LocalDiceDialog({ open, onClose, context = "central", ..
         const overflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
         if (!dialog.open) dialog.showModal();
-        const frame = window.requestAnimationFrame(() => closeRef.current?.focus());
+        const frame = window.requestAnimationFrame(() => closeRef.current?.focus({ preventScroll: true }));
         return () => {
             window.cancelAnimationFrame(frame);
             if (dialog.open) dialog.close();

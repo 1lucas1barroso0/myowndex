@@ -911,8 +911,8 @@ html .app-root.game-edition.handheld-edition .pokemon-card-sprite-frame .pokemon
    Decorative Pokémon are characters, not badges. Their animation is native
    to the GIF; the layout only gives it room, scale and a clean transparent stage. */
 html .pokemon-companion{
-  min-width:5.1rem !important;
-  min-height:5.1rem !important;
+  min-width:0 !important;
+  min-height:0 !important;
 }
 html .pokemon-companion > .pokemon-sized-sprite{
   object-fit:contain !important;

@@ -7,11 +7,11 @@ html .app-root.game-edition.handheld-edition .app-header { flex:0 0 auto; }
 html .app-root.game-edition.handheld-edition .animate-fade-in { animation:none !important; opacity:1 !important; transform:none !important; }
 html .app-root.game-edition.handheld-edition .app-scroll-area { flex:1 1 0 !important; min-height:0 !important; overflow-y:auto !important; overflow-x:hidden !important; padding:.75rem !important; }
 html .app-root.game-edition.handheld-edition .app-header-row { display:grid !important; grid-template-columns:minmax(0,1fr); gap:.4rem !important; }
-html .app-root.game-edition.handheld-edition .app-header-primary { display:flex !important; flex-direction:row !important; align-items:center; gap:.5rem !important; }
-html .app-root.game-edition.handheld-edition .app-brand-cluster { gap:.4rem !important; }
+html .app-root.game-edition.handheld-edition .app-header-primary { display:flex !important; flex-direction:row !important; flex-wrap:wrap !important; align-items:center; gap:.5rem !important; }
+html .app-root.game-edition.handheld-edition .app-brand-cluster { flex:0 0 auto !important; min-width:max-content; gap:.4rem !important; }
 html .app-root.game-edition.handheld-edition .app-brand-icon { width:28px !important; height:28px !important; }
-html .app-root.game-edition.handheld-edition .app-brand h1 { font-size:1.15rem !important; line-height:1.2; }
-html .app-root.game-edition.handheld-edition .app-nav { flex:1; min-width:0; }
+html .app-root.game-edition.handheld-edition .app-brand h1 { font-size:1.15rem !important; line-height:1.2; white-space:nowrap !important; overflow:visible !important; text-overflow:clip !important; }
+html .app-root.game-edition.handheld-edition .app-nav { flex:1 1 29rem; min-width:0; }
 html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { min-height:44px !important; flex-direction:row !important; padding:.35rem .65rem !important; letter-spacing:normal !important; }
 html .app-root.game-edition.handheld-edition .nav-emblem { width:24px !important; height:24px !important; }
 html .app-root.game-edition.handheld-edition .nav-emblem .game-icon { width:17px !important; height:17px !important; }
@@ -67,26 +67,66 @@ html :is(.generator-dialog,.account-dialog) input:is([type=checkbox],[type=radio
 html .app-root.game-edition.handheld-edition :is(.nav-capsule,.dex-entry-main,.pc-partner-card,.editor-random-button,.editor-gender-controls button,.editor-gender-tools button,.local-dice-tabs button):is(:hover,:active),
 html :is(.generator-dialog,.account-dialog) button:is(:hover,:active) { transform:none !important; translate:none !important; }
 
-/* Every tool uses the same title / partner / close grid, including portals. */
+/* Shared game-style header: a dedicated, measured cell keeps every
+   animated Pokémon inside its panel without hiding or cutting it. */
 html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading),
 html .app-root.game-edition.handheld-edition .local-dice-dialog-heading {
-  display:grid !important; grid-template-columns:minmax(0,1fr) 56px 44px !important;
-  align-items:center !important; gap:.5rem !important; min-height:68px !important;
-  padding:.65rem 1rem !important; background:var(--ui-panel); box-sizing:border-box;
+  display:grid !important; grid-template-columns:minmax(0,1fr) 84px 44px !important;
+  align-items:center !important; gap:.75rem !important; min-height:110px !important;
+  padding:.75rem 1rem !important; box-sizing:border-box;
+  background:linear-gradient(110deg,color-mix(in srgb,var(--journey-red) 11%,var(--ui-panel)),var(--ui-panel) 75%) !important;
+  border-top:4px solid var(--journey-red) !important; border-bottom:2px solid var(--ui-line) !important;
+  overflow:visible !important;
 }
 html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) > div { min-width:0; grid-area:auto !important; }
-html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) h2 { margin:0 !important; font:800 1.2rem/1.25 "Trebuchet MS",system-ui,sans-serif !important; text-wrap:pretty; }
-html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) > .pokemon-companion {
-  display:grid !important; place-items:center; grid-area:auto !important;
-  width:56px !important; height:56px !important; min-width:0 !important; min-height:0 !important;
-  max-height:56px !important; margin:0 !important; padding:0 !important; justify-self:center;
+html :is(.generator-heading,.account-dialog-heading) h2,
+html .app-root.game-edition.handheld-edition .local-dice-dialog-heading h2 {
+  margin:0 !important; padding-left:.65rem !important; border-left:4px solid var(--journey-red);
+  color:var(--ui-ink) !important; font:850 clamp(1.3rem,2.1vw,1.65rem)/1.2 "Trebuchet MS",system-ui,sans-serif !important;
+  text-wrap:balance;
 }
-html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) > .pokemon-companion > .pokemon-sized-sprite { width:56px !important; height:56px !important; }
-html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) > button,
+html :is(.generator-heading,.account-dialog-heading) > .pokemon-companion,
+html .app-root.game-edition.handheld-edition .local-dice-dialog-heading > .pokemon-companion {
+  display:grid !important; place-items:center; grid-area:auto !important; justify-self:center;
+  width:84px !important; height:84px !important; min-width:0 !important; min-height:0 !important;
+  max-height:none !important; margin:0 !important; padding:.15rem !important;
+  background:transparent !important; border:0 !important; box-shadow:none !important;
+}
+html :is(.generator-heading,.account-dialog-heading) > .pokemon-companion > .pokemon-sized-sprite,
+html .app-root.game-edition.handheld-edition .local-dice-dialog-heading > .pokemon-companion > .pokemon-sized-sprite {
+  width:100% !important; height:100% !important; object-fit:contain !important; object-position:center !important;
+}
+html :is(.generator-heading,.account-dialog-heading) > button,
 html .app-root.game-edition.handheld-edition .local-dice-dialog-close {
   grid-area:auto !important; width:44px !important; height:44px !important; min-height:44px !important;
   margin:0 !important; padding:0 !important; font-size:1.6rem !important; line-height:1 !important;
   border-radius:var(--app-control-radius) !important; align-self:center;
+}
+@media (max-width:420px) {
+  html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading),
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading {
+    grid-template-columns:minmax(0,1fr) 72px 44px !important;
+    gap:.45rem !important; min-height:94px !important; padding:.55rem .75rem !important;
+  }
+  html :is(.generator-heading,.account-dialog-heading) > .pokemon-companion,
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading > .pokemon-companion {
+    width:72px !important; height:72px !important;
+  }
+  html :is(.generator-heading,.account-dialog-heading) h2,
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading h2 {
+    font-size:1.2rem !important; padding-left:.45rem !important;
+  }
+}
+@media (max-height:480px) and (min-width:421px) {
+  html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading),
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading {
+    grid-template-columns:minmax(0,1fr) 60px 44px !important;
+    min-height:76px !important; padding-block:.3rem !important;
+  }
+  html :is(.generator-heading,.account-dialog-heading) > .pokemon-companion,
+  html .app-root.game-edition.handheld-edition .local-dice-dialog-heading > .pokemon-companion {
+    width:60px !important; height:60px !important;
+  }
 }
 html :is(.generator-content,.account-dialog-content,.local-dice-dialog-content) { min-height:0; padding:1rem !important; }
 html .account-pages { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.35rem; padding:.35rem; margin-bottom:1rem; }
@@ -97,6 +137,29 @@ html .app-root.game-edition.handheld-edition .local-dice-tabs button { min-heigh
 html .app-root.game-edition.handheld-edition .local-dice-tabs b { font-size:1.15rem !important; }
 @media (min-width:380px) { html .app-root.game-edition.handheld-edition .local-dice-dialog .local-dice-fields { grid-template-columns:repeat(2,minmax(0,1fr)) !important; } }
 
+/* Mechanics and Pokémon forms are separate. Mega Stones and Z-Crystals
+   are equipped through the single Item segurado field, not duplicate selects. */
+html .app-root.game-edition.handheld-edition .editor-mechanics-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));
+  gap:.75rem; align-items:start;
+}
+html .app-root.game-edition.handheld-edition .editor-mechanic-group {
+  display:grid; align-content:start; gap:.55rem; min-width:0;
+  padding:.85rem !important; border:1px solid var(--ui-line);
+  border-left:4px solid var(--journey-red); border-radius:.6rem;
+  background:var(--ui-panel); color:var(--ui-ink);
+}
+html .app-root.game-edition.handheld-edition .editor-mechanic-name {
+  margin:0; color:var(--ui-ink); font-size:1rem; font-weight:800; line-height:1.3;
+}
+html .app-root.game-edition.handheld-edition .editor-mechanic-status {
+  margin:0; color:var(--ui-muted); font-size:.875rem; line-height:1.45; overflow-wrap:anywhere;
+}
+html .app-root.game-edition.handheld-edition .editor-mechanic-group > .editor-field { min-width:0; }
+html .app-root.game-edition.handheld-edition .editor-mechanic-group .editor-checkboxes { margin:0; min-width:0; }
+@media (max-width:440px) {
+  html .app-root.game-edition.handheld-edition .editor-mechanics-grid { grid-template-columns:minmax(0,1fr); }
+}
 /* Feature panels share spacing without flattening battle scenes or data art. */
 html .app-root.game-edition.handheld-edition :is(.editor-disclosure,.editor-move-description) { margin-top:.75rem; padding:0; }
 html .app-root.game-edition.handheld-edition :is(.editor-disclosure,.editor-move-description) > summary { min-height:44px; padding:.6rem 0; line-height:1.4; }
@@ -171,7 +234,7 @@ html .app-root.game-edition.handheld-edition .friendship-help > summary { min-he
   html .app-root.game-edition.handheld-edition .game-style-options button { min-width:44px !important; }
 }
 @media (orientation:landscape) and (max-height:500px) and (min-width:540px) {
-  html .app-root.game-edition.handheld-edition .app-brand-cluster { display:none; }
+  html .app-root.game-edition.handheld-edition .app-brand-cluster { display:flex; }
   html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { flex-direction:row !important; }
   html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { flex-direction:row !important; min-height:44px; }
 }

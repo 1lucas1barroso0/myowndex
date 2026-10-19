@@ -213,11 +213,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
 
     const mechanics = getReferenceBattleMechanics(referenceVersion, experienceMode);
     const battleForms = forms.filter(entry => isSharedBattleForm(entry.pokemon?.name) && (entry.pokemon.name === pk.species?.name || (entry.pokemon.name.includes("-mega") ? mechanics.mega : mechanics.dynamax)));
-    const individualForms = forms.filter(entry => !isSharedBattleForm(entry.pokemon?.name));
-    const inBattleForm = isSharedBattleForm(pk.species?.name);
+    const displayForms = forms.filter(entry => !isSharedBattleForm(entry.pokemon?.name) || battleForms.some(battle => battle.pokemon.name === entry.pokemon.name));
     const megaItems = validItems.filter(item => megaFormFor({ speciesName: pk.species?.name, speciesId: speciesProfile?.id || pk.species?.id, formName: pk.formKey, item, moves: pk.moves }));
     const zItems = validItems.filter(item => item.endsWith("-z") && item !== "ultranecrozium-z");
-    const battleFormLabel = [battleForms.some(entry => entry.pokemon.name.includes("-mega")) && "Mega Evolução", battleForms.some(entry => entry.pokemon.name.endsWith("-gmax")) && "Gigantamax"].filter(Boolean).join(" / ");
     const showGigantamax = isHackmon || pk.canGMax || gmaxEligible({ speciesName: pk.species?.name });
 
     useEffect(() => {
@@ -487,27 +485,37 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             {isHackmon && <div className="editor-basics-grid">{[0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><RoomSelect aria-label={`Tipo personalizado ${index + 1}`} value={customT[index] || ""} onChange={event => { const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>)}</div>}
             {switchingForm && <span role="status" className="sr-only">Consultando forma…</span>}
             {formError && <p role="alert" className="editor-error">{formError}</p>}
-            {!inBattleForm && individualForms.length > 1 && <details className="editor-disclosure editor-forms">
+            {displayForms.length > 1 && <details className="editor-disclosure editor-forms">
                 <summary>Formas do Pokémon</summary>
                 <div className="editor-disclosure-body editor-basics-grid">
-                    {individualForms.length > 1 && <label className="editor-field form-switch">
+                    <label className="editor-field form-switch">
                         <span className="editor-label">Forma</span>
-                        <RoomSelect aria-label="Forma" className="editor-input" value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
-                            {individualForms.map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}{entry.is_default ? " · padrão" : ""}</option>)}
+                        <RoomSelect aria-label="Forma" className="editor-input" value={displayForms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)}>
+                            {displayForms.map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}{entry.is_default ? " · padrão" : ""}</option>)}
                         </RoomSelect>
-                    </label>}
+                    </label>
                 </div>
             </details>}
-            {(Object.values(mechanics).some(Boolean) || inBattleForm) && <details className="editor-disclosure editor-battle-mechanics">
-                <summary>Mega, Z-Move, Dynamax e Tera</summary>
-                <div className="editor-disclosure-body editor-basics-grid">
-                    {mechanics.mega && megaItems.length > 0 && <label className="editor-field"><span className="editor-label">Mega Stone</span><RoomSelect aria-label="Mega Stone" value={megaItems.includes(pk.item) ? pk.item : ""} onChange={event => updatePk({ ...pk, item: event.target.value })} className="editor-input"><option value="">Sem Mega Stone</option>{megaItems.map(item => <option key={item} value={item}>{formatCanonicalItemName(item)}</option>)}</RoomSelect></label>}
-                    {mechanics.z && <label className="editor-field"><span className="editor-label">Z-Crystal</span><RoomSelect aria-label="Z-Crystal" value={zItems.includes(pk.item) ? pk.item : ""} onChange={event => updatePk({ ...pk, item: event.target.value })} className="editor-input"><option value="">Sem Z-Crystal</option>{zItems.map(item => <option key={item} value={item}>{formatCanonicalItemName(item)}</option>)}</RoomSelect></label>}
-                    {battleForms.length > 0 && <label className="editor-field"><span className="editor-label">{battleFormLabel}</span><RoomSelect aria-label={battleFormLabel} value={forms.find(entry => entry.pokemon?.name === pk.species?.name)?.pokemon?.url || ""} disabled={switchingForm} onChange={event => void changeForm(event.target.value)} className="editor-input">{[individualForms.find(entry => entry.pokemon?.name === pk.species?.name) || individualForms.find(entry => entry.is_default) || individualForms[0], ...battleForms].filter(Boolean).map(entry => <option key={entry.pokemon?.name} value={entry.pokemon?.url}>{formatName(entry.pokemon?.name)}</option>)}</RoomSelect></label>}
-                    {(mechanics.mega || mechanics.z) && <p className="editor-field-note">Mega Stones e Z-Crystals usam o espaço do item segurado. Na Aventura, ative a técnica durante a batalha.</p>}
-                    {mechanics.tera && <label className="editor-field"><span className="editor-label">Tipo Tera</span><RoomSelect aria-label="Tipo Tera" value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>}
-                    {mechanics.dynamax && <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" inputMode="numeric" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>}
-                    {mechanics.dynamax && showGigantamax && <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Gigantamax</label></div>}
+            {Object.values(mechanics).some(Boolean) && <details className="editor-disclosure editor-battle-mechanics">
+                <summary>Mecânicas de batalha</summary>
+                <div className="editor-disclosure-body editor-mechanics-grid">
+                    {mechanics.mega && megaItems.length > 0 && <div className="editor-mechanic-group">
+                        <strong className="editor-mechanic-name">Mega Evolução</strong>
+                        <p className="editor-mechanic-status">{megaItems.includes(pk.item) ? `Mega Stone equipada: ${formatCanonicalItemName(pk.item)}.` : "Para megaevoluir, equipe uma Mega Stone em Item segurado."}</p>
+                    </div>}
+                    {mechanics.z && <div className="editor-mechanic-group">
+                        <strong className="editor-mechanic-name">Movimento Z</strong>
+                        <p className="editor-mechanic-status">{zItems.includes(pk.item) ? `Z-Crystal equipado: ${formatCanonicalItemName(pk.item)}.` : "Para usar um Movimento Z, equipe um Z-Crystal em Item segurado."}</p>
+                    </div>}
+                    {mechanics.tera && <div className="editor-mechanic-group">
+                        <strong className="editor-mechanic-name">Terastalização</strong>
+                        <label className="editor-field"><span className="editor-label">Tipo Tera</span><RoomSelect aria-label="Tipo Tera" value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
+                    </div>}
+                    {mechanics.dynamax && <div className="editor-mechanic-group">
+                        <strong className="editor-mechanic-name">{showGigantamax ? "Dynamax e Gigantamax" : "Dynamax"}</strong>
+                        <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" inputMode="numeric" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
+                        {showGigantamax && <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Gigantamax</label></div>}
+                    </div>}
                 </div>
             </details>}
 

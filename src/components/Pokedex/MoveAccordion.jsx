@@ -83,14 +83,14 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
 
             <div ref={panelRef} id={panelId} hidden={!isOpen} role="region" tabIndex={-1} aria-labelledby={`${panelId}-toggle`} aria-busy={isOpen && !data && !loadError} className="record-move-panel">
                 {isOpen && (<>
-                    {!data && !loadError ? <p role="status" className="sr-only">Consultando movimento…</p> : loadError ? (
+                    {!data && !loadError && !shownReference ? <p role="status" className="sr-only">Consultando movimento…</p> : loadError && !shownReference ? (
                         <div className="record-load-retry">
                             <p role="alert">Não foi possível abrir este movimento.</p>
                             <button type="button" onClick={retry}>Tentar novamente</button>
                         </div>
                     ) : (
                         <div className="move-description animate-fade-in">
-                            <div className="record-move-classification">
+                            {versionData && <><div className="record-move-classification">
                                 <span className="record-type-chip" style={{ backgroundColor: TYPE_COLORS[versionData.type?.name] || TYPE_COLORS.normal, color: TYPE_TEXT_COLORS[versionData.type?.name] || TYPE_TEXT_COLORS.normal }}>{formatType(versionData.type?.name)}</span>
                                 <span className="record-move-category">{formatDamageClass(versionData.damage_class?.name)}</span>
                             </div>
@@ -99,15 +99,17 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
                                 <div><dt>Precisão</dt><dd>{versionData.accuracy == null || versionData.accuracy === true ? "Sem teste" : `${versionData.accuracy}%`}</dd></div>
                                 <div><dt><abbr title="Usos disponíveis do movimento">PP</abbr></dt><dd>{versionData.pp ?? "—"}</dd></div>
                             </dl>
+                            </>}
                             {shownReference ? <ReferenceText {...shownReference} label="Efeito do movimento" defaultLanguage="pt-BR" className="record-move-description" /> : <p className={catalogReady ? "record-section-note" : "sr-only"} role="status">{catalogReady ? 'Esta edição não possui um efeito descrito nas fontes consultadas.' : 'Consultando descrição…'}</p>}
+                            {loadError && <div className="record-load-retry"><button type="button" onClick={retry}>Recarregar valores</button></div>}
                             {moveData.latest_details?.length > 1 && <div className="record-move-methods" role="group" aria-label="Formas de aprender este movimento">
                                 {[...new Set(moveData.latest_details.map(methodLabel))].map(method => <span key={method}>{method}</span>)}
                             </div>}
-                            {explanation.facts.length > 0 && (
+                            {explanation?.facts.length > 0 && (
                                 <details className="catalog-description record-move-rules">
                                     <summary>Na batalha</summary>
-                                    <ul className="move-human-facts" aria-label={`Dados de ${formatName(data.name)}`}>
-                                        {explanation.facts.map((fact, index) => <li key={`${data.name}-fact-${index}`}>{fact}</li>)}
+                                    <ul className="move-human-facts" aria-label={`Dados de ${formatName(data?.name || moveData.move.name)}`}>
+                                        {explanation.facts.map((fact, index) => <li key={`${data?.name || moveData.move.name}-fact-${index}`}>{fact}</li>)}
                                     </ul>
                                 </details>
                             )}

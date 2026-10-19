@@ -45,6 +45,8 @@ try {
   await page.setViewportSize({width,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
   const metrics=await page.evaluate(()=>({w:innerWidth,scroll:document.documentElement.scrollWidth,placeholders:document.querySelectorAll('[placeholder]').length,header:document.querySelector('.app-header').getBoundingClientRect().height,escaped:[...document.querySelectorAll('.app-header button')].filter(e=>{const r=e.getBoundingClientRect();return r.left<0||r.right>innerWidth}).map(e=>e.textContent)}));
   assert.equal(metrics.w,metrics.scroll);assert.equal(metrics.placeholders,0);assert.deepEqual(metrics.escaped,[]);
+  const brand=await page.locator('.app-brand h1').evaluate(element=>{const r=element.getBoundingClientRect(),parent=element.closest('.app-brand-cluster').getBoundingClientRect();return {name:element.textContent,x:r.x,right:r.right,containerRight:parent.right};});
+  assert.equal(brand.name,'MyOwnDex');assert.ok(brand.x>=0&&brand.right<=width+1&&brand.right<=brand.containerRight+1,'Brand name stays fully readable');
   const clippedNavigation=await page.locator('.nav-capsule').evaluateAll(buttons=>buttons.flatMap(button=>{
    const b=button.getBoundingClientRect();return [...button.querySelectorAll(':scope > span')].filter(child=>{
     const r=child.getBoundingClientRect();return r.left<b.left-1||r.right>b.right+1;
@@ -66,9 +68,17 @@ try {
   const layout=await dialog.evaluate(e=>{
    const header=e.querySelector('header'),r=header.getBoundingClientRect(),p=header.querySelector('.pokemon-companion').getBoundingClientRect(),close=header.querySelector('button').getBoundingClientRect();
    const body=e.querySelector('.generator-content,.account-dialog-content,.local-dice-dialog-content');
-   return {headerHeight:r.height,partnerCenter:p.y+p.height/2,closeCenter:close.y+close.height/2,blank:body.clientHeight-body.scrollHeight};
+   const title=header.querySelector('h2').getBoundingClientRect();
+   return {
+    headerHeight:r.height,partnerCenter:p.y+p.height/2,closeCenter:close.y+close.height/2,
+    blank:body.clientHeight-body.scrollHeight,
+    titleVisible:title.width>0&&title.left>=r.left-1&&title.right<=r.right+1,
+    titleClear:title.right<=p.left+1,partnerClear:p.right<=close.left+1,
+    artFits:p.top>=r.top-1&&p.bottom<=r.bottom+1,
+   };
   });
-  assert.ok(layout.headerHeight<=88,'Tool heading stays compact');
+  assert.ok(layout.headerHeight>=90&&layout.headerHeight<=104,'Tool title and Pokémon deserve a visible, measured header');
+  assert.ok(layout.titleVisible&&layout.titleClear&&layout.partnerClear&&layout.artFits,'Title, Pokémon and close never obstruct or crop each other');
   assert.ok(Math.abs(layout.partnerCenter-layout.closeCenter)<1,'Partner and close share a row');
   assert.ok(layout.blank<=1,'Content does not reserve empty scroll space');
   console.log(openName,frame);

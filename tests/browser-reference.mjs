@@ -221,9 +221,11 @@ try {
         await emptyPage.goto(baseUrl);
         await emptyPage.getByRole('button', { name: 'Consultar Bulbasaur na Pokédex', exact: true }).click({ timeout: 60000 });
         const emptyAbility = emptyPage.locator('.record-ability-card').filter({ has: emptyPage.getByRole('heading', { name: 'Overgrow', exact: true }) });
-        await emptyAbility.getByText('A fonte deste registro ainda não fornece uma descrição.', { exact: true }).waitFor({ timeout: 30000 });
-        assert.doesNotMatch(await emptyAbility.innerText(), /Consultando|Conforme a descrição|regra à vista/);
-        checks.push({ label: 'empty ability source settles and never displays an invented rule' });
+        await emptyAbility.locator('.reference-text > p').waitFor({ timeout: 30000 });
+        const fallbackExplanation = await emptyAbility.locator('.reference-text > p').innerText();
+        assert.ok(fallbackExplanation.length > 10, 'The local verified trait profile remains accessible offline');
+        assert.doesNotMatch(fallbackExplanation, /Consultando|Conforme a descrição|regra à vista/);
+        checks.push({ label: 'empty upstream ability preserves the local verified description' });
     } finally {
         await emptyContext.close();
     }

@@ -43,8 +43,8 @@ try {
   await ev.focus();await ev.hover();await page.mouse.wheel(0,120);
   assert.equal(await ev.inputValue(),'84','Scrolling must not change EVs');
   await page.waitForFunction(()=>{
-   const partner=JSON.parse(localStorage.getItem('myowndex_rotom_v4')).teams[0].pokemon[0];
-   return partner.evs.hp===84&&partner.ivs.hp===17&&partner.teraType==='fire';
+   const partner=JSON.parse(localStorage.getItem('myowndex_rotom_v4')||'null')?.teams?.[0]?.pokemon?.[0];
+   return partner?.evs?.hp===84&&partner?.ivs?.hp===17&&partner?.teraType==='fire';
   });
   const summary=editor.locator('.editor-stat-summary');
   assert.ok(await summary.boundingBox());

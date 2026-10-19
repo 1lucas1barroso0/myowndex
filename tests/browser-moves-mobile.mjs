@@ -30,7 +30,7 @@ try {
     assert.equal(await stat('Precisão'),'95%',mode+' uses selected historic accuracy');
     assert.equal(await card.getByLabel('PP atual',{exact:true}).inputValue(),await stat('PP máximo'),mode+' uses selected historic PP');
   }
-  assert.equal(await stat('Poder'),'35','Livre uses selected game power');
+  assert.equal(await stat('Poder'),'3','Livre retains RPG power conversion for the selected historic game');
   assert.deepEqual(errors,[],'No browser JavaScript failures');
   console.log('Mobile typing, descriptions and game-specific PP passed in RPG/Jogos/Livre.');
 } finally { await browser.close(); }

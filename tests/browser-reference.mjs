@@ -45,7 +45,7 @@ async function layout(label) {
 }
 
 async function openRecord(name) {
-    await page.getByRole('searchbox', { name: 'Nome ou número', exact: true }).fill(name);
+    await page.locator('#pokemon-search').fill(name);
     await page.getByRole('button', { name: `Consultar ${name} na Pokédex`, exact: true }).click();
     await page.getByRole('button', { name: 'Adicionar à equipe', exact: false }).waitFor({ timeout: 45000 });
 }

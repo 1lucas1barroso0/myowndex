@@ -2,7 +2,7 @@ import React, { useId, useState } from 'react';
 import { formatReferenceText } from '../../core/pokedexRecord.js';
 
 /** Original and local Portuguese prose share one place; names stay in English. */
-export default function ReferenceText({ original, portuguese, originalLanguage = 'en', source, sourceKind, defaultLanguage = 'pt-BR', label = 'Descrição', className = '' }) {
+export default function ReferenceText({ original, portuguese, originalLanguage = 'en', source, defaultLanguage = 'pt-BR', label = 'Descrição', className = '' }) {
     const [language, setLanguage] = useState(defaultLanguage);
     const textId = useId();
     const translated = Boolean(portuguese) && (language === 'pt-BR' || !original);

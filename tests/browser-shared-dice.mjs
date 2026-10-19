@@ -65,8 +65,10 @@ try {
   assert.deepEqual(errors,[]);
   console.log("PASS shared-history-is-not-duplicated-and-no-runtime-errors");
 } catch(error) {
+  if (await page.locator(".local-dice-dialog").isVisible()) {
   console.error(await page.locator(".local-dice-dialog").innerText());
   console.error(await page.locator(".local-dice-dialog select").evaluateAll(nodes=>nodes.map(node=>({label:node.closest("label")?.innerText,aria:node.getAttribute("aria-label"),disabled:node.disabled,html:node.outerHTML}))));
+  }
   await page.screenshot({path:"/tmp/myowndex-final38-shared-failure.png"});
   throw error;
 } finally {

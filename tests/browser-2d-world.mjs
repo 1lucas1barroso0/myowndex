@@ -183,7 +183,7 @@ async function physicalScaleAndPortraits() {
             await button.click();
             const image = button.locator('img');
             await image.waitFor();
-            await image.evaluate(image => image.complete&&image.naturalWidth>0 || new Promise(resolve=>image.addEventListener('load',resolve,{once:true})));
+            await page.waitForFunction(image => image?.complete && image.naturalWidth > 0, await image.elementHandle(), { timeout: 30_000 });
             const frame = await button.locator('.pokemon-sized-sprite').boundingBox();
             assert.ok(frame&&frame.width>=28&&frame.height>=28,`${name}: its independent portrait remains a protagonist`);
             await field.locator('.battlefield-focus').waitFor();

@@ -22,7 +22,7 @@ export default function NewBattleButton({ onStart, activeRound = false, disabled
         <button type="button" className="room-secondary-button" disabled={disabled || busy || activeRound}
             onClick={() => { setFailure(""); setConfirming(true); }}>Nova batalha</button>
         {activeRound && <small>Termine a rodada para começar outra batalha.</small>}
-        <ConfirmDialog open={confirming} title="Começar uma nova batalha?" tone="info"
+        <ConfirmDialog busy={busy} open={confirming} title="Começar uma nova batalha?" tone="info"
             description={`A rodada volta para 1, com novas ações e proteção contra hit kill. HP, PP, condições, amizade, XP e itens usados ficam como estão.${failure ? ` ${failure}` : ""}`}
             confirmLabel={busy ? "Preparando…" : "Começar batalha"} onConfirm={() => void confirm()}
             onCancel={() => { if (!busy) setConfirming(false); }} />

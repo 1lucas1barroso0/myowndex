@@ -74,6 +74,11 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-app-shell.mjs
+      - name: Conferir sugestões, créditos e continuidade dos diálogos
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-interface-continuity.mjs
       - name: Conferir a recompensa de XP, treinamento e amizade na ficha
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

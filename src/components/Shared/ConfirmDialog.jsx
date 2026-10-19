@@ -17,6 +17,7 @@ export default function ConfirmDialog({
     confirmLabel = "Confirmar",
     cancelLabel = "Cancelar",
     tone = "danger",
+    busy = false,
     onConfirm,
     onCancel
 }) {
@@ -25,10 +26,12 @@ export default function ConfirmDialog({
     const titleId = useId();
     const descriptionId = useId();
     const onCancelRef = useRef(onCancel);
+    const busyRef = useRef(busy);
 
     useEffect(() => {
         onCancelRef.current = onCancel;
-    }, [onCancel]);
+        busyRef.current = busy;
+    }, [onCancel, busy]);
 
     useEffect(() => {
         if (!open) return undefined;
@@ -47,7 +50,7 @@ export default function ConfirmDialog({
             if (event.key === "Escape") {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                onCancelRef.current();
+                if (!busyRef.current) onCancelRef.current();
                 return;
             }
             if (event.key !== "Tab") return;
@@ -66,7 +69,7 @@ export default function ConfirmDialog({
             }
         };
         document.addEventListener("keydown", handleKeyDown, true);
-        const focusFrame = window.requestAnimationFrame(() => cancelRef.current?.focus());
+        const focusFrame = window.requestAnimationFrame(() => cancelRef.current?.focus({ preventScroll: true }));
         return () => {
             document.removeEventListener("keydown", handleKeyDown, true);
             window.cancelAnimationFrame(focusFrame);
@@ -79,7 +82,7 @@ export default function ConfirmDialog({
                 for (const context of returnContexts) {
                     if (!context.isConnected) continue;
                     const next = [...context.querySelectorAll(RETURN_FOCUS_TARGETS)].find(canReturnFocus);
-                    if (next) { next.focus(); break; }
+                    if (next) { next.focus({ preventScroll: true }); break; }
                 }
             }
         };
@@ -87,16 +90,16 @@ export default function ConfirmDialog({
 
     if (!open || typeof document === "undefined") return null;
     return createPortal(
-        <div className="confirm-dialog-overlay" onMouseDown={event => event.target === event.currentTarget && onCancel()}>
-            <section ref={dialogRef} tabIndex={-1} role="alertdialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId} className={`game-shell confirm-dialog-shell ${tone === "danger" ? "is-danger" : "is-info"}`}>
+        <div className="confirm-dialog-overlay" onMouseDown={event => event.target === event.currentTarget && !busy && onCancel()}>
+            <section ref={dialogRef} tabIndex={-1} role="alertdialog" aria-modal="true" aria-busy={busy} aria-labelledby={titleId} aria-describedby={descriptionId} className={`game-shell confirm-dialog-shell ${tone === "danger" ? "is-danger" : "is-info"}`}>
                 <div className="confirm-dialog-symbol" aria-hidden="true">
                     {tone === "danger" ? "!" : "?"}
                 </div>
                 <h2 id={titleId}>{title}</h2>
                 <p id={descriptionId}>{description}</p>
                 <div className="confirm-dialog-actions">
-                    <button ref={cancelRef} type="button" onClick={onCancel} className="room-secondary-button">{cancelLabel}</button>
-                    <button type="button" onClick={onConfirm} className="room-primary-button confirm-dialog-confirm">{confirmLabel}</button>
+                    <button ref={cancelRef} type="button" disabled={busy} onClick={onCancel} className="room-secondary-button">{cancelLabel}</button>
+                    <button type="button" disabled={busy} onClick={onConfirm} className="room-primary-button confirm-dialog-confirm">{confirmLabel}</button>
                 </div>
             </section>
         </div>,

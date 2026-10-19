@@ -464,7 +464,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 </div>
             </div>}
         </section>
-        <ConfirmDialog open={replaceConfirm} title="Criar um novo encontro?" description="Há Pokémon neste encontro que ainda não foram guardados no PC nem exportados. Se continuar, eles serão substituídos aqui." confirmLabel="Criar novo encontro" cancelLabel="Continuar neste encontro" onConfirm={() => void runGeneration()} onCancel={() => setReplaceConfirm(false)} />
-        <ConfirmDialog open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar este encontro?' : 'Remover este Pokémon do encontro?'} description="Os Pokémon escolhidos saem do encontro. Suas Boxes e os arquivos exportados continuam como estão." confirmLabel={pendingRemoval === 'all' ? 'Limpar encontro' : 'Remover do encontro'} cancelLabel="Voltar ao encontro" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
+        <ConfirmDialog busy={working} open={replaceConfirm} title="Criar um novo encontro?" description="Há Pokémon neste encontro que ainda não foram guardados no PC nem exportados. Se continuar, eles serão substituídos aqui." confirmLabel="Criar novo encontro" cancelLabel="Continuar neste encontro" onConfirm={() => void runGeneration()} onCancel={() => setReplaceConfirm(false)} />
+        <ConfirmDialog busy={working} open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar este encontro?' : 'Remover este Pokémon do encontro?'} description="Os Pokémon escolhidos saem do encontro. Suas Boxes e os arquivos exportados continuam como estão." confirmLabel={pendingRemoval === 'all' ? 'Limpar encontro' : 'Remover do encontro'} cancelLabel="Voltar ao encontro" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
     </div>, document.body);
 }

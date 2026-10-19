@@ -175,3 +175,38 @@ html .app-root.game-edition.handheld-edition .friendship-help > summary { min-he
   html .app-root.game-edition.handheld-edition :focus-visible,
   html :is(.generator-dialog,.account-dialog) :focus-visible { outline-color:Highlight !important; }
 }
+
+/* Catalog choices belong to the editor, including touch and keyboard states. */
+html .pokemon-editor .catalog-input { min-width:0; width:100%; }
+html .pokemon-editor .catalog-input > input { width:100%; }
+html .pokemon-editor .catalog-input-options { display:grid; gap:.35rem; margin-top:.4rem; }
+html .pokemon-editor .catalog-input-options > button {
+  min-width:0; min-height:44px; padding:.55rem .7rem; text-align:left; overflow-wrap:anywhere;
+  border:1px solid var(--ui-line); border-radius:.65rem; background:var(--ui-panel); color:var(--ui-blue); font-weight:700;
+}
+html .pokemon-editor .catalog-input-options > button:is(:hover,[aria-selected="true"]) { background:var(--ui-selected); border-color:var(--ui-blue); }
+
+/* Installation help uses the same compact, bounded dialog in both launchers. */
+html dialog.app-help-dialog {
+  width:min(36rem,calc(100% - 2rem)); max-width:none; height:fit-content; min-height:0; max-height:92dvh;
+  margin:auto; padding:0; overflow:hidden; border:1px solid var(--ui-line); border-top:4px solid var(--ui-blue);
+  border-radius:1rem; background:var(--ui-panel,#fff); color:var(--ui-ink,#173043); box-shadow:0 12px 40px #0003;
+}
+html dialog.app-help-dialog[open] { display:grid; grid-template-rows:auto minmax(0,1fr); }
+html dialog.app-help-dialog::backdrop { background:#102437b8; }
+html .app-help-dialog > header { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:center; gap:.75rem; padding:1rem; border-bottom:1px solid var(--ui-line); }
+html .app-help-dialog h2 { margin:0; font-size:1.25rem; line-height:1.25; font-weight:800; }
+html .app-help-dialog header > button { width:44px; height:44px; border:1px solid var(--ui-line); border-radius:.65rem; background:var(--ui-panel); color:var(--ui-ink); font-size:1.6rem; }
+html .app-help-dialog-content { min-height:0; overflow:auto; overscroll-behavior:contain; padding:1rem; }
+html .app-help-dialog-content p { margin:0 0 1rem; line-height:1.55; }
+html .app-help-dialog-content > button { width:100%; min-height:44px; border-radius:.65rem; padding:.65rem .8rem; border:1px solid #005d9e; background:#005d9e; color:#fff; font:inherit; font-weight:800; text-transform:none; letter-spacing:normal; }
+html .app-help-dialog :focus-visible { outline:3px solid var(--ui-blue,#07699b); outline-offset:3px; }
+
+/* Reading credits does not resize or move the current game screen. */
+html .game-credits { position:relative; }
+html .game-credits-content {
+  position:absolute; z-index:30; right:0; bottom:calc(100% + .5rem); width:min(24rem,calc(100vw - 1.5rem));
+  max-height:60dvh; overflow:auto; padding:1rem; text-align:left; color:var(--ui-ink); background:var(--ui-panel);
+  border:1px solid var(--ui-line); border-radius:.8rem; box-shadow:0 6px 24px #0003;
+}
+html .game-credits-content a { color:var(--ui-blue); text-decoration:underline; }

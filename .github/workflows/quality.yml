@@ -79,6 +79,11 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-interface-continuity.mjs
+      - name: Conferir cores agrupadas, arte visível e entrada de jogo
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-visual-direction.mjs
       - name: Conferir a recompensa de XP, treinamento e amizade na ficha
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

@@ -1,0 +1,73 @@
+/* One paint owner for grouped controls. Important declarations inside this
+   layer outrank the older, unlayered feature themes, including lazy PC CSS. */
+@layer myowndex-controls {
+  html :is(
+    .app-nav,.app-tool-actions,.game-style-options,.appearance-options,
+    .room-entry-choices,.room-phase-options,.room-header-actions,.room-invite-actions,.phase-rest-actions,
+    .account-pages,.account-actions,.account-copy-options,.generator-save-actions,.generator-partner-actions,
+    .local-dice-pages,.local-dice-tabs,.local-dice-history-actions,.local-field-side [role="group"],.local-pokemon-actions,
+    .pc-toolbar-actions,.pc-editor-actions,.editor-gender-selection,.editor-gender-tools,.friendship-controls > div,
+    .confirm-dialog-actions,.record-actions,.record-tabs,.dex-generations,.pc-box-list,
+    .turn-order-actions,.trait-card-actions,.battle-gimmick-actions
+  ) > button {
+    background:var(--ui-panel) !important; background-image:none !important;
+    color:var(--ui-ink) !important; border-color:var(--ui-control-line) !important;
+    border-style:solid !important; border-width:1px !important; border-radius:var(--app-control-radius,.65rem) !important;
+    box-shadow:none !important; filter:none !important; transform:none !important; translate:none !important;
+    font-weight:700 !important; text-transform:none !important; letter-spacing:normal !important;
+  }
+  html :is(
+    .app-nav,.app-tool-actions,.game-style-options,.appearance-options,
+    .room-entry-choices,.room-phase-options,.room-header-actions,.room-invite-actions,.phase-rest-actions,
+    .account-pages,.account-actions,.account-copy-options,.generator-save-actions,.generator-partner-actions,
+    .local-dice-pages,.local-dice-tabs,.local-dice-history-actions,.local-field-side [role="group"],.local-pokemon-actions,
+    .pc-toolbar-actions,.pc-editor-actions,.editor-gender-selection,.editor-gender-tools,.friendship-controls > div,
+    .confirm-dialog-actions,.record-actions,.record-tabs,.dex-generations,.pc-box-list,
+    .turn-order-actions,.trait-card-actions,.battle-gimmick-actions
+  ) > button :is(span,strong,b,small,.game-icon) { color:inherit !important; }
+  html :is(
+    .app-nav,.app-tool-actions,.game-style-options,.appearance-options,
+    .room-entry-choices,.room-phase-options,.account-pages,.local-dice-pages,.local-dice-tabs,
+    .editor-gender-selection,.editor-gender-tools,.local-field-side [role="group"],.record-tabs,.dex-generations,.pc-box-list
+  ) > button:is([aria-current="page"],[aria-checked="true"],[aria-pressed="true"],[aria-expanded="true"],[aria-selected="true"],.is-selected) {
+    box-shadow:inset 0 -3px 0 var(--ui-control-line) !important; font-weight:900 !important;
+  }
+  html :is(.confirm-dialog-actions,.generator-save-actions,.account-actions) > :is(.room-primary-button,.generator-primary,[type="submit"]) {
+    border-width:2px !important; font-weight:900 !important;
+  }
+  html .app-nav > button .nav-emblem { background:transparent !important; color:inherit !important; }
+  html :is(.room-lobby-grid,.room-lobby-card)[hidden] { display:none !important; }
+  @media (forced-colors:active) {
+    html :is(.app-nav,.app-tool-actions,.game-style-options,.appearance-options,.room-entry-choices,.account-pages,.local-dice-pages,.local-dice-tabs,.confirm-dialog-actions) > button {
+      background:ButtonFace !important; color:ButtonText !important; border-color:ButtonText !important;
+    }
+  }
+}
+
+/* Start with play. Group setup is revealed only after choosing a role. */
+html .app-root.game-edition.handheld-edition .room-entry { display:grid; gap:.75rem; }
+html .app-root.game-edition.handheld-edition .room-entry > h3 { margin:.25rem 0 0; font:800 1rem/1.3 "Trebuchet MS",system-ui,sans-serif; color:var(--ui-ink); }
+html .app-root.game-edition.handheld-edition .room-entry .room-local-entry {
+  display:grid !important; grid-template-columns:32px minmax(0,1fr); gap:.25rem .75rem !important;
+  margin:0 !important; padding:1rem !important; width:100%; text-align:left;
+  border:2px solid #b9233b !important; background:#b9233b !important; color:white !important; box-shadow:none !important;
+}
+html .app-root.game-edition.handheld-edition .room-entry .room-local-entry > .game-icon { grid-row:1 / 3; width:32px; height:32px; align-self:center; }
+html .app-root.game-edition.handheld-edition .room-entry .room-local-entry :is(strong,b) { font-family:inherit; color:inherit !important; background:none !important; padding:0 !important; margin:0 !important; }
+html .app-root.game-edition.handheld-edition .room-entry .room-local-entry strong { font-size:1.05rem !important; line-height:1.3; }
+html .app-root.game-edition.handheld-edition .room-entry .room-local-entry > b { grid-column:2; justify-self:start !important; text-align:left !important; font-size:.875rem !important; font-weight:400; }
+html .app-root.game-edition.handheld-edition .room-entry-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+html .app-root.game-edition.handheld-edition .room-entry-choices > button { display:flex; align-items:center; gap:.6rem; padding:.85rem; min-height:76px; min-width:0; text-align:left; }
+html .app-root.game-edition.handheld-edition .room-entry-choices .game-icon { width:24px; height:24px; flex:0 0 24px; }
+html .app-root.game-edition.handheld-edition .room-entry-choices span { display:grid; gap:.25rem; min-width:0; }
+html .app-root.game-edition.handheld-edition .room-entry-choices strong { font-size:1rem; }
+html .app-root.game-edition.handheld-edition .room-entry-choices small { font-size:.875rem; line-height:1.3; }
+html .app-root.game-edition.handheld-edition .room-lobby-grid { grid-template-columns:minmax(0,1fr) !important; gap:0 !important; margin-top:1rem; }
+html .app-root.game-edition.handheld-edition .room-lobby-card { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem !important; }
+html .app-root.game-edition.handheld-edition .room-lobby-card > :is(details,button) { grid-column:1 / -1; }
+@media (max-width:700px) {
+  html .app-root.game-edition.handheld-edition .room-lobby-card { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:340px) {
+  html .app-root.game-edition.handheld-edition .room-entry-choices > button { gap:.35rem; padding:.7rem .5rem; }
+}

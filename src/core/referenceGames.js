@@ -85,11 +85,15 @@ export const getMoveAtVersion = (move, selectedVersion) => {
     return result;
 };
 
-/** In RPG/Livre a game selects the repertoire, while current rules still apply. */
+/** The preferred game determines the move's PP, accuracy, power and effects
+ * in every mode. With no chosen game, RPG/Livre use the current reference. */
 export const getMoveReferenceForMode = (move, selectedVersion, experienceMode = 'rpg') => {
-    const selected = experienceMode === 'game' ? selectedVersion : { id: versionRow({ value: 'champions' })?.[0], value: 'champions' };
+    const value = typeof selectedVersion === 'string' ? selectedVersion
+        : selectedVersion?.value || selectedVersion?.name || (selectedVersion?.id ? versionRow(selectedVersion)?.[1] : null);
+    const hasPreferredGame = Boolean(value && value !== 'auto' && value !== 'champions');
+    const selected = hasPreferredGame ? selectedVersion : { value: 'champions' };
     const reference = getMoveAtVersion(move, selected);
-    return experienceMode === 'game' ? reference : getCurrentMoveReference(reference);
+    return hasPreferredGame || experienceMode === 'game' ? reference : getCurrentMoveReference(reference);
 };
 
 const canonicalStats = ['hp', 'attack', 'defense', 'special-attack', 'special-defense', 'speed'];

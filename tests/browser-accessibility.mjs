@@ -334,6 +334,7 @@ try {
     if (local) {
         await page.getByRole('button', { name: 'Encerrar', exact: true }).click();
         await page.getByRole('button', { name: 'Encerrar aventura', exact: true }).click();
+        await page.getByRole('button',{name:'Criar uma aventura em grupo',exact:true}).click();
         const lobby = page.locator('.room-lobby-card.is-narrator');
         await lobby.getByLabel('Nome da aventura', { exact: true }).fill('Jornada de acessibilidade QA');
         await lobby.getByLabel('Seu nome na aventura', { exact: true }).fill('Narradora QA');

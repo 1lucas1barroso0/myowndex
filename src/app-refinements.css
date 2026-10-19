@@ -1,7 +1,10 @@
+@import "./interface-controls.css";
+
 /* Shared app shell. Imported last: feature styles describe their content;
    this layer owns the common frame and interaction grammar. */
-html .app-root.game-edition.handheld-edition { height:100dvh !important; min-height:0 !important; overflow:hidden !important; box-sizing:border-box; }
+html .app-root.game-edition.handheld-edition { height:100dvh !important; min-height:0 !important; overflow:hidden !important; box-sizing:border-box; transition:none !important; }
 html .app-root.game-edition.handheld-edition .app-header { flex:0 0 auto; }
+html .app-root.game-edition.handheld-edition .animate-fade-in { animation:none !important; opacity:1 !important; transform:none !important; }
 html .app-root.game-edition.handheld-edition .app-scroll-area { flex:1 1 0 !important; min-height:0 !important; overflow-y:auto !important; overflow-x:hidden !important; padding:.75rem !important; }
 html .app-root.game-edition.handheld-edition .app-header-row { display:grid !important; grid-template-columns:minmax(0,1fr); gap:.4rem !important; }
 html .app-root.game-edition.handheld-edition .app-header-primary { display:flex !important; flex-direction:row !important; align-items:center; gap:.5rem !important; }
@@ -22,17 +25,14 @@ html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-gen
   display:flex; flex-direction:row; justify-content:center; gap:.3rem !important; min-width:0; min-height:52px;
   padding:.35rem .5rem !important; font-size:.875rem !important; line-height:1.2; text-align:center;
   background:var(--ui-panel) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-line) !important;
-  border-bottom:3px solid var(--tool-tone) !important; box-shadow:none !important;
+  border-bottom-width:3px !important; box-shadow:none !important;
 }
-html .app-root.game-edition.handheld-edition .app-tool-actions > .global-dice-button { --tool-tone:#e9ba28; background:#fff2b6 !important; color:#243b40 !important; }
-html .app-root.game-edition.handheld-edition .app-tool-actions > .global-generator-button { --tool-tone:#9256c6; }
-html .app-root.game-edition.handheld-edition .app-tool-actions > .account-header-button { --tool-tone:#bd7139; }
 html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) > .pokemon-companion {
-  display:grid !important; place-items:center; width:32px !important; height:32px !important; min-width:0 !important;
-  min-height:0 !important; max-height:32px !important; flex:0 0 32px !important;
+  display:grid !important; place-items:center; width:40px !important; height:40px !important; min-width:0 !important;
+  min-height:0 !important; max-height:40px !important; flex:0 0 40px !important;
   margin:0 !important; padding:0 !important; background:none !important; border:0 !important; box-shadow:none !important;
 }
-html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion > .pokemon-sized-sprite { width:32px !important; height:32px !important; min-height:0 !important; }
+html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion > .pokemon-sized-sprite { width:40px !important; height:40px !important; min-height:0 !important; }
 html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button)[aria-expanded=true] { outline:2px solid var(--journey-gold); outline-offset:2px; }
 html .app-root .editor-shiny { display:inline-flex; align-items:center; gap:.4rem; min-height:44px; width:fit-content; color:var(--ui-ink); font-size:.875rem; font-weight:700; }
 html .app-root .editor-battle-mechanics .editor-field-note { grid-column:1 / -1; }
@@ -70,7 +70,7 @@ html :is(.generator-dialog,.account-dialog) button:is(:hover,:active) { transfor
 /* Every tool uses the same title / partner / close grid, including portals. */
 html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading),
 html .app-root.game-edition.handheld-edition .local-dice-dialog-heading {
-  display:grid !important; grid-template-columns:minmax(0,1fr) 44px 44px !important;
+  display:grid !important; grid-template-columns:minmax(0,1fr) 56px 44px !important;
   align-items:center !important; gap:.5rem !important; min-height:68px !important;
   padding:.65rem 1rem !important; background:var(--ui-panel); box-sizing:border-box;
 }
@@ -78,10 +78,10 @@ html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) 
 html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) h2 { margin:0 !important; font:800 1.2rem/1.25 "Trebuchet MS",system-ui,sans-serif !important; text-wrap:pretty; }
 html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) > .pokemon-companion {
   display:grid !important; place-items:center; grid-area:auto !important;
-  width:44px !important; height:44px !important; min-width:0 !important; min-height:0 !important;
-  max-height:44px !important; margin:0 !important; padding:0 !important; justify-self:center;
+  width:56px !important; height:56px !important; min-width:0 !important; min-height:0 !important;
+  max-height:56px !important; margin:0 !important; padding:0 !important; justify-self:center;
 }
-html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) > .pokemon-companion > .pokemon-sized-sprite { width:44px !important; height:44px !important; }
+html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) > .pokemon-companion > .pokemon-sized-sprite { width:56px !important; height:56px !important; }
 html :is(.generator-heading,.account-dialog-heading,.local-dice-dialog-heading) > button,
 html .app-root.game-edition.handheld-edition .local-dice-dialog-close {
   grid-area:auto !important; width:44px !important; height:44px !important; min-height:44px !important;
@@ -114,6 +114,10 @@ html .app-root.game-edition.handheld-edition .friendship-help { margin:0; }
 html .app-root.game-edition.handheld-edition .friendship-help > summary { min-height:44px; padding:.5rem 0; }
 
 
+@media (min-width:701px) and (max-width:900px) {
+  html .app-root.game-edition.handheld-edition .app-tool-actions { flex-basis:18rem; }
+  html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { flex-direction:column !important; min-height:76px; padding:.3rem !important; }
+}
 @media (max-width:700px) {
   html .app-root.game-edition.handheld-edition .app-header-shell { padding:.35rem .75rem !important; }
   html .app-root.game-edition.handheld-edition .app-header-primary,
@@ -125,15 +129,15 @@ html .app-root.game-edition.handheld-edition .friendship-help > summary { min-he
   html .app-root.game-edition.handheld-edition .nav-emblem .game-icon { width:17px !important; height:17px !important; }
   html .app-root.game-edition.handheld-edition .app-tool-actions { flex:0 0 auto !important; }
   html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { padding:.3rem !important; font-size:.8rem !important; }
-  html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) > .pokemon-companion { width:28px !important; height:28px !important; flex:0 0 28px !important; }
-  html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion > .pokemon-sized-sprite { width:28px !important; height:28px !important; }
+  html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) > .pokemon-companion { width:40px !important; height:40px !important; flex:0 0 40px !important; }
+  html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion > .pokemon-sized-sprite { width:40px !important; height:40px !important; }
   html .app-root.game-edition.handheld-edition .app-preferences { flex-wrap:nowrap; justify-content:space-between; }
   html .app-root.game-edition.handheld-edition :is(.game-style-options,.appearance-options) button { min-height:44px; padding:.25rem .35rem !important; gap:.2rem !important; font-size:.875rem !important; }
   html .app-root.game-edition.handheld-edition .appearance-options .game-icon { width:14px; height:14px; }
   html .app-root.game-edition.handheld-edition .app-main-shell { padding-top:.75rem !important; }
   html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) { min-height:0 !important; padding:1rem !important; gap:.75rem !important; }
   html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) :is(h1,h2) { font-size:1.6rem !important; line-height:1.2 !important; }
-  html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion { width:64px !important; height:64px !important; min-width:64px !important; }
+  html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion { width:88px !important; height:88px !important; min-width:88px !important; }
   html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion > .pokemon-sized-sprite { width:100% !important; height:100% !important; }
   html .app-root.game-edition.handheld-edition :is(.room-lobby-card,.room-local-entry,.pc-sidebar,.pc-main-panel,.guide-reference,.guide-calculator) { padding:1rem !important; }
   html .app-root.game-edition.handheld-edition .room-lobby-card > header { padding-bottom:.75rem; margin-bottom:.75rem; }
@@ -169,7 +173,7 @@ html .app-root.game-edition.handheld-edition .friendship-help > summary { min-he
 @media (orientation:landscape) and (max-height:500px) and (min-width:540px) {
   html .app-root.game-edition.handheld-edition .app-brand-cluster { display:none; }
   html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { flex-direction:row !important; }
-  html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { flex-direction:row; min-height:44px; }
+  html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { flex-direction:row !important; min-height:44px; }
 }
 @media (forced-colors:active) {
   html .app-root.game-edition.handheld-edition :focus-visible,

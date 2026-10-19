@@ -97,7 +97,7 @@ try {
  await dice.locator('summary').filter({hasText:'Sobre o campo'}).click();
  await dice.getByRole('button',{name:'Nova batalha',exact:true}).click();
  const info=page.getByRole('alertdialog');await info.waitFor();
- assert.equal(await info.getByRole('button',{name:'Começar batalha',exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(0, 93, 158)','An ordinary confirmation uses the informational color');
+ assert.equal(await info.getByRole('button',{name:'Começar batalha',exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),await info.getByRole('button',{name:'Cancelar',exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),'Confirmation actions share the same palette');
  await page.keyboard.press('Escape');
  assert.equal(await info.count(),0);await dice.waitFor();
  await dice.getByRole('button',{name:'Fechar dados',exact:true}).click();

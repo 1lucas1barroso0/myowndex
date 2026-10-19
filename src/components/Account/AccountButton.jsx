@@ -8,9 +8,9 @@ export const ACCOUNT_STATUS_LABELS = Object.freeze({
 
 export default function AccountButton({ client, onClick }) {
     const label = client.account ? `Conta de ${client.account.displayName || client.account.username}` : "Entrar ou criar conta";
-    return <button type="button" className="account-header-button" onClick={onClick} aria-label={label} title={client.account ? ACCOUNT_STATUS_LABELS[client.status] : label}>
+    return <button type="button" className="account-header-button" onClick={onClick} aria-label={label} title={client.account ? ACCOUNT_STATUS_LABELS[client.status] : "Cartão do Treinador"}>
         <PokemonCompanion place="account" eager />
-        <span>Cartão do Treinador</span>
+        <span>Treinador</span>
         {client.account && <i className={`account-connection is-${client.status}`} aria-hidden="true" />}
     </button>;
 }

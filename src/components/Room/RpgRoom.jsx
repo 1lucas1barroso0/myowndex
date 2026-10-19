@@ -133,6 +133,8 @@ const isPlayerPresent = player => {
 const errorMessage = error => error instanceof Error ? error.message : "Algo impediu esta ação. Tente novamente.";
 
 function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, onCreate, onJoin, onLocal, onResume, onUnlink }) {
+    const [entry, setEntry] = useState(defaultInvite ? "player" : null);
+    const entryId = useId();
     const [title, setTitle] = useState("");
     const [narratorName, setNarratorName] = useState("");
     const [invite, setInvite] = useState(defaultInvite ? buildRoomInviteToken(defaultInvite) : "");
@@ -145,7 +147,7 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
             <section className="room-lobby-hero adventure-intro">
                 <div>
                     <h2>Aventuras</h2>
-                    <p>Crie uma aventura ou entre com o convite do seu grupo.</p>
+                    <p>Escolha como começar sua aventura.</p>
                 </div>
                 <PokemonCompanion place="adventure" eager />
             </section>
@@ -173,8 +175,27 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                 </button>
             )}
 
-            <div className="room-lobby-grid">
+            <section className="room-entry" aria-label="Começar a jogar">
+            <button
+                type="button"
+                className="room-local-entry"
+                disabled={busy}
+                onClick={() => onLocal({ title, narratorName })}
+            >
+                <GameIcon name="adventure" /><span>
+                    <strong>Começar uma aventura local</strong>
+                </span>
+                <b>Neste dispositivo</b>
+            </button>
+                <h3>Com seu grupo</h3>
+                <div className="room-entry-choices" role="group" aria-label="Escolha seu papel na aventura">
+                    <button type="button" aria-label="Criar uma aventura em grupo" aria-pressed={entry === "narrator"} aria-expanded={entry === "narrator"} aria-controls={`${entryId}-narrator`} disabled={busy} onClick={() => setEntry(entry === "narrator" ? null : "narrator")}><GameIcon name="adventure" /><span><strong>Narrador</strong><small>Criar aventura</small></span></button>
+                    <button type="button" aria-label="Entrar com um convite" aria-pressed={entry === "player"} aria-expanded={entry === "player"} aria-controls={`${entryId}-player`} disabled={busy} onClick={() => setEntry(entry === "player" ? null : "player")}><GameIcon name="dex" /><span><strong>Jogador</strong><small>Entrar com convite</small></span></button>
+                </div>
+            </section>
+            <div className="room-lobby-grid" hidden={!entry}>
                 <form
+                    id={`${entryId}-narrator`} aria-label="Criar aventura" hidden={entry !== "narrator"}
                     className="room-lobby-card is-narrator"
                     onSubmit={event => {
                         event.preventDefault();
@@ -182,12 +203,6 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                         onCreate({ title: title.trim(), narratorName: narratorName.trim() });
                     }}
                 >
-                    <header>
-                        <span className="room-role-mark"><GameIcon name="adventure" /></span>
-                        <div>
-                            <h3>Narrador</h3>
-                        </div>
-                    </header>
                     <label>
                         <span>Nome da aventura</span>
                         <input value={title} maxLength={80} required pattern={".*\\S.*"} onChange={event => setTitle(event.target.value)} />
@@ -210,6 +225,7 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                 </form>
 
                 <form
+                    id={`${entryId}-player`} aria-label="Entrar na aventura" hidden={entry !== "player"}
                     className="room-lobby-card is-player"
                     onSubmit={event => {
                         event.preventDefault();
@@ -217,12 +233,6 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                         onJoin({ invite: invite.trim(), displayName: displayName.trim() });
                     }}
                 >
-                    <header>
-                        <span className="room-role-mark"><GameIcon name="dex" /></span>
-                        <div>
-                            <h3>Jogador</h3>
-                        </div>
-                    </header>
                     <label>
                         <span>Link ou convite da aventura</span>
                         <textarea
@@ -252,17 +262,7 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                     </button>
                 </form>
             </div>
-            <button
-                type="button"
-                className="room-local-entry"
-                disabled={busy}
-                onClick={() => onLocal({ title, narratorName })}
-            >
-                <span>
-                    <strong>Começar uma aventura local</strong>
-                </span>
-                <b>Neste dispositivo</b>
-            </button>
+
         </div>
     );
 }

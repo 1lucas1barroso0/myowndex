@@ -636,7 +636,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
 
                         <div className="app-actions">
                             <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada">
-                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar Pokémon</span></button>
+                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar</span></button>
                                 <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onClick={() => setDiceOpen(true)}><PokemonCompanion place="dice" eager /><span>Dados</span></button>
                                 <AccountButton client={client} onClick={onAccountOpen} />
                             </div>

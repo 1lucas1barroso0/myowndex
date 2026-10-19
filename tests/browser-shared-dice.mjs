@@ -15,7 +15,8 @@ page.on("request",request=>{if(/\/api\/rooms\/[^/]+\/rolls$/.test(new URL(reques
 try {
   await page.goto(url);
   await page.getByRole("button",{name:"Abrir a Central da Aventura",exact:true}).click();
-  const lobby=page.locator(".room-lobby-card.is-narrator");
+  await page.getByRole('button',{name:'Criar uma aventura em grupo',exact:true}).click();
+        const lobby=page.locator(".room-lobby-card.is-narrator");
   await lobby.getByLabel("Nome da aventura",{exact:true}).fill("Dados QA");
   await lobby.getByLabel("Seu nome na aventura",{exact:true}).fill("Narrador QA");
   await lobby.getByRole("button",{name:"Abrir nova aventura",exact:true}).click();
@@ -64,8 +65,10 @@ try {
   assert.deepEqual(errors,[]);
   console.log("PASS shared-history-is-not-duplicated-and-no-runtime-errors");
 } catch(error) {
+  if (await page.locator(".local-dice-dialog").isVisible()) {
   console.error(await page.locator(".local-dice-dialog").innerText());
   console.error(await page.locator(".local-dice-dialog select").evaluateAll(nodes=>nodes.map(node=>({label:node.closest("label")?.innerText,aria:node.getAttribute("aria-label"),disabled:node.disabled,html:node.outerHTML}))));
+  }
   await page.screenshot({path:"/tmp/myowndex-final38-shared-failure.png"});
   throw error;
 } finally {

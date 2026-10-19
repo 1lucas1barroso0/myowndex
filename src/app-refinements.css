@@ -38,6 +38,8 @@ html .app-root .editor-shiny { display:inline-flex; align-items:center; gap:.4re
 html .app-root .editor-battle-mechanics .editor-field-note { grid-column:1 / -1; }
 html .generator-dialog .generator-content { gap:1rem; }
 html .generator-dialog :is(.generator-options,.generator-results) { padding:0; }
+html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading,.pc-sidebar-heading,.pc-empty-state,.guide-reference) :is(h2,h3) { font-weight:800; }
+html .app-root.game-edition.handheld-edition .pc-empty-state h2 { font-size:clamp(1.4rem,3vw,1.75rem); line-height:1.2; }
 
 /* Shared interface grammar. Keep this layer last; feature CSS supplies content,
    while these rules own the density, alignment and interaction of app chrome. */

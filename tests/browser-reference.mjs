@@ -46,7 +46,7 @@ async function layout(label) {
 
 async function openRecord(name) {
     await page.locator('#pokemon-search').fill(name);
-    await page.getByRole('button', { name: `Consultar ${name} na Pokédex`, exact: true }).click();
+    await page.getByRole('button', { name: new RegExp(`^Consultar ${name.replace(/[.*+?^${}()|[\]\\]/g, '\\    await page.getByRole('button', { name: `Consultar ${name} na Pokédex`, exact: true }).click();')}(?: · | na Pokédex)`) }).first().click();
     await page.getByRole('button', { name: 'Adicionar à equipe', exact: false }).waitFor({ timeout: 45000 });
 }
 

@@ -71,13 +71,20 @@ try {
  await page.locator('.pc-partner-card').first().click();await palette('.pc-editor-actions > button');
  await page.getByRole('button',{name:'Remover da Box',exact:true}).click();await palette('.confirm-dialog-actions > button');
  await page.keyboard.press('Escape');
+ let primaryColor;
  for(const [open,close,selector] of [['Abrir Dados','Fechar dados','.local-dice-pages > button'],['Entrar ou criar conta','Fechar conta','.account-pages > button']]) {
   await page.getByRole('button',{name:open,exact:true}).first().click();await palette(selector);
   if(open==='Abrir Dados'){await palette('.local-dice-tabs > button');await page.getByRole('button',{name:'d100 Chance',exact:false}).click();await palette('.local-dice-tabs > button');}
   const companion=await page.getByRole('dialog').locator('header > .pokemon-companion').boundingBox();assert.ok(companion.width>=56&&companion.height>=56);
+  const actionColor=await page.getByRole('dialog').locator(open==='Abrir Dados'?'.local-dice-submit > button':'.account-primary').evaluate(e=>getComputedStyle(e).backgroundColor);
+  if(primaryColor)assert.equal(actionColor,primaryColor,'Main actions share the same emphasis');else primaryColor=actionColor;
   await shot(open==='Abrir Dados'?'direction-dice':'direction-account');
   await page.getByRole('button',{name:close,exact:true}).click();
  }
+ await page.getByRole('button',{name:'Gerar Pokémon',exact:true}).first().click();
+ const generator=page.getByRole('dialog',{name:'Gerar Pokémon',exact:true});
+ assert.equal(await generator.locator('.generator-options .generator-primary').evaluate(e=>getComputedStyle(e).backgroundColor),primaryColor);
+ await shot('direction-generator');await page.getByRole('button',{name:'Fechar gerador',exact:true}).click();
  await page.getByRole('button',{name:'Abrir a Central da Aventura',exact:true}).click();
  await lobby.getByRole('button',{name:'Começar uma aventura local',exact:false}).click();
  await page.locator('.room-app').waitFor();await palette('.room-phase-options > button');

@@ -5,7 +5,7 @@ O MyOwnDex é um jogo para fãs de Pokémon, incluindo crianças. Cada tela prec
 ## Práticas positivas — aplique sempre
 
 - **Uma hierarquia:** título, conteúdo principal, ação principal e ações secundárias reconhecíveis. O vermelho identifica o aplicativo; as cores de tipos identificam os Pokémon; alerta visual comunica um problema real.
-- **Grupos coerentes:** botões juntos usam a mesma superfície, cor de texto e família de bordas, inclusive em seleção e toque. Indicar seleção por traço, espessura e estado acessível. Ação perigosa tem confirmação contextual; não vira uma cor avulsa no meio do grupo.
+- **Grupos coerentes:** botões juntos usam a mesma superfície, cor de texto e família de bordas, inclusive em seleção e toque. Indicar seleção por traço, espessura e estado acessível. Ações principais fora de um grupo usam o mesmo destaque do aplicativo. Ação perigosa tem confirmação contextual; não vira uma cor avulsa no meio do grupo.
 - **Um sistema:** mesmas medidas, fontes, espaçamentos, curvas, estados de seleção, foco, fechar e comportamento para funções equivalentes. Definir o padrão compartilhado antes de criar uma exceção.
 - **Espaço proporcional:** painéis crescem com seu conteúdo até o limite da tela. Apenas a região necessária rola; cabeçalho e fechar continuam acessíveis. Seções fechadas ocupam só o espaço do seu resumo.
 - **Toque confortável:** alvos usuais de pelo menos 44 px, campos legíveis, rótulos persistentes, foco visível para teclado e nomes acessíveis. Cada controle responde sem deslocar o alvo nem reiniciar a escrita.

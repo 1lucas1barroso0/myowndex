@@ -1,6 +1,10 @@
 /* One paint owner for grouped controls. Important declarations inside this
    layer outrank the older, unlayered feature themes, including lazy PC CSS. */
 @layer myowndex-controls {
+  html :is(.room-primary-button,.generator-primary,.account-primary) {
+    background:#b9233b !important; background-image:none !important; color:#fff !important;
+    border-color:#b9233b !important; box-shadow:none !important; transform:none !important;
+  }
   html :is(
     .app-nav,.app-tool-actions,.game-style-options,.appearance-options,
     .room-entry-choices,.room-phase-options,.room-header-actions,.room-invite-actions,.phase-rest-actions,
@@ -32,7 +36,7 @@
   ) > button:is([aria-current="page"],[aria-checked="true"],[aria-pressed="true"],[aria-expanded="true"],[aria-selected="true"],.is-selected) {
     box-shadow:inset 0 -3px 0 var(--ui-control-line) !important; font-weight:900 !important;
   }
-  html :is(.confirm-dialog-actions,.generator-save-actions,.account-actions) > :is(.room-primary-button,.generator-primary,[type="submit"]) {
+  html :is(.confirm-dialog-actions,.generator-save-actions,.account-actions) > button:is(.room-primary-button,.generator-primary,[type="submit"]) {
     border-width:2px !important; font-weight:900 !important;
   }
   html .app-nav > button .nav-emblem { background:transparent !important; color:inherit !important; }

@@ -7,3 +7,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+
+# Direção permanente do MyOwnDex
+
+Leia e aplique [docs/DIRECAO-DE-INTERFACE.md](docs/DIRECAO-DE-INTERFACE.md) em toda mudança de interface, inclusive manutenção pontual. As práticas positivas são obrigatórias; as negativas são proibidas. A revisão deve cobrir a tela inteira, os estados e as outras telas que usam o mesmo padrão. Validar funcionamento e aparência no navegador; testes verdes não substituem a inspeção visual.

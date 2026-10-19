@@ -31,7 +31,7 @@ try {
   const forms=editor.locator('.editor-battle-mechanics');
   await forms.locator(':scope > summary').click();
   await forms.getByLabel('Tipo Tera',{exact:true}).selectOption('fire');
-  assert.equal(await forms.getByLabel('Gigantamax',{exact:true}).count(),1);
+  assert.equal(await forms.getByLabel('Gigantamax',{exact:true}).count(),0,'Bulbasaur does not offer a Gigantamax form');
   assert.equal(await forms.getByLabel('Shiny',{exact:true}).count(),0,'Transformations do not mix in appearance');
   const training=editor.locator('.pokemon-training-panel');
   await training.locator(':scope > summary').click();

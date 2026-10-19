@@ -1,4 +1,4 @@
-// Real UI reward, EV and friendship flow in an isolated guest profile.
+// App navigation, density and tool sheets in an isolated guest profile.
 import assert from "node:assert/strict";
 
 const { chromium } = await import(process.env.MYOWNDEX_PLAYWRIGHT_MODULE || "playwright");
@@ -44,7 +44,15 @@ try {
  for(const width of [320,390,768,1280,1440])for(const theme of ['normal','night']) {
   await page.setViewportSize({width,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
   const metrics=await page.evaluate(()=>({w:innerWidth,scroll:document.documentElement.scrollWidth,placeholders:document.querySelectorAll('[placeholder]').length,header:document.querySelector('.app-header').getBoundingClientRect().height,escaped:[...document.querySelectorAll('.app-header button')].filter(e=>{const r=e.getBoundingClientRect();return r.left<0||r.right>innerWidth}).map(e=>e.textContent)}));
-  assert.equal(metrics.w,metrics.scroll);assert.equal(metrics.placeholders,0);assert.deepEqual(metrics.escaped,[]);console.log(width,theme,metrics.header);
+  assert.equal(metrics.w,metrics.scroll);assert.equal(metrics.placeholders,0);assert.deepEqual(metrics.escaped,[]);
+  const clippedNavigation=await page.locator('.nav-capsule').evaluateAll(buttons=>buttons.flatMap(button=>{
+   const b=button.getBoundingClientRect();return [...button.querySelectorAll(':scope > span')].filter(child=>{
+    const r=child.getBoundingClientRect();return r.left<b.left-1||r.right>b.right+1;
+   }).map(child=>child.textContent);
+  }));
+  assert.deepEqual(clippedNavigation,[],'Navigation labels and icons stay inside their targets');
+  if(width===390)assert.ok(metrics.header<=220,'The fixed header leaves room for the game');
+  console.log(width,theme,metrics.header);
 
  }
  await page.setViewportSize({width:390,height:844});
@@ -53,7 +61,17 @@ try {
   const button=page.getByRole('button',{name:openName,exact:true}).first();await button.click();
   const dialog=page.getByRole('dialog');await dialog.waitFor();
   const frame=await dialog.evaluate(e=>({x:e.getBoundingClientRect().x,y:e.getBoundingClientRect().y,w:e.getBoundingClientRect().width,h:e.getBoundingClientRect().height,overflow:e.scrollWidth-e.clientWidth}));
-  assert.equal(frame.x,0);assert.equal(frame.w,390);assert.equal(frame.overflow,0);assert.ok(Math.abs(frame.h-760)<1);console.log(openName,frame);
+  assert.equal(frame.x,0);assert.equal(frame.w,390);assert.equal(frame.overflow,0);
+  assert.ok(frame.h<=844*.92+1,'Tools fit the viewport without a forced blank height');
+  const layout=await dialog.evaluate(e=>{
+   const header=e.querySelector('header'),r=header.getBoundingClientRect(),p=header.querySelector('.pokemon-companion').getBoundingClientRect(),close=header.querySelector('button').getBoundingClientRect();
+   const body=e.querySelector('.generator-content,.account-dialog-content,.local-dice-dialog-content');
+   return {headerHeight:r.height,partnerCenter:p.y+p.height/2,closeCenter:close.y+close.height/2,blank:body.clientHeight-body.scrollHeight};
+  });
+  assert.ok(layout.headerHeight<=88,'Tool heading stays compact');
+  assert.ok(Math.abs(layout.partnerCenter-layout.closeCenter)<1,'Partner and close share a row');
+  assert.ok(layout.blank<=1,'Content does not reserve empty scroll space');
+  console.log(openName,frame);
 
   const close=dialog.getByRole('button',{name:closeName,exact:true});
   if(await close.count())await close.click();else await dialog.locator('button').filter({hasText:'×'}).first().click();

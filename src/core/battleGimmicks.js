@@ -40,7 +40,8 @@ const GMAX_SPECIES = new Set([
   "sandaconda","toxtricity","centiskorch","hatterene","grimmsnarl",
   "alcremie","copperajah","duraludon","urshifu"
 ]);
-const gmaxEligible = token => GMAX_SPECIES.has(baseSpecies(token).split("-")[0]);
+export const gmaxEligible = token => GMAX_SPECIES.has(baseSpecies(token).split("-")[0])
+ && !/-(?:alola|galar|hisui|paldea)(?:-|$)/.test(baseSpecies(token));
 const formIdentity = token => slug(token?.gimmickState?.base?.formName || token?.formName || token?.speciesName);
 const gmaxFormFor = token => {
  const species=baseSpecies(token).split("-")[0], form=formIdentity(token);

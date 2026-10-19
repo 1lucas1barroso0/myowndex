@@ -29,7 +29,7 @@ function fixture(t, { images = [first], archiveImages = images, archive } = {}) 
     const destination = path.join(directory, 'native');
     fs.mkdirSync(archiveDirectory);
     const zipped = archive || Buffer.from(zipSync(Object.fromEntries(archiveImages.map(image => [image.name, image.bytes])), {
-        level: 6, mtime: new Date('1980-01-01T00:00:00Z'),
+        level: 6, mtime: new Date('2000-01-01T12:00:00Z'),
     }));
     const shard = {
         file: 'sprites-2d-000.zip', bytes: zipped.length, sha256: sha(zipped),

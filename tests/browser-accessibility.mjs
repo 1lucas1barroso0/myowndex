@@ -152,7 +152,7 @@ try {
     await page.locator('.pc-partner-card').first().click();
     const editor = page.locator('.pokemon-editor');
     await editor.waitFor();
-    for (const summary of ['Consultar habilidade e item', 'Progresso da jornada', 'Mega Evolução, Z-Move, Dynamax e Tera', 'Treinamento']) {
+    for (const summary of ['Consultar habilidade e item', 'Progresso da jornada', 'Mega, Z-Move, Dynamax e Tera', 'Treinamento']) {
         await openDetails(editor.locator('details').filter({ has: page.locator(':scope > summary').filter({ hasText: summary }) }).first());
     }
     await checkpoint('PC: ficha completa com habilidades, item, IVs e EVs', [320, 1280]);

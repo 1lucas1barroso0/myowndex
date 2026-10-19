@@ -1,4 +1,5 @@
 "use client";
+import HelpDialog from "./HelpDialog.jsx";
 import React, { useEffect, useRef, useState } from "react";
 
 /** Installation is owned by the browser/OS, not by a persistent local flag. */
@@ -7,7 +8,6 @@ export default function AppInstallControl() {
     const [inAppWindow, setInAppWindow] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [working, setWorking] = useState(false);
-    const closeRef = useRef(null);
     const triggerRef = useRef(null);
 
     useEffect(() => {
@@ -54,9 +54,6 @@ export default function AppInstallControl() {
             fullscreen.removeEventListener?.("change", checkWindowMode);
         };
     }, []);
-    useEffect(() => {
-        if (showHelp) closeRef.current?.focus();
-    }, [showHelp]);
 
     // Installed apps should not ask to install themselves. Ordinary browser
     // tabs must ALWAYS retain access to installation/recovery instructions.
@@ -64,7 +61,6 @@ export default function AppInstallControl() {
 
     const closeHelp = () => {
         setShowHelp(false);
-        triggerRef.current?.focus();
     };
     const launch = async () => {
         if (!installEvent) { setShowHelp(true); return; }
@@ -89,21 +85,13 @@ export default function AppInstallControl() {
             aria-haspopup={installEvent ? undefined : "dialog"}>
             Instalar aplicativo
         </button>
-        {showHelp && <div className="app-install-dialog-backdrop" role="presentation"
-            onMouseDown={event => { if (event.target === event.currentTarget) closeHelp(); }}>
-            <section className="app-install-dialog" role="dialog" aria-modal="true"
-                aria-labelledby="app-install-dialog-title"
-                onKeyDown={event => { if (event.key === "Escape") closeHelp(); }}>
-                <header><h2 id="app-install-dialog-title">Instalar o MyOwnDex</h2>
-                    <button ref={closeRef} type="button" aria-label="Fechar" onClick={closeHelp}>×</button></header>
+        <HelpDialog open={showHelp} title="Instalar o MyOwnDex" onClose={closeHelp} returnFocusRef={triggerRef}>
                 <p><strong>Chrome ou Edge:</strong> use “Instalar aplicativo” no menu do navegador, se disponível.</p>
                 <p><strong>Android:</strong> no menu do navegador, escolha “Instalar app”. Alguns navegadores oferecem apenas “Adicionar à tela inicial”, que pode abrir uma aba comum.</p>
                 <p><strong>iPhone ou iPad:</strong> use Compartilhar → “Adicionar à Tela de Início” em um navegador compatível.</p>
                 <p><strong>Se o aplicativo foi desinstalado, mas aparece como instalado:</strong> verifique em Configurações do celular → Apps se ainda existe MyOwnDex e remova essa instalação ou um atalho antigo. Feche e reabra o navegador usado para instalar, atualize esta página e tente novamente. O registro do aplicativo pertence ao navegador e ao sistema, não ao site.</p>
                 <p><strong>Se continuar bloqueado:</strong> verifique também outros perfis ou navegadores onde o app possa ter sido instalado. Não apague os dados deste site sem antes exportar suas Boxes e os demais registros locais; isso pode eliminar conteúdo que não esteja sincronizado.</p>
                 <p><strong>Firefox no computador:</strong> alguns navegadores não permitem instalar um PWA independente. Uma versão web continua disponível.</p>
-                <button type="button" className="room-primary-button" onClick={closeHelp}>Entendi</button>
-            </section>
-        </div>}
+        </HelpDialog>
     </>;
 }

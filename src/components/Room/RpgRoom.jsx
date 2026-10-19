@@ -1318,7 +1318,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 onResume={resume}
                 onUnlink={setUnlinking}
             />
-            <ConfirmDialog
+            <ConfirmDialog busy={busy}
                 open={Boolean(unlinking)}
                 title="Retirar o acesso desta conta?"
                 description="A aventura e seus jogadores continuam. Este acesso sai de todos os seus dispositivos: para recuperá-lo, você precisará do acesso original ou de um novo convite de jogador."
@@ -1883,7 +1883,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 </aside>
             </div>
 
-            <ConfirmDialog
+            <ConfirmDialog busy={journalBusy}
                 open={Boolean(deletingJournal)}
                 title={deletingJournal?.all ? role === "narrator" ? "Limpar o Diário?" : "Apagar seus registros?" : "Apagar este registro?"}
                 description="Remove os registros do Diário. HP, PP, turnos e resultados já aplicados continuam como estão."
@@ -1892,7 +1892,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 onConfirm={() => void deleteJournal()}
                 onCancel={() => !journalBusy && setDeletingJournal(null)}
             />
-            <ConfirmDialog
+            <ConfirmDialog busy={busy}
                 open={renewingInvite}
                 title="Gerar outro convite?"
                 description="Os convites anteriores deixam de funcionar. Quem já entrou continua na aventura."
@@ -1901,13 +1901,12 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 onConfirm={renewInvite}
                 onCancel={() => !busy && setRenewingInvite(false)}
             />
-            <ConfirmDialog
+            <ConfirmDialog busy={busy}
                 open={ending}
                 title="Encerrar esta aventura?"
                 description="Antes de encerrar, o Narrador avalia a Amizade pela história da sessão. A aventura e o diário serão apagados; suas Boxes continuam no PC."
                 confirmLabel={busy ? "Encerrando…" : "Encerrar aventura"}
                 cancelLabel="Continuar aventura"
-                danger
                 onConfirm={endRoom}
                 onCancel={() => setEnding(false)}
             />

@@ -1,5 +1,6 @@
 "use client";
 
+import HelpDialog from "./HelpDialog.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import App from "../../App.jsx";
@@ -20,7 +21,6 @@ export default function RecoveryInstaller() {
     const [confirmed, setConfirmed] = useState(false);
     const [busy, setBusy] = useState(false);
     const trigger = useRef(null);
-    const close = useRef(null);
 
     useEffect(() => {
         const check = () => setAppWindow(windowIsApp());
@@ -59,7 +59,6 @@ export default function RecoveryInstaller() {
         };
     }, []);
 
-    useEffect(() => { if (showHelp) close.current?.focus(); }, [showHelp]);
 
     const requestInstall = async () => {
         if (!confirmed || busy) return;
@@ -79,7 +78,6 @@ export default function RecoveryInstaller() {
     };
     const dismissHelp = () => {
         setShowHelp(false);
-        trigger.current?.focus();
     };
 
     // A rescue launcher goes straight into the real game, sharing the same
@@ -109,18 +107,11 @@ export default function RecoveryInstaller() {
                 </div>
                 <p className="pwa-rescue-note">Se o navegador não abrir o instalador, toque no botão acima e siga a orientação exibida. Não limpe os dados do site para tentar resolver o problema.</p>
             </section>
-            {showHelp && <div className="pwa-rescue-backdrop" role="presentation"
-                onMouseDown={event => { if (event.target === event.currentTarget) dismissHelp(); }}>
-                <section className="pwa-rescue-dialog" role="dialog" aria-modal="true"
-                    aria-labelledby="pwa-rescue-dialog-title"
-                    onKeyDown={event => { if (event.key === "Escape") dismissHelp(); }}>
-                    <h2 id="pwa-rescue-dialog-title">Instalação pelo navegador</h2>
+            <HelpDialog open={showHelp} title="Instalação pelo navegador" onClose={dismissHelp} returnFocusRef={trigger}>
                     <p>Abra esta mesma página no Chrome ou Edge do Android e procure <strong>Instalar app</strong> no menu ⋮. A opção depende do navegador; algumas versões só oferecem um atalho.</p>
                     <p>Se nem esta identidade alternativa aparecer para instalação, o bloqueio é controlado pelo navegador ou Android. Não podemos apagá-lo pelo site.</p>
                     <p>Evite limpar armazenamento, cookies ou dados locais do MyOwnDex: isso pode apagar Boxes e aventuras não sincronizadas.</p>
-                    <button ref={close} type="button" className="pwa-rescue-primary" onClick={dismissHelp}>Entendi</button>
-                </section>
-            </div>}
+            </HelpDialog>
         </main>
     );
 }

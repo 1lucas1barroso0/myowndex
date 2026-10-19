@@ -22,6 +22,7 @@ import ItemCard from '../Pokedex/ItemCard.jsx';
 import ExperienceAward from '../Shared/ExperienceAward.jsx';
 import EvTraining from '../Shared/EvTraining.jsx';
 import FriendshipControl from '../Shared/FriendshipControl.jsx';
+import CatalogInput from '../Shared/CatalogInput.jsx';
 
 const POKEMONDB_ITEMS = [
     "potion", "super-potion", "hyper-potion", "max-potion", "full-restore", "revive", "max-revive", 
@@ -85,8 +86,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const [formError, setFormError] = useState("");
     const [traitDetails, setTraitDetails] = useState({ ability: null, item: null });
     const fieldId = useId();
-    const itemListId = `${fieldId}-items`;
-    const abilityListId = `${fieldId}-abilities`;
     const mountedRef = useRef(false);
     const partnerRef = useRef(pk);
     const consumedItem = getPokemonConsumedItem(pk);
@@ -192,10 +191,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             ...POKEMONDB_ITEMS,
             ...zaForms.entries.map(form=>form.item),
             ...(Array.isArray(allItems) ? allItems.map(item => typeof item === "string" ? item : item?.name) : []),
-            pk.item
         ].filter(Boolean);
         return [...new Set(names)].sort((a, b) => a.localeCompare(b));
-    }, [allItems, pk.item]);
+    }, [allItems]);
 
     const validAbs = useMemo(() => {
         if (isHackmon) return allAbilities;
@@ -419,8 +417,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     };
     return (
         <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatName(pk.formKey || pk.species?.name)}`}>
-            <datalist id={itemListId}>{validItems.map(value => <option key={value} value={value} label={formatCanonicalItemName(value)} />)}</datalist>
-            <datalist id={abilityListId}>{validAbs.map(ability => { const value = typeof ability === "string" ? ability : ability?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
 
             <header className="editor-header" style={{ "--summary-type": TYPE_COLORS[pk.species?.types?.[0]?.type?.name] || "var(--ui-blue)" }}>
                 <div className="editor-portrait-stage"><span className="editor-summary-caption">Resumo</span><PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" /></div>
@@ -444,7 +440,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <div className="editor-basics-grid">
                 <div className="editor-field">
                     <label htmlFor={`${fieldId}-item`} className="editor-label">Item segurado</label>
-                    <input id={`${fieldId}-item`} list={itemListId} value={pk.item || ""} onKeyDown={handleEnter} onChange={event => updatePk(replacePokemonHeldItem(pk, event.target.value || ""))} className="editor-input" />
+                    <CatalogInput id={`${fieldId}-item`} value={pk.item || ""} options={validItems.map(value => ({ value, label: formatCanonicalItemName(value) }))} suggestionsLabel="Itens correspondentes" onKeyDown={handleEnter} onChange={value => updatePk(replacePokemonHeldItem(pk, value))} className="editor-input" />
                     {consumedItem && <>
                         <span className="editor-field-note">Já foi usado ou perdido.</span>
                         <button type="button" className="room-secondary-button" onClick={() => updatePk(replacePokemonHeldItem(pk, pk.item))} aria-label={`Repor ${formatCanonicalItemName(consumedItem)}`}>Repor item</button>
@@ -453,7 +449,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="editor-field">
                     <label htmlFor={`${fieldId}-ability`} className="editor-label">Habilidade</label>
                     <div className="editor-choice-control">
-                        <input id={`${fieldId}-ability`} list={abilityListId} value={pk.ability || ""} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, ability: (event.target.value || "").toLowerCase() })} className="editor-input" />
+                        <CatalogInput id={`${fieldId}-ability`} value={pk.ability || ""} options={validAbs.map(ability => typeof ability === "string" ? ability : ability?.name).filter(Boolean).map(value => ({ value, label: formatName(value) }))} suggestionsLabel="Habilidades correspondentes" onKeyDown={handleEnter} onChange={value => updatePk({ ...pk, ability: value.toLowerCase() })} className="editor-input" />
                         {validAbs.length > 1 && <button type="button" aria-label="Sortear habilidade" title="Sortear habilidade" onClick={() => randomize("ability")} className="editor-random-button">⚄</button>}
                     </div>
                     {abilityException && <span className="editor-field-note">Escolha livre mantida</span>}

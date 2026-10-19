@@ -1109,3 +1109,51 @@ html .app-root.game-edition.handheld-edition .app-tool-actions :is(svg) { flex:0
     }
     html .app-root.game-edition.handheld-edition .app-tool-actions :is(svg) { width:1.15rem; height:1.15rem; }
 }
+
+/* Consistent red-header navigation across web/PWA, portrait/landscape and
+   touch/mouse. One stable geometry; feedback changes paint, not layout. */
+html .app-root.game-edition.handheld-edition .app-nav {
+    width:100%; min-width:0;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:clamp(.3rem,1vw,.65rem) !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule {
+    box-sizing:border-box; min-width:0 !important; width:100%;
+    min-height:70px !important; padding:.55rem .35rem !important;
+    gap:.35rem !important; border-radius:.65rem !important;
+    border:1px solid #ffffff8c !important;
+    color:#fff !important; background:#ffffff0c !important;
+    box-shadow:none !important; transform:none !important;
+    text-align:center; line-height:1.2;
+    transition:background-color .15s ease,border-color .15s ease;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule.is-active,
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule[aria-current="page"] {
+    background:#243b40 !important; border-color:#ffffffb5 !important;
+    box-shadow:inset 0 -3px var(--journey-gold) !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule:not(.is-active):is(:hover,:active) {
+    background:#ffffff26 !important; border-color:#fff !important;
+    transform:none !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule .nav-emblem {
+    flex:0 0 auto; width:32px; height:32px;
+    background:#fff; border-radius:50%; box-shadow:none !important;
+    transform:none !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule.is-active .nav-emblem {
+    background:var(--journey-gold) !important;
+}
+@media (max-width:700px), (display-mode:standalone), (display-mode:fullscreen) {
+    html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule {
+        min-height:64px !important; min-width:0 !important;
+        padding:.5rem .15rem !important; font-size:clamp(.7rem,2.75vw,.875rem) !important;
+        gap:.25rem !important;
+    }
+    html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule .nav-emblem {
+        width:28px; height:28px;
+    }
+}
+@media (prefers-reduced-motion:reduce) {
+    html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { transition:none !important; }
+}

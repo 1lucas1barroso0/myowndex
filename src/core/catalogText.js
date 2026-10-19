@@ -181,3 +181,24 @@ export const getSpeciesRecordHistory = (speciesId, formName) => {
             }];
         });
 };
+
+/** Actual PokéAPI text used when the bilingual catalog has no paired entry.
+ * For an old game, prefer that game's in-game text to a modern effect. */
+export const getFallbackMoveText = (move, { historical = false } = {}) => {
+    if (!move) return emptyPair();
+    const pick = (entries, fields) => {
+        const candidates = (Array.isArray(entries) ? entries : []).filter(entry => entry?.language?.name === 'en');
+        for (const entry of candidates) {
+            for (const field of fields) {
+                if (typeof entry[field] === 'string' && entry[field].trim()) {
+                    return cleanDescription(entry[field], move.effect_chance);
+                }
+            }
+        }
+        return '';
+    };
+    const effect = pick(move.effect_entries, ['effect', 'short_effect']);
+    const flavor = pick(move.flavor_text_entries, ['flavor_text']);
+    const original = historical ? (flavor || effect) : (effect || flavor);
+    return { ...emptyPair(), original, source: original ? 'pokeapi' : null };
+};

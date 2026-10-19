@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getLearnsetGames, getMoveAtVersion, resolveLearnsetGame } from '../src/core/referenceGames.js';
+import { getLearnsetGames, getMoveAtVersion, getMoveReferenceForMode, resolveLearnsetGame } from '../src/core/referenceGames.js';
 import { filterMovesByLatestVersion } from '../src/core/mechanics.js';
 
 const group = (name, id) => ({ name, url: `https://pokeapi.co/api/v2/version-group/${id}/` });
@@ -50,4 +50,24 @@ test('historical effects and types are applied only before their recorded change
     assert.deepEqual(old.effect_entries, oldEffects);
     assert.equal(getMoveAtVersion(move, 15).type.name, 'fairy');
     assert.equal(getMoveAtVersion(move, 0), move);
+});
+
+test('preferred game changes PP, power and accuracy in RPG, Jogos and Livre without mutating the original', () => {
+    const move = {
+        name: 'tackle', power: 40, accuracy: 100, pp: 35,
+        flavor_text_entries: [{ version_group: group('red-blue', 1), language: { name: 'en' }, flavor_text: 'Historical description.' }],
+        past_values: [{ version_group: group('black-white', 11), power: 35, accuracy: 95, pp: 30 }],
+    };
+    const original = structuredClone(move);
+    for (const mode of ['rpg', 'game', 'free']) {
+        const historical = getMoveReferenceForMode(move, 'red-blue', mode);
+        assert.equal(historical.power, 35, mode);
+        assert.equal(historical.accuracy, 95, mode);
+        assert.equal(historical.pp, 30, mode);
+        assert.equal(historical.flavor_text_entries[0].flavor_text, 'Historical description.');
+    }
+    const latest = getMoveReferenceForMode(move, 'auto', 'rpg');
+    assert.equal(latest.pp, 35);
+    assert.equal(latest.power, 40);
+    assert.deepEqual(move, original);
 });

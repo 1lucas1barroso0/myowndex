@@ -2,7 +2,7 @@ import zaForms from "../../data/mega-za-forms.json" with { type: "json" };
 import React, { useState, useEffect, useId, useMemo, useRef } from 'react';
 import { formatCanonicalItemName, RPG_STATUS_LABELS } from '../../core/copy.js';
 import { describeMove } from '../../core/descriptions.js';
-import { getCatalogText, loadCatalogText } from '../../core/catalogText.js';
+import { getCatalogText, getFallbackMoveText, loadCatalogText } from '../../core/catalogText.js';
 import { fetchCached, calculateStat, formatName, formatNumberPtBr, formatType, convertToTTRPG, NATURES, STAT_MAP, TYPES, TYPE_COLORS, TYPE_TEXT_COLORS, filterMovesByLatestVersion } from '../../core/mechanics.js';
 import { getNextLevelXp } from '../../core/rpgRules.js';
 import { applyPokemonExperienceAward } from '../../core/experience.js';
@@ -78,13 +78,13 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const [speciesProfile, setSpeciesProfile] = useState(null);
     const [moveDetails, setMoveDetails] = useState({});
     const [moveCatalogReady, setMoveCatalogReady] = useState(false);
+    const [activeMoveSlot, setActiveMoveSlot] = useState(null);
     const [switchingForm, setSwitchingForm] = useState(false);
     const [formError, setFormError] = useState("");
     const [traitDetails, setTraitDetails] = useState({ ability: null, item: null });
     const fieldId = useId();
     const itemListId = `${fieldId}-items`;
     const abilityListId = `${fieldId}-abilities`;
-    const moveListId = `${fieldId}-moves`;
     const mountedRef = useRef(false);
     const partnerRef = useRef(pk);
     const consumedItem = getPokemonConsumedItem(pk);
@@ -147,13 +147,18 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         return processed.map(m => m.move);
     }, [isHackmon, allMoves, pk.species?.moves, selectedVersionGroup]);
     const validMoveNames = useMemo(() => new Set(validMoves.map(move => typeof move === "string" ? move : move?.name).filter(Boolean)), [validMoves]);
-    const referenceVersion = experienceMode === 'game'
-        ? resolveLearnsetGame(pk.species?.moves || [], selectedVersionGroup) || selectedVersionGroup
-        : 'champions';
+    // A chosen game applies to the whole sheet, including PP and move effects.
+    // Auto keeps current RPG/Livre rules and resolves the latest game in Jogos.
+    const referenceVersion = selectedVersionGroup && selectedVersionGroup !== 'auto'
+        ? selectedVersionGroup
+        : experienceMode === 'game' ? resolveLearnsetGame(pk.species?.moves || [], 'auto') || 'champions'
+            : 'champions';
 
     useEffect(() => {
         let mounted = true;
-        const names = [...new Set((pk.moves || []).filter(Boolean).map(name => name.trim().toLowerCase().replace(/\s+/g, "-")))];
+        const names = [...new Set((pk.moves || []).filter(Boolean)
+            .map(name => name.trim().toLowerCase().replace(/\s+/g, "-"))
+            .filter(name => validMoveNames.has(name)))];
         if (!names.length) {
             setMoveDetails({});
             return () => { mounted = false; };
@@ -163,7 +168,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 if (mounted) setMoveDetails(Object.fromEntries(entries.filter(([, data]) => data)));
             });
         return () => { mounted = false; };
-    }, [pk.moves]);
+    }, [pk.moves, validMoveNames]);
 
     useEffect(() => {
         let mounted = true;
@@ -334,6 +339,13 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const atXpLevelCap = integerInRange(pk.level, 1, xpLevelCap, 1) >= xpLevelCap;
     const nextLevelXp = getNextLevelXp(pk.level);
     const updateRpg = patch => updatePk({ ...pk, rpg: { ...rpg, ...patch } });
+    const setMove = (index, value) => {
+        const moves = [...(pk.moves || [])];
+        moves[index] = String(value || '').toLowerCase();
+        const pp = [...(rpg.pp || [null, null, null, null])];
+        if (moves[index] !== (pk.moves?.[index] || '')) pp[index] = null;
+        updatePk({ ...pk, moves, rpg: { ...rpg, pp } });
+    };
     const abilityException = Boolean(pk.ability) && !isHackmon && !validAbilityNames.has(pk.ability);
     const teraException = Boolean(pk.teraType) && !TYPES.includes(pk.teraType);
     const moveExceptionCount = (pk.moves || []).filter(move => {
@@ -398,7 +410,6 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatName(pk.formKey || pk.species?.name)}`}>
             <datalist id={itemListId}>{validItems.map(value => <option key={value} value={value} label={formatCanonicalItemName(value)} />)}</datalist>
             <datalist id={abilityListId}>{validAbs.map(ability => { const value = typeof ability === "string" ? ability : ability?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
-            <datalist id={moveListId}>{validMoves.map(move => { const value = typeof move === "string" ? move : move?.name; return value ? <option key={value} value={value} label={formatName(value)} /> : null; })}</datalist>
 
             <header className="editor-header" style={{ "--summary-type": TYPE_COLORS[pk.species?.types?.[0]?.type?.name] || "var(--ui-blue)" }}>
                 <div className="editor-portrait-stage"><span className="editor-summary-caption">Resumo</span><PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" /></div>
@@ -554,23 +565,34 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         const detail = rawDetail ? getMoveReferenceForMode(rawDetail, referenceVersion, experienceMode) : null;
                         const historical = detail?.reference_generation < 9 || detail?.reference_metadata_verified === false;
                         const moveExplanation = detail ? describeMove(detail, { isTTRPG, historical }) : null;
-                        const moveReference = detail && moveCatalogReady ? getCatalogText('move', normalizedName, detail, { versionGroup: referenceVersion }) : null;
+                        const moveReference = normalizedName && moveCatalogReady ? getCatalogText('move', normalizedName, detail, { versionGroup: referenceVersion }) : null;
                         const isException = Boolean(moveName) && !isHackmon && !validMoveNames.has(normalizedName);
                         const currentPp = rpg.pp?.[index];
+                        const maxPp = integerInRange(detail?.pp, 0, 99, 0);
+                        const fallbackText = getFallbackMoveText(detail, { historical });
+                        const shownText = moveReference?.original || moveReference?.portuguese ? moveReference : fallbackText.original ? fallbackText : null;
+                        const suggestions = activeMoveSlot === index && normalizedName.length >= 2 && !validMoveNames.has(normalizedName)
+                            ? validMoves.map(move => typeof move === 'string' ? move : move?.name)
+                                .filter(name => name && name.includes(normalizedName)).slice(0, 5) : [];
                         return <div key={index} className={`editor-move-field ${isException ? "is-exception" : ""}`} style={{ "--editor-move-type": TYPE_COLORS[detail?.type?.name] || "var(--ui-line)" }}>
-                            <div className="editor-field"><div className="editor-move-label"><label htmlFor={`${fieldId}-move-${index}`} className="editor-label">Movimento {index + 1}</label>{detail?.type?.name && <span className="editor-move-type" style={{ backgroundColor: TYPE_COLORS[detail.type.name], color: TYPE_TEXT_COLORS[detail.type.name] }}>{formatType(detail.type.name)}</span>}</div><input id={`${fieldId}-move-${index}`} list={moveListId} value={moveName} onKeyDown={handleEnter} onChange={event => {
-                                const moves = [...(pk.moves || [])]; moves[index] = (event.target.value || "").toLowerCase();
-                                const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = null;
-                                updatePk({ ...pk, moves, rpg: { ...rpg, pp } });
-                            }} className="editor-input" /></div>
+                            <div className="editor-field">
+                                <div className="editor-move-label"><label htmlFor={`${fieldId}-move-${index}`} className="editor-label">Movimento {index + 1}</label>{detail?.type?.name && <span className="editor-move-type" style={{ backgroundColor: TYPE_COLORS[detail.type.name], color: TYPE_TEXT_COLORS[detail.type.name] }}>{formatType(detail.type.name)}</span>}</div>
+                                <input id={`${fieldId}-move-${index}`} value={moveName} autoComplete="off" autoCorrect="off" spellCheck={false} onFocus={() => setActiveMoveSlot(index)} onBlur={() => setActiveMoveSlot(null)} onKeyDown={handleEnter} onChange={event => setMove(index, event.target.value)} className="editor-input" />
+                                {suggestions.length > 0 && <div className="editor-move-suggestions" role="group" aria-label={`Movimentos correspondentes ao campo ${index + 1}`}>
+                                    {suggestions.map(name => <button type="button" key={name} onPointerDown={event => event.preventDefault()} onClick={() => { setMove(index, name); setActiveMoveSlot(null); }} className="editor-move-suggestion">{formatName(name)}</button>)}
+                                </div>}
+                            </div>
                             {isException && <span className="editor-field-note">{experienceMode === "game" ? "Não disponível neste jogo" : "Escolha livre"}</span>}
-                            {isTTRPG && moveName && <><label className="editor-pp-label">PP atual<input type="number" inputMode="numeric" min="0" max={detail?.pp || 99} aria-describedby={`${fieldId}-move-${index}-pp-help`} value={currentPp ?? detail?.pp ?? ""} onChange={event => { const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = event.target.value === "" ? null : integerInRange(event.target.value, 0, integerInRange(detail?.pp, 0, 99, 99), 0); updateRpg({ pp }); }} className="editor-input editor-pp-control" /></label><span className="sr-only" id={`${fieldId}-move-${index}-pp-help`}>Usos restantes de {formatName(moveName)}.</span></>}
-                            {moveExplanation && <details className="editor-move-description">
+                            {moveName && maxPp > 0 && <label className="editor-pp-label">PP atual
+                                <input type="number" inputMode="numeric" min="0" max={maxPp} aria-label="PP atual" aria-describedby={`${fieldId}-move-${index}-pp-help`} value={Math.min(currentPp ?? maxPp, maxPp)} onChange={event => { const pp = [...(rpg.pp || [null, null, null, null])]; pp[index] = event.target.value === "" ? null : integerInRange(event.target.value, 0, maxPp, 0); updateRpg({ pp }); }} className="editor-input editor-pp-control" />
+                                <span className="editor-pp-total">/ {maxPp}</span>
+                                <span className="sr-only" id={`${fieldId}-move-${index}-pp-help`}>Usos restantes de {formatName(moveName)} no jogo de referência.</span>
+                            </label>}
+                            {moveName && (detail || shownText) && <details className="editor-move-description">
                                 <summary>Detalhes do movimento</summary>
-                                <dl className="editor-move-facts"><div><dt>Poder</dt><dd>{detail.power == null ? "—" : isTTRPG ? convertToTTRPG(detail.power) : detail.power}</dd></div><div><dt>Precisão</dt><dd>{detail.accuracy == null ? "Sem teste próprio" : `${detail.accuracy}%`}</dd></div><div><dt>PP máximo</dt><dd>{detail.pp ?? "—"}</dd></div>{Boolean(detail.priority) && <div><dt>Prioridade</dt><dd>{detail.priority > 0 ? "+" : ""}{detail.priority}</dd></div>}</dl>
-                                <p className="editor-field-note">PP são os usos disponíveis deste movimento.</p>
-                                {moveReference && <ReferenceText {...moveReference} label="Efeito do movimento" defaultLanguage="pt-BR" />}
-                                <p>{moveExplanation.summary}</p><ul>{moveExplanation.facts.map((fact, factIndex) => <li key={`${normalizedName}-${factIndex}`}>{fact}</li>)}</ul>
+                                {detail && <dl className="editor-move-facts"><div><dt>Poder</dt><dd>{detail.power == null ? "Variável ou sem dano" : isTTRPG ? convertToTTRPG(detail.power) : detail.power}</dd></div><div><dt>Precisão</dt><dd>{detail.accuracy == null ? "Sem teste próprio" : `${detail.accuracy}%`}</dd></div><div><dt>PP máximo</dt><dd>{detail.pp ?? "Sem valor comum"}</dd></div>{Boolean(detail.priority) && <div><dt>Prioridade</dt><dd>{detail.priority > 0 ? "+" : ""}{detail.priority}</dd></div>}</dl>}
+                                {shownText && <ReferenceText {...shownText} label="Efeito do movimento" defaultLanguage="pt-BR" />}
+                                {moveExplanation && !historical && <details className="editor-move-rules"><summary>Na batalha</summary><ul>{moveExplanation.facts.map((fact, factIndex) => <li key={`${normalizedName}-${factIndex}`}>{fact}</li>)}</ul></details>}
                             </details>}
                         </div>;
                     })}

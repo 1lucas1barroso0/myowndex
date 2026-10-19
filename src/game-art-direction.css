@@ -1075,3 +1075,85 @@ html .app-root.game-edition.handheld-edition .pc-mascot-stage .pokemon-companion
 html .app-root.game-edition.handheld-edition .pc-sidebar .pc-box-list {
   margin-top: .35rem; margin-bottom: .9rem;
 }
+
+/* Three navigation tools have equal importance and hit areas, with distinct,
+   restrained accents. They wrap as a unit without truncation or overlap. */
+html .app-root.game-edition.handheld-edition .app-tool-actions {
+    display:grid; grid-template-columns:repeat(3,minmax(0,max-content));
+    gap:clamp(.4rem,1.3vw,.75rem); align-items:stretch; max-width:100%;
+}
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) {
+    display:inline-flex; justify-content:center; align-items:center;
+    box-sizing:border-box; min-width:0; min-height:48px; gap:.5rem;
+    padding:.7rem clamp(.65rem,1.2vw,1rem); margin:0;
+    color:#fff !important; font-size:clamp(.8rem,1.2vw,.95rem); font-weight:750;
+    line-height:1.3; border-radius:.55rem !important;
+    border:1px solid #ffffffa8 !important;
+    box-shadow:inset 0 -3px var(--tool-accent) !important;
+    background:#ffffff12 !important; transition:background .16s ease,border-color .16s ease;
+}
+html .app-root.game-edition.handheld-edition .app-tool-actions > .global-generator-button { --tool-accent:#a8e5ff; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > .global-dice-button { --tool-accent:#ffdc88; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > .account-header-button { --tool-accent:#c1f3d5; }
+html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button):is(:hover,:focus-visible) {
+    background:#ffffff28 !important; border-color:#fff !important;
+}
+html .app-root.game-edition.handheld-edition .app-tool-actions :is(svg) { flex:0 0 auto; }
+@media (max-width:600px) {
+    html .app-root.game-edition.handheld-edition .app-tool-actions {
+        width:100%; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem;
+    }
+    html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) {
+        min-width:0; max-width:100%; min-height:48px; padding:.6rem .3rem;
+        gap:clamp(.22rem,.9vw,.45rem); font-size:clamp(.72rem,2.9vw,.875rem);
+    }
+    html .app-root.game-edition.handheld-edition .app-tool-actions :is(svg) { width:1.15rem; height:1.15rem; }
+}
+
+/* Consistent red-header navigation across web/PWA, portrait/landscape and
+   touch/mouse. One stable geometry; feedback changes paint, not layout. */
+html .app-root.game-edition.handheld-edition .app-nav {
+    width:100%; min-width:0;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:clamp(.3rem,1vw,.65rem) !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule {
+    box-sizing:border-box; min-width:0 !important; width:100%;
+    min-height:70px !important; padding:.55rem .35rem !important;
+    gap:.35rem !important; border-radius:.65rem !important;
+    border:1px solid #ffffff8c !important;
+    color:#fff !important; background:#ffffff0c !important;
+    box-shadow:none !important; transform:none !important;
+    text-align:center; line-height:1.2;
+    transition:background-color .15s ease,border-color .15s ease;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule.is-active,
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule[aria-current="page"] {
+    background:#243b40 !important; border-color:#ffffffb5 !important;
+    box-shadow:inset 0 -3px var(--journey-gold) !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule:not(.is-active):is(:hover,:active) {
+    background:#ffffff26 !important; border-color:#fff !important;
+    transform:none !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule .nav-emblem {
+    flex:0 0 auto; width:32px; height:32px;
+    background:#fff; border-radius:50%; box-shadow:none !important;
+    transform:none !important;
+}
+html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule.is-active .nav-emblem {
+    background:var(--journey-gold) !important;
+}
+@media (max-width:700px), (display-mode:standalone), (display-mode:fullscreen) {
+    html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule {
+        min-height:64px !important; min-width:0 !important;
+        padding:.5rem .15rem !important; font-size:clamp(.7rem,2.75vw,.875rem) !important;
+        gap:.25rem !important;
+    }
+    html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule .nav-emblem {
+        width:28px; height:28px;
+    }
+}
+@media (prefers-reduced-motion:reduce) {
+    html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { transition:none !important; }
+}

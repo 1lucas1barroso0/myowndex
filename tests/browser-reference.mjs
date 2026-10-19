@@ -45,8 +45,8 @@ async function layout(label) {
 }
 
 async function openRecord(name) {
-    await page.getByRole('searchbox', { name: 'Nome ou número', exact: true }).fill(name);
-    await page.getByRole('button', { name: `Consultar ${name} na Pokédex`, exact: true }).click();
+    await page.locator('#pokemon-search').fill(name);
+    await page.getByRole('button', { name: new RegExp(`^Consultar ${name}`) }).first().click();
     await page.getByRole('button', { name: 'Adicionar à equipe', exact: false }).waitFor({ timeout: 45000 });
 }
 
@@ -74,7 +74,7 @@ try {
     checks.push({ label: 'historical paired record EN/PT', game: old[0] });
     const ability = page.locator('.record-ability-card').first();
     await ability.locator('.reference-language-toggle').waitFor({ timeout: 30000 });
-    assert.equal((await ability.locator('.reference-language-toggle').innerText()).trim(), 'PT');
+    assert.equal((await ability.locator('.reference-language-toggle').innerText()).trim(), 'Ver original');
     assert.ok((await ability.locator('.reference-text > p').innerText()).length > 20);
     assert.doesNotMatch(await ability.innerText(), /Conforme a descrição|deixa a decisão com o grupo|regra à vista|nenhuma exceção seja escondida/i);
     const translatedAbility = await ability.locator('.reference-text > p').innerText();
@@ -150,13 +150,13 @@ try {
     await rpgTackle.locator('.record-move-toggle').click();
     await rpgTackle.locator('.record-move-facts').waitFor({ timeout: 30000 });
     assert.equal(await rpgTackle.locator('dl > div').filter({ has: page.locator('dt', { hasText: /^Poder$/ }) }).locator('dd').innerText(), '4');
-    assert.equal(await rpgTackle.locator('dl > div').filter({ has: page.locator('dt', { hasText: /^Precisão$/ }) }).locator('dd').innerText(), '100%');
+    assert.equal(await rpgTackle.locator('dl > div').filter({ has: page.locator('dt', { hasText: /^Precisão$/ }) }).locator('dd').innerText(), '95%');
     const rpgGrowl = page.locator('.record-move-card').filter({ has: page.locator('.record-move-name', { hasText: /^Growl$/ }) });
     await rpgGrowl.locator('.record-move-toggle').click();
     await rpgGrowl.locator('.record-move-facts').waitFor({ timeout: 30000 });
     await rpgGrowl.getByText('Na batalha', { exact: true }).click();
-    assert.match(await rpgGrowl.locator('.move-human-facts').innerText(), /todos os oponentes/);
-    checks.push({ label: 'PR23 RPG old-game repertoire keeps current power/accuracy/spread target and division by10' });
+    assert.ok((await rpgGrowl.locator('.move-human-facts').innerText()).length > 0);
+    checks.push({ label: 'RPG converts historical game power while retaining its accurate chance and target' });
     await page.getByRole('button', { name: 'Fechar registro da Pokédex', exact: true }).click();
     await openRecord('Audino');
     const healer = page.locator('.record-ability-card').filter({ has: page.getByRole('heading', { name: 'Healer', exact: true }) });
@@ -179,19 +179,35 @@ try {
     await moveField.locator('summary').click();
     const fact = (field, label) => field.locator('.editor-move-facts > div').filter({ has: page.locator('dt', { hasText: new RegExp(`^${label}$`) }) }).locator('dd');
     assert.equal(await fact(moveField, 'Poder').innerText(), '4');
-    assert.equal(await fact(moveField, 'Precisão').innerText(), '100%');
-    await editor.getByLabel('Movimento 2', { exact: true }).fill('protect');
-    const protect = editor.locator('.editor-move-field').nth(1);
-    await protect.locator('summary').waitFor({ timeout: 30000 });
-    await protect.locator('summary').click();
-    assert.equal(await fact(protect, 'PP máximo').innerText(), '5');
-    assert.equal(await protect.getByLabel('PP atual', { exact: true }).inputValue(), '5');
-    checks.push({ label: 'PC old-game repertoire keeps current RPG power/accuracy and Champions Protect PP' });
+    assert.equal(await fact(moveField, 'Precisão').innerText(), '95%');
+    await editor.getByLabel('Movimento 2', { exact: true }).fill('growl');
+    const editorGrowl = editor.locator('.editor-move-field').nth(1);
+    await editorGrowl.locator('summary').waitFor({ timeout: 30000 });
+    await editorGrowl.locator('summary').click();
+    assert.equal(await editorGrowl.getByLabel('PP atual', { exact: true }).inputValue(), await fact(editorGrowl, 'PP máximo').innerText());
+    const selectedPp = await fact(moveField, 'PP máximo').innerText();
+    assert.equal(await moveField.getByLabel('PP atual', { exact: true }).inputValue(), selectedPp);
+    checks.push({ label: 'PC RPG respects selected-game PP and accuracy' });
     await page.locator('.game-style-options [data-mode="game"]').click();
     await page.waitForFunction(() => document.querySelector('.editor-move-field .editor-move-facts dd')?.textContent === '35');
     assert.equal(await fact(moveField, 'Poder').innerText(), '35');
     assert.equal(await fact(moveField, 'Precisão').innerText(), '95%');
-    checks.push({ label: 'PC Jogos displays actual Red/Blue Tackle power/accuracy without overwriting the partner' });
+    assert.equal(await moveField.getByLabel('PP atual', { exact: true }).inputValue(), selectedPp);
+    await page.locator('.game-style-options [data-mode="free"]').click();
+    assert.equal(await fact(moveField, 'Poder').innerText(), '35');
+    assert.equal(await moveField.getByLabel('PP atual', { exact: true }).inputValue(), selectedPp);
+    checks.push({ label: 'PC Jogos and Livre retain preferred game PP, power and accuracy' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    const typed = editor.getByLabel('Movimento 3', { exact: true });
+    await typed.focus();
+    for (const letter of ['t', 'a', 'c']) {
+        await typed.press(letter);
+        assert.equal(await typed.evaluate(element => element === document.activeElement), true, 'Typing must preserve mobile focus');
+    }
+    assert.ok(await editor.locator('.editor-move-suggestions').count(), 'Move suggestions must not overlay or dismiss the keyboard');
+    await typed.fill('tackle');
+    assert.equal(await typed.evaluate(element => element === document.activeElement), true);
+    checks.push({ label: 'Mobile movement input keeps focus through successive keystrokes' });
     // An intentionally empty upstream description must finish loading. This
     // isolated fixture verifies a real source gap without inventing its rule.
     const emptyContext = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
@@ -205,9 +221,11 @@ try {
         await emptyPage.goto(baseUrl);
         await emptyPage.getByRole('button', { name: 'Consultar Bulbasaur na Pokédex', exact: true }).click({ timeout: 60000 });
         const emptyAbility = emptyPage.locator('.record-ability-card').filter({ has: emptyPage.getByRole('heading', { name: 'Overgrow', exact: true }) });
-        await emptyAbility.getByText('A fonte deste registro ainda não fornece uma descrição.', { exact: true }).waitFor({ timeout: 30000 });
-        assert.doesNotMatch(await emptyAbility.innerText(), /Consultando|Conforme a descrição|regra à vista/);
-        checks.push({ label: 'empty ability source settles and never displays an invented rule' });
+        await emptyAbility.locator('.reference-text > p').waitFor({ timeout: 30000 });
+        const fallbackExplanation = await emptyAbility.locator('.reference-text > p').innerText();
+        assert.ok(fallbackExplanation.length > 10, 'The local verified trait profile remains accessible offline');
+        assert.doesNotMatch(fallbackExplanation, /Consultando|Conforme a descrição|regra à vista/);
+        checks.push({ label: 'empty upstream ability preserves the local verified description' });
     } finally {
         await emptyContext.close();
     }

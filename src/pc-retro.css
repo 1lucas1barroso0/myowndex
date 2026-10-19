@@ -227,3 +227,31 @@ html .app-root .editor-stat-summary dl { grid-template-columns:repeat(2,minmax(0
 html .app-root .pokemon-stat-row { padding:.9rem 0; }
 
 @container (max-width:26rem) { html .app-root .editor-stat-summary dl { grid-template-columns:minmax(0,1fr); } }
+
+/* Suggestions occupy their own space instead of overlaying inputs or the
+   software keyboard. Native datalist is intentionally not used on movement fields. */
+html .app-root .editor-move-suggestions {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr));
+    gap:.45rem; margin-top:.45rem; min-width:0;
+}
+html .app-root .editor-move-suggestion {
+    min-width:0; min-height:44px; padding:.55rem .7rem;
+    color:var(--ui-blue); background:var(--ui-selected);
+    border:1px solid var(--ui-line); border-radius:.4rem;
+    font-size:.9rem; font-weight:700; text-align:left;
+    overflow-wrap:normal; word-break:normal; hyphens:none;
+}
+html .app-root .editor-move-suggestion:hover,
+html .app-root .editor-move-suggestion:focus-visible {
+    border-color:var(--ui-blue); background:var(--ui-panel);
+}
+html .app-root .editor-pp-label { justify-content:flex-start; flex-wrap:wrap; gap:.5rem; }
+html .app-root .editor-pp-label > .editor-pp-control { margin-left:auto; }
+html .app-root .editor-pp-total { min-width:2.5rem; color:var(--ui-muted); font-variant-numeric:tabular-nums; font-weight:700; }
+html .app-root .editor-move-rules { margin-top:.75rem; border-top:1px solid var(--ui-line); }
+html .app-root .editor-move-rules > summary { min-height:44px; padding:.65rem 0; cursor:pointer; font-weight:700; }
+html .app-root .editor-move-rules ul { padding-left:1.3rem; display:grid; gap:.5rem; }
+@container (max-width:32rem) {
+    html .app-root .editor-move-field { padding:clamp(.8rem,3vw,1.1rem); gap:.75rem; }
+    html .app-root .editor-move-facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}

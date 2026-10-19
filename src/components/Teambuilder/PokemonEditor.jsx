@@ -565,7 +565,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         const detail = rawDetail ? getMoveReferenceForMode(rawDetail, referenceVersion, experienceMode) : null;
                         const historical = detail?.reference_generation < 9 || detail?.reference_metadata_verified === false;
                         const moveExplanation = detail ? describeMove(detail, { isTTRPG, historical }) : null;
-                        const moveReference = detail && moveCatalogReady ? getCatalogText('move', normalizedName, detail, { versionGroup: referenceVersion }) : null;
+                        const moveReference = normalizedName && moveCatalogReady ? getCatalogText('move', normalizedName, detail, { versionGroup: referenceVersion }) : null;
                         const isException = Boolean(moveName) && !isHackmon && !validMoveNames.has(normalizedName);
                         const currentPp = rpg.pp?.[index];
                         const maxPp = integerInRange(detail?.pp, 0, 99, 0);

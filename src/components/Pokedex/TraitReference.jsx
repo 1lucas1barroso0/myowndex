@@ -40,11 +40,13 @@ export default function TraitReference({ kind, url, name, detail, isHidden, comp
     }, [detail, detailUrl, requestKey, retryRequest]);
 
     const explanation = data || ready ? describeTrait(kind, data?.name || lookup, data, { versionGroup }) : null;
-    const shownReference = reference?.original || reference?.portuguese ? reference : explanation?.catalog?.text ? {
-        original: explanation.catalog.code === 'en' ? explanation.catalog.text : '',
-        portuguese: explanation.catalog.code === 'pt-BR' ? explanation.catalog.text : '',
-        originalLanguage: explanation.catalog.code,
-    } : null;
+    const shownReference = reference?.original || reference?.portuguese ? reference
+        : explanation?.reference?.original || explanation?.reference?.portuguese ? explanation.reference
+            : explanation?.catalog?.text ? {
+                original: explanation.catalog.code === 'en' ? explanation.catalog.text : '',
+                portuguese: explanation.catalog.code === 'pt-BR' ? explanation.catalog.text : '',
+                originalLanguage: explanation.catalog.code,
+            } : explanation?.summary ? { original: '', portuguese: explanation.summary, originalLanguage: 'pt-BR' } : null;
     const title = data?.name || name || lookup;
     const portrait = kind === 'item' ? data?.sprites?.default : null;
     const pending = !ready || !detailReady;

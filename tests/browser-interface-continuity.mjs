@@ -52,6 +52,8 @@ try {
  assert.equal(await item.getAttribute('aria-expanded'),'false');
  await ability.fill('gr');
  await editor.getByRole('listbox',{name:'Habilidades correspondentes'}).waitFor();
+ const random=await editor.getByRole('button',{name:'Sortear habilidade',exact:true}).boundingBox();
+ const input=await ability.boundingBox();assert.ok(random.height<=Math.max(48,input.height)+1,'The random button keeps its size when suggestions open');
  await ability.press('ArrowDown');await ability.press('Enter');
  assert.equal(await ability.inputValue(),'overgrow');
  assert.equal(await ability.evaluate(e=>document.activeElement===e),true);

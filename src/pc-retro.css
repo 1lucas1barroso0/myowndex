@@ -78,6 +78,7 @@ html .app-root .editor-field :is(input,select,textarea) { width:100%; }
 html .app-root .editor-choice-control { display:flex; align-items:stretch; gap:.75rem; min-width:0; }
 html .app-root .editor-choice-control > :is(input,select) { flex:1 1 0; width:0; min-width:0; }
 html .app-root .editor-choice-control > :is(.room-select,.catalog-input) { flex:1 1 0; width:0; min-width:0; }
+html .app-root .editor-choice-control:has(> .catalog-input) { align-items:flex-start; }
 html .app-root .editor-random-button { min-width:48px; min-height:48px; flex:0 0 auto; background:var(--ui-raised); color:var(--ui-blue); border:1px solid var(--ui-line); border-radius:.25rem; font-size:1.35rem; }
 html .app-root .editor-gender-controls { display:grid; gap:.75rem; }
 html .app-root :is(.editor-gender-selection,.editor-gender-tools) { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; }

@@ -282,7 +282,7 @@ test('generator loads bundled historical move metadata before the first generati
     }
 });
 
-test('PR23: old-game repertoire keeps current canonical abilities, types and PP in RPG/Livre', async () => {
+test('old-game repertoire keeps canonical abilities and types while move PP follows the preferred game in RPG/Livre', async () => {
     const previousFetch = globalThis.fetch;
     const metadata = JSON.parse(readFileSync(new URL('../src/data/generator-species.json', import.meta.url), 'utf8'));
     const catalog = readFileSync(new URL('../public/catalog/v1/move.json', import.meta.url), 'utf8');
@@ -310,7 +310,7 @@ test('PR23: old-game repertoire keeps current canonical abilities, types and PP 
             assert.equal(generated.pokemon.species.types[0].type.name, 'fairy');
             assert.equal(generated.pokemon.ability, 'cute-charm');
             assert.equal(generated.pokemon.moves[0], 'absorb');
-            assert.equal(generated.pokemon.rpg.pp[0], 25);
+            assert.equal(generated.pokemon.rpg.pp[0], 20);
         }
         const [historic] = await generatePokemon(entries, { speciesId: 35, type: 'normal', versionGroup: 'red-blue', experienceMode: 'game' }, { fetcher, random: () => 0, metadata });
         assert.equal(historic.pokemon.species.types[0].type.name, 'normal');

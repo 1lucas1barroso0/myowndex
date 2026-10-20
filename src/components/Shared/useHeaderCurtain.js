@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const KEY = "myowndex_header_curtain_v2";
 const LABELS = ["Só o puxador", "Marca", "Navegação", "Ferramentas", "Tudo"];
@@ -45,7 +45,9 @@ export default function useHeaderCurtain(ready = true) {
         } catch { /* Fine without storage. */ }
     }, []);
 
-    useEffect(() => {
+    // Measure the first visible header before paint, so a restored collapsed
+    // curtain cannot briefly expose desktop rows on a narrow screen.
+    useLayoutEffect(() => {
         if (!ready) return;
         const header = document.querySelector(".app-header-curtain");
         if (!header) return;

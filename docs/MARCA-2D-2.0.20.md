@@ -36,3 +36,8 @@ v101, v103 e v104 são revisões históricas. Seus arquivos e registros de proce
 ## Atualização técnica 2.0.29
 
 Os aliases de distribuição `myowndex-dex-v105-r2-*.png` são cópias byte a byte dos PNGs v105 originais para que navegadores atualizem a sugestão de instalação, os atalhos e favicons usando URLs novas. Não há mudança na obra, pintura, licença ou autoria. O arquivo `myowndex-dex-v105-source.svg` e todos os derivados originais continuam preservados, bem como a identidade de aplicação `/`. O caminho do manifesto não muda entre versões. A reprodução dos ícones originais permanece em `scripts/atualizar-icones.mjs`.
+
+
+## Atualização de apresentação — 2.0.47
+
+A revisão vigente usa `myowndex-dex-v105-r3-source.svg`, derivada do mesmo original preservado. Os caminhos continuam intactos; cores, contorno claro e luzes tornam o aparelho legível sobre o cabeçalho vermelho e nos ícones. `r3-live.svg` anima somente a tela e a lente, com alternativa estática para movimento reduzido. Os PNGs r3 são rasterizados diretamente da fonte e compartilhados por favicons, instalação, recuperação, atalhos e imagem social. O endereço do manifesto e a identidade de instalação `/` continuam estáveis. Os arquivos anteriores registram versões passadas.

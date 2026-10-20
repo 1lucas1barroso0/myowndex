@@ -88,7 +88,7 @@ export default function RecoveryInstaller() {
     return (
         <main className="pwa-rescue-page">
             <section className="pwa-rescue-card" aria-labelledby="pwa-rescue-title">
-                <img draggable={false} src="/icons/myowndex-dex-v105-r2-192.png" alt="" width="96" height="96" />
+                <img draggable={false} src="/icons/myowndex-dex-v105-r3-192.png" alt="" width="96" height="96" />
                 <p className="pwa-rescue-eyebrow">MyOwnDex · recuperação de instalação</p>
                 <h1 id="pwa-rescue-title">Recuperar a instalação no celular</h1>
                 <p>Use esta alternativa somente se o navegador diz que o MyOwnDex está instalado, mesmo depois de você desinstalá-lo.</p>

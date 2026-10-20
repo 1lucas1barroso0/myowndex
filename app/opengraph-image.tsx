@@ -6,7 +6,7 @@ export const alt = "Pokédex do MyOwnDex";
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
-const icon = await readFile(join(process.cwd(), "public/icons/myowndex-dex-v105-app-512.png"));
+const icon = await readFile(join(process.cwd(), "public/icons/myowndex-dex-v105-r3-app-512.png"));
 const iconSource = `data:image/png;base64,${icon.toString("base64")}`;
 
 export default function OpenGraphImage() {

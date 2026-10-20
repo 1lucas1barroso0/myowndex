@@ -183,7 +183,7 @@ test("offline support caches the shell and sprites but never private room APIs",
   assert.match(worker, /SKIP_WAITING/);
   assert.doesNotMatch(worker, /then\(\(\) => self\.skipWaiting\(\)\)/);
   assert.match(worker, /request\.headers\.get\("RSC"\)/);
-  assert.match(worker, /myowndex-dex-v105-r2-96\.png/);
+  assert.match(worker, /myowndex-dex-v105-r3-96\.png/);
   assert.doesNotMatch(worker, /myowndex-rotomdex-v101|myowndex-(?:icon|app|maskable|shortcut).*v91|favicon-v91/);
   assert.match(app, /document\.readyState === "complete"/);
   assert.match(app, /updateViaCache: "none"/);
@@ -392,14 +392,14 @@ test("safe shell updates and both visual themes remain available without an inst
   assert.match(manifest, /myowndex-dex-v105-/);
   assert.match(manifest, /purpose:\s*"maskable"/);
   assert.match(manifest, /shortcuts:/);
-  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-dex-v105-r2-96\.png"/);
+  assert.match(layout, /shortcut:\s*"\/icons\/myowndex-dex-v105-r3-96\.png"/);
   assert.match(layout, /myowndex-dex-v105-/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(css, /data-theme="night"/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(app, /myowndex:prepare-update/);
   assert.match(app, /window\.location\.reload\(\)/);
-  assert.match(app, /myowndex-dex-v105-96\.png/);
+  assert.match(app, /myowndex-dex-v105-r3-live\.svg/);
   assert.match(app, /app-header-primary/);
   assert.match(css, /min-height:\s*100dvh/);
 });
@@ -608,7 +608,7 @@ test("all visible app identity references use one Pokédex do MyOwnDex master as
   ]);
   for (const source of [app, layout, manifest, worker]) assert.match(source, /myowndex-dex-v105-/);
   assert.doesNotMatch(app + layout + manifest + worker, /myowndex-rotomdex-v101|myowndex-(?:icon|app|maskable|shortcut).*v(?:91|100)|favicon-v(?:91|100)/);
-  const master = await readFile(new URL("../public/icons/myowndex-dex-v105-master.png", import.meta.url));
+  const master = await readFile(new URL("../public/icons/myowndex-dex-v105-r3-master.png", import.meta.url));
   assert.equal(master.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", "the current identity has one real portable PNG master");
   assert.ok(master.readUInt32BE(16) >= 512 && master.readUInt32BE(20) >= 512, "the master preserves detail for high-resolution icons");
 });

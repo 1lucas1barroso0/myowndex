@@ -22,7 +22,7 @@ async function check(label){
  const result=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,dialogs:[...document.querySelectorAll('[role="dialog"]')].filter(element=>element.getClientRects().length).map(element=>({width:element.clientWidth,scroll:element.scrollWidth})),brand:document.querySelector('img.app-brand-icon')?.currentSrc}));
  assert.equal(result.scroll,result.width,`${label}: no horizontal page overflow`);
  for(const dialog of result.dialogs)assert.ok(dialog.scroll<=dialog.width+1,`${label}: no horizontal dialog overflow`);
- assert.match(result.brand,/myowndex-dex-v105-96\.png(?:\?|$)/,`${label}: the new Pokédex do MyOwnDex is visible`);
+ assert.match(result.brand,/myowndex-dex-v105-r3-live\.svg(?:\?|$)/,`${label}: the new Pokédex do MyOwnDex is visible`);
  report.push({label,...result});
 }
 async function waitForRelease(){
@@ -42,17 +42,17 @@ async function waitForRelease(){
 }
 async function auditIdentity(){
  const metadata=await page.evaluate(()=>({brand:document.querySelector('img.app-brand-icon')?.getAttribute('src'),icons:[...document.querySelectorAll('link[rel="icon"]')].map(element=>({url:element.getAttribute('href'),size:Number(element.getAttribute('sizes')?.split('x')[0])})),apple:document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href'),shortcut:document.querySelector('link[rel="shortcut icon"]')?.getAttribute('href'),manifest:document.querySelector('link[rel="manifest"]')?.getAttribute('href'),og:document.querySelector('meta[property="og:image"]')?.getAttribute('content'),twitter:document.querySelector('meta[name="twitter:image"]')?.getAttribute('content')}));
- assert.match(metadata.brand,/myowndex-dex-v105-96\.png(?:\?|$)/);
- assert.match(metadata.apple,/myowndex-dex-v105-r2-180\.png$/);
- assert.match(metadata.shortcut,/myowndex-dex-v105-r2-96\.png$/);
+ assert.match(metadata.brand,/myowndex-dex-v105-r3-live\.svg(?:\?|$)/);
+ assert.match(metadata.apple,/myowndex-dex-v105-r3-180\.png$/);
+ assert.match(metadata.shortcut,/myowndex-dex-v105-r3-96\.png$/);
  assert.ok(metadata.icons.some(icon=>icon.size===32),'The browser has a dedicated readable favicon');
- for(const icon of metadata.icons)assert.match(icon.url,/myowndex-dex-v105-r2-(?:32|96)\.png$/);
+ for(const icon of metadata.icons)assert.match(icon.url,/myowndex-dex-v105-r3-(?:32|96)\.png$/);
  assert.equal(metadata.manifest,'/manifest.webmanifest','Keep the canonical PWA manifest URL stable');
  assert.ok(metadata.og);assert.equal(metadata.og,metadata.twitter,'Shared links use the same Pokédex do MyOwnDex');
  const response=await context.request.get(new URL(metadata.manifest,baseUrl).href);assert.equal(response.status(),200);const manifest=await response.json();
  assert.deepEqual(manifest.categories,['games']);assert.equal(manifest.shortcuts.length,4);
- for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v105-r2-96\.png$/);
- for(const icon of manifest.icons)assert.match(icon.src,/myowndex-dex-v105-r2-(?:app-|maskable-)?\d+\.png$/);
+ for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v105-r3-96\.png$/);
+ for(const icon of manifest.icons)assert.match(icon.src,/myowndex-dex-v105-r3-(?:app-|maskable-)?\d+\.png$/);
  const assets=[...metadata.icons,{url:metadata.apple,size:180},{url:metadata.shortcut,size:96},...manifest.icons.map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0])})),{url:metadata.og,size:512}];
  const origin=new URL(baseUrl).origin;
  for(const asset of assets){

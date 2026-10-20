@@ -137,6 +137,7 @@ export default function Battlefield({
     const resizeRef = useRef(null);
     const cancelGestures = useCallback(() => {
         const active = [dragRef.current, resizeRef.current];
+        if (dragRef.current) movedPointerRef.current = true;
         dragRef.current = null;
         resizeRef.current = null;
         setDrag(null);

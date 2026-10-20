@@ -73,11 +73,12 @@ try{
     const scrollBefore=await page.locator('#main-content').evaluate(e=>e.scrollTop);
     assert.equal(await token.evaluate(e=>getComputedStyle(e).touchAction),'none','Movable Pokémon own their touch gesture');
     assert.equal(await resizeHandle.evaluate(e=>getComputedStyle(e).touchAction),'none','Resize never competes with page scrolling');
-    for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape']) {
+    for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape','cancel-tap']) {
       const b=await token.boundingBox();
       await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();
-      await page.mouse.move(b.x+b.width/2+30,b.y+b.height/2-18,{steps:4});
+      if(reason!=='cancel-tap')await page.mouse.move(b.x+b.width/2+30,b.y+b.height/2-18,{steps:4});
       if(reason==='Escape')await page.keyboard.press('Escape');
+      else if(reason==='cancel-tap')await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
       else await page.evaluate(reason=>{
         if(reason==='blur'||reason==='resize')window.dispatchEvent(new Event(reason));
         else document.querySelector('.room-token').dispatchEvent(new PointerEvent(reason,{bubbles:true,pointerId:1}));

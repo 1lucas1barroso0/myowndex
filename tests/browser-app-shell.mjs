@@ -142,12 +142,13 @@ try {
  }
  // Cancellation, lost capture and rotation must never leave a stretched curtain.
  await grip.focus();await page.keyboard.press('End');await page.waitForTimeout(300);
- for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape']) {
+ for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape','cancel-tap']) {
   const before=await header.getAttribute('data-curtain-level');
   const bounds=await grip.boundingBox();
   await page.mouse.move(bounds.x+bounds.width/2,bounds.y+22);await page.mouse.down();
-  await page.mouse.move(bounds.x+bounds.width/2,bounds.y-50,{steps:4});
+  if(reason!=='cancel-tap')await page.mouse.move(bounds.x+bounds.width/2,bounds.y-50,{steps:4});
   if(reason==='Escape')await page.keyboard.press('Escape');
+  else if(reason==='cancel-tap')await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
   else await page.evaluate(reason=>{
    if(reason==='blur'||reason==='resize')window.dispatchEvent(new Event(reason));
    else document.querySelector('.app-curtain-grip').dispatchEvent(new PointerEvent(reason,{bubbles:true,pointerId:1}));

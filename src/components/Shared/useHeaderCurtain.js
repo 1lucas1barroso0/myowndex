@@ -18,7 +18,7 @@ export default function useHeaderCurtain(ready = true) {
         gesture.current = null;
         setDragHeight(null);
         if (!active) return;
-        ignoreClick.current = active.moved;
+        ignoreClick.current = true;
         if (active.target.hasPointerCapture(active.id)) active.target.releasePointerCapture(active.id);
     }, []);
     const choose = useCallback(value => {
@@ -107,7 +107,8 @@ export default function useHeaderCurtain(ready = true) {
         const active = gesture.current;
         if (!active || active.id !== event.pointerId) return;
         cancel();
-        if (canceled || !active.moved) return;
+        if (canceled) return;
+        if (!active.moved) { ignoreClick.current = false; return; }
         const delta = event.clientY - active.y;
         const position = clamp(active.height + delta, marks[0], marks[LAST]);
         let nearest = marks.reduce((best, height, index) =>

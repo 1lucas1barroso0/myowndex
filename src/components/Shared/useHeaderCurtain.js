@@ -8,7 +8,9 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 export default function useHeaderCurtain(ready = true) {
     const [mobile, setMobile] = useState(false);
-    const [level, setLevel] = useState(LAST);
+    const [preferredLevel, setLevel] = useState(LAST);
+    const [availableLevel, setAvailableLevel] = useState(LAST);
+    const level = Math.min(preferredLevel, availableLevel);
     const [marks, setMarks] = useState([]);
     const gesture = useRef(null);
     const ignoreClick = useRef(false);
@@ -58,17 +60,27 @@ export default function useHeaderCurtain(ready = true) {
                 return element ? Math.ceil(element.getBoundingClientRect().bottom - top + handleHeight + 4) : 0;
             })];
             for (let i = 1; i < stops.length; i++) stops[i] = Math.max(stops[i], stops[i-1] + 1);
+            const viewport = window.visualViewport;
+            const height = viewport && Math.abs(viewport.scale - 1) < .02 ? viewport.height : window.innerHeight;
+            const footerHeight = document.querySelector(".device-footer")?.getBoundingClientRect().height || 56;
+            const editing = document.activeElement?.matches('textarea,select,input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"])');
+            // Leave room for a labeled field while editing. Outside editing,
+            // keep all menu rows available whenever they fit with a touch target.
+            const budget = height - footerHeight - (editing ? 160 : 44);
+            setAvailableLevel(Math.max(0, stops.findLastIndex(stop => stop <= budget)));
             setMarks(old => old.length === stops.length && old.every((height, i) => height === stops[i]) ? old : stops);
         };
         const remeasure = () => { cancel(); measure(); };
         measure();
         const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
         [header, ...header.querySelectorAll(ROWS.join(","))].forEach(element => observer?.observe(element));
+        window.visualViewport?.addEventListener("resize", remeasure);
         window.addEventListener("resize", remeasure);
         window.addEventListener("orientationchange", remeasure);
         window.addEventListener("blur", cancel);
         return () => {
             observer?.disconnect();
+            window.visualViewport?.removeEventListener("resize", remeasure);
             window.removeEventListener("resize", remeasure);
             window.removeEventListener("orientationchange", remeasure);
             window.removeEventListener("blur", cancel);
@@ -100,8 +112,8 @@ export default function useHeaderCurtain(ready = true) {
         if (!active.moved && Math.hypot(event.clientX - active.x, delta) < 9) return;
         event.preventDefault();
         active.moved = true;
-        setDragHeight(clamp(active.height + delta, marks[0], marks[LAST]));
-    }, [marks]);
+        setDragHeight(clamp(active.height + delta, marks[0], marks[availableLevel]));
+    }, [marks, availableLevel]);
 
     const finish = useCallback((event, canceled = false) => {
         const active = gesture.current;
@@ -110,24 +122,24 @@ export default function useHeaderCurtain(ready = true) {
         if (canceled) return;
         if (!active.moved) { ignoreClick.current = false; return; }
         const delta = event.clientY - active.y;
-        const position = clamp(active.height + delta, marks[0], marks[LAST]);
-        let nearest = marks.reduce((best, height, index) =>
+        const position = clamp(active.height + delta, marks[0], marks[availableLevel]);
+        let nearest = marks.slice(0, availableLevel + 1).reduce((best, height, index) =>
             Math.abs(height - position) < Math.abs(marks[best] - position) ? index : best, 0);
         if (nearest === active.level && Math.abs(delta) >= 28)
-            nearest = clamp(active.level + (delta > 0 ? 1 : -1), 0, LAST);
+            nearest = clamp(active.level + (delta > 0 ? 1 : -1), 0, availableLevel);
         choose(nearest);
-    }, [marks, choose, cancel]);
+    }, [marks, choose, cancel, availableLevel]);
 
     const click = useCallback(event => {
         if (event.detail !== 0 && ignoreClick.current) { ignoreClick.current = false; return; }
-        choose(level === LAST ? 0 : level + 1);
-    }, [level, choose]);
+        choose(level >= availableLevel ? 0 : level + 1);
+    }, [level, choose, availableLevel]);
 
     const keyDown = useCallback(event => {
-        const values = { ArrowUp: Math.max(0, level - 1), ArrowDown: Math.min(LAST, level + 1), Home: 0, End: LAST };
+        const values = { ArrowUp: Math.max(0, level - 1), ArrowDown: Math.min(availableLevel, level + 1), Home: 0, End: availableLevel };
         if (Object.hasOwn(values, event.key)) { event.preventDefault(); choose(values[event.key]); }
         else if (event.key === "Escape") { event.preventDefault(); cancel(); }
-    }, [choose, level, cancel]);
+    }, [choose, level, cancel, availableLevel]);
 
     return {
         mobile, level, dragging: dragHeight !== null,

@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.45.**
+**Versão atual: 2.0.46.**
+
+A revisão 2.0.46 fixa o jogo na área visível e impede rolagem do documento e da moldura externa. O viewport acompanha teclado, deslocamentos visuais e retorno da janela sem desabilitar o zoom. A cortina recolhe apenas fileiras inteiras quando falta altura e restaura a preferência ao recuperar espaço. Fichas, regras, resultados do gerador e controles da aventura revelam conteúdo apenas dentro do próprio contêiner de rolagem. Fechar uma ficha retorna ao Pokémon com foco sem deslocar o aplicativo. As ferramentas compartilham os limites visuais do jogo.
 
 A revisão 2.0.45 acrescenta o quinto nível da cortina: só o puxador, com a marca e todas as fileiras recolhidas. Migra a preferência anterior mantendo as mesmas fileiras visíveis. Gestos da cortina e do campo cancelam a prévia ao perder captura, sair da janela ou mudar de largura; mover e redimensionar não se misturam. Imagens da interface não iniciam arraste nativo, e o redimensionamento de notas tem limite de altura. Cancelar um toque não consome o próximo clique em um Pokémon somente de consulta; o tamanho visual fica com o Narrador, que pode salvar essa alteração.
 

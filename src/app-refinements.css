@@ -2,7 +2,8 @@
 
 /* Shared app shell. Imported last: feature styles describe their content;
    this layer owns the common frame and interaction grammar. */
-html .app-root.game-edition.handheld-edition { height:100dvh !important; min-height:0 !important; overflow:hidden !important; box-sizing:border-box; transition:none !important; }
+html[data-app-viewport], html[data-app-viewport] body { width:100%; height:100%; min-height:0 !important; overflow:clip !important; overscroll-behavior:none; }
+html .app-root.game-edition.handheld-edition { position:fixed !important; top:var(--app-viewport-top,0px); left:0; right:0; height:var(--app-viewport-height,100dvh) !important; min-height:0 !important; overflow:clip !important; box-sizing:border-box; transition:none !important; }
 html .app-root.game-edition.handheld-edition .app-header { flex:0 0 auto; }
 html .app-root.game-edition.handheld-edition .animate-fade-in { animation:none !important; opacity:1 !important; transform:none !important; }
 html .app-root.game-edition.handheld-edition .app-scroll-area { flex:1 1 0 !important; min-height:0 !important; overflow-y:auto !important; overflow-x:hidden !important; padding:.75rem !important; }
@@ -214,7 +215,7 @@ html .app-root.game-edition.handheld-edition .friendship-help > summary { min-he
   html .app-root.game-edition.handheld-edition .editor-portrait-stage > .pokemon-sized-sprite { width:104px !important; height:104px !important; }
   html :is(.generator-overlay,.account-overlay) { padding:0; align-items:flex-end; }
   html :is(.generator-dialog,.account-dialog), html .app-root.game-edition.handheld-edition dialog.local-dice-dialog {
-    width:100% !important; max-width:100% !important; height:auto !important; min-height:0 !important; max-height:92dvh !important;
+    width:100% !important; max-width:100% !important; height:auto !important; min-height:0 !important; max-height:calc(var(--app-viewport-height,100dvh) * .92) !important;
     margin:0 !important; border-radius:1rem 1rem 0 0 !important; border-width:4px 0 0; box-shadow:0 -8px 32px #0003;
   }
   html .app-root.game-edition.handheld-edition dialog.local-dice-dialog { position:fixed; inset:auto 0 0; }
@@ -259,7 +260,7 @@ html .pokemon-editor .catalog-input-options > button:is(:hover,[aria-selected="t
 
 /* Installation help uses the same compact, bounded dialog in both launchers. */
 html dialog.app-help-dialog {
-  width:min(36rem,calc(100% - 2rem)); max-width:none; height:fit-content; min-height:0; max-height:92dvh;
+  width:min(36rem,calc(100% - 2rem)); max-width:none; height:fit-content; min-height:0; max-height:calc(var(--app-viewport-height,100dvh) * .92);
   margin:auto; padding:0; overflow:hidden; border:1px solid var(--ui-line); border-top:4px solid var(--ui-blue);
   border-radius:1rem; background:var(--ui-panel,#fff); color:var(--ui-ink,#173043); box-shadow:0 12px 40px #0003;
 }
@@ -272,6 +273,22 @@ html .app-help-dialog-content { min-height:0; overflow:auto; overscroll-behavior
 html .app-help-dialog-content p { margin:0 0 1rem; line-height:1.55; }
 html .app-help-dialog-content > button { width:100%; min-height:44px; border-radius:.65rem; padding:.65rem .8rem; border:1px solid #005d9e; background:#005d9e; color:#fff; font:inherit; font-weight:800; text-transform:none; letter-spacing:normal; }
 html .app-help-dialog :focus-visible { outline:3px solid var(--ui-blue,#07699b); outline-offset:3px; }
+
+/* Portals and native dialogs use the same visible rectangle as the game. */
+html[data-app-viewport] :is(body,.app-root.game-edition.handheld-edition) :is(.account-overlay,.generator-overlay,.confirm-dialog-overlay,.pokemon-modal-backdrop,.link-cable-overlay) {
+  top:var(--app-viewport-top,0px) !important; bottom:auto !important;
+  height:var(--app-viewport-height,100dvh) !important; box-sizing:border-box;
+}
+html[data-app-viewport] :is(body,.app-root.game-edition.handheld-edition) :is(.account-dialog,.generator-dialog,.confirm-dialog-shell,.pokemon-modal-shell,.link-cable-dialog,.local-dice-dialog,.app-help-dialog) {
+  max-height:calc(var(--app-viewport-height,100dvh) * .92) !important;
+}
+html[data-app-viewport] :is(body,.app-root.game-edition.handheld-edition) :is(dialog.local-dice-dialog,dialog.app-help-dialog) {
+  top:var(--app-viewport-top,0px) !important;
+  bottom:calc(100dvh - var(--app-viewport-height,100dvh) - var(--app-viewport-top,0px)) !important;
+}
+@media(max-width:700px) {
+  html[data-app-viewport] :is(body,.app-root.game-edition.handheld-edition) dialog.local-dice-dialog { top:auto !important; }
+}
 
 /* Reading credits does not resize or move the current game screen. */
 html .game-credits { position:relative; }

@@ -376,7 +376,7 @@ html .friendship-meter { display:block; height:5px; width:100%; overflow:hidden;
 html .friendship-meter > span { display:block; height:100%; background:var(--ui-ink); border-radius:inherit; }
 @media (max-width:360px) {
   html .app-root.game-edition.handheld-edition .editor-header { gap:.65rem !important; padding:.75rem !important; }
-  html .app-root.game-edition.handheld-edition .editor-summary-facts { column-gap:.6rem; }
+  html .app-root.game-edition.handheld-edition .editor-summary-facts { column-gap:.6rem; row-gap:.4rem; }
   html .app-root.game-edition.handheld-edition .editor-summary-name h3 { font-size:1.1rem; }
 }
 

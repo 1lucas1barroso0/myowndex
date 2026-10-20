@@ -63,7 +63,10 @@ export default function useHeaderCurtain(ready = true) {
             const viewport = window.visualViewport;
             const height = viewport && Math.abs(viewport.scale - 1) < .02 ? viewport.height : window.innerHeight;
             const footerHeight = document.querySelector(".device-footer")?.getBoundingClientRect().height || 56;
-            const budget = height - footerHeight - Math.min(120, height * .3);
+            const editing = document.activeElement?.matches('textarea,select,input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"])');
+            // Leave room for a labeled field while editing. Outside editing,
+            // keep all menu rows available whenever they fit with a touch target.
+            const budget = height - footerHeight - (editing ? 160 : 44);
             setAvailableLevel(Math.max(0, stops.findLastIndex(stop => stop <= budget)));
             setMarks(old => old.length === stops.length && old.every((height, i) => height === stops[i]) ? old : stops);
         };

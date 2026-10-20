@@ -62,5 +62,8 @@ try{
  assert.ok(await page.locator('.app-root').evaluate(e=>e.getBoundingClientRect().height)>=840,'Zoom does not collapse the game');
  await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();await stable('zoom restored');
  await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));await stable('window restored');
+ await page.locator('.app-curtain-grip').focus();await page.setViewportSize({width:667,height:375});await page.waitForTimeout(300);
+ assert.equal(await page.locator('.app-preferences').evaluate(e=>e.hasAttribute('inert')),false,'All preferences remain reachable in short landscape without a keyboard');
+ assert.ok(await page.getByRole('button',{name:'Abrir Dados',exact:true}).isVisible());await stable('short landscape');
  assert.deepEqual(errors,[]);console.log(`PASS ${checkpoints} frame stability checks, full Box, focus, keyboard-size changes, visual viewport, tools and zoom`);
 }finally{await browser.close();}

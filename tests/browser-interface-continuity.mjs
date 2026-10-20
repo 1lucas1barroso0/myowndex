@@ -32,6 +32,7 @@ try {
  await page.goto(baseUrl);
  await page.getByRole('button',{name:'Abrir o PC do Bill',exact:true}).click();
  await page.locator('.pc-partner-card').first().click();
+ await page.locator('.editor-summary-customize > summary').click();
  const editor=page.locator('.pokemon-editor');
  const item=editor.getByRole('combobox',{name:'Item segurado',exact:true});
  const ability=editor.getByRole('combobox',{name:'Habilidade',exact:true});
@@ -66,6 +67,7 @@ try {
  await page.reload();
  await page.getByRole('button',{name:'Abrir o PC do Bill',exact:true}).click();
  await page.locator('.pc-partner-card').first().click();
+ await page.locator('.editor-summary-customize > summary').click();
  assert.equal(await editor.getByLabel('Item segurado',{exact:true}).inputValue(),'lembranca-da-jornada','Custom values survive reload');
  for(const width of [320,390,768,1280])for(const theme of ['normal','night']) {
   await page.setViewportSize({width,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);

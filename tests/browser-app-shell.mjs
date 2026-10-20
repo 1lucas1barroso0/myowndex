@@ -131,12 +131,13 @@ try {
    await page.waitForTimeout(300);
    const fit=await header.evaluate(root=>{
     const handle=root.querySelector('.app-curtain-grip').getBoundingClientRect(),hem=getComputedStyle(root,'::before');
-    return {handle:handle.height,opacity:hem.opacity,background:hem.backgroundColor,headerBackground:getComputedStyle(root).backgroundColor,
-     rows:['.app-brand-cluster','.app-nav','.app-tool-actions','.app-preferences'].map(selector=>{const e=root.querySelector(selector),r=e.getBoundingClientRect();return {visible:getComputedStyle(e).visibility!=='hidden',bottom:r.bottom,handleTop:handle.top};})};
+    return {scroll:root.scrollTop,top:root.getBoundingClientRect().top,handle:handle.height,opacity:hem.opacity,background:hem.backgroundColor,headerBackground:getComputedStyle(root).backgroundColor,
+     rows:['.app-brand-cluster','.app-nav','.app-tool-actions','.app-preferences'].map(selector=>{const e=root.querySelector(selector),r=e.getBoundingClientRect();return {visible:getComputedStyle(e).visibility!=='hidden',top:r.top,bottom:r.bottom,handleTop:handle.top};})};
    });
+   assert.equal(fit.scroll,0,'Focusing the grip never scrolls the clipped header');
    assert.ok(fit.handle>=44,'The grip is a full touch target');
    assert.equal(fit.opacity,'1');assert.equal(fit.background,fit.headerBackground,'The hem is opaque and matches the curtain');
-   fit.rows.forEach((row,index)=>{assert.equal(row.visible,index<level,'Only selected curtain rows are visible');if(row.visible)assert.ok(row.bottom<=row.handleTop+1,'Visible controls end before the grip');});
+   fit.rows.forEach((row,index)=>{assert.equal(row.visible,index<level,'Only selected curtain rows are visible');if(row.visible){assert.ok(row.top>=fit.top,'Visible rows never scroll out of the header');assert.ok(row.bottom<=row.handleTop+1,'Visible controls end before the grip');}});
   }
  }
  // Cancellation, lost capture and rotation must never leave a stretched curtain.

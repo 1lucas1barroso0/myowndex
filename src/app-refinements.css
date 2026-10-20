@@ -287,7 +287,7 @@ html .game-credits-content a { color:var(--ui-blue); text-decoration:underline; 
 html .app-root.game-edition.handheld-edition .app-curtain-grip { display:none; }
 @media (max-width:700px) {
   html .app-root.game-edition.handheld-edition .app-header-curtain {
-    position:relative !important; overflow:hidden !important;
+    position:relative !important; overflow:clip !important;
     transition:height .24s cubic-bezier(.2,.75,.23,1) !important;
   }
   html .app-root.game-edition.handheld-edition .app-header-curtain.is-dragging { transition:none !important; }

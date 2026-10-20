@@ -45,6 +45,19 @@ export default function useHeaderCurtain() {
         return () => { observer?.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("orientationchange", measure); };
     }, []);
 
+    // Keep hidden menu controls out of focus, even on browsers with partial
+    // support for the React inert property.
+    useEffect(() => {
+        const header = document.querySelector(".app-header-curtain");
+        if (!header) return;
+        for (const [selector, required] of [[".app-nav",1],[".app-tool-actions",2],[".app-preferences",3]]) {
+            const element = header.querySelector(selector);
+            if (!element) continue;
+            if (mobile && level < required) element.setAttribute("inert", "");
+            else element.removeAttribute("inert");
+        }
+    }, [mobile, level]);
+
     const down = useCallback(event => {
         if (!mobile || marks.length !== 4 || !event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
         setGesture({ id: event.pointerId, y: event.clientY, height: marks[level], level, delta: 0, moved: false });

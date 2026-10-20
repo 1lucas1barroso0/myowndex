@@ -79,11 +79,12 @@ try {
  const fullHeight=await header.evaluate(e=>e.getBoundingClientRect().height);
  await grip.click();await page.waitForTimeout(300);
  assert.equal(await header.getAttribute('data-curtain-level'),'0');
- assert.equal(await page.locator('.app-nav').evaluate(e=>e.inert),true,'Hidden navigation stays unfocusable');
+ assert.equal(await page.locator('.app-nav').getAttribute('aria-hidden'),'true','Hidden navigation is absent from accessibility tree');
+ assert.equal(await page.locator('.app-nav').evaluate(e=>e.hasAttribute('inert')),true,'Hidden navigation stays unfocusable');
  const compactHeight=await header.evaluate(e=>e.getBoundingClientRect().height);
  assert.ok(compactHeight<fullHeight-50,'Curtain opens usable play space');
  for(const expected of ['1','2','3']) {await grip.click();assert.equal(await header.getAttribute('data-curtain-level'),expected);}
- assert.equal(await page.locator('.app-preferences').evaluate(e=>e.inert),false);
+ assert.equal(await page.locator('.app-preferences').evaluate(e=>e.hasAttribute('inert')),false);
  await grip.focus();await page.keyboard.press('ArrowUp');
  assert.equal(await header.getAttribute('data-curtain-level'),'2');
  await page.keyboard.press('ArrowDown');

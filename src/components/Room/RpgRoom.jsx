@@ -5,6 +5,7 @@ import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import GameIcon from "../Shared/GameIcon.jsx";
+import PokemonHp from "../Shared/PokemonHp.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import TurnOrder from "../Shared/TurnOrder.jsx";
 import ExperienceAward from "../Shared/ExperienceAward.jsx";
@@ -1598,7 +1599,6 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                             </div>}
                             <div className="token-battle-vitals">
                                 <div className="token-hp-control">
-                                    <span>HP</span>
                                     <button
                                         type="button"
                                         disabled={role !== "narrator" || selectedToken.currentHp <= 0}
@@ -1606,7 +1606,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                         aria-label="Registrar 1 ponto de dano recebido"
                                         title="Dano recebido"
                                     >−</button>
-                                    <strong>{selectedToken.currentHp} de {selectedToken.maxHp}</strong>
+                                    <PokemonHp current={selectedToken.currentHp} maximum={selectedToken.maxHp} />
                                     <button
                                         type="button"
                                         disabled={role !== "narrator"}

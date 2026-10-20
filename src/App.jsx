@@ -34,7 +34,7 @@ const formatDexResultCount = (entryCount, variantCount, variantMode) => {
 };
 function OpeningScreen() {
     return <div className="account-opening" role="status" aria-label="Carregando MyOwnDex">
-        <img draggable={false} src={`/icons/myowndex-dex-v105-r3-live.svg?v=${APP_VERSION}`} width="96" height="96" alt="" />
+        <img draggable={false} className="myowndex-brand-art" src={`/icons/myowndex-dex-v105-r4-live.svg?v=${APP_VERSION}`} width="96" height="96" alt="" />
         <span className="opening-progress" aria-hidden="true"><i /><i /><i /></span>
     </div>;
 }
@@ -625,7 +625,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     <div className="app-header-row">
                         <div className="app-header-primary">
                             <div className="app-brand-cluster" inert={curtain.mobile && curtain.level < 1} aria-hidden={curtain.mobile && curtain.level < 1 ? true : undefined}>
-                                <img draggable={false} className="app-brand-icon" src={`/icons/myowndex-dex-v105-r3-live.svg?v=${APP_VERSION}`} width="96" height="96" alt="" />
+                                <img draggable={false} className="app-brand-icon myowndex-brand-art" src={`/icons/myowndex-dex-v105-r4-live.svg?v=${APP_VERSION}`} width="96" height="96" alt="" />
                                 <div className="app-brand">
                                     <h1>MyOwnDex</h1>
                                 </div>

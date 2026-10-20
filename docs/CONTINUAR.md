@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.47.**
+**Versão atual: 2.0.48.**
+
+A revisão 2.0.48 integra símbolo, nome e seleção de Shiny em um único controle e apresenta HP com números e barra de estado compartilhada entre ficha, Dados/Campo e Aventura. A identidade visual usa vermelho vivo, contorno definido e fundo amarelo, com todos os ícones derivados da mesma fonte e redução de movimento preservada. A revisão mantém grupos coerentes, leitura confortável e edição recolhida.
 
 A revisão 2.0.47 reserva o tamanho real da marca em qualquer largura e mantém a navegação fora dela. A Amizade acompanha o alinhamento dos demais atributos, com valor e barra próximos do rótulo; a edição mantém o campo bruto sem duplicar o indicador nem a legenda RPG. A Pokédex da marca ganha contorno claro, contraste e luzes suaves que respeitam movimento reduzido. Cabeçalho, abertura, favicons, instalação, recuperação, atalhos, compartilhamento e cache offline usam a mesma revisão r3. A identidade estável do aplicativo e os dados permanecem preservados.
 

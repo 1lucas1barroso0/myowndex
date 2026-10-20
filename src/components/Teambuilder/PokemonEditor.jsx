@@ -23,6 +23,8 @@ import ExperienceAward from '../Shared/ExperienceAward.jsx';
 import EvTraining from '../Shared/EvTraining.jsx';
 import FriendshipControl from '../Shared/FriendshipControl.jsx';
 import FriendshipValue from '../Shared/FriendshipValue.jsx';
+import PokemonHp from '../Shared/PokemonHp.jsx';
+import GameIcon from '../Shared/GameIcon.jsx';
 import CatalogInput from '../Shared/CatalogInput.jsx';
 
 const POKEMONDB_ITEMS = [
@@ -420,10 +422,10 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <header className="editor-header" style={{ "--summary-type": TYPE_COLORS[pk.species?.types?.[0]?.type?.name] || "var(--ui-blue)" }}>
                 <div className="editor-portrait-stage"><PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" /></div>
                 <div className="editor-identity">
-                    <div className="editor-summary-name"><h3>{pk.nickname || formatName(pk.formKey || pk.species?.name || "")}</h3><span className="editor-summary-level">Nível {pk.level || 1}</span>{pk.shiny && <span className="editor-shiny-badge">✦ Shiny</span>}</div>
+                    <div className="editor-summary-name"><h3>{pk.nickname || formatName(pk.formKey || pk.species?.name || "")}</h3><span className="editor-summary-level">Nível {pk.level || 1}</span>{pk.shiny && <span className="editor-shiny-badge"><GameIcon name="shiny" />Shiny</span>}</div>
                     {pk.nickname && pk.nickname.toLowerCase() !== formatName(pk.formKey || pk.species?.name || "").toLowerCase() && <span className="editor-species-name">{formatName(pk.formKey || pk.species?.name || "")}</span>}
                     <div className="editor-summary-types" aria-label="Tipos deste Pokémon">{(isHackmon && customT.length ? customT : (pk.species?.types || []).map(entry => entry.type?.name)).filter(Boolean).map(type => <span key={type} style={{ backgroundColor: TYPE_COLORS[type], color: TYPE_TEXT_COLORS[type] }}>{formatType(type)}</span>)}</div>
-                    <div className="editor-summary-health"><strong>HP {rpg.currentHp ?? displayedMaxHp} / {displayedMaxHp}</strong><span>{RPG_STATUS_LABELS[rpg.status || ""] || "Sem condição"}</span></div>
+                    <div className="editor-summary-health"><PokemonHp current={rpg.currentHp} maximum={displayedMaxHp} />{rpg.status && <span className="editor-summary-condition">{RPG_STATUS_LABELS[rpg.status]}</span>}</div>
                 </div>
                 <dl className="editor-summary-facts" aria-label="Características do Pokémon">
                     <div><dt>Natureza</dt><dd>{formatName(pk.nature || "hardy")}</dd></div>
@@ -440,7 +442,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <span className="editor-label">Apelido</span>
                         <input type="text" value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, nickname: event.target.value })} className="editor-input editor-nickname" />
                     </label>
-                    <label className="editor-shiny"><input aria-label="Shiny" type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} /> ✦ Shiny</label>
+                    <label className="editor-shiny"><input aria-label="Shiny" type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} /><span className="editor-shiny-label"><GameIcon name="shiny" /><span>Shiny</span></span><span className="editor-shiny-switch" aria-hidden="true" /></label>
                 <label className="editor-field editor-level">
                     <span className="editor-label">Nível</span>
                     <input type="number" inputMode="numeric" min="1" max={isHackmon ? 200 : 100} value={pk.level === "" ? "" : pk.level} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, level: event.target.value === "" ? "" : integerInRange(event.target.value, 1, isHackmon ? 200 : 100, 1) })} className="editor-input" />
@@ -650,7 +652,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             </section>
 
             <details className="editor-disclosure rpg-journey-panel">
-                <summary><span>Progresso da jornada</span><span className="rpg-journey-hp">HP {rpg.currentHp ?? displayedMaxHp} de {displayedMaxHp}</span></summary>
+                <summary><span>Progresso da jornada</span><PokemonHp current={rpg.currentHp} maximum={displayedMaxHp} className="rpg-journey-hp" /></summary>
                 <div className="editor-disclosure-body rpg-journey-body">
                     <div className="editor-field"><label htmlFor={`${fieldId}-hp`} className="editor-label">HP atual</label><div className="editor-choice-control"><input id={`${fieldId}-hp`} type="number" inputMode="numeric" min="0" max={displayedMaxHp} aria-describedby={`${fieldId}-hp-help`} value={rpg.currentHp ?? displayedMaxHp} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" /><button type="button" aria-label="Recuperar HP ao máximo" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button">Recuperar</button></div><span className="sr-only" id={`${fieldId}-hp-help`}>Energia do Pokémon. Zero HP significa que ele está fora de combate.</span></div>
                     <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" inputMode="numeric" min="0" step="1" max="999999" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: integerInRange(event.target.value, 0, 999999, rpg.xp ?? 0) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">{atXpLevelCap ? `Nível máximo · ${xpLevelCap}` : `Até o próximo nível: ${formatNumberPtBr(Math.max(0, nextLevelXp - (Number(rpg.xp) || 0)))} XP`}</small></div>

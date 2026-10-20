@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import sharp from "sharp";
 import test from "node:test";
 
-const name = "myowndex-dex-v105-r3";
+const name = "myowndex-dex-v105-r4";
 const directory = new URL("../public/icons/", import.meta.url);
 const outputs = [
   ["32", 32, false], ["96", 96, false], ["180", 180, true],
@@ -61,7 +61,7 @@ test("every foreground pixel of the maskable identity survives the standard safe
   let foreground = 0;
   for (let y = 0; y < info.height; y++) for (let x = 0; x < info.width; x++) {
     const index = (y * info.width + x) * 4;
-    if (data[index] === 11 && data[index + 1] === 49 && data[index + 2] === 82) continue;
+    if (data[index] === 255 && data[index + 1] === 225 && data[index + 2] === 107) continue;
     foreground++;
     assert.ok(Math.hypot(x + 0.5 - center, y + 0.5 - center) <= radius,
       `foreground pixel ${x},${y} must remain inside the maskable safe circle`);

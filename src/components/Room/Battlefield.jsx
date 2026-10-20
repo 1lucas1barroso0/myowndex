@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 
 import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
-import { clampFinite, safeDivide } from "../../core/math.js";
+import { clampFinite } from "../../core/math.js";
 import { getPokemonDisplayHeight } from "../../core/pokemonHeights.js";
 import { getPokemonSpriteFraming } from "../../core/pokemonSpriteFraming.js";
 import { getPokemonSpriteSources } from "../../core/pokemonSpriteSources.js";
@@ -11,6 +11,7 @@ import { getBattleDisplayIdentity } from "../../core/specialMechanics.js";
 import { getTraitStatus } from "../../core/traitMechanics.js";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
+import PokemonHp from "../Shared/PokemonHp.jsx";
 
 const clamp = (value, minimum, maximum) => clampFinite(value, minimum, maximum, minimum);
 
@@ -19,13 +20,6 @@ const HIT_KILL_FIELD_LABELS = Object.freeze({
     used: "proteção contra hit kill consumida nesta batalha",
     lost: "proteção contra hit kill encerrada por autocusto nesta batalha",
 });
-
-const getHpTone = token => {
-    const percentage = safeDivide(token.currentHp, token.maxHp, 0);
-    if (percentage <= 0.25) return "danger";
-    if (percentage <= 0.5) return "warning";
-    return "healthy";
-};
 
 const displayedPokemonId = (token, display) => display.disguised
     ? token.specialState?.illusion?.speciesId || token.speciesId
@@ -446,7 +440,7 @@ export default function Battlefield({
             {selectedToken && !compact && <div className={`battlefield-focus side-${selectedToken.side}`} aria-live="polite">
                 <PokemonSprite src={selectedDisplay.sprite} pokemonId={displayedPokemonId(selectedToken, selectedDisplay)} className="battlefield-focus-sprite" alt="" />
                 <span className="battlefield-focus-identity"><strong>{selectedDisplay.name}</strong><small>Nv. {selectedToken.level}{selectedToken.status ? ` · ${STATUS_LABELS[selectedToken.status] || formatName(selectedToken.status)}` : ""}</small></span>
-                {battle && snapshot.settings.showHp && <span className="battlefield-focus-health"><span className={`room-token-hp is-${getHpTone(selectedToken)}`} aria-hidden="true"><span style={{ width: `${selectedToken.maxHp ? clamp(selectedToken.currentHp / selectedToken.maxHp * 100, 0, 100) : 0}%` }} /></span><strong>HP {selectedToken.currentHp} de {selectedToken.maxHp}</strong></span>}
+                {battle && snapshot.settings.showHp && <PokemonHp className="battlefield-focus-health" current={selectedToken.currentHp} maximum={selectedToken.maxHp} />}
             </div>}
             <div className="battlefield-footer">
                 <span>{ROOM_SCENARIOS.find(scene => scene.id === snapshot.scenario)?.label}</span>

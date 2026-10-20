@@ -96,7 +96,7 @@ test("PWA declares one stable application identity and an immersive browser-free
  assert.match(manifest,/scope: "\/"/);
  assert.match(manifest,/display: "standalone"/);
  assert.match(manifest,/display_override: \["fullscreen", "standalone"\]/);
- assert.match(manifest,/myowndex-dex-v105-r3-maskable-512/);
+ assert.match(manifest,/myowndex-dex-v105-r4-maskable-512/);
  const metadata=readFileSync("app/layout.tsx","utf8");
  assert.match(metadata,/appleWebApp/);
  assert.match(metadata,/viewportFit: "cover"/);

@@ -200,9 +200,9 @@ html .app-root.game-edition.handheld-edition :is(
 }
 
 /* ---------- Adventure: bright field journal, not a control panel ---------- */
-/* The adventure entry occupies the available reading area instead of
-   clinging to its top. Auto margins yield when a form or saved adventures
-   need the full scrollable height; the active battle view is unaffected. */
+/* Keep a modest, bounded space above the adventure entry. Opening a role
+   adds content below the choices instead of recentering the whole lobby;
+   the active battle view is unaffected. */
 html .app-root.game-edition.handheld-edition
   .app-scroll-area:has(> .app-main-shell > .room-lobby) > .app-main-shell {
   display: flex;
@@ -217,8 +217,9 @@ html .app-root.game-edition.handheld-edition
   > .app-main-shell > .room-lobby {
   width: 100%;
   max-width: none;
-  margin-block: auto;
-  padding-block: clamp(1rem, 3dvh, 2rem);
+  flex-shrink: 0;
+  margin-block: 0;
+  padding-block: clamp(.5rem, 3dvh, 1.5rem);
 }
 
 html .app-root.game-edition.handheld-edition .adventure-intro{

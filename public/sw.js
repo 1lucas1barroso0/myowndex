@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v2.0.48-app";
+const CACHE_NAME = "myowndex-shell-v2.0.49-app";
 const CACHE_PREFIX = "myowndex-shell-";
 const ASSET_CACHE_NAME = "myowndex-assets-v3";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";
@@ -11,7 +11,7 @@ const CORE_ASSETS = [
   "/manifest.webmanifest",
   "/manifest-resgate.webmanifest",
   "/reinstalar?abrir=aventura",
-  "/icons/myowndex-dex-v105-r4-live.svg?v=2.0.48",
+  "/icons/myowndex-dex-v105-r4-live.svg?v=2.0.49",
   "/icons/myowndex-dex-v105-r4-32.png",
   "/icons/myowndex-dex-v105-r4-192.png",
   "/icons/myowndex-dex-v105-r4-app-512.png",

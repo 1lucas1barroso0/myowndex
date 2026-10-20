@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.48.**
+**Versão atual: 2.0.49.**
+
+A revisão 2.0.49 limita o espaço acima da entrada de Aventura e mantém título e escolhas na mesma posição ao abrir Narrador ou Jogador. A largura centralizada é preservada; o conteúdo cresce para baixo e continua alcançável com a cortina aberta ou recolhida. O teste de navegador confere os dois temas, as posições da cortina, a estabilidade das escolhas e o acesso aos formulários. Os ajustes existentes das Boxes e dos Créditos permanecem incluídos.
 
 A revisão 2.0.48 integra símbolo, nome e seleção de Shiny em um único controle e apresenta HP com números e barra de estado compartilhada entre ficha, Dados/Campo e Aventura. A identidade visual usa vermelho vivo, contorno definido e fundo amarelo, com todos os ícones derivados da mesma fonte e redução de movimento preservada. A revisão mantém grupos coerentes, leitura confortável e edição recolhida.
 

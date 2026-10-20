@@ -8,11 +8,11 @@ const variants=[
  ["app-512",512],["maskable-512",512],
 ];
 test("every current install icon renders the same outlined Pokédex source",async()=>{
- const source=readFileSync('public/icons/myowndex-dex-v105-r3-source.svg');
+ const source=readFileSync('public/icons/myowndex-dex-v105-r4-source.svg');
  for(const [key,size] of variants){
-  const current=readFileSync(`public/icons/myowndex-dex-v105-r3-${key}.png`);
+  const current=readFileSync(`public/icons/myowndex-dex-v105-r4-${key}.png`);
   const artwork=await sharp(source).resize(key==='maskable-512'?Math.floor(size*.76):size,key==='maskable-512'?Math.floor(size*.76):size).png({compressionLevel:9}).toBuffer();
-  const expected=['32','96'].includes(key)?artwork:await sharp({create:{width:size,height:size,channels:4,background:{r:11,g:49,b:82,alpha:1}}}).composite([{input:artwork,gravity:'centre'}]).png({compressionLevel:9}).toBuffer();
+  const expected=['32','96'].includes(key)?artwork:await sharp({create:{width:size,height:size,channels:4,background:{r:255,g:225,b:107,alpha:1}}}).composite([{input:artwork,gravity:'centre'}]).png({compressionLevel:9}).toBuffer();
   assert.deepEqual(current,expected,key+' must share the current source and framing');
  }
 });
@@ -27,7 +27,7 @@ test("install meta, stable manifest and new icon aliases all refer to the same a
  assert.match(manifest,/scope: "\/"/);
  assert.match(manifest,/start_url: "\/\?abrir=aventura"/);
  for(const [name] of variants){
-  assert.ok(layout.includes(`myowndex-dex-v105-r3-${name}.png`) || manifest.includes(`myowndex-dex-v105-r3-${name}.png`));
+  assert.ok(layout.includes(`myowndex-dex-v105-r4-${name}.png`) || manifest.includes(`myowndex-dex-v105-r4-${name}.png`));
  }
  assert.match(worker,/"\/manifest\.webmanifest"/);
  assert.ok(!worker.includes("/manifest.webmanifest?v="));

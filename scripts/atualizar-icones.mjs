@@ -6,15 +6,15 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const iconDirectory = new URL("../public/icons/", import.meta.url);
-const identity = "myowndex-dex-v105-r3";
+const identity = "myowndex-dex-v105-r4";
 const original = await readFile(new URL("myowndex-dex-v105-original.svg", iconDirectory));
 const sourceSha256 = "337e0187c6fbadf7700a643354a1cd9f03a3670564e590d869de49c95025d1b0";
 if (createHash("sha256").update(original).digest("hex") !== sourceSha256) {
   throw new Error("The preserved human-authored SVG differs from the verified upstream source.");
 }
 const palette = {
-  "#FF786E": "#ff6478", "#BE5652": "#c42b50", "#6BC4D2": "#ffe16b",
-  "#CCCCCC": "#1d9ec6", "#EFEAE0": "#8eeef4", "#FFC865": "#63e4ff", "#BE9148": "#0686c4",
+  "#FF786E": "#ff3155", "#BE5652": "#b20c38", "#6BC4D2": "#ffe16b",
+  "#CCCCCC": "#0583c7", "#EFEAE0": "#77ecff", "#FFC865": "#29d6ff", "#BE9148": "#0875c1",
 };
 let artworkSource = original.toString("utf8")
   // The first inner group is the original decorative teal circle, not the device.
@@ -23,19 +23,21 @@ let artworkSource = original.toString("utf8")
 for (const [previous, next] of Object.entries(palette)) artworkSource = artworkSource.replaceAll(previous, next);
 artworkSource = artworkSource.replace("<title property=", "<!-- MyOwnDex adaptation: colors, outlines, framing and device lights; Carol Liao / toicon.com, CC BY 4.0. -->\n<title property=");
 artworkSource = artworkSource
-  .replaceAll('class="fandom_een"', 'class="fandom_een" stroke="#fff4dc" stroke-width="0.7" stroke-linejoin="round"')
-  .replaceAll('class="fandom_twee"', 'class="fandom_twee" stroke="#fff4dc" stroke-width="0.5" stroke-linejoin="round"');
+  .replaceAll('class="fandom_een"', 'class="fandom_een" stroke="#122c47" stroke-width="1.1" stroke-linejoin="round"')
+  .replaceAll('class="fandom_twee"', 'class="fandom_twee" stroke="#122c47" stroke-width="0.8" stroke-linejoin="round"')
+  .replaceAll('class="fandom_veertien"', 'class="fandom_veertien" stroke="#fff9e6" stroke-width="0.7" stroke-linejoin="round"')
+  .replaceAll('class="fandom_vier"', 'class="fandom_vier" stroke="#fff9e6" stroke-width="0.6"');
 const drawing = Buffer.from(artworkSource);
 const animated = artworkSource.replace('</svg>', `<style>
-  @keyframes dex-screen { 0%,100% { fill:#8eeef4; } 45%,65% { fill:#d9ffe7; } }
-  @keyframes dex-lens { 0%,100% { fill:#63e4ff; } 45%,65% { fill:#d9fbff; } }
+  @keyframes dex-screen { 0%,100% { fill:#77ecff; } 45%,65% { fill:#d9ffe7; } }
+  @keyframes dex-lens { 0%,100% { fill:#29d6ff; } 45%,65% { fill:#d9fbff; } }
   .fandom_veertien { animation:dex-screen 6s ease-in-out infinite; }
   .fandom_vier { animation:dex-lens 6s ease-in-out infinite; }
   @media (prefers-reduced-motion:reduce) { .fandom_veertien,.fandom_vier { animation:none; } }
 </style></svg>`);
 await writeFile(new URL(`${identity}-live.svg`, iconDirectory), animated);
 await writeFile(new URL(`${identity}-source.svg`, iconDirectory), drawing);
-const backgroundColor = { r: 11, g: 49, b: 82, alpha: 1 };
+const backgroundColor = { r: 255, g: 225, b: 107, alpha: 1 };
 
 await writeFile(new URL(`${identity}-master.png`, iconDirectory),
   await sharp(drawing).resize(1024, 1024).png({ compressionLevel: 9 }).toBuffer());

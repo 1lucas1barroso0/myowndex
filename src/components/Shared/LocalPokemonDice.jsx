@@ -16,6 +16,7 @@ import RoomSelect from "./RoomSelect.jsx";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import PokemonSprite from "./PokemonSprite.jsx";
 import GameIcon from "./GameIcon.jsx";
+import PokemonHp from "./PokemonHp.jsx";
 import TurnOrder from "./TurnOrder.jsx";
 import NewBattleButton from "./NewBattleButton.jsx";
 import ExperienceAward from "./ExperienceAward.jsx";
@@ -286,7 +287,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
         {snapshot.tokens.length>0 && <>
             <header className="local-field-roster-heading"><strong>Em campo</strong><span className="local-field-count"><b>{snapshot.tokens.length}</b> Pokémon</span></header>
             <div className="local-pokemon-roster" role="group" aria-label="Pokémon em campo">{snapshot.tokens.map(token=><button type="button" key={token.id} aria-pressed={selectedToken?.id===token.id} data-side={token.side} onClick={()=>setSelectedTokenId(token.id)}>
-                <PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><span className="local-field-partner"><strong>{token.name}</strong><small>{token.side==="opponent"?"Oponente":"Aliado"}{token.captured?" · capturado":""}</small><span className="local-field-hp" aria-hidden="true" data-health={token.currentHp<=token.maxHp*.2?"low":token.currentHp<=token.maxHp*.5?"medium":"high"}><span style={{width:`${Math.max(0,Math.min(100,token.currentHp/Math.max(1,token.maxHp)*100))}%`}} /></span><small>HP {token.currentHp} de {token.maxHp}</small></span>
+                <PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><span className="local-field-partner"><strong>{token.name}</strong><small>{token.side==="opponent"?"Oponente":"Aliado"}{token.captured?" · capturado":""}</small><PokemonHp current={token.currentHp} maximum={token.maxHp} /></span>
             </button>)}</div>
             {showCombat && <TurnOrder local snapshot={snapshot} onSelect={setSelectedTokenId} canControl={editing} busy={busy}
                 onDeclareMove={declareMove} canDeclareToken={token=>!sceneSnapshot || role==="narrator" || Boolean(playerId && token.ownerPlayerId===playerId)}

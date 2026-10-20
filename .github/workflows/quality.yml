@@ -122,6 +122,11 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-compact-feedback.mjs
+      - name: Conferir Shiny e HP na ficha em todos os tamanhos
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-pokemon-vitals.mjs
       - name: Navegar pela linha evolutiva sem mover a Pokédex
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

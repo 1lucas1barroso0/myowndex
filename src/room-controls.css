@@ -309,10 +309,8 @@ html .app-root.game-edition.handheld-edition .token-hp-control{
   border-radius: .25rem;
   background: var(--ui-raised);
 }
-html .app-root.game-edition.handheld-edition .token-hp-control > span{
-  grid-column: 1 / -1;
-  color: var(--ui-muted);
-  font-size: .875rem;
+html .app-root.game-edition.handheld-edition .token-hp-control > .pokemon-hp{
+  grid-column: 2;
 }
 html .app-root.game-edition.handheld-edition .token-hp-control button{
   width: 44px;

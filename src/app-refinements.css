@@ -1,5 +1,8 @@
 @import "./interface-controls.css";
 
+/* The same flat, vivid frame accompanies the identity on every app surface. */
+html .myowndex-brand-art { box-sizing:border-box; padding:2px; border:1.5px solid #122c47; border-radius:22%; background:#ffe16b; }
+
 /* Shared app shell. Imported last: feature styles describe their content;
    this layer owns the common frame and interaction grammar. */
 html[data-app-viewport], html[data-app-viewport] body { width:100%; height:100%; min-height:0 !important; overflow:clip !important; overscroll-behavior:none; }
@@ -36,7 +39,32 @@ html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-gen
 }
 html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion > .pokemon-sized-sprite { width:40px !important; height:40px !important; min-height:0 !important; }
 html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button)[aria-expanded=true] { outline:2px solid var(--journey-gold); outline-offset:2px; }
-html .app-root .editor-shiny { display:inline-flex; align-items:center; gap:.4rem; min-height:44px; width:fit-content; color:var(--ui-ink); font-size:.875rem; font-weight:700; }
+html .app-root .editor-shiny { position:relative; display:inline-flex; align-items:center; justify-content:space-between; gap:1rem; min-height:48px; width:100%; padding:.55rem .75rem; border:1px solid var(--ui-control-line); border-radius:var(--app-control-radius,.65rem); background:var(--ui-panel); color:var(--ui-ink); font-size:.95rem; font-weight:700; cursor:pointer; }
+html .app-root .editor-shiny > input { position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; margin:0 !important; opacity:0 !important; cursor:pointer; }
+html .app-root .editor-shiny-label { display:inline-flex; align-items:center; gap:.5rem; pointer-events:none; }
+html .app-root .editor-shiny-label .game-icon { width:24px; height:24px; flex:none; }
+html .app-root .editor-shiny-switch { display:block; position:relative; width:40px; height:24px; flex:0 0 40px; border:2px solid var(--ui-control-line); border-radius:16px; pointer-events:none; }
+html .app-root .editor-shiny-switch::after { content:""; position:absolute; top:3px; left:3px; width:14px; height:14px; border:2px solid var(--ui-ink); border-radius:50%; }
+html .app-root .editor-shiny:has(input:checked) { outline:2px solid var(--ui-ink); outline-offset:-2px; }
+html .app-root .editor-shiny > input:checked ~ .editor-shiny-switch::after { left:19px; background:var(--ui-ink); }
+html .app-root .editor-shiny:has(input:focus-visible) { outline:3px solid var(--ui-ink); outline-offset:3px; }
+/* HP has one accessible reading and a real state bar in every panel. */
+html .app-root .pokemon-hp { display:grid; gap:4px; min-width:0; width:100%; max-width:18rem; color:var(--ui-ink); font-size:.875rem; line-height:1.3; font-variant-numeric:tabular-nums; }
+html .app-root .pokemon-hp-reading { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:0 .5rem; }
+html .app-root .pokemon-hp-reading > b { font-size:.75rem; font-weight:800; letter-spacing:.02em; }
+html .app-root .pokemon-hp-reading strong { font-weight:800; color:inherit; }
+html .app-root .pokemon-hp-maximum { color:var(--ui-muted); font-weight:400; }
+html .app-root .pokemon-hp-track { display:block; height:8px; width:100%; border:1px solid var(--ui-control-line); border-radius:5px; overflow:hidden; background:var(--ui-panel); }
+html .app-root .pokemon-hp-track > span { display:block; height:100%; border-radius:3px; background:#169b58; }
+html .app-root .pokemon-hp[data-health="warning"] .pokemon-hp-track > span { background:#e5b51e; }
+html .app-root .pokemon-hp[data-health="danger"] .pokemon-hp-track > span { background:#ec3455; }
+html .app-root .pokemon-hp.rpg-journey-hp { width:8rem; max-width:100%; padding:.4rem .5rem; color:var(--ui-ink) !important; border:1px solid var(--ui-line); background:var(--ui-panel) !important; border-radius:.5rem; }
+html .app-root .editor-summary-health { display:grid; gap:.25rem; width:100%; }
+html .app-root .editor-summary-condition { font-size:.8rem; color:var(--ui-ink); }
+@media (forced-colors:active) {
+  html .app-root .pokemon-hp-track > span { background:Highlight !important; forced-color-adjust:none; }
+  html .app-root .editor-shiny > input:checked ~ .editor-shiny-switch::after { background:Highlight; forced-color-adjust:none; }
+}
 html .app-root .editor-battle-mechanics .editor-field-note { grid-column:1 / -1; }
 html .generator-dialog .generator-content { gap:1rem; }
 html .generator-dialog :is(.generator-options,.generator-results) { padding:0; }
@@ -349,7 +377,8 @@ html .app-root.game-edition.handheld-edition .editor-portrait-stage > .pokemon-s
 html .app-root.game-edition.handheld-edition .editor-identity { gap:.35rem !important; }
 html .app-root.game-edition.handheld-edition .editor-summary-name { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem .5rem; min-width:0; }
 html .app-root.game-edition.handheld-edition .editor-summary-name h3 { margin:0; font:800 1.25rem/1.25 "Trebuchet MS",system-ui,sans-serif; overflow-wrap:anywhere; color:var(--ui-ink); }
-html .app-root.game-edition.handheld-edition .editor-shiny-badge { font-size:.8rem; color:var(--ui-ink); white-space:nowrap; }
+html .app-root.game-edition.handheld-edition .editor-shiny-badge { display:inline-flex; align-items:center; gap:.25rem; padding:.1rem .35rem; border:1px solid var(--ui-control-line); border-radius:.4rem; font-size:.75rem; font-weight:800; color:var(--ui-ink); white-space:nowrap; }
+html .app-root.game-edition.handheld-edition .editor-shiny-badge .game-icon { width:16px; height:16px; }
 html .app-root.game-edition.handheld-edition .editor-summary-types { gap:.35rem; }
 html .app-root.game-edition.handheld-edition .editor-summary-types > span { padding:.25rem .4rem; line-height:1.3; }
 html .app-root.game-edition.handheld-edition .editor-summary-level { font-size:.875rem; color:var(--ui-muted); }

@@ -1,4 +1,4 @@
-import React, { useId, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
@@ -63,6 +63,7 @@ const Token = ({
     onPointerCancel,
     onDragStart,
     onKeyMove,
+    onCancelGesture,
     movementHelpId,
     sceneReferenceHeight,
     visualSceneScale,
@@ -78,12 +79,14 @@ const Token = ({
         className={`room-token side-${token.side} ${canMove ? "can-move" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${gimmick ? `is-gimmick gimmick-${gimmick}` : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
         style={{ left: `clamp(3.5rem, ${position.x}%, calc(100% - 3.5rem))`, top: `clamp(3.5rem, ${position.y}%, calc(100% - 3.5rem))` }}
         onClick={event => onSelect(token.id, isSelected, event)}
-        onPointerDown={event => canMove && onPointerDown(event, token)}
+        onPointerDown={event => onPointerDown(event, token)}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
+        onLostPointerCapture={onPointerCancel}
         onDragStart={onDragStart}
         onKeyDown={event => {
+            if (event.key === "Escape") { event.preventDefault(); onCancelGesture(); return; }
             if (!canMove || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
             event.preventDefault();
             const step = event.shiftKey ? 5 : 2;
@@ -131,6 +134,26 @@ export default function Battlefield({
     const dragRef = useRef(null);
     const movedPointerRef = useRef(false);
     const [resize, setResize] = useState(null);
+    const resizeRef = useRef(null);
+    const cancelGestures = useCallback(() => {
+        const active = [dragRef.current, resizeRef.current];
+        if (dragRef.current) movedPointerRef.current = true;
+        dragRef.current = null;
+        resizeRef.current = null;
+        setDrag(null);
+        setResize(null);
+        active.forEach(pointer => {
+            if (pointer?.target.hasPointerCapture?.(pointer.pointerId)) pointer.target.releasePointerCapture(pointer.pointerId);
+        });
+    }, []);
+    useEffect(() => {
+        window.addEventListener("blur", cancelGestures);
+        window.addEventListener("resize", cancelGestures);
+        return () => {
+            window.removeEventListener("blur", cancelGestures);
+            window.removeEventListener("resize", cancelGestures);
+        };
+    }, [cancelGestures]);
     const movementHelpId = useId();
     const currentTokenId = battle ? snapshot.initiative[snapshot.turnIndex] || "" : "";
     const tokenById = useMemo(
@@ -161,6 +184,7 @@ export default function Battlefield({
     const updatePosition = (event, commit = false) => {
         const active = dragRef.current;
         if (!active || event.pointerId !== active.pointerId) return;
+        if (!canMoveToken(tokenById[active.tokenId] || {})) { cancelGestures(); return; }
         const rect = event.currentTarget.closest(".battlefield-board")?.getBoundingClientRect();
         if (!rect || !rect.width || !rect.height) return;
         const deltaX = event.clientX - active.startClientX;
@@ -168,6 +192,7 @@ export default function Battlefield({
         const x = clamp(active.startX + deltaX / rect.width * 100, 4, 96);
         const y = clamp(active.startY + deltaY / rect.height * 100, 8, 92);
         if (Math.hypot(deltaX, deltaY) > 4) movedPointerRef.current = true;
+        if (!movedPointerRef.current && !commit) return;
         const next = { ...active, x, y };
         if (commit) {
             dragRef.current = null;
@@ -185,14 +210,15 @@ export default function Battlefield({
     };
 
     const handlePointerDown = (event, token) => {
-        if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+        if (dragRef.current || resizeRef.current || !event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+        movedPointerRef.current = false;
+        if (!canMoveToken(token)) return;
         event.preventDefault();
         // Pointer capture keeps a large Pokémon moving even if the cursor
         // leaves its image, the board, or the viewport during the gesture.
         event.currentTarget.setPointerCapture?.(event.pointerId);
         event.currentTarget.focus({ preventScroll: true });
-        movedPointerRef.current = false;
-        const next = { pointerId: event.pointerId, tokenId: token.id, x: token.x, y: token.y,
+        const next = { pointerId: event.pointerId, target: event.currentTarget, tokenId: token.id, x: token.x, y: token.y,
             startX: token.x, startY: token.y, startClientX: event.clientX, startClientY: event.clientY };
         dragRef.current = next;
         setDrag(next);
@@ -207,12 +233,11 @@ export default function Battlefield({
     };
     const handlePointerCancel = event => {
         if (!dragRef.current || dragRef.current.pointerId !== event.pointerId) return;
-        dragRef.current = null;
-        setDrag(null);
-        movedPointerRef.current = false;
+        movedPointerRef.current = true;
+        cancelGestures();
     };
     const handleTokenSelect = (tokenId, isSelected, event) => {
-        if (movedPointerRef.current) {
+        if (event.detail !== 0 && movedPointerRef.current) {
             event.preventDefault();
             movedPointerRef.current = false;
             return;
@@ -223,38 +248,47 @@ export default function Battlefield({
     // Independent resize handle: the token's movement pointer handlers never
     // see these events. Default size still uses the official physical ratio.
     const startResize = (event, token) => {
-        if (!canMoveToken(token)) return;
+        if (role !== "narrator" || !canMoveToken(token) || dragRef.current || resizeRef.current || !event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
         event.preventDefault();
         event.stopPropagation();
         event.currentTarget.setPointerCapture?.(event.pointerId);
-        setResize({
-            tokenId: token.id,
-            startX: event.clientX,
-            startY: event.clientY,
-            startScale: token.sceneScale ?? 1,
-            scale: token.sceneScale ?? 1,
-        });
+        event.currentTarget.focus({ preventScroll: true });
+        const active = {
+            pointerId: event.pointerId, target: event.currentTarget, tokenId: token.id,
+            startX: event.clientX, startY: event.clientY,
+            startScale: token.sceneScale ?? 1, scale: token.sceneScale ?? 1,
+        };
+        resizeRef.current = active;
+        setResize(active);
+    };
+    const resizeScale = (active, event) => {
+        const motion = (event.clientX - active.startX) - (event.clientY - active.startY);
+        return Math.round(clamp(active.startScale + motion / 110, .25, 4) * 20) / 20;
     };
     const resizeMove = event => {
-        if (!resize) return;
-        const motion = (event.clientX - resize.startX) - (event.clientY - resize.startY);
-        const next = Math.round(clamp(resize.startScale + motion / 110, .25, 4) * 20) / 20;
-        setResize(previous => previous ? { ...previous, scale: next } : null);
+        const active = resizeRef.current;
+        if (!active || active.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        const next = { ...active, scale: resizeScale(active, event) };
+        resizeRef.current = next;
+        setResize(next);
     };
     const resizeFinish = (event, commit = true) => {
-        if (!resize) return;
+        const active = resizeRef.current;
+        if (!active || active.pointerId !== event.pointerId) return;
         event.stopPropagation();
-        if (commit && Math.abs(resize.scale - resize.startScale) >= .025) {
+        const scale = commit ? resizeScale(active, event) : active.startScale;
+        cancelGestures();
+        if (commit && role === "narrator" && canMoveToken(tokenById[active.tokenId] || {}) && Math.abs(scale - active.startScale) >= .025) {
             onSnapshotChange({
                 ...snapshot,
-                tokens: snapshot.tokens.map(token => token.id === resize.tokenId
-                    ? { ...token, sceneScale: resize.scale } : token),
+                tokens: snapshot.tokens.map(token => token.id === active.tokenId
+                    ? { ...token, sceneScale: scale } : token),
             });
         }
-        setResize(null);
-        event.currentTarget.releasePointerCapture?.(event.pointerId);
     };
     const resizeKey = (event, token) => {
+        if (event.key === "Escape") { event.preventDefault(); cancelGestures(); return; }
         const delta = event.key === "ArrowUp" || event.key === "ArrowRight" ? .05
             : event.key === "ArrowDown" || event.key === "ArrowLeft" ? -.05 : 0;
         if (!delta) return;
@@ -357,11 +391,12 @@ export default function Battlefield({
                             onPointerCancel={handlePointerCancel}
                             onDragStart={event => event.preventDefault()}
                             onKeyMove={handleKeyMove}
+                            onCancelGesture={cancelGestures}
                             movementHelpId={movementHelpId}
                             sceneReferenceHeight={sceneReferenceHeight}
                             visualSceneScale={(resize?.tokenId === token.id ? resize.scale : token.sceneScale ?? 1) * (["dyna","gmax"].includes(token.gimmickState?.active) ? 1.4 : 1)}
                         />
-                        {selectedTokenId === token.id && canMoveToken(token) && <button
+                        {selectedTokenId === token.id && role === "narrator" && <button
                             type="button"
                             className="room-token-resize-handle"
                             style={{ left: `clamp(3.5rem, ${position.x}%, calc(100% - 3.5rem))`,
@@ -372,6 +407,8 @@ export default function Battlefield({
                             onPointerMove={resizeMove}
                             onPointerUp={event => resizeFinish(event, true)}
                             onPointerCancel={event => resizeFinish(event, false)}
+                            onLostPointerCapture={event => resizeFinish(event, false)}
+                            onDragStart={event => event.preventDefault()}
                             onKeyDown={event => resizeKey(event, token)}
                         ><span aria-hidden="true">↗</span></button>}
                         </React.Fragment>

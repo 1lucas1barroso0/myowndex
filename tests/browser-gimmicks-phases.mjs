@@ -65,6 +65,55 @@ try{
     if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
     await page.locator(".room-token").first().click();
     await page.locator(".token-inspector").waitFor();
+    // Gestures must not save previews, select a different target, or scroll the app.
+    const token=page.locator('.room-token').first();
+    const resizeHandle=page.locator('.room-token-resize-handle').first();
+    await token.scrollIntoViewIfNeeded();
+    const gestureBefore=(await snapshot()).tokens[0];
+    const scrollBefore=await page.locator('#main-content').evaluate(e=>e.scrollTop);
+    assert.equal(await token.evaluate(e=>getComputedStyle(e).touchAction),'none','Movable Pokémon own their touch gesture');
+    assert.equal(await resizeHandle.evaluate(e=>getComputedStyle(e).touchAction),'none','Resize never competes with page scrolling');
+    for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape','cancel-tap']) {
+      const b=await token.boundingBox();
+      await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();
+      if(reason!=='cancel-tap')await page.mouse.move(b.x+b.width/2+30,b.y+b.height/2-18,{steps:4});
+      if(reason==='Escape')await page.keyboard.press('Escape');
+      else if(reason==='cancel-tap')await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
+      else await page.evaluate(reason=>{
+        if(reason==='blur'||reason==='resize')window.dispatchEvent(new Event(reason));
+        else document.querySelector('.room-token').dispatchEvent(new PointerEvent(reason,{bubbles:true,pointerId:1}));
+      },reason);
+      await page.mouse.up();
+      assert.deepEqual((await snapshot()).tokens[0],gestureBefore,`${reason} does not save the movement preview`);
+      assert.equal(await token.getAttribute('aria-pressed'),'true','Dragging does not toggle selection');
+    }
+    for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape']) {
+      const b=await resizeHandle.boundingBox();
+      await page.mouse.move(b.x+22,b.y+22);await page.mouse.down();
+      await page.mouse.move(b.x+47,b.y+7,{steps:4});
+      // Another finger must never resize or finish the primary pointer.
+      await resizeHandle.dispatchEvent('pointerup',{pointerId:77,isPrimary:false,clientX:1000,clientY:0});
+      assert.deepEqual((await snapshot()).tokens[0],gestureBefore);
+      if(reason==='Escape')await page.keyboard.press('Escape');
+      else await page.evaluate(reason=>{
+        if(reason==='blur'||reason==='resize')window.dispatchEvent(new Event(reason));
+        else document.querySelector('.room-token-resize-handle').dispatchEvent(new PointerEvent(reason,{bubbles:true,pointerId:1}));
+      },reason);
+      await page.mouse.up();
+      assert.deepEqual((await snapshot()).tokens[0],gestureBefore,`${reason} does not save the resize preview`);
+    }
+    const handleBounds=await resizeHandle.boundingBox();
+    await page.mouse.move(handleBounds.x+22,handleBounds.y+22);
+    await page.mouse.down({button:'right'});await page.mouse.move(handleBounds.x+50,handleBounds.y+10);await page.mouse.up({button:'right'});
+    assert.deepEqual((await snapshot()).tokens[0],gestureBefore,'Secondary mouse button cannot resize');
+    await page.keyboard.press('Escape');
+    await resizeHandle.focus();await page.keyboard.press('ArrowUp');
+    assert.equal((await snapshot()).tokens[0].sceneScale,1.05,'Keyboard resizing remains available');
+    await page.keyboard.press('ArrowDown');
+    assert.equal((await snapshot()).tokens[0].sceneScale,1);
+    assert.equal((await snapshot()).tokens[0].x,gestureBefore.x,'Resize never moves the Pokémon');
+    assert.equal(await page.locator('#main-content').evaluate(e=>e.scrollTop),scrollBefore,'Gestures preserve app scroll position');
+
     assert.equal(await page.locator("#room-token-xp").count(),0,"Stored XP is read-only in adventure");
     assert.equal(await page.locator(".token-xp-readout").count(),1);
     assert.match(await page.locator(".token-experience-heading").innerText(),/Nível 50/);
@@ -299,6 +348,32 @@ try{
         assert.equal(actual.terrain,"nenhum","Teraform Zero removes terrain");
       }
     }
+
+    // Player movement and read-only inspection remain separate after a real touch cancellation.
+    await page.evaluate(seed=>{
+      seed.settings.allowPlayerMovement=true;
+      seed.tokens[0].ownerPlayerId='qa-player';seed.tokens[1].ownerPlayerId='another-player';
+      localStorage.setItem('myowndex_live_room_v1',JSON.stringify({code:'LOCAL',key:'qa-player',role:'player',playerId:'qa-player',displayName:'Jogador',local:true}));
+      localStorage.setItem('myowndex_local_room_v1',JSON.stringify({code:'LOCAL',title:seed.title,revision:0,updatedAt:new Date().toISOString(),snapshot:seed,players:[],events:[],media:[]}));
+    },seed);
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.getByRole('button',{name:'Abrir a Central da Aventura',exact:true}).click();
+    if(await mobile.isVisible())await mobile.getByRole('button',{name:'Campo',exact:true}).click();
+    const own=page.locator('.room-token.can-move'),readOnly=page.locator('.room-token:not(.can-move)');
+    await own.waitFor();await own.scrollIntoViewIfNeeded();await own.click();
+    assert.equal(await page.locator('.room-token-resize-handle').count(),0,'Players never see a resize control that cannot save');
+    const ownBefore=(await snapshot()).tokens[0],ownBounds=await own.boundingBox();
+    const touch=await context.newCDPSession(page);
+    await touch.send('Emulation.setTouchEmulationEnabled',{enabled:true});
+    const point={x:Math.round(ownBounds.x+ownBounds.width/2),y:Math.round(ownBounds.y+ownBounds.height/2)};
+    await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});
+    await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x+30,y:point.y-20}]});
+    await touch.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
+    assert.deepEqual((await snapshot()).tokens[0],ownBefore,'Touch cancellation preserves the owned Pokémon');
+    await readOnly.click();
+    assert.equal(await readOnly.getAttribute('aria-pressed'),'true','The next read-only Pokémon opens on the first click');
+    assert.notEqual(await readOnly.evaluate(e=>getComputedStyle(e).touchAction),'none','Read-only Pokémon retain ordinary touch scrolling');
+    await touch.detach();
 
     assert.deepEqual(errors,[]);
     console.log("Phases, scalable halos, Eternamax, Rayquaza, Primal Reversion and Ultra Burst passed.");

@@ -59,7 +59,7 @@ export default function TraitReference({ kind, url, name, detail, isHidden, comp
     return (
         <article ref={articleRef} tabIndex={-1} aria-labelledby={titleId} aria-busy={!shownReference && pending} className={`record-trait-card record-${kind}-card${isHidden ? ' is-hidden' : ''}${compact ? ' is-compact' : ''}`}>
             <header className="record-trait-heading record-ability-heading">
-                {portrait && <img className="record-item-sprite" src={portrait} width="48" height="48" alt="" loading="lazy" />}
+                {portrait && <img draggable={false} className="record-item-sprite" src={portrait} width="48" height="48" alt="" loading="lazy" />}
                 <div><small>{kind === 'ability' ? 'Habilidade' : 'Item segurado'}</small><h4 id={titleId}>{title && title !== '0' ? formatName(title) : kind === 'ability' ? 'Habilidade' : 'Item'}</h4></div>
                 {isHidden && <span className="record-ability-badge">Oculta</span>}
             </header>

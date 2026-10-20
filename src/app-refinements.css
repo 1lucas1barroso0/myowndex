@@ -287,11 +287,11 @@ html .game-credits-content a { color:var(--ui-blue); text-decoration:underline; 
 html .app-root.game-edition.handheld-edition .app-curtain-grip { display:none; }
 @media (max-width:700px) {
   html .app-root.game-edition.handheld-edition .app-header-curtain {
-    position:relative !important; overflow:hidden !important;
+    position:relative !important; overflow:clip !important;
     transition:height .24s cubic-bezier(.2,.75,.23,1) !important;
   }
   html .app-root.game-edition.handheld-edition .app-header-curtain.is-dragging { transition:none !important; }
-  html .app-root.game-edition.handheld-edition .app-header-curtain:not(.is-dragging) :is(.app-nav,.app-tool-actions,.app-preferences)[aria-hidden="true"] { visibility:hidden !important; pointer-events:none !important; }
+  html .app-root.game-edition.handheld-edition .app-header-curtain:not(.is-dragging) :is(.app-brand-cluster,.app-nav,.app-tool-actions,.app-preferences)[aria-hidden="true"] { visibility:hidden !important; pointer-events:none !important; }
   html .app-root.game-edition.handheld-edition .app-header-curtain .app-header-shell { padding-bottom:0 !important; }
   /* Opaque handle space matches the header; hidden rows never show at a stop. */
   html .app-root.game-edition.handheld-edition .app-header-curtain::before {
@@ -359,4 +359,18 @@ html .friendship-meter > span { display:block; height:100%; background:var(--ui-
   html .app-root.game-edition.handheld-edition .editor-header { gap:.65rem !important; padding:.75rem !important; }
   html .app-root.game-edition.handheld-edition .editor-summary-facts { column-gap:.6rem; }
   html .app-root.game-edition.handheld-edition .editor-summary-name h3 { font-size:1.1rem; }
+}
+
+/* Only deliberate game gestures can drag interface art or controls. */
+html .app-root.game-edition.handheld-edition :is(img,button,summary) {
+  -webkit-user-drag:none;
+}
+html .app-root.game-edition.handheld-edition :is(.app-curtain-grip,.room-token,.room-token-resize-handle) {
+  user-select:none !important; -webkit-user-select:none !important;
+}
+html .app-root.game-edition.handheld-edition textarea {
+  max-height:min(24rem,60dvh) !important;
+}
+html .app-root.game-edition.handheld-edition :is(.room-token.can-move,.room-token-resize-handle) {
+  touch-action:none !important;
 }

@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.44.**
+**Versão atual: 2.0.45.**
+
+A revisão 2.0.45 acrescenta o quinto nível da cortina: só o puxador, com a marca e todas as fileiras recolhidas. Migra a preferência anterior mantendo as mesmas fileiras visíveis. Gestos da cortina e do campo cancelam a prévia ao perder captura, sair da janela ou mudar de largura; mover e redimensionar não se misturam. Imagens da interface não iniciam arraste nativo, e o redimensionamento de notas tem limite de altura.
 
 A revisão 2.0.44 corrige os quatro marcos da cortina com faixa opaca, grupos recolhidos invisíveis e inertes e alça de 44 px. O encaixe é medido pela altura real da alça, incluindo mudança de largura. A ficha abre como cartão de leitura; apelido, nível e Shiny ficam em Editar características. A amizade usa somente a escala do modo atual no cartão, com medidor acessível, e identifica a escala 0–255 no campo de edição. A navegação, os dados e as regras permanecem compatíveis. A atualização do aplicativo é automática quando existe conexão, com cache estático por hash, revalidação de recursos mutáveis e salvamento antes do recarregamento. A ausência de rede não permite baixar uma versão ainda não recebida. A interface apresenta a versão completa atual, derivada de `package.json`. A leva anterior encerrou em 11.6.6; essa numeração não exige migração nem rompe contas, Boxes ou aventuras. Campos de identidade de forma continuam opcionais e compatíveis com dados anteriores.
 

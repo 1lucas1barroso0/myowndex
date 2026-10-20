@@ -33,7 +33,7 @@ const formatDexResultCount = (entryCount, variantCount, variantMode) => {
 };
 function OpeningScreen() {
     return <div className="account-opening" role="status" aria-label="Carregando MyOwnDex">
-        <img src={`/icons/myowndex-dex-v105-96.png?v=${APP_VERSION}`} width="96" height="96" alt="" />
+        <img draggable={false} src={`/icons/myowndex-dex-v105-96.png?v=${APP_VERSION}`} width="96" height="96" alt="" />
         <span className="opening-progress" aria-hidden="true"><i /><i /><i /></span>
     </div>;
 }
@@ -616,19 +616,19 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     if (!teamsBooted || !modeBooted) return <OpeningScreen />;
 
     return (
-        <div className={`app-root game-edition handheld-edition view-${view}`} data-version={APP_VERSION} data-game-screen={view}>
+        <div className={`app-root game-edition handheld-edition view-${view}`} data-version={APP_VERSION} data-game-screen={view} onDragStartCapture={event => event.preventDefault()}>
             <a className="skip-to-content" href="#main-content">Ir para o conteúdo</a>
             <header className={`app-header app-header-curtain${curtain.dragging ? " is-dragging" : ""}`} data-curtain-level={curtain.level} style={curtain.mobile && curtain.height !== undefined ? { height: `${curtain.height}px` } : undefined}>
                 <div className="game-shell app-header-shell">
                     <div className="app-header-row">
                         <div className="app-header-primary">
-                            <div className="app-brand-cluster">
-                                <img className="app-brand-icon" src={`/icons/myowndex-dex-v105-96.png?v=${APP_VERSION}`} width="96" height="96" alt="" />
+                            <div className="app-brand-cluster" inert={curtain.mobile && curtain.level < 1} aria-hidden={curtain.mobile && curtain.level < 1 ? true : undefined}>
+                                <img draggable={false} className="app-brand-icon" src={`/icons/myowndex-dex-v105-96.png?v=${APP_VERSION}`} width="96" height="96" alt="" />
                                 <div className="app-brand">
                                     <h1>MyOwnDex</h1>
                                 </div>
                             </div>
-                            <nav aria-label="Navegação principal" className="app-nav" inert={curtain.mobile && curtain.level < 1} aria-hidden={curtain.mobile && curtain.level < 1 ? true : undefined}>
+                            <nav aria-label="Navegação principal" className="app-nav" inert={curtain.mobile && curtain.level < 2} aria-hidden={curtain.mobile && curtain.level < 2 ? true : undefined}>
                                 <button type="button" title="Abrir a Central da Aventura para criar, entrar ou continuar uma jornada" aria-label="Abrir a Central da Aventura" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule nav-adventure ${view === "room" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="adventure" /></span><span>Aventura</span></button>
                                 <button type="button" title="Consultar espécies, formas, habilidades e movimentos" aria-label="Abrir a Pokédex" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule nav-dex ${view === "pokedex" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="dex" /></span><span>Pokédex</span></button>
                                 <button type="button" title="Organizar Boxes, equipes e fichas de Pokémon" aria-label="Abrir o PC do Bill" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule nav-pc ${view === "teambuilder" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="pc" /></span><span>PC</span></button>
@@ -637,19 +637,19 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                         </div>
 
                         <div className="app-actions">
-                            <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada" inert={curtain.mobile && curtain.level < 2} aria-hidden={curtain.mobile && curtain.level < 2 ? true : undefined}>
+                            <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada" inert={curtain.mobile && curtain.level < 3} aria-hidden={curtain.mobile && curtain.level < 3 ? true : undefined}>
                                 <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar</span></button>
                                 <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onClick={() => setDiceOpen(true)}><PokemonCompanion place="dice" eager /><span>Dados</span></button>
                                 <AccountButton client={client} onClick={onAccountOpen} />
                             </div>
-                            <div className="app-preferences" role="group" aria-label="Preferências da jornada" inert={curtain.mobile && curtain.level < 3} aria-hidden={curtain.mobile && curtain.level < 3 ? true : undefined}>
+                            <div className="app-preferences" role="group" aria-label="Preferências da jornada" inert={curtain.mobile && curtain.level < 4} aria-hidden={curtain.mobile && curtain.level < 4 ? true : undefined}>
                                 <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
                                 <AppearanceControl />
                             </div>
                         </div>
                     </div>
                 </div>
-                <button type="button" className="app-curtain-grip" aria-label={curtain.label} title="Arraste para ajustar o topo" onPointerDown={curtain.down} onPointerMove={curtain.move} onPointerUp={e => curtain.finish(e)} onPointerCancel={e => curtain.finish(e, true)} onClick={curtain.click} onKeyDown={curtain.keyDown}><span aria-hidden="true" /></button>
+                <button type="button" className="app-curtain-grip" aria-label={curtain.label} title="Arraste para ajustar o topo" onPointerDown={curtain.down} onPointerMove={curtain.move} onPointerUp={e => curtain.finish(e)} onPointerCancel={e => curtain.finish(e, true)} onLostPointerCapture={e => curtain.finish(e, true)} onDragStart={e => e.preventDefault()} onClick={curtain.click} onKeyDown={curtain.keyDown}><span aria-hidden="true" /></button>
             </header>
 
             <main id="main-content" aria-label={VIEW_LABELS[view]} tabIndex={-1} className="app-scroll-area">

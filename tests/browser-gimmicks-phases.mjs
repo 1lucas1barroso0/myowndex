@@ -65,6 +65,54 @@ try{
     if(await mobile.isVisible())await mobile.getByRole("button",{name:"Campo",exact:true}).click();
     await page.locator(".room-token").first().click();
     await page.locator(".token-inspector").waitFor();
+    // Gestures must not save previews, select a different target, or scroll the app.
+    const token=page.locator('.room-token').first();
+    const resizeHandle=page.locator('.room-token-resize-handle').first();
+    await token.scrollIntoViewIfNeeded();
+    const gestureBefore=(await snapshot()).tokens[0];
+    const scrollBefore=await page.locator('#main-content').evaluate(e=>e.scrollTop);
+    assert.equal(await token.evaluate(e=>getComputedStyle(e).touchAction),'none','Movable Pokémon own their touch gesture');
+    assert.equal(await resizeHandle.evaluate(e=>getComputedStyle(e).touchAction),'none','Resize never competes with page scrolling');
+    for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape']) {
+      const b=await token.boundingBox();
+      await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();
+      await page.mouse.move(b.x+b.width/2+30,b.y+b.height/2-18,{steps:4});
+      if(reason==='Escape')await page.keyboard.press('Escape');
+      else await page.evaluate(reason=>{
+        if(reason==='blur'||reason==='resize')window.dispatchEvent(new Event(reason));
+        else document.querySelector('.room-token').dispatchEvent(new PointerEvent(reason,{bubbles:true,pointerId:1}));
+      },reason);
+      await page.mouse.up();
+      assert.deepEqual((await snapshot()).tokens[0],gestureBefore,`${reason} does not save the movement preview`);
+      assert.equal(await token.getAttribute('aria-pressed'),'true','Dragging does not toggle selection');
+    }
+    for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape']) {
+      const b=await resizeHandle.boundingBox();
+      await page.mouse.move(b.x+22,b.y+22);await page.mouse.down();
+      await page.mouse.move(b.x+47,b.y+7,{steps:4});
+      // Another finger must never resize or finish the primary pointer.
+      await resizeHandle.dispatchEvent('pointerup',{pointerId:77,isPrimary:false,clientX:1000,clientY:0});
+      assert.deepEqual((await snapshot()).tokens[0],gestureBefore);
+      if(reason==='Escape')await page.keyboard.press('Escape');
+      else await page.evaluate(reason=>{
+        if(reason==='blur'||reason==='resize')window.dispatchEvent(new Event(reason));
+        else document.querySelector('.room-token-resize-handle').dispatchEvent(new PointerEvent(reason,{bubbles:true,pointerId:1}));
+      },reason);
+      await page.mouse.up();
+      assert.deepEqual((await snapshot()).tokens[0],gestureBefore,`${reason} does not save the resize preview`);
+    }
+    const handleBounds=await resizeHandle.boundingBox();
+    await page.mouse.move(handleBounds.x+22,handleBounds.y+22);
+    await page.mouse.down({button:'right'});await page.mouse.move(handleBounds.x+50,handleBounds.y+10);await page.mouse.up({button:'right'});
+    assert.deepEqual((await snapshot()).tokens[0],gestureBefore,'Secondary mouse button cannot resize');
+    await page.keyboard.press('Escape');
+    await resizeHandle.focus();await page.keyboard.press('ArrowUp');
+    assert.equal((await snapshot()).tokens[0].sceneScale,1.05,'Keyboard resizing remains available');
+    await page.keyboard.press('ArrowDown');
+    assert.equal((await snapshot()).tokens[0].sceneScale,1);
+    assert.equal((await snapshot()).tokens[0].x,gestureBefore.x,'Resize never moves the Pokémon');
+    assert.equal(await page.locator('#main-content').evaluate(e=>e.scrollTop),scrollBefore,'Gestures preserve app scroll position');
+
     assert.equal(await page.locator("#room-token-xp").count(),0,"Stored XP is read-only in adventure");
     assert.equal(await page.locator(".token-xp-readout").count(),1);
     assert.match(await page.locator(".token-experience-heading").innerText(),/Nível 50/);

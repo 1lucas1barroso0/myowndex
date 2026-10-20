@@ -28,6 +28,12 @@ await context.addInitScript(species => {
 const openDetails = async locator => { if (!await locator.evaluate(element => element.open)) await locator.locator(":scope > summary").click(); };
 
 try {
+ await context.addInitScript(() => {
+  if (!localStorage.getItem('myowndex_curtain_migration_qa')) {
+   localStorage.setItem('myowndex_curtain_migration_qa','1');
+   localStorage.setItem('myowndex_header_curtain_v1','3');
+  }
+ });
  await page.goto(baseUrl);
 
  await page.getByRole('button',{name:'Abrir o PC do Bill',exact:true}).click();
@@ -85,38 +91,41 @@ try {
  await page.setViewportSize({width:390,height:844});
  await page.evaluate(()=>window.scrollTo(0,0));
  const grip=page.locator('.app-curtain-grip'),header=page.locator('.app-header');
- assert.equal(await header.getAttribute('data-curtain-level'),'3');
+ assert.equal(await header.getAttribute('data-curtain-level'),'4');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('myowndex_header_curtain_v2')),'4','Legacy preference keeps the same visible rows');
  const fullHeight=await header.evaluate(e=>e.getBoundingClientRect().height);
  assert.ok(await header.evaluate(e=>Boolean(e.style.height)),'Curtain is measured after the game is ready');
  await grip.click();await page.waitForTimeout(300);
  assert.equal(await header.getAttribute('data-curtain-level'),'0');
  assert.equal(await page.locator('.app-nav').getAttribute('aria-hidden'),'true','Hidden navigation is absent from accessibility tree');
  assert.equal(await page.locator('.app-nav').evaluate(e=>e.hasAttribute('inert')),true,'Hidden navigation stays unfocusable');
+ assert.equal(await page.locator('.app-brand-cluster').getAttribute('aria-hidden'),'true','Brand is hidden in the new lowest stop');
  const compactHeight=await header.evaluate(e=>e.getBoundingClientRect().height);
+ assert.ok(compactHeight<=48,'Only the grip and bottom border occupy the collapsed header');
  assert.ok(compactHeight<fullHeight-50,'Curtain opens usable play space');
- for(const expected of ['1','2','3']) {await grip.click();assert.equal(await header.getAttribute('data-curtain-level'),expected);}
+ for(const expected of ['1','2','3','4']) {await grip.click();assert.equal(await header.getAttribute('data-curtain-level'),expected);}
  assert.equal(await page.locator('.app-preferences').evaluate(e=>e.hasAttribute('inert')),false);
  await grip.focus();await page.keyboard.press('ArrowUp');
- assert.equal(await header.getAttribute('data-curtain-level'),'2');
- await page.keyboard.press('ArrowDown');
  assert.equal(await header.getAttribute('data-curtain-level'),'3');
+ await page.keyboard.press('ArrowDown');
+ assert.equal(await header.getAttribute('data-curtain-level'),'4');
  await page.waitForTimeout(300);
  let box=await grip.boundingBox();
  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
  await page.mouse.down();
  await page.mouse.move(box.x+box.width/2,Math.max(8,box.y-130),{steps:8});
  await page.mouse.up();
- assert.ok(Number(await header.getAttribute('data-curtain-level'))<3,'Upward swipe finds another stop');
+ assert.ok(Number(await header.getAttribute('data-curtain-level'))<4,'Upward swipe finds another stop');
  box=await grip.boundingBox();
  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
  await page.mouse.down();
  await page.mouse.move(box.x+box.width/2,Math.min(800,box.y+260),{steps:8});
  await page.mouse.up();
- assert.equal(await header.getAttribute('data-curtain-level'),'3','Downward swipe restores all menu groups');
+ assert.equal(await header.getAttribute('data-curtain-level'),'4','Downward swipe restores all menu groups');
  // Every stop shows complete rows and an opaque, touch-sized handle, including after resize.
  for(const width of [320,390,540,700]) {
   await page.setViewportSize({width,height:844});
-  for(let level=0;level<4;level++) {
+  for(let level=0;level<5;level++) {
    await grip.focus();await page.keyboard.press('Home');
    for(let step=0;step<level;step++)await page.keyboard.press('ArrowDown');
    await page.waitForTimeout(300);
@@ -127,9 +136,52 @@ try {
    });
    assert.ok(fit.handle>=44,'The grip is a full touch target');
    assert.equal(fit.opacity,'1');assert.equal(fit.background,fit.headerBackground,'The hem is opaque and matches the curtain');
-   fit.rows.forEach((row,index)=>{assert.equal(row.visible,index<=level,'Only selected curtain rows are visible');if(row.visible)assert.ok(row.bottom<=row.handleTop+1,'Visible controls end before the grip');});
+   fit.rows.forEach((row,index)=>{assert.equal(row.visible,index<level,'Only selected curtain rows are visible');if(row.visible)assert.ok(row.bottom<=row.handleTop+1,'Visible controls end before the grip');});
   }
  }
+ // Cancellation, lost capture and rotation must never leave a stretched curtain.
+ await grip.focus();await page.keyboard.press('End');await page.waitForTimeout(300);
+ for(const reason of ['pointercancel','lostpointercapture','blur','resize','Escape']) {
+  const before=await header.getAttribute('data-curtain-level');
+  const bounds=await grip.boundingBox();
+  await page.mouse.move(bounds.x+bounds.width/2,bounds.y+22);await page.mouse.down();
+  await page.mouse.move(bounds.x+bounds.width/2,bounds.y-50,{steps:4});
+  if(reason==='Escape')await page.keyboard.press('Escape');
+  else await page.evaluate(reason=>{
+   if(reason==='blur'||reason==='resize')window.dispatchEvent(new Event(reason));
+   else document.querySelector('.app-curtain-grip').dispatchEvent(new PointerEvent(reason,{bubbles:true,pointerId:1}));
+  },reason);
+  await page.mouse.up();await page.waitForTimeout(300);
+  assert.equal(await header.getAttribute('data-curtain-level'),before,`${reason} rolls back the preview`);
+  assert.equal(await header.evaluate(e=>e.classList.contains('is-dragging')),false);
+ }
+ await page.keyboard.press('Home');await page.waitForTimeout(300);
+ await page.reload();await page.locator('.app-curtain-grip').waitFor();
+ await page.waitForFunction(()=>document.querySelector('.app-header').dataset.curtainLevel==='0');
+ assert.equal(await page.locator('.app-brand-cluster').getAttribute('aria-hidden'),'true','Grip-only preference survives reload');
+ await grip.focus();await page.keyboard.press('End');await page.waitForTimeout(300);
+ assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>image.draggable).map(image=>image.src)),[],'Interface artwork has no browser-native drag');
+ const nativeDrag=await page.locator('.app-brand-icon').evaluate(element=>{
+  const event=new DragEvent('dragstart',{bubbles:true,cancelable:true});element.dispatchEvent(event);return event.defaultPrevented;
+ });
+ assert.equal(nativeDrag,true,'Native image, link and selected-text drags cannot interfere with the app');
+ const touch=await context.newCDPSession(page);
+ await touch.send('Emulation.setTouchEmulationEnabled',{enabled:true});
+ let touchBounds=await grip.boundingBox();
+ let point={x:Math.round(touchBounds.x+touchBounds.width/2),y:Math.round(touchBounds.y+22)};
+ await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});
+ await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{...point,y:20}]});
+ await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ assert.equal(await header.getAttribute('data-curtain-level'),'0','A real touch swipe reaches grip-only');
+ await page.waitForTimeout(300);
+ touchBounds=await grip.boundingBox();point={x:Math.round(touchBounds.x+touchBounds.width/2),y:Math.round(touchBounds.y+22)};
+ await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});
+ await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{...point,y:180}]});
+ await touch.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
+ assert.equal(await header.getAttribute('data-curtain-level'),'0','Touch cancellation restores grip-only');
+ await touch.send('Emulation.setTouchEmulationEnabled',{enabled:false});await touch.detach();
+ await grip.focus();await page.keyboard.press('End');await page.waitForTimeout(300);
+
  await page.setViewportSize({width:390,height:844});
  await grip.focus();await page.keyboard.press('End');await page.waitForTimeout(300);
  for(const [openName,closeName] of [['Abrir Dados','Fechar dados'],['Gerar Pokémon','Fechar gerador'],['Entrar ou criar conta','Fechar cartão de Treinador']]) {

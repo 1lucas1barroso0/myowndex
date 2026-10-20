@@ -330,6 +330,26 @@ html .game-credits-content {
 }
 html .game-credits-content a { color:var(--ui-blue); text-decoration:underline; }
 
+/* On phones and small tablets, the expanded credits must be centered over
+   the entire footer, not over the right-aligned "Créditos" control. */
+@media (max-width:700px) {
+  html .app-root.game-edition.handheld-edition .device-footer {
+    position:relative;
+  }
+  html .app-root.game-edition.handheld-edition .game-credits {
+    position:static;
+  }
+  html .app-root.game-edition.handheld-edition .game-credits-content {
+    box-sizing:border-box;
+    left:50%;
+    right:auto;
+    bottom:calc(100% + .5rem);
+    transform:translateX(-50%);
+    width:min(24rem,calc(100% - 1.5rem));
+    max-width:calc(100% - 1.5rem);
+  }
+}
+
 /* Header curtain: only the centered grip starts a drag.
    The clipped rows are inert, so invisible controls cannot steal focus. */
 html .app-root.game-edition.handheld-edition .app-curtain-grip { display:none; }

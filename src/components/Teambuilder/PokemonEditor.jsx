@@ -22,7 +22,7 @@ import ItemCard from '../Pokedex/ItemCard.jsx';
 import ExperienceAward from '../Shared/ExperienceAward.jsx';
 import EvTraining from '../Shared/EvTraining.jsx';
 import FriendshipControl from '../Shared/FriendshipControl.jsx';
-import { getFriendshipScale } from '../../core/experience.js';
+import FriendshipValue from '../Shared/FriendshipValue.jsx';
 import CatalogInput from '../Shared/CatalogInput.jsx';
 
 const POKEMONDB_ITEMS = [
@@ -420,29 +420,33 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <header className="editor-header" style={{ "--summary-type": TYPE_COLORS[pk.species?.types?.[0]?.type?.name] || "var(--ui-blue)" }}>
                 <div className="editor-portrait-stage"><PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" /></div>
                 <div className="editor-identity">
+                    <div className="editor-summary-name"><h3>{pk.nickname || formatName(pk.formKey || pk.species?.name || "")}</h3><span className="editor-summary-level">Nível {pk.level || 1}</span>{pk.shiny && <span className="editor-shiny-badge">✦ Shiny</span>}</div>
+                    {pk.nickname && pk.nickname.toLowerCase() !== formatName(pk.formKey || pk.species?.name || "").toLowerCase() && <span className="editor-species-name">{formatName(pk.formKey || pk.species?.name || "")}</span>}
+                    <div className="editor-summary-types" aria-label="Tipos deste Pokémon">{(isHackmon && customT.length ? customT : (pk.species?.types || []).map(entry => entry.type?.name)).filter(Boolean).map(type => <span key={type} style={{ backgroundColor: TYPE_COLORS[type], color: TYPE_TEXT_COLORS[type] }}>{formatType(type)}</span>)}</div>
+                    <div className="editor-summary-health"><strong>HP {rpg.currentHp ?? displayedMaxHp} / {displayedMaxHp}</strong><span>{RPG_STATUS_LABELS[rpg.status || ""] || "Sem condição"}</span></div>
+                </div>
+                <dl className="editor-summary-facts" aria-label="Características do Pokémon">
+                    <div><dt>Natureza</dt><dd>{formatName(pk.nature || "hardy")}</dd></div>
+                    <div><dt>Habilidade</dt><dd>{pk.ability ? formatName(pk.ability) : "Sem habilidade"}</dd></div>
+                    <div><dt>Item</dt><dd>{pk.item && !consumedItem ? formatCanonicalItemName(pk.item) : "Sem item"}</dd></div>
+                    <div><dt>Gênero</dt><dd>{pk.gender === "M" ? "♂ Macho" : pk.gender === "F" ? "♀ Fêmea" : "Sem gênero"}</dd></div>
+                    <div className="editor-summary-friendship"><dt>Amizade</dt><dd><FriendshipValue friendship={pk.friendship} isTTRPG={isTTRPG} /></dd></div>
+                </dl>
+                <details className="editor-summary-customize">
+                    <summary>Editar características</summary>
+                    <div className="editor-summary-customize-body">
+                        <div className="editor-summary-identity-fields">
                     <label className="editor-field">
                         <span className="editor-label">Apelido</span>
                         <input type="text" value={pk.nickname !== undefined ? pk.nickname : formatName(pk.species?.name || "")} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, nickname: event.target.value })} className="editor-input editor-nickname" />
                     </label>
                     <label className="editor-shiny"><input aria-label="Shiny" type="checkbox" checked={pk.shiny || false} onChange={event => updatePk({ ...pk, shiny: event.target.checked })} /> ✦ Shiny</label>
-                    <span className="editor-species-name">{formatName(pk.formKey || pk.species?.name || "")}</span>
-                    <div className="editor-summary-types" aria-label="Tipos deste Pokémon">{(isHackmon && customT.length ? customT : (pk.species?.types || []).map(entry => entry.type?.name)).filter(Boolean).map(type => <span key={type} style={{ backgroundColor: TYPE_COLORS[type], color: TYPE_TEXT_COLORS[type] }}>{formatType(type)}</span>)}</div>
-                    <div className="editor-summary-health"><strong>HP {rpg.currentHp ?? displayedMaxHp} / {displayedMaxHp}</strong><span>{RPG_STATUS_LABELS[rpg.status || ""] || "Sem condição"}</span></div>
-                </div>
                 <label className="editor-field editor-level">
                     <span className="editor-label">Nível</span>
                     <input type="number" inputMode="numeric" min="1" max={isHackmon ? 200 : 100} value={pk.level === "" ? "" : pk.level} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, level: event.target.value === "" ? "" : integerInRange(event.target.value, 1, isHackmon ? 200 : 100, 1) })} className="editor-input" />
                 </label>
-                <dl className="editor-summary-facts" aria-label="Características do Pokémon">
-                    <div><dt>Natureza</dt><dd>{formatName(pk.nature || "hardy")}</dd></div>
-                    <div><dt>Habilidade</dt><dd>{formatName(pk.ability) || "Sem habilidade"}</dd></div>
-                    <div><dt>Item</dt><dd>{pk.item ? formatCanonicalItemName(pk.item) : "Sem item"}</dd></div>
-                    <div><dt>Gênero</dt><dd>{pk.gender === "M" ? "♂ Macho" : pk.gender === "F" ? "♀ Fêmea" : "Sem gênero"}</dd></div>
-                    <div className="editor-summary-friendship"><dt>Amizade</dt><dd>{integerInRange(pk.friendship, 0, 255, 70)}/255{isTTRPG ? ` · RPG ${getFriendshipScale(integerInRange(pk.friendship, 0, 255, 70))}/25` : ""}</dd></div>
-                </dl>
-                <details className="editor-summary-customize">
-                    <summary>Editar características</summary>
-                    <div className="editor-summary-customize-body">
+
+                        </div>
 
 
             <div className="editor-basics-grid">

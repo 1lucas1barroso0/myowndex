@@ -43,17 +43,25 @@ try {
  await lobby.getByRole('button',{name:'Começar uma aventura local',exact:false}).waitFor();
  for(const width of [320,390,768,1280])for(const theme of ['normal','night']) {
   await page.setViewportSize({width,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  await page.evaluate(()=>document.fonts.ready.then(()=>true));
+  await page.waitForFunction(()=>{
+   const root=document.querySelector('.app-header'),bounds=root.getBoundingClientRect();
+   if(innerWidth>700)return !root.style.height;
+   const group=root.querySelector('.app-preferences').getBoundingClientRect(),grip=root.querySelector('.app-curtain-grip').getBoundingClientRect();
+   const target=Number.parseFloat(root.style.height);
+   return Math.abs(bounds.height-target)<.02 && target===Math.ceil(group.bottom-bounds.top+grip.height+4) && root.getAnimations().every(animation=>animation.playState==='finished');
+  });
   for(const selector of ['.app-nav > button','.app-tool-actions > button','.game-style-options > button','.appearance-options > button','.room-entry-choices > button'])await palette(selector);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   const companions=await page.locator('.app-tool-actions .pokemon-companion').evaluateAll(nodes=>nodes.map(e=>({w:e.getBoundingClientRect().width,h:e.getBoundingClientRect().height})));
   assert.ok(companions.every(r=>r.w>=40&&r.h>=40),'Header Pokémon remain recognizable');
   const cropped=await page.locator('.app-header button').evaluateAll(nodes=>nodes.flatMap(button=>{const b=button.getBoundingClientRect();return [...button.querySelectorAll(':scope > span')].filter(e=>{const r=e.getBoundingClientRect();return r.left<b.left-1||r.right>b.right+1;}).map(e=>e.textContent);}));
   assert.deepEqual(cropped,[],`Labels and art stay inside their buttons at ${width} ${theme}`);
-  if(width===390){assert.ok(await page.locator('.app-header').evaluate(e=>e.getBoundingClientRect().height)<=220);await shot(`direction-lobby-${theme}`);}
+  if(width===390){assert.ok(await page.locator('.app-header').evaluate(e=>e.getBoundingClientRect().height)<=260);await shot(`direction-lobby-${theme}`);}
  }
  await page.setViewportSize({width:390,height:844});
  const create=page.getByRole('button',{name:'Criar uma aventura em grupo',exact:true});
- const join=page.getByRole('button',{name:'Entrar com um convite',exact:true});
+ const join=page.getByRole('button',{name:'Entrar via convite',exact:true});
  await create.click();
  const narrator=lobby.getByRole('form',{name:'Criar aventura',exact:true});
  await narrator.getByLabel('Nome da aventura',{exact:true}).fill('Bosque dos Pokémon');

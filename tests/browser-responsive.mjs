@@ -329,6 +329,7 @@ await page.setViewportSize({width:390,height:844});await page.getByRole('tab',{n
 await capturePresentation('record',page.locator('.record-header'));
 await page.getByRole('button',{name:'Adicionar à equipe',exact:false}).click();
 await page.locator('.pc-partner-card').first().waitFor();await page.locator('.pc-partner-card').first().click();
+await page.locator('.editor-summary-customize > summary').click();
 await page.getByLabel('Apelido',{exact:true}).fill('Venusaur parceiro com nome comprido para verificar o espaço');
 for(const width of [320,390,768,1280]){
  await page.setViewportSize({width,height:900});
@@ -350,6 +351,7 @@ await page.goto(baseUrl,{waitUntil:'domcontentloaded'});
 await nav('Abrir o PC do Bill');
 await page.locator('.pc-partner-card').first().waitFor();
 await page.locator('.pc-partner-card').first().click();
+await page.locator('.editor-summary-customize > summary').click();
 const savedNickname=page.getByLabel('Apelido',{exact:true});
 await savedNickname.waitFor();
 assert.match(await savedNickname.inputValue(),/parceiro com nome comprido/,'Editor state persists across a renderer restart');

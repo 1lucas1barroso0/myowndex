@@ -108,14 +108,15 @@ try {
     assert.equal((await savedPokemon()).evs.defense, 2);
     passed("ev-allocation-respects-both-official-caps-and-deleting-reserve-preserves-training");
 
+    await openDetails(editor.locator(".editor-summary-customize"));
     const friendship = editor.locator(".friendship-control");
     for (const [label, raw, rpg] of [["Aumentar Amizade em 5", 75, 7], ["Aumentar Amizade em 50", 125, 12], ["Diminuir Amizade em 5", 120, 12], ["Diminuir Amizade em 50", 70, 7]]) {
         await friendship.getByRole("button", { name: label, exact: true }).click();
         assert.equal(await friendship.getByRole("spinbutton", { name: "Amizade", exact: true }).inputValue(), String(raw));
-        assert.equal(await friendship.locator("output").innerText(), `RPG ${rpg} de 25`);
+        assert.equal(await friendship.getByRole("meter").getAttribute("aria-valuenow"), String(rpg));
     }
     await friendship.getByRole("spinbutton", { name: "Amizade", exact: true }).fill("255");
-    assert.equal(await friendship.locator("output").innerText(), "RPG 25 de 25");
+    assert.equal(await friendship.getByRole("meter").getAttribute("aria-valuenow"), "25");
     await friendship.getByRole("spinbutton", { name: "Amizade", exact: true }).fill("70");
     await openDetails(friendship.locator(".friendship-help"));
     passed("friendship-is-manual-in-five-and-fifty-steps-with-rpg-floor-and-cap");

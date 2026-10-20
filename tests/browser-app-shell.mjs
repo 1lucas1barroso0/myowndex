@@ -23,7 +23,7 @@ await context.route("https://pokeapi.co/api/v2/**", async route => {
 await context.addInitScript(species => {
     if (localStorage.getItem("myowndex_growth_qa")) return;
     localStorage.setItem("myowndex_growth_qa", "seeded");
-    localStorage.setItem("myowndex_rotom_v4", JSON.stringify({ schema: 5, savedAt: Date.now(), teams: [{ id: "growth-box", shareId: "growth-box", name: "Box do crescimento", updatedAt: Date.now(), rpgScale: 2, versionGroup: "auto", pokemon: [{ id: "growth-partner", nickname: "Buba", species, level: 10, nature: "hardy", ability: "overgrow", genderRate: 1, friendship: 70, moves: ["", "", "", ""], ivs: {}, evs: {}, rpg: { xp: 0, currentHp: 3, notes: "Preservar a jornada" } }] }] }));
+    localStorage.setItem("myowndex_rotom_v4", JSON.stringify({ schema: 5, savedAt: Date.now(), teams: [{ id: "growth-box", shareId: "growth-box", name: "Box do crescimento", updatedAt: Date.now(), rpgScale: 2, versionGroup: "auto", pokemon: [{ id: "growth-partner", nickname: "Buba", species, level: 10, nature: "hardy", ability: "overgrow", item: "leftovers", genderRate: 1, friendship: 70, moves: ["", "", "", ""], ivs: {}, evs: {}, rpg: { consumedItem: "leftovers", xp: 0, currentHp: 3, notes: "Preservar a jornada" } }] }] }));
 }, species);
 const openDetails = async locator => { if (!await locator.evaluate(element => element.open)) await locator.locator(":scope > summary").click(); };
 
@@ -37,7 +37,9 @@ try {
  assert.equal(await editor.locator('.editor-summary-caption').count(),0,'No redundant summary title');
  assert.equal(await editor.locator('.editor-summary-facts dt').count(),5,'Summary holds main Pokémon facts');
  assert.equal(await editor.locator('.editor-summary-customize').evaluate(e=>e.open),false);
+ assert.equal(await editor.locator('.editor-summary-facts > div').filter({has:page.locator('dt',{hasText:/^Item$/})}).locator('dd').innerText(),'Sem item','Consumed equipment is not shown as active');
  await openDetails(editor.locator('.editor-summary-customize'));
+ assert.equal(await editor.getByLabel('Item segurado',{exact:true}).inputValue(),'leftovers','The original equipment remains available to restore');
  assert.ok(await editor.locator('.friendship-scale-values').isVisible(),'Friendship scales are readable while editing');
  await openDetails(editor.locator('.editor-battle-mechanics'));
  const teraToggle=editor.getByRole('checkbox',{name:'Permitir Terastalização'});
@@ -58,6 +60,14 @@ try {
  await toggle.click();assert.notEqual(await reference.locator('p').innerText(),before);await toggle.click();
  for(const width of [320,390,768,1280,1440])for(const theme of ['normal','night']) {
   await page.setViewportSize({width,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  await page.evaluate(()=>document.fonts.ready.then(()=>true));
+  await page.waitForFunction(()=>{
+   const root=document.querySelector('.app-header'),bounds=root.getBoundingClientRect();
+   if(innerWidth>700)return !root.style.height;
+   const group=root.querySelector('.app-preferences').getBoundingClientRect(),grip=root.querySelector('.app-curtain-grip').getBoundingClientRect();
+   const target=Number.parseFloat(root.style.height);
+   return Math.abs(bounds.height-target)<.02 && target===Math.ceil(group.bottom-bounds.top+grip.height+4) && root.getAnimations().every(animation=>animation.playState==='finished');
+  });
   const metrics=await page.evaluate(()=>({w:innerWidth,scroll:document.documentElement.scrollWidth,placeholders:document.querySelectorAll('[placeholder]').length,header:document.querySelector('.app-header').getBoundingClientRect().height,escaped:[...document.querySelectorAll('.app-header button')].filter(e=>{const r=e.getBoundingClientRect();return r.left<0||r.right>innerWidth}).map(e=>e.textContent)}));
   assert.equal(metrics.w,metrics.scroll);assert.equal(metrics.placeholders,0);assert.deepEqual(metrics.escaped,[]);
   const brand=await page.locator('.app-brand h1').evaluate(element=>{const r=element.getBoundingClientRect(),parent=element.closest('.app-brand-cluster').getBoundingClientRect();return {name:element.textContent,x:r.x,right:r.right,containerRight:parent.right};});
@@ -103,6 +113,25 @@ try {
  await page.mouse.move(box.x+box.width/2,Math.min(800,box.y+260),{steps:8});
  await page.mouse.up();
  assert.equal(await header.getAttribute('data-curtain-level'),'3','Downward swipe restores all menu groups');
+ // Every stop shows complete rows and an opaque, touch-sized handle, including after resize.
+ for(const width of [320,390,540,700]) {
+  await page.setViewportSize({width,height:844});
+  for(let level=0;level<4;level++) {
+   await grip.focus();await page.keyboard.press('Home');
+   for(let step=0;step<level;step++)await page.keyboard.press('ArrowDown');
+   await page.waitForTimeout(300);
+   const fit=await header.evaluate(root=>{
+    const handle=root.querySelector('.app-curtain-grip').getBoundingClientRect(),hem=getComputedStyle(root,'::before');
+    return {handle:handle.height,opacity:hem.opacity,background:hem.backgroundColor,headerBackground:getComputedStyle(root).backgroundColor,
+     rows:['.app-brand-cluster','.app-nav','.app-tool-actions','.app-preferences'].map(selector=>{const e=root.querySelector(selector),r=e.getBoundingClientRect();return {visible:getComputedStyle(e).visibility!=='hidden',bottom:r.bottom,handleTop:handle.top};})};
+   });
+   assert.ok(fit.handle>=44,'The grip is a full touch target');
+   assert.equal(fit.opacity,'1');assert.equal(fit.background,fit.headerBackground,'The hem is opaque and matches the curtain');
+   fit.rows.forEach((row,index)=>{assert.equal(row.visible,index<=level,'Only selected curtain rows are visible');if(row.visible)assert.ok(row.bottom<=row.handleTop+1,'Visible controls end before the grip');});
+  }
+ }
+ await page.setViewportSize({width:390,height:844});
+ await grip.focus();await page.keyboard.press('End');await page.waitForTimeout(300);
  for(const [openName,closeName] of [['Abrir Dados','Fechar dados'],['Gerar Pokémon','Fechar gerador'],['Entrar ou criar conta','Fechar cartão de Treinador']]) {
   const button=page.getByRole('button',{name:openName,exact:true}).first();await button.click();
   const dialog=page.getByRole('dialog');await dialog.waitFor();

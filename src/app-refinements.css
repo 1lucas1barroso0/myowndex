@@ -342,7 +342,7 @@ html .app-root.game-edition.handheld-edition .editor-summary-customize-body {
 html .app-root.game-edition.handheld-edition .editor-summary-customize .editor-basics-grid { gap:.8rem !important; }
 html .app-root.game-edition.handheld-edition .editor-summary-customize .editor-friendship { margin:0; padding:0; }
 html .app-root.game-edition.handheld-edition .editor-portrait-stage { align-self:center; gap:0; }
-html .app-root.game-edition.handheld-edition .friendship-control > header {
+html .app-root.game-edition.handheld-edition .friendship-control > .friendship-control-heading {
   display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem;
 }
 html .app-root.game-edition.handheld-edition .friendship-scale-values {

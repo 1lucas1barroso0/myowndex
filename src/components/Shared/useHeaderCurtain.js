@@ -73,7 +73,12 @@ export default function useHeaderCurtain() {
         const keys={ArrowUp:Math.max(0,level-1),ArrowDown:Math.min(3,level+1),Home:0,End:3};
         if(Object.hasOwn(keys,e.key)){e.preventDefault();choose(keys[e.key]);}
     },[level,choose]);
-    return {headerRef,brandRef,navRef,toolsRef,prefsRef,mobile,level,
+    const bindHeader = useCallback(node => { headerRef.current=node; }, []);
+    const bindBrand = useCallback(node => { brandRef.current=node; }, []);
+    const bindNav = useCallback(node => { navRef.current=node; }, []);
+    const bindTools = useCallback(node => { toolsRef.current=node; }, []);
+    const bindPrefs = useCallback(node => { prefsRef.current=node; }, []);
+    return {bindHeader,bindBrand,bindNav,bindTools,bindPrefs,mobile,level,
         dragging:dragHeight!==null,height:mobile?(dragHeight??stops[level]):undefined,
         label:`Ajustar cortina do topo: ${LABELS[level]}. Arraste ou use as setas.`,
         down,move,finish,click,keyDown};

@@ -76,19 +76,21 @@ async function auditDexIdentity(){
  for(const icon of manifest.icons) assert.match(icon.src,/myowndex-dex-v105-r3-(?:app-|maskable-)?\d+\.png$/,'PWA icons share the same master');
  assert.equal(manifest.shortcuts.length,4,'Every main game area keeps its installed shortcut');
  for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v105-r3-96\.png$/,'Installed shortcuts use the same new Pokédex do MyOwnDex');
- const images=[{url:metadata.brand,size:96,transparent:true},...metadata.icons.map(icon=>({...icon,transparent:true})),{url:metadata.apple,size:180,opaque:true},{url:metadata.shortcut,size:96,transparent:true},...manifest.icons.filter(icon=>icon.type==='image/png').map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0]),opaque:true})),{url:localPath(metadata.og),size:512,opaque:true}];
+ const images=[{url:metadata.brand,size:64,transparent:true,svg:true},...metadata.icons.map(icon=>({...icon,transparent:true})),{url:metadata.apple,size:180,opaque:true},{url:metadata.shortcut,size:96,transparent:true},...manifest.icons.filter(icon=>icon.type==='image/png').map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0]),opaque:true})),{url:localPath(metadata.og),size:512,opaque:true}];
  for(const image of images){
   const result=await page.evaluate(async ({url,size})=>{
    const response=await fetch(url);if(!response.ok) return {status:response.status};
-   const bitmap=await createImageBitmap(await response.blob());
+   const blob=await response.blob();let bitmap,objectUrl;
+   if(blob.type.includes('svg')){objectUrl=URL.createObjectURL(blob);bitmap=new Image();bitmap.src=objectUrl;await bitmap.decode();}
+   else bitmap=await createImageBitmap(blob);
    const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
    const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
    let transparent=0,visible=0;const colors=new Set();
    for(let index=0;index<pixels.length;index+=4){const [r,g,b,a]=pixels.subarray(index,index+4);if(a<255)transparent++;if(a<220)continue;visible++;colors.add(`${r>>4},${g>>4},${b>>4}`);}
-   bitmap.close();return {status:response.status,type:response.headers.get('content-type'),width:canvas.width,height:canvas.height,transparent,visible,colors:colors.size,minimum:size*size*.05};
+   bitmap.close?.();if(objectUrl)URL.revokeObjectURL(objectUrl);return {status:response.status,type:response.headers.get('content-type'),width:canvas.width,height:canvas.height,transparent,visible,colors:colors.size,minimum:size*size*.05};
   },{url:localPath(image.url),size:image.size});
   assert.equal(result.status,200,`Identity asset loads: ${image.url}`);
-  assert.match(result.type,/image\/png/,'Icons are actual portable PNG images');
+  assert.match(result.type,image.svg?/image\/svg\+xml/:/image\/png/,'The live mark is SVG; install icons are portable PNGs');
   assert.equal(result.width,image.size);assert.equal(result.height,image.size);
   assert.ok(result.visible>result.minimum&&result.colors>12,`Pokédex do MyOwnDex artwork remains visible in ${image.url}`);
   if(image.opaque) assert.equal(result.transparent,0,'Installed and shared-link Pokédex do MyOwnDex fills its entire frame');

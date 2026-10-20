@@ -41,6 +41,7 @@ async function waitForRelease(){
  assert.fail(`Public production did not reach ${expectedVersion}; last observed version: ${lastVersion}`);
 }
 async function auditIdentity(){
+ await page.waitForFunction(()=>{const image=document.querySelector('img.app-brand-icon');return image?.complete&&image.naturalWidth>0;});
  const metadata=await page.evaluate(()=>({brand:document.querySelector('img.app-brand-icon')?.getAttribute('src'),icons:[...document.querySelectorAll('link[rel="icon"]')].map(element=>({url:element.getAttribute('href'),size:Number(element.getAttribute('sizes')?.split('x')[0])})),apple:document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href'),shortcut:document.querySelector('link[rel="shortcut icon"]')?.getAttribute('href'),manifest:document.querySelector('link[rel="manifest"]')?.getAttribute('href'),og:document.querySelector('meta[property="og:image"]')?.getAttribute('content'),twitter:document.querySelector('meta[name="twitter:image"]')?.getAttribute('content')}));
  assert.match(metadata.brand,/myowndex-dex-v105-r3-live\.svg(?:\?|$)/);
  assert.match(metadata.apple,/myowndex-dex-v105-r3-180\.png$/);

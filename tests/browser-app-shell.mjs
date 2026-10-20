@@ -34,6 +34,11 @@ try {
  await page.locator('.pc-partner-card').first().click();
  const editor=page.locator('.pokemon-editor');
  assert.equal(await editor.getByText('Características',{exact:true}).count(),0);
+ assert.equal(await editor.locator('.editor-summary-caption').count(),0,'No redundant summary title');
+ assert.equal(await editor.locator('.editor-summary-facts dt').count(),5,'Summary holds main Pokémon facts');
+ assert.equal(await editor.locator('.editor-summary-customize').evaluate(e=>e.open),false);
+ await openDetails(editor.locator('.editor-summary-customize'));
+ assert.ok(await editor.locator('.friendship-scale-values').isVisible(),'Friendship scales are readable while editing');
  await openDetails(editor.locator('.editor-battle-mechanics'));
  const teraToggle=editor.getByRole('checkbox',{name:'Permitir Terastalização'});
  const teraSelect=editor.getByRole('combobox',{name:'Tipo Tera'});
@@ -63,12 +68,39 @@ try {
    }).map(child=>child.textContent);
   }));
   assert.deepEqual(clippedNavigation,[],'Navigation labels and icons stay inside their targets');
-  if(width===390)assert.ok(metrics.header<=220,'The fixed header leaves room for the game');
+  if(width===390)assert.ok(metrics.header<=260,'The full curtain leaves room for the game');
   console.log(width,theme,metrics.header);
 
  }
  await page.setViewportSize({width:390,height:844});
  await page.evaluate(()=>window.scrollTo(0,0));
+ const grip=page.locator('.app-curtain-grip'),header=page.locator('.app-header');
+ assert.equal(await header.getAttribute('data-curtain-level'),'3');
+ const fullHeight=await header.evaluate(e=>e.getBoundingClientRect().height);
+ await grip.click();await page.waitForTimeout(300);
+ assert.equal(await header.getAttribute('data-curtain-level'),'0');
+ assert.equal(await page.locator('.app-nav').evaluate(e=>e.inert),true,'Hidden navigation stays unfocusable');
+ const compactHeight=await header.evaluate(e=>e.getBoundingClientRect().height);
+ assert.ok(compactHeight<fullHeight-50,'Curtain opens usable play space');
+ for(const expected of ['1','2','3']) {await grip.click();assert.equal(await header.getAttribute('data-curtain-level'),expected);}
+ assert.equal(await page.locator('.app-preferences').evaluate(e=>e.inert),false);
+ await grip.focus();await page.keyboard.press('ArrowUp');
+ assert.equal(await header.getAttribute('data-curtain-level'),'2');
+ await page.keyboard.press('ArrowDown');
+ assert.equal(await header.getAttribute('data-curtain-level'),'3');
+ await page.waitForTimeout(300);
+ let box=await grip.boundingBox();
+ await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+ await page.mouse.down();
+ await page.mouse.move(box.x+box.width/2,Math.max(8,box.y-130),{steps:8});
+ await page.mouse.up();
+ assert.ok(Number(await header.getAttribute('data-curtain-level'))<3,'Upward swipe finds another stop');
+ box=await grip.boundingBox();
+ await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+ await page.mouse.down();
+ await page.mouse.move(box.x+box.width/2,Math.min(800,box.y+260),{steps:8});
+ await page.mouse.up();
+ assert.equal(await header.getAttribute('data-curtain-level'),'3','Downward swipe restores all menu groups');
  for(const [openName,closeName] of [['Abrir Dados','Fechar dados'],['Gerar Pokémon','Fechar gerador'],['Entrar ou criar conta','Fechar cartão de Treinador']]) {
   const button=page.getByRole('button',{name:openName,exact:true}).first();await button.click();
   const dialog=page.getByRole('dialog');await dialog.waitFor();

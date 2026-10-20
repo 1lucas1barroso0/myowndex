@@ -31,9 +31,10 @@ export default function useHeaderCurtain(ready = true) {
             if (!narrow) return;
             const top = header.getBoundingClientRect().top;
             const selectors = [".app-brand-cluster", ".app-nav", ".app-tool-actions", ".app-preferences"];
+            const handleHeight = header.querySelector(".app-curtain-grip")?.getBoundingClientRect().height || 44;
             const stops = selectors.map(selector => {
                 const element = header.querySelector(selector);
-                return element ? Math.ceil(element.getBoundingClientRect().bottom - top + 36) : 0;
+                return element ? Math.ceil(element.getBoundingClientRect().bottom - top + handleHeight + 4) : 0;
             });
             for (let i = 1; i < stops.length; i++) stops[i] = Math.max(stops[i], stops[i-1] + 1);
             setMarks(old => old.length === 4 && old.every((height, i) => height === stops[i]) ? old : stops);
@@ -80,11 +81,12 @@ export default function useHeaderCurtain(ready = true) {
         if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
         if (canceled || !gesture.moved) { setGesture(null); setDragHeight(null); return; }
         setIgnoreClick(true);
-        const position = clamp(gesture.height + gesture.delta, marks[0], marks[3]);
+        const delta = event.clientY - gesture.y;
+        const position = clamp(gesture.height + delta, marks[0], marks[3]);
         let nearest = marks.reduce((best, height, index) =>
             Math.abs(height - position) < Math.abs(marks[best] - position) ? index : best, 0);
-        if (nearest === gesture.level && Math.abs(gesture.delta) >= 28)
-            nearest = clamp(gesture.level + (gesture.delta > 0 ? 1 : -1), 0, 3);
+        if (nearest === gesture.level && Math.abs(delta) >= 28)
+            nearest = clamp(gesture.level + (delta > 0 ? 1 : -1), 0, 3);
         choose(nearest);
     }, [gesture, marks, choose]);
 

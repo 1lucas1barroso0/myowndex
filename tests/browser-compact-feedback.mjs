@@ -26,7 +26,9 @@ try {
   await editor.locator('.editor-header').scrollIntoViewIfNeeded();
   await page.waitForFunction(()=>{const image=document.querySelector('.editor-header .pokemon-sprite-image');return image?.currentSrc&&image.complete&&image.naturalWidth>0;});
   const characteristics=editor.locator('.editor-identity');
-  assert.equal(await characteristics.getByLabel('Shiny',{exact:true}).count(),1);
+  assert.equal(await characteristics.locator('input').count(),0,'The closed summary reads as a Pokémon card');
+  assert.equal(await editor.locator('.editor-summary-customize').getByLabel('Shiny',{exact:true}).count(),1);
+  assert.ok((await editor.locator('.editor-header').boundingBox()).height<=420,'The summary stays compact');
   assert.equal(await characteristics.getByLabel('Tipo Tera',{exact:true}).count(),0,'Characteristics do not mix in transformations');
   const forms=editor.locator('.editor-battle-mechanics');
   await forms.locator(':scope > summary').click();

@@ -23,7 +23,7 @@ await context.route("https://pokeapi.co/api/v2/**", async route => {
 await context.addInitScript(species => {
     if (localStorage.getItem("myowndex_growth_qa")) return;
     localStorage.setItem("myowndex_growth_qa", "seeded");
-    localStorage.setItem("myowndex_rotom_v4", JSON.stringify({ schema: 5, savedAt: Date.now(), teams: [{ id: "growth-box", shareId: "growth-box", name: "Box do crescimento", updatedAt: Date.now(), rpgScale: 2, versionGroup: "auto", pokemon: [{ id: "growth-partner", nickname: "Buba", species, level: 10, nature: "hardy", ability: "overgrow", genderRate: 1, friendship: 70, moves: ["", "", "", ""], ivs: {}, evs: {}, rpg: { xp: 0, currentHp: 3, notes: "Preservar a jornada" } }] }] }));
+    localStorage.setItem("myowndex_rotom_v4", JSON.stringify({ schema: 5, savedAt: Date.now(), teams: [{ id: "growth-box", shareId: "growth-box", name: "Box do crescimento", updatedAt: Date.now(), rpgScale: 2, versionGroup: "auto", pokemon: [{ id: "growth-partner", nickname: "Buba", species, level: 10, nature: "hardy", ability: "overgrow", item: "leftovers", genderRate: 1, friendship: 70, moves: ["", "", "", ""], ivs: {}, evs: {}, rpg: { consumedItem: "leftovers", xp: 0, currentHp: 3, notes: "Preservar a jornada" } }] }] }));
 }, species);
 const openDetails = async locator => { if (!await locator.evaluate(element => element.open)) await locator.locator(":scope > summary").click(); };
 
@@ -37,7 +37,9 @@ try {
  assert.equal(await editor.locator('.editor-summary-caption').count(),0,'No redundant summary title');
  assert.equal(await editor.locator('.editor-summary-facts dt').count(),5,'Summary holds main Pokémon facts');
  assert.equal(await editor.locator('.editor-summary-customize').evaluate(e=>e.open),false);
+ assert.equal(await editor.locator('.editor-summary-facts > div').filter({has:page.locator('dt',{hasText:/^Item$/})}).locator('dd').innerText(),'Sem item','Consumed equipment is not shown as active');
  await openDetails(editor.locator('.editor-summary-customize'));
+ assert.equal(await editor.getByLabel('Item segurado',{exact:true}).inputValue(),'leftovers','The original equipment remains available to restore');
  assert.ok(await editor.locator('.friendship-scale-values').isVisible(),'Friendship scales are readable while editing');
  await openDetails(editor.locator('.editor-battle-mechanics'));
  const teraToggle=editor.getByRole('checkbox',{name:'Permitir Terastalização'});

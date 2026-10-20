@@ -22,6 +22,7 @@ import ItemCard from '../Pokedex/ItemCard.jsx';
 import ExperienceAward from '../Shared/ExperienceAward.jsx';
 import EvTraining from '../Shared/EvTraining.jsx';
 import FriendshipControl from '../Shared/FriendshipControl.jsx';
+import { getFriendshipScale } from '../../core/experience.js';
 import CatalogInput from '../Shared/CatalogInput.jsx';
 
 const POKEMONDB_ITEMS = [
@@ -417,7 +418,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         <section className="pokemon-editor animate-fade-in" aria-label={`Editar ${pk.nickname || formatName(pk.formKey || pk.species?.name)}`}>
 
             <header className="editor-header" style={{ "--summary-type": TYPE_COLORS[pk.species?.types?.[0]?.type?.name] || "var(--ui-blue)" }}>
-                <div className="editor-portrait-stage"><span className="editor-summary-caption">Resumo</span><PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" /></div>
+                <div className="editor-portrait-stage"><PokemonSprite src={sprite} pokemonId={pk.species?.id} shiny={pk.shiny} alt={`${formatName(pk.formKey || pk.species?.name)}${pk.shiny ? " shiny" : ""}`} className="editor-portrait" /></div>
                 <div className="editor-identity">
                     <label className="editor-field">
                         <span className="editor-label">Apelido</span>
@@ -432,8 +433,17 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     <span className="editor-label">Nível</span>
                     <input type="number" inputMode="numeric" min="1" max={isHackmon ? 200 : 100} value={pk.level === "" ? "" : pk.level} onKeyDown={handleEnter} onChange={event => updatePk({ ...pk, level: event.target.value === "" ? "" : integerInRange(event.target.value, 1, isHackmon ? 200 : 100, 1) })} className="editor-input" />
                 </label>
-            </header>
-            {exceptionCount > 0 && <p className="editor-exception-note" role="status">{`${exceptionCount} ${exceptionCount === 1 ? "escolha fora do jogo de referência" : "escolhas fora do jogo de referência"}.`}</p>}
+                <dl className="editor-summary-facts" aria-label="Características do Pokémon">
+                    <div><dt>Natureza</dt><dd>{formatName(pk.nature || "hardy")}</dd></div>
+                    <div><dt>Habilidade</dt><dd>{formatName(pk.ability) || "Sem habilidade"}</dd></div>
+                    <div><dt>Item</dt><dd>{pk.item ? formatCanonicalItemName(pk.item) : "Sem item"}</dd></div>
+                    <div><dt>Gênero</dt><dd>{pk.gender === "M" ? "♂ Macho" : pk.gender === "F" ? "♀ Fêmea" : "Sem gênero"}</dd></div>
+                    <div className="editor-summary-friendship"><dt>Amizade</dt><dd>{integerInRange(pk.friendship, 0, 255, 70)}/255{isTTRPG ? ` · RPG ${getFriendshipScale(integerInRange(pk.friendship, 0, 255, 70))}/25` : ""}</dd></div>
+                </dl>
+                <details className="editor-summary-customize">
+                    <summary>Editar características</summary>
+                    <div className="editor-summary-customize-body">
+ && <p className="editor-exception-note" role="status">{`${exceptionCount} ${exceptionCount === 1 ? "escolha fora do jogo de referência" : "escolhas fora do jogo de referência"}.`}</p>}
 
             <div className="editor-basics-grid">
                 <div className="editor-field">
@@ -482,6 +492,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <section className="editor-friendship" aria-label="Amizade">
                 <FriendshipControl pokemon={pk} onChange={updatePk} isTTRPG={isTTRPG} />
             </section>
+                    </div>
+                </details>
+            </header>
             {isHackmon && <div className="editor-basics-grid">{[0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><RoomSelect aria-label={`Tipo personalizado ${index + 1}`} value={customT[index] || ""} onChange={event => { const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>)}</div>}
             {switchingForm && <span role="status" className="sr-only">Consultando forma…</span>}
             {formError && <p role="alert" className="editor-error">{formError}</p>}

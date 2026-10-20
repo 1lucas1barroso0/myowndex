@@ -34,6 +34,16 @@ try {
  await page.locator('.pc-partner-card').first().click();
  const editor=page.locator('.pokemon-editor');
  assert.equal(await editor.getByText('Características',{exact:true}).count(),0);
+ await openDetails(editor.locator('.editor-battle-mechanics'));
+ const teraToggle=editor.getByRole('checkbox',{name:'Permitir Terastalização'});
+ const teraSelect=editor.getByRole('combobox',{name:'Tipo Tera'});
+ assert.equal(await teraToggle.isChecked(),true);
+ const priorType=await teraSelect.inputValue();
+ await teraToggle.uncheck();
+ assert.equal(await teraSelect.isDisabled(),true,'A ficha não permite escolher Tipo Tera desabilitado');
+ await teraToggle.check();
+ assert.equal(await teraSelect.isEnabled(),true,'O Tipo Tera pode ser usado novamente');
+ assert.equal(await teraSelect.inputValue(),priorType,'Habilitar preserva o Tipo Tera');
  await openDetails(editor.locator('.editor-trait-reference'));
  const reference=editor.locator('.reference-text').first();
  await reference.waitFor();

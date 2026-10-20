@@ -1,3 +1,4 @@
+import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
@@ -1078,7 +1079,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         setMobilePane("roster");
         window.requestAnimationFrame(() => {
             const entry = document.querySelector(".room-team-entry");
-            entry?.scrollIntoView({ block: "nearest", behavior: "auto" });
+            revealInScrollArea(entry);
             entry?.querySelector("select,button")?.focus({ preventScroll: true });
         });
     };
@@ -1555,7 +1556,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                             window.requestAnimationFrame(() => {
                                 const section=document.querySelector(".room-tools .room-tool:has(> summary) > summary");
                                 const combat=[...document.querySelectorAll(".room-tools .room-tool")].find(node=>node.querySelector(":scope > summary")?.textContent?.includes("Resolver um movimento"));
-                                if(combat){combat.open=true;combat.scrollIntoView({block:"start",behavior:"smooth"});combat.querySelector("select")?.focus({preventScroll:true});}
+                                if(combat){combat.open=true;revealInScrollArea(combat,{block:"start",behavior:"smooth"});combat.querySelector("select")?.focus({preventScroll:true});}
                                 else section?.focus();
                             });
                         }}

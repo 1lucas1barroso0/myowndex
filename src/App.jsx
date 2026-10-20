@@ -1,3 +1,4 @@
+import useAppViewport from "./components/Shared/useAppViewport.js";
 import useHeaderCurtain from "./components/Shared/useHeaderCurtain.js";
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -86,6 +87,7 @@ const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction 
 };
 
 export default function App() {
+    useAppViewport();
     const [accountOpen, setAccountOpen] = useState(false);
     const [receivedDocument, setReceivedDocument] = useState(null);
     const flushRef = useRef(null);

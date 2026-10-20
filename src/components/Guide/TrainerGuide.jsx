@@ -1,3 +1,4 @@
+import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
@@ -41,7 +42,7 @@ export default function TrainerGuide({ experienceMode }) {
             const completeRule = rule.querySelector(".guide-hit-kill-full-rule");
             if (completeRule) completeRule.open = true;
             rule.querySelector(":scope > summary")?.focus({ preventScroll: true });
-            rule.scrollIntoView({ block: "start", behavior: "instant" });
+            revealInScrollArea(rule, { block: "start", behavior: "instant" });
         });
     };
 

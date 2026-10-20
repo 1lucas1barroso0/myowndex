@@ -1,3 +1,4 @@
+import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import speciesCatalogue from '../../data/species.json';
@@ -263,7 +264,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             window.requestAnimationFrame(() => {
                 if (sequenceRef.current !== sequence) return;
                 resultsRef.current?.focus({ preventScroll: true });
-                resultsRef.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+                revealInScrollArea(resultsRef.current, { block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
             });
             setNotice(generated.length < Number(options.count) ? `${generated.length} Pokémon encontrado${generated.length === 1 ? '' : 's'}. Amplie os filtros para gerar mais.` : '');
         } catch (cause) {

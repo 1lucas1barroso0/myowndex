@@ -74,6 +74,11 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-app-shell.mjs
+      - name: Conferir moldura, teclado e foco com Box cheia
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-viewport-stability.mjs
       - name: Conferir sugestões, créditos e continuidade dos diálogos
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

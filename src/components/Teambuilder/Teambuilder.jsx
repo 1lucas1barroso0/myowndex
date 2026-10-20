@@ -1,3 +1,4 @@
+import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatCanonicalItemName, formatCount, formatPartnerArrival } from "../../core/copy.js";
 import { formatName, formatType, TYPE_COLORS, TYPE_TEXT_COLORS, VERSION_GROUPS } from "../../core/mechanics.js";
@@ -103,7 +104,7 @@ export default function Teambuilder({ envProps }) {
     useEffect(() => {
         if (editingSlot === null || !editorHeadingRef.current) return;
         editorHeadingRef.current.focus({ preventScroll: true });
-        editorHeadingRef.current.scrollIntoView({ block: "nearest", behavior: "auto" });
+        revealInScrollArea(editorHeadingRef.current.closest(".pc-editor-region"), { block: "start" });
     }, [editingSlot, activeTeamId]);
 
     useEffect(() => {
@@ -494,7 +495,7 @@ export default function Teambuilder({ envProps }) {
                                 <header className="pc-editor-heading">
                                     <h3 ref={editorHeadingRef} tabIndex={-1}>Ficha de {active.pokemon[editingSlot].nickname || partnerFormName(active.pokemon[editingSlot])}</h3>
                                     <div className="pc-editor-actions" role="group" aria-label="Ações da ficha">
-                                        <button type="button" onClick={() => { partnerButtonRefs.current[editingSlot]?.focus(); setEditingSlot(null); }} className="pc-close-editor">Fechar ficha</button>
+                                        <button type="button" onClick={() => { const partner = partnerButtonRefs.current[editingSlot]; setEditingSlot(null); requestAnimationFrame(() => { partner?.focus({ preventScroll: true }); revealInScrollArea(partner); }); }} className="pc-close-editor">Fechar ficha</button>
                                         <button type="button" onClick={() => { dismissKeyboard(); setPendingPartnerDelete({ teamId: active.id, partner: active.pokemon[editingSlot], index: editingSlot }); }} className="pokemon-remove-button">Remover da Box</button>
                                     </div>
                                 </header>

@@ -39,7 +39,7 @@ html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-gen
 }
 html .app-root.game-edition.handheld-edition .app-tool-actions .pokemon-companion > .pokemon-sized-sprite { width:40px !important; height:40px !important; min-height:0 !important; }
 html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button)[aria-expanded=true] { outline:2px solid var(--journey-gold); outline-offset:2px; }
-html .app-root .editor-shiny { position:relative; display:inline-flex; align-items:center; justify-content:space-between; gap:1rem; min-height:48px; width:100%; padding:.55rem .75rem; border:1px solid var(--ui-control-line); border-radius:var(--app-control-radius,.65rem); background:var(--ui-panel); color:var(--ui-ink); font-size:.95rem; font-weight:700; cursor:pointer; }
+html .app-root .editor-shiny { position:relative; display:inline-flex; align-items:center; justify-content:space-between; gap:1rem; min-height:48px; width:fit-content; max-width:100%; padding:.55rem .75rem; border:1px solid var(--ui-control-line); border-radius:var(--app-control-radius,.65rem); background:var(--ui-panel); color:var(--ui-ink); font-size:.95rem; font-weight:700; cursor:pointer; }
 html .app-root .editor-shiny > input { position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; margin:0 !important; opacity:0 !important; cursor:pointer; }
 html .app-root .editor-shiny-label { display:inline-flex; align-items:center; gap:.5rem; pointer-events:none; }
 html .app-root .editor-shiny-label .game-icon { width:24px; height:24px; flex:none; }

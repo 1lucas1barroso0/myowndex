@@ -50,6 +50,13 @@ try {
  await page.waitForFunction(()=>{const i=document.querySelector('.editor-portrait-stage img');return i?.alt==='Bulbasaur shiny'&&i.currentSrc.includes('shiny')&&i.complete&&i.naturalWidth>0;});
  assert.equal(await card.locator('.editor-shiny-badge').innerText(),'Shiny');
  const control=editor.locator('.editor-shiny');await control.scrollIntoViewIfNeeded(); const rect=await control.boundingBox();assert.ok(rect.height>=44&&rect.width>=140);
+ for(const width of [320,390,768,1280]) {
+  await page.setViewportSize({width,height:900});await control.scrollIntoViewIfNeeded();
+  const bounds=await control.boundingBox(), label=await control.locator('.editor-shiny-label').boundingBox(), selection=await control.locator('.editor-shiny-switch').boundingBox();
+  assert.ok(bounds.width<=224&&bounds.height>=44,`Shiny stays compact and touchable at ${width}px`);
+  assert.ok(selection.x-label.x-label.width<=20,'Shiny selection stays beside its name');
+ }
+ await page.setViewportSize({width:390,height:900});await control.scrollIntoViewIfNeeded();
  await page.screenshot({path:`${directory}/shiny-edit.png`});
  await control.click();assert.equal(await shiny.isChecked(),false);assert.equal(await card.locator('.editor-shiny-badge').count(),0);
  await openDetails(editor.locator('.rpg-journey-panel')); const input=editor.getByLabel('HP atual',{exact:true});const colours=[];

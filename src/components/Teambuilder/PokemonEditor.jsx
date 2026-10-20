@@ -427,7 +427,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 </div>
                 <dl className="editor-summary-facts" aria-label="Características do Pokémon">
                     <div><dt>Natureza</dt><dd>{formatName(pk.nature || "hardy")}</dd></div>
-                    <div><dt>Habilidade</dt><dd>{pk.ability ? formatName(pk.ability) : "Sem habilidade"}</dd></div>
+                    <div><dt>Habilidade</dt><dd>{pk.ability ? formatName(pk.ability) : "Nenhuma"}</dd></div>
                     <div><dt>Item</dt><dd>{pk.item && !consumedItem ? formatCanonicalItemName(pk.item) : "Sem item"}</dd></div>
                     <div><dt>Gênero</dt><dd>{pk.gender === "M" ? "♂ Macho" : pk.gender === "F" ? "♀ Fêmea" : "Sem gênero"}</dd></div>
                     <div className="editor-summary-friendship"><dt>Amizade</dt><dd><FriendshipValue friendship={pk.friendship} isTTRPG={isTTRPG} /></dd></div>

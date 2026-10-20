@@ -192,6 +192,7 @@ export const normalizePokemon = input => {
         ivs: normalizeStats(source.ivs, 31, 31),
         evs: normalizeStats(source.evs, 0, 252),
         canGMax: Boolean(source.canGMax),
+        canTerastallize: source.canTerastallize !== false,
         shiny: Boolean(source.shiny),
         dynamaxLevel: clampInteger(source.dynamaxLevel, 0, 10, 0),
         teraType: asText(source.teraType).toLowerCase(),

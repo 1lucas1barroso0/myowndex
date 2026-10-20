@@ -501,20 +501,31 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="editor-disclosure-body editor-mechanics-grid">
                     {mechanics.mega && megaItems.length > 0 && <div className="editor-mechanic-group">
                         <strong className="editor-mechanic-name">Mega Evolução</strong>
+                        <p className="editor-mechanic-status">Transforma temporariamente o Pokémon durante a batalha, podendo alterar atributos, tipo e habilidade. Em geral, exige sua Mega Stone em Item segurado.</p>
                         <p className="editor-mechanic-status">{megaItems.includes(pk.item) ? `Mega Stone equipada: ${formatCanonicalItemName(pk.item)}.` : "Para megaevoluir, equipe uma Mega Stone em Item segurado."}</p>
                     </div>}
                     {mechanics.z && <div className="editor-mechanic-group">
                         <strong className="editor-mechanic-name">Movimento Z</strong>
+                        <p className="editor-mechanic-status">Permite usar um Movimento Z na batalha, normalmente uma vez por treinador. O Z-Crystal precisa ser compatível com o movimento escolhido.</p>
                         <p className="editor-mechanic-status">{zItems.includes(pk.item) ? `Z-Crystal equipado: ${formatCanonicalItemName(pk.item)}.` : "Para usar um Movimento Z, equipe um Z-Crystal em Item segurado."}</p>
                     </div>}
                     {mechanics.tera && <div className="editor-mechanic-group">
                         <strong className="editor-mechanic-name">Terastalização</strong>
-                        <label className="editor-field"><span className="editor-label">Tipo Tera</span><RoomSelect aria-label="Tipo Tera" value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
+                        <p className="editor-mechanic-status">Durante a batalha, muda o tipo defensivo do Pokémon para o Tipo Tera e fortalece movimentos desse tipo. O treinador ativa a técnica na batalha, uma vez por combate.</p>
+                        <label className="editor-mechanic-toggle"><input type="checkbox" checked={pk.canTerastallize !== false} onChange={event => updatePk({ ...pk, canTerastallize: event.target.checked })} />Permitir Terastalização</label>
+                        <label className="editor-field"><span className="editor-label">Tipo Tera</span><RoomSelect aria-label="Tipo Tera" disabled={pk.canTerastallize === false} value={pk.teraType || ""} onChange={event => updatePk({ ...pk, teraType: event.target.value })} className="editor-input">{!pk.teraType && <option value="">Usar o tipo principal</option>}{teraException && <option value={pk.teraType}>{formatName(pk.teraType)} · escolha livre</option>}{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>
+                        {pk.canTerastallize === false && <p className="editor-mechanic-status">Desativada para este Pokémon. O Tipo Tera escolhido fica guardado.</p>}
                     </div>}
                     {mechanics.dynamax && <div className="editor-mechanic-group">
-                        <strong className="editor-mechanic-name">{showGigantamax ? "Dynamax e Gigantamax" : "Dynamax"}</strong>
+                        <strong className="editor-mechanic-name">Dynamax</strong>
+                        <p className="editor-mechanic-status">O Pokémon cresce, recebe mais HP e usa movimentos Max por três rodadas. No MyOwnDex, nível 0 não libera a técnica; níveis de 1 a 10 aumentam o bônus de HP.</p>
                         <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" inputMode="numeric" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
-                        {showGigantamax && <div className="editor-checkboxes"><label><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Gigantamax</label></div>}
+                        {showGigantamax && <div className="editor-mechanic-subsection">
+                            <strong className="editor-mechanic-name">Gigantamax</strong>
+                            <p className="editor-mechanic-status">Algumas espécies têm uma forma especial, com aparência e movimentos G-Max próprios. Exige o Fator Gigantamax e nível Dynamax acima de 0; também dura três rodadas.</p>
+                            <label className="editor-mechanic-toggle"><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Fator Gigantamax</label>
+                            {isNativeGMax && <p className="editor-mechanic-status">Esta forma já possui o Fator Gigantamax.</p>}
+                        </div>}
                     </div>}
                 </div>
             </details>}

@@ -6,7 +6,7 @@ html .app-root.game-edition.handheld-edition { height:100dvh !important; min-hei
 html .app-root.game-edition.handheld-edition .app-header { flex:0 0 auto; }
 html .app-root.game-edition.handheld-edition .animate-fade-in { animation:none !important; opacity:1 !important; transform:none !important; }
 html .app-root.game-edition.handheld-edition .app-scroll-area { flex:1 1 0 !important; min-height:0 !important; overflow-y:auto !important; overflow-x:hidden !important; padding:.75rem !important; }
-html .app-root.game-edition.handheld-edition .app-header-row { display:grid !important; grid-template-columns:minmax(0,1fr); gap:.4rem !important; }
+html .app-root.game-edition.handheld-edition .app-header-row { display:grid !important; grid-template-columns:minmax(0,1fr); gap:.3rem !important; }
 html .app-root.game-edition.handheld-edition .app-header-primary { display:flex !important; flex-direction:row !important; flex-wrap:wrap !important; align-items:center; gap:.5rem !important; }
 html .app-root.game-edition.handheld-edition .app-brand-cluster { flex:0 0 auto !important; min-width:max-content; gap:.4rem !important; }
 html .app-root.game-edition.handheld-edition .app-brand-icon { width:28px !important; height:28px !important; }
@@ -157,6 +157,10 @@ html .app-root.game-edition.handheld-edition .editor-mechanic-status {
 }
 html .app-root.game-edition.handheld-edition .editor-mechanic-group > .editor-field { min-width:0; }
 html .app-root.game-edition.handheld-edition .editor-mechanic-group .editor-checkboxes { margin:0; min-width:0; }
+html .app-root.game-edition.handheld-edition .editor-mechanic-toggle { display:flex; align-items:center; gap:.65rem; min-height:44px; font-size:.95rem; font-weight:700; line-height:1.3; color:var(--ui-ink); }
+html .app-root.game-edition.handheld-edition .editor-mechanic-toggle input { flex:0 0 20px; width:20px; height:20px; margin:0; accent-color:var(--ui-blue); }
+html .app-root.game-edition.handheld-edition .editor-mechanic-subsection { display:grid; gap:.55rem; min-width:0; padding-top:.75rem; border-top:1px solid var(--ui-line); }
+html .app-root.game-edition.handheld-edition .editor-mechanic-group :is(select,input):disabled { opacity:.65; }
 @media (max-width:440px) {
   html .app-root.game-edition.handheld-edition .editor-mechanics-grid { grid-template-columns:minmax(0,1fr); }
 }
@@ -184,8 +188,8 @@ html .app-root.game-edition.handheld-edition .friendship-help > summary { min-he
 @media (max-width:700px) {
   html .app-root.game-edition.handheld-edition .app-header-shell { padding:.35rem .75rem !important; }
   html .app-root.game-edition.handheld-edition .app-header-primary,
-  html .app-root.game-edition.handheld-edition .app-actions { flex-direction:column !important; gap:.35rem !important; }
-  html .app-root.game-edition.handheld-edition .app-actions { padding-top:.35rem !important; }
+  html .app-root.game-edition.handheld-edition .app-actions { flex-direction:column !important; gap:.3rem !important; }
+  html .app-root.game-edition.handheld-edition .app-actions { padding-top:.3rem !important; }
   html .app-root.game-edition.handheld-edition .app-nav { width:100%; flex:0 0 auto !important; gap:.35rem !important; }
   html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { flex-direction:row !important; font-size:.8rem !important; padding:.25rem !important; gap:.2rem !important; }
   html .app-root.game-edition.handheld-edition .nav-emblem { width:18px !important; height:18px !important; flex:0 0 18px; }

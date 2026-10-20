@@ -253,6 +253,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         types,
         originalTypes,
         teraType: normalizeSlug(source.teraType),
+        canTerastallize: source.canTerastallize !== false,
         teraActive: Boolean(source.teraActive && source.teraType),
         dynamaxLevel: integerInRange(source.dynamaxLevel, 0, 10, 0),
         canGMax: Boolean(source.canGMax),
@@ -539,6 +540,7 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
             ? pokemon.customTypes
             : pokemon?.species?.types?.map(entry => entry?.type?.name),
         teraType: pokemon?.teraType || "",
+        canTerastallize: pokemon?.canTerastallize !== false,
         shiny: Boolean(pokemon?.shiny),
         teraActive: false,
         dynamaxLevel: pokemon?.dynamaxLevel ?? 0,

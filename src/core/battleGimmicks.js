@@ -199,7 +199,7 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  if((baseSpecies(token)==="eternatus" || token.speciesId===890) && !used.has("eternamax"))
    options.push({id:"eternamax",label:"Eternamax (Narrador)",form:"eternatus-eternamax",hint:"Forma especial de chefe • 100 m • duração controlada pelo Narrador"});
  if(megaFormFor(token)&&!used.has("mega")&&!trainerHasUsedGimmick(token,snapshot,"mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:megaFormFor(token)==="rayquaza-mega"?"Dragon Ascent conhecido • sem Z-Crystal":"Mega Stone correspondente equipada"});
- if((slug(token.teraType)||Number(token.speciesId)===10276) && !used.has("tera")&&!trainerHasUsedGimmick(token,snapshot,"tera"))options.push({id:"tera",label:"Terastalização",hint:Number(token.speciesId)===10276?"Terapagos assume a forma Stellar":`Tipo Tera: ${token.teraType}`});
+ if(token.canTerastallize!==false && (slug(token.teraType)||Number(token.speciesId)===10276) && !used.has("tera")&&!trainerHasUsedGimmick(token,snapshot,"tera"))options.push({id:"tera",label:"Terastalização",hint:Number(token.speciesId)===10276?"Terapagos assume a forma Stellar":`Tipo Tera: ${token.teraType}`});
  const level=integerInRange(token.dynamaxLevel,0,10,0);
  if(baseSpecies(token)!=="eternatus" && token.speciesId!==890 && level>0&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
    options.push({id:"dyna",label:"Dynamax",hint:`Nível Dynamax ${level} • 3 rodadas`});

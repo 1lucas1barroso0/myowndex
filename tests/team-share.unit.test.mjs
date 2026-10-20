@@ -24,7 +24,7 @@ const completeTeam = normalizeTeam({
     canGMax: true,
     shiny: true,
     dynamaxLevel: 10,
-    teraType: "electric",
+    teraType: "electric", canTerastallize: false,
     friendship: 255,
     gender: "F",
     genderRate: 4,
@@ -123,6 +123,7 @@ test("V4 share code round-trips Unicode and every editable factor", async () => 
   assert.equal(decoded.pokemon[0].shiny, true);
   assert.equal(decoded.pokemon[0].genderLocked, true);
   assert.equal(decoded.pokemon[0].dynamaxLevel, 10);
+   assert.equal(decoded.pokemon[0].canTerastallize, false);
   assert.deepEqual(decoded.pokemon[0].moves, completeTeam.pokemon[0].moves);
   assert.deepEqual(decoded.pokemon[0].customTypes, ["electric", "fairy"]);
   assert.equal(decoded.pokemon[0].rpg.currentHp, 7);

@@ -264,6 +264,8 @@ html .app-root.game-edition.handheld-edition .dex-heading::after{
   border-radius:999px;
 }
 html .app-root.game-edition.handheld-edition .dex-count{
+  display:inline-flex !important; align-items:center !important; min-height:40px !important;
+  padding:.45rem .85rem !important; line-height:1.3 !important;
   border:1px solid var(--joy-line) !important;
   border-radius:.65rem !important;
   background:var(--joy-paper) !important;

@@ -185,7 +185,7 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                 <GameIcon name="adventure" /><span>
                     <strong>Começar uma aventura local</strong>
                 </span>
-                <b>Neste dispositivo</b>
+                <b>Sem convite</b>
             </button>
                 <h3>Com seu grupo</h3>
                 <div className="room-entry-choices" role="group" aria-label="Escolha seu papel na aventura">

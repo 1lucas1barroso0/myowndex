@@ -118,7 +118,8 @@ const packPokemon = pokemon => ({
     q: [
         pokemon.canGMax ? 1 : 0,
         pokemon.shiny ? 1 : 0,
-        pokemon.genderLocked ? 1 : 0
+        pokemon.genderLocked ? 1 : 0,
+        pokemon.canTerastallize === false ? 0 : 1
     ],
     d: pokemon.dynamaxLevel ?? 0,
     y: pokemon.teraType || "",
@@ -165,6 +166,7 @@ const unpackPokemon = pokemon => ({
     canGMax: Boolean(pokemon.q?.[0]),
     shiny: Boolean(pokemon.q?.[1]),
     genderLocked: Boolean(pokemon.q?.[2]),
+    canTerastallize: pokemon.q?.[3] !== 0,
     dynamaxLevel: pokemon.d ?? 0,
     teraType: pokemon.y || "",
     friendship: pokemon.h ?? 70,

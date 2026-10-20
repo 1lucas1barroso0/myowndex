@@ -25,6 +25,16 @@ test("mega stone requires the matching species, item and surviving Pokémon",()=
  assert.ok(!getGimmickChoices({...c,item:"venusaurite"}).some(x=>x.id==="mega"));
  assert.equal(getGimmickChoices({...c,currentHp:0}).length,0);
 });
+test("Tera can be disabled without erasing its type; old Pokémon remain enabled",()=>{
+  const original=base();
+  assert.equal(original.canTerastallize,true);
+  assert.ok(getGimmickChoices(original).some(choice=>choice.id==="tera"));
+  const disabled=normalizeRoomToken({...original,canTerastallize:false});
+  assert.equal(disabled.teraType,"dragon");
+  assert.ok(!getGimmickChoices(disabled).some(choice=>choice.id==="tera"));
+  assert.equal(applyGimmick(disabled,"tera").applied,false);
+  assert.ok(getGimmickChoices({...disabled,canTerastallize:true}).some(choice=>choice.id==="tera"));
+});
 test("Dynamax and Gigantamax follow ficha level/factor and expire after three rounds",()=>{
  const c={...base(),item:"",teraType:"",dynamaxLevel:10,canGMax:true};
  assert.deepEqual(getGimmickChoices(c).map(x=>x.id),["dyna","gmax"]);

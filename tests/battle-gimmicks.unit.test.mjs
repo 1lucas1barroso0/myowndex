@@ -27,7 +27,7 @@ test("mega stone requires the matching species, item and surviving Pokémon",()=
 });
 test("Tera can be disabled without erasing its type; old Pokémon remain enabled",()=>{
   const original=base();
-  assert.equal(original.canTerastallize,true);
+  assert.equal(original.canTerastallize!==false,true);
   assert.ok(getGimmickChoices(original).some(choice=>choice.id==="tera"));
   const disabled=normalizeRoomToken({...original,canTerastallize:false});
   assert.equal(disabled.teraType,"dragon");

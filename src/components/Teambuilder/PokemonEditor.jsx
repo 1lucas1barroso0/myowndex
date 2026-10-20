@@ -522,7 +522,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                         <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" inputMode="numeric" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
                         {showGigantamax && <div className="editor-mechanic-subsection">
                             <strong className="editor-mechanic-name">Gigantamax</strong>
-                            <p className="editor-mechanic-status">Algumas espécies têm uma forma especial, com aparência e movimentos G-Max próprios. Exige o Fator Gigantamax e nível Dynamax acima de 0; também dura três rodadas.</p>
+                            <p className="editor-mechanic-status">Algumas espécies têm uma forma especial, com aparência própria e movimentos especiais exclusivos. Exige o Fator Gigantamax e nível Dynamax acima de 0; também dura três rodadas.</p>
                             <label className="editor-mechanic-toggle"><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Fator Gigantamax</label>
                             {isNativeGMax && <p className="editor-mechanic-status">Esta forma já possui o Fator Gigantamax.</p>}
                         </div>}

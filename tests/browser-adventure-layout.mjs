@@ -14,7 +14,7 @@ async function review(page, name) {
         const frame = document.querySelector(".adventure-intro .pokemon-sized-sprite"), image = frame?.querySelector("img");
         return frame && getComputedStyle(frame).opacity === "1" && image?.complete && image.naturalWidth > 0;
     });
-    const encoded = (await page.screenshot({type:"png"})).toString("base64");
+    const encoded = (await page.screenshot({type:"png",animations:"disabled"})).toString("base64");
     const count = Math.ceil(encoded.length / 8000);
     for (let i=0;i<count;i++) console.log(`ADVENTURE_REVIEW|${name}|${i}|${count}|${encoded.slice(i*8000,(i+1)*8000)}`);
 }
@@ -40,7 +40,9 @@ try {
             return {hero:hero.top-a.top+area.scrollTop,choices:choices.top-a.top+area.scrollTop,overflow:document.documentElement.scrollWidth>innerWidth,outerScroll:scrollY};
         });
         for (const theme of ["normal","night"]) {
-            await page.evaluate(value => document.documentElement.dataset.theme=value,theme);
+            if (width<=700) await page.locator(".app-curtain-grip").press("End");
+            await page.locator(".appearance-options button").filter({hasText:theme==="night"?"Escuro":"Claro"}).click();
+            await page.waitForFunction(value => document.documentElement.dataset.theme===value,theme);
             await page.evaluate(() => document.fonts.ready.then(() => true));
             for (const level of width<=700 ? [4,0] : [null]) {
                 if (level!==null) {

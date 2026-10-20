@@ -494,7 +494,7 @@ export default function Teambuilder({ envProps }) {
                                 <header className="pc-editor-heading">
                                     <h3 ref={editorHeadingRef} tabIndex={-1}>Ficha de {active.pokemon[editingSlot].nickname || partnerFormName(active.pokemon[editingSlot])}</h3>
                                     <div className="pc-editor-actions" role="group" aria-label="Ações da ficha">
-                                        <button type="button" onClick={() => { partnerButtonRefs.current[editingSlot]?.focus(); setEditingSlot(null); }} className="pc-close-editor">Fechar ficha <span aria-hidden="true">×</span></button>
+                                        <button type="button" onClick={() => { partnerButtonRefs.current[editingSlot]?.focus(); setEditingSlot(null); }} className="pc-close-editor">Fechar ficha</button>
                                         <button type="button" onClick={() => { dismissKeyboard(); setPendingPartnerDelete({ teamId: active.id, partner: active.pokemon[editingSlot], index: editingSlot }); }} className="pokemon-remove-button">Remover da Box</button>
                                     </div>
                                 </header>

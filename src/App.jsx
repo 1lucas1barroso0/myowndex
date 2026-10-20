@@ -1,3 +1,4 @@
+import useHeaderCurtain from "./components/Shared/useHeaderCurtain.js";
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import bundledSpecies from "./data/species.json";
@@ -140,6 +141,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const [diceRoomContext, setDiceRoomContext] = useState(null);
     const receiveDiceContext = useCallback(context => setDiceRoomContext(current => current?.snapshot === context?.snapshot && current?.role === context?.role && current?.playerId === context?.playerId && current?.remote === context?.remote ? current : context), []);
     const [generatorOpen, setGeneratorOpen] = useState(false);
+    const curtain = useHeaderCurtain();
     const [view, setViewState] = useState("pokedex");
     const [favorites, setFavorites] = useState([]);
     const [onlyFavorites, setOnlyFavorites] = useState(false);
@@ -616,17 +618,17 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     return (
         <div className={`app-root game-edition handheld-edition view-${view}`} data-version={APP_VERSION} data-game-screen={view}>
             <a className="skip-to-content" href="#main-content">Ir para o conteúdo</a>
-            <header className="app-header">
+            <header className={`app-header app-header-curtain${curtain.dragging ? " is-dragging" : ""}`} ref={curtain.headerRef} data-curtain-level={curtain.level} style={curtain.mobile && curtain.height !== undefined ? { height: `${curtain.height}px` } : undefined}>
                 <div className="game-shell app-header-shell">
                     <div className="app-header-row">
                         <div className="app-header-primary">
-                            <div className="app-brand-cluster">
+                            <div className="app-brand-cluster" ref={curtain.brandRef}>
                                 <img className="app-brand-icon" src={`/icons/myowndex-dex-v105-96.png?v=${APP_VERSION}`} width="96" height="96" alt="" />
                                 <div className="app-brand">
                                     <h1>MyOwnDex</h1>
                                 </div>
                             </div>
-                            <nav aria-label="Navegação principal" className="app-nav">
+                            <nav aria-label="Navegação principal" className="app-nav" ref={curtain.navRef} inert={curtain.mobile && curtain.level < 1} aria-hidden={curtain.mobile && curtain.level < 1 ? true : undefined}>
                                 <button type="button" title="Abrir a Central da Aventura para criar, entrar ou continuar uma jornada" aria-label="Abrir a Central da Aventura" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule nav-adventure ${view === "room" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="adventure" /></span><span>Aventura</span></button>
                                 <button type="button" title="Consultar espécies, formas, habilidades e movimentos" aria-label="Abrir a Pokédex" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule nav-dex ${view === "pokedex" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="dex" /></span><span>Pokédex</span></button>
                                 <button type="button" title="Organizar Boxes, equipes e fichas de Pokémon" aria-label="Abrir o PC do Bill" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule nav-pc ${view === "teambuilder" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="pc" /></span><span>PC</span></button>
@@ -635,18 +637,19 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                         </div>
 
                         <div className="app-actions">
-                            <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada">
+                            <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada" ref={curtain.toolsRef} inert={curtain.mobile && curtain.level < 2} aria-hidden={curtain.mobile && curtain.level < 2 ? true : undefined}>
                                 <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar</span></button>
                                 <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onClick={() => setDiceOpen(true)}><PokemonCompanion place="dice" eager /><span>Dados</span></button>
                                 <AccountButton client={client} onClick={onAccountOpen} />
                             </div>
-                            <div className="app-preferences" role="group" aria-label="Preferências da jornada">
+                            <div className="app-preferences" role="group" aria-label="Preferências da jornada" ref={curtain.prefsRef} inert={curtain.mobile && curtain.level < 3} aria-hidden={curtain.mobile && curtain.level < 3 ? true : undefined}>
                                 <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
                                 <AppearanceControl />
                             </div>
                         </div>
                     </div>
                 </div>
+                <button type="button" className="app-curtain-grip" aria-label={curtain.label} title="Arraste para ajustar o topo" onPointerDown={curtain.down} onPointerMove={curtain.move} onPointerUp={e => curtain.finish(e)} onPointerCancel={e => curtain.finish(e, true)} onClick={curtain.click} onKeyDown={curtain.keyDown}><span aria-hidden="true" /></button>
             </header>
 
             <main id="main-content" aria-label={VIEW_LABELS[view]} tabIndex={-1} className="app-scroll-area">

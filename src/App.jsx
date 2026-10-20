@@ -141,7 +141,6 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const [diceRoomContext, setDiceRoomContext] = useState(null);
     const receiveDiceContext = useCallback(context => setDiceRoomContext(current => current?.snapshot === context?.snapshot && current?.role === context?.role && current?.playerId === context?.playerId && current?.remote === context?.remote ? current : context), []);
     const [generatorOpen, setGeneratorOpen] = useState(false);
-    const curtain = useHeaderCurtain();
     const [view, setViewState] = useState("pokedex");
     const [favorites, setFavorites] = useState([]);
     const [onlyFavorites, setOnlyFavorites] = useState(false);
@@ -178,6 +177,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const teamsRef = useRef([]);
     useEffect(() => { teamsRef.current = teams; }, [teams]);
     const [teamsBooted, setTeamsBooted] = useState(false);
+    const curtain = useHeaderCurtain(teamsBooted && modeBooted);
     const [activeTeamId, setActiveTeamId] = useState(null);
     const [storageError, setStorageError] = useState(false);
     const teamSave = useMemo(() => createScheduledSave({

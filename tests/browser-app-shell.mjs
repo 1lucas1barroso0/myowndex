@@ -77,6 +77,7 @@ try {
  const grip=page.locator('.app-curtain-grip'),header=page.locator('.app-header');
  assert.equal(await header.getAttribute('data-curtain-level'),'3');
  const fullHeight=await header.evaluate(e=>e.getBoundingClientRect().height);
+ assert.ok(await header.evaluate(e=>Boolean(e.style.height)),'Curtain is measured after the game is ready');
  await grip.click();await page.waitForTimeout(300);
  assert.equal(await header.getAttribute('data-curtain-level'),'0');
  assert.equal(await page.locator('.app-nav').getAttribute('aria-hidden'),'true','Hidden navigation is absent from accessibility tree');

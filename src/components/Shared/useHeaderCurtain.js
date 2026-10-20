@@ -4,7 +4,7 @@ const KEY = "myowndex_header_curtain_v1";
 const LABELS = ["Marca", "Navegação", "Ferramentas", "Tudo"];
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-export default function useHeaderCurtain() {
+export default function useHeaderCurtain(ready = true) {
     const [mobile, setMobile] = useState(false);
     const [level, setLevel] = useState(3);
     const [marks, setMarks] = useState([]);
@@ -22,6 +22,7 @@ export default function useHeaderCurtain() {
     }, []);
 
     useEffect(() => {
+        if (!ready) return;
         const header = document.querySelector(".app-header-curtain");
         if (!header) return;
         const measure = () => {
@@ -43,7 +44,7 @@ export default function useHeaderCurtain() {
         window.addEventListener("resize", measure);
         window.addEventListener("orientationchange", measure);
         return () => { observer?.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("orientationchange", measure); };
-    }, []);
+    }, [ready]);
 
     // Keep hidden menu controls out of focus, even on browsers with partial
     // support for the React inert property.

@@ -34,7 +34,7 @@ const formatDexResultCount = (entryCount, variantCount, variantMode) => {
 };
 function OpeningScreen() {
     return <div className="account-opening" role="status" aria-label="Carregando MyOwnDex">
-        <img draggable={false} src={`/icons/myowndex-dex-v105-96.png?v=${APP_VERSION}`} width="96" height="96" alt="" />
+        <img draggable={false} src={`/icons/myowndex-dex-v105-r3-live.svg?v=${APP_VERSION}`} width="96" height="96" alt="" />
         <span className="opening-progress" aria-hidden="true"><i /><i /><i /></span>
     </div>;
 }
@@ -625,7 +625,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     <div className="app-header-row">
                         <div className="app-header-primary">
                             <div className="app-brand-cluster" inert={curtain.mobile && curtain.level < 1} aria-hidden={curtain.mobile && curtain.level < 1 ? true : undefined}>
-                                <img draggable={false} className="app-brand-icon" src={`/icons/myowndex-dex-v105-96.png?v=${APP_VERSION}`} width="96" height="96" alt="" />
+                                <img draggable={false} className="app-brand-icon" src={`/icons/myowndex-dex-v105-r3-live.svg?v=${APP_VERSION}`} width="96" height="96" alt="" />
                                 <div className="app-brand">
                                     <h1>MyOwnDex</h1>
                                 </div>
@@ -737,7 +737,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     ) : view === "teambuilder" ? <Teambuilder envProps={teamBuilderProps} /> : <TrainerGuide experienceMode={experienceMode} />}
                 </div>
             </main>
-            <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION}</b></span><details className="game-credits" onKeyDown={event => { if (event.key === "Escape") { event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus({ preventScroll: true }); } }}><summary>Créditos</summary><div className="game-credits-content"><p>Projeto de fãs · <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a> · <a href="/sprites/native/credits.txt" target="_blank" rel="noreferrer">Arte dos Pokémon</a></p><p>Marca: <a href="https://commons.wikimedia.org/wiki/File:Toicon-icon-fandom-identify.svg" target="_blank" rel="noreferrer">Carol Liao / toicon</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Cores e enquadramento adaptados.</p></div></details></footer>
+            <footer className="device-footer"><span className="game-release">MyOwnDex <b>{APP_VERSION}</b></span><details className="game-credits" onKeyDown={event => { if (event.key === "Escape") { event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus({ preventScroll: true }); } }}><summary>Créditos</summary><div className="game-credits-content"><p>Projeto de fãs · <a href="https://pokeapi.co/about" target="_blank" rel="noreferrer">PokéAPI</a> · <a href="/sprites/native/credits.txt" target="_blank" rel="noreferrer">Arte dos Pokémon</a></p><p>Marca: <a href="https://commons.wikimedia.org/wiki/File:Toicon-icon-fandom-identify.svg" target="_blank" rel="noreferrer">Carol Liao / toicon</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Cores, contornos, enquadramento e luzes adaptados.</p></div></details></footer>
             {selectedEntry && <PokemonModal
                 speciesUrl={selectedEntry.url}
                 initialForm={selectedEntry.formKey ? {

@@ -8,10 +8,11 @@ html .app-root.game-edition.handheld-edition .app-header { flex:0 0 auto; }
 html .app-root.game-edition.handheld-edition .animate-fade-in { animation:none !important; opacity:1 !important; transform:none !important; }
 html .app-root.game-edition.handheld-edition .app-scroll-area { flex:1 1 0 !important; min-height:0 !important; overflow-y:auto !important; overflow-x:hidden !important; padding:.75rem !important; }
 html .app-root.game-edition.handheld-edition .app-header-row { display:grid !important; grid-template-columns:minmax(0,1fr); gap:.3rem !important; }
-html .app-root.game-edition.handheld-edition .app-header-primary { display:flex !important; flex-direction:row !important; flex-wrap:wrap !important; align-items:center; gap:.5rem !important; }
-html .app-root.game-edition.handheld-edition .app-brand-cluster { flex:0 0 auto !important; min-width:max-content; gap:.4rem !important; }
-html .app-root.game-edition.handheld-edition .app-brand-icon { width:28px !important; height:28px !important; }
-html .app-root.game-edition.handheld-edition .app-brand h1 { font-size:1.15rem !important; line-height:1.2; white-space:nowrap !important; overflow:visible !important; text-overflow:clip !important; }
+html .app-root.game-edition.handheld-edition .app-header-primary { display:flex !important; flex-direction:row !important; flex-wrap:wrap !important; align-items:center; gap:.75rem !important; }
+html .app-root.game-edition.handheld-edition .app-brand-cluster { display:inline-flex; align-items:center; flex:0 0 auto !important; width:max-content; min-width:max-content; gap:.5rem !important; }
+html .app-root.game-edition.handheld-edition .app-brand { flex:0 0 auto; width:max-content; min-width:max-content; }
+html .app-root.game-edition.handheld-edition .app-brand-icon { flex:0 0 40px !important; width:40px !important; height:40px !important; object-fit:contain; filter:none !important; }
+html .app-root.game-edition.handheld-edition .app-brand h1 { width:max-content; min-width:max-content; flex:none; margin:0; font-size:1.15rem !important; line-height:1.2; white-space:nowrap !important; overflow:visible !important; text-overflow:clip !important; }
 html .app-root.game-edition.handheld-edition .app-nav { flex:1 1 29rem; min-width:0; }
 html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { min-height:44px !important; flex-direction:row !important; padding:.35rem .65rem !important; letter-spacing:normal !important; }
 html .app-root.game-edition.handheld-edition .nav-emblem { width:24px !important; height:24px !important; }
@@ -239,6 +240,8 @@ html .app-root.game-edition.handheld-edition .friendship-help > summary { min-he
   html .app-root.game-edition.handheld-edition .game-style-options button { min-width:44px !important; }
 }
 @media (orientation:landscape) and (max-height:500px) and (min-width:540px) {
+  html .app-root.game-edition.handheld-edition .app-header-shell { padding-block:.2rem !important; }
+  html .app-root.game-edition.handheld-edition .app-brand-icon { flex-basis:32px !important; width:32px !important; height:32px !important; }
   html .app-root.game-edition.handheld-edition .app-brand-cluster { display:flex; }
   html .app-root.game-edition.handheld-edition .app-nav > .nav-capsule { flex-direction:row !important; }
   html .app-root.game-edition.handheld-edition .app-tool-actions > :is(.global-generator-button,.global-dice-button,.account-header-button) { flex-direction:row !important; min-height:44px; }
@@ -357,7 +360,7 @@ html .app-root.game-edition.handheld-edition .editor-summary-facts {
 html .app-root.game-edition.handheld-edition .editor-summary-facts > div { min-width:0; display:grid; align-content:start; gap:.15rem; }
 html .app-root.game-edition.handheld-edition .editor-summary-facts dt { color:var(--ui-muted); font-size:.8rem; font-weight:700; }
 html .app-root.game-edition.handheld-edition .editor-summary-facts dd { margin:0; color:var(--ui-ink); font-weight:700; font-size:.95rem; line-height:1.35; overflow-wrap:anywhere !important; }
-html .app-root.game-edition.handheld-edition .editor-summary-facts > .editor-summary-friendship { grid-column:1 / -1; grid-template-columns:minmax(0,1fr) minmax(6rem,1fr); align-items:center; gap:1rem; }
+html .app-root.game-edition.handheld-edition .editor-summary-friendship dd { width:8rem; max-width:100%; }
 html .app-root.game-edition.handheld-edition .editor-summary-customize { grid-area:customize; min-width:0; border-top:1px solid var(--ui-line); }
 html .app-root.game-edition.handheld-edition .editor-summary-customize > summary { min-height:44px; padding:.6rem 0 .2rem; color:var(--ui-ink); font-weight:800; line-height:1.4; cursor:pointer; }
 html .app-root.game-edition.handheld-edition .editor-summary-customize-body { display:grid; gap:1rem; padding:.75rem 0 0; }
@@ -365,16 +368,15 @@ html .app-root.game-edition.handheld-edition .editor-summary-identity-fields { d
 html .app-root.game-edition.handheld-edition .editor-summary-identity-fields > .editor-shiny { grid-column:1 / -1; grid-row:2; margin:0; min-height:44px; }
 html .app-root.game-edition.handheld-edition .editor-summary-customize .editor-basics-grid { gap:.8rem !important; }
 html .app-root.game-edition.handheld-edition .editor-summary-customize .editor-friendship { margin:0; padding:0; }
-html .app-root.game-edition.handheld-edition .friendship-control > .friendship-control-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; }
+html .app-root.game-edition.handheld-edition .friendship-control > .friendship-control-heading { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; }
 html .app-root.game-edition.handheld-edition .friendship-input-scale { display:block; margin-top:.2rem; color:var(--ui-muted); font-size:.8rem; }
-html .app-root.game-edition.handheld-edition .friendship-scale-values { display:flex; align-items:start; gap:.4rem; font-size:.875rem; color:var(--ui-ink); }
-html .friendship-reading { display:inline-grid; gap:.3rem; min-width:6rem; width:100%; max-width:12rem; font-variant-numeric:tabular-nums; font-size:.875rem; font-weight:400; color:var(--ui-ink); }
+html .friendship-reading { display:inline-grid; gap:.2rem; min-width:0; width:100%; max-width:8rem; font-variant-numeric:tabular-nums; font-size:.875rem; font-weight:400; color:var(--ui-ink); }
 html .friendship-reading strong { font-size:1.05rem; font-weight:800; }
 html .friendship-meter { display:block; height:5px; width:100%; overflow:hidden; border-radius:3px; background:var(--ui-line); }
 html .friendship-meter > span { display:block; height:100%; background:var(--ui-ink); border-radius:inherit; }
 @media (max-width:360px) {
   html .app-root.game-edition.handheld-edition .editor-header { gap:.65rem !important; padding:.75rem !important; }
-  html .app-root.game-edition.handheld-edition .editor-summary-facts { column-gap:.6rem; }
+  html .app-root.game-edition.handheld-edition .editor-summary-facts { column-gap:.6rem; row-gap:.4rem; }
   html .app-root.game-edition.handheld-edition .editor-summary-name h3 { font-size:1.1rem; }
 }
 

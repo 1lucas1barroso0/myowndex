@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import sharp from "sharp";
 import test from "node:test";
 
-const name = "myowndex-dex-v105";
+const name = "myowndex-dex-v105-r3";
 const directory = new URL("../public/icons/", import.meta.url);
 const outputs = [
   ["32", 32, false], ["96", 96, false], ["180", 180, true],
@@ -42,7 +42,7 @@ test("the shared human-drawn identity remains visible and inexpensive at every i
 });
 
 test("the adapted brand preserves every device path from its verified 2017 human-authored source", async () => {
-  const original = await readFile(new URL(`${name}-original.svg`, directory));
+  const original = await readFile(new URL("myowndex-dex-v105-original.svg", directory));
   assert.equal(createHash("sha256").update(original).digest("hex"),
     "337e0187c6fbadf7700a643354a1cd9f03a3670564e590d869de49c95025d1b0");
   const source = await readFile(new URL(`${name}-source.svg`, directory), "utf8");
@@ -67,4 +67,14 @@ test("every foreground pixel of the maskable identity survives the standard safe
       `foreground pixel ${x},${y} must remain inside the maskable safe circle`);
   }
   assert.ok(foreground > 50000, "the safely framed device remains large enough to identify");
+});
+
+
+test("live device lights share the static artwork and stop for reduced motion", async () => {
+  const source = await readFile(new URL(`${name}-source.svg`, directory), "utf8");
+  const live = await readFile(new URL(`${name}-live.svg`, directory), "utf8");
+  assert.equal(live.replace(/<style>[\s\S]*?<\/style>/, ""), source);
+  assert.match(live, /prefers-reduced-motion:reduce/);
+  assert.match(live, /animation:none/);
+  assert.doesNotMatch(live, /<script|transform:|translate|scale\(/);
 });

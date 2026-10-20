@@ -46,7 +46,8 @@ try {
  assert.equal(await editor.locator('.editor-summary-facts > div').filter({has:page.locator('dt',{hasText:/^Item$/})}).locator('dd').innerText(),'Sem item','Consumed equipment is not shown as active');
  await openDetails(editor.locator('.editor-summary-customize'));
  assert.equal(await editor.getByLabel('Item segurado',{exact:true}).inputValue(),'leftovers','The original equipment remains available to restore');
- assert.ok(await editor.locator('.friendship-scale-values').isVisible(),'Friendship scales are readable while editing');
+ assert.equal(await editor.locator('.friendship-scale-values').count(),0,'Editing does not duplicate the summary value');
+ assert.equal(await editor.locator('.friendship-control input').getAttribute('max'),'255','Editing preserves the raw scale');
  await openDetails(editor.locator('.editor-battle-mechanics'));
  const teraToggle=editor.getByRole('checkbox',{name:'Permitir Terastalização'});
  const teraSelect=editor.getByRole('combobox',{name:'Tipo Tera'});
@@ -78,6 +79,17 @@ try {
   assert.equal(metrics.w,metrics.scroll);assert.equal(metrics.placeholders,0);assert.deepEqual(metrics.escaped,[]);
   const brand=await page.locator('.app-brand h1').evaluate(element=>{const r=element.getBoundingClientRect(),parent=element.closest('.app-brand-cluster').getBoundingClientRect();return {name:element.textContent,x:r.x,right:r.right,containerRight:parent.right};});
   assert.equal(brand.name,'MyOwnDex');assert.ok(brand.x>=0&&brand.right<=width+1&&brand.right<=brand.containerRight+1,'Brand name stays fully readable');
+  const separation=await page.evaluate(()=>{
+   const brand=document.querySelector('.app-brand-cluster'),title=brand.querySelector('h1'),nav=document.querySelector('.app-nav');
+   const b=brand.getBoundingClientRect(),t=title.getBoundingClientRect(),n=nav.getBoundingClientRect();
+   const label=document.querySelector('.editor-summary-friendship dt').getBoundingClientRect(),value=document.querySelector('.editor-summary-friendship dd').getBoundingClientRect();
+   return {overlap:Math.min(b.right,n.right)>Math.max(b.left,n.left)&&Math.min(b.bottom,n.bottom)>Math.max(b.top,n.top),titleOwned:brand.contains(document.elementFromPoint(t.right-2,t.top+t.height/2)),gap:value.top-label.bottom,alignment:Math.abs(value.left-label.left),friendship:document.querySelector('.editor-summary-friendship').innerText};
+  });
+  assert.equal(separation.overlap,false,'Navigation never paints over the brand');
+  assert.equal(separation.titleOwned,true,'The end of MyOwnDex remains unobstructed');
+  assert.ok(separation.gap>=0&&separation.gap<=6&&separation.alignment<1,'Friendship label and value stay together like the other facts');
+  assert.doesNotMatch(separation.friendship,/RPG/,'Friendship has no redundant mode caption');
+
   const clippedNavigation=await page.locator('.nav-capsule').evaluateAll(buttons=>buttons.flatMap(button=>{
    const b=button.getBoundingClientRect();return [...button.querySelectorAll(':scope > span')].filter(child=>{
     const r=child.getBoundingClientRect();return r.left<b.left-1||r.right>b.right+1;
@@ -88,6 +100,18 @@ try {
   console.log(width,theme,metrics.header);
 
  }
+ for(const width of [701,820,1024,1280,1920]) for(const size of [16,20,24]) {
+  await page.setViewportSize({width,height:1000});
+  await page.evaluate(size=>document.documentElement.style.fontSize=`${size}px`,size);
+  const brandFits=await page.evaluate(()=>{
+   const brand=document.querySelector('.app-brand-cluster'),title=brand.querySelector('h1'),nav=document.querySelector('.app-nav');
+   const b=brand.getBoundingClientRect(),t=title.getBoundingClientRect(),n=nav.getBoundingClientRect();
+   return {overlap:Math.min(b.right,n.right)>Math.max(b.left,n.left)&&Math.min(b.bottom,n.bottom)>Math.max(b.top,n.top),inside:t.left>=b.left&&t.right<=b.right+.5,owned:brand.contains(document.elementFromPoint(t.right-2,t.top+t.height/2))};
+  });
+  assert.equal(brandFits.overlap,false,`Brand avoids navigation at ${width}px / ${size}px text`);
+  assert.ok(brandFits.inside&&brandFits.owned,`The whole brand is readable at ${width}px / ${size}px text`);
+ }
+ await page.evaluate(()=>document.documentElement.style.removeProperty('font-size'));
  await page.setViewportSize({width:390,height:844});
  await page.evaluate(()=>window.scrollTo(0,0));
  const grip=page.locator('.app-curtain-grip'),header=page.locator('.app-header');

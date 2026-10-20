@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.46.**
+**Versão atual: 2.0.47.**
+
+A revisão 2.0.47 reserva o tamanho real da marca em qualquer largura e mantém a navegação fora dela. A Amizade acompanha o alinhamento dos demais atributos, com valor e barra próximos do rótulo; a edição mantém o campo bruto sem duplicar o indicador nem a legenda RPG. A Pokédex da marca ganha contorno claro, contraste e luzes suaves que respeitam movimento reduzido. Cabeçalho, abertura, favicons, instalação, recuperação, atalhos, compartilhamento e cache offline usam a mesma revisão r3. A identidade estável do aplicativo e os dados permanecem preservados.
 
 A revisão 2.0.46 fixa o jogo na área visível e impede rolagem do documento e da moldura externa. O viewport acompanha teclado, deslocamentos visuais e retorno da janela sem desabilitar o zoom. A cortina recolhe apenas fileiras inteiras quando falta altura e restaura a preferência ao recuperar espaço. Fichas, regras, resultados do gerador e controles da aventura revelam conteúdo apenas dentro do próprio contêiner de rolagem. Fechar uma ficha retorna ao Pokémon com foco sem deslocar o aplicativo. As ferramentas compartilham os limites visuais do jogo.
 
@@ -130,7 +132,7 @@ O estado só é considerado publicado depois que o CI do commit final passa e o 
 
 ## 2.0.30: instalação, ícone vigente e continuidade
 
-- A marca oficial permanece a Pokédex humana v105 (Carol Liao/toicon, CC BY 4.0), com imagens idênticas em bytes. Aliases `myowndex-dex-v105-r2-*.png` mudam apenas as URLs para impedir que sugestões novas reutilizem referências visuais antigas de cache. Nunca trocar por v91, v101, v103 ou v104.
+- Histórico da distribuição 2.0.39: a marca preservou a Pokédex humana v105 (Carol Liao/toicon, CC BY 4.0), com imagens idênticas em bytes. Aliases `myowndex-dex-v105-r2-*.png` mudam apenas as URLs para impedir que sugestões novas reutilizem referências visuais antigas de cache. Nunca trocar por v91, v101, v103 ou v104.
 - O manifesto conserva `id: "/"`, escopo `"/"` e `start_url: "/?abrir=aventura"` em `/manifest.webmanifest`. Não versionar o caminho do manifesto ou mudar o ID do PWA: isso pode desassociar atualizações e duplicar instalações.
 - O estado visual de aplicativo instalado no componente opcional de instalação só depende do modo da janela (standalone/fullscreen/iOS), não do evento `appinstalled`, estado salvo ou cache. Se o componente for exibido, uma aba comum mantém acesso às orientações. Não reintroduzir controles de instalação por padrão na interface e não tentar forçar `beforeinstallprompt` quando o navegador o omite.
 - Se o navegador ainda mostrar o app como instalado após a remoção, verificar registros do Android/navegador e reinstalar por meios nativos. O site não pode desinstalar WebAPKs nem limpar o registro do Chrome; nunca apagar Boxes ou dados locais automaticamente para contornar o problema.

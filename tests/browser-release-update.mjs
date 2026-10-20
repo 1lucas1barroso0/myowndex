@@ -16,10 +16,10 @@ try{
   assert.deepEqual(installedManifest.display_override,["fullscreen","standalone"]);
   assert.equal(installedManifest.scope,"/");
   assert.ok(installedManifest.icons.some(icon=>icon.purpose==="maskable"));
-  assert.ok(installedManifest.icons.every(icon=>icon.src.includes("/icons/myowndex-dex-v105-r2-")));
+  assert.ok(installedManifest.icons.every(icon=>icon.src.includes("/icons/myowndex-dex-v105-r3-")));
   assert.equal(installedManifest.id,"/");
   const browserIcon=await page.locator('link[rel="apple-touch-icon"]').getAttribute("href");
-  assert.equal(browserIcon,"/icons/myowndex-dex-v105-r2-180.png");
+  assert.equal(browserIcon,"/icons/myowndex-dex-v105-r3-180.png");
   for(const path of ["/api/version","/sw.js"]){
     const response=await context.request.get(new URL(path,base).href,{headers:{"Cache-Control":"no-cache"}});
     assert.equal(response.status(),200,path);

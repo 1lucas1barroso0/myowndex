@@ -79,7 +79,7 @@ const Token = ({
         className={`room-token side-${token.side} ${canMove ? "can-move" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${token.currentHp <= 0 ? "is-fainted" : ""} ${token.teraActive ? "is-tera" : ""} ${gimmick ? `is-gimmick gimmick-${gimmick}` : ""} ${display.transformed ? "is-transformed" : ""} ${display.disguised ? "is-illusion" : ""}`}
         style={{ left: `clamp(3.5rem, ${position.x}%, calc(100% - 3.5rem))`, top: `clamp(3.5rem, ${position.y}%, calc(100% - 3.5rem))` }}
         onClick={event => onSelect(token.id, isSelected, event)}
-        onPointerDown={event => canMove && onPointerDown(event, token)}
+        onPointerDown={event => onPointerDown(event, token)}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
@@ -211,12 +211,13 @@ export default function Battlefield({
 
     const handlePointerDown = (event, token) => {
         if (dragRef.current || resizeRef.current || !event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+        movedPointerRef.current = false;
+        if (!canMoveToken(token)) return;
         event.preventDefault();
         // Pointer capture keeps a large Pokémon moving even if the cursor
         // leaves its image, the board, or the viewport during the gesture.
         event.currentTarget.setPointerCapture?.(event.pointerId);
         event.currentTarget.focus({ preventScroll: true });
-        movedPointerRef.current = false;
         const next = { pointerId: event.pointerId, target: event.currentTarget, tokenId: token.id, x: token.x, y: token.y,
             startX: token.x, startY: token.y, startClientX: event.clientX, startClientY: event.clientY };
         dragRef.current = next;
@@ -247,7 +248,7 @@ export default function Battlefield({
     // Independent resize handle: the token's movement pointer handlers never
     // see these events. Default size still uses the official physical ratio.
     const startResize = (event, token) => {
-        if (!canMoveToken(token) || dragRef.current || resizeRef.current || !event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+        if (role !== "narrator" || !canMoveToken(token) || dragRef.current || resizeRef.current || !event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
         event.preventDefault();
         event.stopPropagation();
         event.currentTarget.setPointerCapture?.(event.pointerId);
@@ -278,7 +279,7 @@ export default function Battlefield({
         event.stopPropagation();
         const scale = commit ? resizeScale(active, event) : active.startScale;
         cancelGestures();
-        if (commit && canMoveToken(tokenById[active.tokenId] || {}) && Math.abs(scale - active.startScale) >= .025) {
+        if (commit && role === "narrator" && canMoveToken(tokenById[active.tokenId] || {}) && Math.abs(scale - active.startScale) >= .025) {
             onSnapshotChange({
                 ...snapshot,
                 tokens: snapshot.tokens.map(token => token.id === active.tokenId
@@ -395,7 +396,7 @@ export default function Battlefield({
                             sceneReferenceHeight={sceneReferenceHeight}
                             visualSceneScale={(resize?.tokenId === token.id ? resize.scale : token.sceneScale ?? 1) * (["dyna","gmax"].includes(token.gimmickState?.active) ? 1.4 : 1)}
                         />
-                        {selectedTokenId === token.id && canMoveToken(token) && <button
+                        {selectedTokenId === token.id && role === "narrator" && <button
                             type="button"
                             className="room-token-resize-handle"
                             style={{ left: `clamp(3.5rem, ${position.x}%, calc(100% - 3.5rem))`,

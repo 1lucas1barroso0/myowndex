@@ -349,6 +349,32 @@ try{
       }
     }
 
+    // Player movement and read-only inspection remain separate after a real touch cancellation.
+    await page.evaluate(seed=>{
+      seed.settings.allowPlayerMovement=true;
+      seed.tokens[0].ownerPlayerId='qa-player';seed.tokens[1].ownerPlayerId='another-player';
+      localStorage.setItem('myowndex_live_room_v1',JSON.stringify({code:'LOCAL',key:'qa-player',role:'player',playerId:'qa-player',displayName:'Jogador',local:true}));
+      localStorage.setItem('myowndex_local_room_v1',JSON.stringify({code:'LOCAL',title:seed.title,revision:0,updatedAt:new Date().toISOString(),snapshot:seed,players:[],events:[],media:[]}));
+    },seed);
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.getByRole('button',{name:'Abrir a Central da Aventura',exact:true}).click();
+    if(await mobile.isVisible())await mobile.getByRole('button',{name:'Campo',exact:true}).click();
+    const own=page.locator('.room-token.can-move'),readOnly=page.locator('.room-token:not(.can-move)');
+    await own.waitFor();await own.scrollIntoViewIfNeeded();await own.click();
+    assert.equal(await page.locator('.room-token-resize-handle').count(),0,'Players never see a resize control that cannot save');
+    const ownBefore=(await snapshot()).tokens[0],ownBounds=await own.boundingBox();
+    const touch=await context.newCDPSession(page);
+    await touch.send('Emulation.setTouchEmulationEnabled',{enabled:true});
+    const point={x:Math.round(ownBounds.x+ownBounds.width/2),y:Math.round(ownBounds.y+ownBounds.height/2)};
+    await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});
+    await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x+30,y:point.y-20}]});
+    await touch.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
+    assert.deepEqual((await snapshot()).tokens[0],ownBefore,'Touch cancellation preserves the owned Pokémon');
+    await readOnly.click();
+    assert.equal(await readOnly.getAttribute('aria-pressed'),'true','The next read-only Pokémon opens on the first click');
+    assert.notEqual(await readOnly.evaluate(e=>getComputedStyle(e).touchAction),'none','Read-only Pokémon retain ordinary touch scrolling');
+    await touch.detach();
+
     assert.deepEqual(errors,[]);
     console.log("Phases, scalable halos, Eternamax, Rayquaza, Primal Reversion and Ultra Burst passed.");
 }finally{await browser.close();}

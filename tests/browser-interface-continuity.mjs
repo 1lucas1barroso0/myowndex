@@ -71,6 +71,12 @@ try {
  assert.equal(await editor.getByLabel('Item segurado',{exact:true}).inputValue(),'lembranca-da-jornada','Custom values survive reload');
  for(const width of [320,390,768,1280])for(const theme of ['normal','night']) {
   await page.setViewportSize({width,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  await page.waitForFunction(()=>{
+   const root=document.querySelector('.app-header'),bounds=root.getBoundingClientRect();
+   if(innerWidth>700)return !root.style.height;
+   const group=root.querySelector('.app-preferences').getBoundingClientRect(),grip=root.querySelector('.app-curtain-grip').getBoundingClientRect();
+   return Math.abs(bounds.height-(group.bottom-bounds.top+grip.height+4))<1;
+  });
   const area=page.locator('#main-content');await area.evaluate(e=>e.scrollTop=200);
   const before=await area.evaluate(e=>({height:e.clientHeight,scroll:e.scrollTop}));
   await page.locator('.game-credits > summary').click();

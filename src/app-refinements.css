@@ -291,6 +291,11 @@ html .app-root.game-edition.handheld-edition .app-curtain-grip { display:none; }
     transition:height .24s cubic-bezier(.2,.75,.23,1) !important;
   }
   html .app-root.game-edition.handheld-edition .app-header-curtain.is-dragging { transition:none !important; }
+  /* The lower 36px are a solid curtain hem. Nothing from the next row peeks out. */
+  html .app-root.game-edition.handheld-edition .app-header-curtain::before {
+    content:""; position:absolute; left:0; right:0; bottom:0; height:36px;
+    background:var(--journey-red); z-index:4; pointer-events:none;
+  }
   html .app-root.game-edition.handheld-edition .app-curtain-grip {
     display:grid !important; place-items:center !important; position:absolute !important;
     bottom:0; left:calc(50% - 66px); width:132px !important; min-width:132px;

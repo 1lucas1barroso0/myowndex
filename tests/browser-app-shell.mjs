@@ -60,11 +60,13 @@ try {
  await toggle.click();assert.notEqual(await reference.locator('p').innerText(),before);await toggle.click();
  for(const width of [320,390,768,1280,1440])for(const theme of ['normal','night']) {
   await page.setViewportSize({width,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  await page.evaluate(()=>document.fonts.ready.then(()=>true));
   await page.waitForFunction(()=>{
    const root=document.querySelector('.app-header'),bounds=root.getBoundingClientRect();
    if(innerWidth>700)return !root.style.height;
    const group=root.querySelector('.app-preferences').getBoundingClientRect(),grip=root.querySelector('.app-curtain-grip').getBoundingClientRect();
-   return Math.abs(bounds.height-(group.bottom-bounds.top+grip.height+4))<1;
+   const target=Number.parseFloat(root.style.height);
+   return Math.abs(bounds.height-target)<.02 && target===Math.ceil(group.bottom-bounds.top+grip.height+4) && root.getAnimations().every(animation=>animation.playState==='finished');
   });
   const metrics=await page.evaluate(()=>({w:innerWidth,scroll:document.documentElement.scrollWidth,placeholders:document.querySelectorAll('[placeholder]').length,header:document.querySelector('.app-header').getBoundingClientRect().height,escaped:[...document.querySelectorAll('.app-header button')].filter(e=>{const r=e.getBoundingClientRect();return r.left<0||r.right>innerWidth}).map(e=>e.textContent)}));
   assert.equal(metrics.w,metrics.scroll);assert.equal(metrics.placeholders,0);assert.deepEqual(metrics.escaped,[]);

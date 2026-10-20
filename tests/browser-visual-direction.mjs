@@ -43,11 +43,13 @@ try {
  await lobby.getByRole('button',{name:'Começar uma aventura local',exact:false}).waitFor();
  for(const width of [320,390,768,1280])for(const theme of ['normal','night']) {
   await page.setViewportSize({width,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  await page.evaluate(()=>document.fonts.ready.then(()=>true));
   await page.waitForFunction(()=>{
    const root=document.querySelector('.app-header'),bounds=root.getBoundingClientRect();
    if(innerWidth>700)return !root.style.height;
    const group=root.querySelector('.app-preferences').getBoundingClientRect(),grip=root.querySelector('.app-curtain-grip').getBoundingClientRect();
-   return Math.abs(bounds.height-(group.bottom-bounds.top+grip.height+4))<1;
+   const target=Number.parseFloat(root.style.height);
+   return Math.abs(bounds.height-target)<.02 && target===Math.ceil(group.bottom-bounds.top+grip.height+4) && root.getAnimations().every(animation=>animation.playState==='finished');
   });
   for(const selector of ['.app-nav > button','.app-tool-actions > button','.game-style-options > button','.appearance-options > button','.room-entry-choices > button'])await palette(selector);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

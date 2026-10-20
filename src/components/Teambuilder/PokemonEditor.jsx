@@ -443,7 +443,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <details className="editor-summary-customize">
                     <summary>Editar características</summary>
                     <div className="editor-summary-customize-body">
- && <p className="editor-exception-note" role="status">{`${exceptionCount} ${exceptionCount === 1 ? "escolha fora do jogo de referência" : "escolhas fora do jogo de referência"}.`}</p>}
+
 
             <div className="editor-basics-grid">
                 <div className="editor-field">
@@ -495,6 +495,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </div>
                 </details>
             </header>
+            {exceptionCount > 0 && <p className="editor-exception-note" role="status">{`${exceptionCount} ${exceptionCount === 1 ? "escolha fora do jogo de referência" : "escolhas fora do jogo de referência"}.`}</p>}
             {isHackmon && <div className="editor-basics-grid">{[0, 1].map(index => <label key={index} className="editor-field"><span className="editor-label">Tipo personalizado {index + 1}</span><RoomSelect aria-label={`Tipo personalizado ${index + 1}`} value={customT[index] || ""} onChange={event => { const types = [...customT]; types[index] = event.target.value; updatePk({ ...pk, customTypes: types.filter(Boolean) }); }} className="editor-input"><option value="">Sem tipo</option>{TYPES.map(type => <option key={type} value={type}>{formatType(type)}</option>)}</RoomSelect></label>)}</div>}
             {switchingForm && <span role="status" className="sr-only">Consultando forma…</span>}
             {formError && <p role="alert" className="editor-error">{formError}</p>}

@@ -42,6 +42,10 @@ O roteiro `browser-performance.mjs` mantém os 1.025 Pokémon disponíveis, test
 
 Os ensaios de navegador usaram Chromium local em perfis descartáveis. A cobertura de conta foi da interface sem autenticação; não houve criação ou alteração de contas ou aventuras reais. Desaceleração de CPU e mudanças de viewport simulam condições limitadas e não substituem testes físicos em todos os dispositivos.
 
+## Conferência de fontes na publicação
+
+O CI detectou uma revisão posterior da fonte do Pokémon Showdown. A comparação com o commit `8476966bb71714001e836571e41723219c4c2dd3` mostrou apenas callbacks de Wish não importados pelo MyOwnDex. O catálogo foi regenerado sem alteração dos 14 arquivos públicos. Os subconjuntos de execução permaneceram idênticos, com atualização somente da proveniência. A verificação de atualidade continua obrigatória.
+
 ## Publicação
 
 Publicação autorizada pelo usuário. A entrega segue pela branch `codex/performance-2-0-50`, com PR, CI, preview correspondente e publicação do código validado na Vercel. A numeração do pacote e o cache do aplicativo acompanham a versão 2.0.50.

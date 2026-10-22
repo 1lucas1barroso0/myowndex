@@ -37,3 +37,5 @@ Fontes: [otimização de imagens](https://github.com/vercel/next.js/security/adv
 Resultados locais finais: 646 testes aprovados, lint, tipos, build com Next.js 16.4.2 e auditoria de produção com zero vulnerabilidades conhecidas. A auditoria completa continua apontando a cadeia de desenvolvimento de `braces` já descrita em `VALIDACAO.md`.
 
 No navegador: 11 grupos de verificações do Guia; três do cache nativo, incluindo recarregamento sem rede do catálogo; movimentos mobile; 16 grupos do gerador com CPU 6× mais lenta; navegação de todas as áreas com coleção completa e CPU 4× mais lenta; atualização automática/PWA. Todos passaram sem erros JavaScript. Os dois novos roteiros integram o CI. A inspeção visual confirmou a apresentação preservada do Guia nos dois temas.
+
+A preparação do navegador no CI usa o endereço HTTPS oficial `archive.ubuntu.com` quando a imagem do runner configura o espelho HTTP da Azure. Os logs da execução anterior registraram mais de oito minutos no download de 21,1 MB de fontes por esse espelho. Os pacotes assinados e a instalação completa das dependências do navegador permanecem os mesmos; nenhum teste foi omitido.

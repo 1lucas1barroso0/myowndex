@@ -46,7 +46,7 @@ const pass = name => console.log(`PASS ${name}`);
 const openGenerator = async () => {
     await page.getByRole('button', { name: 'Gerar Pokémon', exact: true }).click();
     await page.locator('.generator-dialog').waitFor();
-    await page.waitForFunction(() => !document.querySelector('.generator-dialog')?.textContent.includes('Recuperando sua prévia'));
+    await page.locator('.generator-content').waitFor();
     return page.locator('.generator-dialog');
 };
 const openDice = async currentPage => {
@@ -77,18 +77,18 @@ try {
     await generator.locator('.generator-partner').nth(1).waitFor();
     const originalBoxes = await page.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem('myowndex_rotom_v4')).teams));
     await generator.locator('.generator-partner-details summary').nth(1).click();
-    await generator.locator('.generator-partner').nth(1).getByRole('button', { name: 'Remover Bulbasaur da prévia', exact: true }).click();
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Voltar à prévia', exact: true }).click();
+    await generator.locator('.generator-partner').nth(1).getByRole('button', { name: 'Remover Bulbasaur do encontro', exact: true }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Voltar ao encontro', exact: true }).click();
     assert.equal(await generator.locator('.generator-partner').count(), 2);
     pass('cancelled-preview-removal-preserves-both-partners');
-    await generator.locator('.generator-partner').nth(1).getByRole('button', { name: 'Remover Bulbasaur da prévia', exact: true }).click();
-    await confirm('Remover da prévia');
+    await generator.locator('.generator-partner').nth(1).getByRole('button', { name: 'Remover Bulbasaur do encontro', exact: true }).click();
+    await confirm('Remover do encontro');
     await page.waitForFunction(() => document.querySelectorAll('.generator-partner').length === 1);
     assert.equal(await generator.locator('.generator-partner.is-saved').count(), 1);
     await assertFits(generator);
     pass('individual-preview-removal-preserves-other-preview-and-box-at-320px');
-    await generator.getByRole('button', { name: 'Limpar prévia', exact: true }).click();
-    await confirm('Limpar prévia');
+    await generator.getByRole('button', { name: 'Limpar encontro', exact: true }).click();
+    await confirm('Limpar encontro');
     await generator.locator('.generator-empty').waitFor();
     await generator.getByRole('button', { name: 'Fechar gerador', exact: true }).click();
     await page.reload();
@@ -128,7 +128,7 @@ try {
     await confirm('Retirar Pokémon');
     await page.waitForFunction(() => document.querySelectorAll('.local-dice-dialog .local-pokemon-roster button').length === 1);
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('myowndex_local_dice_room_v1')).tokens.length === 1);
-    assert.equal((await dice.locator('.local-pokemon-roster button').innerText()).replace(/\s+/g, ' ').trim(), 'Broto Aliado HP 3 de 3');
+    assert.equal((await dice.locator('.local-pokemon-roster button').innerText()).replace(/\s+/g, ' ').trim(), 'Broto Aliado HP 3 / 3');
     await dice.getByRole('button', { name: 'Limpar campo', exact: true }).click();
     await confirm('Limpar campo');
     await page.waitForFunction(() => document.querySelectorAll('.local-dice-dialog .local-pokemon-roster button').length === 0);

@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.50.**
+**Versão atual: 2.0.51.**
+
+A revisão 2.0.51 corrige a precedência CSS das confirmações do gerador: a camada de confirmação ficava abaixo da tela inerte, impedindo compreender Limpar encontro, remover e substituir resultados. O seletor nacional reutiliza opções e renderização, e cada cartão só acompanha suas próprias alterações. A compactação do rascunho aguarda a pausa na digitação; os golpes carregam em paralelo dentro do limite global de três consultas. Limpar mostra processamento na confirmação e mantém os resultados até a gravação durável, devolvendo o foco sem rolar a moldura. O roteiro `browser-generator-mobile.mjs` exercita as ações reais com seis Pokémon, CPU reduzida, armazenamento lento/falho, ambos os temas e larguras de 320 a 1440 px. Evidências em `DESEMPENHO-2.0.51.md`.
 
 A revisão 2.0.50 otimiza a interface sem remover recursos nem mudar os dados: a cortina tem estado isolado; os gestos agrupam prévias por quadro e cancelam trabalho pendente ao terminar; sprites e cartões preservam renderizações quando suas propriedades não mudam. O observador de sprites ignora alterações comuns de texto/listas e continua suspendendo animações sob diálogos e fora da tela. Busca/ordenação da Pokédex e sugestões da ficha evitam cálculos e alocações repetidas. O campo reutiliza a medição inicial durante o gesto e a escala calculada enquanto os Pokémon não mudam. As telas e ferramentas começam a carregar ao receber intenção por ponteiro ou foco, mantendo carregamento sob demanda. Não há mudança em regras, sorteios, contas, Boxes, histórico ou instalação.
 

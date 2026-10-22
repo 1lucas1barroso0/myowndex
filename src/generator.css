@@ -68,7 +68,10 @@ html .generator-heading .pokemon-companion.companion-compact { width:80px; heigh
 .generator-results:focus-visible { outline:3px solid var(--journey-focus); outline-offset:-3px; }
 .generator-notice { border-left-color:var(--journey-teal); }
 .generator-sync-choice > p { margin:0 0 1rem; }
-body:has(.generator-overlay) > .confirm-dialog-overlay { z-index:1200 !important; }
+/* Match the shared dialog rule's specificity before adding the generator
+   boundary. An inert overlay still paints, so a confirmation behind it looks
+   like a frozen screen even though it receives the touches. */
+html :is(body,.app-root.game-edition.handheld-edition):has(.generator-overlay) > .confirm-dialog-overlay { z-index:1200 !important; }
 @media(max-width:900px) {
   .generator-dialog.has-results .generator-content { grid-template-columns:minmax(0,1fr); }
   .generator-results { border-left:0; border-top:1px solid var(--ui-line); }

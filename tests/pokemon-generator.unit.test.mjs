@@ -216,6 +216,27 @@ test('generator end-to-end preserves actual forms, correct game PP, progress and
     assert.equal(decoded.pokemon[0].rpg.xp, 0);
 });
 
+test('generating fetches independent moves concurrently within the shared limit and preserves their order', async () => {
+    let active = 0;
+    let maximum = 0;
+    const fetcher = async url => {
+        if (!url.includes('/move/')) return fixtureFetcher(url);
+        active += 1;
+        maximum = Math.max(maximum, active);
+        // Different completion order must never pair PP with the wrong move.
+        await new Promise(resolve => setTimeout(resolve, url.includes('tackle') ? 20 : 5));
+        active -= 1;
+        const data = await fixtureFetcher(url);
+        return { ...data, pp: data.name === 'tackle' ? 17 : 23 };
+    };
+    const [generated] = await generatePokemon([{ name: 'bulbasaur', url: `${API}pokemon-species/1/` }],
+        { speciesId: 1, level: 5, versionGroup: 'scarlet-violet' }, { fetcher, random: () => 0 });
+    assert.equal(maximum, GENERATOR_REQUEST_CONCURRENCY);
+    assert.equal(active, 0);
+    assert.deepEqual(generated.pokemon.moves.filter(Boolean), ['vine-whip', 'growl', 'tackle']);
+    assert.deepEqual(generated.pokemon.rpg.pp.slice(0, 3), [23, 23, 17]);
+});
+
 test('generator can pin a persistent form and keeps its identity in the generated partner', async () => {
     const entry = {
         name: 'bulbasaur-spring-style',

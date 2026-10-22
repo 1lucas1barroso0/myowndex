@@ -1,0 +1,28 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createGuideSearchIndex, searchGuideSections } from "../src/core/guideSearch.js";
+import { RPG_RULE_SECTIONS } from "../src/core/rpgRules.js";
+
+test("indexed guide search preserves every rule, accents, section matches and displayed proportions", () => {
+    const sections = RPG_RULE_SECTIONS;
+    const before = JSON.stringify(sections);
+    const index = createGuideSearchIndex(sections);
+    const normalize = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    const legacy = query => {
+        const needle = normalize(query);
+        if (!needle) return sections;
+        return sections.map(section => ({ ...section,
+            rules: normalize(`${section.number} ${section.title} ${section.summary}`).includes(needle) ? section.rules
+                : section.rules.filter(rule => {
+                    const text = [rule.id, rule.title, rule.body || "", ...(rule.bullets || [])].join(" ");
+                    const displayed = text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
+                    return normalize(`${text} ${displayed}`).includes(needle);
+                }),
+        })).filter(section => section.rules.length);
+    };
+    const queries = ["", "  ", "AÇÃO", "acao", "dano", "12,5%", "1 em 8", "33,3%", "1 em 3", "3.4", "__sem_resultados__",
+        ...sections.flatMap(section => [section.title, section.summary, ...section.rules.map(rule => rule.title)])];
+    for (const query of queries) assert.deepEqual(searchGuideSections(index, query), legacy(query), query);
+    assert.strictEqual(searchGuideSections(index, ""), sections);
+    assert.equal(JSON.stringify(sections), before);
+});

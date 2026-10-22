@@ -6,6 +6,7 @@ export const CATALOG_CACHE_LIMIT = 8;
 export const CATALOG_CACHE_BYTES = 8 * 1024 * 1024;
 const cache = new Map();
 const requests = new Map();
+const numericIndexes = new WeakMap();
 const kinds = new Set(['species', 'ability', 'move', 'item']);
 let retainedBytes = 0;
 
@@ -91,8 +92,17 @@ const byId = (data, id) => {
     const direct = data?.entries?.[String(id || '').toLowerCase()];
     if (direct) return direct;
     const numeric = Number(id);
-    if (!Number.isInteger(numeric)) return null;
-    return Object.values(data?.entries || {}).find(entry => entry.id === numeric) || null;
+    if (!Number.isInteger(numeric) || !data?.entries) return null;
+    let index = numericIndexes.get(data);
+    if (!index) {
+        index = new Map();
+        for (const entry of Object.values(data.entries)) {
+            if (Number.isInteger(entry?.id) && !index.has(entry.id)) index.set(entry.id, entry);
+        }
+        // Each immutable catalogue owns its index; evicting it releases both.
+        numericIndexes.set(data, index);
+    }
+    return index.get(numeric) || null;
 };
 
 const emptyPair = () => ({ original: '', portuguese: '', originalLanguage: 'en', source: null, version: null, sourceKind: null });

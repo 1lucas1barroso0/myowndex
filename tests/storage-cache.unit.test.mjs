@@ -201,6 +201,67 @@ test("catalogue caches evict the least recently used entry while preserving ever
   assert.equal(await (await privateCache.match("/private")).text(), "keep");
 });
 
+test("cached catalogue reads reuse their measured snapshot and serialize the disk payload once", async t => {
+  let serializations = 0;
+  const data = { toJSON() { serializations++; return { name: "pikachu", text: "Pokémon ⚡".repeat(1000) }; } };
+  const { caches, settle } = await withCatalogue(t, async () => ({ ok: true, json: async () => data }));
+  const url = catalogue + "snapshot";
+  assert.strictEqual(await fetchCached(url), data);
+  for (let index = 0; index < 25; index++) assert.strictEqual(await fetchCached(url), data);
+  await settle();
+  assert.equal(serializations, 1);
+  const response = await (await caches.open("myowndex-api-v5")).match(url);
+  const text = await response.text();
+  assert.equal(Number(response.headers.get("x-myowndex-bytes")), new TextEncoder().encode(text).byteLength);
+  assert.equal(JSON.parse(text).name, "pikachu");
+  // Replacing an exported test/debug entry still recomputes its actual budget.
+  apiCache.set(url, { data: { text: "x".repeat(API_CACHE_ENTRY_BYTES + 1) }, cachedAt: Date.now() });
+  assert.ok((await fetchCached(url)).text.length > API_CACHE_ENTRY_BYTES);
+  assert.equal(apiCache.has(url), false);
+});
+
+test("a burst of adjacent memory hits performs only one pending disk touch", async t => {
+  const { caches, settle } = await withCatalogue(t, async url => Response.json({ url }));
+  const url = catalogue + "adjacent";
+  await fetchCached(url); await settle();
+  const disk = await caches.open("myowndex-api-v5");
+  const match = disk.match.bind(disk), put = disk.put.bind(disk), keys = disk.keys.bind(disk);
+  const started = deferred(), gate = deferred();
+  let held = false, writes = 0, scans = 0;
+  disk.match = async request => {
+    if (request === url && !held) { held = true; started.resolve(); await gate.promise; }
+    return match(request);
+  };
+  disk.put = async (...args) => { writes++; return put(...args); };
+  disk.keys = async () => { scans++; return keys(); };
+  try {
+    await fetchCached(url); await started.promise;
+    for (let index = 0; index < 100; index++) await fetchCached(url);
+  } finally { gate.resolve(); }
+  await settle();
+  assert.equal(writes, 1);
+  assert.equal(scans, 1);
+});
+
+test("coalesced touches preserve the last-read order across different URLs", async t => {
+  const { caches, settle } = await withCatalogue(t, async url => Response.json({ url }));
+  const urls = ["a", "b", "c"].map(name => catalogue + name);
+  for (const url of urls) await fetchCached(url);
+  await settle();
+  const disk = await caches.open("myowndex-api-v5"), match = disk.match.bind(disk);
+  const gate = deferred(), started = deferred(); let held = false;
+  disk.match = async request => {
+    if (request === urls[0] && !held) { held = true; started.resolve(); await gate.promise; }
+    return match(request);
+  };
+  try {
+    await fetchCached(urls[0]); await started.promise;
+    await fetchCached(urls[0]); await fetchCached(urls[1]); await fetchCached(urls[0]);
+  } finally { gate.resolve(); }
+  await settle();
+  assert.deepEqual((await disk.keys()).map(request => request.url), [urls[2], urls[1], urls[0]]);
+});
+
 test("eviction never removes the promise shared by concurrent catalogue callers", async t => {
   const waiting = deferred();
   const started = deferred();

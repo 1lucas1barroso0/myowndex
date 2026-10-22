@@ -27,22 +27,39 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 const canUseCacheStorage = () => typeof window !== "undefined" && typeof window.caches !== "undefined";
 let cacheGeneration = 0;
 let persistentCacheQueue = Promise.resolve();
+let persistentSequence = 0;
+let lastPersistentTouch = null;
 
-const rememberMemory = (key, entry) => {
-    const bytes = jsonByteSize(entry.data);
-    memoryBytes -= memoryWeights.get(key) || 0;
+const rememberMemory = (key, entry, bytes = jsonByteSize(entry.data)) => {
+    memoryBytes -= memoryWeights.get(key)?.bytes || 0;
     memoryWeights.delete(key);
     apiCache.delete(key);
     if (bytes > API_CACHE_ENTRY_BYTES) return;
     apiCache.set(key, entry);
-    memoryWeights.set(key, bytes);
+    memoryWeights.set(key, { bytes, entry });
     memoryBytes += bytes;
     while (apiCache.size > API_CACHE_LIMIT || memoryBytes > API_MEMORY_CACHE_BYTES) {
         const oldest = apiCache.keys().next().value;
-        memoryBytes -= memoryWeights.get(oldest) || 0;
+        memoryBytes -= memoryWeights.get(oldest)?.bytes || 0;
         memoryWeights.delete(oldest);
         apiCache.delete(oldest);
     }
+};
+
+const touchMemory = (key, entry) => {
+    // A cache hit only changes recency. Its snapshot was already measured when
+    // inserted; serializing a full learnset again blocks repeated UI reads.
+    if (memoryWeights.get(key)?.entry !== entry) { rememberMemory(key, entry); return; }
+    apiCache.delete(key);
+    apiCache.set(key, entry);
+};
+
+const serializeApiData = data => {
+    try {
+        const text = JSON.stringify(data);
+        return typeof text === "string" ? { text, bytes: new TextEncoder().encode(text).byteLength }
+            : { text: null, bytes: Infinity };
+    } catch { return { text: null, bytes: Infinity }; }
 };
 
 // Only the public catalogue belongs in this optional, regenerable disk cache.
@@ -56,6 +73,7 @@ const isCatalogueUrl = url => {
 };
 
 const queuePersistentCache = (operation, generation = cacheGeneration) => {
+    persistentSequence += 1;
     const task = persistentCacheQueue.then(async () => {
         if (generation !== cacheGeneration || !canUseCacheStorage()) return;
         await operation(await window.caches.open(API_CACHE_NAME));
@@ -83,8 +101,12 @@ const trimPersistentCache = async cache => {
 };
 
 const touchPersistentCache = (url, generation) => {
-    if (!isCatalogueUrl(url)) return Promise.resolve();
-    return queuePersistentCache(async cache => {
+    if (!canUseCacheStorage() || !isCatalogueUrl(url)) return Promise.resolve();
+    // Merge only adjacent reads of the same URL while their touch is pending.
+    // A different read, write or clear breaks the batch and keeps exact LRU order.
+    if (lastPersistentTouch?.url === url && lastPersistentTouch.generation === generation
+        && lastPersistentTouch.sequence === persistentSequence) return lastPersistentTouch.task;
+    const task = queuePersistentCache(async cache => {
         // Read again inside the queue so a touch cannot restore an older response
         // over a refresh that completed while the original read was in flight.
         const response = await cache.match(url);
@@ -93,6 +115,10 @@ const touchPersistentCache = (url, generation) => {
         await cache.put(url, response);
         await trimPersistentCache(cache);
     }, generation);
+    const touch = { url, generation, sequence: persistentSequence, task };
+    lastPersistentTouch = touch;
+    void task.then(() => { if (lastPersistentTouch === touch) lastPersistentTouch = null; });
+    return task;
 };
 
 const readPersistentApiCache = async (url) => {
@@ -110,14 +136,13 @@ const readPersistentApiCache = async (url) => {
     }
 };
 
-const writePersistentApiCache = (url, data, generation) => {
-    if (!canUseCacheStorage() || !isCatalogueUrl(url) || data == null) return Promise.resolve();
-    const bytes = jsonByteSize(data);
+const writePersistentApiCache = (url, serialized, generation, cachedAt) => {
+    if (!canUseCacheStorage() || !isCatalogueUrl(url) || serialized.text == null) return Promise.resolve();
+    const { bytes, text } = serialized;
     if (bytes > API_CACHE_ENTRY_BYTES) return Promise.resolve();
-    const cachedAt = Date.now();
     return queuePersistentCache(async cache => {
         if (!await canWriteRegenerableCache(bytes)) return;
-        await cache.put(url, new Response(JSON.stringify(data), {
+        await cache.put(url, new Response(text, {
             headers: {
                 "content-type": "application/json; charset=utf-8",
                 "x-myowndex-cached-at": String(cachedAt),
@@ -175,7 +200,7 @@ export const fetchCached = async (url, options = {}) => {
     const memory = apiCache.get(key);
     const generation = cacheGeneration;
     if (!forceRefresh && memory && now - memory.cachedAt <= maxAgeMs) {
-        rememberMemory(key, memory);
+        touchMemory(key, memory);
         void touchPersistentCache(key, generation);
         return memory.data;
     }
@@ -198,9 +223,10 @@ export const fetchCached = async (url, options = {}) => {
             const data = await fetchJsonWithRetry(key, timeoutMs);
             const entry = { data, cachedAt: Date.now() };
             if (generation === cacheGeneration) {
-                rememberMemory(key, entry);
+                const serialized = serializeApiData(data);
+                rememberMemory(key, entry, serialized.bytes);
                 apiFailures.delete(key);
-                void writePersistentApiCache(key, data, generation);
+                if (data != null) void writePersistentApiCache(key, serialized, generation, entry.cachedAt);
             }
             return data;
         } catch {
@@ -228,6 +254,8 @@ export const fetchCached = async (url, options = {}) => {
 
 export const clearApiCache = async () => {
     cacheGeneration += 1;
+    persistentSequence += 1;
+    lastPersistentTouch = null;
     apiCache.clear();
     memoryWeights.clear();
     memoryBytes = 0;

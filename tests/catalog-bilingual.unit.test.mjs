@@ -250,3 +250,24 @@ test('public reference cache deduplicates requests and remains bounded independe
         clearCatalogTextCache();
     }
 });
+
+test('numeric reference lookups reuse an index while preserving named and historical results', async () => {
+    const previousFetch = globalThis.fetch;
+    globalThis.fetch = fetchFromFiles;
+    clearCatalogTextCache();
+    try {
+        const data = await loadCatalogText('move');
+        const expected = getCatalogMoveMetadata('tackle', 'red-blue');
+        const tackle = data.entries.tackle;
+        let scans = 0;
+        Object.defineProperty(data.entries, 'tackle', { enumerable: true, get() { scans++; return tackle; } });
+        for (let index = 0; index < 100; index++) assert.deepEqual(getCatalogMoveMetadata(tackle.id, 'red-blue'), expected);
+        assert.equal(scans, 1, 'the full catalogue is indexed once, not scanned per lookup');
+        assert.equal(getCatalogMoveMetadata(99999999), null);
+        assert.equal(getCatalogMoveMetadata('unknown-move'), null);
+        clearCatalogTextCache();
+        assert.equal(getCatalogMoveMetadata(tackle.id, 'red-blue'), null);
+        await loadCatalogText('move');
+        assert.deepEqual(getCatalogMoveMetadata(tackle.id, 'red-blue'), expected);
+    } finally { globalThis.fetch = previousFetch; clearCatalogTextCache(); }
+});

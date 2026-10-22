@@ -507,7 +507,7 @@ test("the internal Guide is the canonical source and explains hit kill protectio
     read("src/components/Room/CombatAssistant.jsx"),
   ]);
   assert.doesNotMatch(guide, /target="_blank"/);
-  assert.match(guide, /RPG_RULE_SECTIONS\.map/);
+  assert.match(guide, /createGuideSearchIndex\(RPG_RULE_SECTIONS\)/);
   assert.match(guide, /Pesquisar regras/);
   assert.match(rules, /Proteção contra hit kill/);
   assert.match(rules, /três vezes o HP máximo/);

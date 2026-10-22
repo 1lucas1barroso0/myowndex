@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.51.**
+**Versão atual: 2.0.52.**
+
+A revisão 2.0.52 amplia a otimização ao cache público, catálogos e Guia. Leituras em memória só atualizam a ordem de uso; respostas de rede são serializadas uma vez para medição e disco; acessos consecutivos à mesma URL compartilham a manutenção pendente sem ultrapassar operações de outras URLs. Limites de contagem/bytes e a barreira de limpeza continuam ativos. Consultas numéricas têm índice fraco por catálogo, e a pesquisa do Guia normaliza as 40 regras uma vez, preservando acentos, proporções, navegação e estado das seções. A base Next.js e o lint correspondente passam para 16.4.2 após a auditoria detectar avisos na versão anterior. Testes e medições estão em `DESEMPENHO-2.0.52.md`.
 
 A revisão 2.0.51 corrige a precedência CSS das confirmações do gerador: a camada de confirmação ficava abaixo da tela inerte, impedindo compreender Limpar encontro, remover e substituir resultados. O seletor nacional reutiliza opções e renderização, e cada cartão só acompanha suas próprias alterações. A compactação do rascunho aguarda a pausa na digitação; os golpes carregam em paralelo dentro do limite global de três consultas. Limpar mostra processamento na confirmação e mantém os resultados até a gravação durável, devolvendo o foco sem rolar a moldura. O roteiro `browser-generator-mobile.mjs` exercita as ações reais com seis Pokémon, CPU reduzida, armazenamento lento/falho, ambos os temas e larguras de 320 a 1440 px. Evidências em `DESEMPENHO-2.0.51.md`.
 

@@ -2,6 +2,7 @@ import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
+import { createGuideSearchIndex, formatRuleForReading, searchGuideSections } from "../../core/guideSearch.js";
 import { integerInRange } from "../../core/math.js";
 import { formatNumberPtBr } from "../../core/mechanics.js";
 import {
@@ -13,8 +14,7 @@ import {
 } from "../../core/rpgRules.js";
 
 const ruleCount = RPG_RULE_SECTIONS.reduce((sum, section) => sum + section.rules.length, 0);
-const normalizeSearch = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-const formatRuleForReading = text => text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
+const searchIndex = createGuideSearchIndex(RPG_RULE_SECTIONS);
 
 function RuleBullet({ text }) {
     const readable = formatRuleForReading(text);
@@ -23,6 +23,24 @@ function RuleBullet({ text }) {
         <><strong>{readable.slice(0, separator + 1)}</strong>{readable.slice(separator + 1)}</>
     ) : readable;
 }
+
+const GuideRule = React.memo(function GuideRule({ rule, searching, protectionRef }) {
+    return (
+        <details ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
+            <summary>
+                <span className="guide-rule-id">{rule.id}</span>
+                <strong>{rule.title}</strong>
+            </summary>
+            <div className="guide-rule-body">
+                {rule.plain && <p className="guide-rule-lead">{formatRuleForReading(rule.plain)}</p>}
+                {rule.id !== "3.4" && rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
+                {rule.id === "3.4" ? (
+                    <HitKillExplanation expanded={searching} />
+                ) : rule.bullets && <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>}
+            </div>
+        </details>
+    );
+});
 
 export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
@@ -46,20 +64,7 @@ export default function TrainerGuide({ experienceMode }) {
         });
     };
 
-    const visibleSections = useMemo(() => {
-        const normalized = normalizeSearch(query);
-        if (!normalized) return RPG_RULE_SECTIONS;
-        return RPG_RULE_SECTIONS.map(section => {
-            const sectionMatches = normalizeSearch(`${section.number} ${section.title} ${section.summary}`).includes(normalized);
-            return {
-                ...section,
-                rules: sectionMatches ? section.rules : section.rules.filter(rule => {
-                    const text = [rule.id, rule.title, rule.body || "", ...(rule.bullets || [])].join(" ");
-                    return normalizeSearch(`${text} ${formatRuleForReading(text)}`).includes(normalized);
-                }),
-            };
-        }).filter(section => section.rules.length);
-    }, [query]);
+    const visibleSections = useMemo(() => searchGuideSections(searchIndex, query), [query]);
 
     const visibleRuleCount = visibleSections.reduce((sum, section) => sum + section.rules.length, 0);
 
@@ -93,19 +98,7 @@ export default function TrainerGuide({ experienceMode }) {
                                 </header>
                                 <div className="guide-rule-content">
                                     {section.rules.map(rule => (
-                                        <details key={rule.id} ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
-                                            <summary>
-                                                <span className="guide-rule-id">{rule.id}</span>
-                                                <strong>{rule.title}</strong>
-                                            </summary>
-                                            <div className="guide-rule-body">
-                                                {rule.plain && <p className="guide-rule-lead">{formatRuleForReading(rule.plain)}</p>}
-                                                {rule.id !== "3.4" && rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
-                                                {rule.id === "3.4" ? (
-                                                    <HitKillExplanation expanded={searching} />
-                                                ) : rule.bullets && <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>}
-                                            </div>
-                                        </details>
+                                        <GuideRule key={rule.id} rule={rule} searching={searching} protectionRef={protectionRef} />
                                     ))}
                                 </div>
                             </section>

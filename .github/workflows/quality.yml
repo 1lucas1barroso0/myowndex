@@ -117,7 +117,10 @@ jobs:
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
-        run: node tests/browser-performance.mjs
+        run: |
+          node tests/browser-performance.mjs
+          node tests/browser-guide-performance.mjs
+          node tests/browser-api-cache.mjs
       - name: Gerar, editar e limpar encontros no mobile com CPU reduzida
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

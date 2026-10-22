@@ -1,6 +1,6 @@
 {
   "name": "myowndex",
-  "version": "2.0.51",
+  "version": "2.0.52",
   "description": "Explore a Pokédex, crie equipes e viva sua aventura Pokémon com o MyOwnDex.",
   "private": true,
   "homepage": "https://myowndex.vercel.app",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "fflate": "0.8.3",
-    "next": "16.3.8",
+    "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
@@ -40,7 +40,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.2",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3"
   },

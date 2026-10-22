@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useMemo, useRef } from "react";
 import { getHitKillProtectionKey } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
@@ -12,6 +12,7 @@ import { getTraitStatus } from "../../core/traitMechanics.js";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
 import RoomSelect from "../Shared/RoomSelect.jsx";
 import PokemonHp from "../Shared/PokemonHp.jsx";
+import useFrameState from "../Shared/useFrameState.js";
 
 const clamp = (value, minimum, maximum) => clampFinite(value, minimum, maximum, minimum);
 
@@ -124,10 +125,10 @@ export default function Battlefield({
     compact = false,
 }) {
     const battle = snapshot.phase === "batalha";
-    const [drag, setDrag] = useState(null);
+    const [drag, setDrag, previewDrag] = useFrameState(null);
     const dragRef = useRef(null);
     const movedPointerRef = useRef(false);
-    const [resize, setResize] = useState(null);
+    const [resize, setResize, previewResize] = useFrameState(null);
     const resizeRef = useRef(null);
     const cancelGestures = useCallback(() => {
         const active = [dragRef.current, resizeRef.current];
@@ -139,7 +140,7 @@ export default function Battlefield({
         active.forEach(pointer => {
             if (pointer?.target.hasPointerCapture?.(pointer.pointerId)) pointer.target.releasePointerCapture(pointer.pointerId);
         });
-    }, []);
+    }, [setDrag, setResize]);
     useEffect(() => {
         window.addEventListener("blur", cancelGestures);
         window.addEventListener("resize", cancelGestures);
@@ -165,10 +166,10 @@ export default function Battlefield({
 
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId);
     const selectedDisplay = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
-    const visibleTokens = snapshot.tokens.filter(token => !token.hidden && !token.captured);
-    const sceneReferenceHeight = visibleTokens.length
+    const visibleTokens = useMemo(() => snapshot.tokens.filter(token => !token.hidden && !token.captured), [snapshot.tokens]);
+    const sceneReferenceHeight = useMemo(() => visibleTokens.length
         ? Math.max(...visibleTokens.map(token => fieldPresentation(token).physicalSpan))
-        : 10;
+        : 10, [visibleTokens]);
 
     const canMoveToken = token => role === "narrator"
         || (snapshot.settings.allowPlayerMovement && token.ownerPlayerId === playerId);
@@ -179,7 +180,7 @@ export default function Battlefield({
         const active = dragRef.current;
         if (!active || event.pointerId !== active.pointerId) return;
         if (!canMoveToken(tokenById[active.tokenId] || {})) { cancelGestures(); return; }
-        const rect = event.currentTarget.closest(".battlefield-board")?.getBoundingClientRect();
+        const rect = active.boardRect;
         if (!rect || !rect.width || !rect.height) return;
         const deltaX = event.clientX - active.startClientX;
         const deltaY = event.clientY - active.startClientY;
@@ -199,7 +200,7 @@ export default function Battlefield({
             }
         } else {
             dragRef.current = next;
-            setDrag(next);
+            previewDrag(next);
         }
     };
 
@@ -213,7 +214,8 @@ export default function Battlefield({
         event.currentTarget.setPointerCapture?.(event.pointerId);
         event.currentTarget.focus({ preventScroll: true });
         const next = { pointerId: event.pointerId, target: event.currentTarget, tokenId: token.id, x: token.x, y: token.y,
-            startX: token.x, startY: token.y, startClientX: event.clientX, startClientY: event.clientY };
+            startX: token.x, startY: token.y, startClientX: event.clientX, startClientY: event.clientY,
+            boardRect: event.currentTarget.closest(".battlefield-board")?.getBoundingClientRect() };
         dragRef.current = next;
         setDrag(next);
     };
@@ -265,7 +267,7 @@ export default function Battlefield({
         event.preventDefault();
         const next = { ...active, scale: resizeScale(active, event) };
         resizeRef.current = next;
-        setResize(next);
+        previewResize(next);
     };
     const resizeFinish = (event, commit = true) => {
         const active = resizeRef.current;

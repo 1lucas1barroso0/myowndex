@@ -18,7 +18,7 @@ export const POKEMON_COMPANIONS = Object.freeze({
 // authored in the sprite frames themselves: CSS never invents bobbing, sway or
 // pseudo-idle movement. PNG masters preserve the character when reduced motion
 // is requested or its animated asset cannot be loaded.
-export default function PokemonCompanion({ place, className = "", eager = false }) {
+const PokemonCompanion = React.memo(function PokemonCompanion({ place, className = "", eager = false }) {
     const companion = POKEMON_COMPANIONS[place];
     if (!companion) return null;
     return (
@@ -38,4 +38,6 @@ export default function PokemonCompanion({ place, className = "", eager = false 
             />
         </span>
     );
-}
+});
+
+export default PokemonCompanion;

@@ -40,7 +40,14 @@ export const createSpriteActivityRegistry = ({ window: browserWindow, document: 
         }, { rootMargin: "0px", threshold: 0 });
         const ModalObserver = browserWindow?.MutationObserver;
         if (ModalObserver && browserDocument?.body) {
-            modalObserver = new ModalObserver(schedule);
+            // Text edits, counters and ordinary list updates cannot cover a sprite.
+            // Scan the registry only when a modal or visibility boundary changes.
+            const boundary = 'dialog,[aria-modal="true"],[inert],[hidden]';
+            modalObserver = new ModalObserver(records => {
+                if (records.some(record => record.type === "attributes" ||
+                    [...record.addedNodes, ...record.removedNodes].some(node =>
+                        node.nodeType === 1 && (node.matches?.(boundary) || node.querySelector?.(boundary))))) schedule();
+            });
             modalObserver.observe(browserDocument.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["inert", "hidden", "open", "aria-modal"] });
         }
     };

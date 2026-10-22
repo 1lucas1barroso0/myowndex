@@ -162,3 +162,17 @@ test("both journey themes keep normal text and primary actions above WCAG AA con
   assert.match(primaryAction, /color:\s*#fff\b/);
   assert.ok(1.05/(luminance(background)+.05) >= 4.5, "white text on the primary action");
 });
+
+
+test("repeated searches keep aliases and invalidate cached names when an entry changes", () => {
+    const entry = { name: "flabebe", speciesName: "Flabébé", pokemonName: "flabebe", formKey: "", formIdentifier: "", url: "https://pokeapi.co/api/v2/pokemon-species/669/" };
+    const source = [entry];
+    assert.equal(selectDexSpecies(source, { query: "flabebe" }).length, 1);
+    entry.name = "new-name"; entry.speciesName = "New Name"; entry.pokemonName = "new-name";
+    assert.equal(selectDexSpecies(source, { query: "flabebe" }).length, 0);
+    assert.equal(selectDexSpecies(source, { query: "new name" }).length, 1);
+    entry.formIdentifier = "Étoile";
+    assert.equal(selectDexSpecies(source, { query: "etoile" }).length, 1);
+    entry.formKey = "new-identity";
+    assert.equal(selectDexSpecies(source, { query: "identity" }).length, 1);
+});

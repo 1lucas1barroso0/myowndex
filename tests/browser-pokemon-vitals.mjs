@@ -47,6 +47,8 @@ try {
  await openDetails(editor.locator('.editor-summary-customize'));
  const shiny=editor.getByLabel('Shiny',{exact:true}); await shiny.focus();await page.keyboard.press('Space'); assert.equal(await shiny.isChecked(),true);
  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('myowndex_rotom_v4')).teams[0].pokemon[0].shiny===true);
+ // Offscreen portraits intentionally release their image source. Reveal it before inspecting the new artwork.
+ await editor.locator('.editor-portrait-stage').scrollIntoViewIfNeeded();
  await page.waitForFunction(()=>{const i=document.querySelector('.editor-portrait-stage img');return i?.alt==='Bulbasaur shiny'&&i.currentSrc.includes('shiny')&&i.complete&&i.naturalWidth>0;});
  assert.equal(await card.locator('.editor-shiny-badge').innerText(),'Shiny');
  const control=editor.locator('.editor-shiny');await control.scrollIntoViewIfNeeded(); const rect=await control.boundingBox();assert.ok(rect.height>=44&&rect.width>=140);

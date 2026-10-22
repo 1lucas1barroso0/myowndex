@@ -1,5 +1,5 @@
 import { revealInScrollArea } from "../../core/scroll.js";
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import speciesCatalogue from '../../data/species.json';
 import fixedFormCatalogue from '../../data/forms.json';
@@ -43,6 +43,24 @@ const generatorChoiceName = entry => entry.formIdentifier
     : formatName(entry.speciesName || entry.name);
 const generatedName = partner => formatName(partner?.formKey || partner?.species?.name);
 
+// Static option elements and a memoized picker keep every nickname, selection
+// and progress update from rebuilding the entire National Dex select.
+const pokemonOptions = [<option key="random" value="random">Sortear pela Pokédex</option>, ...generatorCatalogue.map(entry => <option key={entry.choiceKey} value={entry.choiceKey}>{generatorChoiceName(entry)}</option>)];
+const GeneratorSpeciesSelect = React.memo(function GeneratorSpeciesSelect({ disabled, value, onChange }) {
+    return <RoomSelect disabled={disabled} value={value} onChange={event => onChange(event.target.value)} aria-label="Escolher um Pokémon ou forma específicos">{pokemonOptions}</RoomSelect>;
+});
+const GeneratorPartner = React.memo(function GeneratorPartner({ entry, selected, working, experienceMode, onToggle, onExport, onNickname, onRemove }) {
+    const partner = entry.pokemon;
+    return <article className={`generator-partner${entry.saved ? ' is-saved' : ''}`}>
+        <div className="generator-partner-heading"><label className="generator-partner-choice"><input type="checkbox" checked={selected} onChange={() => onToggle(partner.id)} aria-label={`Selecionar ${generatedName(partner)}`} disabled={working} /><PokemonSprite pokemonId={partner.species.id} src={partner.shiny ? partner.species.sprites?.front_shiny : partner.species.sprites?.front_default} shiny={partner.shiny} alt="" loading="eager" /><span><strong>{generatedName(partner)}</strong><small>Nv. {partner.level}{partner.shiny ? ' · Shiny' : ''}{entry.saved ? ' · Guardado' : ''}</small></span></label><button type="button" disabled={working} onClick={() => void onExport([entry])} aria-label={`Exportar ${generatedName(partner)}`}>Exportar</button></div>
+        <div className="generator-types">{partner.species.types?.map(type => <span key={type.type.name} style={{ background: TYPE_COLORS[type.type.name], color: TYPE_TEXT_COLORS[type.type.name] }}>{formatType(type.type.name)}</span>)}</div>
+        <dl className="generator-partner-facts"><div><dt>Natureza</dt><dd>{formatName(partner.nature)}</dd></div><div><dt>Habilidade</dt><dd>{formatName(partner.ability) || 'Sem habilidade'}</dd></div></dl>
+        <ul className="generator-moves" aria-label={`Movimentos de ${generatedName(partner)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
+        {!partner.moves.some(Boolean) && <p className="generator-small">Neste jogo, ainda não aprende movimentos por nível.</p>}
+        <details className="generator-partner-details"><summary>Ficha do Pokémon</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => onNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => onRemove(partner.id)} aria-label={`Remover ${generatedName(partner)} do encontro`}>Remover do encontro</button></details>
+    </article>;
+});
+
 const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), summary, [tabindex="0"]';
 
 export default function GeneratorModal({ onClose, teams = [], experienceMode = 'rpg', onAddPokemon, onAddBox }) {
@@ -51,7 +69,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     const [draftReady, setDraftReady] = useState(false);
     const [options, setOptions] = useState(() => normalizeGeneratorOptions({ experienceMode }));
     const [appearancePokemon, setAppearancePokemon] = useState(null);
-    const [selected, setSelected] = useState(() => new Set(readDraft(scope).map(entry => entry.pokemon.id)));
+    const [selected, setSelected] = useState(() => new Set(results.map(entry => entry.pokemon.id)));
     const [target, setTarget] = useState('new');
     const [boxName, setBoxName] = useState('Novo encontro');
     const [busy, setBusy] = useState(false);
@@ -84,7 +102,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     const targetBox = teams.find(team => team.id === target);
     const freeSlots = target === 'new' ? 6 : Math.max(0, 6 - (targetBox?.pokemon?.length || 0));
     const updateOption = (key, value) => setOptions(current => ({ ...current, [key]: value }));
-    const choosePokemon = value => {
+    const choosePokemon = useCallback(value => {
         if (value === 'random') {
             setOptions(current => ({ ...current, speciesId: 0, formKey: '', appearanceFormId: 0 }));
             return;
@@ -101,7 +119,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             region: '',
             legendary: 'all',
         }));
-    };
+    }, []);
     const selectedPokemonChoice = options.speciesId
         ? generatorCatalogue.find(entry => entry.speciesId === options.speciesId
             && (options.formKey ? entry.formKey === options.formKey : entry.isPrimarySpecies))?.choiceKey || `species:${options.speciesId}`
@@ -194,11 +212,13 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
     }, [scope]);
 
     useEffect(() => {
-        if (!draftReady || draftFingerprint(results) === savedDraftRef.current) return undefined;
+        if (!draftReady) return undefined;
         const timer = window.setTimeout(() => {
             const draft = serializeDraft(results);
+            const fingerprint = JSON.stringify(draft);
+            if (fingerprint === savedDraftRef.current) return;
             void writeDurableStorage(GENERATOR_DRAFT_KEY, draft, { scope }).then(saved => {
-                if (saved) savedDraftRef.current = JSON.stringify(draft);
+                if (saved) savedDraftRef.current = fingerprint;
                 if (!saved && mountedRef.current) setError('O armazenamento deste dispositivo não conseguiu guardar o encontro. Exporte os Pokémon ou salve em uma Box antes de fechar.');
             });
         }, 100);
@@ -211,7 +231,6 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         const removal = pendingRemoval;
         const previous = draftRef.current;
         const next = removal === 'all' ? [] : previous.filter(entry => entry.pokemon.id !== removal);
-        setPendingRemoval(null);
         activityRef.current.saving = true;
         setSaving(true);
         setError('');
@@ -231,11 +250,15 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 setSelected(current => new Set([...current].filter(id => next.some(entry => entry.pokemon.id === id))));
                 setRemoteDraft(null);
                 setNotice(next.length ? 'Pokémon removido do encontro.' : 'Encontro limpo. Os Pokémon guardados continuam no PC.');
-                window.requestAnimationFrame(() => (next.length ? resultsRef.current : generateRef.current)?.focus());
+                window.requestAnimationFrame(() => {
+                    const target = next.length ? resultsRef.current : generateRef.current;
+                    target?.focus({ preventScroll: true });
+                    revealInScrollArea(target, { block: 'nearest' });
+                });
             }
         } finally {
             activityRef.current.saving = false;
-            if (mountedRef.current) setSaving(false);
+            if (mountedRef.current) { setSaving(false); setPendingRemoval(null); }
         }
     };
 
@@ -279,12 +302,12 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         if (results.some(entry => !entry.saved && !entry.exported)) setReplaceConfirm(true);
         else void runGeneration();
     };
-    const updateNickname = (id, nickname) => setResults(current => current.map(entry => entry.pokemon.id === id ? { ...entry, exported: false, pokemon: { ...entry.pokemon, nickname } } : entry));
-    const toggleSelected = id => setSelected(current => {
+    const updateNickname = useCallback((id, nickname) => setResults(current => current.map(entry => entry.pokemon.id === id ? { ...entry, exported: false, pokemon: { ...entry.pokemon, nickname } } : entry)), []);
+    const toggleSelected = useCallback(id => setSelected(current => {
         const next = new Set(current);
         if (next.has(id)) next.delete(id); else next.add(id);
         return next;
-    });
+    }), []);
     const saveSelected = async () => {
         if (!selectedResults.length || selectedResults.length > freeSlots || activityRef.current.busy || activityRef.current.saving || activityRef.current.exporting || getStorageScope() !== scope) return;
         activityRef.current.saving = true;
@@ -308,7 +331,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
         } catch (cause) { if (mountedRef.current) setError(cause.message || 'Não foi possível guardar agora. O encontro continua aqui.'); }
         finally { activityRef.current.saving = false; if (mountedRef.current) { setResults(current => current.map(entry => savedIds.has(entry.pokemon.id) ? { ...entry, saved: true } : entry)); setSaving(false); } }
     };
-    const exportResults = async (entries, asBox = false) => {
+    const exportResults = useCallback(async (entries, asBox = false) => {
         if (!entries.length || activityRef.current.busy || activityRef.current.saving || activityRef.current.exporting) return false;
         activityRef.current.exporting = true;
         setExporting(true);
@@ -327,7 +350,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
             return true;
         } catch (cause) { if (mountedRef.current) setError(cause.message || 'Não foi possível exportar agora.'); return false; }
         finally { activityRef.current.exporting = false; if (mountedRef.current) setExporting(false); }
-    };
+    }, [boxName]);
     const chooseRemoteDraft = async () => {
         if (!remoteDraft || activityRef.current.busy || activityRef.current.saving || activityRef.current.exporting) return;
         // A newer preview never silently replaces typing or an unfinished
@@ -410,7 +433,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                             <h3>Pokémon ou forma</h3>
                             <small>Você pode escolher um Pokémon exato ou deixar o MyOwnDex sortear usando os filtros. As duas formas de escolher não se misturam.</small>
                         </div>
-                        <label>Escolha direta<RoomSelect disabled={working} value={selectedPokemonChoice} onChange={event => choosePokemon(event.target.value)} aria-label="Escolher um Pokémon ou forma específicos"><option value="random">Sortear pela Pokédex</option>{generatorCatalogue.map(entry => <option key={entry.choiceKey} value={entry.choiceKey}>{generatorChoiceName(entry)}</option>)}</RoomSelect></label>
+                        <label>Escolha direta<GeneratorSpeciesSelect disabled={working} value={selectedPokemonChoice} onChange={choosePokemon} /></label>
                         {selectedPokemonChoice !== 'random' ? <>
                             <p className="generator-choice-note">Pokémon definido. Os filtros de sorteio abaixo ficam fora da escolha porque este encontro já tem um Pokémon específico.</p>
                             {appearanceChoices.length > 1 && <details className="generator-customize generator-appearance-options">
@@ -449,23 +472,13 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                     {remoteDraft && <div className="generator-notice generator-sync-choice" role="status"><p>Há outro encontro salvo na sua conta. Este continua aqui.</p><div className="generator-save-actions"><button type="button" disabled={working} onClick={() => void chooseRemoteDraft()}>{results.some(entry => !entry.saved && !entry.exported) ? 'Exportar este e abrir o outro' : 'Ver outro encontro'}</button><button type="button" disabled={working} onClick={() => void keepCurrentDraft()}>Manter este encontro</button></div></div>}
                     {results.length > 0 && <>
                         <div className="generator-result-heading"><h3>Encontro <span>{results.length} Pokémon</span></h3><button type="button" className="generator-clear-preview" disabled={working} onClick={() => setPendingRemoval('all')}>Limpar encontro</button></div>
-                        <div className="generator-partners">{results.map(entry => {
-                            const partner = entry.pokemon;
-                            return <article key={partner.id} className={`generator-partner${entry.saved ? ' is-saved' : ''}`}>
-                                <div className="generator-partner-heading"><label className="generator-partner-choice"><input type="checkbox" checked={selected.has(partner.id)} onChange={() => toggleSelected(partner.id)} aria-label={`Selecionar ${generatedName(partner)}`} disabled={working} /><PokemonSprite pokemonId={partner.species.id} src={partner.shiny ? partner.species.sprites?.front_shiny : partner.species.sprites?.front_default} shiny={partner.shiny} alt="" loading="eager" /><span><strong>{generatedName(partner)}</strong><small>Nv. {partner.level}{partner.shiny ? ' · Shiny' : ''}{entry.saved ? ' · Guardado' : ''}</small></span></label><button type="button" disabled={working} onClick={() => void exportResults([entry])} aria-label={`Exportar ${generatedName(partner)}`}>Exportar</button></div>
-                                <div className="generator-types">{partner.species.types?.map(type => <span key={type.type.name} style={{ background: TYPE_COLORS[type.type.name], color: TYPE_TEXT_COLORS[type.type.name] }}>{formatType(type.type.name)}</span>)}</div>
-                                <dl className="generator-partner-facts"><div><dt>Natureza</dt><dd>{formatName(partner.nature)}</dd></div><div><dt>Habilidade</dt><dd>{formatName(partner.ability) || 'Sem habilidade'}</dd></div></dl>
-                                <ul className="generator-moves" aria-label={`Movimentos de ${generatedName(partner)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
-                                {!partner.moves.some(Boolean) && <p className="generator-small">Neste jogo, ainda não aprende movimentos por nível.</p>}
-                                <details className="generator-partner-details"><summary>Ficha do Pokémon</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => updateNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => setPendingRemoval(partner.id)} aria-label={`Remover ${generatedName(partner)} do encontro`}>Remover do encontro</button></details>
-                            </article>;
-                        })}</div>
+                        <div className="generator-partners">{results.map(entry => <GeneratorPartner key={entry.pokemon.id} entry={entry} selected={selected.has(entry.pokemon.id)} working={working} experienceMode={experienceMode} onToggle={toggleSelected} onExport={exportResults} onNickname={updateNickname} onRemove={setPendingRemoval} />)}</div>
                         <section className="generator-save" aria-label="Guardar os Pokémon selecionados"><h3>Guardar no PC</h3><label>Destino<RoomSelect disabled={working} value={target} onChange={event => setTarget(event.target.value)} aria-label="Box de destino dos Pokémon gerados"><option value="new">Criar uma nova Box</option>{teams.map(team => <option key={team.id} value={team.id} disabled={team.pokemon.length >= 6}>{team.name} · {6 - team.pokemon.length} vaga{team.pokemon.length === 5 ? '' : 's'}</option>)}</RoomSelect></label>{target === 'new' && <label>Nome da Box<input type="text" maxLength="80" value={boxName} onChange={event => setBoxName(event.target.value)} disabled={working} /></label>}<div className="generator-save-actions"><button type="button" className="generator-primary" disabled={!selectedResults.length || selectedResults.length > freeSlots || working} onClick={() => void saveSelected()}>{saving ? 'Guardando…' : selectedResults.length ? `Guardar ${selectedResults.length} no PC` : 'Guardar no PC'}</button><button type="button" disabled={!exportSelection.length || working} onClick={() => void exportResults(exportSelection, true)}>Exportar Box</button></div>{selectedResults.length > freeSlots && <p className="generator-small">Esta Box tem {freeSlots} vaga{freeSlots === 1 ? '' : 's'}. Selecione menos Pokémon ou crie outra Box.</p>}</section>
                     </>}
                 </div>
             </div>}
         </section>
         <ConfirmDialog busy={working} open={replaceConfirm} title="Criar um novo encontro?" description="Há Pokémon neste encontro que ainda não foram guardados no PC nem exportados. Se continuar, eles serão substituídos aqui." confirmLabel="Criar novo encontro" cancelLabel="Continuar neste encontro" onConfirm={() => void runGeneration()} onCancel={() => setReplaceConfirm(false)} />
-        <ConfirmDialog busy={working} open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar este encontro?' : 'Remover este Pokémon do encontro?'} description="Os Pokémon escolhidos saem do encontro. Suas Boxes e os arquivos exportados continuam como estão." confirmLabel={pendingRemoval === 'all' ? 'Limpar encontro' : 'Remover do encontro'} cancelLabel="Voltar ao encontro" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
+        <ConfirmDialog busy={working} open={pendingRemoval !== null} title={pendingRemoval === 'all' ? 'Limpar este encontro?' : 'Remover este Pokémon do encontro?'} description="Os Pokémon escolhidos saem do encontro. Suas Boxes e os arquivos exportados continuam como estão." confirmLabel={saving ? 'Limpando encontro…' : pendingRemoval === 'all' ? 'Limpar encontro' : 'Remover do encontro'} cancelLabel="Voltar ao encontro" onConfirm={() => void removePreview()} onCancel={() => setPendingRemoval(null)} />
     </div>, document.body);
 }

@@ -258,13 +258,12 @@ export const generatePokemon = async (catalogue, options = {}, { signal, fetcher
             if (appearanceChoice) throw new Error('Esta aparência não tem o tipo escolhido. Mude o tipo ou a aparência.');
             continue;
         }
-        const moveData = [];
-        for (const move of learnset.moves) {
+        const moveData = await Promise.all(learnset.moves.map(async move => {
             const data = await request(move.url || `${API}move/${move.name}/`);
             // Only Jogos uses old-game PP. RPG/Livre retain current rules even
             // when the chosen game supplies an older Pokémon repertoire.
-            moveData.push(getMoveReferenceForMode(data, { value: learnset.versionGroup, url: game?.url || `${API}version-group/${game?.id}/` }, normalized.experienceMode));
-        }
+            return getMoveReferenceForMode(data, { value: learnset.versionGroup, url: game?.url || `${API}version-group/${game?.id}/` }, normalized.experienceMode);
+        }));
         const partner = buildGeneratedPokemon({
             pokemon,
             species,

@@ -1,20 +1,31 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
+import useFrameState from "./useFrameState.js";
+
 const KEY = "myowndex_header_curtain_v2";
 const LABELS = ["Só o puxador", "Marca", "Navegação", "Ferramentas", "Tudo"];
 const ROWS = [".app-brand-cluster", ".app-nav", ".app-tool-actions", ".app-preferences"];
 const LAST = LABELS.length - 1;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const restoredLevel = () => {
+    try {
+        const saved = localStorage.getItem(KEY);
+        if (/^[0-4]$/.test(saved || "")) return Number(saved);
+        const previous = localStorage.getItem("myowndex_header_curtain_v1");
+        if (/^[0-3]$/.test(previous || "")) return Number(previous) + 1;
+    } catch { /* The optional preference may be unavailable. */ }
+    return LAST;
+};
 
 export default function useHeaderCurtain(ready = true) {
     const [mobile, setMobile] = useState(false);
-    const [preferredLevel, setLevel] = useState(LAST);
+    const [preferredLevel, setLevel] = useState(restoredLevel);
     const [availableLevel, setAvailableLevel] = useState(LAST);
     const level = Math.min(preferredLevel, availableLevel);
     const [marks, setMarks] = useState([]);
     const gesture = useRef(null);
     const ignoreClick = useRef(false);
-    const [dragHeight, setDragHeight] = useState(null);
+    const [dragHeight, setDragHeight, previewDragHeight] = useFrameState(null);
     const cancel = useCallback(() => {
         const active = gesture.current;
         gesture.current = null;
@@ -22,7 +33,7 @@ export default function useHeaderCurtain(ready = true) {
         if (!active) return;
         ignoreClick.current = true;
         if (active.target.hasPointerCapture(active.id)) active.target.releasePointerCapture(active.id);
-    }, []);
+    }, [setDragHeight]);
     const choose = useCallback(value => {
         const next = clamp(value, 0, LAST);
         cancel();
@@ -75,7 +86,7 @@ export default function useHeaderCurtain(ready = true) {
         const remeasure = () => { cancel(); measure(); };
         measure();
         const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
-        [header, ...header.querySelectorAll(ROWS.join(","))].forEach(element => observer?.observe(element));
+        [...header.querySelectorAll(ROWS.join(",")), document.querySelector(".device-footer")].filter(Boolean).forEach(element => observer?.observe(element));
         window.visualViewport?.addEventListener("resize", remeasure);
         window.addEventListener("resize", remeasure);
         window.addEventListener("orientationchange", remeasure);
@@ -114,8 +125,8 @@ export default function useHeaderCurtain(ready = true) {
         if (!active.moved && Math.hypot(event.clientX - active.x, delta) < 9) return;
         event.preventDefault();
         active.moved = true;
-        setDragHeight(clamp(active.height + delta, marks[0], marks[availableLevel]));
-    }, [marks, availableLevel]);
+        previewDragHeight(clamp(active.height + delta, marks[0], marks[availableLevel]));
+    }, [marks, availableLevel, previewDragHeight]);
 
     const finish = useCallback((event, canceled = false) => {
         const active = gesture.current;

@@ -148,3 +148,31 @@ test("background tabs, covered game screens and reduced motion update the same s
     assert.equal(values.at(-1).visible, false, "a modal pauses the underlying world while leaving its own sprites active");
     cleanup();
 });
+
+test("ordinary edits skip collection scans but inserted, removed and changed visibility boundaries refresh sprites", async () => {
+    const environment = makeEnvironment();
+    let mutation, scans = 0;
+    environment.document.body = {};
+    environment.document.querySelectorAll = () => { scans++; return []; };
+    environment.window.MutationObserver = class {
+        constructor(callback) { mutation = callback; }
+        observe() {}
+        disconnect() {}
+    };
+    const registry = createSpriteActivityRegistry(environment);
+    const cleanup = registry.subscribe({}, () => {});
+    await flush();
+    scans = 0;
+    for (let i = 0; i < 100; i++) mutation([{ type: "childList", addedNodes: [{ nodeType: 3 }], removedNodes: [] }]);
+    mutation([{ type: "childList", addedNodes: [{ nodeType: 1, matches: () => false, querySelector: () => null }], removedNodes: [] }]);
+    await flush();
+    assert.equal(scans, 0, "typing and ordinary cards do not scan every sprite");
+    const modal = { nodeType: 1, matches: () => true };
+    mutation([{ type: "childList", addedNodes: [modal], removedNodes: [] }]); await flush();
+    assert.equal(scans, 1);
+    mutation([{ type: "childList", addedNodes: [], removedNodes: [modal] }]); await flush();
+    assert.equal(scans, 2, "closing a modal resumes the underlying sprites");
+    mutation([{ type: "attributes" }]); await flush();
+    assert.equal(scans, 3, "inert/hidden/open changes still refresh visibility");
+    cleanup();
+});

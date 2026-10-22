@@ -50,7 +50,7 @@ test('local bilingual catalogue has reproducible hashes, real source versions an
         assert.ok(source.bytes > 0);
     }
     for (const source of [...Object.values(proof.mechanicsSources), ...Object.values(proof.moveMetadataSources)]) {
-        assert.equal(source.commit, '7b02eb39878f4b486f658a752b38c161379bd352');
+        assert.equal(source.commit, '8476966bb71714001e836571e41723219c4c2dd3');
         assert.ok(source.url.includes(`/${source.commit}/data/`));
         assert.match(source.sha256, /^[a-f0-9]{64}$/);
         assert.ok(source.bytes > 0);

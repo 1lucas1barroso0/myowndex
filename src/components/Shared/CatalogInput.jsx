@@ -7,10 +7,18 @@ export default function CatalogInput({ id, value, options, suggestionsLabel, onC
     const listId = useId();
     const [expanded, setExpanded] = useState(false);
     const [active, setActive] = useState(-1);
-    const catalog = useMemo(() => options.map(option => ({ ...option, search: normalize(`${option.value} ${option.label}`) })), [options]);
+    const catalog = useMemo(() => options.map(option => ({ ...option, search: normalize(`${option.value} ${option.label}`), exact: normalize(option.value) })), [options]);
+    const exactValues = useMemo(() => new Set(catalog.map(option => option.exact)), [catalog]);
     const query = normalize(value);
-    const matches = query.length >= 2 && !catalog.some(option => normalize(option.value) === query)
-        ? catalog.filter(option => option.search.includes(query)).slice(0, 5) : [];
+    const matches = useMemo(() => {
+        if (query.length < 2 || exactValues.has(query)) return [];
+        const found = [];
+        for (const option of catalog) {
+            if (option.search.includes(query)) found.push(option);
+            if (found.length === 5) break;
+        }
+        return found;
+    }, [catalog, exactValues, query]);
     const visible = expanded && matches.length > 0;
     const choose = option => { onChange(option.value); setExpanded(false); setActive(-1); };
     return <div className="catalog-input" onBlur={event => {

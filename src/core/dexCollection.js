@@ -1,6 +1,25 @@
 import { extractId } from "./mechanics.js";
 import { getDexVariantRegion } from "./dexVariants.js";
 
+const nameCollator = new Intl.Collator("pt-BR");
+// Public catalogue identities are reused across keystrokes. Weak keys release
+// replaced catalogues; comparing every source field also supports edited entries.
+const searchCache = new WeakMap();
+const searchableNames = entry => {
+    const cached = searchCache.get(entry);
+    if (cached && cached.name === entry.name && cached.speciesName === entry.speciesName
+        && cached.pokemonName === entry.pokemonName && cached.formKey === entry.formKey
+        && cached.formIdentifier === entry.formIdentifier) return cached.values;
+    const record = {
+        name: entry.name, speciesName: entry.speciesName, pokemonName: entry.pokemonName,
+        formKey: entry.formKey, formIdentifier: entry.formIdentifier,
+        values: [entry.name, entry.speciesName, entry.pokemonName, entry.formKey, entry.formIdentifier]
+            .filter(Boolean).map(value => normalizeDexSearch(value)),
+    };
+    searchCache.set(entry, record);
+    return record.values;
+};
+
 export const VIEW_LINKS = Object.freeze({ room: "aventura", pokedex: "pokedex", teambuilder: "pc", guide: "guia" });
 // National numbers describe debut generations, not a regional Pokédex membership.
 export const DEX_GENERATIONS = Object.freeze([
@@ -107,12 +126,10 @@ export function selectDexSpecies(species, {
         const entryGeneration = dexEntryGeneration(entry);
         if (selectedGeneration !== "all" && entryGeneration?.id !== selectedGeneration) return false;
 
-        const searchable = [entry?.name, entry?.speciesName, entry?.pokemonName, entry?.formKey, entry?.formIdentifier]
-            .filter(Boolean).map(value => normalizeDexSearch(value));
         const matchesQuery = !rawQuery
             || (numericRange ? id >= numericRange[0] && id <= numericRange[1]
                 : numericQuery !== null ? id === numericQuery
-                    : searchable.some(value => value.includes(normalized)));
+                    : searchableNames(entry).some(value => value.includes(normalized)));
         if (!matchesQuery) return false;
 
         if (onlyFavorites && !dexEntryFavoriteKeys(entry).some(key => selected.has(key))) return false;
@@ -139,13 +156,13 @@ export function selectDexSpecies(species, {
         if (selectedOrder === "name") {
             const left = String(a.speciesName || a.name);
             const right = String(b.speciesName || b.name);
-            const difference = left.localeCompare(right, "pt-BR");
+            const difference = nameCollator.compare(left, right);
             if (difference) return difference;
         }
         const numberDifference = dexEntryNumber(a) - dexEntryNumber(b);
         if (numberDifference) return numberDifference * (selectedOrder === "reverse" ? -1 : 1);
         const primaryDifference = Number(isVariantEntry(a)) - Number(isVariantEntry(b));
         if (primaryDifference) return primaryDifference;
-        return String(a.formKey || a.name).localeCompare(String(b.formKey || b.name), "pt-BR");
+        return nameCollator.compare(String(a.formKey || a.name), String(b.formKey || b.name));
     });
 }

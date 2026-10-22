@@ -205,6 +205,9 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
         if (map.size === 0 && baseForm?.abilities) baseForm.abilities.forEach(a => { if (a?.ability?.name) map.set(a.ability.name, a.ability) });
         return Array.from(map.values()).sort((a,b) => (a.name || "").localeCompare(b.name || ""));
     }, [isHackmon, allAbilities, pk.species?.abilities, baseForm]);
+    const itemOptions = useMemo(() => validItems.map(value => ({ value, label: formatCanonicalItemName(value) })), [validItems]);
+    const abilityOptions = useMemo(() => validAbs.map(ability => typeof ability === "string" ? ability : ability?.name)
+        .filter(Boolean).map(value => ({ value, label: formatName(value) })), [validAbs]);
     const validAbilityNames = useMemo(
         () => new Set(validAbs.map(ability => typeof ability === "string" ? ability : ability?.name).filter(Boolean)),
         [validAbs],
@@ -217,7 +220,8 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     const mechanics = getReferenceBattleMechanics(referenceVersion, experienceMode);
     const battleForms = forms.filter(entry => isSharedBattleForm(entry.pokemon?.name) && (entry.pokemon.name === pk.species?.name || (entry.pokemon.name.includes("-mega") ? mechanics.mega : mechanics.dynamax)));
     const displayForms = forms.filter(entry => !isSharedBattleForm(entry.pokemon?.name) || battleForms.some(battle => battle.pokemon.name === entry.pokemon.name));
-    const megaItems = validItems.filter(item => megaFormFor({ speciesName: pk.species?.name, speciesId: speciesProfile?.id || pk.species?.id, formName: pk.formKey, item, moves: pk.moves }));
+    const megaItems = useMemo(() => validItems.filter(item => megaFormFor({ speciesName: pk.species?.name, speciesId: speciesProfile?.id || pk.species?.id, formName: pk.formKey, item, moves: pk.moves })),
+        [validItems, pk.species?.name, pk.species?.id, speciesProfile?.id, pk.formKey, pk.moves]);
     const zItems = validItems.filter(item => item.endsWith("-z") && item !== "ultranecrozium-z");
     const showGigantamax = isHackmon || pk.canGMax || gmaxEligible({ speciesName: pk.species?.name });
 
@@ -454,7 +458,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             <div className="editor-basics-grid">
                 <div className="editor-field">
                     <label htmlFor={`${fieldId}-item`} className="editor-label">Item segurado</label>
-                    <CatalogInput id={`${fieldId}-item`} value={pk.item || ""} options={validItems.map(value => ({ value, label: formatCanonicalItemName(value) }))} suggestionsLabel="Itens correspondentes" onKeyDown={handleEnter} onChange={value => updatePk(replacePokemonHeldItem(pk, value))} className="editor-input" />
+                    <CatalogInput id={`${fieldId}-item`} value={pk.item || ""} options={itemOptions} suggestionsLabel="Itens correspondentes" onKeyDown={handleEnter} onChange={value => updatePk(replacePokemonHeldItem(pk, value))} className="editor-input" />
                     {consumedItem && <>
                         <span className="editor-field-note">Já foi usado ou perdido.</span>
                         <button type="button" className="room-secondary-button" onClick={() => updatePk(replacePokemonHeldItem(pk, pk.item))} aria-label={`Repor ${formatCanonicalItemName(consumedItem)}`}>Repor item</button>
@@ -463,7 +467,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <div className="editor-field">
                     <label htmlFor={`${fieldId}-ability`} className="editor-label">Habilidade</label>
                     <div className="editor-choice-control">
-                        <CatalogInput id={`${fieldId}-ability`} value={pk.ability || ""} options={validAbs.map(ability => typeof ability === "string" ? ability : ability?.name).filter(Boolean).map(value => ({ value, label: formatName(value) }))} suggestionsLabel="Habilidades correspondentes" onKeyDown={handleEnter} onChange={value => updatePk({ ...pk, ability: value.toLowerCase() })} className="editor-input" />
+                        <CatalogInput id={`${fieldId}-ability`} value={pk.ability || ""} options={abilityOptions} suggestionsLabel="Habilidades correspondentes" onKeyDown={handleEnter} onChange={value => updatePk({ ...pk, ability: value.toLowerCase() })} className="editor-input" />
                         {validAbs.length > 1 && <button type="button" aria-label="Sortear habilidade" title="Sortear habilidade" onClick={() => randomize("ability")} className="editor-random-button">⚄</button>}
                     </div>
                     {abilityException && <span className="editor-field-note">Escolha livre mantida</span>}

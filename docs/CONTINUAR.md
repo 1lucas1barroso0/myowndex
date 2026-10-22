@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.0.49.**
+**Versão atual: 2.0.50.**
+
+A revisão 2.0.50 otimiza a interface sem remover recursos nem mudar os dados: a cortina tem estado isolado; os gestos agrupam prévias por quadro e cancelam trabalho pendente ao terminar; sprites e cartões preservam renderizações quando suas propriedades não mudam. O observador de sprites ignora alterações comuns de texto/listas e continua suspendendo animações sob diálogos e fora da tela. Busca/ordenação da Pokédex e sugestões da ficha evitam cálculos e alocações repetidas. O campo reutiliza a medição inicial durante o gesto e a escala calculada enquanto os Pokémon não mudam. As telas e ferramentas começam a carregar ao receber intenção por ponteiro ou foco, mantendo carregamento sob demanda. Não há mudança em regras, sorteios, contas, Boxes, histórico ou instalação.
 
 A revisão 2.0.49 limita o espaço acima da entrada de Aventura e mantém título e escolhas na mesma posição ao abrir Narrador ou Jogador. A largura centralizada é preservada; o conteúdo cresce para baixo e continua alcançável com a cortina aberta ou recolhida. O teste de navegador confere os dois temas, as posições da cortina, a estabilidade das escolhas e o acesso aos formulários. Os ajustes existentes das Boxes e dos Créditos permanecem incluídos.
 

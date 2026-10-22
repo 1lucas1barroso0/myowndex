@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / 'public/catalog/v1'
 PIN = '6fd69dfe90465ba96534f6816fc817737d1f97f6'
-SHOWDOWN_PIN = '7b02eb39878f4b486f658a752b38c161379bd352'
+SHOWDOWN_PIN = '8476966bb71714001e836571e41723219c4c2dd3'
 CSV_ROOT = f'https://raw.githubusercontent.com/PokeAPI/pokeapi/{PIN}/data/v2/csv/'
 FILES = ['versions', 'version_groups', 'pokemon_species_names', 'pokemon_species_flavor_text',
          'ability_names', 'ability_prose', 'abilities', 'ability_flavor_text',

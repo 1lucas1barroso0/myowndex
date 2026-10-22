@@ -6,7 +6,7 @@ import { subscribeSpriteActivity } from "../../core/spriteActivity.js";
 
 const EMPTY_CANDIDATES = Object.freeze([]);
 
-export default function PokemonSprite({
+const PokemonSprite = React.memo(function PokemonSprite({
     src = "",
     children = null,
     pokemonId = 0,
@@ -97,4 +97,6 @@ export default function PokemonSprite({
             {children}
         </span>
     );
-}
+});
+
+export default PokemonSprite;

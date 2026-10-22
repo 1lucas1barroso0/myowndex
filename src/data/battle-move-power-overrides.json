@@ -1,6 +1,6 @@
 {
-  "source": "https://raw.githubusercontent.com/smogon/pokemon-showdown/7b02eb39878f4b486f658a752b38c161379bd352/data/moves.ts",
-  "sha256": "61ab107dae9628d79ac61da16c72e8565f6a1211874298e00c77c5c0ac9755a7",
+  "source": "https://raw.githubusercontent.com/smogon/pokemon-showdown/8476966bb71714001e836571e41723219c4c2dd3/data/moves.ts",
+  "sha256": "61f74b27d765121d67cfb45f22f280fad53baedefecff2a45e010e82ac0fcec8",
   "max": {
     "bone-rush": 130,
     "bonemerang": 130,

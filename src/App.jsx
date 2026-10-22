@@ -58,13 +58,13 @@ const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorit
     const variantLabel = region ? `${formatName(region)} · ${generationLabel}` : formLabel ? `${formLabel} · ${generationLabel}` : generationLabel;
     return (
         <article className={`dex-entry ${favorite ? "is-favorite" : ""}`} data-generation={generation?.id} data-form={formLabel ? "named" : "base"}>
-            <button type="button" onClick={onSelect} className="game-card dex-entry-main" aria-label={`Consultar ${identityName} na Pokédex`}>
+            <button type="button" onPointerEnter={() => preloadDestination("pokemon")} onFocus={() => preloadDestination("pokemon")} onClick={() => onSelect(species)} className="game-card dex-entry-main" aria-label={`Consultar ${identityName} na Pokédex`}>
                 <span className="dex-number">No. {String(dexNumber).padStart(4, "0")}</span>
                 <span className="pokemon-card-sprite-frame"><PokemonSprite pokemonId={spriteId} spriteKey={species.spriteKey} alt="" className="pixelated" /></span>
                 <span className="pokemon-card-name">{displayName}</span>
                 <span className="dex-generation-mark">{variantLabel}</span>
             </button>
-            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${identityName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={onFavorite}><GameIcon name="star" /></button>
+            <button type="button" className="dex-favorite" aria-label={`${favorite ? "Remover" : "Adicionar"} ${identityName} ${favorite ? "dos" : "aos"} favoritos`} aria-pressed={favorite} onClick={() => onFavorite(species)}><GameIcon name="star" /></button>
         </article>
     );
 });
@@ -85,6 +85,59 @@ const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction 
         </div>
     );
 };
+
+const preloadDestination = target => {
+    const load = {
+        room: () => import("./components/Room/RpgRoom.jsx"),
+        teambuilder: () => import("./components/Teambuilder/Teambuilder.jsx"),
+        guide: () => import("./components/Guide/TrainerGuide.jsx"),
+        generator: () => import("./components/Generator/GeneratorModal.jsx"),
+        dice: () => import("./components/Shared/LocalDiceDialog.jsx"),
+        account: () => import("./components/Account/AccountModal.jsx"),
+        pokemon: () => import("./components/Pokedex/PokemonModal.jsx"),
+    }[target];
+    load?.().catch(() => {}); // Opening still uses the normal error boundary/retry.
+};
+
+// Keep pointer previews local: dragging the header must not render the game.
+const AppHeader = React.memo(function AppHeader({ view, setView, client, onAccountOpen, experienceMode, setExperienceMode, diceOpen, setDiceOpen, setGeneratorOpen }) {
+    const curtain = useHeaderCurtain();
+    return (
+            <header className={`app-header app-header-curtain${curtain.dragging ? " is-dragging" : ""}`} data-curtain-level={curtain.level} style={curtain.mobile && curtain.height !== undefined ? { height: `${curtain.height}px` } : undefined}>
+                <div className="game-shell app-header-shell">
+                    <div className="app-header-row">
+                        <div className="app-header-primary">
+                            <div className="app-brand-cluster" inert={curtain.mobile && curtain.level < 1} aria-hidden={curtain.mobile && curtain.level < 1 ? true : undefined}>
+                                <img draggable={false} className="app-brand-icon myowndex-brand-art" src={`/icons/myowndex-dex-v105-r4-live.svg?v=${APP_VERSION}`} width="96" height="96" alt="" />
+                                <div className="app-brand">
+                                    <h1>MyOwnDex</h1>
+                                </div>
+                            </div>
+                            <nav aria-label="Navegação principal" className="app-nav" inert={curtain.mobile && curtain.level < 2} aria-hidden={curtain.mobile && curtain.level < 2 ? true : undefined}>
+                                <button type="button" title="Abrir a Central da Aventura para criar, entrar ou continuar uma jornada" aria-label="Abrir a Central da Aventura" aria-current={view === "room" ? "page" : undefined} onPointerEnter={() => preloadDestination("room")} onFocus={() => preloadDestination("room")} onClick={() => setView("room")} className={`nav-capsule nav-adventure ${view === "room" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="adventure" /></span><span>Aventura</span></button>
+                                <button type="button" title="Consultar espécies, formas, habilidades e movimentos" aria-label="Abrir a Pokédex" aria-current={view === "pokedex" ? "page" : undefined} onClick={() => setView("pokedex")} className={`nav-capsule nav-dex ${view === "pokedex" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="dex" /></span><span>Pokédex</span></button>
+                                <button type="button" title="Organizar Boxes, equipes e fichas de Pokémon" aria-label="Abrir o PC do Bill" aria-current={view === "teambuilder" ? "page" : undefined} onPointerEnter={() => preloadDestination("teambuilder")} onFocus={() => preloadDestination("teambuilder")} onClick={() => setView("teambuilder")} className={`nav-capsule nav-pc ${view === "teambuilder" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="pc" /></span><span>PC</span></button>
+                                <button type="button" title="Consultar todas as regras usadas pelo MyOwnDex" aria-label="Abrir o Guia do Treinador" aria-current={view === "guide" ? "page" : undefined} onPointerEnter={() => preloadDestination("guide")} onFocus={() => preloadDestination("guide")} onClick={() => setView("guide")} className={`nav-capsule nav-guide ${view === "guide" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="guide" /></span><span>Guia</span></button>
+                            </nav>
+                        </div>
+
+                        <div className="app-actions">
+                            <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada" inert={curtain.mobile && curtain.level < 3} aria-hidden={curtain.mobile && curtain.level < 3 ? true : undefined}>
+                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onPointerEnter={() => preloadDestination("generator")} onFocus={() => preloadDestination("generator")} onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar</span></button>
+                                <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onPointerEnter={() => preloadDestination("dice")} onFocus={() => preloadDestination("dice")} onClick={() => setDiceOpen(true)}><PokemonCompanion place="dice" eager /><span>Dados</span></button>
+                                <AccountButton client={client} onClick={onAccountOpen} onIntent={() => preloadDestination("account")} />
+                            </div>
+                            <div className="app-preferences" role="group" aria-label="Preferências da jornada" inert={curtain.mobile && curtain.level < 4} aria-hidden={curtain.mobile && curtain.level < 4 ? true : undefined}>
+                                <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
+                                <AppearanceControl />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" className="app-curtain-grip" aria-label={curtain.label} title="Arraste para ajustar o topo" onPointerDown={curtain.down} onPointerMove={curtain.move} onPointerUp={e => curtain.finish(e)} onPointerCancel={e => curtain.finish(e, true)} onLostPointerCapture={e => curtain.finish(e, true)} onDragStart={e => e.preventDefault()} onClick={curtain.click} onKeyDown={curtain.keyDown}><span aria-hidden="true" /></button>
+            </header>
+    );
+});
 
 export default function App() {
     useAppViewport();
@@ -179,7 +232,6 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const teamsRef = useRef([]);
     useEffect(() => { teamsRef.current = teams; }, [teams]);
     const [teamsBooted, setTeamsBooted] = useState(false);
-    const curtain = useHeaderCurtain(teamsBooted && modeBooted);
     const [activeTeamId, setActiveTeamId] = useState(null);
     const [storageError, setStorageError] = useState(false);
     const teamSave = useMemo(() => createScheduledSave({
@@ -277,13 +329,17 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
         document.title = `${VIEW_LABELS[view]} · MyOwnDex`;
     }, [view]);
 
-    const toggleFavorite = entry => {
+    const favoritesRef = useRef(favorites);
+    useEffect(() => { favoritesRef.current = favorites; }, [favorites]);
+    const toggleFavorite = useCallback(entry => {
+        const favorites = favoritesRef.current;
         const keys = dexEntryFavoriteKeys(entry);
         const next = keys.some(key => favorites.includes(key))
             ? favorites.filter(value => !keys.includes(value)) : [...favorites, keys[0]];
+        favoritesRef.current = next;
         setFavorites(next);
         if (!writeStorage("myowndex_dex_favorites_v1", next, { scope })) setNotice({ tone: "amber", text: "Seus favoritos continuam nesta sessão. A cópia persistente será tentada novamente." });
-    };
+    }, [scope]);
 
     useEffect(() => {
         if (!modeBooted) return;
@@ -511,7 +567,6 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const handleOpenPokedex = useCallback(() => setView("pokedex"), [setView]);
     const handleOpenTeambuilder = useCallback(() => setView("teambuilder"), [setView]);
     const handleOpenGuide = useCallback(() => setView("guide"), [setView]);
-    const handleOpenRoom = useCallback(() => setView("room"), [setView]);
     const handleSearchInputChange = useCallback(event => {
         setSearchInput(event.target.value);
         setLimit(60);
@@ -620,39 +675,9 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     return (
         <div className={`app-root game-edition handheld-edition view-${view}`} data-version={APP_VERSION} data-game-screen={view} onDragStartCapture={event => event.preventDefault()}>
             <a className="skip-to-content" href="#main-content">Ir para o conteúdo</a>
-            <header className={`app-header app-header-curtain${curtain.dragging ? " is-dragging" : ""}`} data-curtain-level={curtain.level} style={curtain.mobile && curtain.height !== undefined ? { height: `${curtain.height}px` } : undefined}>
-                <div className="game-shell app-header-shell">
-                    <div className="app-header-row">
-                        <div className="app-header-primary">
-                            <div className="app-brand-cluster" inert={curtain.mobile && curtain.level < 1} aria-hidden={curtain.mobile && curtain.level < 1 ? true : undefined}>
-                                <img draggable={false} className="app-brand-icon myowndex-brand-art" src={`/icons/myowndex-dex-v105-r4-live.svg?v=${APP_VERSION}`} width="96" height="96" alt="" />
-                                <div className="app-brand">
-                                    <h1>MyOwnDex</h1>
-                                </div>
-                            </div>
-                            <nav aria-label="Navegação principal" className="app-nav" inert={curtain.mobile && curtain.level < 2} aria-hidden={curtain.mobile && curtain.level < 2 ? true : undefined}>
-                                <button type="button" title="Abrir a Central da Aventura para criar, entrar ou continuar uma jornada" aria-label="Abrir a Central da Aventura" aria-current={view === "room" ? "page" : undefined} onClick={handleOpenRoom} className={`nav-capsule nav-adventure ${view === "room" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="adventure" /></span><span>Aventura</span></button>
-                                <button type="button" title="Consultar espécies, formas, habilidades e movimentos" aria-label="Abrir a Pokédex" aria-current={view === "pokedex" ? "page" : undefined} onClick={handleOpenPokedex} className={`nav-capsule nav-dex ${view === "pokedex" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="dex" /></span><span>Pokédex</span></button>
-                                <button type="button" title="Organizar Boxes, equipes e fichas de Pokémon" aria-label="Abrir o PC do Bill" aria-current={view === "teambuilder" ? "page" : undefined} onClick={handleOpenTeambuilder} className={`nav-capsule nav-pc ${view === "teambuilder" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="pc" /></span><span>PC</span></button>
-                                <button type="button" title="Consultar todas as regras usadas pelo MyOwnDex" aria-label="Abrir o Guia do Treinador" aria-current={view === "guide" ? "page" : undefined} onClick={handleOpenGuide} className={`nav-capsule nav-guide ${view === "guide" ? "is-active" : ""}`}><span className="nav-emblem"><GameIcon name="guide" /></span><span>Guia</span></button>
-                            </nav>
-                        </div>
-
-                        <div className="app-actions">
-                            <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada" inert={curtain.mobile && curtain.level < 3} aria-hidden={curtain.mobile && curtain.level < 3 ? true : undefined}>
-                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar</span></button>
-                                <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onClick={() => setDiceOpen(true)}><PokemonCompanion place="dice" eager /><span>Dados</span></button>
-                                <AccountButton client={client} onClick={onAccountOpen} />
-                            </div>
-                            <div className="app-preferences" role="group" aria-label="Preferências da jornada" inert={curtain.mobile && curtain.level < 4} aria-hidden={curtain.mobile && curtain.level < 4 ? true : undefined}>
-                                <GameStyleControl value={experienceMode} onChange={setExperienceMode} />
-                                <AppearanceControl />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button type="button" className="app-curtain-grip" aria-label={curtain.label} title="Arraste para ajustar o topo" onPointerDown={curtain.down} onPointerMove={curtain.move} onPointerUp={e => curtain.finish(e)} onPointerCancel={e => curtain.finish(e, true)} onLostPointerCapture={e => curtain.finish(e, true)} onDragStart={e => e.preventDefault()} onClick={curtain.click} onKeyDown={curtain.keyDown}><span aria-hidden="true" /></button>
-            </header>
+            <AppHeader view={view} setView={setView} client={client} onAccountOpen={onAccountOpen}
+                experienceMode={experienceMode} setExperienceMode={setExperienceMode}
+                diceOpen={diceOpen} setDiceOpen={setDiceOpen} setGeneratorOpen={setGeneratorOpen} />
 
             <main id="main-content" aria-label={VIEW_LABELS[view]} tabIndex={-1} className="app-scroll-area">
                 <span className="sr-only" role="status" aria-atomic="true">{VIEW_LABELS[view]}</span>
@@ -711,7 +736,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                     <div className="dex-grid">
                                         {visible.map(entry => {
                                             const favorite = dexEntryFavoriteKeys(entry).some(key => favorites.includes(key));
-                                            return <PokemonCard key={entry.formKey || entry.name} species={entry} onSelect={() => setSelectedEntry(entry)} favorite={favorite} onFavorite={() => toggleFavorite(entry)} />;
+                                            return <PokemonCard key={entry.formKey || entry.name} species={entry} onSelect={setSelectedEntry} favorite={favorite} onFavorite={toggleFavorite} />;
                                         })}
                                     </div>
                                 ) : (

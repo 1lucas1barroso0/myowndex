@@ -12,7 +12,7 @@ test("level zero is an evolution move, not an invisible level or an invented lev
     assert.notEqual(moveLearnMethodLabel(detail("level-up", 0)), moveLearnMethodLabel(detail("level-up", 1)));
 });
 test("every learn method has an explicit, unambiguous label", () => {
-    for (const [method,label] of [["machine","Máquina"],["tutor","Tutor"],["egg","Ovo"]])
+    for (const [method,label] of [["machine","Máquina"],["tutor","Tutor"],["egg","Ovo"],["train","Treinamento"]])
         assert.equal(moveLearnMethodLabel(detail(method,0)),label);
     for (const value of [undefined,null,-1,"1",Number.NaN]) {
         assert.equal(moveLearnMethodLabel(detail("level-up",value)),"Nível não informado");

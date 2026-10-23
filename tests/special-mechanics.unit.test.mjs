@@ -234,7 +234,7 @@ test("Disguise pays its HP cost and snow restores a broken Ice Face", () => {
     specialState: { ...normalizeSpecialState(), markers: ["ice-face-broken"] },
   });
   const room = { ...createRoomSnapshot("Neve"), weather: "neve", tokens: [eiscue] };
-  const round = applyEndOfRoundEffects(room);
+  const round = applyEndOfRoundEffects(room,()=>.5);
   assert.equal(round.room.tokens[0].specialState.markers.includes("ice-face-broken"), false);
   assert.equal(round.effects.some(effect => effect.kind === "state"), true);
 });
@@ -303,19 +303,19 @@ test("Future Sight, Wish, Leech Seed and Perish Song advance deterministically b
   const wisher = token({ id: "wisher", name: "Desejo", currentHp: 2, maxHp: 12, volatileEffects: [{ id: "wish", sourceMove: "wish", turns: 2, amount: 6 }] });
   let room = { ...createRoomSnapshot("Exceções"), tokens: [source, target, wisher] };
 
-  const first = applyEndOfRoundEffects(room);
+  const first = applyEndOfRoundEffects(room,()=>.5);
   room = first.room;
   assert.equal(room.tokens.find(candidate => candidate.id === "target").currentHp, 9);
   assert.equal(room.tokens.find(candidate => candidate.id === "source").currentHp, 5);
   assert.equal(room.tokens.find(candidate => candidate.id === "wisher").currentHp, 2);
 
-  const second = applyEndOfRoundEffects(room);
+  const second = applyEndOfRoundEffects(room,()=>.5);
   room = second.room;
   assert.equal(room.tokens.find(candidate => candidate.id === "target").currentHp, 5);
   assert.equal(room.tokens.find(candidate => candidate.id === "source").currentHp, 6);
   assert.equal(room.tokens.find(candidate => candidate.id === "wisher").currentHp, 8);
 
-  const third = applyEndOfRoundEffects(room);
+  const third = applyEndOfRoundEffects(room,()=>.5);
   assert.equal(third.room.tokens.find(candidate => candidate.id === "target").currentHp, 0);
   assert.equal(third.effects.some(effect => effect.kind === "perish"), true);
 });
@@ -336,7 +336,7 @@ test("old room snapshots gain safe special-state defaults and keep a temporary t
     }],
   });
   assert.equal(room.schema, ROOM_SCHEMA_VERSION);
-  assert.equal(room.schema, 8);
+  assert.equal(room.schema, 9);
   assert.deepEqual(room.tokens[0].types, ["grass", "ghost", "fire"]);
   assert.deepEqual(room.tokens[0].specialState, normalizeSpecialState());
   assert.equal(getSpecialMoveBlockReason({ move: { name: "sketch" }, attacker: room.tokens[0], defender: token() }), "o alvo ainda não possui um último movimento registrado");

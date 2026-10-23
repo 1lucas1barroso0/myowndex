@@ -14,7 +14,7 @@ test("cached practice phases cannot suppress the battle field's end-of-round con
     const legacy = { ...snapshot({ ...token("A"), status: "burn" }), phase: "exploracao" };
     const practice = normalizeLocalDiceRoom(legacy);
     assert.equal(practice.phase, "batalha");
-    const ended = applyEndOfRoundEffects(practice);
+    const ended = applyEndOfRoundEffects(practice,()=>0);
     assert.ok(ended.room.tokens[0].currentHp < practice.tokens[0].currentHp);
     assert.equal(legacy.tokens[0].currentHp, 10);
 });

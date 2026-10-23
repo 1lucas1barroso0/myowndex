@@ -1,3 +1,4 @@
+import { formatGameFactor } from "../../core/integerRules.js";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     fetchCached,
@@ -20,6 +21,7 @@ import { getEffectiveMovePriority, getRoundMoveBlockReason, STATUS_LABELS } from
 import { resolveCombatAction } from "../../../server/authoritativeActions.js";
 import {
     getMoveSpecialProfile,
+    getGuidedSequenceReason,
     getSpecialMoveBlockReason,
     SPECIAL_AUTOMATION_LABELS,
 } from "../../core/specialMechanics.js";
@@ -31,8 +33,8 @@ import { battleMovePresentation, moveVariantForResolution } from "../../core/bat
 
 const modifierLabel = value => {
     if (value === 0) return "Imune";
-    if (value > 1) return `Superefetivo (${formatNumberPtBr(value)}×)`;
-    if (value < 1) return `Pouco efetivo (${formatNumberPtBr(value)}×)`;
+    if (value > 1) return `Superefetivo (${formatGameFactor(value)}×)`;
+    if (value < 1) return `Pouco efetivo (${formatGameFactor(value)}×)`;
     return "Efetividade normal";
 };
 
@@ -197,6 +199,7 @@ export default function CombatAssistant({
     const originalSpecialBlock = moveData
         ? getSpecialMoveBlockReason({ move: previewMove || moveData, attacker, defender, round: snapshot.round })
         : "";
+    const guidedSequence = previewMove ? getGuidedSequenceReason({ move: previewMove, attacker, defender }) : "";
     const originalTraitBlock = moveData ? getTraitMoveBlock({ move: moveData, attacker, defender }) : null;
     const roundBlock = moveData ? getRoundMoveBlockReason({ snapshot, token: attacker, move: moveData }) : "";
     const effectivePriority = moveData ? snapshot.initiative.length && attacker?.declaredMove === moveData.name ? attacker.priority : getEffectiveMovePriority({ token: attacker, move: moveData }) : 0;
@@ -210,6 +213,7 @@ export default function CombatAssistant({
         && !outOfPp
         && !originalTraitBlock?.attackerBlocked
         && !roundBlock
+        && !guidedSequence
     );
     const automationTags = getMoveAutomationTags(resolvedMoveData);
 
@@ -429,6 +433,7 @@ export default function CombatAssistant({
                 {moveName && moveLoadError && !moveData && <button type="button" onClick={() => { retryMoveRequested.current = true; setMoveRefresh(current => current + 1); }}>Tentar novamente</button>}
                 {originalSpecialBlock && <p className="combat-special-block">Falhará: {originalSpecialBlock}. A tentativa usa PP e a ação.</p>}
                 {originalTraitBlock?.attackerBlocked && <p className="combat-special-block">Item ativo: {originalTraitBlock.reason}.</p>}
+                {guidedSequence && <p className="combat-special-block" role="status">{guidedSequence} Preparar este painel não gasta recursos.</p>}
                 {roundBlock && <p className="combat-special-block" role="status">{roundBlock}</p>}
                 {!canControlAttacker && role === "player" && (
                     <p className="combat-permission-note">As escolhas da rodada ficam na Iniciativa. Você declara os Pokémon sob seu controle.</p>
@@ -539,8 +544,9 @@ export default function CombatAssistant({
                                         </span>
                                         {resolution.profile.requiresDamageContest && (
                                             <span className="combat-damage-math">
-                                                <span>{modifierLabel(resolution.effectiveness)}; STAB {formatNumberPtBr(resolution.stab)}×.</span>
+                                                <span>{modifierLabel(resolution.effectiveness)}; STAB {formatGameFactor(resolution.stab)}×.</span>
                                                 <strong className="combat-damage-limit">Limite comum: {formatNumberPtBr(resolution.ceiling)} por acerto.</strong>
+                                                {resolution.damageVariations?.some(hit => hit.die) && <span>Variação de dano: {resolution.damageVariations.map((hit, index) => `${index + 1}º: d6 ${hit.die ?? "—"} → ${resolution.hitDamages[index]} HP`).join("; ")}</span>}
                                                 {resolution.rawDamagePerHit > resolution.damagePerHit && (
                                                     <span>O cálculo chegou a {formatNumberPtBr(resolution.rawDamagePerHit)} por acerto antes do limite.</span>
                                                 )}
@@ -553,15 +559,15 @@ export default function CombatAssistant({
                                         {resolution.fixedDamage != null && <span className="combat-damage-exception">Dano fixo: usa o valor próprio do movimento em vez do limite comum.</span>}
                                         {resolution.dynamicPower && <span>Poder situacional {formatNumberPtBr(resolution.power)}: {resolution.dynamicPower.explanation}.</span>}
                                         {resolution.statProfile?.explanation && <span>{resolution.statProfile.explanation}.</span>}
-                                        {resolution.flashFireMultiplier > 1 && <span>Flash Fire fortaleceu o dano em {formatNumberPtBr(resolution.flashFireMultiplier)}×.</span>}
+                                        {resolution.flashFireMultiplier > 1 && <span>Flash Fire fortaleceu o dano em {formatGameFactor(resolution.flashFireMultiplier)}×.</span>}
                                         {resolution.traitModifiers?.entries.map((modifier, modifierIndex) => (
                                             <span key={`${modifier.kind}-${modifier.sourceId}-${modifierIndex}`} className="combat-trait-line">
-                                                {formatName(modifier.sourceId)}: {modifier.detail} ({formatNumberPtBr(modifier.multiplier)}×).
+                                                {formatName(modifier.sourceId)}: {modifier.detail} ({formatGameFactor(modifier.multiplier)}×).
                                             </span>
                                         ))}
                                         {resolution.accuracyState.traitModifiers?.entries.map((modifier, modifierIndex) => (
                                             <span key={`accuracy-${modifier.sourceId}-${modifierIndex}`} className="combat-trait-line">
-                                                {formatName(modifier.sourceId)}: {modifier.detail} na precisão ({formatNumberPtBr(modifier.multiplier)}×).
+                                                {formatName(modifier.sourceId)}: {modifier.detail} na precisão ({formatGameFactor(modifier.multiplier)}×).
                                             </span>
                                         ))}
                                         {resolution.multiHitTraits?.source && <span className="combat-trait-line">{formatName(resolution.multiHitTraits.source)} definiu {resolution.hitCount} acertos.</span>}
@@ -621,7 +627,7 @@ export default function CombatAssistant({
                         )}
                         {!result.consequences && result.targetResults.some(entry => entry.previewHitKill?.protectedFromKnockout) && (
                             <ul className="combat-consequences">
-                                <li className="combat-consequence-hit-kill">Prévia da proteção contra Hit Kill: calculado {formatNumberPtBr(resultCalculatedDamage)}, simulado {formatNumberPtBr(resultAppliedDamage)}. A proteção agiria por hit; {result.targetResults.some(entry => entry.previewHitKill?.faintedOnHit) ? "um hit posterior ainda derrotaria o alvo." : "o alvo terminaria a sequência em combate."}</li>
+                                <li className="combat-consequence-hit-kill">Prévia da proteção contra Hit Kill: calculado {formatNumberPtBr(resultCalculatedDamage)}, simulado {formatNumberPtBr(resultAppliedDamage)}. A proteção considera a ação inteira; {result.targetResults.some(entry => entry.previewHitKill?.faintedOnHit) ? "o alvo seria derrotado." : "o alvo terminaria a sequência em combate."}</li>
                             </ul>
                         )}
                         </ResultDetailsBody>

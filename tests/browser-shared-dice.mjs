@@ -73,7 +73,7 @@ try {
   throw error;
 } finally {
   if(room && !room.local) {
-    const response=await context.request.delete(`${new URL(url).origin}/api/rooms/${room.code}`,{headers:{origin:new URL(url).origin,"x-myowndex-room-protocol":"3","x-myowndex-room-key":room.key},data:{}});
+    const response=await context.request.delete(`${new URL(url).origin}/api/rooms/${room.code}`,{headers:{origin:new URL(url).origin,"x-myowndex-room-protocol":"4","x-myowndex-room-key":room.key},data:{}});
     assert.equal(response.status(),200,"disposable QA room is removed");
   }
   await context.close();await browser.close();

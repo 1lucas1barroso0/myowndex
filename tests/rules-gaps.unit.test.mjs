@@ -39,7 +39,7 @@ test("precision and secondary advantage share the kept-dice margin, independentl
             const defender = token("defender", item.defense * scale);
             const resolution = calculateMoveResolution({
                 attacker, defender, move: ember,
-                random: sequence([...item.dice.map(die => (die - 0.5) / 6), 0, ...(item.advantage ? [0] : [])]),
+                random: sequence([...item.dice.map(die => (die - 0.5) / 6), 0, ...(item.advantage ? [0] : []), .5]),
             });
             assert.equal(resolution.accuracyTest.rolls.length, item.advantage ? 2 : 1, `${item.label}: precision`);
             assert.equal(resolution.moveConnected, true);

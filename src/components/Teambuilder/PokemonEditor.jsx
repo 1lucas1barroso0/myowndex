@@ -1,3 +1,4 @@
+import { resolveExperienceProgress } from "../../core/integerRules.js";
 import { getReferenceBattleMechanics } from "../../core/referenceGames.js";
 import { gmaxEligible, megaFormFor } from "../../core/battleGimmicks.js";
 import zaForms from "../../data/mega-za-forms.json" with { type: "json" };
@@ -376,15 +377,16 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
     }, [displayedMaxHp, rpg.currentHp]);
 
     const applyXpProgression = (xpValue = rpg.xp) => {
-        const xp = integerInRange(xpValue, 0, 999999, rpg.xp ?? 0);
+        const xp = integerInRange(xpValue, 0, Number.MAX_SAFE_INTEGER, rpg.xp ?? 0);
         const levelCap = isHackmon ? 200 : 100;
         const currentLevel = integerInRange(pk.level, 1, levelCap, 1);
-        const currentXp = integerInRange(rpg.xp, 0, 999999, 0);
+        const currentXp = integerInRange(rpg.xp, 0, Number.MAX_SAFE_INTEGER, 0);
         if (xp < nextLevelXp || currentLevel >= levelCap) {
             if (xp !== currentXp) updateRpg({ xp });
             return;
         }
-        const nextLevel = Math.min(levelCap, currentLevel + 1);
+        const progress = resolveExperienceProgress({ level: currentLevel, xp, levelCap });
+        const nextLevel = progress.level;
         const nextRawMaxHp = calculateStat(
             hpBase,
             pk.evs?.hp ?? 0,
@@ -401,7 +403,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
             level: nextLevel,
             rpg: {
                 ...rpg,
-                xp: 0,
+                xp: progress.xp,
                 currentHp: rpg.currentHp == null
                     ? null
                     : rpg.currentHp <= 0 ? 0
@@ -542,11 +544,12 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </div>}
                     {mechanics.dynamax && <div className="editor-mechanic-group">
                         <strong className="editor-mechanic-name">Dynamax</strong>
-                        <p className="editor-mechanic-status">O Pokémon cresce, recebe mais HP e usa movimentos Max por três rodadas. No MyOwnDex, nível 0 não libera a técnica; níveis de 1 a 10 aumentam o bônus de HP.</p>
+                        <p className="editor-mechanic-status">Com a permissão marcada, o Pokémon usa Dynamax mesmo no nível 0. Recebe HP-base × (30 + nível Dynamax) ÷ 20, arredondado para baixo; no nível 10, dobra. Dura três rodadas e usa movimentos Max.</p>
+                        <label className="editor-mechanic-toggle"><input type="checkbox" checked={pk.canDynamax ?? Number(pk.dynamaxLevel)>0} onChange={event => updatePk({ ...pk, canDynamax: event.target.checked })} />Pode usar Dynamax</label>
                         <label className="editor-field"><span className="editor-label">Nível Dynamax</span><input type="number" inputMode="numeric" min="0" max="10" value={pk.dynamaxLevel ?? 0} onChange={event => updatePk({ ...pk, dynamaxLevel: integerInRange(event.target.value, 0, 10, 0) })} className="editor-input" /></label>
                         {showGigantamax && <div className="editor-mechanic-subsection">
                             <strong className="editor-mechanic-name">Gigantamax</strong>
-                            <p className="editor-mechanic-status">Algumas espécies têm uma forma especial, com aparência própria e movimentos especiais exclusivos. Exige o Fator Gigantamax e nível Dynamax acima de 0; também dura três rodadas.</p>
+                            <p className="editor-mechanic-status">Algumas espécies têm uma forma especial, com aparência própria e movimentos especiais exclusivos. Exige permissão para Dynamax e o Fator Gigantamax. Usa o mesmo aumento de HP, inclusive no nível 0, e dura três rodadas.</p>
                             <label className="editor-mechanic-toggle"><input type="checkbox" checked={pk.canGMax || false} disabled={isNativeGMax} onChange={event => { dismissKeyboard(); updatePk({ ...pk, canGMax: event.target.checked }); }} />Fator Gigantamax</label>
                             {isNativeGMax && <p className="editor-mechanic-status">Esta forma já possui o Fator Gigantamax.</p>}
                         </div>}
@@ -659,7 +662,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                 <summary><span>Progresso da jornada</span><PokemonHp current={rpg.currentHp} maximum={displayedMaxHp} className="rpg-journey-hp" /></summary>
                 <div className="editor-disclosure-body rpg-journey-body">
                     <div className="editor-field"><label htmlFor={`${fieldId}-hp`} className="editor-label">HP atual</label><div className="editor-choice-control"><input id={`${fieldId}-hp`} type="number" inputMode="numeric" min="0" max={displayedMaxHp} aria-describedby={`${fieldId}-hp-help`} value={rpg.currentHp ?? displayedMaxHp} onChange={event => updateRpg({ currentHp: event.target.value === "" ? null : integerInRange(event.target.value, 0, displayedMaxHp, 0) })} className="editor-input" /><button type="button" aria-label="Recuperar HP ao máximo" onClick={() => updateRpg({ currentHp: displayedMaxHp })} className="rpg-recover-button">Recuperar</button></div><span className="sr-only" id={`${fieldId}-hp-help`}>Energia do Pokémon. Zero HP significa que ele está fora de combate.</span></div>
-                    <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" inputMode="numeric" min="0" step="1" max="999999" value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: integerInRange(event.target.value, 0, 999999, rpg.xp ?? 0) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">{atXpLevelCap ? `Nível máximo · ${xpLevelCap}` : `Até o próximo nível: ${formatNumberPtBr(Math.max(0, nextLevelXp - (Number(rpg.xp) || 0)))} XP`}</small></div>
+                    <div className="editor-field"><label htmlFor={`${fieldId}-xp`} className="editor-label">XP atual</label><input id={`${fieldId}-xp`} type="number" inputMode="numeric" min="0" step="1" max={Number.MAX_SAFE_INTEGER} value={rpg.xp ?? 0} onChange={event => updateRpg({ xp: integerInRange(event.target.value, 0, Number.MAX_SAFE_INTEGER, rpg.xp ?? 0) })} onBlur={() => applyXpProgression()} className="editor-input" /><small className="editor-progress-goal">{atXpLevelCap ? `Nível máximo · ${xpLevelCap}` : `Até o próximo nível: ${formatNumberPtBr(Math.max(0, nextLevelXp - (Number(rpg.xp) || 0)))} XP`}</small></div>
                     <label className="editor-field"><span className="editor-label">Condição</span><RoomSelect aria-label="Condição" value={rpg.status || ""} onChange={event => updateRpg({ status: event.target.value })} className="editor-input">{RPG_STATUSES.map(status => <option key={status || "none"} value={status}>{RPG_STATUS_LABELS[status]}</option>)}</RoomSelect></label>
                     <div className="editor-wide-field"><ExperienceAward onAward={receiveExperience} disabled={atXpLevelCap} winnerLevel={pk.level} /></div>
                     <label className="editor-field"><span className="editor-label">Poké Ball da captura</span><input type="text" value={rpg.caughtWith || ""} onChange={event => updateRpg({ caughtWith: event.target.value })} className="editor-input" /></label>

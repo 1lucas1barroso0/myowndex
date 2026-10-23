@@ -271,11 +271,12 @@ export const clearApiCache = async () => {
 };
 
 export const RPG_SCALE_DIVISOR = 10;
+export const RPG_HP_DIVISOR = 8;
 
 export const convertToTTRPG = (value, isHp = false) => {
     const numericValue = finiteNumberOrNull(value);
     if (numericValue == null || numericValue <= 0) return isHp ? 1 : 0;
-    return roundRpgScaledValue(safeDivide(numericValue, RPG_SCALE_DIVISOR), {
+    return roundRpgScaledValue(safeDivide(numericValue, isHp ? RPG_HP_DIVISOR : RPG_SCALE_DIVISOR), {
         minimumWhenPositive: isHp ? 1 : 0,
         halfUp: isHp,
     });

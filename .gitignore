@@ -50,3 +50,6 @@ __pycache__/
 
 # Losslessly materialized from assets/sprites-2d during dev/test/build.
 /public/sprites/native/2d-*
+
+# Generated from the exact production build, including lazy feature chunks.
+/public/offline-assets.json

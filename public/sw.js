@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v2.0.52-app";
+const CACHE_NAME = "myowndex-shell-v2.1.0";
 const CACHE_PREFIX = "myowndex-shell-";
 const ASSET_CACHE_NAME = "myowndex-assets-v3";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";
@@ -7,11 +7,10 @@ const ASSET_CACHE_BYTES = 16 * 1024 * 1024;
 const ASSET_ENTRY_BYTES = 4 * 1024 * 1024;
 const ROOT_FALLBACK = "/";
 const CORE_ASSETS = [
-  "/",
   "/manifest.webmanifest",
   "/manifest-resgate.webmanifest",
   "/reinstalar?abrir=aventura",
-  "/icons/myowndex-dex-v105-r4-live.svg?v=2.0.52",
+  "/icons/myowndex-dex-v105-r4-live.svg?v=2.1.0",
   "/icons/myowndex-dex-v105-r4-32.png",
   "/icons/myowndex-dex-v105-r4-192.png",
   "/icons/myowndex-dex-v105-r4-app-512.png",
@@ -21,16 +20,73 @@ const CORE_ASSETS = [
   "/fonts/VT323-Regular.ttf",
 ];
 
+const SHELL_VERSION = CACHE_NAME.slice(CACHE_PREFIX.length + 1);
+const SHELL_READY = "/__myowndex-offline-ready";
+let shellPreparation = null;
+
+const shellNames = async () => [CACHE_NAME, ...(await caches.keys()).filter(name => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME).reverse()];
+const matchShell = async request => {
+  for (const name of await shellNames()) {
+    const cached = await (await caches.open(name)).match(request);
+    if (cached) return cached;
+  }
+};
+const shellReady = async () => Boolean(await (await caches.open(CACHE_NAME)).match(SHELL_READY));
+const usablePreviousShell = async name => {
+  const cache = await caches.open(name);
+  const page = await cache.match(ROOT_FALLBACK);
+  if (!page) return false;
+  if (await cache.match(SHELL_READY)) return true;
+  // Releases before the completion marker: retain only a root whose linked
+  // scripts/styles are actually present, never an empty or partial update.
+  const references = [...(await page.text()).matchAll(/(?:src|href)=["']([^"']+)["']/g)]
+    .map(match => match[1]).filter(url => url.startsWith("/_next/static/"));
+  return references.length > 0 && (await Promise.all(references.map(url => cache.match(url)))).every(Boolean);
+};
+const prepareShell = page => {
+  if (shellPreparation) return shellPreparation;
+  shellPreparation = (async () => {
+    if (await shellReady()) return;
+    const manifestResponse = await fetch("/offline-assets.json", { cache: "no-store" });
+    if (!manifestResponse.ok) throw new Error("Código offline indisponível.");
+    const manifest = await manifestResponse.json();
+    if (manifest.version !== SHELL_VERSION || !Array.isArray(manifest.assets) || !manifest.assets.length || manifest.assets.length > 256
+      || !Number.isSafeInteger(manifest.bytes) || manifest.bytes > 12 * 1024 * 1024
+      || manifest.assets.some(asset => !/^\/_next\/static\/[a-zA-Z0-9_./-]+\.(?:js|css)$/.test(asset.path)
+        || asset.path.includes("..") || !Number.isSafeInteger(asset.bytes) || asset.bytes < 0 || asset.bytes > 4 * 1024 * 1024)
+      || manifest.assets.reduce((sum, asset) => sum + asset.bytes, 0) !== manifest.bytes) throw new Error("Código offline incompatível.");
+    const response = page || await fetch(ROOT_FALLBACK, { cache: "no-store" });
+    if (!response.ok) throw new Error("Abertura offline indisponível.");
+    const html = await response.clone().text();
+    const references = [...html.matchAll(/(?:src|href)=["']([^"']+)["']/g)].map(match => match[1]).filter(url => url.startsWith("/_next/static/"));
+    if (!references.length || references.some(url => !manifest.assets.some(asset => asset.path === url.split("?")[0]))) throw new Error("Abertura e código pertencem a builds diferentes.");
+    const cache = await caches.open(CACHE_NAME);
+    // Four downloads at a time; a failed/partial release never replaces the
+    // last complete offline opening. Dynamic feature chunks are pinned too.
+    for (let index = 0; index < manifest.assets.length; index += 4) {
+      await Promise.all(manifest.assets.slice(index, index + 4).map(async asset => {
+        const result = await fetch(asset.path, { cache: "no-store" });
+        if (!result.ok) throw new Error("Arquivo offline indisponível.");
+        const bytes = await result.arrayBuffer();
+        if (bytes.byteLength !== asset.bytes) throw new Error("Arquivo offline incompleto.");
+        await cache.put(asset.path, new Response(bytes, { status: result.status, headers: result.headers }));
+      }));
+    }
+    await cache.put(ROOT_FALLBACK, response);
+    await cache.put(SHELL_READY, new Response(SHELL_VERSION));
+  })().finally(() => { shellPreparation = null; });
+  return shellPreparation;
+};
+
 self.addEventListener("install", event => {
-  // Promote a fully installed release automatically, including installed PWAs.
-  // Offline precaching is best-effort; failure never blocks the browser update.
   event.waitUntil((async () => {
     try {
+      await prepareShell();
       const cache = await caches.open(CACHE_NAME);
       await Promise.all(CORE_ASSETS.map(asset => fetch(asset, { cache: "no-store" })
         .then(response => response.ok ? cache.put(asset, response) : undefined)
         .catch(() => undefined)));
-    } catch { /* CacheStorage may be denied or full. */ }
+    } catch { /* Keep the previous complete shell when offline, denied or full. */ }
     await self.skipWaiting();
   })());
 });
@@ -40,14 +96,20 @@ self.addEventListener("message", event => {
 });
 
 self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys
-        .filter(key => (key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
-          || (key.startsWith(ASSET_CACHE_PREFIX) && key !== ASSET_CACHE_NAME))
-        .map(key => caches.delete(key))
-    )).then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const ready = await shellReady().catch(() => false);
+    const keys = await caches.keys();
+    const previous = keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME);
+    // Several consecutive interrupted updates must not evict the last usable
+    // release merely because an incomplete cache was created more recently.
+    let retained = null;
+    if (!ready) for (const name of previous.reverse()) {
+      if (await usablePreviousShell(name)) { retained = name; break; }
+    }
+    await Promise.all(keys.filter(key => (key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME && key !== retained)
+      || (key.startsWith(ASSET_CACHE_PREFIX) && key !== ASSET_CACHE_NAME)).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })().catch(() => self.clients.claim()));
 });
 
 // Opaque cross-origin responses have inflated browser quota costs. Public
@@ -103,6 +165,10 @@ const fetchAsset = request => {
 const rememberPage = async (response, request) => {
   if (!canStore(response)) return response;
   try {
+    if (new URL(request.url).pathname === "/") {
+      await prepareShell(response.clone());
+      return response;
+    }
     const cache = await caches.open(CACHE_NAME);
     // Never poison the game's offline root fallback with the opt-in installer
     // or another HTML route: each separate page caches under its own URL.
@@ -165,8 +231,7 @@ self.addEventListener("fetch", event => {
         .then(response => ({ response, maintenance: rememberPage(response.clone(), request) }))
         .catch(async () => {
           try {
-            const cache = await caches.open(CACHE_NAME);
-            const response = (await cache.match(request)) || (await cache.match(ROOT_FALLBACK));
+            const response = (await matchShell(request)) || (await matchShell(ROOT_FALLBACK));
             if (response) return { response };
           } catch { /* Browser storage may be disabled. */ }
           return { response: new Response("O MyOwnDex está offline. Reconecte para abrir esta página.", { status: 503, headers: { "content-type": "text/plain; charset=utf-8" } }) };
@@ -194,7 +259,7 @@ self.addEventListener("fetch", event => {
     // fonts and icons when the origin publishes new bytes at the same path.
     if (immutable) {
       try {
-        const core = await (await caches.open(CACHE_NAME)).match(request);
+        const core = await matchShell(request);
         if (core) return { response: core };
         const cached = await (await caches.open(ASSET_CACHE_NAME)).match(request);
         if (cached) return { response: cached };
@@ -206,7 +271,7 @@ self.addEventListener("fetch", event => {
     } catch (error) {
       try {
         const cached = (await (await caches.open(ASSET_CACHE_NAME)).match(request))
-          || (await (await caches.open(CACHE_NAME)).match(request));
+          || (await matchShell(request));
         if (cached) return { response: cached };
       } catch { /* Never swallow the original network failure. */ }
       throw error;

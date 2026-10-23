@@ -112,11 +112,12 @@ test("native room handlers bootstrap a fresh database and protect narrator data"
     import("../app/api/rooms/[code]/events/route.ts"),
   ]);
   const request = (path, key = "", body, method = "POST") => new Request(`https://app.example.com${path}`, {
-    method, headers: { "content-type": "application/json", "x-myowndex-room-protocol": "3", "x-myowndex-room-key": key }, body: body === undefined ? undefined : JSON.stringify(body),
+    method, headers: { "content-type": "application/json", "x-myowndex-room-protocol": "4", "x-myowndex-room-key": key }, body: body === undefined ? undefined : JSON.stringify(body),
   });
   const response = await create.POST(request("/api/rooms", "", { title: "Rota 1", snapshot: { gmNotes: "Segredo do narrador" } }));
   assert.equal(response.status, 201, await response.clone().text());
   const created = await response.json();
+  assert.equal(created.snapshot.schema,9,"new API rooms must never enter the legacy HP migration path");
   const path = `/api/rooms/${created.code}`;
   const context = { params: Promise.resolve({ code: created.code }) };
   assert.ok(sqlite.prepare("PRAGMA table_info(rooms)").all().some(column => column.name === "authority_claim"));
@@ -135,6 +136,52 @@ test("native room handlers bootstrap a fresh database and protect narrator data"
   assert.equal((await room.PATCH(request(path, created.narratorKey, { snapshot: created.snapshot, expectedRevision: 0 }, "PATCH"), context)).status, 409);
   assert.equal((await event.POST(request(`${path}/events`, player.playerKey, { type: "ready", payload: { ready: true } }), context)).status, 201);
   assert.equal(sqlite.prepare("SELECT ready FROM room_players WHERE id = ?").get(player.playerId).ready, 1);
+  const prepared = await room.PATCH(request(path, created.narratorKey, { expectedRevision: 1, snapshot: {
+    ...created.snapshot,
+    tokens: [
+      { id: "helper", name: "Parceiro", side: "ally", ownerPlayerId: player.playerId, maxHp: 10, currentHp: 10, moves: [] },
+      { id: "wild", name: "Eevee", speciesName: "eevee", speciesId: 133, side: "opponent", maxHp: 10, currentHp: 1, moves: [] },
+    ],
+    trainerBags: { [player.playerId]: { "master-ball": 2 } },
+  } }, "PATCH"), context);
+  assert.equal(prepared.status, 200, await prepared.clone().text());
+  const declared = await event.POST(request(`${path}/events`, player.playerKey, { type: "move-declared", payload: {
+    tokenId: "helper", moveName: "", actionKind: "swap", expectedRevision: 2,
+  } }), context);
+  assert.equal(declared.status, 201, await declared.clone().text());
+  assert.equal(JSON.parse(sqlite.prepare("SELECT state_json FROM rooms WHERE code = ?").get(created.code).state_json).tokens[0].declaredAction, "swap");
+  const rolls = await import("../app/api/rooms/[code]/rolls/route.ts");
+  const databaseFetch = globalThis.fetch;
+  globalThis.fetch = (url, options) => String(url).startsWith("https://pokeapi.co/")
+    ? Promise.resolve(new Response(JSON.stringify(String(url).includes("pokemon-species") ? { capture_rate: 45 } : { species: { name: "eevee" } }), { headers: { "content-type": "application/json" } }))
+    : databaseFetch(url, options);
+  const capture = { requestId: "capture-transaction-123456", action: "capture", expectedRevision: 3,
+    trainerTokenId: "helper", targetId: "wild", ball: "master-ball", wildConfirmed: true };
+  const captured = await rolls.POST(request(`${path}/rolls`, created.narratorKey, capture), context);
+  assert.equal(captured.status, 200, await captured.clone().text());
+  const firstCapture = await captured.json();
+  const retried = await rolls.POST(request(`${path}/rolls`, created.narratorKey, capture), context);
+  assert.equal(retried.status, 200, await retried.clone().text());
+  const replay = await retried.json();
+  assert.equal(replay.result.id, firstCapture.result.id);
+  assert.equal(replay.room.snapshot.trainerBags[player.playerId]["master-ball"], 1);
+  assert.equal(replay.room.snapshot.tokens[1].captured, true);
+  assert.equal(replay.room.snapshot.trainerInterventions.length, 1);
+  const newBattle = {requestId:"new-battle-integration-123",action:"start-battle",expectedRevision:replay.room.revision};
+  const begunResponse=await rolls.POST(request(`${path}/rolls`,created.narratorKey,newBattle),context);
+  assert.equal(begunResponse.status,200,await begunResponse.clone().text());
+  const begun=await begunResponse.json();
+  const finish={requestId:"end-battle-integration-123",action:"end-battle",expectedRevision:begun.room.revision};
+  assert.equal((await rolls.POST(request(`${path}/rolls`,player.playerKey,finish),context)).status,403);
+  const finishResponse=await rolls.POST(request(`${path}/rolls`,created.narratorKey,finish),context);
+  assert.equal(finishResponse.status,200,await finishResponse.clone().text());
+  const finished=await finishResponse.json();
+  assert.equal(finished.room.snapshot.battleEnded,true);
+  assert.equal(finished.room.snapshot.trainerBags[player.playerId]["master-ball"],1);
+  const repeatedFinish=await (await rolls.POST(request(`${path}/rolls`,created.narratorKey,finish),context)).json();
+  assert.equal(repeatedFinish.result.id,finished.result.id);
+  assert.equal(repeatedFinish.room.revision,finished.room.revision);
+
   assert.equal((await room.DELETE(request(path, player.playerKey, undefined, "DELETE"), context)).status, 403);
   assert.equal((await room.DELETE(request(path, created.narratorKey, undefined, "DELETE"), context)).status, 200);
   for (const table of ["rooms", "room_players", "room_events", "room_rolls"]) {

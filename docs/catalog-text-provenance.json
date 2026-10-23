@@ -218,7 +218,7 @@
   "reviewedEditorialOverrides": {
     "file": "scripts/catalogo-ajustes-pt.json",
     "entries": 612,
-    "sha256": "b9249e5810ddd08381fe8bd9b8e4b5c7599ae6fa7ad12669646862986a18774b"
+    "sha256": "44877aaf0ce55dbd8153325b2bc2b8c1c827cefa941fbb229172a59c7480f049"
   },
   "historyPolicy": "Every English entry present in the pinned PokeAPI CSV is retained with its actual game/version. Most recent available core-game record comes first; official GO pairs follow. A missing source is never invented.",
   "mechanicsPolicy": "Full current battle explanations come from the pinned Pokémon Showdown reference, with generation/Champions overrides. Showdown is a community battle reference, not literal official game dialogue. PokeAPI long prose has historical rules (e.g. pre-Gen9 Protean/Battle Bond), so it is not silently preferred over the revised explanation. Official in-game flavor remains separately available by selected game.",
@@ -227,8 +227,8 @@
   "outputs": [
     {
       "file": "catalog/v1/ability.json",
-      "bytes": 726330,
-      "sha256": "8e18ab90856450fb8a5fe5e627a1aa7a7e2f674733d142706e06319dd26ec754",
+      "bytes": 726302,
+      "sha256": "21ab3e69fb6213c0b5b576a140f7550ce58050218c7adf14f00f40be409e9351",
       "entries": 374,
       "texts": 2010
     },
@@ -241,8 +241,8 @@
     },
     {
       "file": "catalog/v1/item.json",
-      "bytes": 1570828,
-      "sha256": "d5041677afb74710471ed0e041ae7742b8ee3adccbe1d6f29285ce894fd75cf1",
+      "bytes": 1570733,
+      "sha256": "823dc202d4cdd4dd279f0454e1d33b1b8dc1a32901cb52370726349378bd50f0",
       "entries": 2222,
       "texts": 4735
     },

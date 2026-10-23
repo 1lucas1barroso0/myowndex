@@ -76,8 +76,8 @@ test("active turns allow exactly the declared move, one eligible actor, and one 
 
 test("Outra ação cannot gain late priority, while practice without an order remains free", () => {
   const snapshot = { ...room(), initiative: ["a", "b"], turnIndex: 0 };
-  assert.equal(getRoundMoveBlockReason({ snapshot, token: snapshot.tokens[0], move: move() }), "");
-  assert.match(getRoundMoveBlockReason({ snapshot, token: snapshot.tokens[0], move: move("quick-attack") }), /próxima iniciativa/);
+  assert.match(getRoundMoveBlockReason({ snapshot, token: snapshot.tokens[0], move: move() }), /não permite/);
+  assert.match(getRoundMoveBlockReason({ snapshot, token: snapshot.tokens[0], move: move("quick-attack") }), /antes da rodada/);
   assert.equal(getRoundMoveBlockReason({ snapshot: room(), token: room().tokens[0], move: move("quick-attack") }), "");
 });
 

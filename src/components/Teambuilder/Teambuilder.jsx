@@ -2,7 +2,7 @@ import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatCanonicalItemName, formatCount, formatPartnerArrival } from "../../core/copy.js";
 import { formatName, formatType, TYPE_COLORS, TYPE_TEXT_COLORS, VERSION_GROUPS } from "../../core/mechanics.js";
-import { createTeam as makeTeam, createId, hydrateTeam, insertImportedPokemon, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, touchTeam } from "../../core/team.js";
+import { markPokemonEdited, createTeam as makeTeam, createId, hydrateTeam, insertImportedPokemon, mergeImportedTeam, normalizeTeam, removeTeamById, restoreTeamAt, touchTeam } from "../../core/team.js";
 import { decodeShare, encodePokemonBundle, encodeTeam } from "../../core/teamShare.js";
 import ConfirmDialog from "../Shared/ConfirmDialog.jsx";
 import PokemonSprite from "../Shared/PokemonSprite.jsx";
@@ -433,7 +433,7 @@ export default function Teambuilder({ envProps }) {
                                 </label>
                                 <label className="pc-version-field">
                                     Jogo de referência
-                                    <RoomSelect aria-label="Jogo de referência" value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value }))} className="pc-version-select">
+                                    <RoomSelect aria-label="Jogo de referência" value={active.versionGroup || "auto"} onChange={event => updateActive(team => ({ ...team, versionGroup: event.target.value, pokemon: team.pokemon.map(partner => markPokemonEdited(partner, partner)) }))} className="pc-version-select">
                                         {VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}
                                     </RoomSelect>
                                 </label>
@@ -504,7 +504,7 @@ export default function Teambuilder({ envProps }) {
                                     pk={active.pokemon[editingSlot]}
                                     updatePk={next => updateActive(team => {
                                         const pokemon = [...(team.pokemon || [])];
-                                        pokemon[editingSlot] = next;
+                                        pokemon[editingSlot] = markPokemonEdited(pokemon[editingSlot], next);
                                         return { ...team, pokemon };
                                     })}
                                     envProps={{

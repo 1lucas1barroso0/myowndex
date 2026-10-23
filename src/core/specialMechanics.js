@@ -1,5 +1,6 @@
+import { formatPokemonWeight } from "./measurements.js";
 import { formatEnglishName } from "./names.js";
-import { isAbilityActive, isHeldItemActive, traitSlug } from "./traitMechanics.js";
+import { isAbilityActive, isHeldItemActive, moveHasTrait, traitSlug } from "./traitMechanics.js";
 import { clampFinite as clamp, finiteNumber as asNumber, integerInRange, safeDivide } from "./math.js";
 import { rollD100 } from "./random.js";
 
@@ -7,6 +8,27 @@ const asArray = value => Array.isArray(value) ? value : [];
 const asText = value => typeof value === "string" ? value : "";
 const slug = value => asText(value).trim().toLowerCase().replace(/\s+/g, "-");
 const unique = values => [...new Set(values.filter(Boolean))];
+
+/** Never present a generic multi-hit calculation as a full inter-hit engine.
+ * Max variants have already replaced the original sequence at this boundary. */
+export const getGuidedSequenceReason = ({ move, attacker, defender } = {}) => {
+    const name=slug(move?.name);
+    if (["triple-kick","triple-axel","population-bomb","beat-up","dragon-darts","surging-strikes"].includes(name))
+        return "Esta sequência tem precisão, poder, equipe ou alvos próprios. Resolva os impactos com o Narrador e registre PP, dano, proteção e ação uma vez.";
+    if (Number(move?.meta?.max_hits || move?.meta?.min_hits || 1)<=1) return "";
+    const ability=isAbilityActive(defender)?traitSlug(defender?.ability):"";
+    const item=isHeldItemActive(defender)?traitSlug(defender?.item):"";
+    const contact=moveHasTrait(move,"contact") && !(isHeldItemActive(attacker) && traitSlug(attacker?.item)==="punching-glove" && moveHasTrait(move,"punch"));
+    const perHitAbilities=new Set(["disguise","ice-face","multiscale","shadow-shield","tera-shell","color-change","stamina","weak-armor","water-compaction","anger-shell","berserk","emergency-exit","wimp-out","cotton-down","seed-sower","thermal-exchange"]);
+    const contactAbilities=new Set(["rough-skin","iron-barbs","static","flame-body","poison-point","gooey","tangling-hair"]);
+    if (perHitAbilities.has(ability) || (contact && (contactAbilities.has(ability) || item==="rocky-helmet"
+        || (isAbilityActive(attacker)&&traitSlug(attacker?.ability)==="poison-touch")))
+        || (isHeldItemActive(attacker) && ["kings-rock","razor-fang"].includes(traitSlug(attacker?.item)))
+        || item.endsWith("-berry") || ["eject-button","red-card"].includes(item)
+        || Number(move?.meta?.flinch_chance)>0 || Number(move?.meta?.ailment_chance)>0 || Number(move?.meta?.stat_chance)>0)
+        return "Esta combinação tem reações entre impactos. Resolva a sequência com o Narrador e registre PP, dano, proteção e ação uma vez; o cálculo comum não reproduz essas etapas.";
+    return "";
+};
 const positiveStageLabel = value => `${value} ${value === 1 ? "estágio positivo" : "estágios positivos"}`;
 const STAT_KEYS = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"];
 const STAGE_KEYS = ["attack", "defense", "special-attack", "special-defense", "speed", "accuracy", "evasion"];
@@ -56,6 +78,7 @@ const normalizeTransform = value => {
         sourceName: asText(value.sourceName).slice(0, 80),
         round: integerInRange(value.round, 0, 9999, 0),
         base,
+        moveOverrides: asArray(value.moveOverrides).map(normalizeMoveOverride).filter(Boolean).slice(0, 4),
     };
 };
 
@@ -182,7 +205,7 @@ export const transformBattleToken = (attackerInput, target, { via = "transform",
         stages: copied.stages,
         moves,
         pp,
-        declaredMove: "",
+        declaredMove: "", declaredAction: "other",
         priority: 0,
         specialState: {
             ...state,
@@ -192,6 +215,7 @@ export const transformBattleToken = (attackerInput, target, { via = "transform",
                 sourceName: asText(target.name),
                 round: integerInRange(round, 0, 9999, 0),
                 base,
+                moveOverrides: state.moveOverrides,
             },
             illusion: null,
             moveOverrides: [],
@@ -224,12 +248,12 @@ export const revertBattleTransform = tokenInput => {
             item: token.item,
             teraType: token.teraType,
             teraActive: false,
-            declaredMove: "",
+            declaredMove: "", declaredAction: "other",
             priority: 0,
             specialState: {
                 ...state,
                 transform: null,
-                moveOverrides: state.moveOverrides.filter(override => override.permanent),
+                moveOverrides: state.transform.moveOverrides,
             },
         },
     };
@@ -518,15 +542,14 @@ export const calculateDynamicMovePower = ({ move, attacker, defender, random } =
     } else if (name === "electro-ball") {
         const ratio = attackerSpeed / defenderSpeed;
         power = ratio >= 4 ? 150 : ratio >= 3 ? 120 : ratio >= 2 ? 80 : ratio >= 1 ? 60 : 40;
-        explanation = `Razão de Velocidade ${ratio.toFixed(2)}×`;
+        explanation = `Velocidade do usuário ${attackerSpeed} para ${defenderSpeed} do alvo`;
     } else if (["low-kick", "grass-knot"].includes(name)) {
-        const kilograms = defenderWeight / 10;
-        power = kilograms < 10 ? 20 : kilograms < 25 ? 40 : kilograms < 50 ? 60 : kilograms < 100 ? 80 : kilograms < 200 ? 100 : 120;
-        explanation = `Peso do alvo: ${kilograms.toFixed(1)} kg`;
+        power = defenderWeight < 100 ? 20 : defenderWeight < 250 ? 40 : defenderWeight < 500 ? 60 : defenderWeight < 1000 ? 80 : defenderWeight < 2000 ? 100 : 120;
+        explanation = `Peso do alvo: ${formatPokemonWeight(defenderWeight)}`;
     } else if (["heavy-slam", "heat-crash"].includes(name)) {
         const ratio = attackerWeight / defenderWeight;
         power = ratio >= 5 ? 120 : ratio >= 4 ? 100 : ratio >= 3 ? 80 : ratio >= 2 ? 60 : 40;
-        explanation = `Razão de peso ${ratio.toFixed(2)}×`;
+        explanation = `Peso do usuário ${attackerWeight} para ${defenderWeight} do alvo, na mesma unidade`;
     } else if (["stored-power", "power-trip"].includes(name)) {
         const stages = positiveStages(attacker?.stages);
         power = 20 + stages * 20;
@@ -639,6 +662,7 @@ export const getAbilityMoveBlock = ({ move, attacker, defender, effectiveness = 
 
 export const getSpecialMoveBlockReason = ({ move, attacker, defender, round } = {}) => {
     const name = slug(move?.name);
+    if (["dyna", "gmax"].includes(defender?.gimmickState?.active) && ["fissure", "guillotine", "horn-drill", "sheer-cold", "low-kick", "grass-knot", "heavy-slam", "heat-crash", "roar", "whirlwind"].includes(name)) return "Dynamax bloqueou este movimento";
     const protectedTarget = asArray(defender?.volatileEffects).some(effect => slug(effect?.id || effect) === "protection");
     const targetName = slug(move?.target?.name);
     const damageClass = slug(move?.damage_class?.name);

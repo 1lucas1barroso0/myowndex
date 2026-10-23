@@ -18,12 +18,12 @@ test("late species hydration migrates current HP once and preserves concurrent j
   }] });
   assert.equal(stored.pokemon[0].rpg.scaleVersion, 1);
   const hydrated = normalizeTeam({ ...stored, pokemon: [{ ...stored.pokemon[0], species: hpSpecies }] });
-  assert.equal(hydrated.pokemon[0].rpg.currentHp, 2);
+  assert.equal(hydrated.pokemon[0].rpg.currentHp, 3);
   const current = { ...stored, pokemon: [{ ...stored.pokemon[0],
     nickname: "Editado agora", item: "oran-berry", rpg: { ...stored.pokemon[0].rpg, xp: 8, notes: "Nota nova" },
   }] };
   const merged = mergeHydratedTeams([current], [hydrated])[0];
-  assert.equal(merged.pokemon[0].rpg.currentHp, 2);
+  assert.equal(merged.pokemon[0].rpg.currentHp, 3);
   assert.equal(merged.pokemon[0].rpg.scaleVersion, RPG_SCALE_VERSION);
   assert.equal(merged.pokemon[0].rpg.xp, 8);
   assert.equal(merged.pokemon[0].rpg.notes, "Nota nova");
@@ -51,10 +51,10 @@ test("an individual legacy partner export retains the deferred scale marker unti
   const deferred = normalizePokemon(bundle.pokemon[0]);
   assert.equal(deferred.rpg.scaleVersion, 1);
   assert.equal(deferred.rpg.currentHp, 1);
-  assert.equal(normalizePokemon({ ...deferred, species: hpSpecies }).rpg.currentHp, 2);
+  assert.equal(normalizePokemon({ ...deferred, species: hpSpecies }).rpg.currentHp, 3);
 });
 
-test("schema4 Boxes load through sync and durable scoped storage then save as schema5 without touching guest data", async t => {
+test("schema4 Boxes load through sync and durable scoped storage then save as schema6 without touching guest data", async t => {
   const previousWindow = globalThis.window, previousScope = getStorageScope();
   const values = new Map();
   globalThis.window = { localStorage: {
@@ -72,10 +72,10 @@ test("schema4 Boxes load through sync and durable scoped storage then save as sc
   const sync = loadTeams();
   const durable = await loadTeamsDurable();
   assert.deepEqual(durable, sync);
-  assert.equal(durable[0].pokemon[0].rpg.currentHp, 2);
+  assert.equal(durable[0].pokemon[0].rpg.currentHp, 3);
   assert.equal(durable[0].pokemon[0].rpg.xp, 4);
   assert.equal(await saveTeamsDurable(durable), true);
-  assert.equal(JSON.parse(values.get(resolveStorageKey(TEAM_STORAGE_KEY))).schema, 5);
+  assert.equal(JSON.parse(values.get(resolveStorageKey(TEAM_STORAGE_KEY))).schema, 6);
   assert.deepEqual(JSON.parse(JSON.stringify(await loadTeamsDurable())), JSON.parse(JSON.stringify(durable)));
   assert.equal(values.get(TEAM_STORAGE_KEY), guest);
 });
@@ -88,10 +88,10 @@ test("legacy room and reserves migrate proportionally exactly once including sav
   };
   const old = { ...createRoomSnapshot("Migração"), schema: 7, tokens: [oldToken], benchTokens: [{ ...oldToken, id: "old-reserve", currentHp: 0 }] };
   const migrated = normalizeRoomSnapshot(old);
-  assert.equal(migrated.tokens[0].maxHp, 10);
-  assert.equal(migrated.tokens[0].currentHp, 4);
+  assert.equal(migrated.tokens[0].maxHp, 13);
+  assert.equal(migrated.tokens[0].currentHp, 5);
   assert.equal(migrated.tokens[0].freezeTurns, 2);
-  assert.equal(migrated.tokens[0].volatileEffects[0].amount, 5);
+  assert.equal(migrated.tokens[0].volatileEffects[0].amount, 6);
   assert.equal(migrated.benchTokens[0].currentHp, 0);
   assert.deepEqual(normalizeRoomSnapshot(normalizeRoomSnapshot(migrated)), migrated);
 });

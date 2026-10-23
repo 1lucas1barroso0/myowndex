@@ -2,10 +2,10 @@
 
 ## Um arquivo, um comando
 
-Baixe `myowndex-v2.0-linux.sh` e execute no terminal, dentro da pasta do download:
+Baixe `myowndex-v2.1-linux.sh` e execute no terminal, dentro da pasta do download:
 
 ```bash
-bash myowndex-v2.0-linux.sh
+bash myowndex-v2.1-linux.sh
 ```
 
 O atualizador inclui o projeto e verifica a integridade do pacote. Aproveita os seus logins do GitHub e da Vercel e as variáveis dos bancos já configuradas no projeto `myowndex`. Não há cadastro Turso ou migração de salas nesta atualização.
@@ -16,9 +16,9 @@ O registro oferece alternância EN/PT com textos locais, sem depender de GPT ou 
 
 A preparação do código executa testes, lint, verificação de tipos e build antes de publicar. O processo confere o repositório e o projeto Vercel para evitar enviar a atualização ao destino errado. Se uma etapa falhar, interrompe a execução e informa a pasta preservada para investigação.
 
-Execute novamente o mesmo arquivo para retomar. O pacote tem uma pasta de estado própria identificada pela linha de versão e pelo SHA-256; execuções de versões diferentes ficam separadas. Os branches usam o prefixo da linha atual, `codex/myowndex-v2.0-`. A opção `MYOWNDEX_STATE_DIR` permite personalizar o local de trabalho; o nome antigo `MYOWNDEX_V11_STATE_DIR` continua aceito como alternativa. Se esse diretório já contiver outra entrega, o atualizador cria uma subpasta identificada pela linha e pelo digest, preservando o trabalho anterior.
+Execute novamente o mesmo arquivo para retomar. O pacote tem uma pasta de estado própria identificada pela linha de versão e pelo SHA-256; execuções de versões diferentes ficam separadas. Os branches usam o prefixo da linha atual, `codex/myowndex-v2.1-`. A opção `MYOWNDEX_STATE_DIR` permite personalizar o local de trabalho; o nome antigo `MYOWNDEX_V11_STATE_DIR` continua aceito como alternativa. Se esse diretório já contiver outra entrega, o atualizador cria uma subpasta identificada pela linha e pelo digest, preservando o trabalho anterior.
 
-As opções `bash myowndex-v2.0-linux.sh verificar` e `bash myowndex-v2.0-linux.sh extrair` validam o checkout ou extraem os arquivos sem publicar. `COMANDO-V2.0.txt` encontra o instalador baixado; `SHA256-V2.0.txt` contém os hashes dos arquivos de entrega. O pacote também é disponibilizado como `myowndex-v2.0-linux.tar.gz` e `myowndex-v2.0.zip`.
+As opções `bash myowndex-v2.1-linux.sh verificar` e `bash myowndex-v2.1-linux.sh extrair` validam o checkout ou extraem os arquivos sem publicar. `COMANDO-V2.1.txt` encontra o instalador baixado; `SHA256-V2.1.txt` contém os hashes dos arquivos de entrega. O pacote também é disponibilizado como `myowndex-v2.1-linux.tar.gz` e `myowndex-v2.1.zip`.
 
 O empacotador deriva nomes, títulos e metadados da versão estável de `package.json` e exige que ela coincida com o lockfile e o shell offline. O nome interno `scripts/atualizar-v11.template.sh` permanece por compatibilidade; ele não define a numeração da entrega. A confirmação de Preview e produção verifica a versão completa nos metadados do HTML e no service worker, sem acrescentar o número de patch à interface.
 

@@ -26,3 +26,7 @@ tmp
 # Keep the verified sprite ZIPs: scripts/materializar-sprites-2d.mjs
 # needs them BEFORE build. The Next output trace excludes ZIPs at runtime.
 !scripts/verificar-deployment.mjs
+
+!scripts/preparar-offline.mjs
+
+!scripts/offline-build-plugin.cjs

@@ -48,7 +48,7 @@ test("a completed concurrent retry returns its original receipt before rejecting
   const context = { params: Promise.resolve({ code }) };
   const call = async body => {
     const response = await rolls.POST(new Request(`http://localhost/api/rooms/${code}/rolls`, {
-      method: "POST", headers: { "content-type": "application/json", "x-myowndex-room-key": key, "x-myowndex-room-protocol": "3" },
+      method: "POST", headers: { "content-type": "application/json", "x-myowndex-room-key": key, "x-myowndex-room-protocol": "4" },
       body: JSON.stringify(body),
     }), context);
     return { status: response.status, data: await response.json() };

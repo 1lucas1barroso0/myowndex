@@ -46,7 +46,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
         return {name,translated:shown?.label||formatName(name),changed:!!shown&&shown.kind!=="normal"};
     });
     const activate=async choice=>{
-        if(role!=="narrator"||busy)return;
+        if(role!=="narrator"||busy||snapshot.initiative.length)return;
         setBusy(choice.id);
         try{
             let formData=null;
@@ -57,7 +57,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
                 formData=await fetchCached(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(choice.form)}`);
                 if(!formData||formData.name!==choice.form)throw new Error("A forma oficial não pôde ser carregada.");
             }
-            const result=applyGimmick(token,choice.id,{formData});
+            const result=applyGimmick(token,choice.id,{formData,snapshot});
             if(!result.applied)throw new Error(result.reason);
             await onTokenChange(result.token);
             onSelectToken(token.id);
@@ -68,7 +68,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
     };
     return <section className="battle-gimmick-panel" aria-label="Transformações especiais">
         <header>
-          <span><strong>Transformações de batalha</strong><small>Ative uma mecânica disponível para este Pokémon.</small></span>
+          <span><strong>Transformações de batalha</strong><small>Prepare a transformação antes de rolar a iniciativa.</small></span>
           <label className="gimmick-pokemon-choice">
             <span>Pokémon</span>
             <RoomSelect aria-label="Pokémon para transformar" value={token.id}
@@ -80,7 +80,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
         {state.active ? <div className={`battle-gimmick-current is-${state.active}`} role="status">
             <b>{headings[state.active]||"Forma especial"} ativa</b>
             {state.active==="tera"&&<small>Tipo Tera: {formatName(token.teraType)}</small>}
-            {["dyna","gmax"].includes(state.active)&&state.rounds>0&&<small>{state.rounds} {state.rounds===1?"rodada restante":"rodadas restantes"}</small>}
+            {["dyna","gmax"].includes(state.active)&&state.rounds>0&&<small>HP na entrada {state.base?.currentHp}/{state.base?.maxHp} → HP Max atual {token.currentHp}/{token.maxHp} · {state.rounds} {state.rounds===1?"rodada restante":"rodadas restantes"}</small>}
             {state.active==="primal" && <small>Orb equipada • sem limite de três rodadas</small>}
             {state.active==="ultra" && state.rounds>0 && <small>Light That Burns the Sky fica disponível na próxima rodada</small>}
             {["eternamax","primal"].includes(state.active) && role==="narrator" && <button type="button" disabled={Boolean(busy)} onClick={()=>void onTokenChange(endGimmick(token))}>{state.active==="primal"?"Encerrar Reversão Primitiva":"Encerrar Eternamax"}</button>}

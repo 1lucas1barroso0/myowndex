@@ -56,7 +56,7 @@ const GeneratorPartner = React.memo(function GeneratorPartner({ entry, selected,
         <div className="generator-types">{partner.species.types?.map(type => <span key={type.type.name} style={{ background: TYPE_COLORS[type.type.name], color: TYPE_TEXT_COLORS[type.type.name] }}>{formatType(type.type.name)}</span>)}</div>
         <dl className="generator-partner-facts"><div><dt>Natureza</dt><dd>{formatName(partner.nature)}</dd></div><div><dt>Habilidade</dt><dd>{formatName(partner.ability) || 'Sem habilidade'}</dd></div></dl>
         <ul className="generator-moves" aria-label={`Movimentos de ${generatedName(partner)}`}>{partner.moves.filter(Boolean).map(move => <li key={move}>{formatName(move)}</li>)}</ul>
-        {!partner.moves.some(Boolean) && <p className="generator-small">Neste jogo, ainda não aprende movimentos por nível.</p>}
+        {!partner.moves.some(Boolean) && <p className="generator-small">{entry.versionGroup === 'champions' ? 'Em Champions, os movimentos são escolhidos por treinamento. Defina-os na ficha do PC.' : 'Neste jogo, ainda não aprende movimentos por nível.'}</p>}
         <details className="generator-partner-details"><summary>Ficha do Pokémon</summary><label>Apelido<input type="text" maxLength="80" value={partner.nickname} readOnly={entry.saved} disabled={working} onChange={event => onNickname(partner.id, event.target.value)} /></label><dl className="generator-partner-facts"><div><dt>HP</dt><dd>{getGeneratedHp(partner, experienceMode)}</dd></div><div><dt>Jogo</dt><dd>{VERSION_LABELS[entry.versionGroup] || entry.versionGroup}</dd></div></dl><dl className="generator-ivs">{Object.entries(partner.ivs).map(([stat, value]) => <div key={stat}><dt>{STAT_MAP[stat]} · IV</dt><dd>{value}</dd></div>)}</dl><button type="button" className="generator-remove-partner" disabled={working} onClick={() => onRemove(partner.id)} aria-label={`Remover ${generatedName(partner)} do encontro`}>Remover do encontro</button></details>
     </article>;
 });
@@ -405,7 +405,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                 <PokemonCompanion place="generator" className="companion-compact" eager />
                 <button type="button" ref={closeRef} className="generator-close" onClick={onClose} aria-label="Fechar gerador">×</button>
             </header>
-            {!draftReady ? <p role="status" className="sr-only">Abrindo seu encontro…</p> : <div className="generator-content">
+            {!draftReady ? <p role="status" className="generator-notice">Abrindo seu encontro…</p> : <div className="generator-content">
                 <form className={`generator-options${results.length ? '' : ' generator-empty'}`} onSubmit={requestGeneration} aria-busy={busy}>
                     <details className="generator-customize"><summary>Como funciona o gerador</summary><p className="generator-intro">Cada entrada da Pokédex tem a mesma chance de ser escolhida; se ela tiver formas possíveis, o MyOwnDex sorteia a forma só depois. Você escolhe quem pode aparecer nos filtros.</p></details>
 
@@ -426,6 +426,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
                             <small>Define os golpes disponíveis. No modo Jogos, também respeita o que existia naquela época.</small>
                         </div>
                         <label><span className="sr-only">Jogo de referência</span><RoomSelect disabled={working} value={options.versionGroup} onChange={event => updateOption('versionGroup', event.target.value)} aria-label="Jogo de referência dos Pokémon gerados">{VERSION_GROUPS.map(group => <option key={group.value} value={group.value}>{group.label}</option>)}</RoomSelect></label>
+                        {options.versionGroup === 'champions' && <p className="generator-choice-note">Este gerador escolhe golpes aprendidos por nível. Em Champions, defina os movimentos por treinamento na ficha do PC. Para receber um repertório por nível, escolha outro jogo ou a opção automática.</p>}
                     </section>
 
                     <details className="generator-customize" ref={customizationRef}><summary>Escolher quem pode aparecer</summary>
@@ -464,7 +465,7 @@ export default function GeneratorModal({ onClose, teams = [], experienceMode = '
 
                     <button ref={generateRef} type="submit" className="generator-primary" disabled={working}>{busy ? <span role="status">Gerando {progress.completed} de {progress.total}…</span> : results.length ? 'Criar novo encontro' : 'Gerar Pokémon'}</button>
                     {busy && <button type="button" onClick={() => { requestRef.current?.abort(); sequenceRef.current += 1; activityRef.current.busy = false; setBusy(false); window.requestAnimationFrame(() => generateRef.current?.focus({ preventScroll: true })); }}>Cancelar geração</button>}
-                    <details className="generator-customize"><summary>Como a ficha é montada</summary><small>O Pokémon vem no nível escolhido, com natureza, habilidade, IVs, HP e até quatro golpes aprendidos por nível no jogo de referência. EVs e XP começam em zero.</small>{experienceMode !== 'game' && options.versionGroup !== 'auto' && <small>O jogo de referência escolhe o repertório de golpes. Os demais cálculos seguem as regras atuais do MyOwnDex.</small>}</details>
+                    <details className="generator-customize"><summary>Como a ficha é montada</summary><small>O Pokémon vem no nível escolhido, com natureza, habilidade, IVs, HP e até quatro golpes aprendidos por nível no jogo de referência. EVs e XP começam em zero. A opção automática usa o jogo mais recente com aprendizado por nível para este Pokémon.</small>{experienceMode !== 'game' && options.versionGroup !== 'auto' && <small>O jogo de referência escolhe o repertório de golpes. Os demais cálculos seguem as regras atuais do MyOwnDex.</small>}</details>
                 </form>
                 <div className="generator-results" ref={resultsRef} tabIndex={-1} role="region" aria-label="Pokémon gerados" aria-busy={saving || exporting}>
                     {error && <p className="generator-error" role="alert">{error}</p>}

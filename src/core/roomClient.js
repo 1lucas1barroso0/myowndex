@@ -5,7 +5,7 @@ import { readDurableStorage, readStorage, removeStorage, writeStorage } from "./
 
 const REQUEST_TIMEOUT = 15000;
 const SAFE_REQUEST_METHODS = new Set(["GET", "HEAD"]);
-export const ROOM_PROTOCOL_VERSION = "3";
+export const ROOM_PROTOCOL_VERSION = "4";
 const pause = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
 
 const retryWait = (response, attempt) => {

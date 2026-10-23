@@ -26,12 +26,12 @@ test("initiative repeats only unresolved ties and audits every die, never IDs", 
 test("all twenty weighted multi-hit outcomes yield exactly 35/35/15/15 percent", () => {
   const tally = {};
   for (let i = 0; i < 20; i++) {
-    const resolution = calculateMoveResolution({ attacker: token("a"), defender: token("b"), move: { ...move, meta: { min_hits: 2, max_hits: 5 } }, random: sequence([0.8, 0.8, 0, 0, (i + 0.5) / 20]) });
+    const resolution = calculateMoveResolution({ attacker: token("a"), defender: token("b"), move: { ...move, meta: { min_hits: 2, max_hits: 5 } }, random: sequence([0.8, 0.8, 0, 0, (i + 0.5) / 20, .5, .5, .5, .5, .5]) });
     tally[resolution.hitCount] = (tally[resolution.hitCount] || 0) + 1;
   }
   assert.deepEqual(tally, { 2: 7, 3: 7, 4: 3, 5: 3 });
   for (const [item, ability, draws, count] of [["loaded-dice", "", [0], 4], ["loaded-dice", "", [0.99], 5], ["", "skill-link", [], 5]]) {
-    const resolution = calculateMoveResolution({ attacker: token("a", { item, ability }), defender: token("b"), move: { ...move, meta: { min_hits: 2, max_hits: 5 } }, random: sequence([0.8, 0.8, 0, 0, ...draws]) });
+    const resolution = calculateMoveResolution({ attacker: token("a", { item, ability }), defender: token("b"), move: { ...move, meta: { min_hits: 2, max_hits: 5 } }, random: sequence([0.8, 0.8, 0, 0, ...draws, .5, .5, .5, .5, .5]) });
     assert.equal(resolution.hitCount, count);
   }
 });
@@ -201,7 +201,7 @@ test("capture accepts intent only, uses canonical HP and consumes one interventi
   for (const key of ["chance", "captureRate", "result", "success", "currentHp"]) {
     assert.throws(() => normalizeAuthoritativeRequest({ ...normalized, [key]: 100 }), /não aceita/);
   }
-  const args = { request: normalized, snapshot: { ...room(), initiative: ["a", "b"], turnIndex: 1 }, role: "narrator", species: { capture_rate: 45 } };
+  const args = { request: normalized, snapshot: { ...room(), initiative: ["a", "b"], turnIndex: 0, trainerBags: { a: { "poke-ball": 2 } } }, role: "narrator", species: { capture_rate: 45 } };
   assert.throws(() => resolveCaptureAction({ ...args, role: "player" }), /Só o Narrador/);
   const failed = resolveCaptureAction({ ...args, random: sequence([0.99]) });
   assert.equal(failed.result.success, false);

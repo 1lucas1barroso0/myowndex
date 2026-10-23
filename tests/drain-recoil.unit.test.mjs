@@ -23,6 +23,7 @@ const token = (id, patch = {}) => ({
 });
 
 const resolve = ({ user = token("user", { currentHp: 10 }), target = token("target"), name = "giga-drain", drain = 50, damage = 10, hit = true, ...patch } = {}) => applyMoveConsequences({
+  random:()=>.5,
   tokens: [user, target],
   attackerId: user.id,
   defenderId: target.id,
@@ -79,7 +80,7 @@ test("Struggle still costs twenty-five percent of maximum HP with either recoil 
   assert.equal(result.consequences.recoil, 1);
 });
 
-test("Big Root increases drain healing by thirty percent, floors it and leaves outgoing damage unchanged", () => {
+test("Big Root increases drain healing by thirty percent, resolves its integer remainder and leaves outgoing damage unchanged", () => {
   const result = resolve({ user: token("user", { item: "big-root", currentHp: 10 }) });
   assert.equal(userAfter(result).currentHp, 16);
   assert.equal(result.consequences.healed, 6);

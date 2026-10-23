@@ -71,7 +71,7 @@ test("legacy HP migration waits for species stats instead of guessing", () => {
     }],
   }).pokemon[0];
   assert.equal(hydrated.rpg.scaleVersion, RPG_SCALE_VERSION);
-  assert.equal(hydrated.rpg.currentHp, 2);
+  assert.equal(hydrated.rpg.currentHp, 3);
 });
 
 test("legacy scale preserves HP proportion when a saved partner migrates", () => {
@@ -97,7 +97,7 @@ test("legacy scale preserves HP proportion when a saved partner migrates", () =>
     }],
   }).pokemon[0];
   assert.equal(migrated.rpg.scaleVersion, RPG_SCALE_VERSION);
-  assert.equal(migrated.rpg.currentHp, 2, "a legacy 1/1 partner must become 2/2, not 1/2");
+  assert.equal(migrated.rpg.currentHp, 3, "a legacy 1/1 partner must become 3/3, not a wounded partner");
 });
 
 test("shared teams preserve current sleep and freeze counters", async () => {

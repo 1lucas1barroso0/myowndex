@@ -117,7 +117,7 @@ export async function POST(request: Request, context: RouteContext) {
 
     const input = await request.json().catch(() => null);
     const normalized = normalizeAuthoritativeRequest(input);
-    if (normalized.action === "start-battle" && auth.role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode começar uma nova batalha.", 403);
+    if (["start-battle", "end-battle"].includes(normalized.action) && auth.role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode começar ou encerrar uma batalha.", 403);
     if (normalized.action === "capture" && auth.role !== "narrator") throw new AuthoritativeActionError("Só o Narrador confirma uma captura na cena.", 403);
     const actorKey = auth.accountId ? `account:${auth.accountId}:${auth.role}:${auth.playerId || 'narrator'}` : auth.role === "narrator" ? "narrator" : auth.playerId || "player";
     const fingerprintPayload = requestFingerprintPayload(normalized);

@@ -224,7 +224,7 @@ test("account import, merge and export migrate legacy HP once while preserving c
         "the server must leave HP migration to the client with known species stats");
     const imported = importGuestDocument(document(), cloudValue, 100);
     const partner = imported.boxes[0].pokemon[0];
-    assert.equal(partner.rpg.currentHp, 8);
+    assert.equal(partner.rpg.currentHp, 10);
     assert.equal(partner.rpg.scaleVersion, RPG_SCALE_VERSION);
     assert.equal(partner.rpg.xp, 7);
     assert.equal(partner.rpg.sleepTurns, 2);
@@ -234,7 +234,7 @@ test("account import, merge and export migrate legacy HP once while preserving c
             rpg: { ...partner.rpg, status: "freeze", sleepTurns: null, freezeTurns: 1 } }] }] }, 110);
     const merged = mergeAccountDocuments(imported, remote, imported).document;
     const restored = normalizeAccountDocument(JSON.parse(JSON.stringify(merged)));
-    assert.equal(restored.boxes[0].pokemon[0].rpg.currentHp, 8, "restoring a cloud copy must not double HP again");
+    assert.equal(restored.boxes[0].pokemon[0].rpg.currentHp, 10, "restoring a cloud copy must not double HP again");
     assert.equal(restored.boxes[0].pokemon[0].rpg.freezeTurns, 1);
     assert.equal(restored.boxes[0].pokemon[0].nickname, "Parceiro no segundo dispositivo");
     assert.equal(JSON.stringify(guest), original, "the original guest backup remains untouched");
@@ -254,12 +254,12 @@ test("account cloud copies preserve local adventure migration markers, bank coun
     assert.equal(saved.localAdventure.snapshot.tokens[0].currentHp, 4);
     const migrated = normalizeRoomSnapshot(saved.localAdventure.snapshot);
     assert.equal(migrated.schema, ROOM_SCHEMA_VERSION);
-    assert.equal(migrated.tokens[0].maxHp, 12);
-    assert.equal(migrated.tokens[0].currentHp, 8);
+    assert.equal(migrated.tokens[0].maxHp, 15);
+    assert.equal(migrated.tokens[0].currentHp, 10);
     assert.equal(migrated.tokens[0].sleepTurns, 2);
     assert.equal(migrated.tokens[0].xp, 7);
     assert.equal(migrated.benchTokens[0].freezeTurns, 1);
-    assert.equal(migrated.benchTokens[0].currentHp, 4);
+    assert.equal(migrated.benchTokens[0].currentHp, 5);
     assert.deepEqual(migrated.hitKillProtectionUsed, ["partner-legacy"]);
     assert.deepEqual(migrated.hitKillProtectionDisabled, ["frozen"]);
     const restored = document({ localAdventure: { ...saved.localAdventure, snapshot: migrated } });

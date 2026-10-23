@@ -1,3 +1,4 @@
+import { resolveExperienceProgress } from "./integerRules.js";
 import { calculateStat, convertToTTRPG } from "./mechanics.js";
 import { finiteNumberOrNull, integerInRange, MAX_SAFE_GAME_INTEGER } from "./math.js";
 import { secureRandomId } from "./random.js";
@@ -87,8 +88,10 @@ export function applyPokemonExperienceAward(pokemon, { xp = 1, awardId, isTTRPG 
     if (!Number.isSafeInteger(acquired) || acquired < 1 || acquired > 999999) throw new RangeError("A recompensa de XP precisa ser um número inteiro positivo.");
     const cap = integerInRange(levelCap, 1, 200, 100);
     const currentLevel = integerInRange(pokemon.level, 1, 200, 1);
-    const nextXp = integerInRange(integerInRange(pokemon.rpg?.xp, 0, 999999, 0) + acquired, 0, 999999, 0);
-    const nextLevel = currentLevel < cap && nextXp >= Math.floor((currentLevel + 1) / 2) ? currentLevel + 1 : currentLevel;
+    const nextXp = integerInRange(pokemon.rpg?.xp, 0, MAX_SAFE_GAME_INTEGER, 0) + acquired;
+    if (!Number.isSafeInteger(nextXp) || !Number.isSafeInteger(growth.pendingEvs + acquired * 2)) throw new RangeError("O saldo ultrapassaria o limite inteiro seguro.");
+    const progress = resolveExperienceProgress({ level: currentLevel, xp: nextXp, levelCap: cap });
+    const nextLevel = progress.level;
     const nextGrowth = normalizeGrowthData({ ...growth,
         pendingEvs: integerInRange(growth.pendingEvs + acquired * 2, 0, MAX_SAFE_GAME_INTEGER, 0),
         experienceAwards: [...growth.experienceAwards, { id: awardId, xp: acquired, levelCap: cap, isTTRPG }],
@@ -106,7 +109,7 @@ export function applyPokemonExperienceAward(pokemon, { xp = 1, awardId, isTTRPG 
         currentHp = previousHp === 0 ? 0 : Math.min(after, previousHp + Math.max(0, after - before));
     }
     return { ...pokemon, level: nextLevel, rpg: { ...pokemon.rpg, ...nextGrowth,
-        xp: nextLevel > currentLevel ? 0 : nextXp, currentHp } };
+        xp: progress.xp, currentHp } };
 }
 
 const growthFree = pokemon => {

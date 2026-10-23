@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef } from "react";
-import { getHitKillProtectionKey } from "../../core/automation.js";
+import { getHitKillProtectionKey, hasGeneralHitKillProtection } from "../../core/automation.js";
 import { formatPokemonInScene } from "../../core/copy.js";
 import { formatName, formatType } from "../../core/mechanics.js";
 import { clampFinite } from "../../core/math.js";
@@ -17,7 +17,8 @@ import useFrameState from "../Shared/useFrameState.js";
 const clamp = (value, minimum, maximum) => clampFinite(value, minimum, maximum, minimum);
 
 const HIT_KILL_FIELD_LABELS = Object.freeze({
-    available: "proteção contra hit kill disponível",
+    available: "proteção contra hit kill ainda não usada; requer HP cheio",
+    excluded: "proteção geral contra hit kill não se aplica a Shedinja",
     used: "proteção contra hit kill consumida nesta batalha",
     lost: "proteção contra hit kill encerrada por autocusto nesta batalha",
 });
@@ -364,7 +365,7 @@ export default function Battlefield({
                 {visibleTokens.map(token => {
                     const position = drag?.tokenId === token.id ? drag : token;
                     const protectionKey = getHitKillProtectionKey(token);
-                    const protectionState = protectionKey && hitKillProtectionUsed.has(protectionKey)
+                    const protectionState = !hasGeneralHitKillProtection(token) ? "excluded" : protectionKey && hitKillProtectionUsed.has(protectionKey)
                         ? "used"
                         : protectionKey && hitKillProtectionDisabled.has(protectionKey)
                             ? "lost"

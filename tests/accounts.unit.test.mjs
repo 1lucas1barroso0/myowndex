@@ -241,7 +241,7 @@ test("account routes authenticate, isolate, synchronize and recover real SQLite 
     const join = await import("../app/api/rooms/[code]/join/route.ts");
     const roomRequest = (code, key, account, payload, options = {}) => new Request(`https://myowndex.example/api/rooms/${code}`, {
       method: options.method || (payload === undefined ? "GET" : "POST"),
-      headers: { origin: "https://myowndex.example", "content-type": "application/json", "x-myowndex-room-protocol": "3", "x-myowndex-room-key": key,
+      headers: { origin: "https://myowndex.example", "content-type": "application/json", "x-myowndex-room-protocol": "4", "x-myowndex-room-key": key,
         ...(account ? { cookie: account.cookie, "x-myowndex-account": account.id } : {}), ...options.headers },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     });
@@ -289,7 +289,7 @@ test("account routes authenticate, isolate, synchronize and recover real SQLite 
   await t.test("room deletion cascades memberships while invalidated room proofs stop account authorization", async () => {
     const create = await import("../app/api/rooms/route.ts");
     const roomRoute = await import("../app/api/rooms/[code]/route.ts");
-    const createRequest = new Request("https://myowndex.example/api/rooms", { method: "POST", headers: { "content-type": "application/json", "x-myowndex-room-protocol": "3" }, body: JSON.stringify({ title: "Sala de teste" }) });
+    const createRequest = new Request("https://myowndex.example/api/rooms", { method: "POST", headers: { "content-type": "application/json", "x-myowndex-room-protocol": "4" }, body: JSON.stringify({ title: "Sala de teste" }) });
     const room = await (await create.POST(createRequest)).json();
     await call("rooms", { code: room.code, key: room.narratorKey }, aliceSecond);
     sqlite.prepare("UPDATE rooms SET narrator_secret_hash=? WHERE code=?").run("invalidated", room.code);

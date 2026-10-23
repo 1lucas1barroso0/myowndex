@@ -9,7 +9,7 @@ const host = new URL(baseUrl).hostname;
 if (!["localhost", "127.0.0.1", "0.0.0.0"].includes(host)) throw new Error("Run this isolated room test only on a local QA server.");
 const request = async (path, { key = "", body, ...options } = {}) => {
     const response = await fetch(new URL(path, baseUrl), { ...options, headers: {
-        "content-type": "application/json", "x-myowndex-room-protocol": "3", "x-myowndex-room-key": key,
+        "content-type": "application/json", "x-myowndex-room-protocol": "4", "x-myowndex-room-key": key,
     }, body: body ? JSON.stringify(body) : undefined });
     return { status: response.status, data: await response.json() };
 };

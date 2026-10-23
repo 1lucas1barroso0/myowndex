@@ -23,9 +23,15 @@ export const calculateCaptureChance = ({ target, captureRate, ball = "poke-ball"
     const hpFactor = (3 * maxHp - 2 * currentHp) / (3 * maxHp);
     const ballBonus = CAPTURE_BALLS[ball].multiplier;
     const automatic = Boolean(CAPTURE_BALLS[ball].automatic);
-    const rawChance = 100 * captureRate / 255 * hpFactor * ballBonus * statusBonus;
+    if (["dyna", "gmax", "eternamax"].includes(target?.gimmickState?.active)) throw new Error("Encerre a forma Max antes de tentar capturar.");
+    // Multiply integer ratios before division; 50% must never become 49%.
+    const ballTwice = Math.round(ballBonus * 2);
+    const statusTwice = Math.round(statusBonus * 2);
+    const numerator = 100 * captureRate * (3 * maxHp - 2 * currentHp) * ballTwice * statusTwice;
+    const denominator = 255 * 3 * maxHp * 4;
+    const rawChance = Math.floor(numerator / denominator);
     const chance = automatic ? 100 : captureRate === 0 ? 0 : Math.max(1, Math.min(100, Math.floor(rawChance)));
-    return { model: "rpg-d100-v1", captureRate, currentHp, maxHp, hpFactor, ball, ballBonus, status: target?.status || "", statusBonus, rawChance, chance, automatic };
+    return { model: "rpg-d100-v2", numerator, denominator, captureRate, currentHp, maxHp, hpFactor, ball, ballBonus, status: target?.status || "", statusBonus, rawChance, chance, automatic };
 };
 
 export const rollCapture = (options, random) => {

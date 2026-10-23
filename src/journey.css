@@ -48,6 +48,10 @@ html[data-theme="night"]{
   --ui-blue: #79d6ff;
   --ui-selected: #115985;
   --ui-shadow: 0 4px 0 #091a25, 0 12px 28px #06131d26;
+  /* Legacy panels must follow surfaces. Their old ink-based mixes turn pale
+     when the shared night theme correctly changes ink to white. */
+  --dex-dark-surface: var(--ui-panel);
+  --dex-dark-raised: var(--ui-raised);
   --journey-teal: #70efa7;
   --journey-focus: #f2c655;
 }
@@ -221,8 +225,8 @@ html :is(body,.app-root.game-edition.handheld-edition) .confirm-dialog-shell.is-
 html :is(body,.app-root.game-edition.handheld-edition) .confirm-dialog-actions > button:disabled { opacity:.6; cursor:wait; }
 
 html .error-boundary-shell{ background:var(--ui-panel) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-line) !important; border-top:4px solid var(--ui-blue) !important; border-radius:.4rem !important; font-family:"Trebuchet MS",system-ui,sans-serif !important; }
-html .error-boundary-shell .game-button{ min-width:44px; min-height:48px; padding:.8rem 1rem; background:#b9233b !important; color:#fff !important; border:1px solid #941d31; border-radius:.25rem; font-size:1rem !important; line-height:1.5; letter-spacing:0; text-transform:none; }
-html .error-boundary-shell .game-button:focus-visible{ outline:3px solid var(--journey-focus); outline-offset:3px; }
+html .error-boundary-shell .room-primary-button{ min-width:44px; min-height:48px; padding:.8rem 1rem; background:#b9233b !important; color:#fff !important; border:1px solid #941d31; border-radius:.25rem; font-size:1rem !important; line-height:1.5; letter-spacing:0; text-transform:none; }
+html .error-boundary-shell .room-primary-button:focus-visible{ outline:3px solid var(--journey-focus); outline-offset:3px; }
 
 @keyframes journey-partner-hop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @media (max-width: 700px){
@@ -252,7 +256,7 @@ html .app-root :is(.experience-award,.ev-training,.friendship-control){
   color: var(--ui-ink);
   font-size: 1rem;
 }
-html .app-root :is(.experience-award,.experience-battle-context,.ev-training-options,.friendship-help) > summary{
+html .app-root :is(.experience-award,.experience-battle-context,.experience-calculation,.experience-manual-choice,.experience-context-editor,.ev-training-options,.friendship-help) > summary{
   min-height: 48px;
   padding: .85rem 0;
   color: var(--ui-blue);
@@ -276,6 +280,8 @@ html .app-root :is(.experience-base-choice button,.experience-received button,.f
   font-weight: 750;
 }
 html .app-root .experience-base-choice button[aria-pressed="true"]{ background: var(--ui-selected); color: var(--ui-blue); border: 2px solid var(--ui-blue); }
+html .app-root .experience-base-choice button{ display: grid; align-content: center; gap: .2rem; padding-inline: .35rem; border-width: 2px; }
+html .app-root .experience-base-choice button small{ color: inherit; font-size: .75rem; font-weight: 500; line-height: 1.4; }
 html .app-root .experience-battle-context{ margin: 0; border-top: 1px solid var(--ui-line); border-bottom: 1px solid var(--ui-line); }
 html .app-root .experience-battle-toggle{ display: flex; align-items: center; gap: .6rem; min-height: 44px; font-size: .875rem; margin: .3rem 0 .75rem; }
 html .app-root .experience-battle-toggle input{ width: 20px; height: 20px; flex: 0 0 20px; }

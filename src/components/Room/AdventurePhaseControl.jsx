@@ -7,7 +7,7 @@ const phaseIcons = { exploracao: "adventure", interpretacao: "guide", batalha: "
 
 const movementKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
-export default function AdventurePhaseControl({ value, readOnly, onChange, onStartBattle, activeRound = false, busy = false, onError }) {
+export default function AdventurePhaseControl({ value, readOnly, onChange, onStartBattle, onEndBattle, battleStarted = false, battleEnded = false, activeRound = false, busy = false, onError }) {
     const optionRefs = useRef([]);
     const selectedIndex = Math.max(0, ROOM_PHASES.findIndex(phase => phase.id === value));
     const selectedPhase = ROOM_PHASES[selectedIndex] || ROOM_PHASES[0];
@@ -56,13 +56,17 @@ export default function AdventurePhaseControl({ value, readOnly, onChange, onSta
                     );
                 })}
             </div>
+            {!readOnly && (value === "batalha" || battleStarted) && <div className="turn-order-actions">
+                {battleStarted && !battleEnded && onEndBattle && <NewBattleButton ending onStart={onEndBattle} activeRound={activeRound} disabled={busy} onError={onError} />}
+                {onStartBattle && <NewBattleButton onStart={onStartBattle} activeRound={activeRound} disabled={busy} onError={onError} />}
+            </div>}
+            {battleEnded && <p className="capture-note">Confronto encerrado. Os gastos foram preservados; escolha Nova batalha para outro combate.</p>}
             <details className="room-phase-help">
                 <summary>Sobre as fases</summary>
                 <div className="room-phase-help-content" role="note">
                     <strong>{selectedPhase.label}</strong>
                     <p>{selectedPhase.description}</p>
                     <small>{readOnly ? "O Narrador escolhe a fase atual." : "Mudar a fase mantém a batalha e seus registros."}</small>
-                    {!readOnly && onStartBattle && <NewBattleButton onStart={onStartBattle} activeRound={activeRound} disabled={busy} onError={onError} />}
                 </div>
             </details>
         </section>

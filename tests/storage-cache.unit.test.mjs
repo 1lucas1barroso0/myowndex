@@ -159,7 +159,7 @@ test("480 partners fit below a four-MiB UTF-16 localStorage budget without dropp
   assert.equal(saveTeams(teams), true);
   const persisted = storage.getItem(TEAM_STORAGE_KEY);
   const payload = JSON.parse(persisted);
-  assert.equal(payload.schema, 5);
+  assert.equal(payload.schema, 6);
   assert.equal(typeof payload.savedAt, "number");
   assert.equal(payload.teams.length, 80);
   assert.equal(payload.teams.reduce((sum, box) => sum + box.pokemon.length, 0), 480);
@@ -167,7 +167,7 @@ test("480 partners fit below a four-MiB UTF-16 localStorage budget without dropp
   for (const [box, saved] of loadTeams().entries()) {
     assert.equal(saved.shareId, teams[box].shareId);
     assert.equal(saved.updatedAt, 1);
-    for (const [slot, partner] of saved.pokemon.entries()) assert.deepEqual(partner, compactPokemon(teams[box].pokemon[slot]));
+    for (const [slot, partner] of saved.pokemon.entries()) assert.deepEqual(compactPokemon(partner), compactPokemon(teams[box].pokemon[slot]));
   }
 });
 
@@ -482,13 +482,17 @@ test("a save completion cannot discard an edit scheduled while that save was run
   assert.deepEqual(values, ["older", "newer"]);
 });
 
-async function serviceWorker(fetcher) {
+async function serviceWorker(fetcher, caches = new MemoryCaches()) {
   const callbacks = new Map();
-  const caches = new MemoryCaches();
   let calls = 0;
   const context = vm.createContext({
     URL, Response, Headers, Promise, caches,
-    fetch: async (request, options) => { calls++; return fetcher ? fetcher(request, options) : new Response(requestKey(request)); },
+    fetch: async (request, options) => { calls++; if (fetcher) return fetcher(request, options);
+      const url = requestKey(request);
+      if (url.endsWith("/offline-assets.json")) return Response.json({ version: packageVersion, bytes: 4, assets: [{path:"/_next/static/app.js",bytes:4}] });
+      if (url === origin + "/") return new Response('<script src="/_next/static/app.js"></script>');
+      if (url.endsWith("/_next/static/app.js")) return new Response("boot");
+      return new Response(url); },
     self: { location: { origin }, addEventListener: (name, fn) => callbacks.set(name, fn), skipWaiting: async () => {}, clients: { claim: async () => {} } },
   });
   vm.runInContext(await readFile(new URL("../public/sw.js", import.meta.url), "utf8"), context);
@@ -500,7 +504,17 @@ async function serviceWorker(fetcher) {
     await Promise.all(maintenance);
     return result;
   };
-  return { callbacks, caches, asset, calls: () => calls };
+  const navigate = async url => {
+    const request = new Request(url);
+    Object.defineProperty(request, "mode", { value: "navigate" });
+    let response;
+    const maintenance = [];
+    callbacks.get("fetch")({request,respondWith:value=>{response=value;},waitUntil:value=>maintenance.push(value)});
+    const result = await response;
+    await Promise.all(maintenance);
+    return result;
+  };
+  return { callbacks, caches, asset, navigate, calls: () => calls };
 }
 
 test("offline asset LRU is bounded across concurrent tabs, pins the shell, and ignores private traffic", async () => {
@@ -544,6 +558,7 @@ test("worker activation discards old sprite appearances while preserving current
   await (await worker.caches.open(assetCacheName)).put(`${origin}/sprites/native/preserved.apng`, new Response("current authored animation"));
   await (await worker.caches.open("myowndex-api-v5")).put(catalogue + "25", Response.json({ id: 25 }));
   await (await worker.caches.open("another-app-cache")).put("/private", new Response("untouched private content"));
+  await (await worker.caches.open(shellCacheName)).put("/__myowndex-offline-ready", new Response(packageVersion));
   let activation;
   worker.callbacks.get("activate")({ waitUntil: task => { activation = task; } });
   await activation;
@@ -1016,4 +1031,92 @@ test("scenarios refresh online and remain available offline", async () => {
   online=false;
   assert.equal(await (await worker.asset(url)).text(),"second");
   assert.equal(await (await (await worker.caches.open(assetCacheName)).match(url)).text(),"second");
+});
+
+
+const workerEvent = async (worker, name) => {
+  let completion;
+  worker.callbacks.get(name)({waitUntil:task=>{completion=task;}});
+  await completion;
+};
+
+test("first offline opening pins all build chunks, including unopened features, before a disconnect", async()=>{
+  let online=true;
+  const assets=[{path:"/_next/static/boot.js",bytes:4},{path:"/_next/static/lazy-room.js",bytes:4},{path:"/_next/static/style.css",bytes:4}];
+  const worker=await serviceWorker(async request=>{
+    if(!online) throw new TypeError("offline");
+    const url=requestKey(request);
+    if(url.endsWith("/offline-assets.json"))return Response.json({version:packageVersion,bytes:12,assets});
+    if(url===origin+"/")return new Response('<script src="/_next/static/boot.js"></script><link href="/_next/static/style.css">');
+    return new Response("code");
+  });
+  await workerEvent(worker,"install");
+  await workerEvent(worker,"activate");
+  online=false;
+  assert.match(await (await worker.navigate(origin+"/?abrir=aventura")).text(),/boot.js/);
+  for(const asset of assets)assert.equal(await (await worker.asset(origin+asset.path)).text(),"code");
+});
+
+test("interrupted PWA updates retain the previous complete opening and its code, then recover online",async()=>{
+  let complete=false;
+  const caches=new MemoryCaches();
+  const old=await caches.open("myowndex-shell-v2.0.52-app");
+  await old.put("/",new Response('<script src="/_next/static/previous.js"></script>'));
+  await old.put("/_next/static/previous.js",new Response("previous code"));
+  const player=await caches.open("player-private");await player.put("/box",new Response("do not change"));
+  const worker=await serviceWorker(async request=>{
+    const url=requestKey(request);
+    if(url.endsWith("/offline-assets.json"))return Response.json({version:packageVersion,bytes:8,assets:[{path:"/_next/static/next.js",bytes:4},{path:"/_next/static/lazy.js",bytes:4}]});
+    if(url===origin+"/")return new Response('<script src="/_next/static/next.js"></script>');
+    if(url.endsWith("lazy.js")&&!complete)throw new TypeError("disconnected midway");
+    if(url.endsWith("previous.js"))throw new TypeError("old code no longer online");
+    return new Response("next");
+  },caches);
+  await workerEvent(worker,"install");await workerEvent(worker,"activate");
+  assert.ok((await caches.keys()).includes("myowndex-shell-v2.0.52-app"));
+  assert.equal(await (await worker.asset(origin+"/_next/static/previous.js")).text(),"previous code");
+  assert.equal(await (await (await caches.open(shellCacheName)).match("/"))?.text(),undefined);
+  complete=true;
+  await worker.navigate(origin+"/");
+  assert.ok(await (await caches.open(shellCacheName)).match("/__myowndex-offline-ready"));
+  await workerEvent(worker,"activate");
+  assert.ok(!(await caches.keys()).includes("myowndex-shell-v2.0.52-app"));
+  assert.equal(await (await player.match("/box")).text(),"do not change");
+});
+
+test("a mismatched build or missing bytes cannot be marked as a complete offline release",async()=>{
+  for(const failure of ["version","html","bytes","quota"]){
+    const worker=await serviceWorker(async request=>{
+      const url=requestKey(request);
+      if(url.endsWith("/offline-assets.json"))return Response.json({version:failure==="version"?"0.0.0":packageVersion,bytes:4,assets:[{path:"/_next/static/app.js",bytes:4}]});
+      if(url===origin+"/")return new Response(`<script src="/_next/static/${failure==="html"?"other":"app"}.js"></script>`);
+      return new Response(failure==="bytes"?"truncated":"boot");
+    });
+    if(failure==="quota"){const cache=await worker.caches.open(shellCacheName);cache.put=async()=>{throw new Error("QuotaExceededError");};}
+    await workerEvent(worker,"install");
+    assert.equal(await (await worker.caches.open(shellCacheName)).match("/__myowndex-offline-ready"),undefined,failure);
+  }
+});
+
+
+test("several interrupted releases preserve the newest complete shell instead of a newer partial cache", async () => {
+  for (const marked of [true, false]) {
+    const caches = new MemoryCaches();
+    const goodName = "myowndex-shell-v2.0.58";
+    const good = await caches.open(goodName);
+    await good.put("/", new Response('<script src="/_next/static/good.js"></script>'));
+    await good.put("/_next/static/good.js", new Response("complete"));
+    if (marked) await good.put("/__myowndex-offline-ready", new Response("2.0.58"));
+    for (const version of ["2.0.59", "2.0.60"]) {
+      const partial = await caches.open("myowndex-shell-v" + version);
+      await partial.put("/", new Response('<script src="/_next/static/missing.js"></script>'));
+      await partial.put("/_next/static/partial.js", new Response("incomplete"));
+    }
+    const worker = await serviceWorker(async () => { throw new TypeError("offline"); }, caches);
+    await workerEvent(worker, "install"); await workerEvent(worker, "activate");
+    assert.ok((await caches.keys()).includes(goodName));
+    assert.ok(!(await caches.keys()).includes("myowndex-shell-v2.0.60"));
+    assert.equal((await worker.navigate(origin + "/")).status, 200);
+    assert.equal(await (await worker.asset(origin + "/_next/static/good.js")).text(), "complete");
+  }
 });

@@ -8,11 +8,16 @@ import { clearCatalogTextCache, getCatalogText, loadCatalogText } from '../src/c
 const root = new URL('../', import.meta.url);
 const read = async path => JSON.parse(await fs.readFile(new URL(path, root), 'utf8'));
 
-test('English reference percentages use English punctuation without altering names or Portuguese numbers', () => {
+test('reference factors use integer ratios without altering names or stored catalogues', () => {
     const text = 'At ≈ 33,33% HP, Water-type moves deal 1.5× damage. Pokémon #1,025 keeps its name.';
-    assert.equal(formatReferenceText(text, 'en'), 'At ≈ 33.33% HP, Water-type moves deal 1.5× damage. Pokémon #1,025 keeps its name.');
-    assert.equal(formatReferenceText('Recupera 12,5% do HP; Pikachu e Poké Ball.', 'pt-BR'), 'Recupera 12,5% do HP; Pikachu e Poké Ball.');
+    assert.equal(formatReferenceText(text, 'en'), 'At ≈ 3333/10000 HP, Water-type moves deal 3/2× damage. Pokémon #1,025 keeps its name.');
+    assert.equal(formatReferenceText('Recupera 12,5% do HP; Pikachu e Poké Ball.', 'pt-BR'), 'Recupera 1/8 do HP; Pikachu e Poké Ball.');
     assert.equal(formatReferenceText('1,000% and 50% remain intact.', 'en'), '1,000% and 50% remain intact.');
+    assert.equal(formatReferenceText('1,000× remains an integer.', 'en'), '1,000× remains an integer.');
+    assert.equal(formatReferenceText('Multiplicado por 1,5, com limite de 1/3 do HP.', 'pt-BR'), 'Multiplicado por 3/2, com limite de 1/3 do HP.');
+    assert.equal(formatReferenceText('Multiplicado por 1,5.', 'pt-BR'), 'Multiplicado por 3/2.');
+    assert.equal(formatReferenceText('Usa 10,000,000 Volt Thunderbolt.', 'pt-BR'), 'Usa 10,000,000 Volt Thunderbolt.');
+    assert.equal(formatReferenceText('Multiplied by 1.5; Pokémon #1,025; version 2.1.0.', 'en'), 'Multiplied by 3/2; Pokémon #1,025; version 2.1.0.');
 });
 
 test('reviewed Portuguese attributes retain paired source text and reproducible editorial corrections', async () => {
@@ -26,6 +31,10 @@ test('reviewed Portuguese attributes retain paired source text and reproducible 
         const data = await read(`public/catalog/v1/${kind}.json`);
         for (const [original, portuguese] of Object.values(data.texts)) {
             assert.doesNotMatch(portuguese, /\b(?:Sp|SPCL|SpAtk|SpDef|SpA|SpD|Atk|Def|Spe|Ups|Crunches)\b/i, original);
+            // Thousands separators in amounts and English move names remain
+            // integers; every actual decimal in Portuguese rules is a ratio.
+            const reading = formatReferenceText(portuguese).replace(/\b\d{1,3}(?:[.,]\d{3})+\b/g, '');
+            assert.doesNotMatch(reading, /\b\d+[.,]\d+\b/, original);
             pairs.set(original, portuguese);
         }
     }
@@ -56,6 +65,10 @@ test('Portuguese battle explanations preserve historical values and English name
         const metalSound = getCatalogText('move', 'metal-sound', {}, { short: true });
         assert.match(metalSound.portuguese, /Defesa Especial.*2 estágios/);
         await loadCatalogText('ability');
+        const overgrow = getCatalogText('ability', 'overgrow');
+        assert.match(overgrow.original, /1\/3/);
+        assert.match(overgrow.portuguese, /1\/3/);
+        assert.doesNotMatch(formatReferenceText(overgrow.portuguese), /33,33|1,5|3333\/10000/);
         const plus = getCatalogText('ability', 'plus', {}, { short: true });
         assert.match(plus.portuguese, /Minus.*Ataque Especial|Ataque Especial.*Minus/);
         assert.match(plus.portuguese, /1,5/);

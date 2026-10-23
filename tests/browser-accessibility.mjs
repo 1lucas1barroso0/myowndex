@@ -345,7 +345,7 @@ try {
         for (const tool of await page.locator('.room-tools > details').all()) await openDetails(tool);
         await checkpoint('Aventura compartilhada: Narrador, convite e chamada', [320, 1280], ['Claro', 'Escuro'], 'Ações');
         const player = await page.evaluate(async room => {
-            const response = await fetch(`/api/rooms/${room.code}/join`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-myowndex-room-protocol': '3' }, body: JSON.stringify({ inviteCode: room.inviteCode, displayName: 'Jogadora QA' }) });
+            const response = await fetch(`/api/rooms/${room.code}/join`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-myowndex-room-protocol': '4' }, body: JSON.stringify({ inviteCode: room.inviteCode, displayName: 'Jogadora QA' }) });
             if (!response.ok) throw new Error('QA player could not join disposable room');
             const result = await response.json();
             const session = { code: result.code, key: result.playerKey, role: 'player', playerId: result.playerId, displayName: 'Jogadora QA', local: false };
@@ -410,7 +410,7 @@ try {
         }, qaPassword).catch(() => {});
     }
     if (qaRoom) {
-        await context.request.delete(`${new URL(baseUrl).origin}/api/rooms/${qaRoom.code}`, { headers: { origin: new URL(baseUrl).origin, 'x-myowndex-room-protocol': '3', 'x-myowndex-room-key': qaRoom.key }, data: {} }).catch(() => {});
+        await context.request.delete(`${new URL(baseUrl).origin}/api/rooms/${qaRoom.code}`, { headers: { origin: new URL(baseUrl).origin, 'x-myowndex-room-protocol': '4', 'x-myowndex-room-key': qaRoom.key }, data: {} }).catch(() => {});
     }
     await writeReport();
     await browser.close();

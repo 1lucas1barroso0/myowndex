@@ -16,15 +16,15 @@ const sequence = values => {
   return () => values[index++] ?? values.at(-1) ?? 0;
 };
 
-test("trainer guide contains exactly 40 distinct rules across every canonical chapter", () => {
+test("trainer guide contains exactly 48 distinct rules across every canonical chapter", () => {
   assert.deepEqual(RPG_RULE_SECTIONS.map(section => section.number), [1, 2, 3, 4, 5, 6, 7, 8]);
-  const expectedIds = [4, 5, 7, 4, 4, 5, 6, 5].flatMap((count, chapter) =>
+  const expectedIds = [5, 5, 7, 4, 5, 5, 7, 10].flatMap((count, chapter) =>
     Array.from({ length: count }, (_, rule) => `${chapter + 1}.${rule + 1}`)
   );
   const rules = RPG_RULE_SECTIONS.flatMap(section => section.rules);
-  assert.equal(rules.length, 40);
-  assert.equal(new Set(rules.map(rule => rule.id)).size, 40);
-  assert.equal(new Set(rules.map(rule => rule.title)).size, 40);
+  assert.equal(rules.length, 48);
+  assert.equal(new Set(rules.map(rule => rule.id)).size, 48);
+  assert.equal(new Set(rules.map(rule => rule.title)).size, 48);
   assert.deepEqual(rules.map(rule => rule.id), expectedIds);
   for (const rule of rules) {
     assert.ok(rule.body || rule.bullets?.length, `${rule.id} must contain its rule`);
@@ -134,7 +134,7 @@ test("RPG scale, XP and damage ceiling follow the guide", () => {
   assert.equal(getRpgScale(51), 5);
   assert.equal(getRpgScale(55), 5);
   assert.equal(getRpgScale(56), 6);
-  assert.equal(getRpgScale(55, true), 6);
+  assert.equal(getRpgScale(55, true), 7);
   assert.equal(getNextLevelXp(10), 5);
   assert.equal(getDamageCeiling(1), 1);
   assert.equal(getDamageCeiling(11), 11);
@@ -151,7 +151,7 @@ test("XP goals floor the upcoming level consistently through both level caps", (
   const wording = rule.bullets.join(" ");
   assert.match(wording, /XP recebida já é inteira/);
   assert.match(wording, /divisão padrão é igual, com resultado arredondado para baixo/);
-  assert.match(wording, /contagem volta a zero/);
+  assert.match(wording, /guarde a sobra/);
   assert.doesNotMatch(wording, /Meio ponto de XP é válido/);
 });
 

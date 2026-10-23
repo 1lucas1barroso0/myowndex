@@ -37,7 +37,7 @@ test("winner advantages subtract after multiplication with a final minimum of on
     assert.deepEqual([minimum.adjustedBaseXp, minimum.multiplier, minimum.xp], [1, 2, 1]);
 });
 
-test("each integer acquisition grants double EVs once, including when a level resets XP", () => {
+test("each integer acquisition grants double EVs once, while conserving XP across levels", () => {
     const pokemon = { ...partner(), rpg: { ...partner().rpg, xp: 4 } };
     const awardId = createExperienceAwardId(100);
     const updated = applyPokemonExperienceAward(pokemon, { xp: 1, awardId });
@@ -48,8 +48,8 @@ test("each integer acquisition grants double EVs once, including when a level re
     assert.equal(applyPokemonExperienceAward(updated, { xp: 1, awardId }), updated);
     assert.equal(pokemon.rpg.pendingEvs, 0, "awarding must not mutate the original");
     const large = award(partner(), 12, 101);
-    assert.equal(large.level, 11, "one acquisition keeps the existing one-level reset rule");
-    assert.equal(large.rpg.xp, 0);
+    assert.equal(large.level, 12, "one acquisition pays each threshold without discarding the remainder");
+    assert.equal(large.rpg.xp, 1);
     assert.equal(large.rpg.pendingEvs, 24);
     const aboveCap = applyPokemonExperienceAward({ ...partner(), level: 150 }, { xp: 1, awardId: createExperienceAwardId(103), levelCap: 100 });
     assert.equal(aboveCap.level, 150, "an existing free-mode level must never be reduced by an award");

@@ -36,7 +36,7 @@ test("Tera can be disabled without erasing its type; old Pokémon remain enabled
   assert.ok(getGimmickChoices({...disabled,canTerastallize:true}).some(choice=>choice.id==="tera"));
 });
 test("Dynamax and Gigantamax follow ficha level/factor and expire after three rounds",()=>{
- const c={...base(),item:"",teraType:"",dynamaxLevel:10,canGMax:true};
+ const c={...base(),item:"",teraType:"",canDynamax:true,dynamaxLevel:10,canGMax:true};
  assert.deepEqual(getGimmickChoices(c).map(x=>x.id),["dyna","gmax"]);
  const d=applyGimmick(c,"dyna");assert.equal(d.applied,true);
  assert.equal(d.token.maxHp,70);
@@ -47,7 +47,8 @@ test("Dynamax and Gigantamax follow ficha level/factor and expire after three ro
  assert.equal(ended.maxHp,35);
  assert.equal(ended.gimmickState.active,"");
  assert.equal(getGimmickChoices(ended).length,0);
- assert.equal(applyGimmick({...c,dynamaxLevel:0},"dyna").applied,false);
+ assert.equal(applyGimmick({...c,dynamaxLevel:0},"dyna").applied,true);
+ assert.equal(applyGimmick({...c,canDynamax:false},"dyna").applied,false);
  assert.equal(applyGimmick({...c,canGMax:false},"gmax").applied,false);
 });
 test("tera is not a reversible free toggle, cannot stack and resets in new battle",()=>{
@@ -95,7 +96,7 @@ test("story phases preserve team and make battle transitions explicit",()=>{
 });
 
 test("a marked G-Max factor never grants Gigantamax to a species without that form",()=>{
- const c={...base(),item:"",teraType:"",dynamaxLevel:7,canGMax:true};
+ const c={...base(),item:"",teraType:"",canDynamax:true,dynamaxLevel:7,canGMax:true};
  assert.ok(getGimmickChoices(c).some(x=>x.id==="gmax"));
  const invalid={...c,speciesName:"bulbasaur",item:""};
  assert.ok(getGimmickChoices(invalid).some(x=>x.id==="dyna"));

@@ -1,7 +1,8 @@
+import { getBaseMaxHp, rollIntegerRatio } from "./integerRules.js";
 import { applyStageChange, getStatusBlockReason, normalizeVolatileEffects } from "./automation.js";
 import { confusionDuration } from "./battleConditions.js";
 import { isAbilityActive } from "./traitMechanics.js";
-import { randomUnit } from "./random.js";
+import { randomInt } from "./random.js";
 
 // Shared with local narration and remote authoritative combat. Effects must be
 // applied only after the converted move actually connects.
@@ -46,11 +47,8 @@ const RANDOM_STATUS=Object.freeze({
   "G-Max Stun Shock":["poison","paralysis"],
 });
 const CONFUSION_SIGNATURES=new Set(["G-Max Smite","G-Max Gold Rush"]);
-const draw=(random,range)=>{
-  const value=Number(random());
-  return Math.min(range-1,Math.floor(Math.max(0,Math.min(0.9999999999999999,Number.isFinite(value)?value:0))*range));
-};
-export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected,terrain="nenhum",targetId="",random=()=>randomUnit()})=>{
+const draw=(random,range)=>randomInt(range,random);
+export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected,terrain="nenhum",targetId="",random})=>{
   if(!presentation||!connected||!["max","gmax-move"].includes(presentation.kind))
     return {tokens,field:{},hazards:[],notes:[]};
   const user=tokens.find(t=>t.id===attackerId);
@@ -115,7 +113,7 @@ export const applyMaxMoveSecondary=({tokens,attackerId,presentation,connected,te
   if(label==="G-Max Finale"){
     updated=updated.map(token=>{
       if(safeSide(token)!==safeSide(user)||token.currentHp<=0)return token;
-      return {...token,currentHp:Math.min(token.maxHp,token.currentHp+Math.max(1,Math.floor(token.maxHp/6)))};
+      return {...token,currentHp:Math.min(token.maxHp,token.currentHp+rollIntegerRatio(getBaseMaxHp(token),6,random))};
     });
     notes.push("G-Max Finale: aliados recuperaram 1/6 do HP máximo.");
   }

@@ -50,6 +50,7 @@ html .app-root.game-edition.handheld-edition .phase-rest-actions{
     padding:.75rem;background:var(--ui-raised);border-radius:.4rem;
 }
 html .app-root.game-edition.handheld-edition .phase-rest-actions strong{flex-basis:100%;}
+html .app-root.game-edition.handheld-edition .phase-rest-actions .room-procedure-note{flex-basis:100%;margin:0;}
 html .app-root.game-edition.handheld-edition .phase-rest-actions button{
     min-height:44px;padding:.45rem .7rem;border:1px solid var(--ui-control-line);
     background:var(--ui-panel);color:var(--ui-ink);border-radius:.35rem;

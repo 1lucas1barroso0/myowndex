@@ -420,7 +420,7 @@ test("the adventure exposes every modifier and explains movement resolution", as
   assert.match(rules, /estágios de −6 a \+6 em Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão/);
   assert.match(rules, /chance numérica, até 100%/);
   assert.match(rules, /erro crítico da defesa/);
-  assert.match(rules, /Sturdy, Focus Sash e semelhantes são chances separadas/);
+  assert.match(rules, /Sturdy, Focus Sash e a reserva de sobrevivência seguem suas próprias regras/);
 });
 
 test("unique Pokémon and exceptional Moves expose state, narrative and automation level", async () => {
@@ -510,12 +510,12 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(guide, /createGuideSearchIndex\(RPG_RULE_SECTIONS\)/);
   assert.match(guide, /Pesquisar regras/);
   assert.match(rules, /Proteção contra hit kill/);
-  assert.match(rules, /três vezes o HP máximo/);
-  assert.match(rules, /uma vez por Pokémon em cada batalha/);
-  assert.match(rules, /Depois de usada, curar, trocar ou voltar ao campo não a devolve/);
-  assert.match(rules, /Em um movimento de vários acertos, conte cada hit/);
-  assert.match(rules, /Só conta o dano que chega ao Pokémon/);
-  assert.match(rules, /tirar o próprio HP/);
+  assert.match(rules, /três vezes seu HP máximo/);
+  assert.match(rules, /Uma vez por batalha/);
+  assert.match(rules, /Cura, troca e mudança de fase não renovam/);
+  assert.match(rules, /some os impactos diretos do mesmo movimento/);
+  assert.match(rules, /que alcançam o Pokémon depois de precisão/);
+  assert.match(rules, /Tirar o próprio HP/);
   assert.match(rules, /acerto crítico.*pode passar do limite comum/);
   assert.match(rules, /regra oficial mais recente e corrigida/);
   assert.match(rules, /1 em 8 de chance de perder a ação/);
@@ -533,8 +533,8 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.doesNotMatch(localPokemon, /Oponente selvagem/);
   assert.match(localPokemon, /CaptureAssistant/);
   assert.match(rules, /Aventura e Dados seguem a mesma regra/);
-  assert.match(guide, /Atributo ÷ 10/);
-  assert.match(guide, /HP ÷ 10/);
+  assert.match(guide, /Atributo ÷ \{RPG_SCALE_DIVISOR\}/);
+  assert.match(guide, /HP ÷ \{RPG_HP_DIVISOR\}/);
   assert.doesNotMatch(guide, /÷ 20/);
   assert.match(combat, /Atributos e modificadores foram aplicados automaticamente/);
   assert.doesNotMatch(combat, /attackTest\.total/);

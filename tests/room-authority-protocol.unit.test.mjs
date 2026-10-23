@@ -4,9 +4,9 @@ import test from "node:test";
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("every shared room mutation carries protocol 3 and authoritative requests retry idempotently", async () => {
+test("every shared room mutation carries protocol 4 and authoritative requests retry idempotently", async () => {
   const client = await read("src/core/roomClient.js");
-  assert.match(client, /ROOM_PROTOCOL_VERSION = "3"/);
+  assert.match(client, /ROOM_PROTOCOL_VERSION = "4"/);
   assert.match(client, /headers\.set\("x-myowndex-room-protocol", ROOM_PROTOCOL_VERSION\)/);
   assert.match(client, /SAFE_REQUEST_METHODS\.has\(method\) \|\| idempotent \? 3 : 1/);
   assert.match(client, /requestRemoteRoomAction[\s\S]*?idempotent: true/);

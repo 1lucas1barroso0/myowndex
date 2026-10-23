@@ -1,3 +1,5 @@
+export const MAX_BATTLE_HP = 199998;
+
 export const MAX_SAFE_GAME_INTEGER = Number.MAX_SAFE_INTEGER;
 
 const finiteFallback = fallback => {

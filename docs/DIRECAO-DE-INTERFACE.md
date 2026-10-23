@@ -1,6 +1,6 @@
 # Direção de interface do MyOwnDex
 
-O MyOwnDex é um jogo para fãs de Pokémon, incluindo crianças. Cada tela precisa ter identidade, uma finalidade evidente e uma próxima ação convidativa. A presença dos Pokémon, a curiosidade e o retorno das ações sustentam o interesse. A beleza deve ajudar a entender e a jogar. Esta direção vale para todo o aplicativo e toda mudança futura.
+O MyOwnDex é para crianças e para fãs assíduos, conhecedores e entusiasmados de Pokémon. Esses públicos orientam tanto o RPG de mesa quanto o aplicativo; a direção comum está em [IDENTIDADE-E-JOGABILIDADE.md](IDENTIDADE-E-JOGABILIDADE.md). Cada tela precisa ter identidade, uma finalidade evidente e uma próxima ação convidativa. A presença dos Pokémon, a curiosidade e o retorno das ações sustentam o interesse. A beleza deve ajudar a entender e a jogar. Esta direção vale para todo o aplicativo e toda mudança futura.
 
 ## Práticas positivas — aplique sempre
 

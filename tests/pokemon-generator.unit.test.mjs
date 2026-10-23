@@ -121,7 +121,7 @@ test('generated partner has valid IVs, zero EVs/XP, official ability and nature,
     assert.deepEqual(Object.values(partner.evs), [0, 0, 0, 0, 0, 0]);
     assert.equal(partner.rpg.xp, 0);
     assert.equal(partner.rpg.currentHp, getGeneratedHp(partner));
-    assert.equal(partner.rpg.currentHp, 2, '21 game HP uses the current RPG division by 10');
+    assert.equal(partner.rpg.currentHp, 3, '21 game HP uses the RPG HP division by 8');
     assert.equal(getGeneratedHp(partner, 'game'), 21);
     assert.deepEqual(partner.rpg.pp, [25, 40, 35, null]);
     assert.equal(partner.species.moves, undefined);
@@ -364,4 +364,21 @@ test('generator API limit is shared across runs and cancelled queued tasks never
 test('generator draft is isolated for each account and from guest storage', () => {
     assert.equal(resolveStorageKey('myowndex_generator_v1', { scope: null }), 'myowndex_generator_v1');
     assert.notEqual(resolveStorageKey('myowndex_generator_v1', { scope: 'one' }), resolveStorageKey('myowndex_generator_v1', { scope: 'two' }));
+});
+
+test('automatic natural generation does not erase a known repertoire with a newer training-only game', () => {
+    const source = { ...pokemon, moves: pokemon.moves.map(entry => ({ ...entry, version_group_details: [...entry.version_group_details, detail('champions', 0, 'machine', 32)] })) };
+    const before = structuredClone(source);
+    const natural = getGeneratorLearnset(source, 'auto', 5);
+    assert.equal(natural.versionGroup, 'scarlet-violet');
+    assert.deepEqual(natural.moves.map(entry => entry.name), ['vine-whip', 'growl', 'tackle']);
+    assert.deepEqual(getGeneratorLearnset(source, 'champions', 5), { versionGroup: 'champions', moves: [] }, 'an explicit game never invents level-up moves or silently changes reference');
+    assert.deepEqual(source, before);
+});
+
+test('automatic reference selection does not backfill an older game just to supply moves below the actual learning level', () => {
+    const source = { moves: [move('tackle', [detail('red-blue', 1), detail('scarlet-violet', 10), detail('champions', 0, 'machine', 32)])] };
+    assert.deepEqual(getGeneratorLearnset(source, 'auto', 5), { versionGroup: 'scarlet-violet', moves: [] });
+    assert.deepEqual(getGeneratorLearnset(source, 'red-blue', 5).moves.map(entry => entry.name), ['tackle']);
+    assert.deepEqual(getGeneratorLearnset({ moves: [move('tackle', [detail('champions', 0, 'machine', 32)])] }, 'auto', 5), { versionGroup: null, moves: [] });
 });

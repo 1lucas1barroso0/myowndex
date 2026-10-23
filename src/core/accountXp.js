@@ -3,7 +3,7 @@ import { normalizeGrowthData } from "./experience.js";
 
 const object = value => value && typeof value === "object" && !Array.isArray(value);
 const floorXp = record => object(record) && Object.hasOwn(record, "xp")
-    ? { ...record, xp: integerInRange(record.xp, 0, 999999, 0),
+    ? { ...record, xp: integerInRange(record.xp, 0, Number.MAX_SAFE_INTEGER, 0),
         ...(Object.hasOwn(record, "pendingEvs") || Object.hasOwn(record, "experienceAwards") || Object.hasOwn(record, "closedAward")
             ? { ...normalizeGrowthData(record), ...(record.growthVersion === 0 ? { growthVersion: 0 } : {}) } : {}) } : record;
 

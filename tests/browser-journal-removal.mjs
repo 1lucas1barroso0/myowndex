@@ -14,7 +14,7 @@ const newPage = async () => {
   await page.goto(baseUrl); await page.locator('.app-nav').waitFor(); return page;
 };
 const api = async (page, path, method, key, data) => {
-  const response = await page.request.fetch(`${baseUrl}${path}`, { method, headers: { 'x-myowndex-room-protocol': '3', ...(key ? { 'x-myowndex-room-key': key } : {}) }, ...(data ? { data } : {}) });
+  const response = await page.request.fetch(`${baseUrl}${path}`, { method, headers: { 'x-myowndex-room-protocol': '4', ...(key ? { 'x-myowndex-room-key': key } : {}) }, ...(data ? { data } : {}) });
   assert.ok(response.ok(), `${method} ${path} returned ${response.status()}`); return response.json();
 };
 const enter = async (page, session) => {

@@ -1,8 +1,8 @@
+import { formatPokemonHeight, formatPokemonWeight } from "./measurements.js";
 import {
     convertToTTRPG,
     formatDamageClass,
     formatName,
-    formatNumberPtBr,
     formatType,
     preferredLocalizedEntry,
 } from "./mechanics.js";
@@ -20,24 +20,23 @@ const asSlug = value => String(value || "").trim().toLowerCase().replace(/[\s_]+
 const proportion = (numerator, denominator) => {
     const value = Number(numerator) / Number(denominator) * 100;
     if (!Number.isFinite(value) || Number(denominator) <= 0) return `${numerator}/${denominator}`;
-    const approximate = Math.abs(value * 100 - Math.round(value * 100)) > 1e-8;
-    return `${approximate ? "≈ " : ""}${formatNumberPtBr(value)}%`;
+    return Number.isInteger(value) ? `${value}%` : `${numerator}/${denominator}`;
 };
 
 export const formatCatalogProportions = value => String(value || "")
     .replace(/\b(\d+)\s*\/\s*([A-Z])\b/g, (_, numerator, denominator) => `${Number(numerator) * 100}% ÷ ${denominator}`)
     .replace(/\b(\d+)\s*\/\s*(\d+)\s*\/\s*(\d+)\b/g, (_, first, second, third) => `${first}, ${second} ou ${third}`)
     .replace(/\b(\d+)\s*\/\s*(\d+)\b/g, (original, numerator, denominator) => Number(numerator) <= Number(denominator) ? proportion(numerator, denominator) : original)
-    .replace(/[½⅓⅔¼¾⅛⅜⅝⅞]/g, glyph => ({ "½": "50%", "⅓": "≈ 33,33%", "⅔": "≈ 66,67%", "¼": "25%", "¾": "75%", "⅛": "12,5%", "⅜": "37,5%", "⅝": "62,5%", "⅞": "87,5%" })[glyph])
+    .replace(/[½⅓⅔¼¾⅛⅜⅝⅞]/g, glyph => ({ "½": "50%", "⅓": "1/3", "⅔": "2/3", "¼": "25%", "¾": "75%", "⅛": "1/8", "⅜": "3/8", "⅝": "5/8", "⅞": "7/8" })[glyph])
     .replace(/\b(?:one[ -]third|a third|one[ -]quarter|a quarter|one[ -]eighth|one[ -]sixteenth)\b/gi, words => {
         const normalized = words.toLowerCase().replace(/-/g, " ");
-        if (normalized.endsWith("third")) return "≈ 33,33%";
+        if (normalized.endsWith("third")) return "1/3";
         if (normalized.endsWith("quarter")) return "25%";
-        return normalized.endsWith("sixteenth") ? "6,25%" : "12,5%";
+        return normalized.endsWith("sixteenth") ? "1/16" : "1/8";
     })
     .replace(/\b(?:um terço|um quarto|um oitavo|um dezesseis avos)\b/gi, words => ({
-        'um terço': '≈ 33,33%', 'um quarto': '25%', 'um oitavo': '12,5%',
-        'um dezesseis avos': '6,25%',
+        'um terço': '1/3', 'um quarto': '25%', 'um oitavo': '1/8',
+        'um dezesseis avos': '1/16',
     })[words.toLowerCase()])
     .replace(/\b(reduzid[oa]s?) pela metade\b/gi, '$1 em 50%')
     .replace(/\b(reduz(?:em)?) pela metade\b/gi, '$1 em 50%')
@@ -267,7 +266,7 @@ export const describeSpecies = (species, pokemon) => {
     const height = finiteNumberOrNull(pokemon?.height);
     const weight = finiteNumberOrNull(pokemon?.weight);
     if (height != null && weight != null) {
-        facts.push(`A forma consultada mede ${(height / 10).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} m e pesa ${(weight / 10).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg.`);
+        facts.push(`A forma consultada mede ${formatPokemonHeight(height)} e pesa ${formatPokemonWeight(weight)}.`);
     }
     return {
         flavor,

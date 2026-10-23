@@ -2,7 +2,7 @@ import zaForms from "../data/mega-za-forms.json" with { type: "json" };
 import { calculateStat, convertToTTRPG, NATURES } from "./mechanics.js";
 import { getPokemonSpriteSources } from "./pokemonSpriteSources.js";
 import { calculateStagedStats } from "./automation.js";
-import { integerInRange } from "./math.js";
+import { integerInRange, MAX_BATTLE_HP } from "./math.js";
 
 const slug = value => typeof value === "string" ? value.trim().toLowerCase().replace(/\s+/g, "-") : "";
 const stones = [
@@ -156,6 +156,7 @@ export const normalizeGimmickState = value=>{
  const active=["mega","tera","dyna","gmax","eternamax","primal","ultra"].includes(value?.active)?value.active:"";
  return {...baseState(),active,used,rounds:integerInRange(value?.rounds,0,3,0),
    base:value?.base&&typeof value.base==="object"?baseline(value.base):null,
+   maxEntryHp: value?.maxEntryHp == null ? null : integerInRange(value.maxEntryHp,0,MAX_BATTLE_HP,0),
    form:slug(value?.form).slice(0,80)};
 };
 const baseSpecies=token=>slug(token?.gimmickState?.base?.speciesName||token?.speciesName).replace(/-(?:mega(?:-[xy])?|gmax)$/,"");
@@ -181,7 +182,7 @@ export const trainerHasUsedGimmick = (token,snapshot,kind="") => {
       && normalizeGimmickState(other.gimmickState,other).used.some(id=>family.includes(id)));
 };
 export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
- if(!token || token.currentHp<=0 || phase!=="batalha")return [];
+ if(!token || token.currentHp<=0 || phase!=="batalha" || snapshot?.battleEnded || snapshot?.initiative?.length)return [];
  const state=normalizeGimmickState(token.gimmickState,token);
  if(state.active)return [];
  const used=new Set(state.used);
@@ -201,7 +202,7 @@ export const getGimmickChoices = (token, {phase="batalha",snapshot=null}={})=>{
  if(megaFormFor(token)&&!used.has("mega")&&!trainerHasUsedGimmick(token,snapshot,"mega"))options.push({id:"mega",label:"Mega Evolução",form:megaFormFor(token),hint:megaFormFor(token)==="rayquaza-mega"?"Dragon Ascent conhecido • sem Z-Crystal":"Mega Stone correspondente equipada"});
  if(token.canTerastallize!==false && (slug(token.teraType)||Number(token.speciesId)===10276) && !used.has("tera")&&!trainerHasUsedGimmick(token,snapshot,"tera"))options.push({id:"tera",label:"Terastalização",hint:Number(token.speciesId)===10276?"Terapagos assume a forma Stellar":`Tipo Tera: ${token.teraType}`});
  const level=integerInRange(token.dynamaxLevel,0,10,0);
- if(baseSpecies(token)!=="eternatus" && token.speciesId!==890 && level>0&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
+ if(!["zacian", "zamazenta", "eternatus"].some(name=>baseSpecies(token).split("-")[0]===name) && ![888,889,890,10188,10189].includes(Number(token.speciesId)) && (token.canDynamax === true || (token.canDynamax == null && level>0))&&!used.has("dyna")&&!used.has("gmax")&&!trainerHasUsedGimmick(token,snapshot,"dyna")){
    options.push({id:"dyna",label:"Dynamax",hint:`Nível Dynamax ${level} • 3 rodadas`});
    if(Boolean(token.canGMax) && gmaxEligible(token))options.push({id:"gmax",label:"Gigantamax",form:gmaxFormFor(token),hint:"Fator Gigantamax na ficha • 3 rodadas"});
  }
@@ -240,15 +241,15 @@ export const maxMovePower = (power,type="") =>{
  if(["fighting","poison"].includes(type))return b>=150?100:b>=110?95:b>=75?90:b>=65?85:b>=55?80:b>=45?75:70;
  return b>=150?150:b>=110?140:b>=75?130:b>=65?120:b>=55?110:b>=45?100:90;
 };
-export const applyGimmick = (token,id,{formData=null}={})=>{
+export const applyGimmick = (token,id,{formData=null,snapshot=null}={})=>{
  if(id==="eternamax" && !formData)formData=ETERNAMAX_FORM_DATA;
  if(!formData && id!=="eternamax"){
-   const selection=getGimmickChoices(token).find(choice=>choice.id===id);
+   const selection=getGimmickChoices(token,{snapshot}).find(choice=>choice.id===id);
    if(selection && ZA_MEGA_FORM_DATA.has(selection.form))formData=ZA_MEGA_FORM_DATA.get(selection.form);
    else if(selection && EXCEPTIONAL_FORM_DATA[selection.form])formData=EXCEPTIONAL_FORM_DATA[selection.form];
  }
  const stellarTerapagos=id==="tera" && Number(token?.speciesId)===10276;
- const option=getGimmickChoices(token).find(g=>g.id===id);
+ const option=getGimmickChoices(token,{snapshot}).find(g=>g.id===id);
  if(!option)return {applied:false,token,reason:"Esta transformação não está disponível para este Pokémon."};
  if(id==="eternamax" && (token.speciesId!==890 || Number(formData?.id)!==10190)) return {applied:false,token,reason:"Eternamax só pode ser aplicada ao Eternatus na sua forma normal."};
  if(ZA_MEGA_FORMS.has(option.form) && Number(formData?.id)!==ZA_MEGA_FORMS.get(option.form).id)
@@ -261,9 +262,11 @@ export const applyGimmick = (token,id,{formData=null}={})=>{
  let changed={...token,gimmickState:nextState,teraActive:id==="tera"};
  if(stellarTerapagos)changed={...rebuildWithForm(changed,TERAPAGOS_FORMS.stellar),teraType:"stellar",teraActive:true};
  if(id==="dyna"||id==="gmax"){
-   const ratio=1.5+integerInRange(token.dynamaxLevel,1,10,1)*.05;
-   const maxHp=Math.max(1,Math.ceil(token.maxHp*ratio));
-   changed={...changed,maxHp,currentHp:Math.max(1,Math.ceil(token.currentHp*ratio))};
+   const hpFactor=30+integerInRange(token.dynamaxLevel,0,10,0);
+   const shedinja=baseSpecies(token)==="shedinja";
+   const maxHp=shedinja?1:Math.max(1,Math.floor(token.maxHp*hpFactor/20));
+   const currentHp=Math.max(1,Math.floor(token.currentHp*maxHp/token.maxHp));
+   changed={...changed,maxHp,currentHp,gimmickState:{...nextState,maxEntryHp:currentHp}};
  }
  if(formData){
    const typeNames=(formData.types||[]).map(entry=>slug(entry?.type?.name)).filter(Boolean);
@@ -300,7 +303,11 @@ export const endGimmick = (token,{reset=false}={})=>{
  const base=state.base;
  if(!state.active || !base)return {...token,gimmickState:reset?baseState():state,teraActive:reset?false:token.teraActive};
  const ratio=token.maxHp>0?token.currentHp/token.maxHp:0;
- const restored={...token,...base,currentHp:Math.min(base.maxHp,token.currentHp<=0?0:Math.max(1,Math.ceil(ratio*base.maxHp)))};
+ const maxForm=["dyna","gmax"].includes(state.active);
+ const returnedHp=maxForm && state.maxEntryHp!=null
+   ? token.currentHp===token.maxHp ? base.maxHp : base.currentHp+Math.floor((token.currentHp-state.maxEntryHp)*base.maxHp/token.maxHp)
+   : Math.ceil(ratio*base.maxHp);
+ const restored={...token,...base,currentHp:Math.min(base.maxHp,token.currentHp<=0?0:Math.max(1,returnedHp))};
  return {...restored,stats:calculateStagedStats(restored),gimmickState:reset?baseState():{...state,active:"",rounds:0,base:null,form:""},teraActive:false};
 };
 export const advanceGimmickRound = token => {

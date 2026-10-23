@@ -103,6 +103,9 @@ const unpackStats = (stats, fallback) => Object.fromEntries(
 );
 
 const packPokemon = pokemon => ({
+    id: pokemon.id,
+    ...(pokemon.editRevision ? { w: pokemon.editRevision } : {}),
+    ...(pokemon.sceneEditBase ? { b: pokemon.sceneEditBase } : {}),
     s: pokemon.species?.species?.name || pokemon.species?.name || "",
     f: pokemon.species?.name || "",
     n: pokemon.nickname || "",
@@ -119,7 +122,8 @@ const packPokemon = pokemon => ({
         pokemon.canGMax ? 1 : 0,
         pokemon.shiny ? 1 : 0,
         pokemon.genderLocked ? 1 : 0,
-        pokemon.canTerastallize === false ? 0 : 1
+        pokemon.canTerastallize === false ? 0 : 1,
+        pokemon.canDynamax ? 1 : 0
     ],
     d: pokemon.dynamaxLevel ?? 0,
     y: pokemon.teraType || "",
@@ -131,6 +135,7 @@ const packPokemon = pokemon => ({
     j: pokemon.rpg ? {
         v: pokemon.rpg.scaleVersion ?? RPG_SCALE_VERSION,
         x: pokemon.rpg.xp ?? 0,
+        ...(pokemon.rpg.shortRestUsed ? { r: 1 } : {}),
         h: pokemon.rpg.currentHp,
         s: pokemon.rpg.status || "",
         t: pokemon.rpg.sleepTurns,
@@ -151,6 +156,9 @@ const packPokemon = pokemon => ({
 });
 
 const unpackPokemon = pokemon => ({
+    id: pokemon.id,
+    editRevision: pokemon.w || 0,
+    sceneEditBase: pokemon.b || null,
     speciesName: pokemon.s || pokemon.f || "",
     formName: pokemon.f || pokemon.s || "",
     nickname: pokemon.n || "",
@@ -167,6 +175,7 @@ const unpackPokemon = pokemon => ({
     shiny: Boolean(pokemon.q?.[1]),
     genderLocked: Boolean(pokemon.q?.[2]),
     canTerastallize: pokemon.q?.[3] !== 0,
+    canDynamax: pokemon.q?.[4] == null ? Number(pokemon.d)>0 : pokemon.q[4]===1,
     dynamaxLevel: pokemon.d ?? 0,
     teraType: pokemon.y || "",
     friendship: pokemon.h ?? 70,
@@ -177,6 +186,7 @@ const unpackPokemon = pokemon => ({
     rpg: pokemon.j ? {
         scaleVersion: pokemon.j.v ?? 1,
         xp: pokemon.j.x ?? 0,
+        shortRestUsed: pokemon.j.r === 1,
         currentHp: pokemon.j.h,
         status: pokemon.j.s || "",
         sleepTurns: pokemon.j.t ?? null,
@@ -197,7 +207,7 @@ const unpackPokemon = pokemon => ({
 const packTeam = team => {
     const normalized = normalizeTeam(team);
     return {
-        z: 4,
+        z: 5,
         id: normalized.shareId,
         u: normalized.updatedAt,
         n: normalized.name,
@@ -207,7 +217,7 @@ const packTeam = team => {
 };
 
 const unpackTeam = payload => {
-    if (!payload || payload.z !== 4 || !Array.isArray(payload.p)) {
+    if (!payload || ![4, 5].includes(payload.z) || !Array.isArray(payload.p)) {
         throw new Error("Este código não parece pertencer ao MyOwnDex. Confira se ele foi copiado por inteiro.");
     }
     if (payload.p.length > 6) throw new Error("Uma Box guarda até seis parceiros.");
@@ -224,7 +234,7 @@ const packPokemonBundle = (pokemon, source = {}) => {
     const partners = Array.isArray(pokemon) ? pokemon.slice(0, 6) : [];
     if (!partners.length) throw new Error("Escolha pelo menos um Pokémon para compartilhar.");
     return {
-        z: 1,
+        z: 2,
         k: "pokemon",
         n: String(source.name || "Pokémon recebidos").trim().slice(0, 80),
         r: String(source.versionGroup || "auto"),
@@ -233,7 +243,7 @@ const packPokemonBundle = (pokemon, source = {}) => {
 };
 
 const unpackPokemonBundle = payload => {
-    if (!payload || payload.z !== 1 || payload.k !== "pokemon" || !Array.isArray(payload.p)) {
+    if (!payload || ![1, 2].includes(payload.z) || payload.k !== "pokemon" || !Array.isArray(payload.p)) {
         throw new Error("Este código não parece pertencer ao MyOwnDex. Confira se ele foi copiado por inteiro.");
     }
     if (!payload.p.length || payload.p.length > 6) {

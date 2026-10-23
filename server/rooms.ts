@@ -45,7 +45,7 @@ const MAX_EVENT_BYTES = 30_000;
 const MAX_EVENTS = 180;
 const encoder = new TextEncoder();
 let schemaPromise: Promise<void> | null = null;
-export const ROOM_PROTOCOL_VERSION = "3";
+export const ROOM_PROTOCOL_VERSION = "4";
 
 export function getBindings() {
   return getRuntimeBindings();
@@ -168,7 +168,7 @@ export function createSecret(prefix: "gm" | "join" | "player") {
 
 export function createInitialRoomState(title: string) {
   return {
-    schema: 1,
+    schema: 9,
     title,
     phase: "exploracao",
     round: 1,

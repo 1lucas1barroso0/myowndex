@@ -1,3 +1,4 @@
+import { rollDamageVariation, rollIntegerRatio, getBaseMaxHp, getBaseCurrentHp } from "./integerRules.js";
 import { resolveExceptionalWeather,ordinaryWeather,specialWeatherMoveBlocked } from "./exceptionalWeather.js";
 import {
     calculateDefenses,
@@ -17,7 +18,7 @@ import {
     finiteProduct,
     integerInRange,
     MAX_SAFE_GAME_INTEGER,
-    quantizePositiveHpChange,
+    MAX_BATTLE_HP,
     roundRpgScaledValue,
     safeDivide,
 } from "./math.js";
@@ -54,6 +55,7 @@ import {
     calculateDynamicMovePower,
     getAbilityMoveBlock,
     getMoveStatProfile,
+    getGuidedSequenceReason,
     getSpecialMoveBlockReason,
     ignoresGhostTypeImmunity,
     normalizeSpecialState,
@@ -79,7 +81,7 @@ import {
     traitSlug,
 } from "./traitMechanics.js";
 
-export const ROOM_SCHEMA_VERSION = 8;
+export const ROOM_SCHEMA_VERSION = 9;
 export const ROOM_SESSION_STORAGE_KEY = "myowndex_live_room_v1";
 export const LOCAL_ROOM_STORAGE_KEY = "myowndex_local_room_v1";
 
@@ -149,6 +151,7 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     title: asText(title).trim().slice(0, 80) || "Nova aventura",
     phase: "exploracao",
     battleStarted: false,
+    battleEnded: false,
     round: 1,
     turnIndex: 0,
     scenario: "rota",
@@ -171,9 +174,9 @@ export const createRoomSnapshot = (title = "Nova aventura") => ({
     },
 });
 
-export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
+export const normalizeRoomToken = (value, { legacyScale = false, oldHpScale = false } = {}) => {
     const source = value && typeof value === "object" ? value : {};
-    const storedMaxHp = integerInRange(source.maxHp, 1, 99999, 1);
+    const storedMaxHp = integerInRange(source.maxHp, 1, ["dyna", "gmax"].includes(source.gimmickState?.active) ? MAX_BATTLE_HP : 99999, 1);
     const moves = asArray(source.moves).slice(0, 4).map(move => normalizeSlug(move));
     while (moves.length < 4) moves.push("");
     // Forest's Curse e Trick-or-Treat podem acrescentar um terceiro tipo durante a cena.
@@ -203,7 +206,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
             ? 0
             : storedCurrentHp >= storedMaxHp
                 ? maxHp
-                : Math.max(1, Math.min(maxHp, Math.round((storedCurrentHp / storedMaxHp) * maxHp)))
+                : Math.max(1, Math.min(maxHp, Math.floor(storedCurrentHp * maxHp / storedMaxHp)))
         : integerInRange(source.currentHp, 0, maxHp, maxHp);
     const stages = normalizeStageMap(source.stages);
     const volatileEffects = normalizeVolatileEffects(source.volatileEffects).map(effect => {
@@ -215,6 +218,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
     const token = {
         id: asText(source.id) || createId("token"),
         pokemonId: asText(source.pokemonId),
+        sourceEditRevision: integerInRange(source.sourceEditRevision, 0, MAX_SAFE_GAME_INTEGER, 0),
         teamId: asText(source.teamId),
         teamShareId: asText(source.teamShareId),
         ownerPlayerId: asText(source.ownerPlayerId),
@@ -230,6 +234,8 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         sceneScale: numberInRange(source.sceneScale, 0.25, 4, 1),
         maxHp,
         currentHp,
+        shortRestUsed: Boolean(source.shortRestUsed),
+        hpScaleVersion: integerInRange(source.hpScaleVersion, 2, 3, oldHpScale && !legacyScale ? 2 : 3),
         status: Object.prototype.hasOwnProperty.call(STATUS_LABELS, source.status) ? source.status : "",
         sleepTurns: source.status === "sleep" && source.sleepTurns != null ? integerInRange(source.sleepTurns, 0, 2, 0) : null,
         freezeTurns: source.status === "freeze" && source.freezeTurns != null ? integerInRange(source.freezeTurns, 0, 2, 0) : null,
@@ -241,7 +247,7 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         battleParticipated: Boolean(source.battleParticipated),
         battleEntryLevel: integerInRange(source.battleEntryLevel, 0, 200, 0),
         enteredRound: integerInRange(source.enteredRound, 1, 9999, 1),
-        xp: integerInRange(source.xp, 0, 999999, 0),
+        xp: integerInRange(source.xp, 0, Number.MAX_SAFE_INTEGER, 0),
         ...normalizeGrowthData(source),
         growthVersion: source.growthVersion === 0 ? 0 : source.growthVersion === 1 || Object.hasOwn(source, "pendingEvs") || Object.hasOwn(source, "experienceAwards") ? 1 : 0,
         evs: Object.fromEntries(EV_STAT_KEYS.map(stat => [stat, integerInRange(source.evs?.[stat], 0, 252, 0)])),
@@ -249,12 +255,14 @@ export const normalizeRoomToken = (value, { legacyScale = false } = {}) => {
         friendship: integerInRange(source.friendship, 0, 255, 70),
         priority: integerInRange(source.priority, -7, 7, 0),
         declaredMove: normalizeSlug(source.declaredMove),
+        declaredAction: ["swap", "improvise", "flee", "other"].includes(source.declaredAction) ? source.declaredAction : "other",
         declaredDamageClass: ["physical", "special", "status"].includes(source.declaredDamageClass) ? source.declaredDamageClass : "",
         types,
         originalTypes,
         teraType: normalizeSlug(source.teraType),
         canTerastallize: source.canTerastallize !== false,
         teraActive: Boolean(source.teraActive && source.teraType),
+        canDynamax: source.canDynamax == null ? Number(source.dynamaxLevel)>0 : Boolean(source.canDynamax),
         dynamaxLevel: integerInRange(source.dynamaxLevel, 0, 10, 0),
         canGMax: Boolean(source.canGMax),
         formName: asText(source.formName).toLowerCase().slice(0,90),
@@ -286,9 +294,10 @@ export const normalizeRoomSnapshot = value => {
     const fallback = createRoomSnapshot(source.title);
     const legacyScale = Number.isFinite(Number(source.schema))
         && Number(source.schema) > 0
-        && Number(source.schema) < ROOM_SCHEMA_VERSION;
-    const tokens = asArray(source.tokens).slice(0, 40).map(token => normalizeRoomToken(token, { legacyScale }));
-    const benchTokens = asArray(source.benchTokens).slice(0, 40).map(token => normalizeRoomToken(token, { legacyScale }));
+        && Number(source.schema) < 8;
+    const oldHpScale = source.schema != null && Number(source.schema) < 9;
+    const tokens = asArray(source.tokens).slice(0, 40).map(token => normalizeRoomToken(token, { legacyScale, oldHpScale }));
+    const benchTokens = asArray(source.benchTokens).slice(0, 40).map(token => normalizeRoomToken(token, { legacyScale, oldHpScale }));
     const neutralizingGasActive = tokens.some(token => token.currentHp > 0
         && traitSlug(token.ability) === "neutralizing-gas"
         && !normalizeTraitState(token.traitState, token.item, token.ability).ability.suppressed);
@@ -322,6 +331,7 @@ export const normalizeRoomSnapshot = value => {
         // Legacy battles have no lifecycle flag. Their existing records prove
         // that returning to Battle must not create a fresh battle.
         battleStarted,
+        battleEnded: Boolean(source.battleEnded && battleStarted && !initiative.length),
         round: integerInRange(source.round, 1, 9999, 1),
         turnIndex: initiative.length
             ? integerInRange(source.turnIndex, 0, initiative.length - 1, 0)
@@ -337,6 +347,7 @@ export const normalizeRoomSnapshot = value => {
         tokens: resolvedTokens,
         benchTokens,
         initiative,
+        trainerBags: Object.fromEntries(Object.entries(source.trainerBags || {}).slice(0, 40).map(([key, bag]) => [key.slice(0,100), Object.fromEntries(Object.entries(bag || {}).slice(0,20).map(([ball, amount])=>[ball.slice(0,50),integerInRange(amount,0,999999,0)]))])),
         trainerInterventions: asArray(source.trainerInterventions).slice(0, 40).filter(entry => entry && typeof entry.trainerKey === "string").map(entry => ({ trainerKey: entry.trainerKey.slice(0, 100), round: integerInRange(entry.round, 1, 9999, 1), battle: entry.battle === true || (entry.battle !== false && battleStarted) })),
         hitKillProtectionUsed: normalizeHitKillProtectionUsage(source.hitKillProtectionUsed),
         hitKillProtectionDisabled: normalizeHitKillProtectionUsage(source.hitKillProtectionDisabled),
@@ -357,7 +368,13 @@ export const startNewRoomBattle = snapshot => {
     if (room.initiative.length) throw new RangeError("Termine a rodada antes de começar outra batalha.");
     const resetToken = (token, active) => {
         const changed = prepareTokenForSwitch(token);
-        const resetGimmick = endGimmick(changed, {reset:true});
+        let resetGimmick = endGimmick(changed, {reset:true});
+        if (resetGimmick.hpScaleVersion < 3) {
+            const maxHp = convertToTTRPG(resetGimmick.originalStats.hp || resetGimmick.maxHp * 10, true);
+            const currentHp = resetGimmick.currentHp <= 0 ? 0 : resetGimmick.currentHp === resetGimmick.maxHp ? maxHp
+                : Math.max(1, Math.floor(resetGimmick.currentHp * maxHp / resetGimmick.maxHp));
+            resetGimmick = { ...resetGimmick, maxHp, currentHp, hpScaleVersion: 3, stats: { ...resetGimmick.stats, hp: maxHp } };
+        }
         const participating = active && !token.hidden && !token.captured && token.currentHp > 0;
         return {
             ...resetGimmick,
@@ -376,6 +393,7 @@ export const startNewRoomBattle = snapshot => {
         ...room,
         phase: "batalha",
         battleStarted: true,
+        battleEnded: false,
         round: 1,
         turnIndex: 0,
         initiative: [],
@@ -387,6 +405,16 @@ export const startNewRoomBattle = snapshot => {
         hitKillProtectionDisabled: [],
         hitKillSurvivalGrace: [],
     });
+};
+
+/** Ending a confrontation releases story procedures, never spent resources. */
+export const endRoomBattle = snapshot => {
+    const room = normalizeRoomSnapshot(snapshot);
+    if (room.initiative.length) throw new RangeError("Termine a rodada antes de encerrar a batalha.");
+    if (!room.battleStarted || room.battleEnded) return room;
+    const finish = token => ({ ...endGimmick(prepareTokenForSwitch(token)), activeMoveActions: token.activeMoveActions });
+    return normalizeRoomSnapshot({ ...room, battleEnded: true, phase: "intervalo",
+        tokens: room.tokens.map(finish), benchTokens: room.benchTokens.map(finish), gmaxHazards: [] });
 };
 
 export const changeRoomPhase = (snapshot, nextPhase) => {
@@ -512,6 +540,7 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
     return normalizeRoomToken({
         id: createId("token"),
         pokemonId: pokemon?.id,
+        sourceEditRevision: pokemon?.editRevision || 0,
         teamId: team?.id,
         teamShareId: team?.shareId,
         name: pokemon?.nickname || formatName(pokemon?.formKey || pokemon?.species?.name || pokemon?.species?.species?.name) || "Pokémon",
@@ -543,6 +572,8 @@ export const createTokenFromPokemon = (input, team, index = 0, side = "ally") =>
         canTerastallize: pokemon?.canTerastallize !== false,
         shiny: Boolean(pokemon?.shiny),
         teraActive: false,
+        shortRestUsed: Boolean(pokemon?.rpg?.shortRestUsed),
+        canDynamax: pokemon?.canDynamax ?? Number(pokemon?.dynamaxLevel)>0,
         dynamaxLevel: pokemon?.dynamaxLevel ?? 0,
         canGMax: Boolean(pokemon?.canGMax || String(pokemon?.species?.name||"").endsWith("-gmax")),
         formName: pokemon?.formKey || pokemon?.species?.name || "",
@@ -764,7 +795,7 @@ const prepareTokenForSwitch = tokenInput => {
     const traitState = normalizeTraitState(token.traitState, token.item, token.ability);
     const changed = {
         ...token,
-        declaredMove: "",
+        declaredMove: "", declaredAction: "other",
         declaredDamageClass: "",
         priority: 0,
         activeMoveActions: 0,
@@ -845,6 +876,52 @@ export const swapTeamPokemonInSnapshot = (snapshot, outgoingTokenId, incomingTok
 
 export const compactTeamOffer = team => compactTeam(team);
 
+export const getLinkedBoxPokemon = (teams, token) => {
+    const team = asArray(teams).find(team => token.teamId === team.id || (token.teamShareId && token.teamShareId === team.shareId));
+    const pokemon = team?.pokemon.find(partner => partner.id === token.pokemonId);
+    return pokemon ? { team, pokemon } : null;
+};
+export const hasNewerBoxEdit = (teams, token) => {
+    const linked = getLinkedBoxPokemon(teams, token);
+    return Boolean(linked && (linked.pokemon.editRevision || 0) !== (token.sourceEditRevision || 0));
+};
+export const refreshRoomPokemonFromBox = (snapshot, teams) => {
+    const room = normalizeRoomSnapshot(snapshot);
+    if (room.phase === "batalha" || room.initiative.length) throw new RangeError("Atualize as fichas no intervalo, depois de concluir a rodada.");
+    const refresh = originalToken => {
+        let token = originalToken;
+        if (!hasNewerBoxEdit(teams, token)) return token;
+        if (token.gimmickState?.active || normalizeSpecialState(token.specialState).transform) throw new RangeError("Encerre a transformação antes de atualizar a ficha do PC.");
+        const shifted = Boolean(token.teraShiftBase);
+        if (shifted) token = restoreTeraShift(token);
+        const { team, pokemon } = getLinkedBoxPokemon(teams, token);
+        const reference = createTokenFromPokemon(pokemon, team);
+        const keys = ["sourceEditRevision","name","speciesName","speciesId","sprite","weight","nature","gender","level","xp","growthVersion","pendingEvs","experienceAwards","closedAward","evs","ivs","friendship","maxHp","currentHp","status","sleepTurns","freezeTurns","pp","moves","types","originalTypes","teraType","canTerastallize","shiny","canDynamax","dynamaxLevel","canGMax","formName","ability","item","originalStats","shortRestUsed","hpScaleVersion"];
+        const updated = { ...token, stats: reference.stats, ...Object.fromEntries(keys.map(key => [key, reference[key]])),
+            traitState: { ...token.traitState, item: reference.traitState.item } };
+        const baseline = pokemon.sceneEditBase;
+        if (baseline) {
+            // A nickname/stat edit must not rewind damage, conditions, PP or
+            // an item consumed while that source edit was waiting to apply.
+            for (const key of ["currentHp","status","sleepTurns","freezeTurns","shortRestUsed"]) {
+                if (JSON.stringify(pokemon.rpg?.[key] ?? (key === "shortRestUsed" ? false : null)) === JSON.stringify(baseline[key])) updated[key] = token[key];
+            }
+            updated.pp = reference.pp.map((pp, index) => reference.moves[index] === token.moves[index]
+                && (pokemon.rpg?.pp?.[index] ?? null) === baseline.pp[index] ? token.pp[index] : pp);
+            if (traitSlug(pokemon.item) === baseline.item && getPokemonConsumedItem(pokemon) === baseline.consumedItem
+                && JSON.stringify(getPokemonItemOrigin(pokemon)) === JSON.stringify(baseline.itemOrigin)) {
+                updated.item = token.item;
+                updated.traitState.item = token.traitState.item;
+            }
+            updated.currentHp = Math.min(updated.currentHp, reference.maxHp);
+        }
+        const refreshed = shifted ? activateTeraShift(updated) : updated;
+        refreshed.stats = calculateStagedStats(refreshed);
+        return normalizeRoomToken(refreshed);
+    };
+    return normalizeRoomSnapshot({ ...room, tokens: room.tokens.map(refresh), benchTokens: room.benchTokens.map(refresh) });
+};
+
 export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
     const room = normalizeRoomSnapshot(snapshot);
     const allTokens = [...room.tokens, ...room.benchTokens];
@@ -852,7 +929,12 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
         token.pokemonId
         && token.teamId
         && (!playerId || token.ownerPlayerId === playerId)
-    );
+    ).map(token => {
+        // Persist the partner's own form and PP, without changing the scene.
+        const ownForm = restoreTeraShift(endGimmick(token));
+        const ownMoves = revertBattleTransform(ownForm).token;
+        return revertTemporaryMoveCopies(ownMoves).token;
+    });
     const itemChanges = allTokens.flatMap(token => {
         const state = normalizeTraitState(token.traitState, token.item, token.ability);
         return [
@@ -876,6 +958,7 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
         let teamChanged = false;
         const pokemon = asArray(team.pokemon).map(partner => {
             const token = related.find(candidate => candidate.pokemonId === partner.id);
+            if (token && (partner.editRevision || 0) !== token.sourceEditRevision) return partner;
             const originalItem = traitSlug(partner.item);
             const previousOrigin = getPokemonItemOrigin(partner);
             const revision = previousOrigin?.id || "";
@@ -908,13 +991,13 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 || JSON.stringify(previousOrigin) !== JSON.stringify(itemOrigin);
             if (!token && !itemChanged) return partner;
             const specialState = normalizeSpecialState(token?.specialState);
-            const hasTemporaryMoveCopy = specialState.moveOverrides.some(override => !override.permanent);
-            const synchronizedPp = specialState.transform?.base?.pp
-                || (hasTemporaryMoveCopy || !token ? partner.rpg?.pp : token.pp);
+            const synchronizedPp = token ? token.pp : partner.rpg?.pp;
             const rpg = {
                 ...partner.rpg,
                 ...(token ? {
                     currentHp: token.currentHp,
+                    scaleVersion: token.hpScaleVersion,
+                    shortRestUsed: token.shortRestUsed,
                     status: token.status,
                     sleepTurns: token.sleepTurns,
                     freezeTurns: token.freezeTurns,
@@ -931,14 +1014,16 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
             const moves = permanentMoveChange && token ? token.moves : partner.moves;
             if (
                 token
+                && !partner.sceneEditBase
                 && !itemChanged
                 &&
                 integerInRange(partner.level, 1, 200, 1) === token.level
                 && partner.rpg?.currentHp === token.currentHp
+                && Boolean(partner.rpg?.shortRestUsed) === token.shortRestUsed
                 && (partner.rpg?.status || "") === token.status
                 && (partner.rpg?.sleepTurns ?? null) === token.sleepTurns
                 && (partner.rpg?.freezeTurns ?? null) === token.freezeTurns
-                && clampFinite(partner.rpg?.xp, 0, 999999, 0) === token.xp
+                && integerInRange(partner.rpg?.xp, 0, MAX_SAFE_GAME_INTEGER, 0) === token.xp
                 && (token.growthVersion !== 1 || (
                     JSON.stringify(normalizeGrowthData(partner.rpg)) === JSON.stringify(normalizeGrowthData(token))
                     && JSON.stringify(partner.evs || {}) === JSON.stringify(token.evs)
@@ -948,8 +1033,10 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
                 && JSON.stringify(partner.moves || []) === JSON.stringify(moves || [])
             ) return partner;
             teamChanged = true;
-            return { ...partner, ...(token ? { level: token.level } : {}), moves, rpg,
+            const synchronizedPartner = { ...partner, ...(token ? { level: token.level } : {}), moves, rpg,
                 ...(token?.growthVersion === 1 ? { evs: token.evs, friendship: token.friendship } : {}) };
+            if (token) delete synchronizedPartner.sceneEditBase;
+            return synchronizedPartner;
         });
         if (!teamChanged) return team;
         changed = true;
@@ -969,11 +1056,6 @@ export const advanceInitiative = snapshot => {
     };
 };
 
-const residualAmount = (maximumHp, fraction) => {
-    const hp = integerInRange(maximumHp, 1, 99999, 1);
-    const ratio = clampFinite(fraction, 0, 1, 0);
-    return quantizePositiveHpChange(finiteProduct([hp, ratio], { minimum: 0, maximum: hp, fallback: 0 }), hp);
-};
 const uniqueSources = values => [...new Set(values.filter(Boolean))];
 const SAND_IMMUNE_ABILITIES = new Set(["magic-guard", "overcoat", "sand-force", "sand-rush", "sand-veil"]);
 const END_ROUND_STATUS_BERRIES = Object.freeze({
@@ -985,6 +1067,7 @@ const END_ROUND_STATUS_BERRIES = Object.freeze({
 });
 
 export const applyEndOfRoundEffects = (snapshot, random) => {
+    const residualAmount = (maximumHp, numerator, denominator) => rollIntegerRatio(maximumHp * numerator, denominator, random);
     const room = normalizeRoomSnapshot(snapshot);
     const effectiveWeather = ordinaryWeather(isWeatherSuppressed(room.tokens) ? "limpo" : room.weather);
     const effects = [];
@@ -1041,7 +1124,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
 
         for(const hazard of room.gmaxHazards){
             if(hazard.side!==token.side||token.types.includes(hazard.type)||activeAbility==="magic-guard")continue;
-            damageEvents.push({amount:residualAmount(token.maxHp,1/6),source:hazard.label,allowSurvivalTrait:true});
+            damageEvents.push({amount:residualAmount(getBaseMaxHp(token),1,6),source:hazard.label,allowSurvivalTrait:false});
         }
         normalizeVolatileEffects(token.volatileEffects).forEach(effect => {
             if (effect.id === "yawn") {
@@ -1090,6 +1173,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                     damageEvents.push({
                         amount,
                         source: formatName(effect.sourceMove),
+                        direct: true,
                         allowSurvivalTrait: true,
                         critical: effect.critical,
                         defenderFumble: effect.defenderFumble,
@@ -1106,7 +1190,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                     const storedAmount = finiteNumberOrNull(effect.amount);
                     persistentHealing += storedAmount != null && storedAmount > 0
                         ? integerInRange(storedAmount, 1, 99999, 1)
-                        : residualAmount(token.maxHp, 1 / 2);
+                        : residualAmount(getBaseMaxHp(token), 1, 2);
                 }
                 return;
             }
@@ -1119,7 +1203,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             }
 
             if (effect.id === "leech-seed") {
-                const amount = Math.min(currentHp, residualAmount(token.maxHp, 1 / 8));
+                const amount = Math.min(currentHp, residualAmount(getBaseMaxHp(token), 1, 8));
                 if (amount > 0 && activeAbility !== "magic-guard") {
                     damageEvents.push({
                         amount,
@@ -1134,7 +1218,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
 
             if (["aqua-ring", "ingrain"].includes(effect.id)) {
                 const bigRootActive = activeItem === "big-root";
-                persistentHealing += residualAmount(token.maxHp, (1 / 16) * (bigRootActive ? 1.3 : 1));
+                persistentHealing += residualAmount(getBaseMaxHp(token), bigRootActive ? 13 : 10, 160);
                 healingSources.push(`${formatName(effect.id)}${bigRootActive ? " + Big Root" : ""}`);
                 volatileEffects.push(effect);
                 return;
@@ -1213,46 +1297,46 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         }
 
         if (activeItem === "leftovers") {
-            persistentHealing += residualAmount(token.maxHp, 1 / 16);
+            persistentHealing += residualAmount(getBaseMaxHp(token), 1, 16);
             healingSources.push("Leftovers");
         }
         if (activeItem === "black-sludge") {
             if (token.types.includes("poison")) {
-                persistentHealing += residualAmount(token.maxHp, 1 / 16);
+                persistentHealing += residualAmount(getBaseMaxHp(token), 1, 16);
                 healingSources.push("Black Sludge");
             } else if (activeAbility !== "magic-guard") {
-                damageEvents.push({ amount: residualAmount(token.maxHp, 1 / 8), source: "Black Sludge", selfInflicted: true });
+                damageEvents.push({ amount: residualAmount(getBaseMaxHp(token), 1, 8), source: "Black Sludge", selfInflicted: true });
             }
         }
         if (activeItem === "sticky-barb" && activeAbility !== "magic-guard") {
-            damageEvents.push({ amount: residualAmount(token.maxHp, 1 / 8), source: "Sticky Barb", selfInflicted: true });
+            damageEvents.push({ amount: residualAmount(getBaseMaxHp(token), 1, 8), source: "Sticky Barb", selfInflicted: true });
         }
         if (activeAbility === "rain-dish" && effectiveWeather === "chuva") {
-            persistentHealing += residualAmount(token.maxHp, 1 / 16);
+            persistentHealing += residualAmount(getBaseMaxHp(token), 1, 16);
             healingSources.push("Rain Dish");
         }
         if (activeAbility === "ice-body" && effectiveWeather === "neve") {
-            persistentHealing += residualAmount(token.maxHp, 1 / 16);
+            persistentHealing += residualAmount(getBaseMaxHp(token), 1, 16);
             healingSources.push("Ice Body");
         }
         if (activeAbility === "dry-skin" && effectiveWeather === "chuva") {
-            persistentHealing += residualAmount(token.maxHp, 1 / 8);
+            persistentHealing += residualAmount(getBaseMaxHp(token), 1, 8);
             healingSources.push("Dry Skin");
         }
         if (activeAbility === "poison-heal" && ["poison", "bad-poison"].includes(status)) {
-            persistentHealing += residualAmount(token.maxHp, 1 / 8);
+            persistentHealing += residualAmount(getBaseMaxHp(token), 1, 8);
             healingSources.push("Poison Heal");
         }
         const grounded = !token.types.includes("flying") && activeAbility !== "levitate" && activeItem !== "air-balloon";
         if (room.terrain === "gramado" && grounded) {
-            persistentHealing += residualAmount(token.maxHp, 1 / 16);
+            persistentHealing += residualAmount(getBaseMaxHp(token), 1, 16);
             healingSources.push("Terreno de Grama");
         }
         if (activeAbility !== "magic-guard" && activeAbility === "dry-skin" && effectiveWeather === "sol") {
-            damageEvents.push({ amount: residualAmount(token.maxHp, 1 / 8), source: "Dry Skin sob sol", selfInflicted: true });
+            damageEvents.push({ amount: residualAmount(getBaseMaxHp(token), 1, 8), source: "Dry Skin sob sol", selfInflicted: true });
         }
         if (activeAbility !== "magic-guard" && activeAbility === "solar-power" && effectiveWeather === "sol") {
-            damageEvents.push({ amount: residualAmount(token.maxHp, 1 / 8), source: "Solar Power", selfInflicted: true });
+            damageEvents.push({ amount: residualAmount(getBaseMaxHp(token), 1, 8), source: "Solar Power", selfInflicted: true });
         }
 
         if (status && activeAbility === "hydration" && effectiveWeather === "chuva") {
@@ -1324,6 +1408,10 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             }
         }
 
+        if (persistentHealing === 0 && healingSources.length && currentHp < token.maxHp && !forcedFaint) {
+            effects.push({ kind: "state", tokenId: token.id, tokenName: token.name, damage: 0, remainingHp: currentHp, fainted: false,
+                sources: uniqueSources(healingSources).map(source=>`${source}: efeito ativo; sem recuperação de HP nesta ocorrência`) });
+        }
         if (persistentHealing > 0 && !forcedFaint) {
             const before = currentHp;
             currentHp = Math.min(token.maxHp, currentHp + persistentHealing);
@@ -1356,21 +1444,21 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         const indirectBlocked = activeAbility === "magic-guard";
         if (!indirectBlocked && status === "burn") {
             damageEvents.push({
-                amount: residualAmount(token.maxHp, 1 / 16),
+                amount: residualAmount(getBaseMaxHp(token), 1, 16),
                 source: "queimadura",
                 selfInflicted: activeItem === "flame-orb",
             });
         }
         if (!indirectBlocked && activeAbility !== "poison-heal" && status === "poison") {
             damageEvents.push({
-                amount: residualAmount(token.maxHp, 1 / 8),
+                amount: residualAmount(getBaseMaxHp(token), 1, 8),
                 source: "envenenamento",
                 selfInflicted: activeItem === "toxic-orb",
             });
         }
         if (!indirectBlocked && activeAbility !== "poison-heal" && status === "bad-poison") {
             damageEvents.push({
-                amount: residualAmount(token.maxHp, toxicCounter / 16),
+                amount: residualAmount(getBaseMaxHp(token), toxicCounter, 16),
                 source: "envenenamento grave",
                 selfInflicted: activeItem === "toxic-orb",
             });
@@ -1378,7 +1466,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         }
         const sandImmuneType = token.types.some(type => ["ground", "rock", "steel"].includes(type));
         if (effectiveWeather === "areia" && !sandImmuneType && !SAND_IMMUNE_ABILITIES.has(activeAbility) && activeItem !== "safety-goggles") {
-            damageEvents.push({ amount: residualAmount(token.maxHp, 1 / 16), source: "tempestade de areia" });
+            damageEvents.push({ amount: residualAmount(getBaseMaxHp(token), 1, 16), source: "tempestade de areia" });
         }
 
         if (forcedFaint) {
@@ -1396,7 +1484,17 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             });
         } else {
             damageEvents.forEach((damageEvent, index) => {
-                if (currentHp <= 0 || damageEvent.amount <= 0) return;
+                if (currentHp <= 0) return;
+                if (indirectBlocked && !damageEvent.direct) {
+                    effects.push({ kind: "state", tokenId: token.id, tokenName: token.name, damage: 0, remainingHp: currentHp, fainted: false,
+                        sources: [`Magic Guard impediu ${damageEvent.source}`] });
+                    return;
+                }
+                if (damageEvent.amount <= 0) {
+                    effects.push({ kind: "state", tokenId: token.id, tokenName: token.name, damage: 0, remainingHp: currentHp, fainted: false,
+                        sources: [`${damageEvent.source}: efeito ativo; sem perda de HP nesta ocorrência`] });
+                    return;
+                }
                 const resolved = resolveRoundDamage(
                     { ...workingToken, currentHp },
                     damageEvent.amount,
@@ -1448,7 +1546,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         if (index < 0) return;
         const source = tokens[index];
         const bigRootActive = isHeldItemActive(source) && traitSlug(source.item) === "big-root";
-        const amount = quantizePositiveHpChange(finiteProduct([drain.amount, bigRootActive ? 1.3 : 1], { minimum: 0, maximum: MAX_SAFE_GAME_INTEGER, fallback: 0 }));
+        const amount = rollIntegerRatio(drain.amount * (bigRootActive ? 13 : 10), 10, random);
         const sources = ["Leech Seed", ...(bigRootActive ? ["Big Root"] : [])];
         if (drain.liquidOoze) {
             if (isAbilityActive(source) && traitSlug(source.ability) === "magic-guard") {
@@ -1492,7 +1590,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         tokens = tokens.map(target => {
             if (target.id === source.id || target.side === source.side || target.side === "neutral" || target.status !== "sleep" || target.currentHp <= 0) return target;
             if (isAbilityActive(target) && traitSlug(target.ability) === "magic-guard") return target;
-            const resolved = resolveRoundDamage(target, residualAmount(target.maxHp, 1 / 8));
+            const resolved = resolveRoundDamage(target, residualAmount(getBaseMaxHp(target), 1, 8));
             const damage = resolved.appliedDamage;
             const changed = recordTraitEvent(resolved.token || target, {
                 kind: "ability",
@@ -1586,11 +1684,14 @@ export const declareRoomMove = (snapshot, tokenId, move = null) => {
     if (room.initiative.length) throw new RangeError("A rodada já começou. Escolha o movimento antes da próxima iniciativa.");
     const token = room.tokens.find(candidate => candidate.id === tokenId);
     if (!token || token.hidden || token.captured || token.currentHp <= 0) throw new RangeError("Escolha um Pokémon disponível no campo.");
+    const declaredAction = move?.actionKind || "other";
+    if (!["other", "swap", "improvise", "flee"].includes(declaredAction)) throw new RangeError("Escolha uma ação válida para esta rodada.");
+    if (move?.actionKind) move = null;
     const moveName = normalizeSlug(move?.name);
     if (move && (!moveName || !token.moves.includes(moveName))) throw new RangeError("Escolha um movimento da ficha deste Pokémon.");
     if (move && getMovePpState(token, move, moveName).remaining === 0) throw new RangeError("Este movimento está sem PP. Escolha outra ação.");
     const priority = move ? getEffectiveMovePriority({ token, move }) : 0;
-    return { ...room, tokens: room.tokens.map(candidate => candidate.id === token.id ? { ...candidate, declaredMove: moveName, declaredDamageClass: move?.damage_class?.name || "", priority } : candidate) };
+    return { ...room, tokens: room.tokens.map(candidate => candidate.id === token.id ? { ...candidate, declaredMove: moveName, declaredAction, declaredDamageClass: move?.damage_class?.name || "", priority } : candidate) };
 };
 
 /** PATCH edits may change HP, notes and positions, but not the choices already rolled. */
@@ -1600,6 +1701,7 @@ export const getRoundDeclarationPatchBlockReason = (current, next) => {
     for (const token of next?.tokens || []) {
         const before = previous.get(token.id);
         if (before ? normalizeSlug(before.declaredMove) !== normalizeSlug(token.declaredMove)
+            || (before.declaredAction || "other") !== (token.declaredAction || "other")
             || integerInRange(before.priority, -7, 7, 0) !== integerInRange(token.priority, -7, 7, 0)
             || (Object.hasOwn(token, "declaredDamageClass") && (before.declaredDamageClass || "") !== (token.declaredDamageClass || ""))
             : Boolean(token.declaredMove) || Number(token.priority || 0) !== 0) return "As ações desta rodada já foram escolhidas. Escolha novamente antes da próxima iniciativa.";
@@ -1611,6 +1713,7 @@ export const getRoundDeclarationPatchBlockReason = (current, next) => {
 export const getBattleLifecyclePatchBlockReason = (currentSnapshot, nextSnapshot) => {
     const current = normalizeRoomSnapshot(currentSnapshot);
     const next = normalizeRoomSnapshot(nextSnapshot);
+    if (Object.hasOwn(nextSnapshot, "battleEnded") && next.battleEnded !== current.battleEnded) return "Use Encerrar batalha ou Nova batalha para mudar o confronto.";
     if (current.battleStarted && nextSnapshot?.battleStarted === false) return "Use Nova batalha para começar outro confronto.";
     for (const key of ["hitKillProtectionUsed", "hitKillProtectionDisabled"]) {
         if (Object.hasOwn(nextSnapshot, key) && current[key].some(id => !next[key].includes(id))) return "Mudar a fase não devolve a proteção. Use Nova batalha para outro confronto.";
@@ -1622,6 +1725,7 @@ export const getBattleLifecyclePatchBlockReason = (currentSnapshot, nextSnapshot
     for (const token of [...next.tokens, ...next.benchTokens]) {
         const previous = previousTokens.get(token.id);
         if (!previous) continue;
+        if (current.initiative.length && !previous.gimmickState?.active && token.gimmickState?.active) return "Prepare a transformação antes de rolar a iniciativa.";
         const raw = [...asArray(nextSnapshot.tokens), ...asArray(nextSnapshot.benchTokens)].find(candidate => candidate?.id === token.id);
         if (previous.battleParticipated && ((Object.hasOwn(raw, "battleParticipated") && !token.battleParticipated)
             || (Object.hasOwn(raw, "battleEntryLevel") && previous.battleEntryLevel !== token.battleEntryLevel))) return "Os participantes desta batalha ficam registrados até Nova batalha.";
@@ -1659,18 +1763,21 @@ export const getBattleLifecyclePatchBlockReason = (currentSnapshot, nextSnapshot
 
 /** Shared by local actions and the server; free practice remains free without an order. */
 export const getRoundMoveBlockReason = ({ snapshot, token, move }) => {
+    if (snapshot?.battleEnded) return "O confronto terminou. Escolha Nova batalha para voltar ao combate.";
     if (!token || token.hidden || token.captured || token.currentHp <= 0) return "Este Pokémon não está disponível para agir.";
     if (!snapshot.initiative?.length) return snapshot.battleStarted
         ? "Escolha os movimentos e role a iniciativa para começar a rodada." : "";
     if (snapshot.initiative[snapshot.turnIndex] !== token.id) return "Aguarde o turno deste Pokémon.";
     if (token.lastActionRound >= snapshot.round) return "Este Pokémon já agiu nesta rodada. Avance o turno.";
+    if (!move) return token.declaredMove || token.declaredAction !== "swap" ? "Declare Trocar Pokémon antes da iniciativa." : "";
     if (token.declaredMove && normalizeSlug(move?.name) !== token.declaredMove) return `Use ${formatName(token.declaredMove)}, escolhido antes da iniciativa.`;
-    if (!token.declaredMove && getEffectiveMovePriority({ token, move }) !== 0) return "Escolha um movimento com prioridade antes da próxima iniciativa.";
+    if (!token.declaredMove) return "Outra ação não permite escolher um ataque depois da iniciativa. Declare o movimento antes da rodada.";
     return "";
 };
 
 export const buildInitiative = (snapshot, random) => {
     const normalized = normalizeRoomSnapshot(snapshot);
+    if (normalized.battleEnded) throw new RangeError("O confronto terminou. Escolha Nova batalha antes de rolar a iniciativa.");
     // The first ordered round closes free training. Keep field preparation and
     // declared choices, but do not carry a training action into round one.
     const prepared = normalized.battleStarted ? normalized : normalizeRoomSnapshot({
@@ -1762,6 +1869,8 @@ export const calculateMoveResolution = ({
     weatherSuppressed = false,
     movePriority = null,
 }) => {
+    const guidedSequence = getGuidedSequenceReason({ move, attacker, defender });
+    if (guidedSequence) throw new RangeError(guidedSequence);
     const effectiveWeather = weatherSuppressed ? "limpo" : weather;
     const profile = getMoveResolutionProfile(move);
     const statProfile = getMoveStatProfile({ move, attacker, defender });
@@ -1874,7 +1983,7 @@ export const calculateMoveResolution = ({
     const moveName = normalizeSlug(move?.name);
     const fixedDamage = (() => {
         if (!damageHit || !defender) return null;
-        if (moveName === "guardian-of-alola") return Math.max(1, Math.floor(integerInRange(defender.currentHp, 1, 99999, 1) * 3 / 4));
+        if (moveName === "guardian-of-alola") return Math.max(1, Math.floor(getBaseCurrentHp(defender) * 3 / 4));
         if (moveName === "dragon-rage") return Math.max(1, convertToTTRPG(40));
         if (moveName === "sonic-boom") return Math.max(1, convertToTTRPG(20));
         if (["night-shade", "seismic-toss"].includes(moveName)) return Math.max(1, convertToTTRPG(integerInRange(attacker?.level, 1, 200, 1)));
@@ -1884,7 +1993,7 @@ export const calculateMoveResolution = ({
             return Math.max(1, convertToTTRPG(Math.max(1, Math.floor(integerInRange(attacker?.level, 1, 200, 1) * multiplier))));
         }
         if (["super-fang", "natures-madness", "ruination"].includes(moveName)) {
-            return Math.max(1, Math.ceil(integerInRange(defender.currentHp, 1, 99999, 1) / 2));
+            return Math.max(1, Math.ceil(getBaseCurrentHp(defender) / 2));
         }
         if (moveName === "endeavor") {
             return Math.max(0, integerInRange(defender.currentHp, 0, 99999, 0) - integerInRange(attacker?.currentHp, 0, 99999, 0));
@@ -1923,10 +2032,12 @@ export const calculateMoveResolution = ({
     const damagePerHit = attackTest?.critical || directKnockout || fixedDamage != null || manualDamage
         ? rawDamagePerHit
         : Math.min(rawDamagePerHit, ceiling);
-    const damage = integerInRange(finiteProduct(
-        [damagePerHit, hitCount],
-        { minimum: 0, maximum: MAX_SAFE_GAME_INTEGER, fallback: 0 },
-    ), 0, MAX_SAFE_GAME_INTEGER, 0);
+    const damageVariations = Array.from({ length: hitCount }, () => damageHit && !directKnockout && fixedDamage == null && !manualDamage
+        ? rollDamageVariation(rawDamagePerHit, random)
+        : { base: damagePerHit, die: null, step: 0, damage: damagePerHit });
+    const hitDamages = damageVariations.map(entry => attackTest?.critical || directKnockout || fixedDamage != null || manualDamage
+        ? entry.damage : Math.min(entry.damage, ceiling));
+    const damage = integerInRange(hitDamages.reduce((total, value) => total + value, 0), 0, MAX_SAFE_GAME_INTEGER, 0);
     return {
         profile,
         weather: effectiveWeather,
@@ -1970,6 +2081,8 @@ export const calculateMoveResolution = ({
         ceilingMultiplier,
         rawDamagePerHit,
         damagePerHit,
+        hitDamages,
+        damageVariations,
         hitCount,
         directKnockout,
         fixedDamage,
@@ -1989,7 +2102,7 @@ export const eventSummary = event => {
         return `${event.author} rolou ${payload.label || "um teste"}: ${payload.result ?? "—"}.${protection}`;
     }
     if (event?.type === "move-declared") {
-        return `${event.author} escolheu ${payload.moveName ? formatName(payload.moveName) : "Outra ação"}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
+        return `${event.author} escolheu ${payload.moveName ? formatName(payload.moveName) : ({ swap: "Trocar Pokémon", improvise: "Improvisar", flee: "Fugir" }[payload.actionKind] || "Outra ação")}${payload.tokenName ? ` para ${payload.tokenName}` : ""}.`;
     }
     if (event?.type === "move") {
         const damage = integerInRange(payload.damage, 0, MAX_SAFE_GAME_INTEGER, 0);

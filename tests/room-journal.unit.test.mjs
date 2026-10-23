@@ -48,7 +48,7 @@ test("journal removal preserves permissions, state and authoritative idempotency
     fixture.sqlite.prepare("INSERT INTO room_players (id, room_code, display_name, token_hash) VALUES (?, ?, ?, ?)").run(id, code, id, await server.hashSecret(key));
   }
   const context = { params: Promise.resolve({ code }) };
-  const call = async (handler, method, key, payload, protocol = "3") => {
+  const call = async (handler, method, key, payload, protocol = "4") => {
     const response = await handler(new Request(`http://localhost/api/rooms/${code}/events`, {
       method, headers: { "content-type": "application/json", "x-myowndex-room-key": key, "x-myowndex-room-protocol": protocol }, body: JSON.stringify(payload),
     }), context);

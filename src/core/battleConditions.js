@@ -81,7 +81,7 @@ export const checkActionConditions = ({ token, move, ability = "", random } = {}
     }
     if (next.volatileEffects.some(effect => effect.id === "flinch")) {
         next.volatileEffects = next.volatileEffects.filter(effect => effect.id !== "flinch");
-        if (ability !== "inner-focus") { notes.push("Hesitou e perdeu a ação."); return finish(false); }
+        if (ability !== "inner-focus" && !["dyna", "gmax"].includes(next.gimmickState?.active)) { notes.push("Hesitou e perdeu a ação."); return finish(false); }
     }
     if (next.status === "paralysis" && fraction("paralysis", 1, 8)) {
         notes.push("A paralisia impediu a ação.");

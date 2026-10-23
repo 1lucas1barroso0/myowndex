@@ -6,13 +6,13 @@ import RoomSelect from "./RoomSelect.jsx";
 
 function RoundChoice({ token, onDeclareMove, canDeclare, disabled, onPending }) {
     const labelId = useId();
-    const [choice, setChoice] = useState(token.declaredMove || "");
+    const [choice, setChoice] = useState(token.declaredMove || `action:${token.declaredAction || "other"}`);
     const [pending, setPending] = useState(false);
     const [error, setError] = useState("");
     const alive = useRef(true);
     const locked = useRef(false);
     const failedChoices = useRef(new Set());
-    useEffect(() => { setChoice(token.declaredMove || ""); }, [token.declaredMove]);
+    useEffect(() => { setChoice(token.declaredMove || `action:${token.declaredAction || "other"}`); }, [token.declaredMove, token.declaredAction]);
     useEffect(() => {
         alive.current = true;
         return () => { alive.current = false; onPending(token.id, false); };
@@ -23,13 +23,14 @@ function RoundChoice({ token, onDeclareMove, canDeclare, disabled, onPending }) 
         locked.current = true;
         setChoice(name); setPending(true); setError(""); onPending(token.id, true);
         try {
-            const move = name ? getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`, { forceRefresh: failedChoices.current.has(name) })) : null;
+            const actionKind = name.startsWith("action:") ? name.slice(7) : "";
+            const move = actionKind ? { actionKind } : name ? getCurrentMoveReference(await fetchCached(`https://pokeapi.co/api/v2/move/${encodeURIComponent(name)}`, { forceRefresh: failedChoices.current.has(name) })) : null;
             if (name && !move) { failedChoices.current.add(name); throw new Error("Não foi possível abrir este movimento. Escolha novamente."); }
             failedChoices.current.delete(name);
             if (!alive.current) return;
             await onDeclareMove(token.id, move);
         } catch (cause) {
-            if (alive.current) { setChoice(token.declaredMove || ""); setError(cause.message || "Não foi possível confirmar esta escolha."); }
+            if (alive.current) { setChoice(token.declaredMove || `action:${token.declaredAction || "other"}`); setError(cause.message || "Não foi possível confirmar esta escolha."); }
         } finally {
             locked.current = false;
             onPending(token.id, false);
@@ -40,7 +41,10 @@ function RoundChoice({ token, onDeclareMove, canDeclare, disabled, onPending }) 
     return <li className="round-choice">
         <div className="round-choice-identity"><PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><strong id={labelId}>{token.name}</strong><span className="round-choice-priority" aria-label={`Prioridade ${token.priority > 0 ? "+" : ""}${token.priority || 0}`}>{token.priority > 0 ? "+" : ""}{token.priority || 0}</span></div>
         {canDeclare ? <RoomSelect aria-label={`Movimento de ${token.name} nesta rodada`} value={choice} disabled={disabled || pending} onChange={event => void choose(event.target.value)}>
-            <option value="">Outra ação</option>
+            <option value="action:other">Outra ação: aguardar ou objetivo nas notas</option>
+            <option value="action:swap">Trocar Pokémon</option>
+            <option value="action:improvise">Improvisar: objetivo nas notas</option>
+            <option value="action:flee">Tentar fugir</option>
             {[...new Set(token.moves.filter(Boolean))].map(name => <option key={name} value={name}>{formatName(name)}</option>)}
         </RoomSelect> : <p className="round-choice-readonly">{token.declaredMove ? formatName(token.declaredMove) : "Outra ação"}</p>}
         {pending && <small role="status">Confirmando…</small>}

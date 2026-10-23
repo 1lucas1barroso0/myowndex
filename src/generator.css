@@ -37,7 +37,7 @@ html .generator-heading .pokemon-companion.companion-compact { width:80px; heigh
 .generator-result-heading { display:flex; flex-wrap:wrap; gap:.7rem; justify-content:space-between; align-items:center; margin-bottom:1rem; }
 .generator-result-heading h3 { font-size:1.2rem; margin:0; }
 .generator-result-heading h3 > span { display:inline-block; margin-left:.45rem; color:var(--ui-muted); font-size:.875rem; font-weight:400; }
-.generator-dialog :is(.generator-clear-preview,.generator-remove-partner) { color:var(--ui-accent); background:transparent; font-size:.875rem; }
+.generator-dialog :is(.generator-clear-preview,.generator-remove-partner) { color:var(--ui-ink); background:transparent; font-size:.875rem; }
 .generator-dialog .generator-remove-partner { width:100%; margin-top:.5rem; }
 .generator-partners { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:1.15rem; }
 .generator-partner { background:var(--ui-panel); border:1px solid var(--ui-line); border-top:3px solid var(--journey-teal); border-radius:.25rem; padding:1rem; min-width:0; }
@@ -64,7 +64,8 @@ html .generator-heading .pokemon-companion.companion-compact { width:80px; heigh
 .generator-save h3 { margin:0; font-size:1.15rem; }
 .generator-save-actions { display:flex; flex-wrap:wrap; gap:.8rem; }
 .generator-save-actions button { flex:1 1 145px; }
-.generator-error,.generator-notice { padding:1rem; margin:0 0 1rem; border-left:4px solid var(--ui-accent); background:var(--ui-panel); line-height:1.55; overflow-wrap:break-word; }
+.generator-error,.generator-notice { padding:1rem; margin:0 0 1rem; border-left:4px solid var(--ui-blue); background:var(--ui-panel); line-height:1.55; overflow-wrap:break-word; }
+.generator-error { border-left-color:var(--ui-accent); }
 .generator-results:focus-visible { outline:3px solid var(--journey-focus); outline-offset:-3px; }
 .generator-notice { border-left-color:var(--journey-teal); }
 .generator-sync-choice > p { margin:0 0 1rem; }

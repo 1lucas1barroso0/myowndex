@@ -134,6 +134,8 @@ export async function POST(request: Request, context: RouteContext) {
       const moveName = safeText(eventPayload.moveName, 80)
         .toLowerCase()
         .replace(/\s+/g, "-");
+      const actionKind = safeText(eventPayload.actionKind || "other", 20);
+      if (!["other", "swap", "improvise", "flee"].includes(actionKind) || (moveName && actionKind !== "other")) return noStoreJson({ error: "Escolha uma ação válida para esta rodada." }, { status: 400 });
       let move: Awaited<ReturnType<typeof fetchServerMove>> = null;
       const { db } = getBindings();
       for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -156,7 +158,7 @@ export async function POST(request: Request, context: RouteContext) {
         if (moveName && !move) move = await fetchServerMove(moveName);
         let nextSnapshot;
         try {
-          nextSnapshot = declareRoomMove(snapshot, tokenId, move);
+          nextSnapshot = declareRoomMove(snapshot, tokenId, move || { actionKind });
         } catch (error) {
           return noStoreJson({ error: error instanceof Error ? error.message : "Não foi possível escolher esta ação." }, { status: 409 });
         }
@@ -176,6 +178,7 @@ export async function POST(request: Request, context: RouteContext) {
               tokenId,
               tokenName: safeText(token.name, 80),
               moveName,
+              actionKind,
               priority,
             },
           });

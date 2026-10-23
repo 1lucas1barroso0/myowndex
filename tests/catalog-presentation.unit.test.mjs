@@ -25,16 +25,16 @@ test("catalogue names retain English spelling, punctuation and acronyms without 
     assert.equal(getItemProfile("example-berry").title, "Example Berry");
 });
 
-test("catalogue proportions display percentages and disclose approximations while retaining original source", () => {
+test("catalogue proportions preserve exact integer ratios while retaining source meaning", () => {
     const entry = { language: { name: "en" }, effect: "At 1/3 HP or less, Grass-type moves deal 1.5× damage; 1/16 recovery is separate." };
     const original = structuredClone(entry);
     const description = describeTrait("ability", "overgrow", { effect_entries: [entry] });
-    assert.match(description.catalog.text, /≈ 33,33% HP/);
-    assert.match(description.catalog.text, /6,25% recovery/);
+    assert.match(description.catalog.text, /1\/3 HP/);
+    assert.match(description.catalog.text, /1\/16 recovery/);
     assert.match(description.catalog.text, /1\.5× damage/);
     assert.deepEqual(entry, original);
     assert.equal(cleanDescription("Recovers ½ HP; costs one quarter of max HP."), "Recovers 50% HP; costs 25% of max HP.");
-    assert.equal(cleanDescription("one-third; 2/3; 3/4"), "≈ 33,33%; ≈ 66,67%; 75%");
+    assert.equal(cleanDescription("one-third; 2/3; 3/4"), "1/3; 2/3; 75%");
     assert.equal(cleanDescription("O dano é reduzido pela metade."), "O dano é reduzido em 50%.");
     assert.equal(cleanDescription("Restaura metade do HP."), "Restaura 50% do HP.");
     assert.equal(cleanDescription("arredondado pela metade para baixo"), "arredondado pela metade para baixo");
@@ -48,7 +48,7 @@ test("species category uses its original English name even when a translated cat
     assert.equal(description.facts[0], "Seed Pokémon");
     assert.match(description.facts.join(" "), /Grassland/);
     assert.match(description.facts.join(" "), /Medium Slow/);
-    assert.match(description.facts.join(" "), /0,7 m.*6,9 kg/);
+    assert.match(description.facts.join(" "), /70 cm.*6900 g/);
 });
 
 test("move descriptions remain available from official text, preferring a selected historical game's flavor", () => {

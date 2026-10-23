@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildInitiative, changeRoomPhase, createRoomSnapshot, getBattleLifecyclePatchBlockReason,
-    getRoundMoveBlockReason, normalizeRoomSnapshot, startNewRoomBattle, swapTeamPokemonInSnapshot } from "../src/core/room.js";
+    getRoundMoveBlockReason, normalizeRoomSnapshot, startNewRoomBattle, endRoomBattle, swapTeamPokemonInSnapshot } from "../src/core/room.js";
 import { actionChangesRoomState, getCaptureInterventionBlockReason, normalizeAuthoritativeRequest,
     resolveAuthoritativeAction } from "../server/authoritativeActions.js";
 
 const token = (id, extra = {}) => ({ id, pokemonId: id, teamId: id === "opponent" ? "rivals" : "box", name: id,
     level: 10, maxHp: 10, currentHp: 10, moves: ["tackle"], pp: [20], side: id === "opponent" ? "opponent" : "ally",
     originalStats: { hp: 100, attack: 50, defense: 40, "special-attack": 50, "special-defense": 40, speed: id === "opponent" ? 50 : 100 }, ...extra });
-const battle = (extra = {}) => normalizeRoomSnapshot({ ...createRoomSnapshot(), phase: "batalha", battleStarted: true,
+const battle = (extra = {}) => normalizeRoomSnapshot({ ...createRoomSnapshot(), trainerBags: {box:{"poke-ball":10}}, phase: "batalha", battleStarted: true,
     tokens: [token("first", { battleParticipated: true, battleEntryLevel: 10 }), token("opponent")],
     benchTokens: [token("reserve")], ...extra });
 const request = extra => normalizeAuthoritativeRequest({ requestId: "start-battle-123456", action: "start-battle", expectedRevision: 3, ...extra });
@@ -24,7 +24,7 @@ test("changing phase between rounds preserves protections, interventions and bat
 });
 
 test("the first Battle initializes participation once and only explicit New battle refreshes it", () => {
-    const first = changeRoomPhase(normalizeRoomSnapshot({ ...createRoomSnapshot(), tokens: [token("first")] }), "batalha");
+    const first = changeRoomPhase(normalizeRoomSnapshot({ ...createRoomSnapshot(), trainerBags: { "box": {"poke-ball":10} }, tokens: [token("first")] }), "batalha");
     assert.equal(first.battleStarted, true);
     assert.equal(first.tokens[0].battleParticipated, true);
     assert.equal(first.tokens[0].battleEntryLevel, 10);
@@ -86,7 +86,7 @@ test("New battle requires Narrator authority and an ended round, and uses no ran
 });
 
 test("free training remains repeatable until initiative; after a round the next initiative is required", () => {
-    const training = normalizeRoomSnapshot({ ...createRoomSnapshot(), phase: "batalha", tokens: [token("first")], battleStarted: false });
+    const training = normalizeRoomSnapshot({ ...createRoomSnapshot(), trainerBags: { "box": {"poke-ball":10} }, phase: "batalha", tokens: [token("first")], battleStarted: false });
     const move = { name: "tackle", priority: 0 };
     assert.equal(getRoundMoveBlockReason({ snapshot: training, token: training.tokens[0], move }), "");
     const practiced = normalizeRoomSnapshot({ ...training, tokens: [{ ...training.tokens[0], lastActionRound: 1, activeMoveActions: 2 }] });
@@ -108,9 +108,9 @@ test("free training remains repeatable until initiative; after a round the next 
 test("a healthy switch uses Other action in the current turn and cannot be repeated", () => {
     const source = battle({ round: 3, initiative: ["opponent", "first"], turnIndex: 0 });
     assert.match(swapTeamPokemonInSnapshot(source, "first", "reserve").reason, /Aguarde o turno/);
-    const turn = { ...source, turnIndex: 1 };
+    const turn = { ...source, turnIndex: 1, tokens: source.tokens.map(actor=>({...actor,declaredAction:"swap"})) };
     const locked = { ...turn, tokens: turn.tokens.map(actor => actor.id === "first" ? { ...actor, declaredMove: "tackle" } : actor) };
-    assert.match(swapTeamPokemonInSnapshot(locked, "first", "reserve").reason, /Use Tackle/);
+    assert.match(swapTeamPokemonInSnapshot(locked, "first", "reserve").reason, /Declare Trocar/);
     const used = { ...turn, tokens: turn.tokens.map(actor => actor.id === "first" ? { ...actor, lastActionRound: 3 } : actor) };
     assert.match(swapTeamPokemonInSnapshot(used, "first", "reserve").reason, /já agiu/);
     const result = swapTeamPokemonInSnapshot(turn, "first", "reserve");
@@ -171,14 +171,14 @@ test("capture cannot reuse an intervention by hiding an active round behind Expl
 });
 
 test("capture intervention belongs to its battle even between rounds; the next round gets a new one", () => {
-    const current = battle({ round: 3, initiative: [], tokens: [token("first"), token("opponent", { currentHp: 1 })] });
+    const current = battle({ round: 3, initiative: ["first", "opponent"], tokens: [token("first"), token("opponent", { currentHp: 1 })] });
     const args = { request: { action: "capture", trainerTokenId: "first", targetId: "opponent", ball: "poke-ball", wildConfirmed: true },
         role: "narrator", species: { capture_rate: 1 }, random: () => .99 };
     const failed = resolveAuthoritativeAction({ ...args, snapshot: current });
     assert.equal(failed.nextSnapshot.trainerInterventions[0].battle, true);
     const exploring = changeRoomPhase(failed.nextSnapshot, "exploracao");
     assert.throws(() => resolveAuthoritativeAction({ ...args, snapshot: exploring }), error => error.status === 409);
-    const nextRound = { ...exploring, round: 4 };
+    const nextRound = { ...exploring, round: 4, initiative: ["first", "opponent"], turnIndex: 0 };
     const second = resolveAuthoritativeAction({ ...args, snapshot: nextRound });
     assert.equal(second.nextSnapshot.trainerInterventions[0].round, 4);
     assert.equal(second.nextSnapshot.trainerInterventions[0].battle, true);
@@ -186,7 +186,7 @@ test("capture intervention belongs to its battle even between rounds; the next r
 });
 
 test("a fresh exploration capture never prevents initializing the first battle", () => {
-    const fresh = normalizeRoomSnapshot({ ...createRoomSnapshot(), tokens: [token("first"), token("opponent", { currentHp: 1 })] });
+    const fresh = normalizeRoomSnapshot({ ...createRoomSnapshot(), trainerBags: { "box": {"poke-ball":10} }, tokens: [token("first"), token("opponent", { currentHp: 1 })] });
     const args = { request: { action: "capture", trainerTokenId: "first", targetId: "opponent", ball: "poke-ball", wildConfirmed: true },
         role: "narrator", species: { capture_rate: 1 }, random: () => .99 };
     const first = resolveAuthoritativeAction({ ...args, snapshot: fresh });
@@ -199,7 +199,7 @@ test("a fresh exploration capture never prevents initializing the first battle",
 });
 
 test("fresh private capture keeps free training and a participant entering between rounds joins the next order", () => {
-    const training = normalizeRoomSnapshot({ ...createRoomSnapshot(), phase: "batalha", tokens: [token("first"), token("opponent", { currentHp: 1 })] });
+    const training = normalizeRoomSnapshot({ ...createRoomSnapshot(), trainerBags: { "box": {"poke-ball":10} }, phase: "batalha", tokens: [token("first"), token("opponent", { currentHp: 1 })] });
     const captured = resolveAuthoritativeAction({ request: { action: "capture", trainerTokenId: "first", targetId: "opponent", ball: "poke-ball", wildConfirmed: true },
         snapshot: training, role: "narrator", species: { capture_rate: 1 }, random: () => .99 });
     assert.equal(normalizeRoomSnapshot(captured.nextSnapshot).battleStarted, false);
@@ -223,4 +223,26 @@ test("removing a participant preserves the surviving current turn and adding one
     assert.equal(getBattleLifecyclePatchBlockReason(current, removedCurrent), "");
     const returned = { ...removedEarlier, tokens: [...removedEarlier.tokens, current.tokens[0]] };
     assert.equal(getBattleLifecyclePatchBlockReason(removedEarlier, returned), "");
+});
+
+
+test("ending a confrontation releases exploration capture without refreshing spent resources",()=>{
+    const source=battle({round:4,tokens:[token("first",{currentHp:3,status:"burn",pp:[7],shortRestUsed:true})],
+        hitKillProtectionUsed:["pokemon:box:first"],trainerInterventions:[{trainerKey:"box",round:4,battle:true}]});
+    const normalized=request({action:"end-battle"});
+    assert.equal(actionChangesRoomState("end-battle"),true);
+    assert.throws(()=>resolveAuthoritativeAction({request:normalized,snapshot:source,role:"player"}),error=>error.status===403);
+    assert.throws(()=>endRoomBattle({...source,initiative:["first"]}),/Termine a rodada/);
+    assert.match(getBattleLifecyclePatchBlockReason(source,{...source,battleEnded:true}),/Encerrar batalha/);
+    const result=resolveAuthoritativeAction({request:normalized,snapshot:source,role:"narrator",random:()=>{throw new Error("no dice");}});
+    const ended=result.nextSnapshot;
+    assert.equal(ended.battleEnded,true);assert.equal(ended.phase,"intervalo");assert.deepEqual(result.audit.rawDice,[]);
+    assert.deepEqual([ended.tokens[0].currentHp,ended.tokens[0].status,ended.tokens[0].pp[0],ended.tokens[0].shortRestUsed],[3,"burn",7,true]);
+    assert.deepEqual(ended.hitKillProtectionUsed,source.hitKillProtectionUsed);assert.deepEqual(ended.trainerInterventions,source.trainerInterventions);
+    const exploration=changeRoomPhase(ended,"exploracao");
+    assert.equal(getCaptureInterventionBlockReason(exploration,exploration.tokens[0]),"");
+    assert.throws(()=>buildInitiative(exploration),/Nova batalha/);
+    assert.match(getRoundMoveBlockReason({snapshot:exploration,token:exploration.tokens[0],move:{name:"tackle"}}),/Nova batalha/);
+    const next=startNewRoomBattle(exploration);assert.equal(next.battleEnded,false);assert.deepEqual(next.hitKillProtectionUsed,[]);
+    assert.equal(next.tokens[0].currentHp,3);assert.equal(next.tokens[0].pp[0],7);
 });

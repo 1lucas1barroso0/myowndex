@@ -42,5 +42,6 @@ test("Next only traces runtime files and Vercel still receives the sprite build 
  assert.doesNotMatch(ignore,/^assets\/sprites-2d\s*$/m);
  assert.match(ignore,/!scripts\/materializar-sprites-2d\.mjs/);
  assert.match(ignore,/!scripts\/verificar-deployment\.mjs/);
- assert.equal(packageJson.scripts.postbuild,"node scripts/verificar-deployment.mjs");
+ assert.match(ignore,/!scripts\/preparar-offline\.mjs/);
+ assert.equal(packageJson.scripts.postbuild,"node scripts/preparar-offline.mjs && node scripts/verificar-deployment.mjs");
 });

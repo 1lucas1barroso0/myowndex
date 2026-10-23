@@ -108,5 +108,5 @@ test("PWA declares one stable application identity and an immersive browser-free
  const sw=readFileSync("public/sw.js","utf8");
  const {version}=JSON.parse(readFileSync("package.json","utf8"));
  assert.ok(sw.includes('"/manifest.webmanifest"'),"SW precaches canonical manifest without changing its URL");
- assert.ok(sw.includes(`myowndex-shell-v${version}-app`),"SW cache must track the release version");
+ assert.ok(sw.includes(`const CACHE_NAME = "myowndex-shell-v${version}";`),"SW cache must track the release version");
 });

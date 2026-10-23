@@ -98,12 +98,12 @@ test("legacy room scale preserves HP proportion during schema migration", () => 
       volatileEffects: [{ id: "substitute", amount: 1 }, { id: "wish", amount: 1 }],
     }],
   });
-  assert.equal(migrated.schema, 8);
-  assert.equal(migrated.tokens[0].maxHp, 6);
-  assert.equal(migrated.tokens[0].currentHp, 4);
+  assert.equal(migrated.schema, 9);
+  assert.equal(migrated.tokens[0].maxHp, 8);
+  assert.equal(migrated.tokens[0].currentHp, 5);
   assert.equal(migrated.tokens[0].stats.attack, 4);
-  assert.equal(migrated.tokens[0].volatileEffects.find(effect => effect.id === "substitute").amount, 1);
-  assert.equal(migrated.tokens[0].volatileEffects.find(effect => effect.id === "wish").amount, 3);
+  assert.equal(migrated.tokens[0].volatileEffects.find(effect => effect.id === "substitute").amount, 2);
+  assert.equal(migrated.tokens[0].volatileEffects.find(effect => effect.id === "wish").amount, 4);
 });
 
 test("room snapshots normalize phases, scenes and unsafe token positions", () => {
@@ -231,7 +231,7 @@ test("a team keeps reserves off field and swaps them without resetting battle hi
   };
   const before = normalizeRoomSnapshot({
     ...created.room,
-    tokens: [active],
+    tokens: [{ ...active, declaredAction: "swap" }],
     initiative: [active.id],
     hitKillProtectionUsed: ["pokemon:box-swap:partner-one"],
     hitKillProtectionDisabled: ["pokemon:box-swap:partner-two"],
@@ -246,7 +246,7 @@ test("a team keeps reserves off field and swaps them without resetting battle hi
   assert.deepEqual(firstSwap.room.hitKillProtectionDisabled, before.hitKillProtectionDisabled);
 
   assert.equal(swapTeamPokemonInSnapshot(firstSwap.room, firstSwap.incoming.id, firstSwap.outgoing.id).swapped, false);
-  const nextRound = { ...firstSwap.room, round: firstSwap.room.round + 1, initiative: [firstSwap.incoming.id] };
+  const nextRound = { ...firstSwap.room, round: firstSwap.room.round + 1, tokens: firstSwap.room.tokens.map(token=>({...token,declaredAction:"swap"})), initiative: [firstSwap.incoming.id] };
   const secondSwap = swapTeamPokemonInSnapshot(nextRound, firstSwap.incoming.id, firstSwap.outgoing.id);
   const returned = secondSwap.incoming;
   assert.equal(secondSwap.swapped, true);
@@ -454,7 +454,7 @@ test("indirect sources resolve one by one and only positive damage can break pro
     stats: {},
     originalStats: {},
   }];
-  const result = applyEndOfRoundEffects(snapshot);
+  const result = applyEndOfRoundEffects(snapshot,()=>0);
   const token = result.room.tokens[0];
   assert.equal(token.currentHp, 0);
   assert.equal(token.item, "focus-sash", "indirect damage does not invent a Focus Sash activation");
@@ -536,7 +536,7 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     attacker,
     defender,
     move,
-    random: sequence([0.8, 0.8, 0, 0]),
+    random: sequence([0.8, 0.8, 0, 0, 0, 0, .5]),
   });
   assert.equal(success.hit, true);
   assert.equal(success.baseDamage, 4);
@@ -572,7 +572,7 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     attacker: { ...attacker, level: 11 },
     defender,
     move: { ...move, power: 100 },
-    random: sequence([0.8, 0.8, 0, 0]),
+    random: sequence([0.8, 0.8, 0, 0, 0, 0, .5]),
   });
   assert.equal(fractionalCeiling.ceiling, 22);
   assert.equal(fractionalCeiling.damage, 22);
@@ -581,7 +581,7 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     attacker: { ...attacker, level: 1 },
     defender,
     move,
-    random: sequence([0.8, 0.8, 0, 0]),
+    random: sequence([0.8, 0.8, 0, 0, 0, 0, .5]),
   });
   assert.equal(firstLevelMinimum.ceiling, 2);
   assert.equal(firstLevelMinimum.damage, 2);
@@ -602,7 +602,8 @@ test("move resolution honors defender ties, STAB, typing and level ceiling", () 
     random: sequence([0.8, 0.8, 0, 0, 0.999]),
   });
   assert.equal(multiHit.hitCount, 5);
-  assert.equal(multiHit.damage, multiHit.damagePerHit * 5);
+  assert.equal(multiHit.damage, multiHit.hitDamages.reduce((sum,hit)=>sum+hit,0));
+  assert.equal(multiHit.hitDamages.length,5);
 });
 
 test("one combat resolution rolls both sides of the opposed test automatically", () => {
@@ -702,7 +703,7 @@ test("damage applies multipliers before one final rounding and keeps weak and st
       damage_class: { name: "physical" },
       target: { name: "selected-pokemon" },
     },
-    random: sequence([0.8, 0.8, 0, 0]),
+    random: sequence([0.8, 0.8, 0, 0, .5]),
   });
 
   assert.equal(resolvePower(1).damage, 1, "a real weak hit must not vanish");

@@ -190,6 +190,7 @@ test("sequential reactive damage sources use the centralized hit kill state one 
     item: "rocky-helmet",
   };
   const result = applyMoveConsequences({
+    random: ()=>0,
     tokens: [fragileAttacker, reactiveDefender],
     attackerId: fragileAttacker.id,
     defenderId: reactiveDefender.id,
@@ -370,7 +371,7 @@ test("defender fumble no longer skips the general protection before Sturdy", () 
   assert.deepEqual(result.hitKillProtectionUsed, [getHitKillProtectionKey(sturdyDefender)]);
   assert.equal(hasHitKillSurvivalGrace(result.hitKillSurvivalGrace, sturdyDefender), true);
 });
-test("multi-hit damage resolves each real hit and can break the general protection in the same move", () => {
+test("multi-hit general protection covers the full action", () => {
   const result = applyMoveConsequences({
     tokens: [attacker, defender],
     attackerId: attacker.id,
@@ -386,14 +387,14 @@ test("multi-hit damage resolves each real hit and can break the general protecti
     },
   });
   const target = result.tokens.find(token => token.id === defender.id);
-  assert.equal(target.currentHp, 0);
+  assert.equal(target.currentHp, 1);
   assert.equal(result.consequences.hitKillProtected, true);
   assert.deepEqual(result.consequences.hitKillProtectedHits, [1]);
-  assert.equal(result.consequences.faintedOnHit, 2);
-  assert.equal(result.consequences.damage, 10);
+  assert.equal(result.consequences.faintedOnHit, null);
+  assert.equal(result.consequences.damage, 9);
 });
 
-test("a three-hit move can use general protection, then Focus Sash, then knock out", () => {
+test("a three-hit action at triple HP bypasses general protection and checks Sash per hit", () => {
   const protectedDefender = {
     ...defender,
     teamId: "team-chain",
@@ -417,13 +418,13 @@ test("a three-hit move can use general protection, then Focus Sash, then knock o
   const target = result.tokens.find(token => token.id === protectedDefender.id);
   assert.equal(target.currentHp, 0);
   assert.equal(target.item, "");
-  assert.deepEqual(result.consequences.hitKillProtectedHits, [1]);
-  assert.deepEqual(result.consequences.traitProtectedHits, [2]);
-  assert.equal(result.consequences.faintedOnHit, 3);
+  assert.deepEqual(result.consequences.hitKillProtectedHits, []);
+  assert.deepEqual(result.consequences.traitProtectedHits, [1]);
+  assert.equal(result.consequences.faintedOnHit, 2);
   assert.deepEqual(result.consequences.consumedItems, ["focus-sash"]);
 });
 
-test("a naturally nonfatal first hit gives no free protection to a later hit", () => {
+test("a nonfatal first hit remains part of the full-action survival budget", () => {
   const protectedDefender = { ...defender, item: "focus-sash" };
   const result = applyMoveConsequences({
     tokens: [attacker, protectedDefender],
@@ -440,10 +441,10 @@ test("a naturally nonfatal first hit gives no free protection to a later hit", (
     },
   });
   const target = result.tokens.find(token => token.id === protectedDefender.id);
-  assert.equal(target.currentHp, 0);
+  assert.equal(target.currentHp, 1);
   assert.equal(target.item, "focus-sash");
-  assert.deepEqual(result.hitKillProtectionUsed, []);
-  assert.deepEqual(result.consequences.hitKillProtectedHits, []);
+  assert.deepEqual(result.hitKillProtectionUsed, [getHitKillProtectionKey(protectedDefender)]);
+  assert.deepEqual(result.consequences.hitKillProtectedHits, [2]);
   assert.deepEqual(result.consequences.traitProtectedHits, []);
 });
 

@@ -1,14 +1,21 @@
 import type { NextConfig } from "next";
+import packageInfo from "./package.json";
+import { OfflineBuildAssetsPlugin } from "./scripts/offline-build-plugin.cjs";
 
 const nextConfig: NextConfig = {
   // Separate verification builds from an already running local game.
   distDir: process.env.MYOWNDEX_BUILD_DIR || ".next",
   allowedDevOrigins: ["127.0.0.1"],
+  webpack(config, { dev, isServer }) {
+    if (!dev && !isServer) config.plugins.push(new OfflineBuildAssetsPlugin(packageInfo.version));
+    return config;
+  },
   // Mirror production freshness guarantees under next start, previews and
   // alternate hosts, not only in Vercel-specific headers.
   async headers() {
     return [
       { source: "/", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }] },
+      { source: "/offline-assets.json", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }] },
       { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }] },
       { source: "/manifest.webmanifest", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }] },
       { source: "/icons/:path*", headers: [{ key: "Cache-Control", value: "no-cache, max-age=0, must-revalidate" }] },

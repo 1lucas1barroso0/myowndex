@@ -1,3 +1,5 @@
+import { formatGameFactor } from "../../core/integerRules.js";
+import { getRestBlockReason, restPokemon } from "../../core/adventureRules.js";
 import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -10,7 +12,7 @@ import RoomSelect from "../Shared/RoomSelect.jsx";
 import TurnOrder from "../Shared/TurnOrder.jsx";
 import ExperienceAward from "../Shared/ExperienceAward.jsx";
 import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
-import { awardRoomPokemonExperience, getRoomBattleRewardContext } from "../../core/roomExperience.js";
+import { awardRoomPokemonExperience, getRoomBattleRewardContext, getRoomExperienceBlockReason } from "../../core/roomExperience.js";
 import {
     accuracyStageMultiplier,
     applyStageChange,
@@ -18,6 +20,7 @@ import {
     clearHitKillSurvivalGrace,
     disableHitKillProtection,
     getHitKillProtectionKey,
+    hasGeneralHitKillProtection,
     getHitKillSurvivalGraceKeys,
     hasHitKillProtectionDisabled,
     normalizeStageMap,
@@ -32,6 +35,7 @@ import {
     buildInitiative,
     changeRoomPhase,
     startNewRoomBattle,
+    endRoomBattle,
     compactTeamOffer,
     createRoomSnapshot,
     declareRoomMove,
@@ -43,10 +47,12 @@ import {
     STATUS_LABELS,
     swapTeamPokemonInSnapshot,
     syncTeamsWithRoomProgress,
+    hasNewerBoxEdit,
+    refreshRoomPokemonFromBox,
 } from "../../core/room.js";
 import { formatName, formatNumberPtBr, formatType } from "../../core/mechanics.js";
 import { formatCount } from "../../core/copy.js";
-import { integerInRange } from "../../core/math.js";
+import { integerInRange, MAX_BATTLE_HP, MAX_SAFE_GAME_INTEGER } from "../../core/math.js";
 import {
     buildPlayerInvite,
     buildRoomInviteToken,
@@ -70,7 +76,7 @@ import { getNextLevelXp } from "../../core/rpgRules.js";
 import { applyAuthoritativeMovePriorities } from "../../../server/authoritativeActions.js";
 import { accountRequest } from "../../core/accountClient.js";
 import { bindAccountRoom, listAccountRooms, unlinkAccountRoom } from "../../core/accountRooms.js";
-import { mergeImportedTeam, normalizeTeam, touchTeam } from "../../core/team.js";
+import { mergeImportedTeam, normalizeTeam } from "../../core/team.js";
 import { getStorageScope, readDurableStorage, removeStorage, writeStorage } from "../../core/storage.js";
 import { getBattleDisplayIdentity, normalizeSpecialState } from "../../core/specialMechanics.js";
 import Battlefield from "./Battlefield.jsx";
@@ -362,6 +368,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
 
     const snapshot = useMemo(() => normalizeRoomSnapshot(room?.snapshot), [room?.snapshot]);
     const role = session?.role || "";
+    const newerBoxEdits = [...snapshot.tokens, ...snapshot.benchTokens].filter(token => hasNewerBoxEdit(teams, token));
     const selectedTeam = teams.find(team => team.id === selectedTeamId) || teams[0] || null;
     const selectedTeamPokemon = selectedTeam?.pokemon.find(pokemon => pokemon.id === selectedTeamPokemonId) || null;
     const chosenTeamPokemonIds = selectedTeamPokemonIds.filter(id => selectedTeam?.pokemon.some(pokemon => pokemon.id === id));
@@ -377,6 +384,8 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         )) || null
         : null;
     const selectedToken = snapshot.tokens.find(token => token.id === selectedTokenId) || null;
+    const restBlockReason = getRestBlockReason(selectedToken, snapshot);
+    const experienceBlockReason = getRoomExperienceBlockReason(snapshot, selectedTokenId, teams);
     const selectedDisplayIdentity = selectedToken ? getBattleDisplayIdentity(selectedToken) : null;
     const selectedBenchTokens = selectedToken
         ? snapshot.benchTokens.filter(token => token.currentHp > 0 && (
@@ -389,7 +398,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
         || null;
     const selectedProtectionKey = getHitKillProtectionKey(selectedToken);
     const selectedProtectionState = selectedToken
-        ? selectedProtectionKey && snapshot.hitKillProtectionUsed.includes(selectedProtectionKey)
+        ? !hasGeneralHitKillProtection(selectedToken) ? "excluded" : selectedProtectionKey && snapshot.hitKillProtectionUsed.includes(selectedProtectionKey)
             ? "used"
             : hasHitKillProtectionDisabled(snapshot.hitKillProtectionDisabled, selectedToken)
                 ? "lost"
@@ -903,18 +912,17 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             normalizedPatch.currentHp = integerInRange(
                 normalizedPatch.currentHp,
                 0,
-                integerInRange(selectedToken.maxHp, 1, 99999, 1),
+                integerInRange(selectedToken.maxHp, 1, MAX_BATTLE_HP, 1),
                 selectedToken.currentHp,
             );
         }
         if (Object.hasOwn(normalizedPatch, "xp")) {
-            normalizedPatch.xp = integerInRange(normalizedPatch.xp, 0, 999999, selectedToken.xp);
+            normalizedPatch.xp = integerInRange(normalizedPatch.xp, 0, MAX_SAFE_GAME_INTEGER, selectedToken.xp);
         }
         if (Object.hasOwn(normalizedPatch, "priority")) {
             normalizedPatch.priority = integerInRange(normalizedPatch.priority, -7, 7, selectedToken.priority);
         }
         const nextToken = { ...selectedToken, ...normalizedPatch };
-        const specialState = normalizeSpecialState(nextToken.specialState);
         const lostHp = Object.hasOwn(normalizedPatch, "currentHp")
             && nextToken.currentHp < selectedToken.currentHp;
         commitSnapshot({
@@ -927,27 +935,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 ? clearHitKillSurvivalGrace(snapshot.hitKillSurvivalGrace, selectedToken)
                 : snapshot.hitKillSurvivalGrace,
         });
-        if (nextToken.pokemonId) {
-            setTeams(current => current.map(team => team.id === nextToken.teamId
-                ? touchTeam({
-                    ...team,
-                    pokemon: team.pokemon.map(pokemon => pokemon.id === nextToken.pokemonId
-                        ? {
-                            ...pokemon,
-                            rpg: {
-                                ...pokemon.rpg,
-                                currentHp: nextToken.currentHp,
-                                status: nextToken.status,
-                                xp: nextToken.xp,
-                                pp: specialState.transform?.base?.pp
-                                    || (specialState.moveOverrides.some(override => !override.permanent) ? pokemon.rpg?.pp : nextToken.pp),
-                            },
-                        }
-                        : pokemon),
-                })
-                : team
-            ));
-        }
+
     };
 
     const applySelectedDamage = ({ selfInflicted = false, amount = 1 } = {}) => {
@@ -1051,13 +1039,22 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 if (latest.tokens.some(token => token.id === removed.id)) return;
                 const tokens = [...latest.tokens];
                 tokens.splice(Math.min(Math.max(0, tokenIndex), tokens.length), 0,
-                    { ...removed, declaredMove: "", declaredDamageClass: "", priority: 0 });
+                    { ...removed, declaredMove: "", declaredAction: "other", declaredDamageClass: "", priority: 0 });
                 // Returning to the field cannot rewrite the rolled order.
                 commitSnapshot({ ...latest, tokens });
                 setSelectedTokenId(removed.id);
                 setNotice?.({ tone: "blue", text: `${removed.name} voltou à cena.${latest.initiative.length ? " Participa da próxima ordem." : ""}` });
             },
         });
+    };
+
+    const restSelectedPokemon = kind => {
+        if (role !== "narrator") return;
+        try {
+            const latest = snapshotRef.current;
+            const partner = latest.tokens.find(token => token.id === selectedTokenId);
+            updateToken(restPokemon(partner, kind, latest));
+        } catch (failure) { showError(failure); }
     };
 
     const awardSelectedExperience = async reward => {
@@ -1083,6 +1080,21 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             revealInScrollArea(entry);
             entry?.querySelector("select,button")?.focus({ preventScroll: true });
         });
+    };
+
+    const finishBattle = async () => {
+        if (role !== "narrator" || initiativeLock.current) return false;
+        initiativeLock.current = true;
+        setInitiativeBusy(true);
+        try {
+            if (!session.local) await requestAuthoritativeAction({ action: "end-battle" });
+            else {
+                const saved = await commitSnapshot(endRoomBattle(snapshotRef.current));
+                if (saved === false) throw new Error("O encerramento ainda não foi salvo. Tente novamente.");
+                await sendEvent("system", { text: "Batalha encerrada. Os gastos continuam registrados." });
+            }
+            return true;
+        } finally { initiativeLock.current = false; setInitiativeBusy(false); }
     };
 
     const startBattle = async () => {
@@ -1157,7 +1169,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     round: snapshot.round + 1,
                     turnIndex: 0,
                     initiative: [],
-                    tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", declaredDamageClass: "", priority: 0 })),
+                    tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", declaredAction: "other", declaredDamageClass: "", priority: 0 })),
                 }
                 : advanceInitiative(snapshot);
             commitSnapshot(next);
@@ -1196,6 +1208,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             tokenId: token.id,
             tokenName: token.name,
             moveName,
+            actionKind: move?.actionKind || "other",
             expectedRevision: revisionRef.current,
         });
         channelRef.current?.postMessage({ type: "invalidate" });
@@ -1352,6 +1365,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     </button>
                 </div>
             </header>
+
+            {newerBoxEdits.length > 0 && <div className="status-notice is-info">
+                <span role="status" className="status-notice-message">A ficha de {newerBoxEdits.map(token => token.name).join(", ")} mudou no PC. A edição está preservada. Atualize a cena no intervalo, com a rodada e as transformações concluídas.</span>
+                {role === "narrator" && <span className="status-notice-actions"><button type="button" className="status-notice-action"
+                    disabled={busy || snapshot.phase === "batalha" || Boolean(snapshot.initiative.length) || newerBoxEdits.some(token => token.gimmickState?.active || normalizeSpecialState(token.specialState).transform)}
+                    onClick={() => { try { commitSnapshot(refreshRoomPokemonFromBox(snapshot, teams)); } catch (failure) { showError(failure); } }}>Atualizar fichas do PC</button></span>}
+            </div>}
 
             {role === "narrator" && !session.local && (
                 <details className="room-invite-panel">
@@ -1526,6 +1546,9 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                             readOnly={role !== "narrator"}
                             onChange={phase => commitSnapshot(changeRoomPhase(snapshotRef.current, phase))}
                             onStartBattle={startBattle}
+                            onEndBattle={finishBattle}
+                            battleStarted={snapshot.battleStarted}
+                            battleEnded={snapshot.battleEnded}
                             activeRound={snapshot.initiative.length > 0}
                             busy={initiativeBusy}
                             onError={showError}
@@ -1536,6 +1559,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         <strong>{snapshot.phase==="exploracao"?"Explorar e encontrar":snapshot.phase==="interpretacao"?"Interpretar e decidir":snapshot.phase==="batalha"?"Combate em turnos":"Cuidar e preparar"}</strong>
                         <small>{snapshot.phase==="exploracao"?"Explore o cenário, procure Pokémon e tente capturá-los.":snapshot.phase==="interpretacao"?"Converse e registre as escolhas nas notas da cena.":snapshot.phase==="batalha"?"Declare os movimentos, resolva as ações e acompanhe a iniciativa.":"Descanse, trate condições e prepare os Pokémon para continuar."}</small>
                     </div>
+                    {snapshot.tokens.some(token=>token.hpScaleVersion<3) && <p className="capture-note">Esta batalha conserva o HP que já estava em jogo. O novo HP entra ao escolher Nova batalha.</p>}
                     {snapshot.phase === "batalha" && <BattleGimmickPanel
                         snapshot={snapshot}
                         role={role}
@@ -1573,7 +1597,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         onChoosePokemon={choosePokemon}
                         compact={false}
                     />
-                    {snapshot.phase === "batalha" && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
+                    {snapshot.phase === "batalha" && !snapshot.battleEnded && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
                         onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}
                         onRoll={generateInitiative} onAdvance={nextTurn} />}
 
@@ -1594,14 +1618,15 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                             </header>
                             {snapshot.phase === "intervalo" && role === "narrator" && <div className="phase-rest-actions" role="group" aria-label="Cuidados no intervalo">
                                 <strong>Cuidados no intervalo</strong>
-                                <button type="button" disabled={selectedToken.currentHp >= selectedToken.maxHp} onClick={() => updateToken({currentHp:Math.min(selectedToken.maxHp,selectedToken.currentHp+Math.max(1,Math.ceil(selectedToken.maxHp/4)))})}>Descansar · recuperar ¼ do HP</button>
-                                <button type="button" disabled={!selectedToken.status} onClick={() => updateToken({status:"",sleepTurns:null,freezeTurns:null,toxicCounter:0})}>Tratar condição</button>
+                                <button type="button" disabled={busy || Boolean(restBlockReason) || selectedToken.currentHp <= 0 || selectedToken.currentHp >= selectedToken.maxHp || selectedToken.shortRestUsed} onClick={() => restSelectedPokemon("short")}>Descanso curto · 10 minutos</button>
+                                <button type="button" disabled={busy || Boolean(restBlockReason)} onClick={() => restSelectedPokemon("full")}>Descanso completo · 8 horas / Centro</button>
+                                {restBlockReason && <p className="room-procedure-note" role="status">{restBlockReason}</p>}
                             </div>}
                             <div className="token-battle-vitals">
                                 <div className="token-hp-control">
                                     <button
                                         type="button"
-                                        disabled={role !== "narrator" || selectedToken.currentHp <= 0}
+                                        disabled={busy || role !== "narrator" || selectedToken.currentHp <= 0}
                                         onClick={() => applySelectedDamage()}
                                         aria-label="Registrar 1 ponto de dano recebido"
                                         title="Dano recebido"
@@ -1609,7 +1634,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     <PokemonHp current={selectedToken.currentHp} maximum={selectedToken.maxHp} />
                                     <button
                                         type="button"
-                                        disabled={role !== "narrator"}
+                                        disabled={busy || role !== "narrator" || selectedToken.currentHp >= selectedToken.maxHp}
                                         onClick={() => updateToken({ currentHp: Math.min(selectedToken.maxHp, selectedToken.currentHp + 1) })}
                                         aria-label="Recuperar 1 ponto de HP"
                                         title="Recuperar HP"
@@ -1619,7 +1644,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     className={`token-hit-kill-state is-${selectedProtectionState}`}
                                     role="status"
                                     aria-live="polite"
-                                    aria-label={`Proteção contra hit kill: ${selectedProtectionState === "lost"
+                                    aria-label={`Proteção contra hit kill: ${selectedProtectionState === "excluded" ? "não se aplica a Shedinja" : selectedProtectionState === "lost"
                                         ? "indisponível após pagar HP nesta batalha"
                                         : selectedProtectionState === "used"
                                             ? "indisponível, já utilizada nesta batalha"
@@ -1660,10 +1685,13 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                 <header className="token-experience-heading"><h3>Experiência</h3><span>Nível {selectedToken.level}</span></header>
                                 <div className="token-xp-readout">
                                     <span><small>XP atual</small><strong>{formatNumberPtBr(selectedToken.xp)}</strong></span>
-                                    <span><small>Próximo nível</small><strong>{selectedToken.level >= 200 ? "Máximo" : `${formatNumberPtBr(Math.max(0, getNextLevelXp(selectedToken.level) - selectedToken.xp))} XP`}</strong></span>
-                                    {selectedToken.level < 200 && <progress aria-label="Progresso até o próximo nível" max={Math.max(1,getNextLevelXp(selectedToken.level))} value={Math.min(selectedToken.xp,getNextLevelXp(selectedToken.level))}/>}
+                                    <span><small>Próximo nível</small><strong>{selectedToken.level >= 100 ? "Máximo" : `${formatNumberPtBr(Math.max(0, getNextLevelXp(selectedToken.level) - selectedToken.xp))} XP`}</strong></span>
+                                    {selectedToken.level < 100 && <progress aria-label="Progresso até o próximo nível" max={Math.max(1,getNextLevelXp(selectedToken.level))} value={Math.min(selectedToken.xp,getNextLevelXp(selectedToken.level))}/>}
                                 </div>
-                                {role === "narrator" && <ExperienceAward key={selectedToken.id} winnerLevel={selectedToken.level} battleContext={getRoomBattleRewardContext(snapshot, selectedToken.id)} onAward={awardSelectedExperience} disabled={busy} />}
+                                {role === "narrator" && <>
+                                    <ExperienceAward key={selectedToken.id} winnerLevel={selectedToken.level} battleContext={getRoomBattleRewardContext(snapshot, selectedToken.id)} onAward={awardSelectedExperience} disabled={busy || Boolean(experienceBlockReason)} />
+                                    {experienceBlockReason && <p className="room-procedure-note" role="status">{experienceBlockReason}</p>}
+                                </>}
                             </section>
                             <label>
                                 <span>Condição</span>
@@ -1721,7 +1749,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     {STAGE_STAT_KEYS.map(stat => {
                                         const value = selectedToken.stages?.[stat] || 0;
                                         const calculated = stat === "accuracy" || stat === "evasion"
-                                            ? `${formatNumberPtBr(accuracyStageMultiplier(value))}×`
+                                            ? `${formatGameFactor(accuracyStageMultiplier(value))}×`
                                             : formatNumberPtBr(selectedToken.stats?.[stat] || 0);
                                         return (
                                             <div className="token-modifier" key={stat}>
@@ -1791,7 +1819,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                             {diceOpen && <AdventureDicePanel context="aventura" compact showHeading={false} {...dicePokemonContext} />}
                         </div>
                     </details>
-                    {snapshot.phase === "batalha" && <CombatAssistant
+                    {snapshot.phase === "batalha" && !snapshot.battleEnded && <CombatAssistant
                         role={role}
                         playerId={session.playerId}
                         snapshot={snapshot}

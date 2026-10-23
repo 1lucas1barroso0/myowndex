@@ -230,8 +230,8 @@ try {
         const description = page.locator('.species-description');
         const original = normalize(await description.locator('p').first().innerText());
         assert.match(original, /seed|plant|back/i, 'the original English catalog record must be visible');
-        assert.match(await page.locator('.record-measurements').innerText(), /0,7 m/);
-        assert.match(await page.locator('.record-measurements').innerText(), /6,9 kg/);
+        assert.match(await page.locator('.record-measurements').innerText(), /70 cm/);
+        assert.match(await page.locator('.record-measurements').innerText(), /6900 g/);
         for (const width of widths) {
             await viewport(width);
             await page.getByRole('button', { name: 'Ver tradução do registro em português', exact: true }).click();

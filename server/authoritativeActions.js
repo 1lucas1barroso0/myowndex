@@ -1,3 +1,4 @@
+import { formatGameFactor } from "../src/core/integerRules.js";
 import {
     applyMoveConsequences,
     disableHitKillProtection,
@@ -22,9 +23,10 @@ import {
     calculateMoveResolution,
     normalizeRoomSnapshot,
     startNewRoomBattle,
+    endRoomBattle,
 } from "../src/core/room.js";
 import { getFumbleSuggestion, rollAttributeTest, rollPercentTest } from "../src/core/rpgRules.js";
-import { getMoveSpecialProfile, getSpecialMoveBlockReason } from "../src/core/specialMechanics.js";
+import { getMoveSpecialProfile, getSpecialMoveBlockReason, getGuidedSequenceReason } from "../src/core/specialMechanics.js";
 import { getTraitMoveBlock, isWeatherSuppressed, isAbilityActive } from "../src/core/traitMechanics.js";
 import { checkActionConditions } from "../src/core/battleConditions.js";
 import { CAPTURE_BALLS, captureTrainerKey, rollCapture } from "../src/core/capture.js";
@@ -33,10 +35,10 @@ import { canUseZMove, normalizeGimmickState } from "../src/core/battleGimmicks.j
 import { battleMovePresentation, moveVariantForResolution } from "../src/core/battleMovePresentation.js";
 import { applyMaxMoveSecondary } from "../src/core/battleMoveEffects.js";
 
-const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "start-battle"]);
+const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "start-battle", "end-battle"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
 const FREE_DICE_SIDES = new Set([4, 6, 8, 10, 12, 20, 100]);
-const STATE_ACTIONS = new Set(["initiative", "advance-turn", "combat", "capture", "start-battle"]);
+const STATE_ACTIONS = new Set(["initiative", "advance-turn", "combat", "capture", "start-battle", "end-battle"]);
 const COMMON_KEYS = new Set(["requestId", "action"]);
 const ACTION_KEYS = Object.freeze({
     "quick-attribute": new Set(["mode", "attribute", "opposition", "label"]),
@@ -44,6 +46,7 @@ const ACTION_KEYS = Object.freeze({
     "quick-free": new Set(["quantity", "sides", "modifier", "label"]),
     initiative: new Set(["expectedRevision"]),
     "start-battle": new Set(["expectedRevision"]),
+    "end-battle": new Set(["expectedRevision"]),
     "advance-turn": new Set(["expectedRevision"]),
     combat: new Set(["expectedRevision", "attackerId", "defenderId", "moveName", "calledMoveName", "mode", "useZMove"]),
     capture: new Set(["expectedRevision", "trainerTokenId", "targetId", "ball", "wildConfirmed"]),
@@ -451,7 +454,7 @@ const advanceTurn = (snapshot, random) => {
             round: room.round + 1,
             turnIndex: 0,
             initiative: [],
-            tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", declaredDamageClass: "", priority: 0 })),
+            tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", declaredAction: "other", declaredDamageClass: "", priority: 0 })),
         }
         : advanceInitiative(room);
     const activeId = nextSnapshot.initiative[nextSnapshot.turnIndex];
@@ -514,6 +517,8 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
     const resolvedMove = needsCalledMove && !specialBlock ? calledMove : move;
     const presentation = battleMovePresentation(attacker,resolvedMove,{useZMove:zMove});
     const gimmickMove = moveVariantForResolution(resolvedMove,presentation);
+    const guidedSequence = getGuidedSequenceReason({ move: gimmickMove, attacker, defender });
+    if (guidedSequence) throw new AuthoritativeActionError(guidedSequence, 409);
 
     const ppState = getMovePpState(attacker, move, request.moveName);
     if (ppState.remaining != null && ppState.remaining <= 0) {
@@ -625,6 +630,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
                 ? resolveDamageSequence({
                     token: currentTarget,
                     damage: resolution.damageHit ? resolution.damage : 0,
+                    hitDamages: resolution.hitDamages,
                     damagePerHit: resolution.damagePerHit,
                     hitCount: integerInRange(resolution.hitCount, 1, 10, 1),
                     round: room.round,
@@ -740,6 +746,7 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
                 defense: entry.resolution.defenseTest?.dice || [],
                 defenseKept: entry.resolution.defenseTest?.kept || [],
                 accuracy: entry.resolution.accuracyTest?.rolls || [],
+                damageVariation: entry.resolution.damageVariations || [],
             })),
             modifiers: { attackerId: attacker.id, defenderId: defender?.id || null, moveName: resolvedMove.name },
             chance: targetResults.map(entry => entry.resolution.accuracyTest?.chance ?? null),
@@ -756,6 +763,12 @@ export const resolveCombatAction = ({ snapshot, role, request, move, calledMove 
 export const getCaptureInterventionBlockReason = (snapshot, trainer) => {
     if (!trainer) return "";
     const trainerKey = captureTrainerKey(trainer);
+    const inBattle = snapshot.battleStarted && !snapshot.battleEnded || snapshot.initiative?.length;
+    if (!inBattle) return "";
+    if (inBattle) {
+        const actor = snapshot.tokens.find(token=>token.id===snapshot.initiative?.[snapshot.turnIndex]);
+        if (!actor || captureTrainerKey(actor)!==trainerKey || actor.lastActionRound>=snapshot.round) return "Intervenha no começo do turno de um dos seus Pokémon, antes da condição e da ação.";
+    }
     return snapshot.trainerInterventions?.some(entry => entry.trainerKey === trainerKey && entry.round === snapshot.round
         && (snapshot.battleStarted || snapshot.phase === "batalha" || snapshot.initiative?.length > 0 || entry.battle))
         ? "Este Treinador já usou a intervenção desta rodada." : "";
@@ -766,12 +779,14 @@ export const resolveCaptureAction = ({ request, snapshot, role, species, random 
     const room = normalizeRoomSnapshot(snapshot);
     const trainer = room.tokens.find(token => token.id === request.trainerTokenId);
     const target = room.tokens.find(token => token.id === request.targetId);
-    if (!trainer || trainer.side !== "ally" || !target || trainer.id === target.id || target.side === "ally" || target.hidden || target.ownerPlayerId || request.wildConfirmed !== true) {
+    if (!trainer || trainer.hidden || trainer.captured || trainer.side !== "ally" || !target || trainer.id === target.id || target.side === "ally" || target.hidden || target.ownerPlayerId || request.wildConfirmed !== true) {
         throw new AuthoritativeActionError("Confirme sua equipe e um alvo selvagem na cena.", 409);
     }
     const trainerKey = captureTrainerKey(trainer);
     const interventionBlock = getCaptureInterventionBlockReason(room, trainer);
     if (interventionBlock) throw new AuthoritativeActionError(interventionBlock, 409);
+    const available = room.trainerBags?.[trainerKey]?.[request.ball] ?? 0;
+    if (!Number.isSafeInteger(available) || available < 1) throw new AuthoritativeActionError("Registre uma Poké Ball disponível na bolsa deste Treinador.", 409);
     const result = rollCapture({ target, captureRate: species?.capture_rate, ball: request.ball }, random);
     const capturedInitiativeIndex = room.initiative.indexOf(target.id);
     const initiative = result.success
@@ -785,12 +800,13 @@ export const resolveCaptureAction = ({ request, snapshot, role, species, random 
         : room.turnIndex;
     const nextSnapshot = {
         ...room,
-        trainerInterventions: [...room.trainerInterventions.filter(entry => entry.round === room.round), { trainerKey, round: room.round, battle: room.battleStarted || room.initiative.length > 0 }],
+        trainerBags: { ...room.trainerBags, [trainerKey]: { ...room.trainerBags[trainerKey], [request.ball]: available - 1 } },
+        trainerInterventions: [...room.trainerInterventions.filter(entry => entry.round === room.round), { trainerKey, round: room.round, battle: room.battleStarted && !room.battleEnded || room.initiative.length > 0 }],
         initiative,
         turnIndex: initiative.length ? turnIndex : 0,
         tokens: room.tokens.map(token => token.id === target.id && result.success ? { ...token, captured: true, hidden: true } : token),
     };
-    const detail = `${target.name}: ${result.success ? "captura confirmada" : "escapou"} com ${CAPTURE_BALLS[result.ball].label}. ${result.automatic ? "Captura automática." : `d100 ${result.result} contra ${result.chance}%.`} Taxa ${result.captureRate} de 255; HP ${result.currentHp} de ${result.maxHp}; Ball ×${result.ballBonus}; condição ×${result.statusBonus}.`;
+    const detail = `${target.name}: ${result.success ? "captura confirmada" : "escapou"} com ${CAPTURE_BALLS[result.ball].label}. ${result.automatic ? "Captura automática." : `d100 ${result.result} contra ${result.chance}%.`} Taxa ${result.captureRate} de 255; HP ${result.currentHp} de ${result.maxHp}; Ball ×${formatGameFactor(result.ballBonus)}; condição ×${formatGameFactor(result.statusBonus)}.`;
     return {
         result: { ...result, targetName: target.name, detail }, nextSnapshot,
         audit: { type: "capture", mode: "normal", rawDice: result.rolls, modifiers: result, chance: result.chance, result: result.result, success: result.success, critical: false, fumble: false },
@@ -805,6 +821,15 @@ export const resolveAuthoritativeAction = ({ request, snapshot, role, move = nul
     if (request.action === "quick-attribute") return quickAttribute(request, random);
     if (request.action === "quick-percent") return quickPercent(request, random);
     if (request.action === "quick-free") return quickFree(request, random);
+    if (request.action === "end-battle") {
+        if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode encerrar a batalha.", 403);
+        const nextSnapshot = endRoomBattle(snapshot);
+        const detail = "Batalha encerrada. HP, PP, condições, XP e itens gastos continuam registrados.";
+        return { result: { detail }, nextSnapshot,
+            audit: { type: "end-battle", mode: "normal", rawDice: [], modifiers: null, chance: null,
+                result: { ended: true }, success: true, critical: false, fumble: false },
+            eventType: "system", eventPayload: { text: detail } };
+    }
     if (request.action === "start-battle") {
         if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode começar uma nova batalha.", 403);
         const room = normalizeRoomSnapshot(snapshot);

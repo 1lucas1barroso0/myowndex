@@ -38,10 +38,13 @@ function OpeningScreen() {
         <span className="opening-progress" aria-hidden="true"><i /><i /><i /></span>
     </div>;
 }
-const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: () => null });
+const DestinationOpening = ({ label, error, retry }) => error
+    ? <div className="view-opening"><p role="alert">Não foi possível abrir esta tela agora.</p><button type="button" className="room-secondary-button" onClick={retry}>Tentar novamente</button></div>
+    : <p className="view-opening" role="status">{label}</p>;
+const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: props => <DestinationOpening {...props} label="Abrindo o Guia do Treinador…" /> });
 const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
-const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: () => null });
-const RpgRoom = dynamic(() => import("./components/Room/RpgRoom.jsx"), { loading: () => null });
+const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: props => <DestinationOpening {...props} label="Abrindo o PC do Bill…" /> });
+const RpgRoom = dynamic(() => import("./components/Room/RpgRoom.jsx"), { loading: props => <DestinationOpening {...props} label="Abrindo sua aventura…" /> });
 const AccountModal = dynamic(() => import("./components/Account/AccountModal.jsx"), { loading: () => null });
 const LocalDiceDialog = dynamic(() => import("./components/Shared/LocalDiceDialog.jsx"), { loading: () => null });
 const GeneratorModal = dynamic(() => import("./components/Generator/GeneratorModal.jsx"), { loading: () => null });
@@ -100,7 +103,7 @@ const preloadDestination = target => {
 };
 
 // Keep pointer previews local: dragging the header must not render the game.
-const AppHeader = React.memo(function AppHeader({ view, setView, client, onAccountOpen, experienceMode, setExperienceMode, diceOpen, setDiceOpen, setGeneratorOpen }) {
+const AppHeader = React.memo(function AppHeader({ view, setView, client, onAccountOpen, experienceMode, setExperienceMode, diceOpen, setDiceOpen, generatorOpen, setGeneratorOpen }) {
     const curtain = useHeaderCurtain();
     return (
             <header className={`app-header app-header-curtain${curtain.dragging ? " is-dragging" : ""}`} data-curtain-level={curtain.level} style={curtain.mobile && curtain.height !== undefined ? { height: `${curtain.height}px` } : undefined}>
@@ -123,7 +126,7 @@ const AppHeader = React.memo(function AppHeader({ view, setView, client, onAccou
 
                         <div className="app-actions">
                             <div className="app-tool-actions" role="group" aria-label="Ferramentas da jornada" inert={curtain.mobile && curtain.level < 3} aria-hidden={curtain.mobile && curtain.level < 3 ? true : undefined}>
-                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" onPointerEnter={() => preloadDestination("generator")} onFocus={() => preloadDestination("generator")} onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar</span></button>
+                                <button type="button" className="global-generator-button" aria-label="Gerar Pokémon" aria-haspopup="dialog" aria-expanded={generatorOpen} onPointerEnter={() => preloadDestination("generator")} onFocus={() => preloadDestination("generator")} onClick={() => setGeneratorOpen(true)}><PokemonCompanion place="generator" eager /><span>Gerar</span></button>
                                 <button type="button" className="global-dice-button" aria-label="Abrir Dados" aria-haspopup="dialog" aria-expanded={diceOpen} onPointerEnter={() => preloadDestination("dice")} onFocus={() => preloadDestination("dice")} onClick={() => setDiceOpen(true)}><PokemonCompanion place="dice" eager /><span>Dados</span></button>
                                 <AccountButton client={client} onClick={onAccountOpen} onIntent={() => preloadDestination("account")} />
                             </div>
@@ -677,7 +680,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
             <a className="skip-to-content" href="#main-content">Ir para o conteúdo</a>
             <AppHeader view={view} setView={setView} client={client} onAccountOpen={onAccountOpen}
                 experienceMode={experienceMode} setExperienceMode={setExperienceMode}
-                diceOpen={diceOpen} setDiceOpen={setDiceOpen} setGeneratorOpen={setGeneratorOpen} />
+                diceOpen={diceOpen} setDiceOpen={setDiceOpen} generatorOpen={generatorOpen} setGeneratorOpen={setGeneratorOpen} />
 
             <main id="main-content" aria-label={VIEW_LABELS[view]} tabIndex={-1} className="app-scroll-area">
                 <span className="sr-only" role="status" aria-atomic="true">{VIEW_LABELS[view]}</span>

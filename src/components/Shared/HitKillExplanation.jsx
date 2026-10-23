@@ -15,9 +15,9 @@ export default function HitKillExplanation({ expanded = false }) {
                 <div><strong>Uma chance de continuar</strong><span>Uma vez por Pokémon, em cada batalha.</span></div>
             </div>
             <ol className="guide-hit-kill-flow" aria-label="Condições para a proteção agir">
-                <li><span className="guide-hit-kill-step" aria-hidden="true">1</span><div><strong>HP cheio</strong><span>Antes de receber o dano.</span></div></li>
-                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>O golpe zeraria o HP</strong><span>O dano é menor que 3× o HP máximo.</span></div></li>
-                <li className="guide-hit-kill-outcome"><span className="guide-hit-kill-step" aria-hidden="true">3</span><div><strong>Continua com <b>1 HP</b></strong><span>A proteção é usada.</span></div></li>
+                <li><span className="guide-hit-kill-step" aria-hidden="true">1</span><div><strong>HP cheio</strong><span>No começo da ação.</span></div></li>
+                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>O golpe zeraria o HP</strong><span>O dano total da ação é menor que 3× o máximo.</span></div></li>
+                <li className="guide-hit-kill-outcome"><span className="guide-hit-kill-step" aria-hidden="true">3</span><div><strong>Continua com <b>1 HP</b></strong><span>A ação termina com 1 HP; a proteção é usada.</span></div></li>
             </ol>
             <p className="guide-hit-kill-example"><strong>Exemplo:</strong> com 20 HP cheios e a proteção disponível, um dano de 30 deixa 1 HP. Um dano de 60 ou mais atravessa a proteção, mesmo sem crítico.</p>
             <details className="guide-hit-kill-full-rule" open={expanded}>

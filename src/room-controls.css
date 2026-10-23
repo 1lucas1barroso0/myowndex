@@ -112,7 +112,7 @@ html .app-root.game-edition.handheld-edition .capture-fields .capture-confirmati
   font-size: .95rem;
   font-weight: 500;
 }
-html .app-root.game-edition.handheld-edition :is(.combat-target-note,.capture-note){
+html .app-root.game-edition.handheld-edition :is(.combat-target-note,.capture-note,.room-procedure-note){
   margin: 1rem 0 1.25rem;
   color: var(--ui-muted);
   font-size: .95rem;

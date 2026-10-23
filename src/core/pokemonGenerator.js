@@ -109,7 +109,13 @@ export const getGeneratorSpeciesTypes = (entry, generation = 9) => {
 };
 
 export const getGeneratorLearnset = (pokemon, versionGroup, level) => {
-    const resolved = getLatestVersionGroup(pokemon?.moves, versionGroup);
+    // A natural encounter uses level-up learning. A newer training-only game
+    // must not erase an older, valid natural repertoire in automatic mode.
+    const automatic = !versionGroup || versionGroup === 'auto';
+    const candidates = automatic ? (pokemon?.moves || []).map(entry => ({ ...entry,
+        version_group_details: (entry.version_group_details || []).filter(detail => detail.move_learn_method?.name === 'level-up'),
+    })) : pokemon?.moves;
+    const resolved = getLatestVersionGroup(candidates, versionGroup);
     if (!resolved) return { versionGroup: null, moves: [] };
     const legal = new Map();
     for (const entry of pokemon.moves || []) {

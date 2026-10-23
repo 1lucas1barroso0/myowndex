@@ -10,8 +10,8 @@ import { applyRecordAppearance } from "./pokemonRecordForms.js";
 
 export const TEAM_STORAGE_KEY = "myowndex_rotom_v4";
 export const LEGACY_TEAM_STORAGE_KEY = "myowndex_rotom_v3";
-export const TEAM_SCHEMA_VERSION = 5;
-export const RPG_SCALE_VERSION = 2;
+export const TEAM_SCHEMA_VERSION = 6;
+export const RPG_SCALE_VERSION = 3;
 export const STAT_KEYS = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"];
 export const RPG_STATUSES = ["", "burn", "freeze", "paralysis", "poison", "bad-poison", "sleep"];
 
@@ -91,7 +91,8 @@ export const normalizeRpgData = (value = {}) => {
     while (pp.length < 4) pp.push(null);
     return {
         scaleVersion: clampInteger(source.scaleVersion, 1, RPG_SCALE_VERSION, source.currentHp == null ? RPG_SCALE_VERSION : 1),
-        xp: integerInRange(source.xp, 0, 999999, 0),
+        ...(source.shortRestUsed ? { shortRestUsed: true } : {}),
+        xp: integerInRange(source.xp, 0, Number.MAX_SAFE_INTEGER, 0),
         ...normalizeGrowthData(source),
         currentHp: normalizeOptionalNumber(source.currentHp, 0, 99999, 1),
         status: RPG_STATUSES.includes(status) ? status : "",
@@ -105,6 +106,13 @@ export const normalizeRpgData = (value = {}) => {
         animeNotes: asText(source.animeNotes).slice(0, 1000),
         pp
     };
+};
+
+const normalizeSceneEditBase = value => {
+    const rpg = normalizeRpgData(value);
+    return { currentHp: rpg.currentHp, status: rpg.status, sleepTurns: rpg.sleepTurns,
+        freezeTurns: rpg.freezeTurns, pp: rpg.pp, shortRestUsed: Boolean(rpg.shortRestUsed),
+        item: itemSlug(value?.item), consumedItem: rpg.consumedItem || "", itemOrigin: rpg.itemOrigin || null };
 };
 
 const normalizeGender = (gender, rate) => {
@@ -161,14 +169,14 @@ export const normalizePokemon = input => {
             true,
             speciesName,
         );
-        const oldMaxHp = legacyScale20(rawMaxHp, true);
+        const oldMaxHp = normalizedRpg.scaleVersion === 1 ? legacyScale20(rawMaxHp, true) : Math.max(1, Math.floor(rawMaxHp / 10 + 0.5));
         const newMaxHp = convertToTTRPG(rawMaxHp, true);
         const oldCurrentHp = clampInteger(normalizedRpg.currentHp, 0, oldMaxHp, oldMaxHp);
         const currentHp = oldCurrentHp <= 0
             ? 0
             : oldCurrentHp >= oldMaxHp
                 ? newMaxHp
-                : Math.max(1, Math.min(newMaxHp, Math.round((oldCurrentHp / oldMaxHp) * newMaxHp)));
+                : Math.max(1, Math.min(newMaxHp, Math.floor(oldCurrentHp * newMaxHp / oldMaxHp)));
         rpg = { ...normalizedRpg, currentHp, scaleVersion: RPG_SCALE_VERSION };
     }
     if (rpg.consumedItem && !getPokemonConsumedItem({ item: source.item, rpg })) {
@@ -180,10 +188,13 @@ export const normalizePokemon = input => {
         delete rpg.itemOrigin;
     }
 
+    const editRevision = integerInRange(source.editRevision, 0, Number.MAX_SAFE_INTEGER, 0);
     return {
         id: asText(source.id) || createId("partner"),
         species,
         nickname: asText(source.nickname),
+        ...(editRevision ? { editRevision } : {}),
+        ...(source.sceneEditBase ? { sceneEditBase: normalizeSceneEditBase(source.sceneEditBase) } : {}),
         level: clampInteger(source.level, 1, 200, 5),
         item: asText(source.item).toLowerCase(),
         ability: asText(source.ability).toLowerCase(),
@@ -194,6 +205,7 @@ export const normalizePokemon = input => {
         canGMax: Boolean(source.canGMax),
         ...(source.canTerastallize === false ? { canTerastallize: false } : {}),
         shiny: Boolean(source.shiny),
+        canDynamax: source.canDynamax == null ? Number(source.dynamaxLevel)>0 : Boolean(source.canDynamax),
         dynamaxLevel: clampInteger(source.dynamaxLevel, 0, 10, 0),
         teraType: asText(source.teraType).toLowerCase(),
         friendship: clampInteger(source.friendship, 0, 255, 70),
@@ -251,7 +263,10 @@ export const compactSpecies = species => {
 
 export const compactPokemon = pokemon => {
     const normalized = normalizePokemon(pokemon);
-    return { ...normalized, species: compactSpecies(normalized.species) };
+    const result = { ...normalized, species: compactSpecies(normalized.species) };
+    if (!normalized.canDynamax && normalized.dynamaxLevel === 0) delete result.canDynamax;
+    if (!normalized.editRevision) delete result.editRevision;
+    return result;
 };
 
 export const normalizeTeam = input => {
@@ -310,6 +325,12 @@ export const restoreTeamAt = (teams, team, index = 0) => {
     ];
 };
 
+// Manual PC edits are distinct from battle progress. A stale scene must not
+// silently overwrite a newer source sheet when the player returns to it.
+export const markPokemonEdited = (previous, next) => ({ ...next,
+    sceneEditBase: previous?.sceneEditBase || normalizeSceneEditBase({ ...previous?.rpg, item: previous?.item }),
+    editRevision: Math.min(Number.MAX_SAFE_INTEGER, integerInRange(previous?.editRevision, 0, Number.MAX_SAFE_INTEGER, 0) + 1) });
+
 export const touchTeam = team => ({
     ...team,
     id: asText(team?.id) || createId("box"),
@@ -319,7 +340,7 @@ export const touchTeam = team => ({
 
 export const loadTeams = (options = {}) => {
     const current = readStorage(TEAM_STORAGE_KEY, null, options);
-    if ([4, TEAM_SCHEMA_VERSION].includes(current?.schema) && Array.isArray(current.teams)) {
+    if ([4, 5, TEAM_SCHEMA_VERSION].includes(current?.schema) && Array.isArray(current.teams)) {
         return dedupeTeams(current.teams);
     }
     const legacy = readStorage(LEGACY_TEAM_STORAGE_KEY, [], options);
@@ -340,7 +361,7 @@ export const saveTeams = (teams, options = {}) => {
 export const loadTeamsDurable = async (options = {}) => {
     const scope = Object.prototype.hasOwnProperty.call(options, "scope") ? options.scope : getStorageScope();
     const current = await readDurableStorage(TEAM_STORAGE_KEY, null, { scope });
-    if ([4, TEAM_SCHEMA_VERSION].includes(current?.schema) && Array.isArray(current.teams)) return dedupeTeams(current.teams);
+    if ([4, 5, TEAM_SCHEMA_VERSION].includes(current?.schema) && Array.isArray(current.teams)) return dedupeTeams(current.teams);
     const legacy = await readDurableStorage(LEGACY_TEAM_STORAGE_KEY, [], { scope });
     return dedupeTeams(Array.isArray(legacy) ? legacy : []);
 };
@@ -480,7 +501,17 @@ export const mergeImportedTeam = (existingTeams, incomingTeam) => {
     if (incoming.updatedAt <= current.updatedAt) {
         return { teams: existing, team: current, status: "ignored" };
     }
-    const replacement = { ...incoming, id: current.id };
+    // An imported snapshot is a new source sheet even when automatic progress
+    // on the other device left its edit counter unchanged. Require the scene
+    // to acknowledge it before any old token can write progress back.
+    const replacement = { ...incoming, id: current.id, pokemon: incoming.pokemon.map(partner => {
+        const previous = current.pokemon.find(candidate => candidate.id === partner.id);
+        if (!previous) return partner;
+        const revision = Math.max(previous.editRevision || 0, partner.editRevision || 0);
+        const imported = { ...partner, editRevision: revision === Number.MAX_SAFE_INTEGER ? 0 : revision + 1 };
+        delete imported.sceneEditBase; // The explicit import supplies the whole sheet.
+        return imported;
+    }) };
     const merged = [...existing];
     merged[index] = replacement;
     return { teams: merged, team: replacement, status: "replaced" };

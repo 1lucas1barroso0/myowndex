@@ -60,7 +60,7 @@ test("release freshness endpoint and device auto-update preserve durable game st
   assert.match(worker,/await cache\.put\(request, prepared\.response\)/);
   assert.match(worker,/url\.pathname\.startsWith\("\/_next\/static\/"/);
   const headers=JSON.parse(vercel).headers;
-  for(const url of ["/","/sw.js","/manifest.webmanifest"]){
+  for(const url of ["/","/sw.js","/manifest.webmanifest","/offline-assets.json"]){
     const rule=headers.find(h=>h.source===url);
     assert.ok(rule?.headers.some(h=>h.key==="Cache-Control"&&h.value.includes("no-store")),url);
   }

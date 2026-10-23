@@ -1,10 +1,12 @@
+import { formatGameFactor } from "../../core/integerRules.js";
+import { formatPokemonHeight, formatPokemonWeight } from "../../core/measurements.js";
 import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { describeSpecies } from '../../core/descriptions.js';
 import { formatReferenceText, getPokedexRecord } from '../../core/pokedexRecord.js';
 import { getSpeciesRecordHistory, loadCatalogText } from '../../core/catalogText.js';
 import { getLearnsetGames, resolveLearnsetGame } from '../../core/referenceGames.js';
 import pokedexEntries from '../../data/pokedex-entries.json';
-import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatNumberPtBr, formatType } from '../../core/mechanics.js';
+import { fetchCached, extractId, calculateDefenses, TYPE_COLORS, TYPE_TEXT_COLORS, convertToTTRPG, STAT_MAP, filterMovesByLatestVersion, VERSION_LABELS, formatName, formatType } from '../../core/mechanics.js';
 import { formatCount } from '../../core/copy.js';
 import { getEvolutionRecordTarget, getFormLearnsetFallback, resolveFormEvolutionPaths } from '../../core/formEvolution.js';
 import { applyRecordAppearance, getPokemonRecordForms } from '../../core/pokemonRecordForms.js';
@@ -473,8 +475,8 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                     </div>)}
                                 </dl>
                                 <dl className="record-measurements" aria-label="Medidas desta forma">
-                                    <div><dt>Altura</dt><dd>{formatNumberPtBr((formData.height || 0) / 10)} m</dd></div>
-                                    <div><dt>Peso</dt><dd>{formatNumberPtBr((formData.weight || 0) / 10)} kg</dd></div>
+                                    <div><dt>Altura</dt><dd>{formatPokemonHeight(formData.height)}</dd></div>
+                                    <div><dt>Peso</dt><dd>{formatPokemonWeight(formData.weight)}</dd></div>
                                 </dl>
                                 </div>
                                 {referenceFacts.length > 0 && <section className="record-references" aria-labelledby={`${recordId}-references-title`}>
@@ -568,7 +570,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                         const matchups = Object.entries(defenses).filter(([, multiplier]) => group.match(multiplier));
                                         return <section key={group.kind} className={`record-matchup-group is-${group.kind}`}>
                                             <h4>{group.label}<span>{matchups.length}</span></h4>
-                                            <div>{matchups.map(([type, multiplier]) => <span key={type} className="record-matchup-chip"><i aria-hidden="true" style={{ backgroundColor: TYPE_COLORS[type] || TYPE_COLORS.normal }} />{formatType(type)}<b>{formatNumberPtBr(multiplier)}×</b></span>)}</div>
+                                            <div>{matchups.map(([type, multiplier]) => <span key={type} className="record-matchup-chip"><i aria-hidden="true" style={{ backgroundColor: TYPE_COLORS[type] || TYPE_COLORS.normal }} />{formatType(type)}<b>{formatGameFactor(multiplier)}×</b></span>)}</div>
                                             {!matchups.length && <p>{group.empty || "Nenhum tipo nesta faixa."}</p>}
                                         </section>;
                                     })}

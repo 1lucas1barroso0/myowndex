@@ -80,7 +80,7 @@ async function roomRequest(page, path, { method = 'GET', body, key = '', account
     return page.evaluate(async ({ path, method, body, key, accountId }) => {
         const response = await fetch(path, {
             method, credentials: 'same-origin', cache: 'no-store',
-            headers: { 'x-myowndex-room-protocol': '3', ...(key ? { 'x-myowndex-room-key': key } : {}),
+            headers: { 'x-myowndex-room-protocol': '4', ...(key ? { 'x-myowndex-room-key': key } : {}),
                 ...(accountId ? { 'x-myowndex-account': accountId } : {}),
                 ...(body === undefined ? {} : { 'content-type': 'application/json' }) },
             ...(body === undefined ? {} : { body: JSON.stringify(body) }),

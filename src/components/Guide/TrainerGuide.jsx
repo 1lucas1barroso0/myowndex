@@ -4,7 +4,7 @@ import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
 import { createGuideSearchIndex, formatRuleForReading, searchGuideSections } from "../../core/guideSearch.js";
 import { integerInRange } from "../../core/math.js";
-import { formatNumberPtBr } from "../../core/mechanics.js";
+import { formatNumberPtBr, RPG_HP_DIVISOR, RPG_SCALE_DIVISOR } from "../../core/mechanics.js";
 import {
     EXPERIENCE_MODES,
     getDamageCeiling,
@@ -116,8 +116,8 @@ export default function TrainerGuide({ experienceMode }) {
                                     <span className="guide-field-label" id={scaleLabelId}>Valor original</span>
                                     <input aria-labelledby={scaleLabelId} aria-describedby={scaleResultId} type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} onBlur={() => setScaleValue(integerInRange(scaleValue, 0, 999999, 0))} />
                                     <span className="guide-scale-results" id={scaleResultId} aria-live="polite">
-                                        <span>Atributo ÷ 10 <strong>{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
-                                        <span>HP ÷ 10 <strong>{formatNumberPtBr(getRpgScale(scaleValue, true))}</strong></span>
+                                        <span>Atributo ÷ {RPG_SCALE_DIVISOR} <strong>{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
+                                        <span>HP ÷ {RPG_HP_DIVISOR} <strong>{formatNumberPtBr(getRpgScale(scaleValue, true))}</strong></span>
                                     </span>
                                 </label>
                                 <label className="guide-number-field">

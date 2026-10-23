@@ -292,7 +292,24 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             {showCombat && <TurnOrder local snapshot={snapshot} onSelect={setSelectedTokenId} canControl={editing} busy={busy}
                 onDeclareMove={declareMove} canDeclareToken={token=>!sceneSnapshot || role==="narrator" || Boolean(playerId && token.ownerPlayerId===playerId)}
                 onRoll={()=>void runAction({action:"initiative"}).catch(showError)}
-                onAdvance={()=>void runAction({action:"advance-turn"}).catch(showError)} />}
+                onAdvance={()=>void runAction({action:"advance-turn"}).catch(showError)}
+                onGoToAction={token=>{
+                    setSelectedTokenId(token.id);
+                    window.requestAnimationFrame(()=>{
+                        if(!token.declaredMove && token.declaredAction==="improvise"){
+                            const tab=document.querySelector(".local-dice-panel .local-dice-pages button:first-child");
+                            tab?.click();
+                            const panel=tab?.closest(".local-dice-panel")?.querySelector(".local-dice-controls");
+                            panel?.scrollIntoView({block:"nearest",behavior:"smooth"});
+                            panel?.querySelector(".local-dice-tabs button")?.focus({preventScroll:true});
+                            return;
+                        }
+                        const options=[...document.querySelectorAll(".local-pokemon-dice details.room-tool")];
+                        const title=token.declaredMove?"Usar um movimento":"Disputa entre Pokémon";
+                        const panel=options.find(node=>node.querySelector("summary strong")?.textContent===title);
+                        if(panel){panel.open=true;panel.scrollIntoView({block:"nearest",behavior:"smooth"});panel.querySelector("summary")?.focus({preventScroll:true});}
+                    });
+                }} />}
             {roundResult && <details className="local-field-round-effects"><summary>Efeitos da rodada</summary><p>{roundResult}</p></details>}
             {showCombat && <CombatAssistant compact snapshot={snapshot} role={sceneSnapshot?role:"narrator"} playerId={playerId} selectedTokenId={selectedToken?.id} onAttackerChange={setSelectedTokenId} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onEvent={onEvent} onError={showError} />}
             <details className="room-tool"><summary><strong>Disputa entre Pokémon</strong></summary><div className="room-tool-body"><div className="local-dice-fields">

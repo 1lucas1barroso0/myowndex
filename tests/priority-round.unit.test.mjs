@@ -28,6 +28,20 @@ test("priority declarations are explicit preparation and can be erased as Outra 
   assert.throws(() => declareRoomMove({ ...room(), tokens: [token("a", { pp: [0, null, null, null] })] }, "a", move()), /sem PP/);
 });
 
+test("non-move choices keep priority zero and cannot turn into a late attack", () => {
+  for (const actionKind of ["other", "swap", "improvise", "flee"]) {
+    const prepared = declareRoomMove(room(), "a", { actionKind });
+    assert.equal(prepared.tokens[0].priority, 0, actionKind);
+    assert.equal(prepared.tokens[0].declaredMove, "", actionKind);
+    assert.equal(prepared.tokens[0].declaredAction, actionKind);
+    const running = { ...prepared, initiative: ["a", "b"], turnIndex: 0 };
+    assert.match(getRoundMoveBlockReason({ snapshot: running, token: running.tokens[0], move: move() }), /não permite/, actionKind);
+    assert.throws(() => declareRoomMove(running, "a", move()), /rodada já começou/, actionKind);
+    const modified = { ...running, tokens: running.tokens.map(pokemon => pokemon.id === "a" ? { ...pokemon, declaredAction: "other" } : pokemon) };
+    assert.equal(getRoundDeclarationPatchBlockReason(running, modified) === "", actionKind === "other");
+  }
+});
+
 test("effective priority respects Prankster, full-HP Gale Wings, Triage and suppression", () => {
   const growl = move("growl", { damage_class: { name: "status" } });
   assert.equal(getEffectiveMovePriority({ token: token("a", { ability: "prankster" }), move: growl }), 1);
@@ -91,6 +105,23 @@ test("combat preserves the chosen action until round end and refuses a second ac
   assert.equal(ended.nextSnapshot.round, snapshot.round + 1);
   assert.deepEqual(ended.nextSnapshot.initiative, []);
   assert.ok(ended.nextSnapshot.tokens.every(pokemon => pokemon.declaredMove === "" && pokemon.declaredDamageClass === "" && pokemon.priority === 0));
+});
+
+test("advancing past any unresolved action records one spent turn without spending PP", () => {
+  for (const actionKind of ["other", "improvise", "flee", "swap"]) {
+    const initial = declareRoomMove(room(), "a", { actionKind });
+    const before = { ...initial, initiative: ["a", "b"], turnIndex: 0 };
+    const originalPp = before.tokens[0].pp;
+    const stepped = resolve(before, { action: "advance-turn" }, forbiddenEntropy);
+    assert.equal(stepped.nextSnapshot.turnIndex, 1, actionKind);
+    assert.equal(stepped.nextSnapshot.tokens[0].lastActionRound, 1, actionKind);
+    assert.deepEqual(stepped.nextSnapshot.tokens[0].pp, originalPp, actionKind);
+    assert.equal(stepped.nextSnapshot.tokens[1].lastActionRound, 0, actionKind);
+    const ended = resolve(stepped.nextSnapshot, { action: "advance-turn" }, () => 0.5);
+    assert.equal(ended.nextSnapshot.round, 2, actionKind);
+    assert.equal(ended.nextSnapshot.tokens[1].lastActionRound, 1, actionKind);
+    assert.deepEqual(ended.nextSnapshot.initiative, [], actionKind);
+  }
 });
 
 test("a condition that prevents action spends the turn without PP and cannot be retried in the same round", () => {

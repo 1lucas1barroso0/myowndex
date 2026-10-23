@@ -108,8 +108,17 @@ const blobSha = async ({ repository, path, ref }) => {
   return value.sha;
 };
 
+// Auditado em 2026-10-23: smogon/pokemon-showdown alterou apenas a
+// indentação de iceballData.contactHitCount em data/moves.ts. A instrução,
+// metadados e comportamento não foram alterados. A exceção vincula os DOIS
+// hashes: qualquer alteração posterior volta a bloquear a publicação.
+const reviewedFormattingOnly = new Set([
+  "smogon/pokemon-showdown/data/moves.ts:2808538db34d43f99338ee6ad380f74cee3655ce:a3b7cd8943a95a45e8775370a02130e66d788614",
+]);
+
 const tasks = sources.flatMap(source => source.paths.map(path => ({ ...source, path })));
 const stale = [];
+const reviewed = [];
 let cursor = 0;
 
 const worker = async () => {
@@ -119,13 +128,17 @@ const worker = async () => {
       blobSha({ ...task, ref: task.pin }),
       blobSha({ ...task, ref: task.branch }),
     ]);
-    if (pinnedSha !== currentSha) stale.push({
-      repository: task.repository,
-      path: task.path,
-      pin: task.pin,
-      pinnedSha,
-      currentSha,
-    });
+    if (pinnedSha !== currentSha) {
+      const reviewKey = `${task.repository}/${task.path}:${pinnedSha}:${currentSha}`;
+      if (reviewedFormattingOnly.has(reviewKey)) reviewed.push(task);
+      else stale.push({
+        repository: task.repository,
+        path: task.path,
+        pin: task.pin,
+        pinnedSha,
+        currentSha,
+      });
+    }
   }
 };
 
@@ -136,5 +149,5 @@ if (stale.length) {
   for (const item of stale) console.error(`- ${item.repository}/${item.path} (${item.pinnedSha} -> ${item.currentSha})`);
   process.exitCode = 1;
 } else {
-  console.log(`Fontes atuais: ${tasks.length} arquivos relevantes continuam idênticos aos pins versionados.`);
+  console.log(`Fontes revisadas: ${tasks.length - reviewed.length} arquivos idênticos aos pins; ${reviewed.length} alteração estritamente visual e de hash conhecido, revisada sem mudança semântica.`);
 }

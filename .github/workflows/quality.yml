@@ -14,6 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  sources-current:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 · Node 24
+      - name: Preparar o Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0 · Node 24
+        with:
+          node-version: 24
+      - name: Confirmar fontes externas atuais
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run freshness
+
   quality:
     runs-on: ubuntu-latest
     steps:
@@ -28,10 +42,6 @@ jobs:
         run: npm ci
       - name: Verificar segurança das dependências de produção
         run: npm audit --omit=dev --audit-level=moderate
-      - name: Confirmar fontes externas atuais
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run freshness
       - name: Testar regras e integrações
         run: npm test
       - name: Revisar o código
@@ -74,6 +84,13 @@ jobs:
           for i in {1..60}; do curl -fsS http://127.0.0.1:3000 >/dev/null && exit 0; sleep 1; done
           cat /tmp/myowndex-browser.log
           exit 1
+      - name: Testar declarações e iniciativa reais em aventura e treino
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: |
+          node tests/browser-round-declarations.mjs
+          node tests/browser-turn-order.mjs
       - name: Conferir topo, painéis, foco e navegação do aplicativo
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright

@@ -153,9 +153,9 @@ export const RPG_RULE_SECTIONS = [
                 "id": "3.1",
                 "title": "Ordem dos turnos",
                 "plain": "Cada rodada começa com escolhas, depois a iniciativa fixa a ordem até todos agirem e a rodada terminar.",
-                "body": "Antes da iniciativa, escolha o movimento ou declare Trocar, Improvisar, Fugir ou Outra ação com objetivo nas notas. Declarar não usa PP. Pode mudar até a iniciativa; depois dela, a escolha fica travada. Se o plano ficar impossível, pode aguardar ou cumprir uma alternativa já combinada, sem escolher outro ataque de graça.",
+                "body": "Antes da iniciativa, escolha um movimento, Trocar Pokémon, Improvisar / interagir, Tentar fugir ou Aguardar / passar a vez. Descreva um improviso com objetivo, benefício e risco nas notas da cena. Declarar não usa PP. Pode mudar até a iniciativa; depois dela, a escolha fica travada. Se o plano ficar impossível, pode aguardar ou cumprir uma alternativa já combinada, sem escolher outro ataque de graça.",
                 "bullets": [
-                    "Prioridade maior age primeiro: Protect (+4), Quick Attack (+1), Tackle (0). Valores negativos vêm depois de 0. Outra ação usa 0. Prioridade não aumenta a Velocidade nem dá outra ação.",
+                    "Prioridade maior age primeiro: Protect (+4), Quick Attack (+1), Tackle (0). Valores negativos vêm depois de 0. Aguardar, improvisar, fugir e trocar usam 0. Prioridade não aumenta a Velocidade nem dá outra ação.",
                     "Entre escolhas de mesma prioridade, o jogo rola 2d6 e usa a Velocidade atual, com seus modificadores. Se houver empate real, rola 1d6 só entre os empatados, repetindo até decidir.",
                     "Habilidades ativas também contam: Prankster dá +1 a movimentos de status; Gale Wings dá +1 a Flying com HP cheio; Triage dá +3 aos movimentos de cura que sua regra permite. A prioridade aparece antes de rolar.",
                     "Depois de rolar, a escolha e a ordem ficam firmes. Mudar a seleção não permite agir antes ou refazer a iniciativa. Mudanças de Velocidade entram na próxima rodada; efeitos que mudam a ordem de propósito seguem suas próprias regras.",
@@ -209,7 +209,7 @@ export const RPG_RULE_SECTIONS = [
                     "Para trocar por vontade própria, declare Trocar Pokémon antes da iniciativa. A troca usa a ação do Pokémon que sai. Quem entra ocupa esse lugar e não ganha outra ação na rodada. Substituir um Pokémon derrotado não gasta a ação da rodada seguinte. Os recursos de cada Pokémon continuam com ele.",
                     "Mover-se dentro da mesma faixa pode acompanhar a ação. Cruzar uma faixa sob oposição ou conquistar uma posição decisiva pode exigir a ação e um teste. Combine alcance, terreno e Velocidade antes de rolar.",
                     "Uma reação precisa ser permitida por movimento, habilidade, item ou situação. A defesa normal já faz parte da disputa: não é cobrada como outra ação.",
-                    "Outra ação tem prioridade 0 e objetivo definido antes da iniciativa; não guarda um ataque para escolher depois. Improvisar, fugir e trocar seguem a escolha declarada. Resolva e avance. Efeitos que dão outra ação ou mudam a ordem precisam de uma permissão própria; o Narrador registra a exceção no Diário da aventura."
+                    "Aguardar, improvisar, fugir e trocar usam prioridade 0. Aguardar não produz efeito; improvisar exige objetivo e risco combinados antes da iniciativa. Nenhuma dessas escolhas guarda um ataque para decidir depois. Resolva e avance. Efeitos que dão outra ação ou mudam a ordem precisam de uma permissão própria; o Narrador registra a exceção no Diário da aventura."
                 ]
             }
         ]

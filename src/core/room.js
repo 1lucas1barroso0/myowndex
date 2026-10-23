@@ -1045,8 +1045,22 @@ export const syncTeamsWithRoomProgress = (teams, snapshot, playerId = null) => {
     return changed ? synchronized : teams;
 };
 
-export const advanceInitiative = snapshot => {
+/** Advancing deliberately closes an unresolved turn as a pass.
+ * PP and move effects are never applied merely by passing the turn. */
+export const settleCurrentRoomTurn = snapshot => {
     const room = normalizeRoomSnapshot(snapshot);
+    const actorId = room.initiative[room.turnIndex];
+    if (!actorId) return room;
+    const actor = room.tokens.find(token => token.id === actorId);
+    if (!actor || actor.lastActionRound >= room.round) return room;
+    return {
+        ...room,
+        tokens: room.tokens.map(token => token.id === actorId ? { ...token, lastActionRound: room.round } : token),
+    };
+};
+
+export const advanceInitiative = snapshot => {
+    const room = settleCurrentRoomTurn(snapshot);
     if (!room.initiative.length) return room;
     const nextIndex = (room.turnIndex + 1) % room.initiative.length;
     return {
@@ -1771,7 +1785,7 @@ export const getRoundMoveBlockReason = ({ snapshot, token, move }) => {
     if (token.lastActionRound >= snapshot.round) return "Este Pokémon já agiu nesta rodada. Avance o turno.";
     if (!move) return token.declaredMove || token.declaredAction !== "swap" ? "Declare Trocar Pokémon antes da iniciativa." : "";
     if (token.declaredMove && normalizeSlug(move?.name) !== token.declaredMove) return `Use ${formatName(token.declaredMove)}, escolhido antes da iniciativa.`;
-    if (!token.declaredMove) return "Outra ação não permite escolher um ataque depois da iniciativa. Declare o movimento antes da rodada.";
+    if (!token.declaredMove) return "Uma ação sem movimento não permite escolher um ataque depois da iniciativa. Declare o movimento antes da rodada.";
     return "";
 };
 

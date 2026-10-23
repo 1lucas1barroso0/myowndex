@@ -117,7 +117,7 @@ try {
         const nextRound = await state();
         assert.deepEqual(nextRound.initiative, []);
         assert.equal(nextRound.turnIndex, 0);
-        assert.equal(nextRound.tokens.find(token => token.id === "slow").currentHp, 19, "burn applies once at the round end");
+        assert.ok([18, 19].includes(nextRound.tokens.find(token => token.id === "slow").currentHp), "burn applies once with the correct stochastic 1/16 rounding");
         assert.ok(nextRound.tokens.every(token => token.declaredMove === "" && token.priority === 0));
         await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).waitFor();
         assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).count(), 1);
@@ -125,7 +125,7 @@ try {
         checks.push(`${mode}: end round applies effects, clears declarations, and waits for fresh initiative`);
 
         await pane("Campo");
-        await order.getByRole("combobox", { name: "Movimento de Pikachu nesta rodada", exact: true }).selectOption("quick-attack");
+        await order.getByRole("combobox", { name: "Escolha de Pikachu nesta rodada", exact: true }).selectOption("quick-attack");
         await page.waitForFunction(mode => {
             const saved = JSON.parse(localStorage.getItem(mode === "practice" ? "myowndex_local_dice_room_v1" : "myowndex_local_room_v1") || "null");
             return (mode === "practice" ? saved : saved?.snapshot)?.tokens.find(token => token.id === "fast")?.priority === 1;

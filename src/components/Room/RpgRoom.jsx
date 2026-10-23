@@ -31,6 +31,7 @@ import {
 import {
     addTeamToSnapshot,
     advanceInitiative,
+    settleCurrentRoomTurn,
     applyEndOfRoundEffects,
     buildInitiative,
     changeRoomPhase,
@@ -1160,9 +1161,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 await requestAuthoritativeAction({ action: "advance-turn" });
                 return;
             }
-            const closingRound = snapshot.initiative.length > 0
-                && snapshot.turnIndex >= snapshot.initiative.length - 1;
-            const roundEnd = closingRound ? applyEndOfRoundEffects(snapshot) : null;
+            const settled = settleCurrentRoomTurn(snapshotRef.current);
+            const closingRound = settled.initiative.length > 0
+                && settled.turnIndex >= settled.initiative.length - 1;
+            const roundEnd = closingRound ? applyEndOfRoundEffects(settled) : null;
             const next = closingRound
                 ? {
                     ...roundEnd.room,
@@ -1171,7 +1173,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     initiative: [],
                     tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", declaredAction: "other", declaredDamageClass: "", priority: 0 })),
                 }
-                : advanceInitiative(snapshot);
+                : advanceInitiative(settled);
             commitSnapshot(next);
             const activeId = next.initiative[next.turnIndex];
             const active = next.tokens.find(token => token.id === activeId);
@@ -1599,7 +1601,31 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     />
                     {snapshot.phase === "batalha" && !snapshot.battleEnded && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
                         onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}
-                        onRoll={generateInitiative} onAdvance={nextTurn} />}
+                        onRoll={generateInitiative} onAdvance={nextTurn}
+                        onGoToAction={(token,destination)=>{
+                            setSelectedTokenId(token.id);
+                            if(!token.declaredMove && (token.declaredAction==="swap" || destination==="notes")){
+                                setMobilePane("field");
+                                window.requestAnimationFrame(()=>{
+                                    const target=destination==="notes"
+                                        ? document.querySelector(".room-field .room-notes-panel")
+                                        : document.querySelector(".room-field .token-inspector");
+                                    if(target?.tagName==="DETAILS") target.open=true;
+                                    target?.scrollIntoView({block:"nearest",behavior:"smooth"});
+                                    (target?.querySelector("summary") || target)?.focus({preventScroll:true});
+                                });
+                                return;
+                            }
+                            setMobilePane("tools");
+                            window.requestAnimationFrame(()=>{
+                                const toolsRoot=document.querySelector(".room-tools");
+                                const panels=[...(toolsRoot?.querySelectorAll(":scope > details.room-tool") || [])];
+                                const panel=token.declaredMove
+                                    ? panels.find(node=>node.querySelector("summary strong")?.textContent==="Resolver um movimento")
+                                    : toolsRoot?.querySelector(".adventure-dice-tool");
+                                if(panel){panel.open=true;panel.scrollIntoView({block:"nearest",behavior:"smooth"});panel.querySelector("summary")?.focus({preventScroll:true});}
+                            });
+                        }} />}
 
                     {selectedToken && (
                         <section className="token-inspector">

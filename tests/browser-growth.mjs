@@ -39,7 +39,7 @@ try {
     await openDetails(editor.locator(".rpg-journey-panel"));
     const reward = editor.locator(".experience-award");
     await openDetails(reward);
-    await reward.getByRole("button", { name: "2 XP", exact: true }).click();
+    await reward.getByRole("button", { name: /^2 XP/ }).click();
 
     await reward.getByLabel("Considerar os dois lados da batalha", { exact: true }).check();
     await openDetails(reward.locator(".experience-context-editor"));
@@ -55,7 +55,7 @@ try {
     await page.waitForFunction(() => JSON.parse(localStorage.getItem("myowndex_rotom_v4"))?.teams?.[0]?.pokemon?.[0]?.rpg?.pendingEvs === 16);
     let saved = await savedPokemon();
     assert.equal(saved.level, 11);
-    assert.equal(saved.rpg.xp, 0);
+    assert.equal(saved.rpg.xp, 3, "excedente do nível 10 é preservado");
     assert.equal(saved.rpg.experienceAwards.length, 1);
     assert.equal(saved.friendship, 70);
     assert.equal(saved.rpg.notes, "Preservar a jornada");
@@ -64,7 +64,7 @@ try {
     await reward.getByRole("button", { name: "Novo desafio", exact: true }).click();
     await reward.getByLabel("Considerar os dois lados da batalha", { exact: true }).check();
     await openDetails(reward.locator(".experience-context-editor"));
-    await reward.getByRole("button", { name: "3 XP", exact: true }).click();
+    await reward.getByRole("button", { name: /^3 XP/ }).click();
     await winners.getByLabel("Maior nível", { exact: true }).fill("40");
     await opponents.getByLabel("Maior nível", { exact: true }).fill("20");
     await opponents.getByLabel("Pokémon que lutaram", { exact: true }).fill("2");
@@ -72,7 +72,8 @@ try {
     await reward.getByRole("button", { name: "Receber 5 XP", exact: true }).click();
     await page.waitForFunction(() => JSON.parse(localStorage.getItem("myowndex_rotom_v4"))?.teams?.[0]?.pokemon?.[0]?.rpg?.pendingEvs === 26);
     saved = await savedPokemon();
-    assert.equal(saved.rpg.xp, 5);
+    assert.equal(saved.level, 12);
+    assert.equal(saved.rpg.xp, 2, "a XP continua acumulando após evoluir de nível");
     assert.equal(saved.rpg.experienceAwards.length, 2);
     assert.equal(saved.friendship, 70);
     passed("mixed-battle-advantage-and-disadvantage-subtract-after-multiplier");
@@ -151,8 +152,8 @@ try {
     await openDetails(page.locator(".pokemon-training-panel"));
     assert.equal(await page.locator(".ev-training > header > strong").innerText(), "0");
     saved = await savedPokemon();
-    assert.equal(saved.level, 11);
-    assert.equal(saved.rpg.xp, 5);
+    assert.equal(saved.level, 12);
+    assert.equal(saved.rpg.xp, 2);
     assert.equal(saved.rpg.experienceAwards.length, 2);
     assert.equal(saved.friendship, 70);
     assert.equal(saved.rpg.notes, "Preservar a jornada");

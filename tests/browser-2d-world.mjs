@@ -2,6 +2,8 @@
 // loopback production build with the external Playwright/axe tools in VALIDACAO.md.
 // Every persisted action belongs to this isolated browser context.
 import assert from 'node:assert/strict';
+import { RPG_RULE_SECTIONS } from '../src/core/rpgRules.js';
+const expectedRuleIds = RPG_RULE_SECTIONS.flatMap(section => section.rules.map(rule => String(rule.id))).sort();
 import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
@@ -292,7 +294,8 @@ try {
     await checkpoint('Local dice: actual result at 320px');
     await dice.getByRole('button',{ name:'Fechar dados',exact:true }).click();
     await nav('Abrir o Guia do Treinador');
-    assert.equal(await page.locator('.guide-rule-card').count(),40,'The visual reformulation preserves all forty rules');
+    assert.equal(await page.locator('.guide-rule-card').count(),expectedRuleIds.length,'The visual reformulation preserves every current rule');
+    assert.deepEqual((await page.locator('.guide-rule-card').evaluateAll(cards=>cards.map(card=>card.dataset.ruleId))).sort(),expectedRuleIds);
     await page.emulateMedia({ reducedMotion:'reduce' });
     await checkpoint('Guide with reduced motion at 320px');
     await page.emulateMedia({ reducedMotion:'no-preference' });

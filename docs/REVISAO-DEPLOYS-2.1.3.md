@@ -11,6 +11,8 @@ Base examinada: produção 2.1.2, commit 4b16b4d30f9eb88c59d81ce04c5dffdcef4414f
 - O ensaio auxiliar de ciclo de batalha ainda procurava rótulos antigos; foi alinhado a Escolha e Batalha.
 - O CI executava os demais ensaios de navegador apenas se o anterior passasse, ocultando outras pendências. Os ensaios independentes agora continuam após falha, desde que o servidor tenha iniciado e a execução não tenha sido cancelada. Falhas continuam reprovando o job. Scripts independentes agrupados preservam o código de erro e executam todos, reduzindo novas rodadas só para descobrir o próximo problema.
 
+A primeira rodada completa mostrou seis expectativas antigas adicionais: contagem fixa de 40 regras em três ensaios (o Guia tem 48), HP ainda esperado na escala por 10 em dois ensaios e concessão de XP/descanso durante confronto aberto no ensaio de fases. As verificações passaram a conferir todos os IDs das regras atuais, HP por 8 com migração de estado cheio e o encerramento explícito antes de XP/descanso, seguido de nova batalha antes de Mega. Não se retiraram as verificações nem se restauraram regras antigas para acomodá-las.
+
 ## Verificação e limites
 
 A validação local e a execução remota são registradas por commit. A revisão local inicial passou em 696 testes, sem falhas/ignorados, lint, tipos e build; a validação do CI deve incluir todos os fluxos de navegador antes da publicação. Relatórios históricos não são reescritos como se certificassem esta versão. Instalação física Android/iOS e observação humana de mesa continuam pendentes conforme o roteiro da 2.1.0. Nenhum dado real de jogador foi editado nos ensaios.

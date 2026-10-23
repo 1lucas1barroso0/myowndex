@@ -38,7 +38,7 @@ try {
   await card.scrollIntoViewIfNeeded();await page.evaluate(()=>document.fonts.ready);
   const box=await card.boundingBox();assert.ok(box.height<=420,`compact card ${width} ${theme}: ${box.height}`);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  assert.equal(await meter.getAttribute('aria-valuenow'),'3');assert.equal(await meter.getAttribute('aria-valuemax'),'20');
+  assert.equal(await meter.getAttribute('aria-valuenow'),'3');assert.equal(await meter.getAttribute('aria-valuemax'),'25');
   const track=await meter.locator('.pokemon-hp-track').boundingBox();assert.ok(track.width>=95&&track.height>=8,'HP is legible beside the portrait');
   await page.waitForFunction(()=>{const f=document.querySelector('.editor-portrait-stage .pokemon-sized-sprite'),i=f?.querySelector('img');return f&&getComputedStyle(f).opacity==='1'&&i?.complete&&i.naturalWidth>0;});
   await page.screenshot({path:`${directory}/hp-${width}-${theme}.png`});checks.push(`card ${width} ${theme}`);
@@ -62,15 +62,15 @@ try {
  await page.screenshot({path:`${directory}/shiny-edit.png`});
  await control.click();assert.equal(await shiny.isChecked(),false);assert.equal(await card.locator('.editor-shiny-badge').count(),0);
  await openDetails(editor.locator('.rpg-journey-panel')); const input=editor.getByLabel('HP atual',{exact:true});const colours=[];
- for(const [value,tone,percent] of [['20','healthy',100],['10','warning',50],['4','danger',20],['0','danger',0]]) {
+ for(const [value,tone,percent] of [['25','healthy',100],['12','warning',48],['5','danger',20],['0','danger',0]]) {
   await input.fill(value);assert.equal(await meter.getAttribute('aria-valuenow'),value);assert.equal(await meter.getAttribute('data-health'),tone);
   const width=await meter.locator('.pokemon-hp-track > span').evaluate(e=>e.style.width);assert.equal(width,`${percent}%`);
   colours.push(await meter.locator('.pokemon-hp-track > span').evaluate(e=>getComputedStyle(e).backgroundColor));
  }
  assert.equal(new Set(colours).size,3);assert.match(await meter.getAttribute('aria-valuetext'),/fora de combate/);
- await editor.getByRole('button',{name:'Recuperar HP ao máximo',exact:true}).click();assert.equal(await meter.getAttribute('aria-valuenow'),'20');
- await page.waitForFunction(()=>JSON.parse(localStorage.getItem('myowndex_rotom_v4')).teams[0].pokemon[0].rpg.currentHp===20);
+ await editor.getByRole('button',{name:'Recuperar HP ao máximo',exact:true}).click();assert.equal(await meter.getAttribute('aria-valuenow'),'25');
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('myowndex_rotom_v4')).teams[0].pokemon[0].rpg.currentHp===25);
  checks.push('Shiny keyboard, touch, sprite identity, persistence; HP full, half, low, zero and recovery');
- await page.reload();await page.getByRole('button',{name:'Abrir o PC do Bill',exact:true}).click();await page.locator('.pc-partner-card').first().click();await page.locator('.pokemon-editor').waitFor();assert.equal(await page.locator('.editor-summary-health [role=meter]').getAttribute('aria-valuenow'),'20');
+ await page.reload();await page.getByRole('button',{name:'Abrir o PC do Bill',exact:true}).click();await page.locator('.pc-partner-card').first().click();await page.locator('.pokemon-editor').waitFor();assert.equal(await page.locator('.editor-summary-health [role=meter]').getAttribute('aria-valuenow'),'25');
  assert.deepEqual(errors,[]);console.log(JSON.stringify({checks,errors}));
 }finally{await browser.close();}

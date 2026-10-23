@@ -1,5 +1,7 @@
 // Exercise the Guide's search and calculator in an isolated, slower mobile UI.
 import assert from 'node:assert/strict';
+import { RPG_RULE_SECTIONS } from '../src/core/rpgRules.js';
+const expectedRuleIds = RPG_RULE_SECTIONS.flatMap(section => section.rules.map(rule => String(rule.id))).sort();
 import fs from 'node:fs/promises';
 const { chromium } = await import(process.env.MYOWNDEX_PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
@@ -14,7 +16,8 @@ try {
     await page.getByRole('button', { name: 'Abrir o Guia do Treinador', exact: true }).click();
     const guide = page.locator('.trainer-guide'), search = guide.getByRole('searchbox', { name: 'Pesquisar regras' });
     await search.waitFor();
-    assert.equal(await guide.locator('.guide-rule-card').count(), 40);
+    assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
+    assert.deepEqual((await guide.locator('.guide-rule-card').evaluateAll(cards => cards.map(card => card.dataset.ruleId))).sort(), expectedRuleIds);
     const searchFor = async value => {
         await search.fill(value);
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -30,12 +33,12 @@ try {
             await searchFor('acao');
             assert.deepEqual(await guide.locator('.guide-rule-card').evaluateAll(cards => cards.map(card => card.dataset.ruleId)), accented);
             assert.ok(accented.length > 0);
-            await searchFor('12,5%');
+            await searchFor('1 em 8');
             assert.ok(await guide.locator('.guide-rule-card').count() > 0);
             await searchFor('__nada_encontrado__');
             await guide.getByText('Nenhuma regra encontrada. Tente outro termo.', { exact: true }).waitFor();
             await searchFor('');
-            assert.equal(await guide.locator('.guide-rule-card').count(), 40);
+            assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
             timings.push({ theme, width, sequenceMs: Date.now() - started });
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth || scrollY !== 0), false);
             checks.push(`search accents, proportions, empty/reset ${theme} ${width}`);
@@ -52,7 +55,7 @@ try {
     await guide.getByRole('button', { name: 'Ver proteção contra hit kill', exact: true }).click();
     const protection = guide.locator('[data-rule-id="3.4"]');
     await page.waitForFunction(() => document.querySelector('[data-rule-id="3.4"]')?.open);
-    assert.equal(await guide.locator('.guide-rule-card').count(), 40);
+    assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
     assert.equal(await protection.locator('.guide-hit-kill-full-rule').evaluate(element => element.open), true);
     assert.equal(await protection.locator(':scope > summary').evaluate(element => element === document.activeElement), true);
     await protection.locator(':scope > summary').press('Enter');

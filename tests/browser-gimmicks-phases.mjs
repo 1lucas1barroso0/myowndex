@@ -121,6 +121,10 @@ try{
     await reward.locator(":scope > summary").click();
     assert.equal(await reward.getByRole("spinbutton",{name:"Maior nível"}).count(),0);
     await reward.locator(".experience-manual-choice > summary").click();
+    assert.equal(await reward.getByLabel("Substituir o resultado automático").isDisabled(),true,"An open battle cannot award XP");
+    await page.getByRole("button",{name:"Encerrar batalha",exact:true}).click();
+    await page.getByRole("alertdialog",{name:"Encerrar esta batalha?",exact:true}).getByRole("button",{name:"Encerrar confronto",exact:true}).click();
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.battleEnded===true);
     await reward.getByLabel("Substituir o resultado automático").check();
     await reward.getByLabel("XP a conceder").fill("1.5");
     assert.equal(await reward.getByRole("alert").innerText(),"Informe um valor inteiro.");
@@ -151,11 +155,14 @@ try{
         assert.equal(await page.locator(".battle-gimmick-panel").count(),phase==="batalha"?1:0);
         assert.equal(await page.locator(".phase-rest-actions").count(),phase==="intervalo"?1:0);
         if(phase==="intervalo"){
-            await page.getByRole("button",{name:/Descansar/}).click();
+            await page.getByRole("button",{name:"Descanso curto · 10 minutos",exact:true}).click();
             await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].currentHp>26);
         }
         console.log("Phase passes",phase);
     }
+    await page.getByRole("button",{name:"Nova batalha",exact:true}).click();
+    await page.getByRole("alertdialog",{name:"Começar uma nova batalha?",exact:true}).getByRole("button",{name:"Começar batalha",exact:true}).click();
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.battleEnded===false);
     const mega=page.locator(".gimmick-action.gimmick-mega");
     assert.equal(await mega.count(),1);
     assert.equal(await page.locator(".gimmick-action.gimmick-dyna").count(),0);

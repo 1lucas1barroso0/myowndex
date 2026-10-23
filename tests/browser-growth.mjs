@@ -55,7 +55,7 @@ try {
     await page.waitForFunction(() => JSON.parse(localStorage.getItem("myowndex_rotom_v4"))?.teams?.[0]?.pokemon?.[0]?.rpg?.pendingEvs === 16);
     let saved = await savedPokemon();
     assert.equal(saved.level, 11);
-    assert.equal(saved.rpg.xp, 0);
+    assert.equal(saved.rpg.xp, 3, "excedente do nível 10 é preservado");
     assert.equal(saved.rpg.experienceAwards.length, 1);
     assert.equal(saved.friendship, 70);
     assert.equal(saved.rpg.notes, "Preservar a jornada");
@@ -72,7 +72,8 @@ try {
     await reward.getByRole("button", { name: "Receber 5 XP", exact: true }).click();
     await page.waitForFunction(() => JSON.parse(localStorage.getItem("myowndex_rotom_v4"))?.teams?.[0]?.pokemon?.[0]?.rpg?.pendingEvs === 26);
     saved = await savedPokemon();
-    assert.equal(saved.rpg.xp, 5);
+    assert.equal(saved.level, 12);
+    assert.equal(saved.rpg.xp, 2, "a XP continua acumulando após evoluir de nível");
     assert.equal(saved.rpg.experienceAwards.length, 2);
     assert.equal(saved.friendship, 70);
     passed("mixed-battle-advantage-and-disadvantage-subtract-after-multiplier");

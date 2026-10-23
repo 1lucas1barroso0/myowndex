@@ -296,6 +296,14 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
                 onGoToAction={token=>{
                     setSelectedTokenId(token.id);
                     window.requestAnimationFrame(()=>{
+                        if(!token.declaredMove && token.declaredAction==="improvise"){
+                            const tab=document.querySelector(".local-dice-panel .local-dice-pages button:first-child");
+                            tab?.click();
+                            const panel=tab?.closest(".local-dice-panel")?.querySelector(".local-dice-controls");
+                            panel?.scrollIntoView({block:"nearest",behavior:"smooth"});
+                            panel?.querySelector(".local-dice-tabs button")?.focus({preventScroll:true});
+                            return;
+                        }
                         const options=[...document.querySelectorAll(".local-pokemon-dice details.room-tool")];
                         const title=token.declaredMove?"Usar um movimento":"Disputa entre Pokémon";
                         const panel=options.find(node=>node.querySelector("summary strong")?.textContent===title);

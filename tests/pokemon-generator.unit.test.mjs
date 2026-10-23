@@ -402,3 +402,15 @@ test('automatic reference selection does not backfill an older game just to supp
     assert.deepEqual(getGeneratorLearnset(source, 'red-blue', 5).moves.map(entry => entry.name), ['tackle']);
     assert.deepEqual(getGeneratorLearnset({ moves: [move('tackle', [detail('champions', 0, 'machine', 32)])] }, 'auto', 5), { versionGroup: null, moves: [] });
 });
+
+
+test('automatic reference requires an ordinary positive level, while explicit evolution-only games stay explicit', () => {
+    const detail = (game, level) => ({ version_group: { name: game }, move_learn_method: { name: 'level-up' }, level_learned_at: level });
+    const source = { moves: [
+        { move: { name: 'tackle' }, version_group_details: [detail('red-blue', 1)] },
+        { move: { name: 'petal-blizzard' }, version_group_details: [detail('scarlet-violet', 0)] },
+    ] };
+    assert.deepEqual(getGeneratorLearnset(source, 'auto', 5).moves.map(move => move.name), ['tackle']);
+    assert.equal(getGeneratorLearnset(source, 'auto', 5).versionGroup, 'red-blue');
+    assert.deepEqual(getGeneratorLearnset(source, 'scarlet-violet', 5), { versionGroup: 'scarlet-violet', moves: [] });
+});

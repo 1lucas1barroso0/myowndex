@@ -1,6 +1,6 @@
-import { calculateStat, convertToTTRPG, extractId, fetchCached, getLatestVersionGroup, NATURES, TYPES } from './mechanics.js';
+import { calculateStat, convertToTTRPG, extractId, fetchCached, NATURES, TYPES } from './mechanics.js';
 import { integerInRange } from './math.js';
-import { isOrdinaryLevelUpMove } from './moveLearnMethods.js';
+import { getNaturalLevelUpLearnset } from './moveLearnMethods.js';
 import { randomInt } from './random.js';
 import { compactPokemon, normalizePokemon, STAT_KEYS } from './team.js';
 import { getMoveReferenceForMode, getPokemonAtGeneration, getPokemonReferenceForMode, getReferenceGameGeneration } from './referenceGames.js';
@@ -109,29 +109,7 @@ export const getGeneratorSpeciesTypes = (entry, generation = 9) => {
     return past?.types || entry?.types || [];
 };
 
-export const getGeneratorLearnset = (pokemon, versionGroup, level) => {
-    // A natural encounter uses level-up learning. A newer training-only game
-    // must not erase an older, valid natural repertoire in automatic mode.
-    const automatic = !versionGroup || versionGroup === 'auto';
-    const candidates = automatic ? (pokemon?.moves || []).map(entry => ({ ...entry,
-        version_group_details: (entry.version_group_details || []).filter(detail => detail.move_learn_method?.name === 'level-up'),
-    })) : pokemon?.moves;
-    const resolved = getLatestVersionGroup(candidates, versionGroup);
-    if (!resolved) return { versionGroup: null, moves: [] };
-    const legal = new Map();
-    for (const entry of pokemon.moves || []) {
-        const levels = (entry.version_group_details || []).filter(detail => detail.version_group?.name === resolved
-            && isOrdinaryLevelUpMove(detail, level));
-        if (entry.move?.name && levels.length) legal.set(entry.move.name, {
-            ...entry.move,
-            level: Math.max(...levels.map(detail => Number(detail.level_learned_at) || 0)),
-        });
-    }
-    // A natural encounter knows its four most recently learned ordinary
-    // level-up moves. Evolution moves (level 0), machines, tutors, egg and
-    // transfer-only moves require their own events; never invent those events.
-    return { versionGroup: resolved, moves: [...legal.values()].sort((a, b) => b.level - a.level || a.name.localeCompare(b.name)).slice(0, 4) };
-};
+export const getGeneratorLearnset = getNaturalLevelUpLearnset;
 
 export const getGeneratorGender = (rate, random) => {
     if (rate === -1) return 'N';

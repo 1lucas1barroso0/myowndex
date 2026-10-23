@@ -1,10 +1,12 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.2.**
+**Versão atual: 2.1.3.**
+
+A 2.1.3 reúne a proteção pendente de aprendizado por espécie/jogo/nível e usa a mesma seleção ao gerar Pokémon ou adicioná-los à Box. Movimentos de evolução não são concedidos como aprendizado comum. A revisão dos deploys também alinha o ensaio de Amizade aos controles atuais e espera a lista de iniciativa ficar visível no retorno ao Campo. O relatório está em `REVISAO-DEPLOYS-2.1.3.md`.
 
 A 2.1.2 esclarece o controle de batalha do Campo e distingue níveis numéricos (Nv. 1, Nv. 50) de movimentos aprendidos ao evoluir (nível 0 na fonte). A opção com nível ausente informa isso explicitamente, sem inventar valores. Preserva os dados e as regras da 2.1.1.
 
-A versão 2.1.0 está publicada; a 2.1.1 aprimora a orientação da iniciativa, a distinção entre ações e a passagem de turno sem reexecutar PP ou movimentos. Consulte `POLIMENTO-REGRAS-INTEIRAS.md` para mudanças, testes e pendências; o roteiro de observação humana e os ensaios físicos pendentes estão em `VALIDACAO-2.1.0.md`. A suíte atual tem 678 testes; edições pendentes do PC preservam os gastos posteriores na cena. Descanso e XP exigem encerramento explícito do confronto; Transform não pode vazar para esses procedimentos, e XP reconhece Boxes pelo vínculo compartilhado. As revisões anteriores abaixo são históricas.
+A versão 2.1.0 está publicada; a 2.1.1 aprimora a orientação da iniciativa, a distinção entre ações e a passagem de turno sem reexecutar PP ou movimentos. Consulte `POLIMENTO-REGRAS-INTEIRAS.md` para mudanças, testes e pendências; o roteiro de observação humana e os ensaios físicos pendentes estão em `VALIDACAO-2.1.0.md`. A suíte e o CI atuais são registrados por commit; edições pendentes do PC preservam os gastos posteriores na cena. Descanso e XP exigem encerramento explícito do confronto; Transform não pode vazar para esses procedimentos, e XP reconhece Boxes pelo vínculo compartilhado. As revisões anteriores abaixo são históricas.
 
 A revisão 2.0.52 amplia a otimização ao cache público, catálogos e Guia. Leituras em memória só atualizam a ordem de uso; respostas de rede são serializadas uma vez para medição e disco; acessos consecutivos à mesma URL compartilham a manutenção pendente sem ultrapassar operações de outras URLs. Limites de contagem/bytes e a barreira de limpeza continuam ativos. Consultas numéricas têm índice fraco por catálogo, e a pesquisa do Guia normaliza as 40 regras uma vez, preservando acentos, proporções, navegação e estado das seções. A base Next.js e o lint correspondente passam para 16.4.2 após a auditoria detectar avisos na versão anterior. Testes e medições estão em `DESEMPENHO-2.0.52.md`.
 

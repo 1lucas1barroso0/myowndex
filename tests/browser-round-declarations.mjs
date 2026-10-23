@@ -196,6 +196,9 @@ try {
         assert.equal((await state()).tokens.find(token => token.id === "slow").pp[1], 29);
         assert.equal((await state()).tokens.find(token => token.id === "fast").pp[0], 35);
         await pane("Campo");
+        // Persisted state may precede the mobile pane's React render. Wait for
+        // the actual visible row, rather than reading a still-hidden list.
+        await order.locator("li[aria-current='step']").filter({ hasText: "Bulbasaur" }).waitFor({ state: "visible" });
         assert.match(await order.locator("li[aria-current='step']").innerText(), /Bulbasaur.*Ação feita/s);
         assert.equal(await order.locator("li[aria-current='step'] .turn-order-done").innerText(), "✓");
         checks.push(`${mode}: only the chosen move acts on its own turn and a second action cannot spend PP again`);

@@ -111,16 +111,19 @@ try {
 
     await openDetails(editor.locator(".editor-summary-customize"));
     const friendship = editor.locator(".friendship-control");
-    for (const [label, raw, rpg] of [["Aumentar Amizade em 5", 75, 7], ["Aumentar Amizade em 50", 125, 12], ["Diminuir Amizade em 5", 120, 12], ["Diminuir Amizade em 50", 70, 7]]) {
+    for (const [label, raw, rpg] of [["Aumentar Amizade em 5", 75, 7], ["Aumentar Amizade em 10", 85, 8], ["Aumentar Amizade em 20", 105, 10], ["Diminuir Amizade em 5", 100, 10]]) {
         await friendship.getByRole("button", { name: label, exact: true }).click();
         assert.equal(await friendship.getByRole("spinbutton", { name: "Amizade", exact: true }).inputValue(), String(raw));
         assert.equal(await editor.locator(".editor-summary-friendship").getByRole("meter").getAttribute("aria-valuenow"), String(rpg));
     }
+    assert.equal(await friendship.getByRole("button", { name: "Aumentar Amizade em 50", exact: true }).count(), 0);
+    await friendship.getByRole("spinbutton", { name: "Amizade", exact: true }).fill("150");
+    assert.equal(await editor.locator(".editor-summary-friendship").getByRole("meter").getAttribute("aria-valuenow"), "15");
     await friendship.getByRole("spinbutton", { name: "Amizade", exact: true }).fill("255");
     assert.equal(await editor.locator(".editor-summary-friendship").getByRole("meter").getAttribute("aria-valuenow"), "25");
     await friendship.getByRole("spinbutton", { name: "Amizade", exact: true }).fill("70");
     await openDetails(friendship.locator(".friendship-help"));
-    passed("friendship-is-manual-in-five-and-fifty-steps-with-rpg-floor-and-cap");
+    passed("friendship-uses-session-sized-steps-and-explicit-exceptional-manual-adjustments");
 
     const axeSource = process.env.MYOWNDEX_AXE_PATH ? await fs.readFile(process.env.MYOWNDEX_AXE_PATH, "utf8") : null;
     for (const theme of ["day", "night"]) for (const width of [320, 390, 1280]) {

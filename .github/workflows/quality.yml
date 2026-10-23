@@ -78,6 +78,7 @@ jobs:
       - name: Compilar para QA real
         run: npm run build
       - name: Subir MyOwnDex local
+        id: browser-server
         run: |
           npm run start > /tmp/myowndex-browser.log 2>&1 &
           echo $! > /tmp/myowndex-browser.pid
@@ -85,49 +86,60 @@ jobs:
           cat /tmp/myowndex-browser.log
           exit 1
       - name: Testar declarações e iniciativa reais em aventura e treino
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: |
-          node tests/browser-round-declarations.mjs
-          node tests/browser-turn-order.mjs
+          browser_test_status=0
+          node tests/browser-round-declarations.mjs || browser_test_status=1
+          node tests/browser-turn-order.mjs || browser_test_status=1
+          exit "$browser_test_status"
       - name: Conferir topo, painéis, foco e navegação do aplicativo
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-app-shell.mjs
       - name: Conferir moldura, teclado e foco com Box cheia
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-viewport-stability.mjs
       - name: Conferir sugestões, créditos e continuidade dos diálogos
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-interface-continuity.mjs
       - name: Conferir posição da Aventura e expansão dos papéis
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
           MYOWNDEX_REVIEW_IMAGES: ${{ github.event_name == 'pull_request' && '1' || '0' }}
         run: node tests/browser-adventure-layout.mjs
       - name: Conferir cores agrupadas, arte visível e entrada de jogo
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-visual-direction.mjs
       - name: Conferir a recompensa de XP, treinamento e amizade na ficha
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-growth.mjs
       - name: Conferir movimentos, PP históricos, descrições e teclado mobile
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-moves-mobile.mjs
       - name: Testar matriz real de telas, sprites e Dados
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
@@ -136,57 +148,70 @@ jobs:
           timeout --signal=TERM --kill-after=15s 420s node tests/browser-responsive.mjs | tee /tmp/myowndex-responsive.log
           echo "Matriz responsiva concluída."
       - name: Conferir coleção completa e navegação com CPU reduzida
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: |
-          node tests/browser-performance.mjs
-          node tests/browser-guide-performance.mjs
-          node tests/browser-api-cache.mjs
+          browser_test_status=0
+          node tests/browser-performance.mjs || browser_test_status=1
+          node tests/browser-guide-performance.mjs || browser_test_status=1
+          node tests/browser-api-cache.mjs || browser_test_status=1
+          exit "$browser_test_status"
       - name: Gerar, editar e limpar encontros no mobile com CPU reduzida
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: |
-          node tests/browser-generator-mobile.mjs
-          node tests/browser-personal-deletions.mjs
+          browser_test_status=0
+          node tests/browser-generator-mobile.mjs || browser_test_status=1
+          node tests/browser-personal-deletions.mjs || browser_test_status=1
+          exit "$browser_test_status"
       - name: Testar mundo 2D, acessibilidade e desempenho
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-2d-world.mjs
       - name: Confirmar clima animado e instalação discreta no navegador
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-weather.mjs
       - name: Confirmar avisos compactos e cabeçalho das Boxes
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-compact-feedback.mjs
       - name: Conferir Shiny e HP na ficha em todos os tamanhos
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-pokemon-vitals.mjs
       - name: Navegar pela linha evolutiva sem mover a Pokédex
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-evolution-navigation.mjs
       - name: Testar transformações, lados e retirada em todas as fases
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-gimmicks-phases.mjs
       - name: Verificar atualização automática e cabeçalhos do PWA
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-release-update.mjs
       - name: Conferir a versão publicada sem alterar contas ou aventuras
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: https://myowndex.vercel.app

@@ -86,7 +86,7 @@ try {
             checks.push("practice: repeated free training spends PP without creating an ordered battle");
         }
         const resourcesBefore = before.tokens.map(token => ({ id: token.id, hp: token.currentHp, pp: token.pp }));
-        await order.getByRole("combobox", { name: "Movimento de Pikachu nesta rodada", exact: true }).selectOption("tackle");
+        await order.getByRole("combobox", { name: "Escolha de Pikachu nesta rodada", exact: true }).selectOption("tackle");
         await wait(value => value.tokens.find(token => token.id === "fast").declaredMove === "tackle");
         await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).click();
         const rolled = await wait(value => value.initiative.length === 2);
@@ -99,7 +99,7 @@ try {
             assert.deepEqual(token.pp, resource.pp);
         }
         checks.push(`${mode}: initiative starts a real round, keeps declarations and preserves HP/PP`);
-        const help = mode === "practice" ? page.locator(".local-pokemon-dice .room-tool").filter({ has: page.getByText("Sobre o campo", { exact: true }) }) : page.locator(".room-phase-help");
+        const help = mode === "practice" ? page.locator(".local-pokemon-dice .room-tool").filter({ has: page.getByText("Batalha", { exact: true }) }) : page.locator(".room-phase-help");
         await open(help);
         assert.equal(await help.getByRole("button", { name: "Nova batalha", exact: true }).isEnabled(), false);
         checks.push(`${mode}: New battle cannot restart an active round`);

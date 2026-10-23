@@ -7,8 +7,8 @@ import fixedFormCatalogue from "./data/forms.json";
 import packageJson from "../package.json";
 import speciesMetadata from "./data/generator-species.json";
 import { integerInRange } from "./core/math.js";
-import { isOrdinaryLevelUpMove } from "./core/moveLearnMethods.js";
-import { dedupeByNameLatest, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
+import { getNaturalLevelUpLearnset } from "./core/moveLearnMethods.js";
+import { dedupeByNameLatest, fetchCached, formatName } from "./core/mechanics.js";
 import { compactSpecies, createTeam, hydrateTeam, loadTeamsDurable, mergeHydratedTeams, normalizePokemon, saveTeamsDurable, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
 import { randomChance } from "./core/random.js";
@@ -579,18 +579,10 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const integrateTeam = useCallback((formData, genderRate, formIdentity = null) => {
         const resolvedRate = integerInRange(genderRate, -1, 8, -1);
         const targetTeam = teams.find(team => team.id === activeTeamId) || teams[0] || null;
-        const legalMoves = filterMovesByLatestVersion(
-            formData.moves || [],
-            targetTeam?.versionGroup || "auto",
-        );
-        // A move with both an evolution entry (level 0) and an ordinary
-        // level-one entry is eligible through the latter only. Never grant a
-        // move merely because an evolution entry uses zero.
-        const levelMoves = legalMoves.flatMap(entry => {
-            const eligible = (entry.latest_details || []).filter(detail => isOrdinaryLevelUpMove(detail, 5));
-            return eligible.length ? [{ move: entry.move, level: Math.max(...eligible.map(detail => detail.level_learned_at)) }] : [];
-        }).sort((a, b) => a.level - b.level || (a.move?.name || "").localeCompare(b.move?.name || ""));
-        const initialMoves = levelMoves.slice(-4).map(entry => entry.move?.name).filter(Boolean);
+        // Use the same species, game, method and level policy as the generator.
+        // A newer training-only repertoire must not erase natural moves in auto.
+        const learnset = getNaturalLevelUpLearnset(formData, targetTeam?.versionGroup || "auto", 5);
+        const initialMoves = learnset.moves.map(move => move.name);
         let gender = "N";
         if (resolvedRate === 0) gender = "M";
         else if (resolvedRate === 8) gender = "F";

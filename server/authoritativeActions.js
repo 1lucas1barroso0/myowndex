@@ -16,6 +16,7 @@ import { finiteNumberOrNull, integerInRange, MAX_SAFE_GAME_INTEGER } from "../sr
 import { createSecureUint32Source, rollDie } from "../src/core/random.js";
 import {
     advanceInitiative,
+    settleCurrentRoomTurn,
     applyEndOfRoundEffects,
     buildInitiative,
     getEffectiveMovePriority,
@@ -446,8 +447,9 @@ const initiative = (snapshot, random) => {
 const advanceTurn = (snapshot, random) => {
     const room = normalizeRoomSnapshot(snapshot);
     if (!room.initiative.length) throw new AuthoritativeActionError("Escolha os movimentos e role a iniciativa para começar a rodada.", 409);
+    const settled = settleCurrentRoomTurn(room);
     const closingRound = room.turnIndex >= room.initiative.length - 1;
-    const roundEnd = closingRound ? applyEndOfRoundEffects(room, random) : null;
+    const roundEnd = closingRound ? applyEndOfRoundEffects(settled, random) : null;
     const nextSnapshot = closingRound
         ? {
             ...roundEnd.room,

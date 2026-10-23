@@ -31,6 +31,7 @@ import {
 import {
     addTeamToSnapshot,
     advanceInitiative,
+    settleCurrentRoomTurn,
     applyEndOfRoundEffects,
     buildInitiative,
     changeRoomPhase,
@@ -1160,9 +1161,10 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                 await requestAuthoritativeAction({ action: "advance-turn" });
                 return;
             }
-            const closingRound = snapshot.initiative.length > 0
-                && snapshot.turnIndex >= snapshot.initiative.length - 1;
-            const roundEnd = closingRound ? applyEndOfRoundEffects(snapshot) : null;
+            const settled = settleCurrentRoomTurn(snapshotRef.current);
+            const closingRound = settled.initiative.length > 0
+                && settled.turnIndex >= settled.initiative.length - 1;
+            const roundEnd = closingRound ? applyEndOfRoundEffects(settled) : null;
             const next = closingRound
                 ? {
                     ...roundEnd.room,
@@ -1171,7 +1173,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     initiative: [],
                     tokens: roundEnd.room.tokens.map(token => ({ ...token, declaredMove: "", declaredAction: "other", declaredDamageClass: "", priority: 0 })),
                 }
-                : advanceInitiative(snapshot);
+                : advanceInitiative(settled);
             commitSnapshot(next);
             const activeId = next.initiative[next.turnIndex];
             const active = next.tokens.find(token => token.id === activeId);

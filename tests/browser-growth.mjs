@@ -39,7 +39,7 @@ try {
     await openDetails(editor.locator(".rpg-journey-panel"));
     const reward = editor.locator(".experience-award");
     await openDetails(reward);
-    await reward.getByRole("button", { name: "2 XP", exact: true }).click();
+    await reward.getByRole("button", { name: /^2 XP\\b/ }).click();
 
     await reward.getByLabel("Considerar os dois lados da batalha", { exact: true }).check();
     await openDetails(reward.locator(".experience-context-editor"));
@@ -64,7 +64,7 @@ try {
     await reward.getByRole("button", { name: "Novo desafio", exact: true }).click();
     await reward.getByLabel("Considerar os dois lados da batalha", { exact: true }).check();
     await openDetails(reward.locator(".experience-context-editor"));
-    await reward.getByRole("button", { name: "3 XP", exact: true }).click();
+    await reward.getByRole("button", { name: /^3 XP\\b/ }).click();
     await winners.getByLabel("Maior nível", { exact: true }).fill("40");
     await opponents.getByLabel("Maior nível", { exact: true }).fill("20");
     await opponents.getByLabel("Pokémon que lutaram", { exact: true }).fill("2");

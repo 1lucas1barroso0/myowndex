@@ -332,7 +332,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             <TraitMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} /><SpecialMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} />
             {!sceneSnapshot && <button type="button" onClick={()=>setPending(`remove:${selectedToken.id}`)}>Retirar do campo</button>}
             </div>}</div></details>}
-            {!sceneSnapshot && <details className="room-tool"><summary><strong>Sobre o campo</strong></summary><div className="room-tool-body"><p>{snapshot.battleStarted ? "Escolha as ações e role a iniciativa a cada rodada." : "Treine movimentos livremente ou role a iniciativa para começar uma batalha."}</p><NewBattleButton onStart={async () => {
+            {!sceneSnapshot && <details className="room-tool"><summary><strong>Batalha</strong></summary><div className="room-tool-body"><p>{snapshot.battleStarted ? "Escolha as ações antes de rolar a iniciativa de cada rodada. Para começar outro confronto, use Nova batalha." : "Treine movimentos livremente ou inicie uma batalha com rodadas e iniciativa."}</p><NewBattleButton onStart={async () => {
                 await runAction({ action: "start-battle" });
                 setRoundResult(null);
                 setOpposedResult(null);

@@ -4,15 +4,7 @@ import { describeMove } from "../../core/descriptions.js";
 import { convertToTTRPG, fetchCached, formatDamageClass, formatName, formatType, TYPE_COLORS, TYPE_TEXT_COLORS } from "../../core/mechanics.js";
 import { getMoveReferenceForMode } from "../../core/referenceGames.js";
 import ReferenceText from "../Shared/ReferenceText.jsx";
-
-const methodLabel = detail => {
-    const method = detail?.move_learn_method?.name;
-    if (method === "level-up") return detail.level_learned_at ? `Nv. ${detail.level_learned_at}` : "Nível";
-    if (method === "machine") return "Máquina";
-    if (method === "tutor") return "Tutor";
-    if (method === "egg") return "Ovo";
-    return formatName(method || "Outro");
-};
+import { moveLearnMethodLabel } from "../../core/moveLearnMethods.js";
 
 export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -77,7 +69,7 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
         <article className={`record-move-card ${isOpen ? "is-open" : ""}`} style={{ "--move-type": moveColor }}>
             <button id={`${panelId}-toggle`} type="button" onClick={handleOpen} aria-expanded={isOpen} aria-controls={panelId} className="record-move-toggle">
                 <span className="record-move-name">{formatName(moveData.move.name)}</span>
-                <span className="record-move-method">{methodLabel(details)}</span>
+                <span className="record-move-method">{moveLearnMethodLabel(details)}</span>
                 <span aria-hidden="true" className="record-move-chevron">{isOpen ? "−" : "+"}</span>
             </button>
 
@@ -103,7 +95,7 @@ export default function MoveAccordion({ moveData, isTTRPG, versionGroup }) {
                             {shownReference ? <ReferenceText {...shownReference} label="Efeito do movimento" defaultLanguage="pt-BR" className="record-move-description" /> : <p className={catalogReady ? "record-section-note" : "sr-only"} role="status">{catalogReady ? 'Esta edição não possui um efeito descrito nas fontes consultadas.' : 'Consultando descrição…'}</p>}
                             {loadError && <div className="record-load-retry"><button type="button" onClick={retry}>Recarregar valores</button></div>}
                             {moveData.latest_details?.length > 1 && <div className="record-move-methods" role="group" aria-label="Formas de aprender este movimento">
-                                {[...new Set(moveData.latest_details.map(methodLabel))].map(method => <span key={method}>{method}</span>)}
+                                {[...new Set(moveData.latest_details.map(moveLearnMethodLabel))].map(method => <span key={method}>{method}</span>)}
                             </div>}
                             {explanation?.facts.length > 0 && (
                                 <details className="catalog-description record-move-rules">

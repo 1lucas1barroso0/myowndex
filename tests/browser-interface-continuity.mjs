@@ -104,7 +104,7 @@ try {
  await dice.getByRole('combobox',{name:'Pokémon da Box',exact:true}).selectOption('growth-box:growth-partner');
  await dice.getByRole('button',{name:'Trazer para o campo',exact:true}).click();
  await dice.locator('.local-pokemon-roster button').first().waitFor();
- await dice.locator('summary').filter({hasText:'Sobre o campo'}).click();
+ await dice.locator('summary').filter({hasText:/^Batalha$/}).click();
  await dice.getByRole('button',{name:'Nova batalha',exact:true}).click();
  const info=page.getByRole('alertdialog');await info.waitFor();
  assert.equal(await info.getByRole('button',{name:'Começar batalha',exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),await info.getByRole('button',{name:'Cancelar',exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),'Confirmation actions share the same palette');

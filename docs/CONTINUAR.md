@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.1.**
+**Versão atual: 2.1.2.**
+
+A 2.1.2 esclarece o controle de batalha do Campo e distingue níveis numéricos (Nv. 1, Nv. 50) de movimentos aprendidos ao evoluir (nível 0 na fonte). A opção com nível ausente informa isso explicitamente, sem inventar valores. Preserva os dados e as regras da 2.1.1.
 
 A versão 2.1.0 está publicada; a 2.1.1 aprimora a orientação da iniciativa, a distinção entre ações e a passagem de turno sem reexecutar PP ou movimentos. Consulte `POLIMENTO-REGRAS-INTEIRAS.md` para mudanças, testes e pendências; o roteiro de observação humana e os ensaios físicos pendentes estão em `VALIDACAO-2.1.0.md`. A suíte atual tem 678 testes; edições pendentes do PC preservam os gastos posteriores na cena. Descanso e XP exigem encerramento explícito do confronto; Transform não pode vazar para esses procedimentos, e XP reconhece Boxes pelo vínculo compartilhado. As revisões anteriores abaixo são históricas.
 

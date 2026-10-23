@@ -117,7 +117,7 @@ try {
         const nextRound = await state();
         assert.deepEqual(nextRound.initiative, []);
         assert.equal(nextRound.turnIndex, 0);
-        assert.equal(nextRound.tokens.find(token => token.id === "slow").currentHp, 19, "burn applies once at the round end");
+        assert.ok([18, 19].includes(nextRound.tokens.find(token => token.id === "slow").currentHp), "burn applies once with the correct stochastic 1/16 rounding");
         assert.ok(nextRound.tokens.every(token => token.declaredMove === "" && token.priority === 0));
         await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).waitFor();
         assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).count(), 1);

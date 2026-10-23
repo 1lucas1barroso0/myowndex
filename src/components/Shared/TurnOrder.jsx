@@ -20,10 +20,10 @@ export default function TurnOrder({ snapshot, onSelect, onRoll, onAdvance, onDec
     const activeDone = Boolean(active && active.lastActionRound >= snapshot.round);
     const nextStep = !active ? "" : activeDone
         ? "A ação já foi registrada. Avance o turno para continuar."
-        : active.declaredMove ? "Abra Ações > Resolver um movimento. A escolha não muda depois da iniciativa."
+        : active.declaredMove ? (local ? "Abra Usar um movimento. A escolha não muda depois da iniciativa." : "Abra Ações > Resolver um movimento. A escolha não muda depois da iniciativa.")
         : active.declaredAction === "swap" ? "Abra a ficha deste Pokémon no Campo e faça a troca pelo banco. Quem entra não ganha outra ação."
-        : active.declaredAction === "improvise" ? "Combine objetivo e risco, registre o resultado nas notas da cena e use Rolagens da aventura se houver teste."
-        : active.declaredAction === "flee" ? "Abra Rolagens da aventura > Disputa entre Pokémon e dispute Velocidade. Empate favorece quem impede a fuga; o Narrador registra a saída se houver sucesso."
+        : active.declaredAction === "improvise" ? (local ? "Combine objetivo e risco; abra Rolagens para fazer o teste pertinente, se necessário." : "Combine objetivo e risco, registre o resultado nas notas da cena e use Rolagens da aventura se houver teste.")
+        : active.declaredAction === "flee" ? (local ? "Abra Disputa entre Pokémon e compare a Velocidade de cada lado. Empate favorece quem impede a fuga." : "Abra Rolagens da aventura e compare os testes de Velocidade dos dois lados. Empate favorece quem impede a fuga; o Narrador registra a saída quando for possível.")
         : "Aguardar não exige teste nem efeito. Avance o turno para passar a vez.";
     const participants = snapshot.tokens.filter(token => !token.hidden && !token.captured && token.currentHp > 0);
     const canRoll = participants.length > 0;
@@ -50,7 +50,7 @@ export default function TurnOrder({ snapshot, onSelect, onRoll, onAdvance, onDec
             {active && <div className="turn-order-next-step" role="status">
                 <strong>{activeDone ? "Ação realizada" : "Agora"}: {active.name} · {activeAction}</strong>
                 <p>{nextStep}</p>
-                {!activeDone && (active.declaredMove || active.declaredAction !== "other") && (!local || active.declaredAction !== "swap") && onGoToAction && (!canDeclareToken || canDeclareToken(active)) && <button type="button" className="room-secondary-button" onClick={() => onGoToAction(active)}>{active.declaredMove ? "Ir para o movimento" : active.declaredAction === "swap" ? "Ir para a troca" : "Abrir rolagens"}</button>}
+                {!activeDone && (active.declaredMove || active.declaredAction !== "other") && (!local || active.declaredAction !== "swap") && onGoToAction && (!canDeclareToken || canDeclareToken(active)) && <button type="button" className="room-secondary-button" onClick={() => onGoToAction(active, "rolls")}>{active.declaredMove ? "Ir para o movimento" : active.declaredAction === "swap" ? "Ir para a troca" : active.declaredAction === "flee" && local ? "Ir para disputa" : "Abrir rolagens"}</button>}{!activeDone && !local && active.declaredAction === "improvise" && onGoToAction && (!canDeclareToken || canDeclareToken(active)) && <button type="button" className="room-secondary-button" onClick={() => onGoToAction(active, "notes")}>Ver notas</button>}
             </div>}
         </> : <p className="turn-order-empty">{canRoll ? "Escolha movimentos ou ações e role a ordem. Sem outra escolha, o Pokémon aguarda." : snapshot.tokens.length ? "Nenhum Pokémon pode agir agora." : "Traga Pokémon para começar."}</p>}
         {!order.length && canRoll && onDeclareMove && <RoundDeclarations tokens={participants} onDeclareMove={onDeclareMove} canDeclareToken={canDeclareToken || (() => canControl)} disabled={busy} onPending={choicePending} />}

@@ -107,7 +107,7 @@ html .app-root .record-move-toggle { display:grid; grid-template-columns:minmax(
 html .app-root .record-move-toggle:hover { background:color-mix(in srgb,var(--move-type) 10%,var(--ui-panel)); }
 html .app-root .record-move-toggle[aria-expanded=true] { border-bottom:1px solid var(--ui-line); background:color-mix(in srgb,var(--move-type) 8%,var(--ui-panel)); }
 html .app-root .record-move-name { min-width:0; font-size:1.05rem; line-height:1.5; font-weight:800; }
-html .app-root .record-move-method { display:inline-flex; align-items:center; justify-content:center; padding:0; font-size:.875rem; line-height:1.5; color:var(--ui-muted); }
+html .app-root .record-move-method { display:inline-flex; align-items:center; justify-content:center; min-width:0; max-width:100%; padding:0; font-size:.875rem; line-height:1.5; color:var(--ui-muted); overflow-wrap:normal; text-wrap:pretty; }
 html .app-root .record-move-chevron { display:grid; place-items:center; color:var(--ui-blue); font-size:1.25rem; font-weight:750; }
 html .app-root .record-move-panel { padding:.3rem 1rem 1.1rem; }
 html .app-root .move-description { display:grid; gap:1rem; }

@@ -7,6 +7,7 @@ import fixedFormCatalogue from "./data/forms.json";
 import packageJson from "../package.json";
 import speciesMetadata from "./data/generator-species.json";
 import { integerInRange } from "./core/math.js";
+import { isOrdinaryLevelUpMove } from "./core/moveLearnMethods.js";
 import { dedupeByNameLatest, fetchCached, filterMovesByLatestVersion, formatName } from "./core/mechanics.js";
 import { compactSpecies, createTeam, hydrateTeam, loadTeamsDurable, mergeHydratedTeams, normalizePokemon, saveTeamsDurable, touchTeam } from "./core/team.js";
 import { EXPERIENCE_MODES } from "./core/rpgRules.js";
@@ -582,10 +583,13 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
             formData.moves || [],
             targetTeam?.versionGroup || "auto",
         );
-        const levelMoves = legalMoves.filter(entry =>
-            entry.latest_detail?.move_learn_method?.name === "level-up"
-            && integerInRange(entry.latest_detail?.level_learned_at, 0, 200, 0) <= 5
-        );
+        // A move with both an evolution entry (level 0) and an ordinary
+        // level-one entry is eligible through the latter only. Never grant a
+        // move merely because an evolution entry uses zero.
+        const levelMoves = legalMoves.flatMap(entry => {
+            const eligible = (entry.latest_details || []).filter(detail => isOrdinaryLevelUpMove(detail, 5));
+            return eligible.length ? [{ move: entry.move, level: Math.max(...eligible.map(detail => detail.level_learned_at)) }] : [];
+        }).sort((a, b) => a.level - b.level || (a.move?.name || "").localeCompare(b.move?.name || ""));
         const initialMoves = levelMoves.slice(-4).map(entry => entry.move?.name).filter(Boolean);
         let gender = "N";
         if (resolvedRate === 0) gender = "M";

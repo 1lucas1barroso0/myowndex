@@ -1,5 +1,6 @@
 import { calculateStat, convertToTTRPG, extractId, fetchCached, getLatestVersionGroup, NATURES, TYPES } from './mechanics.js';
 import { integerInRange } from './math.js';
+import { isOrdinaryLevelUpMove } from './moveLearnMethods.js';
 import { randomInt } from './random.js';
 import { compactPokemon, normalizePokemon, STAT_KEYS } from './team.js';
 import { getMoveReferenceForMode, getPokemonAtGeneration, getPokemonReferenceForMode, getReferenceGameGeneration } from './referenceGames.js';
@@ -120,14 +121,15 @@ export const getGeneratorLearnset = (pokemon, versionGroup, level) => {
     const legal = new Map();
     for (const entry of pokemon.moves || []) {
         const levels = (entry.version_group_details || []).filter(detail => detail.version_group?.name === resolved
-            && detail.move_learn_method?.name === 'level-up' && Number(detail.level_learned_at) <= level);
+            && isOrdinaryLevelUpMove(detail, level));
         if (entry.move?.name && levels.length) legal.set(entry.move.name, {
             ...entry.move,
             level: Math.max(...levels.map(detail => Number(detail.level_learned_at) || 0)),
         });
     }
-    // A natural encounter knows its four most recently learned moves. Machine,
-    // tutor and egg moves stay available through the ordinary PC editor.
+    // A natural encounter knows its four most recently learned ordinary
+    // level-up moves. Evolution moves (level 0), machines, tutors, egg and
+    // transfer-only moves require their own events; never invent those events.
     return { versionGroup: resolved, moves: [...legal.values()].sort((a, b) => b.level - a.level || a.name.localeCompare(b.name)).slice(0, 4) };
 };
 

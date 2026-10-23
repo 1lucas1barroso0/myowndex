@@ -105,6 +105,26 @@ test('generator learnset uses the latest actual game and only moves learned by t
     assert.equal(getGeneratorLearnset(pokemon, 'auto', 100).moves.length, 4);
 });
 
+test('a game-specific level-0 evolution move cannot be assigned to a generated low-level Pokémon', () => {
+    const latest = 'scarlet-violet';
+    const red = 'red-blue';
+    const data = { ...pokemon, moves: [
+        move('petal-blizzard', [detail(latest, 0)]),
+        move('quick-attack', [detail(latest, 1), detail(latest, 0)]),
+        move('tackle', [detail(latest, 1), detail(red, 1)]),
+        move('growth', [detail(latest, 6)]),
+        move('secret-power', [detail(red, 1, 'machine')]),
+        move('egg-only', [detail(latest, 1, 'egg')]),
+    ] };
+    const recent = getGeneratorLearnset(data, latest, 5);
+    assert.deepEqual(recent.moves.map(m => m.name), ['quick-attack', 'tackle']);
+    assert.equal(recent.moves.some(m => m.name === 'petal-blizzard'), false);
+    assert.deepEqual(getGeneratorLearnset(data, red, 5).moves.map(m => m.name), ['tackle']);
+    assert.equal(getGeneratorLearnset(data, latest, 6).moves[0].name, 'growth');
+    assert.ok(recent.moves.every(m => m.level > 0));
+    assert.deepEqual(data.moves[0].version_group_details.map(d => d.level_learned_at), [0], 'source data is unchanged');
+});
+
 test('generator gender respects genderless, fixed and official female eighths', () => {
     assert.equal(getGeneratorGender(-1), 'N');
     assert.equal(getGeneratorGender(0), 'M');

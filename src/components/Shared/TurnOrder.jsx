@@ -50,7 +50,7 @@ export default function TurnOrder({ snapshot, onSelect, onRoll, onAdvance, onDec
             {active && <div className="turn-order-next-step" role="status">
                 <strong>{activeDone ? "Ação realizada" : "Agora"}: {active.name} · {activeAction}</strong>
                 <p>{nextStep}</p>
-                {!activeDone && active.declaredAction !== "other" && onGoToAction && (!canDeclareToken || canDeclareToken(active)) && <button type="button" className="room-secondary-button" onClick={() => onGoToAction(active)}>{active.declaredMove ? "Ir para o movimento" : active.declaredAction === "swap" ? "Ir para a troca" : "Abrir rolagens"}</button>}
+                {!activeDone && (active.declaredMove || active.declaredAction !== "other") && (!local || active.declaredAction !== "swap") && onGoToAction && (!canDeclareToken || canDeclareToken(active)) && <button type="button" className="room-secondary-button" onClick={() => onGoToAction(active)}>{active.declaredMove ? "Ir para o movimento" : active.declaredAction === "swap" ? "Ir para a troca" : "Abrir rolagens"}</button>}
             </div>}
         </> : <p className="turn-order-empty">{canRoll ? "Escolha movimentos ou ações e role a ordem. Sem outra escolha, o Pokémon aguarda." : snapshot.tokens.length ? "Nenhum Pokémon pode agir agora." : "Traga Pokémon para começar."}</p>}
         {!order.length && canRoll && onDeclareMove && <RoundDeclarations tokens={participants} onDeclareMove={onDeclareMove} canDeclareToken={canDeclareToken || (() => canControl)} disabled={busy} onPending={choicePending} />}

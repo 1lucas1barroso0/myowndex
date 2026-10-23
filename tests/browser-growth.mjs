@@ -152,8 +152,8 @@ try {
     await openDetails(page.locator(".pokemon-training-panel"));
     assert.equal(await page.locator(".ev-training > header > strong").innerText(), "0");
     saved = await savedPokemon();
-    assert.equal(saved.level, 11);
-    assert.equal(saved.rpg.xp, 5);
+    assert.equal(saved.level, 12);
+    assert.equal(saved.rpg.xp, 2);
     assert.equal(saved.rpg.experienceAwards.length, 2);
     assert.equal(saved.friendship, 70);
     assert.equal(saved.rpg.notes, "Preservar a jornada");

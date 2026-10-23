@@ -85,10 +85,10 @@ try {
         }
         const order = page.locator(".turn-order");
         await order.waitFor();
-        const choice = name => order.getByRole("combobox", { name: `Movimento de ${name} nesta rodada`, exact: true });
+        const choice = name => order.getByRole("combobox", { name: `Escolha de ${name} nesta rodada`, exact: true });
         assert.equal(await order.getByRole("combobox").count(), 2);
         for (const name of ["Mew", "Charmander", "Mewtwo"]) assert.equal(await choice(name).count(), 0);
-        assert.deepEqual(await choice("Bulbasaur").locator("option").allTextContents(), ["Outra ação", "Tackle", "Quick Attack", "Growl", "Protect"]);
+        assert.deepEqual(await choice("Bulbasaur").locator("option").allTextContents(), ["Aguardar / passar a vez", "Trocar Pokémon", "Improvisar / interagir", "Tentar fugir", "Tackle", "Quick Attack", "Growl", "Protect"]);
         checks.push(`${mode}: preparation includes only available Pokémon and every learned move plus Outra ação`);
 
         for (const theme of ["normal", "night"]) for (const width of [320, 390, 1280]) {

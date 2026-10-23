@@ -125,7 +125,7 @@ try {
         checks.push(`${mode}: end round applies effects, clears declarations, and waits for fresh initiative`);
 
         await pane("Campo");
-        await order.getByRole("combobox", { name: "Movimento de Pikachu nesta rodada", exact: true }).selectOption("quick-attack");
+        await order.getByRole("combobox", { name: "Escolha de Pikachu nesta rodada", exact: true }).selectOption("quick-attack");
         await page.waitForFunction(mode => {
             const saved = JSON.parse(localStorage.getItem(mode === "practice" ? "myowndex_local_dice_room_v1" : "myowndex_local_room_v1") || "null");
             return (mode === "practice" ? saved : saved?.snapshot)?.tokens.find(token => token.id === "fast")?.priority === 1;

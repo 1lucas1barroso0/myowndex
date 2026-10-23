@@ -1599,7 +1599,24 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     />
                     {snapshot.phase === "batalha" && !snapshot.battleEnded && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
                         onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}
-                        onRoll={generateInitiative} onAdvance={nextTurn} />}
+                        onRoll={generateInitiative} onAdvance={nextTurn}
+                        onGoToAction={token=>{
+                            setSelectedTokenId(token.id);
+                            if(!token.declaredMove && token.declaredAction==="swap"){
+                                setMobilePane("field");
+                                window.requestAnimationFrame(()=>document.querySelector(".room-field .token-inspector")?.scrollIntoView({block:"nearest",behavior:"smooth"}));
+                                return;
+                            }
+                            setMobilePane("tools");
+                            window.requestAnimationFrame(()=>{
+                                const toolsRoot=document.querySelector(".room-tools");
+                                const panels=[...(toolsRoot?.querySelectorAll(":scope > details.room-tool") || [])];
+                                const panel=token.declaredMove
+                                    ? panels.find(node=>node.querySelector("summary strong")?.textContent==="Resolver um movimento")
+                                    : toolsRoot?.querySelector(".adventure-dice-tool");
+                                if(panel){panel.open=true;panel.scrollIntoView({block:"nearest",behavior:"smooth"});panel.querySelector("summary")?.focus({preventScroll:true});}
+                            });
+                        }} />}
 
                     {selectedToken && (
                         <section className="token-inspector">

@@ -1771,7 +1771,7 @@ export const getRoundMoveBlockReason = ({ snapshot, token, move }) => {
     if (token.lastActionRound >= snapshot.round) return "Este Pokémon já agiu nesta rodada. Avance o turno.";
     if (!move) return token.declaredMove || token.declaredAction !== "swap" ? "Declare Trocar Pokémon antes da iniciativa." : "";
     if (token.declaredMove && normalizeSlug(move?.name) !== token.declaredMove) return `Use ${formatName(token.declaredMove)}, escolhido antes da iniciativa.`;
-    if (!token.declaredMove) return "Outra ação não permite escolher um ataque depois da iniciativa. Declare o movimento antes da rodada.";
+    if (!token.declaredMove) return "Uma ação sem movimento não permite escolher um ataque depois da iniciativa. Declare o movimento antes da rodada.";
     return "";
 };
 

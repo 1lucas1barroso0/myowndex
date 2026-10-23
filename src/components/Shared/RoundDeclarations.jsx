@@ -4,6 +4,13 @@ import { getCurrentMoveReference } from "../../core/championsMoves.js";
 import PokemonSprite from "./PokemonSprite.jsx";
 import RoomSelect from "./RoomSelect.jsx";
 
+export const roundActionLabel = token => token?.declaredMove ? formatName(token.declaredMove) : ({
+    other: "Aguardar / passar a vez",
+    swap: "Trocar Pokémon",
+    improvise: "Improvisar / interagir",
+    flee: "Tentar fugir",
+}[token?.declaredAction || "other"] || "Aguardar / passar a vez");
+
 function RoundChoice({ token, onDeclareMove, canDeclare, disabled, onPending }) {
     const labelId = useId();
     const [choice, setChoice] = useState(token.declaredMove || `action:${token.declaredAction || "other"}`);
@@ -40,14 +47,17 @@ function RoundChoice({ token, onDeclareMove, canDeclare, disabled, onPending }) 
 
     return <li className="round-choice">
         <div className="round-choice-identity"><PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><strong id={labelId}>{token.name}</strong><span className="round-choice-priority" aria-label={`Prioridade ${token.priority > 0 ? "+" : ""}${token.priority || 0}`}>{token.priority > 0 ? "+" : ""}{token.priority || 0}</span></div>
-        {canDeclare ? <RoomSelect aria-label={`Movimento de ${token.name} nesta rodada`} value={choice} disabled={disabled || pending} onChange={event => void choose(event.target.value)}>
-            <option value="action:other">Outra ação: aguardar ou objetivo nas notas</option>
+        {canDeclare ? <RoomSelect aria-label={`Escolha de ${token.name} nesta rodada`} value={choice} disabled={disabled || pending} onChange={event => void choose(event.target.value)}>
+            <option value="action:other">Aguardar / passar a vez</option>
             <option value="action:swap">Trocar Pokémon</option>
-            <option value="action:improvise">Improvisar: objetivo nas notas</option>
+            <option value="action:improvise">Improvisar / interagir</option>
             <option value="action:flee">Tentar fugir</option>
             {[...new Set(token.moves.filter(Boolean))].map(name => <option key={name} value={name}>{formatName(name)}</option>)}
-        </RoomSelect> : <p className="round-choice-readonly">{token.declaredMove ? formatName(token.declaredMove) : "Outra ação"}</p>}
-        {pending && <small role="status">Confirmando…</small>}
+        </RoomSelect> : <p className="round-choice-readonly">{roundActionLabel(token)}</p>}
+        {canDeclare && !pending && choice === "action:other" && <small>Aguardar não exige teste nem produz efeito. Para tentar algo, escolha Improvisar.</small>}
+        {canDeclare && !pending && choice === "action:improvise" && <small>Combine objetivo, risco e teste com o Narrador. Registre a ideia nas notas da cena.</small>}
+        {canDeclare && !pending && choice === "action:flee" && <small>Fuga: disputa de Velocidade contra quem impede a saída. Empate favorece quem bloqueia.</small>}
+        {pending && <small role="status">Confirmando…</small>
         {error && <p className="round-choice-error" role="alert">{error}</p>}
     </li>;
 }

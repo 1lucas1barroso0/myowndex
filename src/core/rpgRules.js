@@ -209,7 +209,7 @@ export const RPG_RULE_SECTIONS = [
                     "Para trocar por vontade própria, declare Trocar Pokémon antes da iniciativa. A troca usa a ação do Pokémon que sai. Quem entra ocupa esse lugar e não ganha outra ação na rodada. Substituir um Pokémon derrotado não gasta a ação da rodada seguinte. Os recursos de cada Pokémon continuam com ele.",
                     "Mover-se dentro da mesma faixa pode acompanhar a ação. Cruzar uma faixa sob oposição ou conquistar uma posição decisiva pode exigir a ação e um teste. Combine alcance, terreno e Velocidade antes de rolar.",
                     "Uma reação precisa ser permitida por movimento, habilidade, item ou situação. A defesa normal já faz parte da disputa: não é cobrada como outra ação.",
-                    "Outra ação tem prioridade 0 e objetivo definido antes da iniciativa; não guarda um ataque para escolher depois. Improvisar, fugir e trocar seguem a escolha declarada. Resolva e avance. Efeitos que dão outra ação ou mudam a ordem precisam de uma permissão própria; o Narrador registra a exceção no Diário da aventura."
+                    "Aguardar, improvisar, fugir e trocar usam prioridade 0. Aguardar não produz efeito; improvisar exige objetivo e risco combinados antes da iniciativa. Nenhuma dessas escolhas guarda um ataque para decidir depois. Resolva e avance. Efeitos que dão outra ação ou mudam a ordem precisam de uma permissão própria; o Narrador registra a exceção no Diário da aventura."
                 ]
             }
         ]

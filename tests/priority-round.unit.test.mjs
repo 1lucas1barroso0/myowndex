@@ -28,6 +28,20 @@ test("priority declarations are explicit preparation and can be erased as Outra 
   assert.throws(() => declareRoomMove({ ...room(), tokens: [token("a", { pp: [0, null, null, null] })] }, "a", move()), /sem PP/);
 });
 
+test("non-move choices keep priority zero and cannot turn into a late attack", () => {
+  for (const actionKind of ["other", "swap", "improvise", "flee"]) {
+    const prepared = declareRoomMove(room(), "a", { actionKind });
+    assert.equal(prepared.tokens[0].priority, 0, actionKind);
+    assert.equal(prepared.tokens[0].declaredMove, "", actionKind);
+    assert.equal(prepared.tokens[0].declaredAction, actionKind);
+    const running = { ...prepared, initiative: ["a", "b"], turnIndex: 0 };
+    assert.match(getRoundMoveBlockReason({ snapshot: running, token: running.tokens[0], move: move() }), /não permite/, actionKind);
+    assert.throws(() => declareRoomMove(running, "a", move()), /rodada já começou/, actionKind);
+    const modified = { ...running, tokens: running.tokens.map(pokemon => pokemon.id === "a" ? { ...pokemon, declaredAction: "other" } : pokemon) };
+    assert.equal(getRoundDeclarationPatchBlockReason(running, modified) === "", actionKind === "other");
+  }
+});
+
 test("effective priority respects Prankster, full-HP Gale Wings, Triage and suppression", () => {
   const growl = move("growl", { damage_class: { name: "status" } });
   assert.equal(getEffectiveMovePriority({ token: token("a", { ability: "prankster" }), move: growl }), 1);

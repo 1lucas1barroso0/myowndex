@@ -50,3 +50,12 @@ html .app-root.game-edition.handheld-edition .round-choice-priority { display:gr
 html .app-root.game-edition.handheld-edition .round-choice :is(.room-select,select) { width:100%; min-width:0; }
 html .app-root.game-edition.handheld-edition .round-choice :is(p,small) { margin:0; font-size:.875rem; line-height:1.5; color:var(--ui-muted); }
 html .app-root.game-edition.handheld-edition .round-choice .round-choice-error { color:var(--ui-accent); }
+
+html .app-root.game-edition.handheld-edition .turn-order-next-step {
+  display:grid; gap:.4rem; min-width:0; margin-top:.8rem; padding:.7rem .8rem;
+  border:1px solid var(--ui-line); border-left:3px solid var(--ui-blue);
+  border-radius:.2rem; color:var(--ui-ink); background:var(--ui-selected);
+}
+html .app-root.game-edition.handheld-edition .turn-order-next-step strong { font-size:.94rem; line-height:1.5; overflow-wrap:anywhere; }
+html .app-root.game-edition.handheld-edition .turn-order-next-step p { margin:0; font-size:.875rem; line-height:1.6; color:var(--ui-ink); overflow-wrap:break-word; }
+html .app-root.game-edition.handheld-edition .turn-order-next-step button { justify-self:start; min-height:44px; max-width:100%; white-space:normal; text-align:center; }

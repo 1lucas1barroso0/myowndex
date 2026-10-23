@@ -57,7 +57,7 @@ function RoundChoice({ token, onDeclareMove, canDeclare, disabled, onPending }) 
         {canDeclare && !pending && choice === "action:other" && <small>Aguardar não exige teste nem produz efeito. Para tentar algo, escolha Improvisar.</small>}
         {canDeclare && !pending && choice === "action:improvise" && <small>Combine objetivo, risco e teste com o Narrador. Registre a ideia nas notas da cena.</small>}
         {canDeclare && !pending && choice === "action:flee" && <small>Fuga: disputa de Velocidade contra quem impede a saída. Empate favorece quem bloqueia.</small>}
-        {pending && <small role="status">Confirmando…</small>
+        {pending && <small role="status">Confirmando…</small>}
         {error && <p className="round-choice-error" role="alert">{error}</p>}
     </li>;
 }

@@ -89,7 +89,15 @@ try {
         assert.equal(await order.getByRole("combobox").count(), 2);
         for (const name of ["Mew", "Charmander", "Mewtwo"]) assert.equal(await choice(name).count(), 0);
         assert.deepEqual(await choice("Bulbasaur").locator("option").allTextContents(), ["Aguardar / passar a vez", "Trocar Pokémon", "Improvisar / interagir", "Tentar fugir", "Tackle", "Quick Attack", "Growl", "Protect"]);
-        checks.push(`${mode}: preparation includes only available Pokémon and every learned move plus Outra ação`);
+        checks.push(`${mode}: preparation includes only available Pokémon and every learned move plus all four specific actions`);
+        for (const actionKind of ["improvise", "flee", "swap", "other"]) {
+            await choice("Bulbasaur").selectOption(`action:${actionKind}`);
+            await waitState("slow", "declaredAction", actionKind);
+            assert.equal(await choice("Bulbasaur").inputValue(), `action:${actionKind}`);
+            assert.equal((await state()).tokens.find(token => token.id === "slow").priority, 0);
+            assert.equal((await state()).tokens.find(token => token.id === "slow").declaredMove, "");
+        }
+        checks.push(`${mode}: waiting, improvising, fleeing and swapping preserve priority 0 and never create a move`);
 
         for (const theme of ["normal", "night"]) for (const width of [320, 390, 1280]) {
             await page.setViewportSize({ width, height: 844 });
@@ -136,19 +144,19 @@ try {
         assert.deepEqual((await state()).initiative, []);
         releaseFailure();
         await order.getByRole("alert").filter({ hasText: "Escolha novamente" }).waitFor();
-        assert.equal(await choice("Bulbasaur").inputValue(), "");
+        assert.equal(await choice("Bulbasaur").inputValue(), "action:other");
         assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).isEnabled(), true);
         assert.deepEqual((await state()).tokens.map(token => token.pp), initialPp);
         await choice("Bulbasaur").selectOption("protect");
         await waitState("slow", "declaredMove", "protect");
         assert.equal(protectRequests, 2, "explicit retry requests a fresh reference after failure");
         assert.equal(await order.getByRole("alert").count(), 0);
-        await choice("Bulbasaur").selectOption("");
+        await choice("Bulbasaur").selectOption("action:other");
         await waitState("slow", "declaredMove", "");
         checks.push(`${mode}: pending references lock initiative, failure restores the choice, and immediate retry recovers`);
         await choice("Bulbasaur").selectOption("growl");
         await order.getByRole("alert").filter({ hasText: "sem PP" }).waitFor();
-        assert.equal(await choice("Bulbasaur").inputValue(), "");
+        assert.equal(await choice("Bulbasaur").inputValue(), "action:other");
         assert.deepEqual((await state()).tokens.map(token => token.pp), initialPp);
         assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).isEnabled(), true);
         checks.push(`${mode}: zero PP choice is rejected without changing PP or leaving initiative blocked`);
@@ -165,6 +173,12 @@ try {
         }, mode);
         assert.deepEqual((await state()).initiative, ["slow", "fast"]);
         assert.equal(await order.locator(".round-declarations").count(), 0);
+        assert.match(await order.locator(".turn-order-next-step").innerText(), /Bulbasaur.*Quick Attack/s);
+        await order.getByRole("button", { name: "Ir para o movimento", exact: true }).click();
+        await pane("Ações");
+        await page.waitForFunction(() => [...document.querySelectorAll("details.room-tool")].some(node =>
+            node.open && /^(Usar um movimento|Resolver um movimento)$/.test(node.querySelector("summary strong")?.textContent || "")));
+        checks.push(`${mode}: turn navigation opens the declared move without changing the action`);
         checks.push(`${mode}: declared Quick Attack precedes much higher Speed and choices close once the round starts`);
         await pane("Ações");
         await openDetails(combat);
@@ -198,7 +212,7 @@ try {
         await waitState("", "round", 2);
         assert.deepEqual((await state()).initiative, []);
         assert.ok((await state()).tokens.every(token => token.declaredMove === "" && token.priority === 0));
-        for (const name of ["Pikachu", "Bulbasaur"]) assert.equal(await choice(name).inputValue(), "");
+        for (const name of ["Pikachu", "Bulbasaur"]) assert.equal(await choice(name).inputValue(), "action:other");
         await choice("Pikachu").selectOption("quick-attack");
         await waitState("fast", "declaredMove", "quick-attack");
         await choice("Bulbasaur").selectOption("tackle");

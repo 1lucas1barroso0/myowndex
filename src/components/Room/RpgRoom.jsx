@@ -1600,11 +1600,18 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                     {snapshot.phase === "batalha" && !snapshot.battleEnded && snapshot.tokens.length > 0 && <TurnOrder snapshot={snapshot} onSelect={setSelectedTokenId} canControl={role === "narrator"} busy={initiativeBusy}
                         onDeclareMove={declareMove} canDeclareToken={token => role === "narrator" || Boolean(session.playerId && token.ownerPlayerId === session.playerId)}
                         onRoll={generateInitiative} onAdvance={nextTurn}
-                        onGoToAction={token=>{
+                        onGoToAction={(token,destination)=>{
                             setSelectedTokenId(token.id);
-                            if(!token.declaredMove && token.declaredAction==="swap"){
+                            if(!token.declaredMove && (token.declaredAction==="swap" || destination==="notes")){
                                 setMobilePane("field");
-                                window.requestAnimationFrame(()=>document.querySelector(".room-field .token-inspector")?.scrollIntoView({block:"nearest",behavior:"smooth"}));
+                                window.requestAnimationFrame(()=>{
+                                    const target=destination==="notes"
+                                        ? document.querySelector(".room-field .room-notes-panel")
+                                        : document.querySelector(".room-field .token-inspector");
+                                    if(target?.tagName==="DETAILS") target.open=true;
+                                    target?.scrollIntoView({block:"nearest",behavior:"smooth"});
+                                    (target?.querySelector("summary") || target)?.focus({preventScroll:true});
+                                });
                                 return;
                             }
                             setMobilePane("tools");

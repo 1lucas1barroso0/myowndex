@@ -38,6 +38,6 @@ test("search includes paper procedure and canonical rule text",()=>{
     const index=createGuideSearchIndex(RPG_RULE_SECTIONS);
     const ids=query=>searchGuideSections(index,query).flatMap(section=>section.rules.map(rule=>rule.id));
     assert.ok(ids("dados de oito faces").includes("6.2") || ids("fração de HP").includes("6.2"));
-    assert.ok(ids("rolar três d6").includes("1.2"));
+    assert.ok(ids("role três d6").includes("1.2"));
     assert.ok(ids("um Pokémon consciente").includes("4.3"));
 });

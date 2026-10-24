@@ -1,6 +1,10 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.6.**
+**Versão atual: 2.1.7.**
+
+A 2.1.7 aplica a linguagem de aventura ao Guia inteiro: 48 cenas revisadas, sem os blocos repetitivos “Por exemplo” e “Na aventura”; os exemplos reconhecíveis e as decisões possíveis aparecem no mesmo relato. A seção 3.4 mantém sua ilustração de sobrevivência. A pesquisa prioriza o texto visível, mas encontra detalhes técnicos quando solicitado. Termos básicos HP, PP e XP são explicados. O Guia usa uma coluna central no computador para não deixar a metade direita vazia e preserva a disposição responsiva. A explicação técnica da regra 6.2 foi reescrita sem alterar probabilidades ou limites. Todos os cálculos e dados do RPG permanecem. Consulte `GUIA-UNIVERSAL-2.1.7.md`.
+
+A 2.1.6 permanece como base de preservação do Guia.
 
 A 2.1.6 corrige a leitura do Guia observada em captura real: cada uma das 48 regras possui uma orientação curta de jogo, seguida de exemplo com Pokémon. Os detalhes numéricos, exceções e procedimentos completos continuam disponíveis em “Ver detalhes e exceções”, mas não aparecem automaticamente na leitura comum. A pesquisa mantém as referências técnicas encontráveis e revela o detalhamento quando a correspondência existe apenas nele. A regra 3.4 mantém a explicação visual própria. A seção de veneno/clima foi renomeada e simplificada sem tocar nas funções. Consulte `GUIA-JOGADORES-2.1.6.md`.
 

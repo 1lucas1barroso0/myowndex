@@ -130,7 +130,7 @@ export default function TrainerGuide({ experienceMode }) {
                     <a className="guide-book-link room-secondary-button" href="/guia/livro">Ler o livro completo ou imprimir</a>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
-                        <input type="search" placeholder="Ex.: captura, veneno, iniciativa" value={query} onChange={event => setQuery(event.target.value)} />
+                        <input type="search" value={query} onChange={event => setQuery(event.target.value)} />
                     </label>
                     {searching && <p className="guide-search-result" role="status">{visibleRuleCount} {visibleRuleCount === 1 ? "regra encontrada" : "regras encontradas"}</p>}
                     <div className="guide-rule-list">

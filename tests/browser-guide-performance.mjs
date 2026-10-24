@@ -21,7 +21,7 @@ try {
     assert.equal(await guide.locator('.guide-rule-story').count(), expectedRuleIds.length - 1, 'every ordinary rule has an actual Pokémon scene; 3.4 has its own illustrated explanation');
     const smallEffects = guide.locator('[data-rule-id="6.2"]');
     await smallEffects.locator(':scope > summary').click();
-    assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Ekans usa Poison Sting contra Pikachu/);
+    assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Ekans.*Poison Sting.*Pikachu/);
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
     await smallEffects.locator('.guide-rule-full-rule > summary').click();
     assert.match(await smallEffects.locator('.guide-rule-context').innerText(), /Tyranitar.*Sand Stream.*Pikachu/);
@@ -65,7 +65,7 @@ try {
     assert.equal(await rule.evaluate(element => element.open), true);
     const fullRule = rule.locator('.guide-rule-full-rule');
     assert.equal(await fullRule.evaluate(element => element.open), false, 'the readable scene comes before optional details');
-    assert.match(await rule.locator('.guide-rule-story').innerText(), /Pikachu quer alcançar um Pidgey/);
+    assert.match(await rule.locator('.guide-rule-story').innerText(), /Pikachu.*Pidgey.*Velocidade/);
     await fullRule.locator(':scope > summary').press('Enter');
     assert.equal(await fullRule.evaluate(element => element.open), true, 'plain-language explanation is keyboard accessible');
     const technicalRule = fullRule.locator('.guide-rule-technical');

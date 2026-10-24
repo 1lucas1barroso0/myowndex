@@ -18,10 +18,10 @@ try {
     await search.waitFor();
     assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
     assert.deepEqual((await guide.locator('.guide-rule-card').evaluateAll(cards => cards.map(card => card.dataset.ruleId))).sort(), expectedRuleIds);
-    assert.equal(await guide.locator('.guide-rule-play').count(), expectedRuleIds.length - 1, 'every ordinary rule has a practical instruction; 3.4 has its illustrated component');
+    assert.equal(await guide.locator('.guide-rule-story').count(), expectedRuleIds.length - 1, 'every ordinary rule has a practical instruction; 3.4 has its illustrated component');
     const smallEffects = guide.locator('[data-rule-id="6.2"]');
     await smallEffects.locator(':scope > summary').click();
-    await smallEffects.getByText('Na aventura:', { exact: true }).waitFor();
+    await smallEffects.locator('.guide-rule-story').getByText('Pikachu está envenenado', { exact: false }).waitFor();
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
     assert.equal(await smallEffects.getByText('Com 3 HP para dividir por 16', { exact: false }).isVisible(), false, 'advanced arithmetic stays optional');
     await smallEffects.locator(':scope > summary').click();

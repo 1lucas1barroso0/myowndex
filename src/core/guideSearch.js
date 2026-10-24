@@ -1,3 +1,5 @@
+import { GUIDE_PLAY_TIPS } from "./guidePlayTips.js";
+
 const normalizeSearch = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 export const formatRuleForReading = text => String(text);
 const legacySearchAliases = text => text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
@@ -9,7 +11,7 @@ export const createGuideSearchIndex = sections => ({
         section,
         text: normalizeSearch(`${section.number} ${section.title} ${section.summary}`),
         rules: section.rules.map(rule => {
-            const text = [rule.id, rule.title, rule.plain || "", rule.example || "", rule.body || "", ...(rule.bullets || [])].join(" ");
+            const text = [rule.id, rule.title, rule.plain || "", rule.example || "", GUIDE_PLAY_TIPS[rule.id] || "", rule.body || "", ...(rule.bullets || [])].join(" ");
             return { rule, text: normalizeSearch(`${text} ${legacySearchAliases(text)}`) };
         }),
     })),

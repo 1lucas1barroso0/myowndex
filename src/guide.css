@@ -1,5 +1,5 @@
 /* Rule reading follows the Fate Toolkit's fluid gutters, comfortable line length,
-   and one disclosure per rule. Original rule text and numbering stay intact. */
+   and optional full explanations. Rule text and numbering stay intact. */
 html .app-root.game-edition.handheld-edition .trainer-guide { container: trainer-guide / inline-size; min-width: 0 !important; }
 html .app-root.game-edition.handheld-edition .guide-hero { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; margin: 0 0 1.5rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 html .app-root.game-edition.handheld-edition .guide-hero h2 { margin: 0 !important; font-size: clamp(1.8rem,4vw,2.5rem) !important; line-height: 1.25 !important; }
@@ -85,12 +85,12 @@ html .app-root.game-edition.handheld-edition .guide-hit-kill-outcome .guide-hit-
 html .app-root.game-edition.handheld-edition .guide-hit-kill-outcome b { color: var(--journey-teal) !important; font-size: 1.2rem !important; font-weight: 850 !important; white-space: nowrap !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-example { margin: 0 !important; padding: .8rem 0 0 !important; border-top: 1px solid var(--ui-line) !important; color: var(--ui-muted) !important; font-size: .9rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-protection > .guide-rule-body { max-width: none !important; padding: 1rem clamp(.75rem,2vw,1.25rem) 1.25rem !important; background: transparent !important; border-left: 0 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule { margin-top: 1.25rem !important; border-top: 1px solid var(--ui-line) !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > summary { display: flex !important; align-items: baseline !important; justify-content: space-between !important; gap: .75rem !important; min-height: 48px !important; padding: .8rem 0 !important; list-style: none !important; font-size: .95rem !important; font-weight: 700 !important; line-height: 1.5 !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > summary::-webkit-details-marker { display: none; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule > summary::after { content: "+" !important; flex: 0 0 auto; color: var(--journey-teal); font-size: 1.15rem; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-full-rule[open] > summary::after { content: "−" !important; }
-html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical { padding-top: .6rem !important; }
+html .app-root.game-edition.handheld-edition :is(.guide-hit-kill-full-rule,.guide-rule-full-rule) { margin-top: 1.25rem !important; border-top: 1px solid var(--ui-line) !important; }
+html .app-root.game-edition.handheld-edition :is(.guide-hit-kill-full-rule,.guide-rule-full-rule) > summary { display: flex !important; align-items: baseline !important; justify-content: space-between !important; gap: .75rem !important; min-height: 48px !important; padding: .8rem 0 !important; list-style: none !important; font-size: .95rem !important; font-weight: 700 !important; line-height: 1.5 !important; }
+html .app-root.game-edition.handheld-edition :is(.guide-hit-kill-full-rule,.guide-rule-full-rule) > summary::-webkit-details-marker { display: none; }
+html .app-root.game-edition.handheld-edition :is(.guide-hit-kill-full-rule,.guide-rule-full-rule) > summary::after { content: "+" !important; flex: 0 0 auto; color: var(--journey-teal); font-size: 1.15rem; }
+html .app-root.game-edition.handheld-edition :is(.guide-hit-kill-full-rule,.guide-rule-full-rule)[open] > summary::after { content: "−" !important; }
+html .app-root.game-edition.handheld-edition :is(.guide-hit-kill-canonical,.guide-rule-details-content) { padding-top: .6rem !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical ul { display: grid !important; gap: 1rem !important; margin: 0 !important; padding: 0 0 0 1.2rem !important; list-style: disc !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical :is(p,li) { color: var(--ui-ink) !important; font-size: .95rem !important; font-weight: 400 !important; line-height: 1.75 !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical li::marker { color: var(--journey-teal); }

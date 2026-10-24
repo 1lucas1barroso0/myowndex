@@ -48,9 +48,15 @@ try {
     const rule = guide.locator('.guide-rule-card').first();
     await rule.locator(':scope > summary').click();
     assert.equal(await rule.evaluate(element => element.open), true);
+    const fullRule = rule.locator('.guide-rule-full-rule');
+    assert.equal(await fullRule.evaluate(element => element.open), false, 'the example comes before the optional detailed rule');
+    await rule.getByText('Por exemplo:', { exact: true }).waitFor();
+    await fullRule.locator(':scope > summary').press('Enter');
+    assert.equal(await fullRule.evaluate(element => element.open), true, 'the full rule remains available from the keyboard');
     await guide.locator('.guide-calculator > summary').click();
     await guide.getByLabel('Nível atual', { exact: true }).fill('20');
     assert.equal(await rule.evaluate(element => element.open), true, 'calculator updates preserve the manually opened rule');
+    assert.equal(await fullRule.evaluate(element => element.open), true, 'calculator updates preserve the full explanation too');
     await searchFor('__nada_encontrado__');
     await guide.getByRole('button', { name: 'Como aguentar um golpe decisivo', exact: true }).click();
     const protection = guide.locator('[data-rule-id="3.4"]');

@@ -3,7 +3,7 @@
 export const GUIDE_PLAYER_SCENES = Object.freeze({
   "1.1": "Pikachu quer alcançar um Pidgey que está fugindo. O Narrador pede uma disputa de Velocidade. O MyOwnDex rola e compara os resultados. Pikachu só alcança Pidgey se vencer; no empate, Pidgey escapa por enquanto.",
   "1.2": "Seu Treinador quer seguir as pegadas de Eevee antes que a chuva as apague. O mapa que ele preparou pode ajudar. O Narrador combina a vantagem antes da tentativa, e o aplicativo cuida da rolagem. Se também houver um obstáculo que dê desvantagem, uma anula a outra.",
-  "1.3": "Bulbasaur usa Vine Whip para tentar alcançar uma corda. Se a tentativa der muito errado, as vinhas podem prender num galho e complicar a travessia. Essa é uma possibilidade da aventura, combinada com o Narrador, não um novo efeito oficial de Vine Whip.",
+  "1.3": "Bulbasaur usa Vine Whip para tentar alcançar uma corda. Se a tentativa der muito errado, as vinhas podem prender no galho errado e complicar a travessia. Essa é uma possibilidade da aventura, combinada com o Narrador, não um novo efeito oficial de Vine Whip.",
   "1.4": "Pikachu usa Thunder Shock em Eevee. O movimento pode causar dano e também pode deixar Eevee paralisado. Primeiro veja se o golpe acertou; depois confira na tela se a paralisia aconteceu. Nem todo acerto provoca esse efeito.",
   "1.5": "Pikachu acertou Thunder Shock. O dano pode variar um pouco, mesmo usando o mesmo movimento. Confira quanto HP Eevee perdeu. Abrir o resultado outra vez não causa um segundo golpe.",
   "2.1": "Dois Pikachu podem ter Velocidades diferentes, mesmo estando no mesmo nível. Confira os atributos de cada um na ficha. HP mostra quanto o Pokémon aguenta antes de desmaiar; PP mostra quantas vezes ainda pode usar cada movimento.",

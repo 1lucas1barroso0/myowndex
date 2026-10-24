@@ -21,7 +21,7 @@ try {
     assert.equal(await guide.locator('.guide-rule-story').count(), expectedRuleIds.length - 1, 'every ordinary rule has an actual Pokémon scene; 3.4 has its own illustrated explanation');
     const smallEffects = guide.locator('[data-rule-id="6.2"]');
     await smallEffects.locator(':scope > summary').click();
-    assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Pikachu está envenenado/);
+    assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Ekans usa Poison Sting contra Pikachu/);
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
     await smallEffects.locator('.guide-rule-full-rule > summary').click();
     assert.match(await smallEffects.locator('.guide-rule-context').innerText(), /Tyranitar.*Sand Stream.*Pikachu/);

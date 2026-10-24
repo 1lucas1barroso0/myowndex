@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {isPokemonSpriteSource2D} from '../src/core/pokemonSpriteSources.js';
 import fs from 'node:fs';
 import packageJson from '../package.json' with {type:'json'};
+import {RPG_RULE_SECTIONS} from '../src/core/rpgRules.js';
+const expectedRuleIds=RPG_RULE_SECTIONS.flatMap(section=>section.rules.map(rule=>String(rule.id))).sort();
 const {chromium}=await import(process.env.MYOWNDEX_PLAYWRIGHT_MODULE || 'playwright');
 const baseUrl=process.env.MYOWNDEX_SMOKE_URL || 'https://myowndex.vercel.app';
 const expectedVersion=packageJson.version;
@@ -54,10 +56,14 @@ async function auditIdentity(){
  assert.deepEqual(manifest.categories,['games']);assert.equal(manifest.shortcuts.length,4);
  for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v105-r4-96\.png$/);
  for(const icon of manifest.icons)assert.match(icon.src,/myowndex-dex-v105-r4-(?:app-|maskable-)?\d+\.png$/);
- const assets=[...metadata.icons,{url:metadata.apple,size:180},{url:metadata.shortcut,size:96},...manifest.icons.map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0])})),{url:metadata.og,size:512}];
+ const assets=[...metadata.icons,{url:metadata.apple,size:180},{url:metadata.shortcut,size:96},...manifest.icons.map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0])})),{url:metadata.og,size:512,canonicalShare:true}];
  const origin=new URL(baseUrl).origin;
  for(const asset of assets){
-  const url=new URL(asset.url,baseUrl);assert.equal(url.origin,origin,'Identity images remain on the public game origin');
+  const url=new URL(asset.url,baseUrl);
+  const expectedOrigin=asset.canonicalShare?new URL(packageJson.homepage).origin:origin;
+  assert.equal(url.origin,expectedOrigin,'Identity images use the checked origin; shared-link metadata uses the canonical game origin');
+  // Verify the bytes on this artifact, including the canonical shared image.
+  // A local/preview check must not silently fetch its image from production.
   const result=await page.evaluate(async path=>{const response=await fetch(path);if(!response.ok)return {status:response.status};const image=await createImageBitmap(await response.blob());const result={status:response.status,type:response.headers.get('content-type'),width:image.width,height:image.height};image.close();return result;},url.pathname+url.search);
   assert.equal(result.status,200);assert.match(result.type,/image\/png/);assert.equal(result.width,asset.size);assert.equal(result.height,asset.size);
  }
@@ -115,7 +121,7 @@ try{
  await auditReversibleForm();
  await auditCosmeticForm();
  await page.locator('#pokemon-search').fill('');
- await page.getByRole('button',{name:'Abrir o Guia do Treinador',exact:true}).click();await page.locator('.guide-rule-card').first().waitFor();assert.equal(await page.locator('.guide-rule-card').count(),40);report.push({label:'All forty rules are present',rules:40});
+ await page.getByRole('button',{name:'Abrir o Guia do Treinador',exact:true}).click();await page.locator('.guide-rule-card').first().waitFor();const actualRuleIds=(await page.locator('.guide-rule-card').evaluateAll(cards=>cards.map(card=>card.dataset.ruleId))).sort();assert.deepEqual(actualRuleIds,expectedRuleIds,'Every published rule matches the canonical guide');report.push({label:'All canonical rules are present',rules:actualRuleIds.length,ruleIds:actualRuleIds});
  await page.getByRole('button',{name:'Abrir Dados',exact:true}).click();const dice=page.getByRole('dialog',{name:'Dados',exact:true});await dice.getByRole('button',{name:'Rolar 2d6',exact:true}).click();await dice.locator('.local-dice-result').waitFor();await check('Guest local roll');await page.getByRole('button',{name:'Fechar dados',exact:true}).click();
  await page.getByRole('button',{name:'Gerar Pokémon',exact:true}).first().click();await page.locator('.generator-options').waitFor();await check('Generator');await page.getByRole('button',{name:'Fechar gerador',exact:true}).click();
  await page.getByRole('button',{name:'Entrar ou criar conta',exact:true}).click();const account=page.locator('.account-dialog');

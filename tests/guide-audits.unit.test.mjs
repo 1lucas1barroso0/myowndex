@@ -10,7 +10,7 @@ import { createRoomSnapshot, normalizeRoomSnapshot } from '../src/core/room.js';
 test('every displayed numerical guide case is reproduced by the actual game engine',()=>{
     const actual=reproduceGuideCases();
     assert.deepEqual(actual,GUIDE_AUDIT_CASES);
-    assert.deepEqual(actual.poison.rows.map(row=>row[1]),['3 de 3 HP','2 de 3 HP','Envenenado','2 de 3 HP','Envenenado','1 de 3 HP']);
+    assert.deepEqual(actual.poison.rows.map(row=>row[1]),['3 de 3 HP','2 de 3 HP','Envenenado','2 de 3 HP','Envenenado','1 de 3 HP','Envenenado']);
     assert.deepEqual(actual.max.rows.map(row=>row[1]),['4 de 6 HP','8 de 12 HP','4 de 6 HP']);
     assert.deepEqual(actual.xp.rows.map(row=>row[1]),['Comum','1','11','0','2']);
     assert.deepEqual(actual.capture.rows.map(row=>row[1]),['1 de 3 HP','77%','51','Sim','0']);

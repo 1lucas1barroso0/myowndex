@@ -309,8 +309,11 @@ export async function requireAccountSession(request: Request) {
 }
 
 export async function accountSessionResponse(request: Request) {
-  await ensureAccountSchema();
-  const row = await getAccountSession(request);
+  // A visitor has no account to query. A plausible session still requires the
+  // database and its normal authentication checks; never downgrade it on error.
+  const token = readSessionToken(request);
+  if (token) await ensureAccountSchema();
+  const row = token ? await getAccountSession(request) : null;
   const response = accountJson({ account: row ? identity(row) : null, limitBytes: ACCOUNT_DOCUMENT_LIMIT });
   return !row && request.headers.get("cookie")?.includes(`${ACCOUNT_COOKIE_NAME}=`) ? withAccountSession(response, request) : response;
 }

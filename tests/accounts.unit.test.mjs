@@ -63,6 +63,31 @@ test("account routes authenticate, isolate, synchronize and recover real SQLite 
   const document = (name = "Pallet Town") => ({ schema: 1, boxes: [{ id: "box-1", name, pokemon: [] }], dex: { favorites: [1] }, preferences: { experienceMode: "rpg", appearance: "dark", view: "pc" }, localAdventure: null, roomSession: null, clocks: {}, tombstones: {}, favoriteClocks: {} });
   let alice, bob, aliceSecond, originalCodes, sharedRoom;
 
+  await t.test("visitors need no database, while plausible sessions fail closed without one", async () => {
+    const databaseUrl=process.env.TURSO_DATABASE_URL, databaseToken=process.env.TURSO_AUTH_TOKEN;
+    const transport=globalThis.fetch;let networkCalls=0;
+    delete process.env.TURSO_DATABASE_URL;delete process.env.TURSO_AUTH_TOKEN;
+    globalThis.fetch=()=>{networkCalls++;throw new Error("No database request is allowed in this visitor check");};
+    try {
+      const guest=await call("session");
+      assert.equal(guest.response.status,200);
+      assert.equal(guest.data.account,null);
+      assert.ok(Number.isSafeInteger(guest.data.limitBytes)&&guest.data.limitBytes>0);
+      assert.equal(guest.response.headers.get("set-cookie"),null);
+      const malformed=await call("session",undefined,null,{headers:{cookie:"myowndex_account=invalid"}});
+      assert.equal(malformed.response.status,200);
+      assert.equal(malformed.data.account,null);
+      assert.match(malformed.response.headers.get("set-cookie"),/Max-Age=0/);
+      const session=await call("session",undefined,null,{headers:{cookie:`myowndex_account=${"a".repeat(43)}`}});
+      assert.equal(session.response.status,503);
+      assert.equal(session.data.code,"ACCOUNT_NOT_CONFIGURED");
+      assert.equal(session.response.headers.get("set-cookie"),null,"a database failure never erases a plausible session");
+      assert.equal(networkCalls,0);
+    } finally {
+      process.env.TURSO_DATABASE_URL=databaseUrl;process.env.TURSO_AUTH_TOKEN=databaseToken;globalThis.fetch=transport;
+    }
+  });
+
   await t.test("strict CSRF and input validation happen before account creation", async () => {
     for (const headers of [{ origin: "https://other.example" }, { origin: "" }, { "sec-fetch-site": "cross-site" }, { "content-type": "text/plain" }]) {
       const result = await call("signup", { username: "Alice", password: "long-safe-password" }, null, { headers });

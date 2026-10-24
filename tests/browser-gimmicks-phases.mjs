@@ -152,7 +152,7 @@ try{
         await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.tokens[0].side==="neutral");
         await selector.selectOption("ally");
         assert.equal(await page.locator(".room-phase-context").count(),1);
-        assert.equal(await page.locator(".battle-gimmick-panel").count(),phase==="batalha"?1:0);
+        assert.equal(await page.locator(".battle-gimmick-panel").count(),0,"An ended battle cannot offer new transformations in any story phase");
         assert.equal(await page.locator(".phase-rest-actions").count(),phase==="intervalo"?1:0);
         if(phase==="intervalo"){
             await page.getByRole("button",{name:"Descanso curto · 10 minutos",exact:true}).click();
@@ -163,6 +163,12 @@ try{
     await page.getByRole("button",{name:"Nova batalha",exact:true}).click();
     await page.getByRole("alertdialog",{name:"Começar uma nova batalha?",exact:true}).getByRole("button",{name:"Começar batalha",exact:true}).click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.battleEnded===false);
+    for(const phase of ["exploracao","interpretacao","intervalo","batalha"]){
+        await setPhase(phase);
+        assert.equal(await page.locator(".battle-gimmick-panel").count(),phase==="batalha"?1:0,"An active battle offers transformations only in its battle phase");
+        if(phase==="intervalo") assert.equal(await page.getByRole("button",{name:"Descanso completo · 8 horas / Centro",exact:true}).isDisabled(),true,"Story phase alone cannot unlock rest during an open battle");
+    }
+    await page.locator(".battle-gimmick-panel").waitFor({state:"visible"});
     const mega=page.locator(".gimmick-action.gimmick-mega");
     assert.equal(await mega.count(),1);
     assert.equal(await page.locator(".gimmick-action.gimmick-dyna").count(),0);

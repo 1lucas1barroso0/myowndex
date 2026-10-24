@@ -293,10 +293,10 @@ test("the common presentation preserves critical rules without hiding content", 
   ]);
   assert.doesNotMatch(guide, /<span className="guide-pill">/);
   assert.match(guide, /guide-damage-limit-card/);
-  assert.match(guide, /<HitKillExplanation/);
+  assert.match(guide, /<RuleText rule=\{rule\}/);
   assert.match(room, /<HitKillExplanation expanded/);
   assert.match(protection, /guide-hit-kill-flow/);
-  assert.match(protection, /protectionRule\?\.steps\.map/);
+  assert.match(protection, /<RuleText rule=\{protectionRule\}/);
   assert.doesNotMatch(guide, /guide-damage-ceiling|guide-critical-rules/);
   assert.match(guide, /data-rule-id=\{rule\.id\}/);
   assert.doesNotMatch(guide, /data-rule-id="3\.[34]"/);

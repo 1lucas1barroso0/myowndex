@@ -1,6 +1,6 @@
 /** Procedimentos para jogar na mesa, independentes de botões ou telas.
  * Complementam a regra completa em rpgRules.js; não substituem as exceções.
- * Cada uma das 48 entradas corresponde a uma regra canônica do RPG.
+ * Cada uma das 50 entradas corresponde a uma regra canônica do RPG.
  */
 export const GUIDE_PAPER_STEPS = Object.freeze({
   "1.1": [
@@ -120,8 +120,8 @@ export const GUIDE_PAPER_STEPS = Object.freeze({
     "Para recuo, aplique o custo previsto ao usuário; para Substitute, confirme que ele pode pagar pelo menos 1 HP. Cura não repõe automaticamente PP ou itens."
   ],
   "6.4": [
-    "Após Growl, Swords Dance ou outro efeito, altere somente o estágio do atributo indicado, dentro de −6 a +6.",
-    "Na próxima disputa, calcule o atributo original já ajustado e só depois faça a conversão para o RPG. Não use Defesa em lugar de Defesa Especial."
+    "Anote cada efeito, seu alvo, sua duração e o que o encerra. Uma troca comum remove estágios e efeitos voláteis de quem sai, mas não cura condições persistentes.",
+    "Acompanhe clima e terreno separadamente. Aplique seus efeitos e avance suas durações no momento próprio; trocar um participante não encerra o campo inteiro."
   ],
   "6.5": [
     "Anote confusão e hesitação à parte da condição principal. Na confusão, conte oportunidades próprias de agir e sorteie o risco de se atingir conforme a regra.",
@@ -194,5 +194,13 @@ export const GUIDE_PAPER_STEPS = Object.freeze({
   "8.10": [
     "Prepare o chefe com atributos, movimentos e recursos legítimos, sem dobrar HP ou ações gratuitamente. Dê ao grupo objetivos claros além de atacar.",
     "Durante a cena, mostre consequências e oportunidades reais de apoio, proteção ou retirada. Só use regras extras de raid se forem conhecidas e combinadas antes."
-  ]
+  ],
+  "3.8": [
+    "Conclua as vezes dos participantes e os efeitos finais da rodada. Encerre o confronto e termine transformações, cópias temporárias, estágios e efeitos voláteis.",
+    "Preserve HP, PP, condições persistentes e itens gastos. Registre a recompensa uma vez; só depois resolva crescimento ou descanso permitido. Outro confronto renova apenas recursos de uso por batalha."
+  ],
+  "4.5": [
+    "Descreva o lugar e o objetivo, faça perguntas e confira as capacidades reais dos parceiros. Dê as informações evidentes e resolva tarefas tranquilas sem dados.",
+    "Se houver risco, combine participantes, teste e consequência antes da rolagem. Aplique o resultado uma vez e apresente o que mudou, permitindo ajuda, outra abordagem ou outro caminho."
+  ],
 });

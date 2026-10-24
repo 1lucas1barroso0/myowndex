@@ -1,15 +1,13 @@
 import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
-import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
+import RuleText from "../Shared/RuleText.jsx";
 import PaperCalculations from "./PaperCalculations.jsx";
 import { getGuideLevelProgress } from "../../core/guideMath.js";
 import GuideAuditCase from './GuideAuditCase.jsx';
-import { GUIDE_PLAYER_SCENES } from "../../core/guidePlayerScenes.js";
 import { GUIDE_PAPER_STEPS } from "../../core/guidePaperSteps.js";
 import { GUIDE_WORKED_SCENES } from "../../core/guideWorkedScenes.js";
-import { GUIDE_RULE_CONTEXTS } from "../../core/guideRuleContexts.js";
-import { createGuideSearchIndex, formatRuleForReading, getGuideAuditText, searchGuideSections } from "../../core/guideSearch.js";
+import { createGuideSearchIndex, formatRuleForReading, getGuideRuleSearchState, searchGuideSections } from "../../core/guideSearch.js";
 import { integerInRange } from "../../core/math.js";
 import { formatNumberPtBr, RPG_HP_DIVISOR, RPG_SCALE_DIVISOR } from "../../core/mechanics.js";
 import {
@@ -32,8 +30,7 @@ function RuleBullet({ text }) {
 function RuleCanonicalText({ rule }) {
     return <section className="guide-rule-canonical-text" aria-label="Regra completa e exceções">
         <h5>Regra completa e exceções</h5>
-        {rule.body?.split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => <p key={index}>{formatRuleForReading(paragraph)}</p>)}
-        {rule.bullets?.length > 0 && <ul>{rule.bullets.map(text => <li key={text}><RuleBullet text={text} /></li>)}</ul>}
+        <RuleText rule={rule} />
     </section>;
 }
 
@@ -50,45 +47,34 @@ function WorkedScene({ id }) {
     </section>;
 }
 
-function RuleDetails({ rule }) {
-    return <>
-        <ul>{rule.steps.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>
-    </>;
-}
-
-const normalizeForGuide = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
 const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) {
+    const [detailChoice, setDetailChoice] = useState({ query: null, open: false });
     const searching = Boolean(query.trim());
-    const searched = normalizeForGuide(query.trim());
-    const mainText = normalizeForGuide([rule.title, rule.plain, GUIDE_PLAYER_SCENES[rule.id], ...Object.values(GUIDE_WORKED_SCENES[rule.id]).flat()].join(" "));
-    const contextText = normalizeForGuide(GUIDE_RULE_CONTEXTS[rule.id]);
-    const detailsText = normalizeForGuide([rule.body || "", ...(rule.bullets || []), ...GUIDE_PAPER_STEPS[rule.id], ...rule.steps].join(" "));
-    const auditText = normalizeForGuide(getGuideAuditText(rule.auditCase));
-    const mainMatch = mainText.includes(searched);
-    const contextMatchOnly = searching && !mainMatch && contextText.includes(searched);
-    const auditedNumberMatch = searching && /\d/.test(searched) && auditText.includes(searched);
-    const technicalMatchOnly = auditedNumberMatch || (searching && !mainMatch && !contextMatchOnly && (detailsText.includes(searched) || auditText.includes(searched)));
+    const { details: detailMatch, app: appMatch } = getGuideRuleSearchState(rule, query);
+    const expanded = detailChoice.query === query ? detailChoice.open : detailMatch;
     return (
-        <details ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
+        <details ref={rule.id === "3.4" ? protectionRef : undefined} className="guide-rule-card" data-rule-id={rule.id} open={searching}>
             <summary>
-                <span className="guide-rule-id">{rule.id}</span>
+                <span className="guide-rule-id" title={`Referência ${rule.id}`}>{String(rule.number).padStart(2, "0")}</span>
                 <strong>{rule.title}</strong>
             </summary>
             <div className="guide-rule-body">
-                {rule.plain && <p className="guide-rule-lead">{formatRuleForReading(rule.plain)}</p>}
-                <WorkedScene id={rule.id} />
-                <section className="guide-rule-paper-play" aria-label="Como resolver sem aplicativo">
-                    <h5>Para jogar na mesa</h5>
+                <p className="guide-rule-lead">{rule.plain}</p>
+                <section className="guide-rule-paper-play" aria-label="Como jogar">
                     <ol>{GUIDE_PAPER_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
                 </section>
-                <RuleCanonicalText rule={rule} />
-                {rule.id === "3.4" && <HitKillExplanation expanded={contextMatchOnly || technicalMatchOnly} />}
-                <details className="guide-rule-full-rule" open={contextMatchOnly || technicalMatchOnly}>
-                    <summary>Orientações e casos no MyOwnDex (opcional)</summary>
-                    <p className="guide-rule-context">{GUIDE_RULE_CONTEXTS[rule.id]}</p>
-                    <div className="guide-rule-details-content"><RuleDetails rule={rule} /></div>
-                    <GuideAuditCase caseId={rule.auditCase} expanded={technicalMatchOnly} />
+                <p className="guide-short-example"><strong>Por exemplo.</strong> {rule.example}</p>
+                <details className="guide-rule-full-rule" open={expanded}>
+                    <summary onClick={event => { event.preventDefault(); setDetailChoice({ query, open: !expanded }); }}>Detalhes e exceções · {rule.id}</summary>
+                    {expanded && <>
+                        <RuleCanonicalText rule={rule} />
+                        <WorkedScene id={rule.id} />
+                        <GuideAuditCase caseId={rule.auditCase} expanded={detailMatch} />
+                    </>}
+                </details>
+                <details className="guide-rule-app" open={appMatch}>
+                    <summary>No MyOwnDex</summary>
+                    <ul>{rule.steps.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>
                 </details>
             </div>
         </details>
@@ -97,6 +83,7 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
 
 export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
+    const [chapter, setChapter] = useState("");
     const [scaleValue, setScaleValue] = useState("");
     const [level, setLevel] = useState("");
     const protectionRef = useRef(null);
@@ -107,18 +94,20 @@ export default function TrainerGuide({ experienceMode }) {
     const normalizedLevel = progress.level;
     const showProtection = () => {
         setQuery("");
+        setChapter("");
         window.requestAnimationFrame(() => {
             const rule = protectionRef.current;
             if (!rule) return;
             rule.open = true;
-            const completeRule = rule.querySelector(".guide-hit-kill-full-rule");
-            if (completeRule) completeRule.open = true;
+            const completeRule = rule.querySelector(".guide-rule-full-rule");
+            if (completeRule && !completeRule.open) completeRule.querySelector(":scope > summary")?.click();
             rule.querySelector(":scope > summary")?.focus({ preventScroll: true });
             revealInScrollArea(rule, { block: "start", behavior: "instant" });
         });
     };
 
-    const visibleSections = useMemo(() => searchGuideSections(searchIndex, query), [query]);
+    const visibleSections = useMemo(() => searchGuideSections(searchIndex, query)
+        .filter(section => !chapter || section.id === chapter), [query, chapter]);
 
     const visibleRuleCount = visibleSections.reduce((sum, section) => sum + section.rules.length, 0);
 
@@ -135,18 +124,27 @@ export default function TrainerGuide({ experienceMode }) {
                         <h3 id="guide-reference-title">Regras da aventura</h3>
                         <span className="guide-rule-count">{ruleCount} regras</span>
                     </header>
-                    <p className="guide-introduction">Encontre quando cada regra vale, quem participa e o que acontece, com cenas de Pokémon explicadas passo a passo. Você pode jogar com fichas e dados; o MyOwnDex facilita os cálculos.</p>
+                    <p className="guide-introduction">Explore, cuide dos seus parceiros e viva aventuras em grupo. Escolha um assunto ou busque sua dúvida; cada regra traz como jogar e um exemplo.</p>
                     <div className="guide-terms-inline" aria-label="Termos básicos">
                         <span><strong>HP</strong> pontos de vida</span>
                         <span><strong>PP</strong> usos do movimento</span>
                         <span><strong>XP</strong> experiência</span>
                     </div>
-                    <p className="guide-turn-note"><strong>Turno</strong> é a vez de um Pokémon. <strong>Rodada</strong> termina depois que todos tiverem sua vez.</p>
+                    <details className="guide-start">
+                        <summary>Primeira aventura? Comece aqui</summary>
+                        <p>Uma pessoa narra o mundo; as outras escolhem o que seus Treinadores e Pokémon tentam. Tenham fichas, dados e algo para anotar. Contem o objetivo, combinem o risco e rolem apenas se houver uma dúvida importante.</p>
+                        <p><strong>Turno</strong> é a vez de um Pokémon. <strong>Rodada</strong> é a volta completa: Pikachu age, Bulbasaur age e, depois das vezes de todos, vêm os efeitos finais.</p>
+                        <p>Estas são adaptações para a mesa. Para começar, consultem Explorar e descobrir caminhos, Usar um movimento e Narrador e jogadores. As contas e exceções continuam disponíveis em cada regra.</p>
+                    </details>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
                         <input type="search" value={query} onChange={event => setQuery(event.target.value)} />
                     </label>
-                    {searching && <p className="guide-search-result" role="status">{visibleRuleCount} {visibleRuleCount === 1 ? "regra encontrada" : "regras encontradas"}</p>}
+                    <nav className="guide-chapters" aria-label="Assuntos do guia">
+                        <button type="button" className="room-secondary-button" aria-pressed={!chapter} onClick={() => setChapter("")}>Todos</button>
+                        {RPG_RULE_SECTIONS.map(section => <button key={section.id} type="button" className="room-secondary-button" aria-pressed={chapter === section.id} onClick={() => setChapter(section.id)}>{section.shortTitle || section.title}</button>)}
+                    </nav>
+                    {(searching || chapter) && <p className="guide-search-result" role="status">{visibleRuleCount} {visibleRuleCount === 1 ? "regra encontrada" : "regras encontradas"}</p>}
                     <div className="guide-rule-list">
                         {visibleSections.map(section => (
                             <section key={section.id} className="guide-topic" aria-labelledby={`guide-topic-${section.id}`}>
@@ -164,7 +162,7 @@ export default function TrainerGuide({ experienceMode }) {
                                 </div>
                             </section>
                         ))}
-                        {!visibleSections.length && <p className="guide-empty">Nenhuma regra encontrada. Tente outro termo.</p>}
+                        {!visibleSections.length && <p className="guide-empty">Nenhuma regra encontrada neste assunto. Tente outro termo ou selecione Todos.</p>}
                     </div>
                 </article>
 
@@ -185,7 +183,7 @@ export default function TrainerGuide({ experienceMode }) {
                                 <label className="guide-number-field">
                                     <span className="guide-field-label" id={levelLabelId}>Nível atual</span>
                                     <input aria-labelledby={levelLabelId} aria-describedby={levelResultId} type="number" min="1" max={progress.cap} step="1" value={level} onChange={event => setLevel(event.target.value)} onBlur={() => { if (level !== "") setLevel(normalizedLevel); }} />
-                                    <span className="guide-field-value" id={levelResultId}>{level === "" ? "Informe o nível da ficha." : progress.requiredXp === null ? `Nível máximo · ${progress.cap}` : <>XP até o próximo: <strong>{formatNumberPtBr(progress.requiredXp)}</strong></>}</span>
+                                    <span className="guide-field-value" id={levelResultId}>{level === "" ? "Informe o nível da ficha." : progress.requiredXp === null ? `Nível máximo · ${progress.cap}` : <>Meta do próximo nível: <strong>{formatNumberPtBr(progress.requiredXp)}</strong></>}</span>
                                 </label>
                             </div>
                             <details className="guide-rounding-help">

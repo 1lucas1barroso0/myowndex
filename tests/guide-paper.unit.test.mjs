@@ -7,8 +7,8 @@ import { createGuideSearchIndex, searchGuideSections } from "../src/core/guideSe
 
 const rules=RPG_RULE_SECTIONS.flatMap(section=>section.rules);
 
-test("each of the 48 canonical rules can be followed on paper",()=>{
-    assert.equal(rules.length,48);
+test("each of the 50 canonical rules can be followed on paper",()=>{
+    assert.equal(rules.length,50);
     assert.deepEqual(Object.keys(GUIDE_PAPER_STEPS).sort(),rules.map(rule=>rule.id).sort());
     for(const rule of rules){
         assert.ok(rule.plain?.length>=15,rule.id);

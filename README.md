@@ -12,7 +12,7 @@ Pokédex, PC do Bill, Guia do Treinador e Central da Aventura para Pokémon RPG.
 - Boxes com até seis Pokémon e lista rolável, sem espaços vazios decorativos. Importação, compartilhamento, duplicação, exclusão e desfazer preservados.
 - Registro da Pokédex, linha evolutiva e movimentos com cores por função, hierarquia de leitura e símbolos distintos. A ficha mantém navegação por teclado, abas com setas, retorno do foco e rolagem contínua no celular. Movimento respeita a preferência de redução de animações.
 - Alternância EN/PT no registro com textos incluídos no projeto, sem tradução por IA. Nomes próprios permanecem no original; fontes e cobertura dos textos em português estão em [docs/VALIDACAO.md](docs/VALIDACAO.md).
-- Guia com 48 regras individuais expansíveis, busca e destaque para a proteção contra hit kill. Pokémon, itens, movimentos e habilidades mantêm seus nomes originais em inglês; valores calculados seguem os arredondamentos das regras. A leitura segue os padrões responsivos do Fate Gameplay Toolkit.
+- Guia com 50 regras individuais expansíveis, busca e destaque para a proteção contra hit kill. Pokémon, itens, movimentos e habilidades mantêm seus nomes originais em inglês; valores calculados seguem os arredondamentos das regras. A leitura segue os padrões responsivos do Fate Gameplay Toolkit.
 - Telas grandes carregadas sob demanda; service worker nunca guarda APIs privadas nem respostas RSC.
 - Cache público limitado a 256 respostas de catálogo e 500 assets regeneráveis, hidratação com quatro tarefas simultâneas e salvamento agrupado. Boxes mantêm seus dados e formato de armazenamento.
 - A Vercel executa páginas e APIs diretamente. Aventuras compartilhadas usam banco Turso sob seu controle.
@@ -32,17 +32,17 @@ Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configur
 
 ## Atualizar pelo Linux
 
-Baixe `myowndex-v2.1-linux.sh`, abra o terminal na pasta do download e execute:
+Baixe `myowndex-v2.2-linux.sh`, abra o terminal na pasta do download e execute:
 
 ```bash
-bash myowndex-v2.1-linux.sh
+bash myowndex-v2.2-linux.sh
 ```
 
 O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da Vercel e os bancos já configurados. Você não precisa criar outra conta Turso, copiar tokens, extrair um arquivo ZIP ou migrar salas.
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A versão atual é **2.1.13**. O Guia apresenta 48 cenas explicadas do início ao fim, além das regras completas e o procedimento de cada uma das 48 regras para jogar com papel e dados. Uma edição de leitura e impressão, em `/guia/livro`, reúne as regras, exceções, exemplos e casos reproduzidos; o aplicativo facilita as contas, mas não substitui a explicação. Os casos conferidos do Guia distinguem resultados alternativos de acontecimentos em sequência. A conferência da publicação compara os identificadores das regras com a fonte canônica e também roda antes de publicar, sem alterar contas ou aventuras. Visitantes sem login podem consultar sua situação sem depender do banco de contas. As 48 regras, espécies, fichas e cálculos do RPG foram preservados.
+A versão atual é **2.2.0**. As 50 regras têm uma explicação direta, procedimento de mesa, exemplo com Pokémon e aprofundamento acessível. A numeração de leitura vai de 01 a 50; os identificadores anteriores, como 3.4, continuam válidos. Busca e navegação por assunto permitem consultar sem percorrer o guia inteiro. Exploração e encerramento de confronto têm procedimentos próprios; efeitos temporários não repetem a regra de estágios. O guia, a ajuda de batalha e o livro em `/guia/livro` compartilham o texto canônico. Os casos numéricos continuam reproduzidos pelo motor; não representam aventuras reais de usuários nem comprovam diversão ou compreensão infantil.
 
 
 A revisão 2.0.52 reduz serializações e manutenção repetida do cache público, indexa consultas numéricas de catálogo e a pesquisa do Guia e reutiliza os cartões de regras. Limites, ordem de uso, funcionamento offline e dados dos jogadores permanecem preservados. Veja [a medição e a validação](docs/DESEMPENHO-2.0.52.md).

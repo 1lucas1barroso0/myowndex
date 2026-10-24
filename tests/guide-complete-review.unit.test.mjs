@@ -6,9 +6,9 @@ import { GUIDE_WORKED_SCENES } from '../src/core/guideWorkedScenes.js';
 import { GUIDE_PAPER_STEPS } from '../src/core/guidePaperSteps.js';
 import { calculateStat } from '../src/core/mechanics.js';
 
-test('all 48 rules retain unique identities, full worked scenes and paper procedures',()=>{
+test('all 50 rules retain unique identities, full worked scenes and paper procedures',()=>{
  const rules=RPG_RULE_SECTIONS.flatMap(s=>s.rules);
- assert.equal(rules.length,48);assert.equal(new Set(rules.map(r=>r.id)).size,48);
+ assert.equal(rules.length,50);assert.equal(new Set(rules.map(r=>r.id)).size,50);
  for(const r of rules){
   assert.ok(r.body||r.bullets?.length,r.id);
   for(const key of ['quando','cena','resultado','porQue'])assert.ok(GUIDE_WORKED_SCENES[r.id][key].length>30,`${r.id} ${key}`);

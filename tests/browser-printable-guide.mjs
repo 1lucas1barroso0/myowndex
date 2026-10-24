@@ -14,9 +14,9 @@ try {
   await page.getByRole("heading",{name:"Livro de regras",exact:true}).waitFor();
   const ids=await page.locator(".book-rule").evaluateAll(entries=>entries.map(element=>element.id.replace("regra-","").replace("-","."))).then(all=>all.sort());
   assert.deepEqual(ids,expectedIds);
-  assert.equal(await page.locator(".book-procedure").count(),48);
-  assert.equal(await page.locator(".book-canonical").count(),48);
-  assert.equal(await page.locator(".book-worked-example").count(),48);
+  assert.equal(await page.locator(".book-procedure").count(),50);
+  assert.equal(await page.locator(".book-canonical").count(),50);
+  assert.equal(await page.locator(".book-worked-example").count(),50);
   for (const rule of RPG_RULE_SECTIONS.flatMap(section=>section.rules)) {
     const card=page.locator(`#regra-${rule.id.replace(".","-")}`);
     assert.ok((await card.locator(".book-procedure li").count())>=2,`Paper procedure ${rule.id}`);
@@ -33,5 +33,5 @@ try {
   await page.emulateMedia({media:"print"});
   assert.equal(await page.locator(".book-toolbar").evaluate(e=>getComputedStyle(e).display),"none");
   assert.deepEqual(errors,[]);
-  console.log("Complete printable book: 48 procedures, canonical rules and four responsive widths verified.");
+  console.log("Complete printable book: 50 procedures, canonical rules and four responsive widths verified.");
 } finally { await browser.close(); }

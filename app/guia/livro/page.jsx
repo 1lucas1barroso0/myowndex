@@ -9,7 +9,7 @@ import "./livro.css";
 
 export const metadata = {
     title: "Livro de regras | MyOwnDex",
-    description: "As 48 regras do RPG Pokémon do MyOwnDex, com procedimentos, exemplos e exceções para jogar sem aplicativo.",
+    description: "As 50 regras do RPG Pokémon do MyOwnDex, com procedimentos, exemplos e exceções para jogar sem aplicativo.",
 };
 
 const count = RPG_RULE_SECTIONS.reduce((total, section) => total + section.rules.length, 0);
@@ -18,8 +18,10 @@ function RuleBookEntry({ rule }) {
     const audit = rule.auditCase && GUIDE_AUDIT_CASES[rule.auditCase];
     const worked = GUIDE_WORKED_SCENES[rule.id];
     return <article id={`regra-${rule.id.replace(".", "-")}`} className="book-rule">
-        <h3><span>{rule.id}</span> {rule.title}</h3>
+        <h3><span>{String(rule.number).padStart(2, "0")}</span> {rule.title} <small>({rule.id})</small></h3>
         {rule.plain && <p className="book-rule-lead">{rule.plain}</p>}
+        <p className="book-example"><strong>Por exemplo.</strong> {rule.example}</p>
+        <details className="book-worked-details"><summary>Cena passo a passo</summary>
         {worked && <section className="book-worked-example" aria-label="Exemplo completo">
             <h4>Exemplo explicado do começo ao fim</h4>
             <h5>Quando acontece?</h5><p>{worked.quando}</p>
@@ -28,6 +30,7 @@ function RuleBookEntry({ rule }) {
             <h5>O que acontece depois?</h5><p>{worked.resultado}</p>
             <h5>Por quê?</h5><p>{worked.porQue}</p>
         </section>}
+        </details>
         <section className="book-procedure" aria-label={`Como aplicar a regra ${rule.id} sem aplicativo`}>
             <h4>Como resolver na mesa</h4>
             <ol>{GUIDE_PAPER_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
@@ -70,7 +73,7 @@ export default function LivroDeRegras() {
                 <li>Aplique as consequências uma vez: HP, PP, condição, posição, item ou história.</li>
                 <li>Em combate, siga a iniciativa e encerre a rodada depois que todos tiverem sua vez.</li>
             </ol>
-            <p>Para chances fracionárias que não cabem num dado de cem faces, sorteie partes de tamanho igual. Por exemplo, uma chance de 1 em 8 pode ser resolvida com um dado de oito faces: apenas o resultado 1 ativa o efeito. Não transforme uma probabilidade exata numa porcentagem aproximada sem combinar isso com o grupo.</p>
+            <p>Para chances que não cabem num dado de cem faces, sorteie partes de tamanho igual. A regra 6.2 mostra como fazer com o Pikachu envenenado de um caso conferido. Não transforme uma probabilidade exata numa porcentagem aproximada sem combinar isso com o grupo.</p>
         </section>
         <PaperCalculations />
         <nav aria-label="Sumário do livro" className="book-contents">

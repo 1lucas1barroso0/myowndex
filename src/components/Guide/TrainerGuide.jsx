@@ -4,6 +4,7 @@ import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
 import GuideAuditCase from './GuideAuditCase.jsx';
 import { GUIDE_PLAYER_SCENES } from "../../core/guidePlayerScenes.js";
+import { GUIDE_PAPER_STEPS } from "../../core/guidePaperSteps.js";
 import { GUIDE_RULE_CONTEXTS } from "../../core/guideRuleContexts.js";
 import { createGuideSearchIndex, formatRuleForReading, getGuideAuditText, searchGuideSections } from "../../core/guideSearch.js";
 import { integerInRange } from "../../core/math.js";
@@ -27,6 +28,14 @@ function RuleBullet({ text }) {
     ) : readable;
 }
 
+function RuleCanonicalText({ rule }) {
+    return <section className="guide-rule-canonical-text" aria-label="Regra completa e exceções">
+        <h5>Regra completa e exceções</h5>
+        {rule.body?.split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => <p key={index}>{formatRuleForReading(paragraph)}</p>)}
+        {rule.bullets?.length > 0 && <ul>{rule.bullets.map(text => <li key={text}><RuleBullet text={text} /></li>)}</ul>}
+    </section>;
+}
+
 function RuleDetails({ rule }) {
     return <>
         <ul>{rule.steps.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>
@@ -40,7 +49,7 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
     const searched = normalizeForGuide(query.trim());
     const mainText = normalizeForGuide([rule.title, rule.plain, GUIDE_PLAYER_SCENES[rule.id]].join(" "));
     const contextText = normalizeForGuide(GUIDE_RULE_CONTEXTS[rule.id]);
-    const detailsText = normalizeForGuide(rule.steps.join(" "));
+    const detailsText = normalizeForGuide([rule.body || "", ...(rule.bullets || []), ...GUIDE_PAPER_STEPS[rule.id], ...rule.steps].join(" "));
     const auditText = normalizeForGuide(getGuideAuditText(rule.auditCase));
     const mainMatch = mainText.includes(searched);
     const contextMatchOnly = searching && !mainMatch && contextText.includes(searched);
@@ -53,17 +62,19 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
             </summary>
             <div className="guide-rule-body">
                 {rule.plain && <p className="guide-rule-lead">{formatRuleForReading(rule.plain)}</p>}
-                {rule.id !== "3.4" && <p className="guide-rule-story">{GUIDE_PLAYER_SCENES[rule.id]}</p>}
-                {rule.id === "3.4" ? (
-                    <HitKillExplanation expanded={contextMatchOnly || technicalMatchOnly} />
-                ) : (rule.body || rule.bullets) && (
-                    <details className="guide-rule-full-rule" open={contextMatchOnly || technicalMatchOnly}>
-                        <summary>Como jogar esta situação</summary>
-                        <p className="guide-rule-context">{GUIDE_RULE_CONTEXTS[rule.id]}</p>
-                        <div className="guide-rule-details-content"><RuleDetails rule={rule} /></div>
-                        <GuideAuditCase caseId={rule.auditCase} expanded={technicalMatchOnly} />
-                    </details>
-                )}
+                {rule.id !== "3.4" && <p className="guide-rule-story"><strong>Exemplo de aventura:</strong> {GUIDE_PLAYER_SCENES[rule.id]}</p>}
+                <section className="guide-rule-paper-play" aria-label="Como resolver sem aplicativo">
+                    <h5>Para jogar na mesa</h5>
+                    <ol>{GUIDE_PAPER_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
+                </section>
+                <RuleCanonicalText rule={rule} />
+                {rule.id === "3.4" && <HitKillExplanation expanded={contextMatchOnly || technicalMatchOnly} />}
+                <details className="guide-rule-full-rule" open={contextMatchOnly || technicalMatchOnly}>
+                    <summary>Orientações e casos no MyOwnDex (opcional)</summary>
+                    <p className="guide-rule-context">{GUIDE_RULE_CONTEXTS[rule.id]}</p>
+                    <div className="guide-rule-details-content"><RuleDetails rule={rule} /></div>
+                    <GuideAuditCase caseId={rule.auditCase} expanded={technicalMatchOnly} />
+                </details>
             </div>
         </details>
     );
@@ -108,12 +119,18 @@ export default function TrainerGuide({ experienceMode }) {
                         <h3 id="guide-reference-title">Regras da aventura</h3>
                         <span className="guide-rule-count">{ruleCount} regras</span>
                     </header>
-                    <p className="guide-introduction">Veja o que acontece com cada Pokémon e como jogar. O MyOwnDex cuida das contas. Quando uma regra for diferente dos jogos oficiais, ela será apresentada como uma adaptação deste RPG.</p>
-                    <p className="guide-basic-terms">HP é a energia do Pokémon. PP indica quantas vezes ele pode usar um movimento. XP é a experiência que ganha na aventura.</p>
-                    <p className="guide-basic-terms">Na batalha, Pikachu tem sua vez e Eevee tem a dele: cada vez é um turno. Depois que todos terminam, a rodada acaba. Próximo turno passa a vez; Encerrar rodada fecha essa volta e aplica efeitos como o veneno.</p>
+                    <p className="guide-introduction">As 48 regras explicam como jogar com fichas, dados e imaginação. Você também pode usar o MyOwnDex para fazer as contas e registrar a aventura. As adaptações do RPG são identificadas nas próprias regras.</p>
+                    <dl className="guide-quick-terms" aria-label="Palavras básicas do jogo">
+                        <div><dt>HP</dt><dd>Pontos de vida.</dd></div>
+                        <div><dt>PP</dt><dd>Usos restantes de cada movimento.</dd></div>
+                        <div><dt>XP</dt><dd>Experiência para crescer.</dd></div>
+                        <div><dt>Turno</dt><dd>A vez de um Pokémon.</dd></div>
+                        <div><dt>Rodada</dt><dd>Quando todos completam suas vezes.</dd></div>
+                    </dl>
+                    <a className="guide-book-link room-secondary-button" href="/guia/livro">Ler o livro completo ou imprimir</a>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
-                        <input type="search" value={query} onChange={event => setQuery(event.target.value)} />
+                        <input type="search" placeholder="Ex.: captura, veneno, iniciativa" value={query} onChange={event => setQuery(event.target.value)} />
                     </label>
                     {searching && <p className="guide-search-result" role="status">{visibleRuleCount} {visibleRuleCount === 1 ? "regra encontrada" : "regras encontradas"}</p>}
                     <div className="guide-rule-list">

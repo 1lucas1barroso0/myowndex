@@ -23,6 +23,9 @@ try {
     await smallEffects.locator(':scope > summary').click();
     assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Pikachu está envenenado/);
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
+    await smallEffects.locator('.guide-rule-full-rule > summary').click();
+    assert.match(await smallEffects.locator('.guide-rule-context').innerText(), /Ekans.*Poison Sting.*Pikachu/);
+    assert.equal(await smallEffects.locator('.guide-rule-technical').evaluate(element => element.open), false, 'opening the explanation never forces technical mathematics');
     assert.equal(await smallEffects.getByText('Imagine um efeito de 3 partes em 16 de HP', { exact: false }).isVisible(), false, 'advanced arithmetic stays optional');
     await smallEffects.locator(':scope > summary').click();
     const searchFor = async value => {
@@ -46,6 +49,7 @@ try {
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), false, 'common search terms do not reveal equations');
             await searchFor('Imagine um efeito de 3 partes em 16 de HP');
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), true, 'search reveals a match found only in the advanced rule');
+            assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-technical').evaluate(element => element.open), true, 'exact numerical search reveals mathematical details intentionally');
             await searchFor('__nada_encontrado__');
             await guide.getByText('Nenhuma regra encontrada. Tente outro termo.', { exact: true }).waitFor();
             await searchFor('');
@@ -63,11 +67,16 @@ try {
     assert.equal(await fullRule.evaluate(element => element.open), false, 'the readable scene comes before optional details');
     assert.match(await rule.locator('.guide-rule-story').innerText(), /Pikachu quer alcançar um Pidgey/);
     await fullRule.locator(':scope > summary').press('Enter');
-    assert.equal(await fullRule.evaluate(element => element.open), true, 'the full rule remains available from the keyboard');
+    assert.equal(await fullRule.evaluate(element => element.open), true, 'plain-language explanation is keyboard accessible');
+    const technicalRule = fullRule.locator('.guide-rule-technical');
+    assert.equal(await technicalRule.evaluate(element => element.open), false, 'no technical math is forced after opening the explanation');
+    await technicalRule.locator(':scope > summary').press('Enter');
+    assert.equal(await technicalRule.evaluate(element => element.open), true, 'technical reference can be revealed with the keyboard');
     await guide.locator('.guide-calculator > summary').click();
     await guide.getByLabel('Nível atual', { exact: true }).fill('20');
     assert.equal(await rule.evaluate(element => element.open), true, 'calculator updates preserve the manually opened rule');
     assert.equal(await fullRule.evaluate(element => element.open), true, 'calculator updates preserve the full explanation too');
+    assert.equal(await technicalRule.evaluate(element => element.open), true, 'calculator preserves intentionally opened calculations');
     await searchFor('__nada_encontrado__');
     await guide.getByRole('button', { name: 'Como aguentar um golpe decisivo', exact: true }).click();
     const protection = guide.locator('[data-rule-id="3.4"]');

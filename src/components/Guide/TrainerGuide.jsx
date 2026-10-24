@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
@@ -127,7 +128,7 @@ export default function TrainerGuide({ experienceMode }) {
                         <div><dt>Turno</dt><dd>A vez de um Pokémon.</dd></div>
                         <div><dt>Rodada</dt><dd>Quando todos completam suas vezes.</dd></div>
                     </dl>
-                    <a className="guide-book-link room-secondary-button" href="/guia/livro">Ler o livro completo ou imprimir</a>
+                    <Link className="guide-book-link room-secondary-button" href="/guia/livro">Ler o livro completo ou imprimir</Link>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
                         <input type="search" value={query} onChange={event => setQuery(event.target.value)} />

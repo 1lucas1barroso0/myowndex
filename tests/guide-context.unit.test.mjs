@@ -24,7 +24,7 @@ test("all 48 trainer rules teach the situation and context before technical calc
     assert.match(poison, /se acertar e conseguir envenená-lo/i);
     assert.match(poison, /continua envenenado/i);
     assert.doesNotMatch(poison, /3\s*\/\s*16|d100|3 HP para dividir/);
-    assert.match(GUIDE_RULE_CONTEXTS["6.2"], /Ekans.*Poison Sting.*Pikachu/);
+    assert.match(GUIDE_RULE_CONTEXTS["6.2"], /Poison Sting.*Ekans.*dano/);
     assert.match(GUIDE_PLAYER_SCENES["6.1"], /Jigglypuff.*Sing.*Eevee/);
     assert.match(GUIDE_PLAYER_SCENES["6.5"], /Golbat.*Supersonic.*Pikachu/);
     assert.match(GUIDE_PLAYER_SCENES["5.3"], /Scarlet\/Violet.*Combusken.*Double Kick.*Torchic/);

@@ -1,3 +1,4 @@
+import { RPG_STATUS_LABELS } from './conditionHelp.js';
 // Reproducible game situations, using the same public functions as the PC,
 // battle, capture and rest assistants. No real account or adventure is touched.
 import { createTokenFromPokemon, createRoomSnapshot, normalizeRoomSnapshot, applyEndOfRoundEffects } from './room.js';
@@ -122,7 +123,7 @@ export function reproduceGuideCases() {
         poison:{title:'Ekans usa Poison Sting em Pikachu',reference:'RPG; movimentos de Scarlet/Violet',
             intro:`Depois do golpe, Pikachu está com ${hp(hurt)}. A seguir, mostramos duas possibilidades para o veneno ao encerrar a rodada. São resultados alternativos; não aplique os dois na mesma rodada. Pikachu continua envenenado nos dois casos.`,
             setup:'Pikachu e Ekans de teste: nível 5, natureza Hardy, IVs 31 em todos os atributos e nenhum EV. Ekans conhece Poison Sting; Pikachu não segura item.',
-            rows:[['Pikachu antes do movimento',hp(pika)],['Pikachu depois do impacto',hp(hurt)],['Condição recebida',hurt.status==='poison'?'Envenenado':hurt.status],['Uma possibilidade ao encerrar a rodada: sem perda de HP',hp(quiet)],['A condição nessa possibilidade',quiet.status==='poison'?'Envenenado':quiet.status],['Outra possibilidade ao encerrar a mesma rodada: com perda de HP',hp(affected)],['A condição nessa outra possibilidade',affected.status==='poison'?'Envenenado':affected.status]],
+            rows:[['Pikachu antes do movimento',hp(pika)],['Pikachu depois do impacto',hp(hurt)],['Condição recebida',RPG_STATUS_LABELS[hurt.status] || hurt.status],['Uma possibilidade ao encerrar a rodada: sem perda de HP',hp(quiet)],['A condição nessa possibilidade',RPG_STATUS_LABELS[quiet.status] || quiet.status],['Outra possibilidade ao encerrar a mesma rodada: com perda de HP',hp(affected)],['A condição nessa outra possibilidade',RPG_STATUS_LABELS[affected.status] || affected.status]],
             sources:['src/core/mechanics.js:calculateStat','server/authoritativeActions.js:resolveCombatAction','src/core/room.js:applyEndOfRoundEffects']},
         xp:{title:'Eevee recebe a recompensa Comum',reference:'RPG; recompensa fora de batalha',
             setup:'Eevee de teste no nível 10, com 4 XP já registradas. O Narrador concluiu um desafio e escolheu Comum; esta recompensa ainda não foi entregue.',

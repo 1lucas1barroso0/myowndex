@@ -207,7 +207,7 @@ export const GUIDE_AUDIT_CASES = {
       ],
       [
         "Condição recebida",
-        "Envenenado"
+        "Poison"
       ],
       [
         "Uma possibilidade ao encerrar a rodada: sem perda de HP",
@@ -215,7 +215,7 @@ export const GUIDE_AUDIT_CASES = {
       ],
       [
         "A condição nessa possibilidade",
-        "Envenenado"
+        "Poison"
       ],
       [
         "Outra possibilidade ao encerrar a mesma rodada: com perda de HP",
@@ -223,7 +223,7 @@ export const GUIDE_AUDIT_CASES = {
       ],
       [
         "A condição nessa outra possibilidade",
-        "Envenenado"
+        "Poison"
       ]
     ],
     "sources": [

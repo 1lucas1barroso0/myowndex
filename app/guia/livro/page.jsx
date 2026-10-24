@@ -1,3 +1,4 @@
+import { RPG_STATUS_LABELS } from '../../../src/core/conditionHelp.js';
 import PaperCalculations from "../../../src/components/Guide/PaperCalculations.jsx";
 import Link from "next/link";
 import { RPG_RULE_SECTIONS } from "../../../src/core/rpgRules.js";
@@ -51,7 +52,7 @@ function RuleBookEntry({ rule }) {
             <p><strong>{audit.title}.</strong> {audit.reference}.</p>
             {audit.intro && <p>{audit.intro}</p>}
             <p>{audit.setup}</p>
-            <dl>{audit.rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value === "poison" ? "Envenenado" : value}</dd></div>)}</dl>
+            <dl>{audit.rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{RPG_STATUS_LABELS[value] || value}</dd></div>)}</dl>
             <p className="book-footnote">Estes valores pertencem à situação identificada acima. Não são números universais para qualquer Pokémon.</p>
         </aside>)}
     </article>;

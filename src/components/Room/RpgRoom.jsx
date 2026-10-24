@@ -74,7 +74,7 @@ import {
     saveRoomSession,
 } from "../../core/roomClient.js";
 import { getNextLevelXp } from "../../core/rpgRules.js";
-import { applyAuthoritativeMovePriorities } from "../../../server/authoritativeActions.js";
+import { actionChangesRoomState, applyAuthoritativeMovePriorities } from "../../../server/authoritativeActions.js";
 import { accountRequest } from "../../core/accountClient.js";
 import { bindAccountRoom, listAccountRooms, unlinkAccountRoom } from "../../core/accountRooms.js";
 import { mergeImportedTeam, normalizeTeam } from "../../core/team.js";
@@ -83,6 +83,7 @@ import { getBattleDisplayIdentity, normalizeSpecialState } from "../../core/spec
 import Battlefield from "./Battlefield.jsx";
 import CombatAssistant from "./CombatAssistant.jsx";
 import CaptureAssistant from "./CaptureAssistant.jsx";
+import TrainerItemIntervention from "./TrainerItemIntervention.jsx";
 import SpecialMechanicsPanel from "./SpecialMechanicsPanel.jsx";
 import BattleGimmickPanel from "./BattleGimmickPanel.jsx";
 import TraitMechanicsPanel from "./TraitMechanicsPanel.jsx";
@@ -753,7 +754,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
             await saveQueueRef.current;
             pending = authoritativeRequestsRef.current.get(requestKey);
             if (!pending) {
-                const needsRevision = ["initiative", "advance-turn", "combat", "capture", "start-battle"].includes(input.action);
+                const needsRevision = actionChangesRoomState(input.action);
                 pending = {
                     requestId: createRoomActionRequestId(),
                     ...(needsRevision ? { expectedRevision: revisionRef.current } : {}),
@@ -1856,6 +1857,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                         onEvent={sendEvent}
                         onError={showError}
                     />}
+                    {snapshot.phase === "batalha" && <TrainerItemIntervention role={role} snapshot={snapshot} remote={!session.local} onAuthoritativeAction={requestAuthoritativeAction} onSnapshotChange={commitSnapshot} onEvent={sendEvent} onError={showError} />}
                     {["batalha", "exploracao"].includes(snapshot.phase) && <CaptureAssistant role={role} snapshot={snapshot} remote={!session.local} onAuthoritativeAction={requestAuthoritativeAction} onSnapshotChange={commitSnapshot} onEvent={sendEvent} onError={showError} />}
                     <details className="room-tool">
                         <summary>

@@ -26,7 +26,7 @@ try {
     await smallEffects.locator('.guide-rule-full-rule > summary').click();
     assert.match(await smallEffects.locator('.guide-rule-context').innerText(), /Tyranitar.*Sand Stream.*Pikachu/);
     assert.equal(await smallEffects.locator('.guide-rule-technical').evaluate(element => element.open), false, 'opening the explanation never forces technical mathematics');
-    assert.equal(await smallEffects.getByText('Imagine um efeito de 3 partes em 16 de HP', { exact: false }).isVisible(), false, 'advanced arithmetic stays optional');
+    assert.equal(await guide.getByText('Imagine um efeito de 3 partes em 16 de HP', { exact: false }).count(), 0, 'the unsupported numerical example is absent');
     await smallEffects.locator(':scope > summary').click();
     const searchFor = async value => {
         await search.fill(value);
@@ -43,13 +43,13 @@ try {
             await searchFor('acao');
             assert.deepEqual(await guide.locator('.guide-rule-card').evaluateAll(cards => cards.map(card => card.dataset.ruleId)), accented);
             assert.ok(accented.length > 0);
-            await searchFor('1 em 8');
+            await searchFor('Eevee dorme');
             assert.ok(await guide.locator('.guide-rule-card').count() > 0);
             await searchFor('veneno');
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), false, 'common search terms do not reveal equations');
-            await searchFor('Imagine um efeito de 3 partes em 16 de HP');
-            assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), true, 'search reveals a match found only in the advanced rule');
-            assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-technical').evaluate(element => element.open), true, 'exact numerical search reveals mathematical details intentionally');
+            await searchFor('2 de 3 HP');
+            assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), true, 'search reveals a match found in the audited case');
+            assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-technical').evaluate(element => element.open), true, 'an exact result search opens the reproducible case');
             await searchFor('__nada_encontrado__');
             await guide.getByText('Nenhuma regra encontrada. Tente outro termo.', { exact: true }).waitFor();
             await searchFor('');
@@ -73,7 +73,12 @@ try {
     await technicalRule.locator(':scope > summary').press('Enter');
     assert.equal(await technicalRule.evaluate(element => element.open), true, 'technical reference can be revealed with the keyboard');
     await guide.locator('.guide-calculator > summary').click();
-    await guide.getByLabel('Nível atual', { exact: true }).fill('20');
+    const levelInput=guide.getByLabel('Nível atual', { exact: true });
+    assert.equal(await levelInput.inputValue(),'','calculator waits for the actual sheet');
+    await levelInput.focus();
+    await levelInput.blur();
+    assert.equal(await levelInput.inputValue(),'','leaving an empty field never invents a value');
+    await levelInput.fill('20');
     assert.equal(await rule.evaluate(element => element.open), true, 'calculator updates preserve the manually opened rule');
     assert.equal(await fullRule.evaluate(element => element.open), true, 'calculator updates preserve the full explanation too');
     assert.equal(await technicalRule.evaluate(element => element.open), true, 'calculator preserves intentionally opened calculations');

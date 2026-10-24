@@ -2,9 +2,10 @@ import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
+import GuideAuditCase from './GuideAuditCase.jsx';
 import { GUIDE_PLAYER_SCENES } from "../../core/guidePlayerScenes.js";
 import { GUIDE_RULE_CONTEXTS } from "../../core/guideRuleContexts.js";
-import { createGuideSearchIndex, formatRuleForReading, searchGuideSections } from "../../core/guideSearch.js";
+import { createGuideSearchIndex, formatRuleForReading, getGuideAuditText, searchGuideSections } from "../../core/guideSearch.js";
 import { integerInRange } from "../../core/math.js";
 import { formatNumberPtBr, RPG_HP_DIVISOR, RPG_SCALE_DIVISOR } from "../../core/mechanics.js";
 import {
@@ -28,8 +29,7 @@ function RuleBullet({ text }) {
 
 function RuleDetails({ rule }) {
     return <>
-        {rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
-        {rule.bullets && <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>}
+        <ul>{rule.steps.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>
     </>;
 }
 
@@ -40,10 +40,11 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
     const searched = normalizeForGuide(query.trim());
     const mainText = normalizeForGuide([rule.title, rule.plain, GUIDE_PLAYER_SCENES[rule.id]].join(" "));
     const contextText = normalizeForGuide(GUIDE_RULE_CONTEXTS[rule.id]);
-    const detailsText = normalizeForGuide([rule.body, ...(rule.bullets || [])].join(" "));
+    const detailsText = normalizeForGuide(rule.steps.join(" "));
+    const auditText = normalizeForGuide(getGuideAuditText(rule.auditCase));
     const mainMatch = mainText.includes(searched);
     const contextMatchOnly = searching && !mainMatch && contextText.includes(searched);
-    const technicalMatchOnly = searching && !mainMatch && !contextMatchOnly && detailsText.includes(searched);
+    const technicalMatchOnly = searching && !mainMatch && !contextMatchOnly && (detailsText.includes(searched) || auditText.includes(searched));
     return (
         <details ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
             <summary>
@@ -54,15 +55,13 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
                 {rule.plain && <p className="guide-rule-lead">{formatRuleForReading(rule.plain)}</p>}
                 {rule.id !== "3.4" && <p className="guide-rule-story">{GUIDE_PLAYER_SCENES[rule.id]}</p>}
                 {rule.id === "3.4" ? (
-                    <HitKillExplanation expanded={searching} />
+                    <HitKillExplanation expanded={contextMatchOnly || technicalMatchOnly} />
                 ) : (rule.body || rule.bullets) && (
                     <details className="guide-rule-full-rule" open={contextMatchOnly || technicalMatchOnly}>
-                        <summary>Entenda melhor</summary>
+                        <summary>Como jogar esta situação</summary>
                         <p className="guide-rule-context">{GUIDE_RULE_CONTEXTS[rule.id]}</p>
-                        <details className="guide-rule-technical" open={technicalMatchOnly}>
-                            <summary>Conferir números e exceções</summary>
-                            <div className="guide-rule-details-content"><RuleDetails rule={rule} /></div>
-                        </details>
+                        <div className="guide-rule-details-content"><RuleDetails rule={rule} /></div>
+                        <GuideAuditCase caseId={rule.auditCase} expanded={technicalMatchOnly} />
                     </details>
                 )}
             </div>
@@ -72,8 +71,8 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
 
 export default function TrainerGuide({ experienceMode }) {
     const [query, setQuery] = useState("");
-    const [scaleValue, setScaleValue] = useState(100);
-    const [level, setLevel] = useState(10);
+    const [scaleValue, setScaleValue] = useState("");
+    const [level, setLevel] = useState("");
     const protectionRef = useRef(null);
     const scaleLabelId = useId(), scaleResultId = useId(), levelLabelId = useId(), levelResultId = useId();
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
@@ -111,6 +110,7 @@ export default function TrainerGuide({ experienceMode }) {
                     </header>
                     <p className="guide-introduction">Veja o que acontece com cada Pokémon e como jogar. O MyOwnDex cuida das contas. Quando uma regra for diferente dos jogos oficiais, ela será apresentada como uma adaptação deste RPG.</p>
                     <p className="guide-basic-terms">HP é a energia do Pokémon. PP indica quantas vezes ele pode usar um movimento. XP é a experiência que ganha na aventura.</p>
+                    <p className="guide-basic-terms">Na batalha, Pikachu tem sua vez e Eevee tem a dele: cada vez é um turno. Depois que todos terminam, a rodada acaba. Próximo turno passa a vez; Encerrar rodada fecha essa volta e aplica efeitos como o veneno.</p>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
                         <input type="search" value={query} onChange={event => setQuery(event.target.value)} />
@@ -141,29 +141,30 @@ export default function TrainerGuide({ experienceMode }) {
                     <details className="game-panel guide-calculator">
                         <summary>Conversão para o RPG</summary>
                         <div className="guide-calculator-content">
+                            <p>Use o HP ou atributo da ficha original do seu Pokémon. Os resultados aparecem depois que você informa um valor.</p>
                             <div className="guide-conversion-grid">
                                 <label className="guide-number-field">
                                     <span className="guide-field-label" id={scaleLabelId}>Valor original</span>
-                                    <input aria-labelledby={scaleLabelId} aria-describedby={scaleResultId} type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} onBlur={() => setScaleValue(integerInRange(scaleValue, 0, 999999, 0))} />
+                                    <input aria-labelledby={scaleLabelId} aria-describedby={scaleResultId} type="number" min="0" max="999999" step="1" value={scaleValue} onChange={event => setScaleValue(event.target.value)} onBlur={() => { if (scaleValue !== "") setScaleValue(integerInRange(scaleValue, 0, 999999, 0)); }} />
                                     <span className="guide-scale-results" id={scaleResultId} aria-live="polite">
-                                        <span>Atributo ÷ {RPG_SCALE_DIVISOR} <strong>{formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
-                                        <span>HP ÷ {RPG_HP_DIVISOR} <strong>{formatNumberPtBr(getRpgScale(scaleValue, true))}</strong></span>
+                                        <span>Atributo ÷ {RPG_SCALE_DIVISOR} <strong>{scaleValue === "" ? "—" : formatNumberPtBr(getRpgScale(scaleValue))}</strong></span>
+                                        <span>HP ÷ {RPG_HP_DIVISOR} <strong>{scaleValue === "" ? "—" : formatNumberPtBr(getRpgScale(scaleValue, true))}</strong></span>
                                     </span>
                                 </label>
                                 <label className="guide-number-field">
                                     <span className="guide-field-label" id={levelLabelId}>Nível atual</span>
-                                    <input aria-labelledby={levelLabelId} aria-describedby={levelResultId} type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} onBlur={() => setLevel(normalizedLevel)} />
-                                    <span className="guide-field-value" id={levelResultId}>{normalizedLevel >= 200 ? "Nível máximo" : <>XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></>}</span>
+                                    <input aria-labelledby={levelLabelId} aria-describedby={levelResultId} type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} onBlur={() => { if (level !== "") setLevel(normalizedLevel); }} />
+                                    <span className="guide-field-value" id={levelResultId}>{level === "" ? "Informe o nível da ficha." : normalizedLevel >= 200 ? "Nível máximo" : <>XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></>}</span>
                                 </label>
                             </div>
                             <details className="guide-rounding-help">
                                 <summary>Como arredonda</summary>
                                 <p>Escolha o número inteiro mais próximo. Se ficar exatamente no meio, o HP sobe e os outros atributos descem. A meta de XP sempre arredonda para baixo.</p>
                             </details>
-                            <article className="guide-damage-limit-card" aria-label={`Limite comum de dano: ${formatNumberPtBr(normalizedLevel)}`}>
+                            {level !== "" && <article className="guide-damage-limit-card" aria-label={`Limite comum de dano: ${formatNumberPtBr(normalizedLevel)}`}>
                                 <div className="guide-damage-limit-value">
                                     <span>Limite comum de dano</span>
-                                    <strong>{formatNumberPtBr(normalizedLevel)}</strong>
+                                    <strong>{level === "" ? "—" : formatNumberPtBr(normalizedLevel)}</strong>
                                 </div>
                                 <details className="guide-effectiveness-help">
                                     <summary>Tipos e limite de dano</summary>
@@ -176,7 +177,7 @@ export default function TrainerGuide({ experienceMode }) {
                                     <p>Combine os tipos do alvo: duas fraquezas multiplicam por 4; uma fraqueza e uma resistência se equilibram; duas resistências deixam um quarto do dano. Uma imunidade mantém 0, salvo um efeito que a remova.</p>
                                     <p>Aumentar os estágios do atributo usado no ataque também pode aumentar o limite na mesma proporção. Críticos e movimentos com regras próprias seguem suas exceções.</p>
                                 </details>
-                            </article>
+                            </article>}
                             <button type="button" className="guide-hit-kill-link room-secondary-button" onClick={showProtection}>Como aguentar um golpe decisivo</button>
                         </div>
                     </details>

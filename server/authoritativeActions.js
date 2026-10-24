@@ -36,10 +36,10 @@ import { canUseZMove, normalizeGimmickState } from "../src/core/battleGimmicks.j
 import { battleMovePresentation, moveVariantForResolution } from "../src/core/battleMovePresentation.js";
 import { applyMaxMoveSecondary } from "../src/core/battleMoveEffects.js";
 
-const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "start-battle", "end-battle"]);
+const ACTIONS = new Set(["quick-attribute", "quick-percent", "quick-free", "initiative", "advance-turn", "combat", "capture", "trainer-item", "start-battle", "end-battle"]);
 const MODES = new Set(["normal", "advantage", "disadvantage"]);
 const FREE_DICE_SIDES = new Set([4, 6, 8, 10, 12, 20, 100]);
-const STATE_ACTIONS = new Set(["initiative", "advance-turn", "combat", "capture", "start-battle", "end-battle"]);
+const STATE_ACTIONS = new Set(["initiative", "advance-turn", "combat", "capture", "trainer-item", "start-battle", "end-battle"]);
 const COMMON_KEYS = new Set(["requestId", "action"]);
 const ACTION_KEYS = Object.freeze({
     "quick-attribute": new Set(["mode", "attribute", "opposition", "label"]),
@@ -51,6 +51,7 @@ const ACTION_KEYS = Object.freeze({
     "advance-turn": new Set(["expectedRevision"]),
     combat: new Set(["expectedRevision", "attackerId", "defenderId", "moveName", "calledMoveName", "mode", "useZMove"]),
     capture: new Set(["expectedRevision", "trainerTokenId", "targetId", "ball", "wildConfirmed"]),
+    "trainer-item": new Set(["expectedRevision", "trainerTokenId", "itemLabel"]),
 });
 
 export class AuthoritativeActionError extends Error {
@@ -162,6 +163,12 @@ export const normalizeAuthoritativeRequest = input => {
         Number.MAX_SAFE_INTEGER,
         "A revisão da aventura",
     );
+    if (action === "trainer-item") {
+        const trainerTokenId = text(input.trainerTokenId);
+        const itemLabel = text(input.itemLabel, 60);
+        if (!trainerTokenId || !itemLabel) throw new AuthoritativeActionError("Escolha seu Pokémon e informe o item usado.");
+        return { requestId, action, expectedRevision: exactInteger(input.expectedRevision, 0, MAX_SAFE_GAME_INTEGER, "A revisão"), trainerTokenId, itemLabel };
+    }
     if (action === "capture") {
         const trainerTokenId = text(input.trainerTokenId, 100), targetId = text(input.targetId, 100), ball = slug(input.ball);
         if (!trainerTokenId || !targetId || input.wildConfirmed !== true || !Object.hasOwn(CAPTURE_BALLS, ball)) {
@@ -776,6 +783,26 @@ export const getCaptureInterventionBlockReason = (snapshot, trainer) => {
         ? "Este Treinador já usou a intervenção desta rodada." : "";
 };
 
+export const resolveTrainerItemAction = ({ request, snapshot, role }) => {
+    if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador confirma o uso do item na cena.", 403);
+    const room = normalizeRoomSnapshot(snapshot);
+    const trainer = room.tokens.find(token => token.id === request.trainerTokenId);
+    const itemLabel = text(request.itemLabel, 60);
+    if (!trainer || trainer.side !== "ally" || trainer.hidden || trainer.captured || trainer.currentHp <= 0 || !itemLabel)
+        throw new AuthoritativeActionError("Escolha um parceiro consciente em campo e informe o item usado.", 409);
+    const blocked = getCaptureInterventionBlockReason(room, trainer);
+    if (blocked) throw new AuthoritativeActionError(blocked, 409);
+    const trainerKey = captureTrainerKey(trainer);
+    const nextSnapshot = { ...room, trainerInterventions: [
+        ...room.trainerInterventions.filter(entry => entry.round === room.round),
+        { trainerKey, round: room.round, battle: Boolean(room.battleStarted && !room.battleEnded || room.initiative.length) },
+    ] };
+    const detail = `Intervenção do Treinador de ${trainer.name}: ${itemLabel}. O Narrador confirma e registra o efeito e o gasto do item; esta marcação não aplica cura automática.`;
+    return { result: { trainerTokenId: trainer.id, itemLabel, detail }, nextSnapshot,
+        audit: { type: "trainer-item", mode: "normal", rawDice: [], modifiers: null, chance: null, result: { trainerTokenId: trainer.id, itemLabel }, success: true, critical: false, fumble: false },
+        eventType: "system", eventPayload: { text: detail } };
+};
+
 export const resolveCaptureAction = ({ request, snapshot, role, species, random = undefined }) => {
     if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador confirma uma captura na cena.", 403);
     const room = normalizeRoomSnapshot(snapshot);
@@ -847,6 +874,7 @@ export const resolveAuthoritativeAction = ({ request, snapshot, role, move = nul
         };
     }
     if (request.action === "capture") return resolveCaptureAction({ request, snapshot, role, species, random });
+    if (request.action === "trainer-item") return resolveTrainerItemAction({ request, snapshot, role });
     if (request.action === "initiative") {
         if (role !== "narrator") throw new AuthoritativeActionError("Só o Narrador pode formar a iniciativa.", 403);
         return initiative(snapshot, random);

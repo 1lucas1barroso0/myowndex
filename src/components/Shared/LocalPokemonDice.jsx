@@ -10,6 +10,7 @@ import { LOCAL_DICE_ROOM_KEY, LOCAL_DICE_TOKEN_LIMIT, LOCAL_OPPOSED_STATS, norma
 import { applyAuthoritativeMovePriorities, resolveAuthoritativeAction } from "../../../server/authoritativeActions.js";
 import CombatAssistant from "../Room/CombatAssistant.jsx";
 import CaptureAssistant from "../Room/CaptureAssistant.jsx";
+import TrainerItemIntervention from "../Room/TrainerItemIntervention.jsx";
 import SpecialMechanicsPanel from "../Room/SpecialMechanicsPanel.jsx";
 import TraitMechanicsPanel from "../Room/TraitMechanicsPanel.jsx";
 import RoomSelect from "./RoomSelect.jsx";
@@ -23,7 +24,7 @@ import ExperienceAward from "./ExperienceAward.jsx";
 import { awardRoomPokemonExperience, getRoomBattleRewardContext } from "../../core/roomExperience.js";
 
 const initialField = () => normalizeLocalDiceRoom(createRoomSnapshot("Campo livre"));
-const actionLabel = { combat:"Movimento", capture:"Captura", initiative:"Iniciativa", "advance-turn":"Rodada", opposed:"Disputa" };
+const actionLabel = { combat:"Movimento", capture:"Captura", "trainer-item":"Item do Treinador", initiative:"Iniciativa", "advance-turn":"Rodada", opposed:"Disputa" };
 
 function actionReceipt(action, resolved, snapshot, context, request = {}) {
     const result = resolved.result || {};
@@ -319,6 +320,7 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
                 <label>Atributo rival<RoomSelect aria-label="Atributo do rival" value={defenderStat} onChange={event=>setDefenderStat(event.target.value)}>{Object.entries(LOCAL_OPPOSED_STATS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
                 <label>Situação<RoomSelect value={opposedMode} onChange={event=>setOpposedMode(event.target.value)}><option value="normal">Normal</option><option value="advantage">Vantagem</option><option value="disadvantage">Desvantagem</option></RoomSelect></label>
             </div><button type="button" className="room-primary-button" disabled={busy || !selectedToken || !oppositionId || selectedToken.id===oppositionId} onClick={()=>void opposed()}>Resolver disputa</button>{opposedResult && <div className="local-field-dispute-result" role="status"><PokemonSprite src={opposedResult.winnerToken?.sprite} pokemonId={opposedResult.winnerToken?.speciesId} alt="" /><strong>{opposedResult.detail}</strong><details><summary>Ver dados</summary>{[[opposedResult.attackerName,opposedResult.attackerStat,opposedResult.attack],[opposedResult.defenderName,opposedResult.defenderStat,opposedResult.defense]].map(([name,stat,test],index)=><div className="local-field-dice-group" key={index}><span>{name} · {LOCAL_OPPOSED_STATS[stat]}</span><span>{test.dice.map((value,die)=><b key={die}>{value}</b>)}</span></div>)}</details></div>}</div></details>
+            {showCombat && <TrainerItemIntervention snapshot={snapshot} role={sceneSnapshot?role:"narrator"} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onEvent={onEvent} onError={showError} />}
             {showCapture && <CaptureAssistant snapshot={snapshot} role={sceneSnapshot?role:"narrator"} remote onAuthoritativeAction={runAction} onSnapshotChange={commit} onEvent={onEvent} onError={showError} />}
             {editing && <details className="room-tool local-pokemon-status-tool"><summary><strong>Condições do campo</strong></summary><div className="room-tool-body"><div className="local-dice-fields">
                 <label>Clima<RoomSelect value={snapshot.weather} onChange={event=>commit({...snapshot,weather:event.target.value})}>{ROOM_WEATHERS.map(option=><option key={option.id} value={option.id}>{option.label}</option>)}</RoomSelect></label>

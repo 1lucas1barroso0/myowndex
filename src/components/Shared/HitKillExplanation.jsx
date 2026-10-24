@@ -1,5 +1,6 @@
 import React from "react";
 import { RPG_RULE_SECTIONS } from "../../core/rpgRules.js";
+import GuideAuditCase from '../Guide/GuideAuditCase.jsx';
 
 const protectionRule = RPG_RULE_SECTIONS.flatMap(section => section.rules).find(rule => rule.id === "3.4");
 
@@ -16,15 +17,15 @@ export default function HitKillExplanation({ expanded = false }) {
             </div>
             <ol className="guide-hit-kill-flow" aria-label="Condições para a proteção agir">
                 <li><span className="guide-hit-kill-step" aria-hidden="true">1</span><div><strong>HP cheio</strong><span>No começo da ação.</span></div></li>
-                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>O golpe zeraria o HP</strong><span>O dano direto total da ação é menor que três vezes o HP máximo.</span></div></li>
+                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>O golpe o derrubaria</strong><span>O aplicativo confere se o movimento está dentro dos limites desta proteção.</span></div></li>
                 <li className="guide-hit-kill-outcome"><span className="guide-hit-kill-step" aria-hidden="true">3</span><div><strong>Continua com <b>1 HP</b></strong><span>A ação termina com 1 HP; a proteção é usada.</span></div></li>
             </ol>
             <p className="guide-hit-kill-example"><strong>Por exemplo:</strong> {protectionRule?.example}</p>
             <details className="guide-hit-kill-full-rule" open={expanded}>
                 <summary>Regra completa</summary>
                 <div className="guide-hit-kill-canonical">
-                    {protectionRule?.body?.split(/\n\n+/).map(paragraph => <p key={paragraph}>{paragraph}</p>)}
-                    {protectionRule?.bullets?.length > 0 && <ul>{protectionRule?.bullets?.map(text => <li key={text}>{text}</li>)}</ul>}
+                    <ul>{protectionRule?.steps.map(text => <li key={text}>{text}</li>)}</ul>
+                    <GuideAuditCase caseId={protectionRule?.auditCase} expanded={expanded} />
                 </div>
             </details>
         </div>

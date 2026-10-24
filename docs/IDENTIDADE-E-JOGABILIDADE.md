@@ -49,3 +49,9 @@ Antes de aprovar uma regra, dado ou fluxo, verificar:
 5. As regras, o Guia, os dados, os cálculos, os registros e as telas vinculadas acompanham a mudança?
 
 Os testes técnicos verificam coerência e consequências mecânicas. Compreensão, entusiasmo, diversão e protagonismo exigem observação de pessoas. O [roteiro da 2.1.0](VALIDACAO-2.1.0.md) registra essa validação ainda pendente; não declarar esses resultados com base em simulações. Mudanças documentais nesta orientação não certificam, por si, a experiência final.
+
+## Números e casos conferidos
+
+Um número usado como exemplo deve vir de uma ficha identificada e de uma execução reproduzida do MyOwnDex. Informar Pokémon e forma, jogo de referência, nível, atributos e condições necessários, movimento ou escolha realizada e resultado produzido. Não apresentar HP, dano, turnos ou rodadas genéricos como se fossem uma cena real. Distinguir um caso de teste de uma aventura de usuário. Casos publicados precisam ser comparados com a execução do núcleo em teste; mudanças na regra devem atualizar as dependências antes da publicação.
+
+Definir a vez do Pokémon e a volta completa da batalha antes de usar turno e rodada. Apresentar escolha, ação, consequência e próxima ação em palavras comuns. A referência técnica não deve dominar a explicação nem prometer uma automação que a tela não executa.

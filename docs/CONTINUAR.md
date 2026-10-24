@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.8.**
+**Versão atual: 2.1.9.**
+
+A 2.1.9 revisa as 48 regras com passos de jogo e casos numéricos reproduzidos. Retira exemplos abstratos do Guia e centraliza cenas e contextos na regra canônica. Uma intervenção por item pode ser registrada no mesmo controle de oportunidade da captura, sem aplicar cura ou retirar itens automaticamente. Consulte `REVISAO-DEPLOYS-2.1.9.md`.
 
 A 2.1.8 reforça a explicação concreta de cada regra: 48 cenas e 48 esclarecimentos específicos com Pokémon, movimentos, alvos, condições e consequências possíveis. A regra 6.2 agora acompanha Ekans usando Poison Sting em Pikachu, distinguindo a chance de envenenar da perda posterior de HP. As cenas alteradas usam combinações verificadas dos jogos; adaptações narrativas continuam identificadas como RPG. Ao expandir uma regra, a explicação prática aparece primeiro. Em “Entenda melhor”, são apresentadas as condições pertinentes; “Conferir números e exceções” mostra o texto técnico completo, somente se solicitado ou encontrado numa pesquisa técnica. Busca, navegação por teclado e impressão dos termos continuam. O cálculo de HP, dano, PP, XP, captura, habilidades e progressão não foi alterado. Consulte `GUIA-CONTEXTUAL-2.1.8.md`.
 

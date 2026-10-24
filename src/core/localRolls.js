@@ -82,7 +82,7 @@ export function normalizeLocalRollReceipt(value) {
                 spec:{kind:record.kind,mode:record.mode,label:record.label},context:localContext(record.context) };
         }
         if (value?.version === 3) {
-            if (typeof value.id !== "string" || !/^[a-zA-Z0-9_-]{1,120}$/.test(value.id) || !Number.isSafeInteger(value.createdAt) || value.createdAt < 0 || value.createdAt > 8640000000000000 || value.spec?.kind !== "pokemon" || !["combat","capture","initiative","advance-turn","opposed"].includes(value.spec.action)) return null;
+            if (typeof value.id !== "string" || !/^[a-zA-Z0-9_-]{1,120}$/.test(value.id) || !Number.isSafeInteger(value.createdAt) || value.createdAt < 0 || value.createdAt > 8640000000000000 || value.spec?.kind !== "pokemon" || !["combat","capture","trainer-item","initiative","advance-turn","opposed"].includes(value.spec.action)) return null;
             const groups = Array.isArray(value.groups) ? value.groups.slice(0,120).map(group => ({ label:String(group?.label || "Dados").slice(0,80), values:Array.isArray(group?.values) ? group.values.slice(0,66).filter(v=>Number.isInteger(v) && v>=1 && v<=100) : [] })) : [];
             return Object.freeze({ version:3, id:value.id, createdAt:value.createdAt, context:localContext(value.context),
                 spec:Object.freeze({ kind:"pokemon", action:value.spec.action, mode:Object.hasOwn(LOCAL_ROLL_MODES,value.spec.mode) ? value.spec.mode : "normal", label:String(value.spec.label || "Jogada Pokémon").slice(0,80) }),

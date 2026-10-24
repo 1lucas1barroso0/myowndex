@@ -1,4 +1,4 @@
-import { GUIDE_PLAY_TIPS } from "./guidePlayTips.js";
+import { GUIDE_PLAYER_SCENES } from "./guidePlayerScenes.js";
 
 const normalizeSearch = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 export const formatRuleForReading = text => String(text);
@@ -11,7 +11,7 @@ export const createGuideSearchIndex = sections => ({
         section,
         text: normalizeSearch(`${section.number} ${section.title} ${section.summary}`),
         rules: section.rules.map(rule => {
-            const text = [rule.id, rule.title, rule.plain || "", rule.example || "", GUIDE_PLAY_TIPS[rule.id] || "", rule.body || "", ...(rule.bullets || [])].join(" ");
+            const text = [rule.id, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", rule.body || "", ...(rule.bullets || [])].join(" ");
             return { rule, text: normalizeSearch(`${text} ${legacySearchAliases(text)}`) };
         }),
     })),

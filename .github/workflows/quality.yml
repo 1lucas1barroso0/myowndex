@@ -91,6 +91,12 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-production.mjs
+      - name: Conferir as 48 regras do livro imprimível
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-printable-guide.mjs
       - name: Testar declarações e iniciativa reais em aventura e treino
         if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:

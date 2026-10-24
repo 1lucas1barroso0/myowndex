@@ -14,7 +14,7 @@ O que motivou a revisão: mesmo na 2.1.7, a regra 6.2 podia expor cálculos long
 
 ## Exemplo rastreável: veneno e HP (6.2)
 
-Em Scarlet/Violet, Ekans usa Poison Sting contra Pikachu. É preciso acertar o movimento e acontecer o envenenamento. Quando o efeito de veneno chega ao momento de causar dano no RPG, o aplicativo consulta o HP. Em casos de dano muito pequeno, a perda de HP daquele instante pode ser 0, sem que Pikachu deixe de estar envenenado. A explicação integral de partes de HP, sorteios e arredondamentos continua disponível para quem deseja conferir a conta; ela não é necessária para jogar.
+Em Scarlet/Violet, Ekans usa Poison Sting contra Pikachu. É preciso acertar o movimento e acontecer o envenenamento. Quando o efeito de veneno chega ao momento de causar dano no RPG, o aplicativo consulta o HP. Em casos de dano muito pequeno, a perda de HP daquele instante pode ser 0, sem que Pikachu deixe de estar envenenado. A camada seguinte mostra Tyranitar entrando com Sand Stream e a tempestade de areia podendo atingir Pikachu; Tyranitar, que é do tipo Rock, não recebe esse dano. A explicação integral de partes de HP, sorteios e arredondamentos continua disponível para quem deseja conferir a conta; ela não é necessária para jogar.
 
 ## Verificações automáticas
 
@@ -29,6 +29,8 @@ Preservar 48 IDs e títulos; garantir 48 cenas e 48 esclarecimentos, termos de b
 - [Pokémon Database — Poison Sting e seus efeitos](https://pokemondb.net/move/poison-sting)
 - [Pokémon Database — Sing e seus aprendizes](https://pokemondb.net/move/sing)
 - [Pokémon Database — Golbat, jogos e repertórios](https://pokemondb.net/pokedex/golbat/moves/9)
+- [Pokémon — Tyranitar com Sand Stream](https://www.pokemon.com/uk/pokedex/tyranitar)
+- [Pokémon — formas de Geodude](https://www.pokemon.com/us/pokedex/geodude)
 - [Revisão anterior de exemplos 2.1.5](EXEMPLOS-LEGITIMOS-2.1.5.md)
 - [Regras e fontes de verdade do RPG](POLIMENTO-REGRAS-INTEIRAS.md)
 

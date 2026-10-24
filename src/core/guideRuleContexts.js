@@ -28,7 +28,7 @@ export const GUIDE_RULE_CONTEXTS = Object.freeze({
   "5.4": "Machoke precisa cumprir a condição de evolução por troca. Ao se tornar Machamp, mantém apelido, vínculo, PP e condições registrados; a evolução não é uma cura gratuita.",
   "5.5": "A Amizade entre Pikachu e seu Treinador depende dos acontecimentos da história. O Narrador decide o reconhecimento desse cuidado; subir de nível sozinho não concede pontos.",
   "6.1": "Sing precisa funcionar para causar sono. As regras do RPG dizem quando Eevee poderá acordar; enquanto não conseguir agir, ele não gasta PP do movimento impedido.",
-  "6.2": "Poison Sting pode acertar sem envenenar. Se Ekans conseguir causar veneno, o dano do próprio golpe e a perda de HP das rodadas seguintes são acontecimentos diferentes, registrados separadamente.",
+  "6.2": "Quando Tyranitar entra em campo com Sand Stream, começa uma tempestade de areia. Se Pikachu estiver exposto a esse clima, também pode perder HP no fim da rodada. Tyranitar não sofre esse dano por ser do tipo Rock.",
   "6.3": "Se Bulbasaur aprendeu Giga Drain pela TM disponível no jogo escolhido, ele pode recuperar HP depois de causar dano a Eevee. Um erro, uma imunidade ou dano 0 não gera recuperação a partir de dano inexistente.",
   "6.4": "Defense Curl aumenta a Defesa do próprio Geodude. Esse efeito é usado na próxima disputa que depender dela e termina quando uma regra mandar, sem recuperar HP.",
   "6.5": "Supersonic tenta causar confusão, não veneno. Se Pikachu estiver envenenado ao mesmo tempo, esse veneno veio de outra causa e não desaparece quando a confusão termina.",

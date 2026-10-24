@@ -3,10 +3,12 @@ import test from "node:test";
 import { createGuideSearchIndex, searchGuideSections } from "../src/core/guideSearch.js";
 import { RPG_RULE_SECTIONS } from "../src/core/rpgRules.js";
 import { GUIDE_PLAYER_SCENES } from "../src/core/guidePlayerScenes.js";
+import { GUIDE_RULE_CONTEXTS } from "../src/core/guideRuleContexts.js";
 
 test("indexed guide search preserves every rule, accents, section matches and displayed proportions", () => {
     const sections = RPG_RULE_SECTIONS;
-    assert.equal(Object.keys(GUIDE_PLAYER_SCENES).length, sections.flatMap(section => section.rules).length, "every rule needs a practical note");
+    assert.equal(Object.keys(GUIDE_PLAYER_SCENES).length, sections.flatMap(section => section.rules).length, "every rule needs a practical scene");
+    assert.equal(Object.keys(GUIDE_RULE_CONTEXTS).length, sections.flatMap(section => section.rules).length, "every rule needs a contextual explanation");
     assert.ok(sections.every(section => section.rules.every(rule => GUIDE_PLAYER_SCENES[rule.id])), "no rule lacks player guidance");
     const before = JSON.stringify(sections);
     const index = createGuideSearchIndex(sections);
@@ -17,7 +19,7 @@ test("indexed guide search preserves every rule, accents, section matches and di
         return sections.map(section => ({ ...section,
             rules: normalize(`${section.number} ${section.title} ${section.summary}`).includes(needle) ? section.rules
                 : section.rules.filter(rule => {
-                    const text = [rule.id, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", rule.body || "", ...(rule.bullets || [])].join(" ");
+                    const text = [rule.id, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", GUIDE_RULE_CONTEXTS[rule.id] || "", rule.body || "", ...(rule.bullets || [])].join(" ");
                     const displayed = text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
                     return normalize(`${text} ${displayed}`).includes(needle);
                 }),

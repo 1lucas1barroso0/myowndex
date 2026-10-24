@@ -2,9 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createGuideSearchIndex, searchGuideSections } from "../src/core/guideSearch.js";
 import { RPG_RULE_SECTIONS } from "../src/core/rpgRules.js";
+import { GUIDE_PLAY_TIPS } from "../src/core/guidePlayTips.js";
 
 test("indexed guide search preserves every rule, accents, section matches and displayed proportions", () => {
     const sections = RPG_RULE_SECTIONS;
+    assert.equal(Object.keys(GUIDE_PLAY_TIPS).length, sections.flatMap(section => section.rules).length, "every rule needs a practical note");
+    assert.ok(sections.every(section => section.rules.every(rule => GUIDE_PLAY_TIPS[rule.id])), "no rule lacks player guidance");
     const before = JSON.stringify(sections);
     const index = createGuideSearchIndex(sections);
     const normalize = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -14,7 +17,7 @@ test("indexed guide search preserves every rule, accents, section matches and di
         return sections.map(section => ({ ...section,
             rules: normalize(`${section.number} ${section.title} ${section.summary}`).includes(needle) ? section.rules
                 : section.rules.filter(rule => {
-                    const text = [rule.id, rule.title, rule.plain || "", rule.example || "", rule.body || "", ...(rule.bullets || [])].join(" ");
+                    const text = [rule.id, rule.title, rule.plain || "", rule.example || "", GUIDE_PLAY_TIPS[rule.id] || "", rule.body || "", ...(rule.bullets || [])].join(" ");
                     const displayed = text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
                     return normalize(`${text} ${displayed}`).includes(needle);
                 }),

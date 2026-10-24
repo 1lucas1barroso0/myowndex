@@ -1,3 +1,4 @@
+import { GUIDE_PAPER_STEPS } from "./guidePaperSteps.js";
 import { GUIDE_PLAYER_SCENES } from "./guidePlayerScenes.js";
 import { GUIDE_RULE_CONTEXTS } from "./guideRuleContexts.js";
 import { GUIDE_AUDIT_CASES } from '../data/guide-audit-cases.js';

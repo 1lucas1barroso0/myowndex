@@ -37,6 +37,7 @@ const snapshot=()=>page.evaluate(()=>JSON.parse(localStorage.getItem("myowndex_l
 const setPhase=async id=>{
     await page.locator(`.room-phase-options [data-phase="${id}"]`).click();
     await page.waitForFunction(id=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.phase===id,id);
+    await page.waitForFunction(id=>document.querySelector(`.room-phase-options [data-phase="${id}"]`)?.getAttribute("aria-checked")==="true",id);
 };
 try{
     await page.goto(base,{waitUntil:"domcontentloaded"});

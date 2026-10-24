@@ -1,7 +1,7 @@
 /* Rule reading follows the Fate Toolkit's fluid gutters, comfortable line length,
    and optional full explanations. Rule text and numbering stay intact. */
 html .app-root.game-edition.handheld-edition .trainer-guide { container: trainer-guide / inline-size; min-width: 0 !important; }
-html .app-root.game-edition.handheld-edition .guide-hero { width: min(100%, 72rem) !important; margin-inline: auto !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; margin: 0 0 1.5rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+html .app-root.game-edition.handheld-edition .guide-hero { width: min(100%, 72rem) !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; margin: 0 auto 1.5rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 html .app-root.game-edition.handheld-edition .guide-hero h2 { margin: 0 !important; font-size: clamp(1.8rem,4vw,2.5rem) !important; line-height: 1.25 !important; }
 html .app-root.game-edition.handheld-edition .guide-layout { display: grid !important; grid-template-columns: minmax(0,1fr) !important; grid-template-areas: "tools" "rules" !important; align-items: start !important; gap: clamp(1.25rem,3vw,2rem) !important; width: min(100%, 72rem) !important; margin: 0 auto !important; }
 html .app-root.game-edition.handheld-edition .guide-reference { grid-area: rules !important; min-width: 0 !important; padding: clamp(1rem,3vw,2rem) !important; }

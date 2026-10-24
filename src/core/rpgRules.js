@@ -372,7 +372,7 @@ export const RPG_RULE_SECTIONS = [
                 "id": "6.2",
                 "title": "Veneno, clima e outros efeitos",
                 "plain": "Veneno e clima podem tirar HP aos poucos. O MyOwnDex mostra o resultado de cada rodada e lembra os efeitos que continuam ativos.",
-                "body": "Resolva cada efeito no seu momento. Não transforme todo resultado pequeno em 1 HP: isso faria alguns efeitos ficarem fortes demais. Use a parte inteira e sorteie a chance de mais 1.\n\nCom 3 HP para dividir por 16, há 3 chances em 16 de perder 1 HP; nas outras vezes, perde 0. Com 19 dividido por 16, perde 1 HP e tem 3 chances em 16 de perder mais 1. Não fica nenhum pedaço de HP para pagar depois.\n\nO MyOwnDex sorteia ao aplicar cada efeito e guarda o resultado. Abrir a prévia ou consultar o mesmo resultado não faz outro sorteio. Cada efeito continua respeitando suas imunidades, seus custos e o momento de acontecer. Dano 0 não gasta proteção e não cura uma condição ativa.\n\nEm Dynamax e Gigantamax, efeitos proporcionais comuns usam o HP máximo de antes da transformação, salvo uma regra específica. Esse jeito de trabalhar com números inteiros é uma adaptação do RPG.",
+                "body": "Alguns efeitos tiram uma quantidade tão pequena de HP que ela não chega a um ponto inteiro. Se todos esses efeitos tirassem sempre 1 HP, ficariam fortes demais. Por isso, o MyOwnDex usa a parte inteira do dano e sorteia se há mais 1 HP a perder.\n\nImagine um efeito de 3 partes em 16 de HP. Há três chances em dezesseis de perder 1 HP; nas outras, o Pokémon não perde HP naquela vez. Se o efeito valer 19 partes em 16, ele tira 1 HP e tem três chances em dezesseis de tirar mais 1. O que não saiu no sorteio não fica guardado para cobrar depois.\n\nO resultado é sorteado uma vez, quando o efeito acontece. Consultar a prévia ou abrir o Diário não sorteia outra vez. Se perder 0 HP, o Pokémon ainda está afetado pela condição, e nenhuma proteção foi gasta. Imunidades, custos e momentos próprios de cada efeito continuam valendo.\n\nEm Dynamax e Gigantamax, esses efeitos proporcionais comuns usam o HP máximo de antes da transformação, salvo quando uma regra disser outra coisa. Essa maneira de lidar com números inteiros é uma adaptação do RPG.",
                 "example": "Pikachu está envenenado. Em uma rodada, ele pode continuar com o mesmo HP, mas o veneno não desaparece.",
                 "collapsibleDetails": true
             },
@@ -441,7 +441,7 @@ export const RPG_RULE_SECTIONS = [
             },
             {
                 "id": "7.5",
-                "title": "Tipos, STAB e Terastallization",
+                "title": "Tipos, fraquezas e transformações",
                 "plain": "Conhecer os tipos ajuda a escolher seu próximo movimento. Fraquezas, resistências e imunidades fazem diferença!",
                 "body": "Use os tipos atuais do alvo. Uma imunidade mantém o dano em 0, salvo um efeito que a remova.",
                 "bullets": [

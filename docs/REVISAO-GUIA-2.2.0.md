@@ -33,7 +33,7 @@ A oportunidade de participar depende também do encontro preparado. O Narrador d
 - Novos testes cobrem os 50 números de leitura, endereçamento individual, novas regras, correspondência entre busca e camadas reveladas e diferenciação entre estágios e duração.
 - Os roteiros de navegador acompanham os 50 procedimentos, o carregamento sob demanda, assuntos, busca numérica, calculadoras, teclado, salto à proteção e livro.
 
-A prévia local ficou inacessível ao navegador de revisão deste ambiente. A conferência visual e os roteiros automatizados da hospedagem serão registrados no PR. Esta seção não atribui uma inspeção visual local que não ocorreu.
+A prévia local ficou inacessível ao navegador de revisão deste ambiente. A prévia HTTPS foi inspecionada em desktop nos temas Claro e Escuro: contagem de 50 regras, filtro de Batalha, busca por número, busca por resultado numérico com abertura do caso, limite de nível, salto à proteção completa e livro. A inspeção encontrou e corrigiu herança de largura nos assuntos, altura excessiva do cabeçalho, contraste do link do livro e marcadores das listas. O cabeçalho medido ficou com 76 px e os assuntos couberam numa linha na tela de desktop observada. Os roteiros automatizados de telas estreitas, CPU reduzida e interfaces vinculadas são executados pelo CI; seu resultado fica registrado no PR #124.
 
 Compreensão por crianças, entusiasmo, diversão e protagonismo precisam ser observados numa mesa real. Testes e simulações verificam resultados e coerência; não substituem essa observação. Instalação física em Android/iOS também não é certificada por esta revisão.
 

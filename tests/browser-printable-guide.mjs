@@ -12,6 +12,8 @@ try {
   page.on("pageerror", error=>errors.push(error.message));
   await page.goto(new URL("/guia/livro",baseUrl).href,{waitUntil:"domcontentloaded",timeout:60000});
   await page.getByRole("heading",{name:"Livro de regras",exact:true}).waitFor();
+  assert.equal(await page.locator('.book-start ol').evaluate(element => getComputedStyle(element).listStyleType), 'decimal');
+  assert.equal(await page.locator('.book-toolbar a').evaluate(element => getComputedStyle(element).color), 'rgb(7, 89, 133)');
   const ids=await page.locator(".book-rule").evaluateAll(entries=>entries.map(element=>element.id.replace("regra-","").replace("-","."))).then(all=>all.sort());
   assert.deepEqual(ids,expectedIds);
   assert.equal(await page.locator(".book-procedure").count(),50);

@@ -8,7 +8,9 @@ body:has(.book-reader) { background:#F8FAFC !important; }
 .book-reader p { margin:0 0 .9rem; }
 .book-reader ul,.book-reader ol { padding-left:1.55rem; margin:.4rem 0 1.1rem; }
 .book-reader li { padding-left:.12rem; margin:.3rem 0; }
-.book-reader a { color:var(--book-accent); }
+.book-reader ol { list-style:decimal !important; }
+.book-reader ul { list-style:disc !important; }
+.book-reader a { color:var(--book-accent) !important; }
 .book-reader .book-toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem; margin-bottom:2rem; }
 .book-reader .book-print-button { min-height:44px; padding:.65rem 1rem; background:#075985; border:2px solid #075985; color:white; font:inherit; font-weight:700; border-radius:.65rem; cursor:pointer; }
 .book-reader .book-print-button:focus-visible,.book-reader a:focus-visible { outline:3px solid #EF4444; outline-offset:3px; }

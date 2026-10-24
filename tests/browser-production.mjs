@@ -56,10 +56,14 @@ async function auditIdentity(){
  assert.deepEqual(manifest.categories,['games']);assert.equal(manifest.shortcuts.length,4);
  for(const shortcut of manifest.shortcuts)for(const icon of shortcut.icons)assert.match(icon.src,/myowndex-dex-v105-r4-96\.png$/);
  for(const icon of manifest.icons)assert.match(icon.src,/myowndex-dex-v105-r4-(?:app-|maskable-)?\d+\.png$/);
- const assets=[...metadata.icons,{url:metadata.apple,size:180},{url:metadata.shortcut,size:96},...manifest.icons.map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0])})),{url:metadata.og,size:512}];
+ const assets=[...metadata.icons,{url:metadata.apple,size:180},{url:metadata.shortcut,size:96},...manifest.icons.map(icon=>({url:icon.src,size:Number(icon.sizes.split('x')[0])})),{url:metadata.og,size:512,canonicalShare:true}];
  const origin=new URL(baseUrl).origin;
  for(const asset of assets){
-  const url=new URL(asset.url,baseUrl);assert.equal(url.origin,origin,'Identity images remain on the public game origin');
+  const url=new URL(asset.url,baseUrl);
+  const expectedOrigin=asset.canonicalShare?new URL(packageJson.homepage).origin:origin;
+  assert.equal(url.origin,expectedOrigin,'Identity images use the checked origin; shared-link metadata uses the canonical game origin');
+  // Verify the bytes on this artifact, including the canonical shared image.
+  // A local/preview check must not silently fetch its image from production.
   const result=await page.evaluate(async path=>{const response=await fetch(path);if(!response.ok)return {status:response.status};const image=await createImageBitmap(await response.blob());const result={status:response.status,type:response.headers.get('content-type'),width:image.width,height:image.height};image.close();return result;},url.pathname+url.search);
   assert.equal(result.status,200);assert.match(result.type,/image\/png/);assert.equal(result.width,asset.size);assert.equal(result.height,asset.size);
  }

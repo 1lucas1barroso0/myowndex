@@ -8,6 +8,8 @@ O CI do PR 119 passou. A execução disparada em `main` depois da publicação f
 
 O teste agora compara os identificadores publicados com todos os identificadores da fonte canônica. Isso verifica quais regras estão presentes, além da quantidade. O mesmo fluxo completo passa a rodar contra o artefato local no CI antes de publicar; a conferência pública depois da publicação permanece. Ambos bloqueiam escritas remotas e usam um contexto descartável de visitante.
 
+A primeira execução dessa conferência local também identificou um pressuposto do teste: metadados de compartilhamento apontam para a origem pública canônica mesmo em um artefato local. O teste exige essa origem canônica somente para a imagem compartilhada, mantém os ícones na origem testada e confere os bytes de todas as imagens no próprio artefato. Não aceita uma origem externa arbitrária nem busca a imagem da produção para aprovar a cópia local. A conferência completa agora roda logo após iniciar o servidor de QA.
+
 ## Casos que ensinam a acompanhar os acontecimentos
 
 Veneno e variação de dano mostram resultados alternativos, partindo do mesmo estado. Sono e Dynamax mostram acontecimentos em sequência. Essa diferença agora aparece antes dos valores, sem exigir abrir a ficha técnica. A busca inclui essas novas explicações e abre o caso correspondente.

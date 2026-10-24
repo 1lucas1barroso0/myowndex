@@ -85,6 +85,12 @@ jobs:
           for i in {1..60}; do curl -fsS http://127.0.0.1:3000 >/dev/null && exit 0; sleep 1; done
           cat /tmp/myowndex-browser.log
           exit 1
+      - name: Conferir o artefato completo antes de publicar
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-production.mjs
       - name: Testar declarações e iniciativa reais em aventura e treino
         if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:
@@ -210,12 +216,6 @@ jobs:
           MYOWNDEX_PLAYWRIGHT_MODULE: playwright
           MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
         run: node tests/browser-release-update.mjs
-      - name: Conferir o artefato completo antes de publicar
-        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
-        env:
-          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
-          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
-        run: node tests/browser-production.mjs
       - name: Conferir a versão publicada sem alterar contas ou aventuras
         if: ${{ !cancelled() && steps.browser-server.outcome == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:

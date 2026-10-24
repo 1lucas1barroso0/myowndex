@@ -7,7 +7,7 @@ export const GUIDE_RULE_CONTEXTS = Object.freeze({
   "1.4": "Thunder Shock não paralisa Eevee em todo acerto. Primeiro confira se o ataque funcionou; o resultado mostra separadamente se ocorreu paralisia.",
   "1.5": "O dano de Thunder Shock muda um pouco em cada impacto. Veneno, cura e outras perdas de HP não recebem essa variação de ataque neste RPG.",
   "2.1": "O nível e o treinamento podem fazer dois Pikachu terem atributos diferentes. Os PP pertencem a cada movimento, enquanto o HP mostra a energia do Pokémon.",
-  "2.2": "Veja o valor já convertido na ficha de Bulbasaur. A escala menor serve apenas para esta aventura; não muda o poder nem o tipo oficial de Vine Whip.",
+  "2.2": "Veja o valor já convertido na ficha de Bulbasaur. A escala menor serve apenas para esta aventura; não muda o tipo Normal nem o funcionamento original de Tackle.",
   "2.3": "Growl enfraquece o Ataque de Pikachu, não sua Defesa. Mesmo que o arredondamento esconda a diferença, a ficha registra a mudança para a próxima disputa.",
   "2.4": "Thunder Shock não causa dano em Geodude de Kanto, por causa da imunidade ao tipo Electric. Isso não significa que Pikachu errou o alvo; o tipo impediu o dano.",
   "2.5": "Se Eevee ajudou a concluir uma batalha, encerre-a antes de entregar XP. Depois confira os níveis e a experiência restante na ficha; conte a conquista uma vez só.",

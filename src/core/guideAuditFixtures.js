@@ -16,12 +16,13 @@ const species = {
     ekans: [23,[35,60,44,40,54,55],['poison'],'shed-skin',['poison-sting']],
     pidgey: [16,[40,45,40,35,35,56],['normal','flying'],'keen-eye',['tackle']],
     geodude: [74,[40,80,100,30,30,20],['rock','ground'],'rock-head',['tackle','defense-curl']],
+    umbreon: [197,[95,65,110,60,130,65],['dark'],'synchronize',['toxic']],
 };
 export function guidePokemon(name, level = 5) {
     const [id,stats,types,ability,moves] = species[name];
     return {id:`guide-${name}`,level,nature:'hardy',ability,moves,
         friendship:70,evs:Object.fromEntries(keys.map(k=>[k,0])),ivs:Object.fromEntries(keys.map(k=>[k,31])),
-        canDynamax:true,dynamaxLevel:10,rpg:{scaleVersion:3,xp:0,pp:name==='pikachu'?[30,30]:name==='eevee'?[35,15]:[35]},
+        canDynamax:true,dynamaxLevel:10,rpg:{scaleVersion:3,xp:0,pp:name==='pikachu'?[30,30]:name==='eevee'?[35,15]:name==='umbreon'?[10]:[35]},
         species:{id,name,stats:stats.map((base_stat,i)=>({base_stat,stat:{name:keys[i]}})),types:types.map(name=>({type:{name}}))},
     };
 }
@@ -40,6 +41,21 @@ export function reproduceGuideCases() {
     if(hurt.status!=='poison')throw Error('O caso de Poison Sting não causou veneno.');
     const quiet=applyEndOfRoundEffects(poisoned.nextSnapshot,()=>.999999).room.tokens.find(p=>p.id==='pikachu');
     const affected=applyEndOfRoundEffects(poisoned.nextSnapshot,()=>0).room.tokens.find(p=>p.id==='pikachu');
+    const comparisonPikachu = token('pikachu',100);
+    const umbreon = {...token('umbreon',100,'opponent'),versionGroup:'heartgold-soulsilver'};
+    const toxicMove = {...poisonedMove,name:'toxic',power:null,pp:10,accuracy:85,damage_class:{name:'status'},meta:{ailment:{name:'poison'},ailment_chance:0,category:{name:'ailment'}}};
+    const toxicScene = normalizeRoomSnapshot({...createRoomSnapshot('Comparação: Poison e Badly Poisoned'),phase:'batalha',tokens:[umbreon,comparisonPikachu]});
+    const toxic = resolveCombatAction({snapshot:toxicScene,role:'narrator',request:{attackerId:'umbreon',defenderId:'pikachu',moveName:'toxic',mode:'normal'},move:toxicMove,random:()=>0});
+    if(toxic.nextSnapshot.tokens.find(p=>p.id==='pikachu').status!=='bad-poison')throw Error('O caso de Toxic não aplicou Badly Poisoned.');
+    const ends = initial => {
+        let current=initial;
+        return Array.from({length:3},()=>{
+            current=applyEndOfRoundEffects(current,()=>.999999).room;
+            return hp(current.tokens.find(p=>p.id==='pikachu'));
+        });
+    };
+    const poisonRounds=ends({...toxicScene,tokens:[{...comparisonPikachu,status:'poison'}]});
+    const toxicRounds=ends({...toxic.nextSnapshot,tokens:toxic.nextSnapshot.tokens.filter(p=>p.id==='pikachu')});
     const eevee=guidePokemon('eevee',10);eevee.rpg.xp=4;
     const reward=getChallengeReward({baseXp:1,battle:false});
     const grown=applyPokemonExperienceAward(eevee,{xp:reward.xp,awardId:'xp_loyw3v28_00000000-0000-4000-8000-000000000219',isTTRPG:true});
@@ -72,6 +88,11 @@ export function reproduceGuideCases() {
     const attempts=[];
     for(let n=0;n<3;n++){const check=checkActionConditions({token:sleeping,move:tackleMove,random:()=>.999});attempts.push(check.canAct?'Pode tentar Tackle':'O sono impediu Tackle');sleeping=check.token;}
     return {
+        'poison-comparison':{title:'Pikachu com Poison e Pikachu atingido por Toxic',reference:'RPG; Umbreon aprende Toxic pela TM06 em HeartGold/SoulSilver',
+            intro:'São duas sequências separadas, começando com o mesmo Pikachu com HP cheio. Em cada sequência, ele fica em campo por três fins de rodada sem receber outro efeito. Não são danos fixos para outros Pokémon nem uma previsão de toda rolagem.',
+            setup:`Pikachu e Umbreon de teste: nível 100, natureza Hardy, IVs 31 em todos os atributos, nenhum EV e nenhum item. Pikachu começa com ${hp(comparisonPikachu)}. Na primeira sequência, ele já tem Poison. Na segunda, Umbreon usa Toxic com sucesso; o movimento aplica Badly Poisoned sem causar dano direto. Estes sorteios do RPG escolheram a parte inteira de cada perda.`,
+            rows:[['Poison · depois do primeiro fim de rodada',poisonRounds[0]],['Poison · depois do segundo fim de rodada',poisonRounds[1]],['Poison · depois do terceiro fim de rodada',poisonRounds[2]],['Badly Poisoned · depois do primeiro fim de rodada',toxicRounds[0]],['Badly Poisoned · depois do segundo fim de rodada',toxicRounds[1]],['Badly Poisoned · depois do terceiro fim de rodada',toxicRounds[2]]],
+            sources:['src/core/mechanics.js:calculateStat','server/authoritativeActions.js:resolveCombatAction','src/core/room.js:applyEndOfRoundEffects']},
         scale:{title:'A ficha de Pikachu é mostrada no modo RPG',reference:'RPG; mesma ficha nos valores originais e convertidos',
             setup:'Pikachu de teste no nível 5, Hardy, IVs 31 em todos os atributos e nenhum EV. Os valores abaixo vieram da construção real da ficha.',
             rows:[['HP máximo na ficha original',String(pika.originalStats.hp)],['HP máximo no RPG',String(pika.maxHp)],['Velocidade na ficha original',String(pika.originalStats.speed)],['Velocidade exibida no RPG',String(pika.stats.speed)]],

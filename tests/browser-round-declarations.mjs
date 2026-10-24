@@ -88,7 +88,7 @@ try {
         const choice = name => order.getByRole("combobox", { name: `Escolha de ${name} nesta rodada`, exact: true });
         assert.equal(await order.getByRole("combobox").count(), 2);
         for (const name of ["Mew", "Charmander", "Mewtwo"]) assert.equal(await choice(name).count(), 0);
-        assert.deepEqual(await choice("Bulbasaur").locator("option").allTextContents(), ["Aguardar / passar a vez", "Trocar Pokémon", "Improvisar / interagir", "Tentar fugir", "Tackle", "Quick Attack", "Growl", "Protect"]);
+        assert.deepEqual(await choice("Bulbasaur").locator("option").allTextContents(), ["Passar a vez", "Trocar Pokémon", "Improvisar", "Tentar fugir", "Tackle", "Quick Attack", "Growl", "Protect"]);
         checks.push(`${mode}: preparation includes only available Pokémon and every learned move plus all four specific actions`);
         for (const actionKind of ["improvise", "flee", "swap", "other"]) {
             await choice("Bulbasaur").selectOption(`action:${actionKind}`);
@@ -140,12 +140,12 @@ try {
         const initialPp = (await state()).tokens.map(token => token.pp);
         await choice("Bulbasaur").selectOption("protect");
         await order.getByRole("status").filter({ hasText: "Confirmando" }).waitFor();
-        assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).isDisabled(), true);
+        assert.equal(await order.getByRole("button", { name: "Definir a ordem", exact: true }).isDisabled(), true);
         assert.deepEqual((await state()).initiative, []);
         releaseFailure();
         await order.getByRole("alert").filter({ hasText: "Escolha novamente" }).waitFor();
         assert.equal(await choice("Bulbasaur").inputValue(), "action:other");
-        assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).isEnabled(), true);
+        assert.equal(await order.getByRole("button", { name: "Definir a ordem", exact: true }).isEnabled(), true);
         assert.deepEqual((await state()).tokens.map(token => token.pp), initialPp);
         await choice("Bulbasaur").selectOption("protect");
         await waitState("slow", "declaredMove", "protect");
@@ -158,14 +158,14 @@ try {
         await order.getByRole("alert").filter({ hasText: "sem PP" }).waitFor();
         assert.equal(await choice("Bulbasaur").inputValue(), "action:other");
         assert.deepEqual((await state()).tokens.map(token => token.pp), initialPp);
-        assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).isEnabled(), true);
+        assert.equal(await order.getByRole("button", { name: "Definir a ordem", exact: true }).isEnabled(), true);
         checks.push(`${mode}: zero PP choice is rejected without changing PP or leaving initiative blocked`);
         await choice("Bulbasaur").selectOption("quick-attack");
         await waitState("slow", "declaredMove", "quick-attack");
         await choice("Pikachu").selectOption("tackle");
         await waitState("fast", "declaredMove", "tackle");
         assert.deepEqual((await state()).tokens.map(token => token.pp), initialPp);
-        await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).click();
+        await order.getByRole("button", { name: "Definir a ordem", exact: true }).click();
         await waitState("", "turnIndex", 0);
         await page.waitForFunction(mode => {
             const saved = JSON.parse(localStorage.getItem(mode === "practice" ? "myowndex_local_dice_room_v1" : "myowndex_local_room_v1") || "null");
@@ -220,7 +220,7 @@ try {
         await waitState("fast", "declaredMove", "quick-attack");
         await choice("Bulbasaur").selectOption("tackle");
         await waitState("slow", "declaredMove", "tackle");
-        await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).click();
+        await order.getByRole("button", { name: "Definir a ordem", exact: true }).click();
         await page.waitForFunction(mode => {
             const saved = JSON.parse(localStorage.getItem(mode === "practice" ? "myowndex_local_dice_room_v1" : "myowndex_local_room_v1") || "null");
             return (mode === "practice" ? saved : saved?.snapshot)?.initiative[0] === "fast";

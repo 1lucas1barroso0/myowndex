@@ -125,5 +125,5 @@ html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical li::marke
 html .app-root.game-edition.handheld-edition .guide-rule-protection { scroll-margin-top: 1rem; }
 
 html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero::after { display:none !important; }
-html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero .pokemon-companion { width:76px !important; height:76px !important; min-width:76px !important; flex:0 0 76px !important; }
+html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero .pokemon-companion { width:96px !important; height:96px !important; min-width:96px !important; flex:0 0 96px !important; }
 html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero .pokemon-companion > .pokemon-sized-sprite { width:100% !important; height:100% !important; }

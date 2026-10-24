@@ -433,7 +433,7 @@ test("end-of-round residual damage is separate from hit kill protection and stay
   assert.equal(result.room.tokens.find(token => token.id === "burned").currentHp, 0);
   assert.equal(result.room.tokens.find(token => token.id === "poisoned").currentHp, 0);
   assert.equal(result.effects.length, 3);
-  assert.deepEqual(result.effects.slice(0, 2).map(effect => effect.sources[0]), ["queimadura", "tempestade de areia"]);
+  assert.deepEqual(result.effects.slice(0, 2).map(effect => effect.sources[0]), ["Burn", "tempestade de areia"]);
   assert.equal(result.effects[1].fainted, true);
 });
 

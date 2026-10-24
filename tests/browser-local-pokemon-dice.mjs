@@ -103,16 +103,16 @@ try {
     await dialog.locator(".local-pokemon-roster button").filter({hasText:"Buba"}).click();
     assert.equal((await fieldState()).phase,"batalha","the independent practice field always uses the complete battle tools");
     await conditions.getByRole("combobox",{name:/^Condição\b/}).selectOption("burn");
-    const initiative=dialog.getByRole("region",{name:"Iniciativa",exact:true});
+    const initiative=dialog.getByRole("region",{name:"Ordem da rodada",exact:true});
     assert.equal(await initiative.getByText("Como funciona",{exact:true}).count(),1);
     assert.equal(await initiative.locator(".local-field-initiative-help").evaluate(element=>element.open),false);
-    await initiative.getByRole("button",{name:"Rolar iniciativa",exact:true}).click();
+    await initiative.getByRole("button",{name:"Definir a ordem",exact:true}).click();
     await page.waitForFunction(()=>document.querySelectorAll(".local-field-turn-list li").length===2);
     const firstTurn=await initiative.locator("li[aria-current='step'] strong").innerText();
     assert.equal(await initiative.locator("li[aria-current='step']").count(),1);
     assert.match(await initiative.locator("li").first().innerText(),/Agora/);
     assert.equal(await initiative.getByRole("button",{name:"Refazer ordem",exact:true}).count(),0,"an active round never offers to replay its turn order");
-    assert.equal(await initiative.getByRole("button",{name:"Rolar iniciativa",exact:true}).count(),0,"initiative can only be rolled between rounds");
+    assert.equal(await initiative.getByRole("button",{name:"Definir a ordem",exact:true}).count(),0,"initiative can only be rolled between rounds");
     assert.equal(await combat.getByRole("combobox",{name:"Usuário",exact:true}).locator("option:checked").innerText(),firstTurn);
     await initiative.locator("li").last().getByRole("button").click();
     assert.equal(await initiative.locator("li[aria-current='step'] strong").innerText(),firstTurn,"selecting another partner does not consume a turn");
@@ -124,7 +124,7 @@ try {
     await initiative.getByRole("button",{name:"Encerrar rodada",exact:true}).click();
     await page.waitForFunction(()=>document.querySelector(".local-field-round")?.textContent.includes("Rodada 2"));
     assert.equal(await initiative.locator(".local-field-turn-list li").count(),0,"a new round waits for a fresh move order");
-    await initiative.getByRole("button",{name:"Rolar iniciativa",exact:true}).waitFor();
+    await initiative.getByRole("button",{name:"Definir a ordem",exact:true}).waitFor();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_dice_room_v1"))?.tokens.find(token=>token.name==="Buba")?.currentHp<5);
     const roundEffects=dialog.locator(".local-field-round-effects");
     assert.equal(await roundEffects.evaluate(element=>element.open),false);
@@ -227,7 +227,7 @@ try {
     pass("shared-combat-accuracy-damage-pp-and-box-isolation");
     pass("move-result-is-readable-with-optional-full-audit-and-one-history-receipt");
     for(const tool of [source,dispute,conditions])if(await tool.evaluate(element=>element.open))await tool.locator(":scope > summary").click();
-    await initiative.getByRole("button",{name:"Rolar iniciativa",exact:true}).click();
+    await initiative.getByRole("button",{name:"Definir a ordem",exact:true}).click();
     await page.waitForFunction(()=>document.querySelectorAll(".local-field-turn-list li").length>0);
     await page.setViewportSize({width:390,height:844});
     await initiative.scrollIntoViewIfNeeded();

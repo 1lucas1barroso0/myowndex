@@ -1,3 +1,4 @@
+import ConditionHelp from "./ConditionHelp.jsx";
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { applyStageChange, STAGE_LABELS } from "../../core/automation.js";
 import { formatName } from "../../core/mechanics.js";
@@ -24,7 +25,7 @@ import ExperienceAward from "./ExperienceAward.jsx";
 import { awardRoomPokemonExperience, getRoomBattleRewardContext } from "../../core/roomExperience.js";
 
 const initialField = () => normalizeLocalDiceRoom(createRoomSnapshot("Campo livre"));
-const actionLabel = { combat:"Movimento", capture:"Captura", "trainer-item":"Item do Treinador", initiative:"Iniciativa", "advance-turn":"Rodada", opposed:"Disputa" };
+const actionLabel = { combat:"Movimento", capture:"Captura", "trainer-item":"Item do Treinador", initiative:"Ordem da rodada", "advance-turn":"Rodada", opposed:"Disputa" };
 
 function actionReceipt(action, resolved, snapshot, context, request = {}) {
     const result = resolved.result || {};
@@ -328,13 +329,14 @@ export default function LocalPokemonDice({ teams = [], setTeams, snapshot: scene
             </div>{selectedToken && <div className="local-pokemon-status"><h4>{selectedToken.name}</h4><div className="local-dice-fields">
                 <label>HP atual<input type="number" min="0" max={selectedToken.maxHp} step="1" value={selectedToken.currentHp} onChange={event=>updateToken({...selectedToken,currentHp:Math.floor(Number(event.target.value))})} /></label>
                 <label>Condição<RoomSelect value={selectedToken.status} onChange={event=>updateToken({...selectedToken,status:event.target.value})}>{Object.entries(STATUS_LABELS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</RoomSelect></label>
+                <ConditionHelp status={selectedToken.status} />
                 {Object.entries(STAGE_LABELS).map(([key,label])=><label key={key}>{label}<RoomSelect value={selectedToken.stages?.[key] || 0} onChange={event=>updateToken(applyStageChange(selectedToken,key,Number(event.target.value)-(selectedToken.stages?.[key] || 0)))}>{Array.from({length:13},(_,index)=>index-6).map(stage=><option key={stage} value={stage}>{stage>0?`+${stage}`:stage}</option>)}</RoomSelect></label>)}
             </div>{role === "narrator" && <ExperienceAward key={selectedToken.id} winnerLevel={selectedToken.level} battleContext={getRoomBattleRewardContext(snapshot, selectedToken.id)} disabled={busy || accountApplying} onAward={awardExperience} />}
             {selectedToken.pendingEvs > 0 && <p className="token-growth-reserve">{selectedToken.pendingEvs} EVs para distribuir na ficha do PC.</p>}
             <TraitMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} /><SpecialMechanicsPanel token={selectedToken} snapshot={snapshot} role="narrator" onTokenChange={updateToken} onNotice={setNotice} />
             {!sceneSnapshot && <button type="button" onClick={()=>setPending(`remove:${selectedToken.id}`)}>Retirar do campo</button>}
             </div>}</div></details>}
-            {!sceneSnapshot && <details className="room-tool"><summary><strong>Batalha</strong></summary><div className="room-tool-body"><p>{snapshot.battleStarted ? "Escolha as ações antes de rolar a iniciativa de cada rodada. Para começar outro confronto, use Nova batalha." : "Treine movimentos livremente ou inicie uma batalha com rodadas e iniciativa."}</p><NewBattleButton onStart={async () => {
+            {!sceneSnapshot && <details className="room-tool"><summary><strong>Batalha</strong></summary><div className="room-tool-body"><p>{snapshot.battleStarted ? "Escolha as ações antes de definir a ordem da rodada de cada rodada. Para começar outro confronto, use Nova batalha." : "Treine movimentos livremente ou inicie uma batalha com rodadas e iniciativa."}</p><NewBattleButton onStart={async () => {
                 await runAction({ action: "start-battle" });
                 setRoundResult(null);
                 setOpposedResult(null);

@@ -24,14 +24,14 @@ export const GUIDE_WORKED_SCENES_3_4 = Object.freeze({
   },
   "3.3": {
     "quando": "Na vez do Pokémon que declarou um movimento e depois de verificar que sua ação é válida. O movimento dita a categoria, o alvo e o efeito.",
-    "cena": "Scyther usa Swords Dance. É um movimento de status que aumenta o Ataque do próprio Scyther em dois estágios, não uma tentativa de cortar o adversário. Mais tarde, Scyther usa Quick Attack, físico.",
+    "cena": "Scyther usa Swords Dance. É um movimento da categoria Status que aumenta o Ataque do próprio Scyther em dois estágios, não uma tentativa de cortar o adversário. Mais tarde, Scyther usa Quick Attack, físico.",
     "como": [
       "Na vez de Scyther, confirme que Swords Dance tem PP e não está bloqueado. Gaste seu uso válido e aumente apenas seu próprio Ataque; não role disputa física nem retire HP de Eevee por Swords Dance.",
       "Ao chegar a nova vez de Scyther, se escolher Quick Attack, confira a prioridade e faça a disputa de Ataque de Scyther contra Defesa do alvo. O aumento de Ataque de Swords Dance é aplicado aqui.",
       "Se Quick Attack vencer e o ataque for permitido, calcule seu Poder, bônus legítimos, tipos, variação e limite do RPG. Se fosse um movimento especial, usaria Ataque Especial em vez de aproveitar Swords Dance."
     ],
     "resultado": "Swords Dance fortalece Scyther sem causar dano no próprio turno; Quick Attack poderá se beneficiar depois, se Scyther conseguir atacar.",
-    "porQue": "Movimentos de status, físicos e especiais seguem suas descrições. Um fortalecimento não é um segundo ataque disfarçado."
+    "porQue": "Movimentos de apoio, físicos e especiais seguem suas descrições. Um fortalecimento não é um segundo ataque disfarçado."
   },
   "3.4": {
     "quando": "Quando o dano direto de um único movimento derrubaria um Pokémon que tinha HP cheio no começo daquela ação e ainda dispõe da proteção geral do RPG.",
@@ -90,7 +90,7 @@ export const GUIDE_WORKED_SCENES_3_4 = Object.freeze({
   },
   "4.2": {
     "quando": "Quando um Treinador decide tentar capturar um Pokémon selvagem consciente que pode ser capturado naquela cena. Em combate, só no momento de sua intervenção.",
-    "cena": "Eevee acompanha seu Treinador diante de um Pidgey selvagem de Kanto. O Pidgey de teste está com 1 de 3 HP, sem condição principal, e o Treinador tem uma Poké Ball. No caso auditado, a chance foi de 77% e saiu 51 no d100.",
+    "cena": "Eevee acompanha seu Treinador diante de um Pidgey selvagem de Kanto. O Pidgey de teste está com 1 de 3 HP, sem condição, e o Treinador tem uma Poké Ball. No caso auditado, a chance foi de 77% e saiu 51 no d100.",
     "como": [
       "Antes do lançamento, confirme espécie, taxa de captura, HP atual e máximo, condições, tipo de Ball e a intervenção disponível. Pidgey não é Pokémon de outro Treinador.",
       "Calcule a chance pela fórmula da regra completa. No caso auditado, 51 é menor que 77 e Pidgey é capturado. Se o resultado tivesse superado a chance, teria escapado.",

@@ -77,9 +77,9 @@ try {
         let order = page.locator(".turn-order");
         assert.equal(await order.getByRole("button", { name: "Próximo turno", exact: true }).count(), 0);
         assert.equal(await order.getByRole("button", { name: "Encerrar rodada", exact: true }).count(), 0);
-        assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).isEnabled(), true);
+        assert.equal(await order.getByRole("button", { name: "Definir a ordem", exact: true }).isEnabled(), true);
         assert.equal(await order.locator(".local-field-initiative-help").evaluate(element => element.open), false);
-        await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).click();
+        await order.getByRole("button", { name: "Definir a ordem", exact: true }).click();
         await page.waitForFunction(mode => {
             const saved = JSON.parse(localStorage.getItem(mode === "practice" ? "myowndex_local_dice_room_v1" : "myowndex_local_room_v1") || "null");
             return (mode === "practice" ? saved : saved?.snapshot)?.initiative.length === 2;
@@ -88,7 +88,7 @@ try {
         assert.equal(await order.locator("li[aria-current='step']").count(), 1);
         assert.match(await order.locator("li[aria-current='step']").innerText(), /Bulbasaur.*Agora/s);
         assert.equal(await order.getByRole("button", { name: "Refazer ordem", exact: true }).count(), 0);
-        assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).count(), 0);
+        assert.equal(await order.getByRole("button", { name: "Definir a ordem", exact: true }).count(), 0);
         checks.push(`${mode}: one action per state and priority orders only the two active visible Pokémon`);
 
         await order.getByRole("button", { name: "Próximo turno", exact: true }).click();
@@ -119,8 +119,8 @@ try {
         assert.equal(nextRound.turnIndex, 0);
         assert.ok([18, 19].includes(nextRound.tokens.find(token => token.id === "slow").currentHp), "burn applies once with the correct stochastic 1/16 rounding");
         assert.ok(nextRound.tokens.every(token => token.declaredMove === "" && token.priority === 0));
-        await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).waitFor();
-        assert.equal(await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).count(), 1);
+        await order.getByRole("button", { name: "Definir a ordem", exact: true }).waitFor();
+        assert.equal(await order.getByRole("button", { name: "Definir a ordem", exact: true }).count(), 1);
         assert.equal(await order.locator(".turn-order-list li").count(), 0);
         checks.push(`${mode}: end round applies effects, clears declarations, and waits for fresh initiative`);
 
@@ -131,7 +131,7 @@ try {
             return (mode === "practice" ? saved : saved?.snapshot)?.tokens.find(token => token.id === "fast")?.priority === 1;
         }, mode);
         await pane("Campo");
-        await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).click();
+        await order.getByRole("button", { name: "Definir a ordem", exact: true }).click();
         await page.waitForFunction(mode => {
             const saved = JSON.parse(localStorage.getItem(mode === "practice" ? "myowndex_local_dice_room_v1" : "myowndex_local_room_v1") || "null");
             return (mode === "practice" ? saved : saved?.snapshot)?.initiative[0] === "fast";

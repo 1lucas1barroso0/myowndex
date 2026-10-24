@@ -11,7 +11,7 @@ import {
     roundRpgScaledValue,
     safeDivide,
 } from "./math.js";
-import { RPG_STATUS_LABELS } from "./copy.js";
+import { CONDITION_HELP, RPG_STATUS_LABELS } from "./conditionHelp.js";
 import { rollPercentTest } from "./rpgRules.js";
 import { confusionDuration, sleepDuration, THAW_TARGET_MOVES } from "./battleConditions.js";
 import {
@@ -487,16 +487,16 @@ export const getStatusBlockReason = (status, target, attacker, { terrain = "nenh
         && !(isAbilityActive(target) && ability === "levitate")
         && !(isHeldItemActive(target) && normalizeSlug(target.item) === "air-balloon");
     if (grounded && terrain === "eletrico" && status === "sleep") return "o Terreno Elétrico impede o sono";
-    if (grounded && terrain === "nevoa" && status) return "o Terreno de Névoa impede condições principais";
+    if (grounded && terrain === "nevoa" && status) return "o Terreno de Névoa impede condições";
     if (ability === "comatose" || ability === "purifying-salt") return `a habilidade ${formatName(ability)} impede a condição`;
     if (STATUS_IMMUNE_ABILITIES[status]?.has(ability)) return `a habilidade ${formatName(ability)} impede a condição`;
-    if (status === "burn" && types.includes("fire")) return "Pokémon de Fogo não podem ser queimados";
-    if (status === "freeze" && types.includes("ice")) return "Pokémon de Gelo não podem ser congelados";
-    if (status === "paralysis" && types.includes("electric")) return "Pokémon Elétricos não podem ser paralisados";
+    if (status === "burn" && types.includes("fire")) return "Pokémon do tipo Fire não podem ser queimados";
+    if (status === "freeze" && types.includes("ice")) return "Pokémon do tipo Ice não podem ser congelados";
+    if (status === "paralysis" && types.includes("electric")) return "Pokémon do tipo Electric não podem ser paralisados";
     if (["poison", "bad-poison"].includes(status)
         && sourceAbility !== "corrosion"
         && types.some(type => type === "poison" || type === "steel")) {
-        return "a tipagem impede o envenenamento";
+        return "o tipo impede o veneno";
     }
     return "";
 };
@@ -1015,7 +1015,7 @@ export const applyMoveConsequences = ({
     const statusTarget = target || attacker;
     if (moveConnected && status && statusTarget && (!substituteBlockedTarget || statusTarget.id === attacker.id) && (!targetSecondariesBlocked || statusTarget.id === attacker.id)) {
         blockedStatus = statusTarget.status
-            ? `${statusTarget.name} já possui uma condição principal`
+            ? `${statusTarget.name} já possui uma condição`
             : getStatusBlockReason(status, statusTarget, attacker, { terrain: resolution.terrain });
         if (!blockedStatus) {
             const statusMove = move?.damage_class?.name === "status";
@@ -1059,7 +1059,7 @@ export const applyMoveConsequences = ({
     }
     if (moveConnected && moveName === "yawn" && statusTarget) {
         blockedStatus = statusTarget.status
-            ? `${statusTarget.name} já possui uma condição principal`
+            ? `${statusTarget.name} já possui uma condição`
             : getStatusBlockReason("sleep", statusTarget, attacker, { terrain: resolution.terrain });
         if (!blockedStatus) {
             const effects = normalizeVolatileEffects(statusTarget.volatileEffects)
@@ -1697,18 +1697,24 @@ export const applyMoveConsequences = ({
         const ratio = asNumber(entity.currentHp) / Math.max(1, asNumber(entity.maxHp, 1));
         const matchingStatus = STATUS_CURE_BERRIES[itemId];
         const berryMatchesStatus = Boolean(matchingStatus && [entity.status, entity.status === "bad-poison" ? "poison" : ""].includes(matchingStatus));
-        if ((itemId === "lum-berry" && entity.status) || berryMatchesStatus) {
+        const curesStatus = Boolean((itemId === "lum-berry" && entity.status) || berryMatchesStatus);
+        const curesConfusion = ["lum-berry", "persim-berry"].includes(itemId) && entity.volatileEffects?.some(effect => effect.id === "confusion");
+        if (curesStatus || curesConfusion) {
             const previousStatus = entity.status;
-            let changed = consumeTraitItem(entity, `${formatName(itemId)} curou ${RPG_STATUS_LABELS[previousStatus] || formatName(previousStatus)}`);
-            changed = recordTraitEvent({ ...changed, status: "", toxicCounter: 0 }, {
+            const cured = [curesStatus ? RPG_STATUS_LABELS[previousStatus] : "", curesConfusion ? CONDITION_HELP.confusion.label : ""].filter(Boolean).join(" e ");
+            let changed = consumeTraitItem(entity, `${formatName(itemId)} curou ${cured}`);
+            changed = recordTraitEvent({ ...changed,
+                ...(curesStatus ? { status: "", toxicCounter: 0, sleepTurns: null, freezeTurns: null } : {}),
+                ...(curesConfusion ? { volatileEffects: entity.volatileEffects.filter(effect => effect.id !== "confusion") } : {}),
+            }, {
                 kind: "item",
                 sourceId: itemId,
                 label: "Condição curada",
-                detail: `Removeu ${previousStatus}`,
+                detail: `Removeu ${cured}`,
                 round,
             });
             replaceEntity(changed.id, changed);
-            specialNarratives.push(`${formatName(itemId)} foi consumida e curou ${RPG_STATUS_LABELS[previousStatus] || formatName(previousStatus)} de ${changed.name}.`);
+            specialNarratives.push(`${formatName(itemId)} foi consumida e curou ${cured} de ${changed.name}.`);
             return changed;
         }
         if (itemId === "oran-berry" && ratio <= 1 / 2) {

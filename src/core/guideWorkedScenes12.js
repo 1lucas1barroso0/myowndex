@@ -79,7 +79,7 @@ export const GUIDE_WORKED_SCENES_1_2 = Object.freeze({
   },
   "2.3": {
     "quando": "Quando um movimento, habilidade ou outra condição realmente aumenta ou reduz um atributo, e na próxima vez que esse atributo for usado.",
-    "cena": "Bulbasaur usa Growl em Pikachu. Growl é um movimento de status que diminui o Ataque do alvo, se ele puder ser afetado; não diminui seu Ataque Especial. Depois Pikachu tenta Quick Attack, movimento físico.",
+    "cena": "Bulbasaur usa Growl em Pikachu. Growl é um movimento da categoria Status que diminui o Ataque do alvo, se ele puder ser afetado; não diminui seu Ataque Especial. Depois Pikachu tenta Quick Attack, movimento físico.",
     "como": [
       "Na vez de Bulbasaur, confirme que Growl foi permitido e aplicado. Anote um estágio a menos no Ataque de Pikachu; não retire HP de Pikachu por causa de Growl.",
       "Antes de Quick Attack, calcule o Ataque ajustado pelo estágio e compare-o com a Defesa do alvo numa disputa física. Se Pikachu escolhesse Thunder Shock, usaria Ataque Especial e não receberia a mesma redução de Growl.",

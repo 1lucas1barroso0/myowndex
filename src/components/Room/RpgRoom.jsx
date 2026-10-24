@@ -1,3 +1,5 @@
+import { CONDITION_HELP } from '../../core/conditionHelp.js';
+import ConditionHelp from "../Shared/ConditionHelp.jsx";
 import { formatGameFactor } from "../../core/integerRules.js";
 import { getRestBlockReason, restPokemon } from "../../core/adventureRules.js";
 import { revealInScrollArea } from "../../core/scroll.js";
@@ -102,6 +104,7 @@ const connectionLabels = {
 
 const roleLabel = role => role === "narrator" ? "Narrador" : "Jogador";
 const volatileEffectLabel = effect => {
+    if (CONDITION_HELP[effect.id]) return `${CONDITION_HELP[effect.id].label}${effect.sourceMove && effect.sourceMove !== effect.id ? ` por ${formatName(effect.sourceMove)}` : ""}`;
     const turns = effect.turns != null ? ` • ${formatCount(effect.turns, "rodada")}` : "";
     const amount = effect.amount != null ? ` • ${formatNumberPtBr(effect.amount)} HP` : "";
     if (effect.id === "yawn") return `Sonolento por Yawn${turns}`;
@@ -1726,6 +1729,7 @@ export default function RpgRoom({ teams, setTeams, onOpenGuide, onOpenPc, setNot
                                     {Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                                 </RoomSelect>
                             </label>
+                            <ConditionHelp status={selectedToken.status} />
                             {role === "narrator" && selectedBenchToken && (
                                 <div className="token-switch-control">
                                     <label>

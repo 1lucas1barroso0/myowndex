@@ -35,7 +35,7 @@ try {
     await pane('Campo');
     assert.equal(await combat.count(), 1);
     assert.equal(await capture.count(), 1);
-    await page.locator('.turn-order').getByRole('button', { name: 'Rolar iniciativa', exact: true }).click();
+    await page.locator('.turn-order').getByRole('button', { name: 'Definir a ordem', exact: true }).click();
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('myowndex_local_room_v1')).snapshot.initiative.length === 2);
     const initial = await state();
     await phase('exploracao');

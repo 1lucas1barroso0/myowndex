@@ -436,7 +436,7 @@ export default function CombatAssistant({
                 {guidedSequence && <p className="combat-special-block" role="status">{guidedSequence} Preparar este painel não gasta recursos.</p>}
                 {roundBlock && <p className="combat-special-block" role="status">{roundBlock}</p>}
                 {!canControlAttacker && role === "player" && (
-                    <p className="combat-permission-note">As escolhas da rodada ficam na Iniciativa. Você declara os Pokémon sob seu controle.</p>
+                    <p className="combat-permission-note">As escolhas da rodada ficam em Ordem da rodada. Você declara os Pokémon sob seu controle.</p>
                 )}
                 <button type="button" className="room-primary-button" disabled={!canResolve || running} onClick={resolve}>
                     {outOfPp

@@ -56,8 +56,8 @@ export const GUIDE_WORKED_SCENES_5_6 = Object.freeze({
     "porQue": "Relações avançam por acontecimentos narrados e cuidados relevantes, não pela repetição de botões ou pelo ganho automático de XP."
   },
   "6.1": {
-    "quando": "Assim que um Pokémon recebe uma condição válida e, depois, nos momentos previstos por ela: antes de agir ou no fim da rodada. Um Pokémon só tem uma condição principal por vez.",
-    "cena": "Jigglypuff usa Sing contra Eevee. Sing é um movimento de status que tenta adormecer o alvo; não causa dano direto. Se funcionar e Eevee puder dormir, ele passa a ter a condição Sono.",
+    "quando": "Assim que um Pokémon recebe uma condição válida e, depois, nos momentos previstos por ela: antes de agir ou no fim da rodada. Um Pokémon só tem uma condição por vez.",
+    "cena": "Jigglypuff usa Sing contra Eevee. Sing é um movimento da categoria Status que tenta adormecer o alvo; não causa dano direto. Se funcionar e Eevee puder dormir, ele passa a ter a condição Sleep e fica dormindo.",
     "como": [
       "Quando Jigglypuff declarar Sing, verifique a precisão própria do golpe e se Eevee pode receber sono. Uma falha de precisão não deixa Eevee dormindo.",
       "Se o sono for aplicado, anote sua duração e não troque a condição por veneno ou paralisia sem uma regra específica. Quando chegar a vez de Eevee usar Tackle, verifique o sono antes de gastar PP.",
@@ -71,7 +71,7 @@ export const GUIDE_WORKED_SCENES_5_6 = Object.freeze({
     "cena": "Em Scarlet/Violet, Ekans aprende Poison Sting no nível 4. Poison Sting é um movimento físico Poison, com Poder 15, precisão de 100%, 35 PP e chance de 30% de envenenar o alvo. Ele tenta o golpe contra um Pikachu válido. Ekans precisa agir, gastar o PP da tentativa e acertar; depois, o efeito extra de envenenamento também precisa passar no teste. Se Pikachu resistir ao veneno por uma imunidade ou proteção válida, não recebe a condição.",
     "como": [
       "No caso auditado, Ekans e Pikachu são do nível 5, natureza Hardy, IVs 31 e sem EVs. Pikachu começa com 3 de 3 HP. Ekans vence a disputa, Poison Sting causa um impacto válido e Pikachu fica com 2 de 3 HP. O efeito secundário também funciona, então anote Envenenado. O dano do impacto já aconteceu; ele não é o dano de fim de rodada.",
-      "Pikachu e os outros Pokémon ainda completam suas oportunidades da rodada. Só depois de todos terminarem aplique o veneno comum. Ele retira 1/8 do HP máximo; com os 3 HP máximos deste Pikachu, a fração é 3/8 de um HP.",
+      "Pikachu e os outros Pokémon ainda completam suas oportunidades da rodada. Só depois de todos terminarem aplique o Poison. Ele retira 1/8 do HP máximo; com os 3 HP máximos deste Pikachu, a fração é 3/8 de um HP.",
       "Como não existe HP fracionário, jogue um dado de oito faces uma única vez para essa aplicação: com 1, 2 ou 3, Pikachu perde 1 HP; com 4, 5, 6, 7 ou 8, perde 0. Essas duas possibilidades começam em 2 de 3 HP; nunca aplique as duas ao mesmo tempo.",
       "Se o primeiro resultado sair, Pikachu ficará com 1 de 3 HP; se o segundo ocorrer, permanece com 2 de 3 HP. Em ambos os casos continua envenenado. Na rodada seguinte faça um novo sorteio somente quando o próximo fim de rodada realmente acontecer."
     ],
@@ -91,24 +91,24 @@ export const GUIDE_WORKED_SCENES_5_6 = Object.freeze({
   },
   "6.4": {
     "quando": "Quando for necessário acompanhar a duração de um estágio, condição ou efeito de campo, principalmente ao trocar de Pokémon ou encerrar o confronto.",
-    "cena": "Geodude usa Defense Curl contra Eevee. Defense Curl é um movimento de status que aumenta em um estágio a Defesa do próprio Geodude. Não é um golpe ofensivo e não recupera HP.",
+    "cena": "Geodude usa Defense Curl contra Eevee. Defense Curl é um movimento da categoria Status que aumenta em um estágio a Defesa do próprio Geodude. Não é um golpe ofensivo e não recupera HP.",
     "como": [
       "Na vez de Geodude, confira a possibilidade de agir e gaste os PP válidos de Defense Curl. Anote +1 estágio de Defesa nele, e não em Eevee.",
       "Quando Eevee tentar Tackle, que é físico, use a Defesa original de Geodude já ajustada pelo estágio. Para Thunder Shock especial, a defesa relevante seria Defesa Especial, que Defense Curl não aumentou.",
-      "Quando Geodude trocar normalmente, remova esse aumento de Defesa e os efeitos voláteis que terminam na saída. Preserve HP, PP e condições persistentes; clima e terreno seguem sua própria duração."
+      "Quando Geodude trocar normalmente, remova esse aumento de Defesa e os efeitos temporários que terminam na saída. Preserve HP, PP e condições persistentes; clima e terreno seguem sua própria duração."
     ],
     "resultado": "Geodude pode resistir melhor a Tackle depois de Defense Curl, sem ganhar HP nem uma segunda vez.",
     "porQue": "Cada estágio precisa afetar exatamente o atributo e o alvo indicados pelo movimento; Defesa e Defesa Especial não são intercambiáveis."
   },
   "6.5": {
-    "quando": "Quando um Pokémon recebe Confusão ou Hesitação, que são efeitos temporários separados da condição principal, e quando chega sua oportunidade de agir.",
+    "quando": "Quando um Pokémon recebe Confusão ou Hesitação, que são efeitos temporários separados da condição, e quando chega sua oportunidade de agir.",
     "cena": "Em HeartGold/SoulSilver, Golbat usa Supersonic em Pikachu. Se a precisão funcionar e Pikachu puder ser afetado, ele fica confuso. Se Pikachu já estiver envenenado por outra causa, as duas coisas coexistem.",
     "como": [
       "Quando Supersonic funcionar, marque a confusão e sua duração própria; não marque veneno, pois Supersonic não causa veneno.",
       "Na oportunidade de Pikachu agir, faça a verificação de confusão antes do movimento. Se ocorrer autoataque, o Pokémon perde a ação planejada e se atinge usando sua própria força e defesa conforme a regra, sem tipo, STAB ou crítico inventados.",
-      "Se Pikachu for trocado por Bulbasaur, remova a confusão. Não remova o veneno que já estava registrado: a troca não curou a condição principal. Hesitação, por sua vez, só impede a próxima ação possível na mesma rodada."
+      "Se Pikachu for trocado por Bulbasaur, remova a confusão. Não remova o veneno que já estava registrado: a troca não curou a condição. Hesitação, por sua vez, só impede a próxima ação possível na mesma rodada."
     ],
-    "resultado": "Pikachu pode se atingir em vez de usar o movimento ou agir normalmente; a troca termina a confusão, mas não uma condição principal independente.",
+    "resultado": "Pikachu pode se atingir em vez de usar o movimento ou agir normalmente; a troca termina a confusão, mas não uma condição independente.",
     "porQue": "Misturar todos os efeitos num só marcador confunde quando eles começam, terminam e quais ações impedem."
   }
 });

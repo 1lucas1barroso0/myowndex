@@ -1,4 +1,6 @@
 import { GUIDE_PAPER_STEPS } from "./guidePaperSteps.js";
+import { GUIDE_PLAY_STEPS } from "./guidePlaySteps.js";
+import { getGuideConditionText } from './conditionHelp.js';
 import { GUIDE_WORKED_SCENES } from "./guideWorkedScenes.js";
 import { GUIDE_PLAYER_SCENES } from "./guidePlayerScenes.js";
 import { GUIDE_RULE_CONTEXTS } from "./guideRuleContexts.js";
@@ -20,7 +22,7 @@ export const createGuideSearchIndex = sections => ({
         text: normalizeSearch(`${section.number} ${section.title} ${section.summary}`),
         rules: section.rules.map(rule => {
             const text = [rule.id, `regra ${rule.number}`, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", GUIDE_RULE_CONTEXTS[rule.id] || "", ...GUIDE_PAPER_STEPS[rule.id], ...Object.values(GUIDE_WORKED_SCENES[rule.id]).flat(), rule.body || "", ...(rule.bullets || []), ...rule.steps, getGuideAuditText(rule.auditCase)].join(" ");
-            return { rule, text: normalizeSearch(`${text} ${legacySearchAliases(text)}`) };
+            return { rule, text: normalizeSearch(`${text} ${legacySearchAliases(text)} ${GUIDE_PLAY_STEPS[rule.id].join(' ')} ${getGuideConditionText(rule.id)} ${(rule.additionalAuditCases || []).map(getGuideAuditText).join(' ')}`) };
         }),
     })),
 });
@@ -42,10 +44,10 @@ export const searchGuideSections = (index, query) => {
 export const getGuideRuleSearchState = (rule, query) => {
     const searched = normalizeSearch(query);
     if (!searched) return { details: false, app: false };
-    const primary = normalizeSearch([rule.id, rule.title, rule.plain, rule.example, ...GUIDE_PAPER_STEPS[rule.id]].join(' '));
+    const primary = normalizeSearch([rule.id, rule.title, rule.plain, rule.example, ...GUIDE_PLAY_STEPS[rule.id], getGuideConditionText(rule.id)].join(' '));
     const primaryMatch = primary.includes(searched);
-    const audit = normalizeSearch(getGuideAuditText(rule.auditCase));
-    const advanced = normalizeSearch([rule.body || '', ...(rule.bullets || []), ...Object.values(GUIDE_WORKED_SCENES[rule.id]).flat(), audit].join(' '));
+    const audit = normalizeSearch([rule.auditCase, ...(rule.additionalAuditCases || [])].map(getGuideAuditText).join(' '));
+    const advanced = normalizeSearch([rule.body || '', ...(rule.bullets || []), ...GUIDE_PAPER_STEPS[rule.id], ...Object.values(GUIDE_WORKED_SCENES[rule.id]).flat(), audit].join(' '));
     return {
         details: (!primaryMatch && advanced.includes(searched)) || (/\d/.test(searched) && audit.includes(searched)),
         app: !primaryMatch && normalizeSearch(rule.steps.join(' ')).includes(searched),

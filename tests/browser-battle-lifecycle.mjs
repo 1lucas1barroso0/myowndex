@@ -88,7 +88,7 @@ try {
         const resourcesBefore = before.tokens.map(token => ({ id: token.id, hp: token.currentHp, pp: token.pp }));
         await order.getByRole("combobox", { name: "Escolha de Pikachu nesta rodada", exact: true }).selectOption("tackle");
         await wait(value => value.tokens.find(token => token.id === "fast").declaredMove === "tackle");
-        await order.getByRole("button", { name: "Rolar iniciativa", exact: true }).click();
+        await order.getByRole("button", { name: "Definir a ordem", exact: true }).click();
         const rolled = await wait(value => value.initiative.length === 2);
         assert.equal(rolled.battleStarted, true);
         assert.equal(rolled.tokens.find(token => token.id === "fast").declaredMove, "tackle");

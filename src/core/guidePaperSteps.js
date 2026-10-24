@@ -108,7 +108,7 @@ export const GUIDE_PAPER_STEPS = Object.freeze({
     "Some os cuidados cotidianos da sessão até seu limite; marcos distintos continuam separados. Perder uma disputa não tira Amizade automaticamente."
   ],
   "6.1": [
-    "Anote uma condição principal por Pokémon. Antes de cada oportunidade de agir, aplique apenas a verificação correspondente à condição daquela ficha.",
+    "Anote uma condição por Pokémon. Antes de cada oportunidade de agir, aplique apenas a verificação correspondente à condição daquela ficha.",
     "Se o efeito impedir a ação, passe a vez sem gastar PP do movimento. No fim da rodada, aplique apenas os efeitos que atuam nesse momento; mudar de parceiro não cura automaticamente."
   ],
   "6.2": [
@@ -120,11 +120,11 @@ export const GUIDE_PAPER_STEPS = Object.freeze({
     "Para recuo, aplique o custo previsto ao usuário; para Substitute, confirme que ele pode pagar pelo menos 1 HP. Cura não repõe automaticamente PP ou itens."
   ],
   "6.4": [
-    "Anote cada efeito, seu alvo, sua duração e o que o encerra. Uma troca comum remove estágios e efeitos voláteis de quem sai, mas não cura condições persistentes.",
+    "Anote cada efeito, seu alvo, sua duração e o que o encerra. Uma troca comum remove estágios e efeitos temporários de quem sai, mas não cura condições persistentes.",
     "Acompanhe clima e terreno separadamente. Aplique seus efeitos e avance suas durações no momento próprio; trocar um participante não encerra o campo inteiro."
   ],
   "6.5": [
-    "Anote confusão e hesitação à parte da condição principal. Na confusão, conte oportunidades próprias de agir e sorteie o risco de se atingir conforme a regra.",
+    "Anote confusão e hesitação à parte da condição. Na confusão, conte oportunidades próprias de agir e sorteie o risco de se atingir conforme a regra.",
     "Na hesitação, perca somente a próxima ação possível da mesma rodada. Ao trocar, elimine esses dois efeitos quando suas regras mandarem."
   ],
   "7.1": [
@@ -196,7 +196,7 @@ export const GUIDE_PAPER_STEPS = Object.freeze({
     "Durante a cena, mostre consequências e oportunidades reais de apoio, proteção ou retirada. Só use regras extras de raid se forem conhecidas e combinadas antes."
   ],
   "3.8": [
-    "Conclua as vezes dos participantes e os efeitos finais da rodada. Encerre o confronto e termine transformações, cópias temporárias, estágios e efeitos voláteis.",
+    "Conclua as vezes dos participantes e os efeitos finais da rodada. Encerre o confronto e termine transformações, cópias temporárias, estágios e efeitos temporários.",
     "Preserve HP, PP, condições persistentes e itens gastos. Registre a recompensa uma vez; só depois resolva crescimento ou descanso permitido. Outro confronto renova apenas recursos de uso por batalha."
   ],
   "4.5": [

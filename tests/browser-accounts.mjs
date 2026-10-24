@@ -366,7 +366,7 @@ try {
     await conditions.getByRole('combobox', { name: 'Condição', exact: true }).selectOption('paralysis');
     await conditions.getByRole('combobox', { name: 'Ataque', exact: true }).selectOption('2');
     const initiative = practice.locator('.local-pokemon-initiative');
-    await initiative.getByRole('button', { name: 'Rolar iniciativa', exact: true }).click();
+    await initiative.getByRole('button', { name: 'Definir a ordem', exact: true }).click();
     await initiative.locator('li').first().waitFor();
     await practice.getByRole('button', { name: 'Fechar dados', exact: true }).click();
     const practiceCloud = await eventually(async () => {

@@ -30,10 +30,14 @@ try {
     const smallEffects = guide.locator('[data-rule-id="6.2"]');
     await smallEffects.locator(':scope > summary').click();
     assert.match(await smallEffects.locator('.guide-short-example').innerText(), /Ekans.*Poison Sting.*Pikachu/);
+    const comparison = smallEffects.getByRole('region', { name: 'Poison e Badly Poisoned', exact: true });
+    assert.match(await comparison.innerText(), /A força aumenta mesmo se o Pokémon não perder vida/);
+    assert.match(await comparison.innerText(), /troca não cura por si só/);
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
     await smallEffects.locator('.guide-rule-full-rule > summary').click();
     assert.match(await smallEffects.locator('.guide-worked-scene').innerText(), /Tyranitar/);
-    assert.equal(await smallEffects.locator('.guide-rule-technical').evaluate(element => element.open), false, 'opening the explanation never forces technical mathematics');
+    assert.equal(await smallEffects.locator('[data-audit-case="poison-comparison"]').count(), 1);
+    assert.equal(await smallEffects.locator('[data-audit-case="poison"]').evaluate(element => element.open), false, 'opening the explanation never forces technical mathematics');
     assert.equal(await guide.getByText('Imagine um efeito de 3 partes em 16 de HP', { exact: false }).count(), 0, 'the unsupported numerical example is absent');
     await smallEffects.locator(':scope > summary').click();
     const searchFor = async value => {
@@ -71,7 +75,7 @@ try {
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), false, 'common search terms do not reveal equations');
             await searchFor('2 de 3 HP');
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), true, 'search reveals a match found in the audited case');
-            assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-technical').evaluate(element => element.open), true, 'an exact result search opens the reproducible case');
+            assert.equal(await guide.locator('[data-rule-id="6.2"] [data-audit-case="poison"]').evaluate(element => element.open), true, 'an exact result search opens the reproducible case');
             await searchFor('__nada_encontrado__');
             await guide.getByText('Nenhuma regra encontrada neste assunto. Tente outro termo ou selecione Todos.', { exact: true }).waitFor();
             await searchFor('');

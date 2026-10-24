@@ -32,14 +32,14 @@ export default function TurnOrder({ snapshot, onSelect, onRoll, onAdvance, onDec
 
     return <section className={`turn-order ${local ? "room-tool local-pokemon-initiative" : "room-section room-initiative"}`} aria-labelledby={titleId}>
         <header className="turn-order-heading local-field-turn-heading">
-            <Heading id={titleId}>Iniciativa</Heading>
+            <Heading id={titleId}>Ordem da rodada</Heading>
             <span className="turn-order-round local-field-round">{local && !snapshot.battleStarted ? "Treino livre" : <>Rodada <b>{snapshot.round}</b></>}</span>
         </header>
         {order.length > 0 ? <>
-            <p className="sr-only" role="status">{active ? `Turno de ${active.name}. Rodada ${snapshot.round}.` : `Rodada ${snapshot.round}.`}</p>
+            <p className="sr-only" role="status">{active ? `Vez de ${active.name}. Rodada ${snapshot.round}.` : `Rodada ${snapshot.round}.`}</p>
             <ol className="turn-order-list local-field-turn-list" aria-label="Ordem da rodada">
                 {order.map(({ token, index }) => <li key={token.id} aria-current={index === snapshot.turnIndex ? "step" : undefined} data-played={index < snapshot.turnIndex || undefined}>
-                    <button type="button" onClick={() => onSelect?.(token.id)} aria-label={`Selecionar ${token.name}, ${index + 1}º na iniciativa${index === snapshot.turnIndex ? ", turno atual" : ""}`}>
+                    <button type="button" onClick={() => onSelect?.(token.id)} aria-label={`Selecionar ${token.name}, ${index + 1}º na ordem da rodada${index === snapshot.turnIndex ? ", turno atual" : ""}`}>
                         <b className="turn-order-position local-field-turn-position">{index + 1}</b>
                         <PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" />
                         <span><strong>{token.name}</strong><small>{index === snapshot.turnIndex ? token.lastActionRound === snapshot.round ? "Ação feita" : "Agora" : index < snapshot.turnIndex ? "Já jogou" : "A seguir"}{` · ${roundActionLabel(token)}${token.declaredMove && token.priority ? ` (${token.priority > 0 ? "+" : ""}${token.priority})` : ""}`}</small></span>
@@ -56,10 +56,10 @@ export default function TurnOrder({ snapshot, onSelect, onRoll, onAdvance, onDec
         {!order.length && canRoll && onDeclareMove && <RoundDeclarations tokens={participants} onDeclareMove={onDeclareMove} canDeclareToken={canDeclareToken || (() => canControl)} disabled={busy} onPending={choicePending} />}
         {canControl && <div className="turn-order-actions local-field-turn-actions">
             {order.length > 0 ? <button type="button" className="room-primary-button" disabled={busy} onClick={onAdvance}>{lastTurn ? "Encerrar rodada" : "Próximo turno"}<span aria-hidden="true"> →</span></button>
-                : canRoll ? <button type="button" className="room-primary-button" disabled={busy || preparing} onClick={() => { if (!pendingChoices.current.size) onRoll(); }}><GameIcon name="dice" />Rolar iniciativa</button>
+                : canRoll ? <button type="button" className="room-primary-button" disabled={busy || preparing} onClick={() => { if (!pendingChoices.current.size) onRoll(); }}><GameIcon name="dice" />Definir a ordem</button>
                     : onChoosePokemon && <button type="button" disabled={busy} onClick={onChoosePokemon}>Escolher Pokémon</button>}
         </div>}
-        {snapshot.tokens.length > 0 && <details className="turn-order-help local-field-initiative-help"><summary>Como funciona</summary><p>Declare aqui antes de rolar. Prioridade maior age primeiro; na mesma prioridade, o MyOwnDex usa Speed e 2d6 para formar a ordem. Aguardar, improvisar, trocar e fugir usam prioridade 0.</p><p>Depois da rolagem, acompanhe Agora e use o botão que leva à jogada. Resolva ou registre a ação antes de avançar. A ordem permanece até encerrar a rodada; depois escolha novamente.</p>
+        {snapshot.tokens.length > 0 && <details className="turn-order-help local-field-initiative-help"><summary>Como funciona</summary><p>Declare aqui antes de rolar. Prioridade maior age primeiro; na mesma prioridade, o MyOwnDex usa a Velocidade e os dados para formar a ordem. Aguardar, improvisar, trocar e fugir usam prioridade 0.</p><p>Depois da rolagem, acompanhe Agora e use o botão que leva à jogada. Resolva ou registre a ação antes de avançar. A ordem permanece até encerrar a rodada; depois escolha novamente.</p>
             {snapshot.tokens.some(token => token.declaredMove) && <dl className="turn-order-moves" aria-label="Movimentos escolhidos">{snapshot.tokens.filter(token => token.declaredMove).map(token => <div key={token.id}><dt>{token.name}</dt><dd>{formatName(token.declaredMove)} · prioridade {token.priority > 0 ? `+${token.priority}` : token.priority}</dd></div>)}</dl>}
             {!canControl && <p>O Narrador avança os turnos e inicia cada rodada.</p>}</details>}
     </section>;

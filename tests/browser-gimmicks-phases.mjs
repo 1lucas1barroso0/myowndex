@@ -124,7 +124,7 @@ try{
     await reward.locator(".experience-manual-choice > summary").click();
     assert.equal(await reward.getByLabel("Substituir o resultado automático").isDisabled(),true,"An open battle cannot award XP");
     await page.getByRole("button",{name:"Encerrar batalha",exact:true}).click();
-    await page.getByRole("alertdialog",{name:"Encerrar esta batalha?",exact:true}).getByRole("button",{name:"Encerrar confronto",exact:true}).click();
+    await page.getByRole("alertdialog",{name:"Encerrar esta batalha?",exact:true}).getByRole("button",{name:"Encerrar batalha",exact:true}).click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem("myowndex_local_room_v1")).snapshot.battleEnded===true);
     await reward.getByLabel("Substituir o resultado automático").check();
     await reward.getByLabel("XP a conceder").fill("1.5");

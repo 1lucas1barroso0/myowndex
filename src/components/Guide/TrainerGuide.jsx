@@ -6,6 +6,8 @@ import PaperCalculations from "./PaperCalculations.jsx";
 import { getGuideLevelProgress } from "../../core/guideMath.js";
 import GuideAuditCase from './GuideAuditCase.jsx';
 import { GUIDE_PAPER_STEPS } from "../../core/guidePaperSteps.js";
+import { GUIDE_PLAY_STEPS } from "../../core/guidePlaySteps.js";
+import ConditionReference from './ConditionReference.jsx';
 import { GUIDE_WORKED_SCENES } from "../../core/guideWorkedScenes.js";
 import { createGuideSearchIndex, formatRuleForReading, getGuideRuleSearchState, searchGuideSections } from "../../core/guideSearch.js";
 import { integerInRange } from "../../core/math.js";
@@ -61,15 +63,21 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
             <div className="guide-rule-body">
                 <p className="guide-rule-lead">{rule.plain}</p>
                 <section className="guide-rule-paper-play" aria-label="Como jogar">
-                    <ol>{GUIDE_PAPER_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
+                    <ol>{GUIDE_PLAY_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
                 </section>
+                <ConditionReference ruleId={rule.id} query={query} />
                 <p className="guide-short-example"><strong>Por exemplo.</strong> {rule.example}</p>
                 <details className="guide-rule-full-rule" open={expanded}>
                     <summary onClick={event => { event.preventDefault(); setDetailChoice({ query, open: !expanded }); }}>Detalhes e exceções · {rule.id}</summary>
                     {expanded && <>
+                        <section className="guide-paper-procedure" aria-label="Procedimento com papel e dados">
+                            <h5>Como resolver com papel e dados</h5>
+                            <ol>{GUIDE_PAPER_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
+                        </section>
                         <RuleCanonicalText rule={rule} />
                         <WorkedScene id={rule.id} />
                         <GuideAuditCase caseId={rule.auditCase} expanded={detailMatch} />
+                        {rule.additionalAuditCases?.map(caseId => <GuideAuditCase key={caseId} caseId={caseId} expanded={detailMatch} />)}
                     </>}
                 </details>
                 <details className="guide-rule-app" open={appMatch}>
@@ -135,6 +143,15 @@ export default function TrainerGuide({ experienceMode }) {
                         <p>Uma pessoa narra o mundo; as outras escolhem o que seus Treinadores e Pokémon tentam. Tenham fichas, dados e algo para anotar. Contem o objetivo, combinem o risco e rolem apenas se houver uma dúvida importante.</p>
                         <p><strong>Turno</strong> é a vez de um Pokémon. <strong>Rodada</strong> é a volta completa: Pikachu age, Bulbasaur age e, depois das vezes de todos, vêm os efeitos finais.</p>
                         <p>Estas são adaptações para a mesa. Para começar, consultem Explorar e descobrir caminhos, Usar um movimento e Narrador e jogadores. As contas e exceções continuam disponíveis em cada regra.</p>
+                        <p>Os nomes de Pokémon, movimentos, habilidades, itens, tipos e condições seguem a referência oficial. As explicações em português ajudam a entender o que cada um faz.</p>
+                        <dl className="guide-word-help">
+                            <div><dt>Movimento</dt><dd>O golpe ou efeito que você escolhe usar, como Tackle ou Growl.</dd></div>
+                            <div><dt>Habilidade</dt><dd>Uma característica do Pokémon que funciona quando sua regra permite, como Static de Pikachu.</dd></div>
+                            <div><dt>Tipo</dt><dd>Uma característica do Pokémon ou do movimento. Pikachu é Electric; Tackle é Normal.</dd></div>
+                            <div><dt>Prioridade</dt><dd>Ajuda a decidir quem age primeiro. Quick Attack pode vir antes de um movimento mais lento na ordem, mesmo contra um Pokémon veloz.</dd></div>
+                            <div><dt>Estágio</dt><dd>Uma mudança temporária de atributo. Growl pode diminuir o Ataque do alvo.</dd></div>
+                            <div><dt>Status</dt><dd>Categoria de movimentos que mudam algo sem causar dano direto. Growl é dessa categoria. Ela é diferente da condição anotada na ficha.</dd></div>
+                        </dl>
                     </details>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>

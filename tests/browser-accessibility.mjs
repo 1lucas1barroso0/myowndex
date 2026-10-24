@@ -261,7 +261,7 @@ try {
         await localOrder.getByRole('combobox', { name: `Movimento de ${name} nesta rodada`, exact: true }).selectOption('tackle');
     }
     await checkpoint('Dados: escolhas de movimentos antes da iniciativa', [320, 1280]);
-    await dice.getByRole('button', { name: 'Rolar iniciativa', exact: true }).click();
+    await dice.getByRole('button', { name: 'Definir a ordem', exact: true }).click();
     // Both choices are fixed before rolling. Respect the actual rolled order
     // when opening Buba's move instead of letting QA attack out of turn.
     if (await localOrder.locator('li[aria-current="step"] strong').innerText() !== 'Buba') {

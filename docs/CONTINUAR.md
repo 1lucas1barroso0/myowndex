@@ -1,10 +1,12 @@
-# Estado atual — MyOwnDex 2.2.0
+# Estado atual — MyOwnDex 2.2.1
 
-**Versão atual: 2.2.0.**
+**Versão atual: 2.2.1.**
+
+A revisão 2.2.1 preserva os nomes oficiais, compartilha ajuda de condições, explica Poison e Badly Poisoned, simplifica a primeira leitura das 50 regras e corrige interações de condições com habilidades e Berries. O Noctowl fica mais legível no cabeçalho compacto.
 
 Rework integral do Guia: 50 regras, numeração contínua e IDs anteriores preservados. Procedimentos novos: 3.8 (encerrar confronto) e 4.5 (explorar). A regra 6.4 passa a tratar de durações; os estágios permanecem em 2.3. Explicações e exemplos curtos estão na fonte canônica. Busca, leitura em papel e ajuda de batalha acompanham a revisão. Cenas completas e casos reproduzidos são aprofundamento opcional, carregado quando aberto.
 
-Ver `REVISAO-GUIA-2.2.0.md` para escopo, evidências e limites. Registros anteriores abaixo são históricos.
+Ver `REVISAO-LINGUAGEM-2.2.1.md` e `REVISAO-GUIA-2.2.0.md` para escopo, evidências e limites. Registros anteriores abaixo são históricos.
 
 ---
 

@@ -29,7 +29,12 @@ test("indexed guide search preserves every rule, accents, section matches and di
     };
     const queries = ["", "  ", "AÇÃO", "acao", "dano", "12,5%", "1 em 8", "33,3%", "1 em 3", "3.4", "galho errado", "__sem_resultados__",
         ...sections.flatMap(section => [section.title, section.summary, ...section.rules.map(rule => rule.title)])];
-    for (const query of queries) assert.deepEqual(searchGuideSections(index, query), legacy(query), query);
+    for (const query of queries) {
+        const found = searchGuideSections(index, query).flatMap(section => section.rules.map(rule => rule.id));
+        const previous = legacy(query).flatMap(section => section.rules.map(rule => rule.id));
+        for (const id of previous) assert.ok(found.includes(id), `${query}: preserve ${id}`);
+    }
+    assert.deepEqual(searchGuideSections(index, '__sem_resultados__'), []);
     assert.deepEqual(searchGuideSections(index, "galho errado").flatMap(section => section.rules.map(rule => rule.id)), ["1.3"]);
     assert.strictEqual(searchGuideSections(index, ""), sections);
     assert.equal(JSON.stringify(sections), before);

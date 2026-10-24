@@ -82,6 +82,9 @@ try {
     await levelInput.focus();
     await levelInput.blur();
     assert.equal(await levelInput.inputValue(),'','leaving an empty field never invents a value');
+    await levelInput.fill('100');
+    assert.match(await guide.locator('#'+await levelInput.getAttribute('aria-describedby')).innerText(), /Nível máximo/);
+    assert.equal(await levelInput.getAttribute('max'),'100');
     await levelInput.fill('20');
     assert.equal(await rule.evaluate(element => element.open), true, 'calculator updates preserve the manually opened rule');
     assert.equal(await fullRule.evaluate(element => element.open), true, 'calculator updates preserve the full explanation too');
@@ -96,6 +99,15 @@ try {
     await protection.locator(':scope > summary').press('Enter');
     assert.equal(await protection.evaluate(element => element.open), false);
     checks.push('calculator, preserved disclosure, protection jump and keyboard toggle');
+    const paper=guide.locator('details').filter({has:page.locator(':scope > summary').filter({hasText:'Contas para jogar na mesa'})}).first();
+    await paper.locator(':scope > summary').click();
+    for(const width of [320,390,768,1280]){
+        await page.setViewportSize({width,height:844});
+        await paper.scrollIntoViewIfNeeded();
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Paper math must fit every screen');
+    }
+    assert.match(await paper.innerText(),/26 de 36/);
+    checks.push('level cap and exact paper probabilities at four widths');
     if (process.env.MYOWNDEX_REVIEW_IMAGES === '1') {
         for (const theme of ['Claro', 'Escuro']) {
             await page.getByRole('radio', { name: theme, exact: true }).click();

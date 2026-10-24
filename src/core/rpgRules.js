@@ -1,3 +1,4 @@
+import { PAPER_STAT_STEPS } from "./guideMath.js";
 import { convertToTTRPG } from "./mechanics.js";
 import { finiteNumberOrNull, integerInRange } from "./math.js";
 import { randomChoice, roll2D6, rollD6, rollD100 } from "./random.js";
@@ -5,8 +6,8 @@ import { randomChoice, roll2D6, rollD6, rollD100 } from "./random.js";
 export const FUMBLE_SUGGESTIONS = Object.freeze([
     "Seu Pokémon pode perder uma boa posição ou ficar exposto até a próxima ação.",
     "O movimento pode atingir o cenário e criar um novo problema.",
-    "A tentativa pode custar mais PP, um item ou tempo, se isso fizer sentido.",
-    "O oponente pode ganhar uma oportunidade. O Narrador decide como ela acontece.",
+    "A tentativa pode levar mais tempo ou prejudicar a posição, conforme o risco combinado antes dos dados. Não cobre PP ou itens extras depois de conhecer o resultado.",
+    "O oponente pode ganhar uma posição favorável. Isso não concede uma ação extra nem refaz um resultado já resolvido.",
 ]);
 
 export const getFumbleSuggestion = random =>
@@ -94,8 +95,8 @@ export const RPG_RULE_SECTIONS = [
                     "Dois 1: o Narrador e o grupo escolhem uma complicação que combine com a cena. Um erro crítico na defesa também pode complicar a situação; ele não retira a proteção contra hit kill sozinho.",
                     "Seu Pokémon pode perder uma boa posição ou ficar exposto até a próxima ação.",
                     "O movimento pode atingir o cenário e criar um novo problema.",
-                    "A tentativa pode custar mais PP, um item ou tempo, se isso fizer sentido.",
-                    "O oponente pode ganhar uma oportunidade. O Narrador decide como ela acontece."
+                    "A tentativa pode levar mais tempo ou prejudicar a posição, conforme o risco combinado antes dos dados. Não cobre PP ou itens extras depois de conhecer o resultado.",
+                    "O oponente pode ganhar uma posição favorável. Isso não concede uma ação extra nem refaz um resultado já resolvido."
                 ],
                 "example": "Bulbasaur usa Vine Whip para tentar alcançar uma corda. Se a tentativa der muito errado, as vinhas podem prender no galho errado e complicar a travessia. Essa é uma possibilidade da aventura, combinada com o Narrador, não um novo efeito oficial de Vine Whip.",
                 "context": "Dois resultados máximos só ajudam se a tentativa for válida e acertar. Dois resultados mínimos podem trazer uma complicação combinada, nunca um poder inventado para Bulbasaur.",
@@ -148,7 +149,7 @@ export const RPG_RULE_SECTIONS = [
                 "id": "2.1",
                 "title": "As forças do seu Pokémon",
                 "plain": "Cada Pokémon tem suas próprias forças. O MyOwnDex monta os atributos para você acompanhar sua aventura.",
-                "body": "Nível, IVs, EVs e natureza ajudam a formar os atributos, como nos jogos. IVs são características naturais; EVs vêm do treinamento; a natureza também influencia esses valores. Você pode usar os cálculos do aplicativo ou uma ficha pronta combinada com o Narrador.\n\nHP são os pontos de vida: mostram quanto seu parceiro ainda aguenta antes de desmaiar. PP são os pontos de poder: mostram quantas vezes ele pode usar cada movimento.",
+                "body": "Nível, IVs, EVs e natureza ajudam a formar os atributos, como nos jogos. IVs são características naturais; EVs vêm do treinamento; a natureza também influencia esses valores. Você pode usar os cálculos do aplicativo ou uma ficha pronta combinada com o Narrador.\n\nHP são os pontos de vida: mostram quanto seu parceiro ainda aguenta antes de desmaiar. PP são os pontos de poder: mostram quantas vezes ele pode usar cada movimento." + "\n\n" + PAPER_STAT_STEPS.join("\n\n"),
                 "example": "Dois Pikachu de Treinadores diferentes disputam uma corrida. Mesmo no mesmo nível, um pode ter mais Velocidade que o outro por causa de suas características e do treinamento. Abra as fichas para comparar os atributos.",
                 "context": "HP é a energia de cada Pikachu. PP pertence a cada movimento. Velocidade, Defesa e outros atributos também podem mudar com o treinamento e as condições da batalha.",
                 "steps": [

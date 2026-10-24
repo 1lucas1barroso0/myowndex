@@ -1,3 +1,4 @@
+import PaperCalculations from "../../../src/components/Guide/PaperCalculations.jsx";
 import Link from "next/link";
 import { RPG_RULE_SECTIONS } from "../../../src/core/rpgRules.js";
 import { GUIDE_PAPER_STEPS } from "../../../src/core/guidePaperSteps.js";
@@ -71,6 +72,7 @@ export default function LivroDeRegras() {
             </ol>
             <p>Para chances fracionárias que não cabem num dado de cem faces, sorteie partes de tamanho igual. Por exemplo, uma chance de 1 em 8 pode ser resolvida com um dado de oito faces: apenas o resultado 1 ativa o efeito. Não transforme uma probabilidade exata numa porcentagem aproximada sem combinar isso com o grupo.</p>
         </section>
+        <PaperCalculations />
         <nav aria-label="Sumário do livro" className="book-contents">
             <h2>Sumário</h2>
             <ol>{RPG_RULE_SECTIONS.map(section => <li key={section.id}><a href={`#secao-${section.number}`}>{section.number}. {section.title}</a></li>)}</ol>

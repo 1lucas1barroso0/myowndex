@@ -48,3 +48,9 @@ body:has(.book-reader) { background:#F8FAFC !important; }
 .book-reader .book-worked-example ol { margin:.3rem 0 1rem; }
 .book-reader .book-worked-example li { margin-bottom:.45rem; }
 @media print { .book-reader .book-worked-example h5 { break-after:avoid; } .book-reader .book-worked-example li { break-inside:avoid; } }
+
+.book-reader > .guide-paper-calculations { margin-block:2rem; line-height:1.7; }
+.book-reader > .guide-paper-calculations :is(th,td) { padding:.5rem; text-align:left; border-bottom:1px solid #889; }
+.book-reader > .guide-paper-calculations table { width:100%; border-collapse:collapse; }
+.book-reader > .guide-paper-calculations h3 { margin-block:1rem .5rem; }
+.book-reader > .guide-paper-calculations ol { padding-left:1.5rem; }

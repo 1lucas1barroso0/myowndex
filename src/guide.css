@@ -166,3 +166,12 @@ html .app-root.game-edition.handheld-edition .guide-worked-part ol li { line-hei
   html .app-root.game-edition.handheld-edition .guide-terms-inline { column-gap:.75rem !important; font-size:.86rem !important; }
   html .app-root.game-edition.handheld-edition .guide-worked-scene { gap:.8rem !important; }
 }
+
+/* Paper calculations remain a secondary reading task, with one shared layout. */
+.guide-paper-calculations { min-width:0; line-height:1.7; }
+.guide-paper-calculations h3 { font-weight:800; margin:1.25rem 0 .65rem; }
+.guide-paper-calculations ol { padding-inline-start:1.4rem; }
+.guide-paper-calculations li,.guide-paper-calculations p { margin-block:.7rem; }
+.guide-paper-calculations table { width:100%; border-collapse:collapse; font-size:.9rem; }
+.guide-paper-calculations :is(th,td) { padding:.5rem; text-align:start; border-bottom:1px solid var(--ui-line,#89969c); }
+.guide-paper-calculations caption { text-align:start; margin-block:.5rem; }

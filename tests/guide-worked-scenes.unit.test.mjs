@@ -10,8 +10,8 @@ import { createGuideSearchIndex, searchGuideSections } from "../src/core/guideSe
 const rules = RPG_RULE_SECTIONS.flatMap(section => section.rules);
 const ids = rules.map(rule => rule.id).sort();
 
-test("every one of the 48 rules explains trigger, actors, resolution, consequence and why", () => {
-    assert.equal(rules.length, 48);
+test("every one of the 50 rules explains trigger, actors, resolution, consequence and why", () => {
+    assert.equal(rules.length, 50);
     assert.deepEqual(Object.keys(GUIDE_WORKED_SCENES).sort(), ids);
     assert.deepEqual(Object.keys(GUIDE_PAPER_STEPS).sort(), ids);
     for (const id of ids) {

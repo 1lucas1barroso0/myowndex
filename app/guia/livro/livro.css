@@ -8,7 +8,9 @@ body:has(.book-reader) { background:#F8FAFC !important; }
 .book-reader p { margin:0 0 .9rem; }
 .book-reader ul,.book-reader ol { padding-left:1.55rem; margin:.4rem 0 1.1rem; }
 .book-reader li { padding-left:.12rem; margin:.3rem 0; }
-.book-reader a { color:var(--book-accent); }
+.book-reader ol { list-style:decimal !important; }
+.book-reader ul { list-style:disc !important; }
+.book-reader a { color:var(--book-accent) !important; }
 .book-reader .book-toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem; margin-bottom:2rem; }
 .book-reader .book-print-button { min-height:44px; padding:.65rem 1rem; background:#075985; border:2px solid #075985; color:white; font:inherit; font-weight:700; border-radius:.65rem; cursor:pointer; }
 .book-reader .book-print-button:focus-visible,.book-reader a:focus-visible { outline:3px solid #EF4444; outline-offset:3px; }
@@ -40,7 +42,7 @@ body:has(.book-reader) { background:#F8FAFC !important; }
 @media (max-width:480px) { .book-reader { width:calc(100% - 1.4rem); } .book-reader .book-audit dl > div { grid-template-columns:minmax(0,1fr); gap:.1rem; } .book-reader .book-cover { padding-top:1rem; } }
 @media print { @page { size:A4; margin:15mm 17mm; } html,body { background:white !important; color:#000 !important; } .book-reader { width:100%; max-width:none; margin:0; padding:0; font-size:10.5pt; line-height:1.47; color:#000; } .book-reader .book-toolbar { display:none !important; } .book-reader .book-cover { break-after:page; border-top-color:#000; } .book-reader .book-chapter { break-before:page; } .book-reader .book-rule h3,.book-reader .book-rule h4,.book-reader .book-chapter-header { break-after:avoid; } .book-reader .book-procedure,.book-reader .book-audit { background:white !important; border-color:#777; } .book-reader .book-audit dl > div { break-inside:avoid; } .book-reader a { color:inherit; text-decoration:none; } .book-reader .book-contents { break-after:page; } .book-reader .book-contents li { margin:.15rem 0; } }
 
-/* Livro: explicação desenvolvida antes do procedimento resumido e das exceções. */
+/* Full scenes are available without making every rule a long first read. */
 .book-reader .book-worked-example { margin:1.2rem 0; border-top:1px solid var(--book-line); padding-top:.9rem; }
 .book-reader .book-worked-example h4 { font-size:1.07rem; font-weight:800; margin:0 0 .65rem; }
 .book-reader .book-worked-example h5 { font-size:.95rem; font-weight:750; margin:.75rem 0 .22rem; }
@@ -54,3 +56,6 @@ body:has(.book-reader) { background:#F8FAFC !important; }
 .book-reader > .guide-paper-calculations table { width:100%; border-collapse:collapse; }
 .book-reader > .guide-paper-calculations h3 { margin-block:1rem .5rem; }
 .book-reader > .guide-paper-calculations ol { padding-left:1.5rem; }
+
+.book-reader .book-rule h3 small { font-size:.75em; font-weight:400; color:var(--book-accent); }
+.book-reader .book-worked-details > summary { cursor:pointer; min-height:44px; padding:.65rem 0; font-weight:700; }

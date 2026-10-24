@@ -18,13 +18,21 @@ try {
     await search.waitFor();
     assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
     assert.deepEqual((await guide.locator('.guide-rule-card').evaluateAll(cards => cards.map(card => card.dataset.ruleId))).sort(), expectedRuleIds);
-    assert.equal(await guide.locator('.guide-rule-story').count(), expectedRuleIds.length - 1, 'every ordinary rule has an actual Pokémon scene; 3.4 has its own illustrated explanation');
+    const subjects = await guide.locator('.guide-chapters button').evaluateAll(buttons => buttons.map(button => ({
+        width: button.getBoundingClientRect().width, height: button.getBoundingClientRect().height,
+        parent: button.parentElement.getBoundingClientRect().width,
+    })));
+    assert.ok(subjects.every(button => button.width < button.parent / 2 && button.height >= 44), 'subjects stay compact and touch accessible');
+    assert.ok(await guide.locator('.guide-hero').evaluate(element => element.getBoundingClientRect().height <= 100), 'the guide header leaves room for reading');
+
+    assert.equal(await guide.locator('.guide-short-example').count(), expectedRuleIds.length, 'every rule has a concise Pokémon example');
+    assert.equal(await guide.locator('.guide-worked-scene').count(), 0, 'full scenes mount only on demand');
     const smallEffects = guide.locator('[data-rule-id="6.2"]');
     await smallEffects.locator(':scope > summary').click();
-    assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Ekans.*Poison Sting.*Pikachu/);
+    assert.match(await smallEffects.locator('.guide-short-example').innerText(), /Ekans.*Poison Sting.*Pikachu/);
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
     await smallEffects.locator('.guide-rule-full-rule > summary').click();
-    assert.match(await smallEffects.locator('.guide-rule-context').innerText(), /Tyranitar.*Sand Stream.*Pikachu/);
+    assert.match(await smallEffects.locator('.guide-worked-scene').innerText(), /Tyranitar/);
     assert.equal(await smallEffects.locator('.guide-rule-technical').evaluate(element => element.open), false, 'opening the explanation never forces technical mathematics');
     assert.equal(await guide.getByText('Imagine um efeito de 3 partes em 16 de HP', { exact: false }).count(), 0, 'the unsupported numerical example is absent');
     await smallEffects.locator(':scope > summary').click();
@@ -36,6 +44,16 @@ try {
     assert.equal(await guide.locator('[data-rule-id="6.2"] [data-audit-case="poison"]').evaluate(element=>element.open),true,'search opens the explanation of alternative outcomes');
     assert.match(await guide.locator('[data-audit-case="poison"] .guide-audit-intro').innerText(),/não aplique os dois na mesma rodada/);
     await searchFor('');
+    await guide.getByRole('button', { name: 'Batalha', exact: true }).click();
+    assert.equal(await guide.locator('.guide-rule-card').count(), 8);
+    await searchFor('Tackle');
+    assert.ok((await guide.locator('.guide-rule-card').count()) > 0);
+    await guide.getByRole('button', { name: 'Todos', exact: true }).click();
+    await searchFor('regra 50');
+    assert.equal(await guide.locator('.guide-rule-card').count(), 1);
+    assert.equal(await guide.locator('.guide-rule-card').getAttribute('data-rule-id'), '8.10');
+    await searchFor('');
+    checks.push('topic filtering and reading number 50');
     for (const theme of ['Claro', 'Escuro']) {
         await page.getByRole('radio', { name: theme, exact: true }).click();
         for (const width of [320, 390, 768, 1280, 1440]) {
@@ -55,7 +73,7 @@ try {
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), true, 'search reveals a match found in the audited case');
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-technical').evaluate(element => element.open), true, 'an exact result search opens the reproducible case');
             await searchFor('__nada_encontrado__');
-            await guide.getByText('Nenhuma regra encontrada. Tente outro termo.', { exact: true }).waitFor();
+            await guide.getByText('Nenhuma regra encontrada neste assunto. Tente outro termo ou selecione Todos.', { exact: true }).waitFor();
             await searchFor('');
             assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
             timings.push({ theme, width, sequenceMs: Date.now() - started });
@@ -69,7 +87,7 @@ try {
     assert.equal(await rule.evaluate(element => element.open), true);
     const fullRule = rule.locator('.guide-rule-full-rule');
     assert.equal(await fullRule.evaluate(element => element.open), false, 'the readable scene comes before optional details');
-    assert.match(await rule.locator('.guide-rule-story').innerText(), /Pikachu.*Pidgey.*Velocidade/);
+    assert.match(await rule.locator('.guide-short-example').innerText(), /Pikachu.*Pidgey.*Velocidade/);
     await fullRule.locator(':scope > summary').press('Enter');
     assert.equal(await fullRule.evaluate(element => element.open), true, 'plain-language explanation is keyboard accessible');
     const technicalRule = fullRule.locator('.guide-rule-technical');
@@ -94,7 +112,7 @@ try {
     const protection = guide.locator('[data-rule-id="3.4"]');
     await page.waitForFunction(() => document.querySelector('[data-rule-id="3.4"]')?.open);
     assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
-    assert.equal(await protection.locator('.guide-hit-kill-full-rule').evaluate(element => element.open), true);
+    assert.equal(await protection.locator('.guide-rule-full-rule').evaluate(element => element.open), true);
     assert.equal(await protection.locator(':scope > summary').evaluate(element => element === document.activeElement), true);
     await protection.locator(':scope > summary').press('Enter');
     assert.equal(await protection.evaluate(element => element.open), false);

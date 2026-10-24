@@ -16,15 +16,15 @@ const sequence = values => {
   return () => values[index++] ?? values.at(-1) ?? 0;
 };
 
-test("trainer guide contains exactly 48 distinct rules across every canonical chapter", () => {
+test("trainer guide contains exactly 50 distinct rules across every canonical chapter", () => {
   assert.deepEqual(RPG_RULE_SECTIONS.map(section => section.number), [1, 2, 3, 4, 5, 6, 7, 8]);
-  const expectedIds = [5, 5, 7, 4, 5, 5, 7, 10].flatMap((count, chapter) =>
+  const expectedIds = [5, 5, 8, 5, 5, 5, 7, 10].flatMap((count, chapter) =>
     Array.from({ length: count }, (_, rule) => `${chapter + 1}.${rule + 1}`)
   );
   const rules = RPG_RULE_SECTIONS.flatMap(section => section.rules);
-  assert.equal(rules.length, 48);
-  assert.equal(new Set(rules.map(rule => rule.id)).size, 48);
-  assert.equal(new Set(rules.map(rule => rule.title)).size, 48);
+  assert.equal(rules.length, 50);
+  assert.equal(new Set(rules.map(rule => rule.id)).size, 50);
+  assert.equal(new Set(rules.map(rule => rule.title)).size, 50);
   assert.deepEqual(rules.map(rule => rule.id), expectedIds);
   for (const rule of rules) {
     assert.ok(rule.body || rule.bullets?.length, `${rule.id} must contain its rule`);

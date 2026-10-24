@@ -1,6 +1,7 @@
 import React from "react";
 import { RPG_RULE_SECTIONS } from "../../core/rpgRules.js";
 import GuideAuditCase from '../Guide/GuideAuditCase.jsx';
+import RuleText from './RuleText.jsx';
 
 const protectionRule = RPG_RULE_SECTIONS.flatMap(section => section.rules).find(rule => rule.id === "3.4");
 
@@ -24,7 +25,7 @@ export default function HitKillExplanation({ expanded = false }) {
             <details className="guide-hit-kill-full-rule" open={expanded}>
                 <summary>Regra completa</summary>
                 <div className="guide-hit-kill-canonical">
-                    <ul>{protectionRule?.steps.map(text => <li key={text}>{text}</li>)}</ul>
+                    <RuleText rule={protectionRule} />
                     <GuideAuditCase caseId={protectionRule?.auditCase} expanded={expanded} />
                 </div>
             </details>

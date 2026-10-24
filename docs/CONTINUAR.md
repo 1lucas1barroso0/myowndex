@@ -1,6 +1,16 @@
+# Estado atual — MyOwnDex 2.2.0
+
+**Versão atual: 2.2.0.**
+
+Rework integral do Guia: 50 regras, numeração contínua e IDs anteriores preservados. Procedimentos novos: 3.8 (encerrar confronto) e 4.5 (explorar). A regra 6.4 passa a tratar de durações; os estágios permanecem em 2.3. Explicações e exemplos curtos estão na fonte canônica. Busca, leitura em papel e ajuda de batalha acompanham a revisão. Cenas completas e casos reproduzidos são aprofundamento opcional, carregado quando aberto.
+
+Ver `REVISAO-GUIA-2.2.0.md` para escopo, evidências e limites. Registros anteriores abaixo são históricos.
+
+---
+
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.13.**
+Versão histórica: 2.1.13.
 
 Revisão: `REVISAO-INTEGRADA-2.1.13.md`. As 48 regras e os exemplos foram preservados; cálculos em papel, probabilidades verificáveis, custos de erro crítico, limite de nível do Guia e foco da escrita de movimentos foram alinhados ao funcionamento.
 

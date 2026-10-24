@@ -19,7 +19,7 @@ export const createGuideSearchIndex = sections => ({
         section,
         text: normalizeSearch(`${section.number} ${section.title} ${section.summary}`),
         rules: section.rules.map(rule => {
-            const text = [rule.id, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", GUIDE_RULE_CONTEXTS[rule.id] || "", ...GUIDE_PAPER_STEPS[rule.id], ...Object.values(GUIDE_WORKED_SCENES[rule.id]).flat(), rule.body || "", ...(rule.bullets || []), ...rule.steps, getGuideAuditText(rule.auditCase)].join(" ");
+            const text = [rule.id, `regra ${rule.number}`, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", GUIDE_RULE_CONTEXTS[rule.id] || "", ...GUIDE_PAPER_STEPS[rule.id], ...Object.values(GUIDE_WORKED_SCENES[rule.id]).flat(), rule.body || "", ...(rule.bullets || []), ...rule.steps, getGuideAuditText(rule.auditCase)].join(" ");
             return { rule, text: normalizeSearch(`${text} ${legacySearchAliases(text)}`) };
         }),
     })),
@@ -28,8 +28,26 @@ export const createGuideSearchIndex = sections => ({
 export const searchGuideSections = (index, query) => {
     const normalized = normalizeSearch(query);
     if (!normalized) return index.sections;
+    const numbered = normalized.match(/^(?:regra\s+|#)(\d{1,2})$/);
+    if (numbered) return index.sections.map(section => ({ ...section,
+        rules: section.rules.filter(rule => rule.number === Number(numbered[1])),
+    })).filter(section => section.rules.length);
     return index.rows.map(({ section, text, rules }) => text.includes(normalized) ? section : {
         ...section,
         rules: rules.filter(row => row.text.includes(normalized)).map(row => row.rule),
     }).filter(section => section.rules.length);
+};
+
+/** Reveal the part that actually contains the match, not every hidden layer. */
+export const getGuideRuleSearchState = (rule, query) => {
+    const searched = normalizeSearch(query);
+    if (!searched) return { details: false, app: false };
+    const primary = normalizeSearch([rule.id, rule.title, rule.plain, rule.example, ...GUIDE_PAPER_STEPS[rule.id]].join(' '));
+    const primaryMatch = primary.includes(searched);
+    const audit = normalizeSearch(getGuideAuditText(rule.auditCase));
+    const advanced = normalizeSearch([rule.body || '', ...(rule.bullets || []), ...Object.values(GUIDE_WORKED_SCENES[rule.id]).flat(), audit].join(' '));
+    return {
+        details: (!primaryMatch && advanced.includes(searched)) || (/\d/.test(searched) && audit.includes(searched)),
+        app: !primaryMatch && normalizeSearch(rule.steps.join(' ')).includes(searched),
+    };
 };

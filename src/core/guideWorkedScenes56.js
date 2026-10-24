@@ -90,12 +90,12 @@ export const GUIDE_WORKED_SCENES_5_6 = Object.freeze({
     "porQue": "Drenagem depende do que aconteceu com o alvo, enquanto cura, recuo e custos seguem causas e limites distintos."
   },
   "6.4": {
-    "quando": "Quando uma ação muda explicitamente Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão ou Evasão.",
+    "quando": "Quando for necessário acompanhar a duração de um estágio, condição ou efeito de campo, principalmente ao trocar de Pokémon ou encerrar o confronto.",
     "cena": "Geodude usa Defense Curl contra Eevee. Defense Curl é um movimento de status que aumenta em um estágio a Defesa do próprio Geodude. Não é um golpe ofensivo e não recupera HP.",
     "como": [
       "Na vez de Geodude, confira a possibilidade de agir e gaste os PP válidos de Defense Curl. Anote +1 estágio de Defesa nele, e não em Eevee.",
       "Quando Eevee tentar Tackle, que é físico, use a Defesa original de Geodude já ajustada pelo estágio. Para Thunder Shock especial, a defesa relevante seria Defesa Especial, que Defense Curl não aumentou.",
-      "Respeite o limite de +6 estágios e as habilidades que realmente ignoram estágios específicos. Uma troca ou fim de batalha pode encerrar ajustes temporários conforme a regra da cena."
+      "Quando Geodude trocar normalmente, remova esse aumento de Defesa e os efeitos voláteis que terminam na saída. Preserve HP, PP e condições persistentes; clima e terreno seguem sua própria duração."
     ],
     "resultado": "Geodude pode resistir melhor a Tackle depois de Defense Curl, sem ganhar HP nem uma segunda vez.",
     "porQue": "Cada estágio precisa afetar exatamente o atributo e o alvo indicados pelo movimento; Defesa e Defesa Especial não são intercambiáveis."

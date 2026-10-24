@@ -1,6 +1,10 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.5.**
+**Versão atual: 2.1.6.**
+
+A 2.1.6 corrige a leitura do Guia observada em captura real: cada uma das 48 regras possui uma orientação curta de jogo, seguida de exemplo com Pokémon. Os detalhes numéricos, exceções e procedimentos completos continuam disponíveis em “Ver detalhes e exceções”, mas não aparecem automaticamente na leitura comum. A pesquisa mantém as referências técnicas encontráveis e revela o detalhamento quando a correspondência existe apenas nele. A regra 3.4 mantém a explicação visual própria. A seção de veneno/clima foi renomeada e simplificada sem tocar nas funções. Consulte `GUIA-JOGADORES-2.1.6.md`.
+
+A 2.1.5 permanece como base, com os mesmos 48 exemplos e a integridade das mecânicas.
 
 A 2.1.5 troca exemplos de contas por cenas com Pokémon, movimentos e ações compatíveis, mantendo nomes originais e o jogo de referência quando necessário. Dezesseis regras com contas ou exceções mais extensas oferecem o texto completo sob demanda, depois da explicação e do exemplo. O Guia e os painéis de sobrevivência continuam usando a mesma fonte. Consulte `EXEMPLOS-LEGITIMOS-2.1.5.md`. Nenhuma função de cálculo, recompensa, dado de espécie ou ficha salva foi alterada.
 

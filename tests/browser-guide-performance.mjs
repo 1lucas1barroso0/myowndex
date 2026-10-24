@@ -24,7 +24,7 @@ try {
     assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Pikachu está envenenado/);
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
     await smallEffects.locator('.guide-rule-full-rule > summary').click();
-    assert.match(await smallEffects.locator('.guide-rule-context').innerText(), /Ekans.*Poison Sting.*Pikachu/);
+    assert.match(await smallEffects.locator('.guide-rule-context').innerText(), /Poison Sting.*Ekans.*dano/);
     assert.equal(await smallEffects.locator('.guide-rule-technical').evaluate(element => element.open), false, 'opening the explanation never forces technical mathematics');
     assert.equal(await smallEffects.getByText('Imagine um efeito de 3 partes em 16 de HP', { exact: false }).isVisible(), false, 'advanced arithmetic stays optional');
     await smallEffects.locator(':scope > summary').click();

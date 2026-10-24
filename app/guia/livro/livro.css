@@ -1,4 +1,7 @@
 /* Livro de leitura e impressão independente do layout do aplicativo. */
+body:has(.book-reader) { background:#F8FAFC !important; }
+.book-reader { background:#fff; }
+
 .book-reader { --book-ink:#0F172A; --book-accent:#075985; --book-line:#CBD5E1; box-sizing:border-box; width:min(100% - 2rem,54rem); margin:0 auto; padding:1.25rem 0 5rem; color:var(--book-ink); font-family:Arial,Helvetica,sans-serif; line-height:1.65; font-size:1rem; overflow-wrap:break-word; }
 .book-reader *, .book-reader *::before, .book-reader *::after { box-sizing:border-box; }
 .book-reader h1,.book-reader h2,.book-reader h3,.book-reader h4 { color:var(--book-ink); line-height:1.3; margin:0 0 .65rem; font-weight:750; }

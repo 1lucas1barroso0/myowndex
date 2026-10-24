@@ -1,6 +1,10 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.7.**
+**Versão atual: 2.1.8.**
+
+A 2.1.8 reforça a explicação concreta de cada regra: 48 cenas e 48 esclarecimentos específicos com Pokémon, movimentos, alvos, condições e consequências possíveis. A regra 6.2 agora acompanha Ekans usando Poison Sting em Pikachu, distinguindo a chance de envenenar da perda posterior de HP. As cenas alteradas usam combinações verificadas dos jogos; adaptações narrativas continuam identificadas como RPG. Ao expandir uma regra, a explicação prática aparece primeiro. Em “Entenda melhor”, são apresentadas as condições pertinentes; “Conferir números e exceções” mostra o texto técnico completo, somente se solicitado ou encontrado numa pesquisa técnica. Busca, navegação por teclado e impressão dos termos continuam. O cálculo de HP, dano, PP, XP, captura, habilidades e progressão não foi alterado. Consulte `GUIA-CONTEXTUAL-2.1.8.md`.
+
+A 2.1.7 mantém-se como base de linguagem simples e fiel aos jogos.
 
 A 2.1.7 aplica a linguagem de aventura ao Guia inteiro: 48 cenas revisadas, sem os blocos repetitivos “Por exemplo” e “Na aventura”; os exemplos reconhecíveis e as decisões possíveis aparecem no mesmo relato. A seção 3.4 mantém sua ilustração de sobrevivência. A pesquisa prioriza o texto visível, mas encontra detalhes técnicos quando solicitado. Termos básicos HP, PP e XP são explicados. O Guia usa uma coluna central no computador para não deixar a metade direita vazia e preserva a disposição responsiva. A explicação técnica da regra 6.2 foi reescrita sem alterar probabilidades ou limites. Todos os cálculos e dados do RPG permanecem. Consulte `GUIA-UNIVERSAL-2.1.7.md`.
 

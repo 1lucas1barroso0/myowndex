@@ -2,13 +2,13 @@
 
 Direção permanente para o RPG de mesa e seu aplicativo, reafirmada por Lucas na revisão local 2.1.0. Complementa a [direção de interface](DIRECAO-DE-INTERFACE.md). Este documento define critérios de criação e revisão; não acrescenta bônus, penalidades ou uma nova modalidade de jogo.
 
-O MyOwnDex deve permitir viver uma aventura Pokémon: conhecer criaturas, explorar lugares, construir vínculos, descobrir possibilidades, enfrentar desafios e crescer com os parceiros. Crianças e fãs assíduos, conhecedores e entusiasmados são públicos centrais dos dois jogos. A clareza deve facilitar a entrada, e os detalhes devem recompensar a curiosidade e o conhecimento.
+O MyOwnDex deve permitir viver uma aventura Pokémon: conhecer criaturas, explorar lugares, construir vínculos, descobrir possibilidades, enfrentar desafios e crescer com os parceiros. Crianças a partir de 6 anos e fãs assíduos, conhecedores e entusiasmados são públicos centrais dos dois jogos. A clareza deve facilitar a entrada, e os detalhes devem recompensar a curiosidade e o conhecimento.
 
 ## Pokémon reconhecíveis nas decisões
 
 - Preservar o papel dos tipos, fraquezas, resistências, imunidades, atributos, habilidades, movimentos, PP, condições, itens, evolução e formas. Toda simplificação precisa conservar o que essas diferenças permitem fazer na aventura.
 - Respeitar a mecânica de referência e suas exceções verificadas. Distinguir o RPG, a consulta aos jogos históricos e a criação livre; uma adaptação do MyOwnDex não deve ser apresentada como regra literal dos jogos.
-- Manter diferenças de espécie e indivíduo. Um Pokémon defensivo precisa poder defender; um veloz precisa ter oportunidades de usar sua velocidade; um movimento de apoio precisa ter finalidade. Nem todos precisam causar dano ou cumprir o mesmo papel para contribuir.
+- Manter diferenças de espécie e indivíduo. Um Pokémon defensivo precisa poder defender; um veloz precisa ter oportunidades de usar sua velocidade; um movimento da categoria Status precisa ter finalidade. Nem todos precisam causar dano ou cumprir o mesmo papel para contribuir.
 - Usar características reconhecíveis nas soluções criativas: movimento, tipo, corpo, sentidos, comportamento e história do parceiro. Improvisação deve abrir usos coerentes; não transforma todo movimento numa ferramenta universal nem remove uma imunidade só por uma descrição elaborada.
 - Respeitar as condições e a identidade de cada transformação. Não distribuir formas incompatíveis para equilibrar encontros; não tratar todo fenômeno como o mesmo bônus de atributos.
 - Apelido, aparência, amizade e acontecimentos pertencem ao mesmo parceiro no PC, na ficha, na cena e no registro. Evoluir, atualizar ou sincronizar não deve apagar sua continuidade nem seus gastos.
@@ -20,6 +20,12 @@ Exploração, amizade, cuidado, descoberta, treinamento, cooperação e batalhas
 O tom deve comportar tensão, derrota, mistério e rivalidade, com espaço para recuperação, ajuda e novas tentativas. HP 0 significa desmaio conforme o Guia; a revisão não introduz morte automática ou punição cruel para fabricar dificuldade. Amizade deve expressar uma relação, sem virar recompensa por cliques ou exigir obediência automática da narrativa.
 
 Reviravoltas devem nascer das escolhas, do cenário, das capacidades dos Pokémon e dos resultados combinados. As mesmas regras valem para os lados na mesma situação. Não alterar um resultado conhecido para forçar emoção. Chefes usam repertório, terreno, sinais e objetivos; sua importância narrativa não autoriza atributos arbitrários ou renovação oculta de proteções.
+
+## Nomes oficiais e explicações acessíveis
+
+Preservar os nomes oficiais de Pokémon, formas, tipos, movimentos, habilidades, itens e condições. Não inventar nomes mais simples nem apresentar traduções livres como oficiais. Quando o catálogo usa o nome oficial em inglês, manter esse nome em todas as telas e explicar seu significado em português. Distinguir o nome da condição, o tipo e a categoria de movimento: Poison pode nomear um tipo ou uma condição; Status é uma categoria, não uma condição específica.
+
+A referência de clareza é uma criança de 6 anos: explicar o que acontece, quando acontece e como termina. Comparar efeitos parecidos sem apagar suas diferenças. Uma leitura inicial curta antecede procedimentos completos, contas, referências e exceções consultáveis. Testes automáticos não comprovam compreensão infantil.
 
 ## Crianças e fãs experientes na mesma mesa
 

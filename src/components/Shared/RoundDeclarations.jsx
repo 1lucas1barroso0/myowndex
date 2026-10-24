@@ -5,11 +5,11 @@ import PokemonSprite from "./PokemonSprite.jsx";
 import RoomSelect from "./RoomSelect.jsx";
 
 export const roundActionLabel = token => token?.declaredMove ? formatName(token.declaredMove) : ({
-    other: "Aguardar / passar a vez",
+    other: "Passar a vez",
     swap: "Trocar Pokémon",
-    improvise: "Improvisar / interagir",
+    improvise: "Improvisar",
     flee: "Tentar fugir",
-}[token?.declaredAction || "other"] || "Aguardar / passar a vez");
+}[token?.declaredAction || "other"] || "Passar a vez");
 
 function RoundChoice({ token, onDeclareMove, canDeclare, disabled, onPending }) {
     const labelId = useId();
@@ -48,9 +48,9 @@ function RoundChoice({ token, onDeclareMove, canDeclare, disabled, onPending }) 
     return <li className="round-choice">
         <div className="round-choice-identity"><PokemonSprite src={token.sprite} pokemonId={token.speciesId} alt="" /><strong id={labelId}>{token.name}</strong><span className="round-choice-priority" aria-label={`Prioridade ${token.priority > 0 ? "+" : ""}${token.priority || 0}`}>{token.priority > 0 ? "+" : ""}{token.priority || 0}</span></div>
         {canDeclare ? <RoomSelect aria-label={`Escolha de ${token.name} nesta rodada`} value={choice} disabled={disabled || pending} onChange={event => void choose(event.target.value)}>
-            <option value="action:other">Aguardar / passar a vez</option>
+            <option value="action:other">Passar a vez</option>
             <option value="action:swap">Trocar Pokémon</option>
-            <option value="action:improvise">Improvisar / interagir</option>
+            <option value="action:improvise">Improvisar</option>
             <option value="action:flee">Tentar fugir</option>
             {[...new Set(token.moves.filter(Boolean))].map(name => <option key={name} value={name}>{formatName(name)}</option>)}
         </RoomSelect> : <p className="round-choice-readonly">{roundActionLabel(token)}</p>}

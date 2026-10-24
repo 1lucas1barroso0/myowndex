@@ -39,9 +39,9 @@ test("volatile effects have their own rule without changing the current conditio
   const volatile = conditions.rules.find(rule => rule.id === "6.5");
   assert.equal(principal.bullets.length, 5);
   assert.doesNotMatch(principal.bullets.join(" "), /Confusão:|Hesitação:/);
-  assert.equal(volatile.title, "Confusão e hesitação");
+  assert.equal(volatile.title, "Confusion e Flinch");
   assert.equal(volatile.bullets.length, 2);
-  assert.match(volatile.body, /separados da condição principal/);
+  assert.match(volatile.body, /separados da condição/);
   assert.match(volatile.bullets[0], /Dura de 2 a 5 oportunidades próprias/);
   assert.match(volatile.bullets[0], /1 em 3 de chance/);
   assert.match(volatile.bullets[0], /ataque físico sem tipo de poder 40/);

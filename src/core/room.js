@@ -9,7 +9,7 @@ import {
     NATURES,
     STAT_MAP,
 } from "./mechanics.js";
-import { RPG_STATUS_LABELS } from "./copy.js";
+import { CONDITION_HELP, RPG_STATUS_LABELS } from "./conditionHelp.js";
 import { getPokemonSpriteSources } from "./pokemonSpriteSources.js";
 import {
     applyDirectionalIntegerModifier,
@@ -1393,21 +1393,28 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
             }
         }
 
-        const currentItem = traitSlug(workingToken.item);
+        const currentItem = isHeldItemActive(workingToken) ? traitSlug(workingToken.item) : "";
         const cureStatus = END_ROUND_STATUS_BERRIES[currentItem];
         const berryMatches = cureStatus && (cureStatus === status || (cureStatus === "poison" && status === "bad-poison"));
-        if (status && (currentItem === "lum-berry" || berryMatches)) {
+        const curesStatus = Boolean(status && (currentItem === "lum-berry" || berryMatches));
+        const confusionIndex = volatileEffects.findIndex(effect => effect.id === "confusion");
+        const curesConfusion = confusionIndex >= 0 && ["lum-berry", "persim-berry"].includes(currentItem);
+        if (curesStatus || curesConfusion) {
             const previousStatus = status;
-            const consumed = consumeHeldItem(workingToken, { reason: `${currentItem} curou ${previousStatus}`, round: room.round });
-            workingToken = recordTraitEvent({ ...consumed.token, status: "", sleepTurns: null, freezeTurns: null, toxicCounter: 0 }, {
+            const cured = [curesStatus ? RPG_STATUS_LABELS[previousStatus] : "", curesConfusion ? CONDITION_HELP.confusion.label : ""].filter(Boolean).join(" e ");
+            const consumed = consumeHeldItem(workingToken, { reason: `${formatName(currentItem)} curou ${cured}`, round: room.round });
+            workingToken = recordTraitEvent({ ...consumed.token,
+                ...(curesStatus ? { status: "", sleepTurns: null, freezeTurns: null, toxicCounter: 0 } : {}),
+            }, {
                 kind: "item",
                 sourceId: currentItem,
                 label: "Condição curada",
-                detail: `${previousStatus} removido no fim da rodada`,
+                detail: `${cured} removido no fim da rodada`,
                 round: room.round,
             });
-            status = "";
-            effects.push({ kind: "status", tokenId: token.id, tokenName: token.name, status: "", damage: 0, remainingHp: currentHp, fainted: false, sources: [`${formatName(currentItem)} foi consumida`] });
+            if (curesStatus) status = "";
+            if (curesConfusion) volatileEffects.splice(confusionIndex, 1);
+            effects.push({ kind: curesStatus ? "status" : "state", tokenId: token.id, tokenName: token.name, status, damage: 0, remainingHp: currentHp, fainted: false, sources: [`${formatName(currentItem)} foi consumida e curou ${cured}`] });
         }
 
         const traitState = normalizeTraitState(workingToken.traitState, workingToken.item, workingToken.ability);
@@ -1424,7 +1431,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
 
         if (persistentHealing === 0 && healingSources.length && currentHp < token.maxHp && !forcedFaint) {
             effects.push({ kind: "state", tokenId: token.id, tokenName: token.name, damage: 0, remainingHp: currentHp, fainted: false,
-                sources: uniqueSources(healingSources).map(source=>`${source}: efeito ativo; sem recuperação de HP nesta ocorrência`) });
+                sources: uniqueSources(healingSources).map(source=>`${source}: continua ativo, mas não recuperou HP desta vez`) });
         }
         if (persistentHealing > 0 && !forcedFaint) {
             const before = currentHp;
@@ -1459,21 +1466,21 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
         if (!indirectBlocked && status === "burn") {
             damageEvents.push({
                 amount: residualAmount(getBaseMaxHp(token), 1, 16),
-                source: "queimadura",
+                source: RPG_STATUS_LABELS.burn,
                 selfInflicted: activeItem === "flame-orb",
             });
         }
         if (!indirectBlocked && activeAbility !== "poison-heal" && status === "poison") {
             damageEvents.push({
                 amount: residualAmount(getBaseMaxHp(token), 1, 8),
-                source: "envenenamento",
+                source: RPG_STATUS_LABELS.poison,
                 selfInflicted: activeItem === "toxic-orb",
             });
         }
-        if (!indirectBlocked && activeAbility !== "poison-heal" && status === "bad-poison") {
-            damageEvents.push({
+        if (status === "bad-poison") {
+            if (!indirectBlocked && activeAbility !== "poison-heal") damageEvents.push({
                 amount: residualAmount(getBaseMaxHp(token), toxicCounter, 16),
-                source: "envenenamento grave",
+                source: RPG_STATUS_LABELS["bad-poison"],
                 selfInflicted: activeItem === "toxic-orb",
             });
             toxicCounter = integerInRange(toxicCounter + 1, 1, 15, 1);
@@ -1506,7 +1513,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                 }
                 if (damageEvent.amount <= 0) {
                     effects.push({ kind: "state", tokenId: token.id, tokenName: token.name, damage: 0, remainingHp: currentHp, fainted: false,
-                        sources: [`${damageEvent.source}: efeito ativo; sem perda de HP nesta ocorrência`] });
+                        sources: [`${damageEvent.source}: continua ativo, mas não tirou HP desta vez`] });
                     return;
                 }
                 const resolved = resolveRoundDamage(
@@ -1519,7 +1526,7 @@ export const applyEndOfRoundEffects = (snapshot, random) => {
                 workingToken = recordTraitEvent(workingToken, {
                     kind: "state",
                     sourceId: traitSlug(damageEvent.source),
-                    label: "Dano residual",
+                    label: "Dano no fim da rodada",
                     detail: `${resolved.appliedDamage} de dano no fim da rodada`,
                     round: room.round,
                 });
@@ -1681,7 +1688,7 @@ export const getMovePriorityBlock = ({ token: attacker, defender, move, terrain 
     const ability = isAbilityActive(attacker) ? traitSlug(attacker.ability) : "";
     const target = normalizeSlug(move?.target?.name);
     if (["user", "users-field", "user-and-allies", "all-allies", "all-pokemon", "entire-field", "opponents-field"].includes(target)) return null;
-    if (ability === "prankster" && move?.damage_class?.name === "status" && defender.types?.includes("dark")) return { kind: "ability", sourceId: "prankster", reason: "O tipo Dark bloqueou o movimento de status fortalecido por Prankster", absorbed: false };
+    if (ability === "prankster" && move?.damage_class?.name === "status" && defender.types?.includes("dark")) return { kind: "ability", sourceId: "prankster", reason: "O tipo Dark bloqueou o movimento da categoria Status fortalecido por Prankster", absorbed: false };
     const priority = rolledPriority == null ? getEffectiveMovePriority({ token: attacker, move }) : integerInRange(rolledPriority, -7, 7, 0);
     const grounded = !defender.types?.includes("flying") && !(isAbilityActive(defender) && traitSlug(defender.ability) === "levitate") && !(isHeldItemActive(defender) && traitSlug(defender.item) === "air-balloon");
     if (priority > 0 && terrain === "psiquico" && grounded) return { kind: "environment", sourceId: "psychic-terrain", reason: "Psychic Terrain protegeu o alvo no chão contra prioridade positiva", absorbed: false };

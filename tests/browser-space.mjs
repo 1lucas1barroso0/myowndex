@@ -341,7 +341,7 @@ try {
     assert.equal(await page.locator('.room-token').count(), 2);
     await page.locator('.room-token').first().click();
     await page.locator('.token-inspector').waitFor();
-    await page.getByRole('button', { name: 'Rolar iniciativa', exact: true }).click();
+    await page.getByRole('button', { name: 'Definir a ordem', exact: true }).click();
     assert.equal(await page.locator('.initiative-list > li:not(.is-empty)').count(), 2);
     const attackers = await combat.getByRole('combobox', { name: 'Usuário', exact: true }).locator('option').evaluateAll(options => options.filter(option => option.value).map(option => ({ value: option.value, text: option.textContent })));
     const longAttacker = attackers.find(option => option.text === nicknames[1]);

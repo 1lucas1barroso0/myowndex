@@ -1,3 +1,4 @@
+import { RPG_STATUS_LABELS } from '../../../src/core/conditionHelp.js';
 import PaperCalculations from "../../../src/components/Guide/PaperCalculations.jsx";
 import Link from "next/link";
 import { RPG_RULE_SECTIONS } from "../../../src/core/rpgRules.js";
@@ -5,6 +6,8 @@ import { GUIDE_PAPER_STEPS } from "../../../src/core/guidePaperSteps.js";
 import { GUIDE_WORKED_SCENES } from "../../../src/core/guideWorkedScenes.js";
 import { GUIDE_AUDIT_CASES } from "../../../src/data/guide-audit-cases.js";
 import PrintBookButton from "./PrintBookButton.jsx";
+import ConditionReference from '../../../src/components/Guide/ConditionReference.jsx';
+import { GUIDE_PLAY_STEPS } from '../../../src/core/guidePlaySteps.js';
 import "./livro.css";
 
 export const metadata = {
@@ -16,10 +19,13 @@ const count = RPG_RULE_SECTIONS.reduce((total, section) => total + section.rules
 
 function RuleBookEntry({ rule }) {
     const audit = rule.auditCase && GUIDE_AUDIT_CASES[rule.auditCase];
+    const audits = [audit, ...(rule.additionalAuditCases || []).map(id => GUIDE_AUDIT_CASES[id])].filter(Boolean);
     const worked = GUIDE_WORKED_SCENES[rule.id];
     return <article id={`regra-${rule.id.replace(".", "-")}`} className="book-rule">
         <h3><span>{String(rule.number).padStart(2, "0")}</span> {rule.title} <small>({rule.id})</small></h3>
         {rule.plain && <p className="book-rule-lead">{rule.plain}</p>}
+        <ol>{GUIDE_PLAY_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
+        <ConditionReference ruleId={rule.id} />
         <p className="book-example"><strong>Por exemplo.</strong> {rule.example}</p>
         <details className="book-worked-details"><summary>Cena passo a passo</summary>
         {worked && <section className="book-worked-example" aria-label="Exemplo completo">
@@ -41,14 +47,14 @@ function RuleBookEntry({ rule }) {
             {rule.bullets?.length > 0 && <ul>{rule.bullets.map(text => <li key={text}>{text}</li>)}</ul>}
         </section>
         {!worked && rule.example && <p className="book-example"><strong>Exemplo com Pokémon:</strong> {rule.example}</p>}
-        {audit && <aside className="book-audit" aria-label="Resultado reproduzido da regra">
+        {audits.map(audit => <aside key={audit.title} className="book-audit" aria-label="Resultado reproduzido da regra">
             <h4>Um caso conferido</h4>
             <p><strong>{audit.title}.</strong> {audit.reference}.</p>
             {audit.intro && <p>{audit.intro}</p>}
             <p>{audit.setup}</p>
-            <dl>{audit.rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value === "poison" ? "Envenenado" : value}</dd></div>)}</dl>
+            <dl>{audit.rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{RPG_STATUS_LABELS[value] || value}</dd></div>)}</dl>
             <p className="book-footnote">Estes valores pertencem à situação identificada acima. Não são números universais para qualquer Pokémon.</p>
-        </aside>}
+        </aside>)}
     </article>;
 }
 

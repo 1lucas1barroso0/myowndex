@@ -10,7 +10,7 @@ export default function PaperCalculations() {
         })}</tbody></table>
         <p>Uma dificuldade maior é uma escolha de desafio, não uma punição por tentar uma boa ideia. Combine o risco antes dos dados. Para uma tarefa possível sem risco nem custo, siga a regra 8.8 e resolva pela história.</p>
         <h3>Sortear uma parte sem arredondar a chance</h3>
-        <p>No caso conferido da regra 6.2, Pikachu está envenenado e tem 3 HP máximos no RPG. O veneno comum vale um oitavo desse máximo. Role um dado de oito faces: com 1, 2 ou 3, ele perde 1 HP; com os demais resultados, não perde HP nessa aplicação e continua envenenado.</p>
+        <p>No caso conferido da regra 6.2, Pikachu está envenenado e tem 3 HP máximos no RPG. O Poison vale um oitavo desse máximo. Role um dado de oito faces: com 1, 2 ou 3, ele perde 1 HP; com os demais resultados, não perde HP nessa aplicação e continua envenenado.</p>
         <p>Sem esse dado, numere oito papéis iguais, dobre-os da mesma maneira, misture e tire um sem olhar. Devolva o papel e misture antes da próxima aplicação. Os resultados possíveis são os mesmos do dado; os valores pertencem a essa ficha de Pikachu, não a todos os Pokémon.</p>
         <p>Para um efeito de HP, aplique primeiro a parte inteira e sorteie somente a sobra, uma vez por aplicação. Um resultado de 0 não cura a condição nem guarda uma dívida para depois. Isso é uma adaptação do RPG, descrita na regra 6.2.</p>
     </section>;

@@ -1,3 +1,4 @@
+import { CONDITION_HELP } from './conditionHelp.js';
 import { formatPokemonHeight, formatPokemonWeight } from "./measurements.js";
 import {
     convertToTTRPG,
@@ -82,12 +83,12 @@ const TARGET_COPY = Object.freeze({
 });
 
 const AILMENT_COPY = Object.freeze({
-    burn: "Burn",
-    freeze: "Freeze",
-    paralysis: "Paralysis",
-    poison: "Poison",
-    sleep: "Sleep",
-    confusion: "Confusion",
+    burn: CONDITION_HELP.burn.label,
+    freeze: CONDITION_HELP.freeze.label,
+    paralysis: CONDITION_HELP.paralysis.label,
+    poison: CONDITION_HELP.poison.label,
+    sleep: CONDITION_HELP.sleep.label,
+    confusion: CONDITION_HELP.confusion.label,
     infatuation: "Infatuation",
     trap: "aprisionamento",
     torment: "tormento",

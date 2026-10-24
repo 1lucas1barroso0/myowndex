@@ -237,11 +237,11 @@ export const RPG_RULE_SECTIONS = [
                 "id": "3.1",
                 "title": "Quem joga primeiro?",
                 "plain": "Uma rodada é uma volta completa da batalha; turno é a vez de um Pokémon. Escolham as ações antes de definir a ordem.",
-                "body": "Antes de rolar a iniciativa, escolha um movimento, Trocar Pokémon, Improvisar / interagir, Tentar fugir ou Aguardar / passar a vez. Escolher ainda não gasta PP. Você pode mudar até a iniciativa ser rolada.\n\nDepois disso, siga sua escolha. Se o plano ficar impossível, você pode aguardar ou seguir uma alternativa já combinada. Isso não libera outro ataque para escolher depois de ver a ordem.",
+                "body": "Antes de rolar a iniciativa, escolha um movimento, Trocar Pokémon, Improvisar, Tentar fugir ou Passar a vez. Escolher ainda não gasta PP. Você pode mudar até a iniciativa ser rolada.\n\nDepois disso, siga sua escolha. Se o plano ficar impossível, você pode aguardar ou seguir uma alternativa já combinada. Isso não libera outro ataque para escolher depois de ver a ordem.",
                 "bullets": [
                     "Prioridade: movimentos de prioridade maior vêm primeiro. Protect tem +4, Quick Attack tem +1 e Tackle tem 0. Valores negativos vêm depois de 0. Aguardar, improvisar, fugir e trocar usam 0. Prioridade não aumenta a Velocidade nem dá outra ação.",
                     "Mesma prioridade: o jogo rola 2d6 e usa a Velocidade atual, com seus ajustes. Se ainda houver empate, role 1d6 entre os empatados e repita até decidir.",
-                    "Habilidades: Prankster dá +1 a movimentos de status; Gale Wings dá +1 a movimentos do tipo Flying (Voador) com HP cheio; Triage dá +3 às curas que sua regra permite. A habilidade precisa estar ativa. Você vê a prioridade antes de rolar.",
+                    "Habilidades: Prankster dá +1 a movimentos da categoria Status; Gale Wings dá +1 a movimentos do tipo Flying (Voador) com HP cheio; Triage dá +3 às curas que sua regra permite. A habilidade precisa estar ativa. Você vê a prioridade antes de rolar.",
                     "Durante a rodada: a ordem fica como foi rolada. Uma mudança de Velocidade conta na próxima rodada, salvo um efeito que mude a ordem de propósito. Mudar a seleção não adianta sua vez.",
                     "Para continuar: use Próximo turno depois da ação. No último turno, Encerrar rodada aplica os efeitos finais. Então escolha de novo e role a próxima iniciativa."
                 ],
@@ -249,7 +249,7 @@ export const RPG_RULE_SECTIONS = [
                 "steps": [
                     "Uma rodada é uma volta completa da batalha. Nesta cena, Pikachu terá sua vez e Bulbasaur terá a dele. A vez de cada Pokémon também é chamada de turno.",
                     "Antes dessa volta começar, escolha Quick Attack para Pikachu e Tackle para Bulbasaur. Escolher não gasta PP.",
-                    "Rolar iniciativa organiza a fila. Quick Attack tem prioridade maior e vem antes de Tackle; se a prioridade for igual, o aplicativo considera a Velocidade.",
+                    "Definir a ordem organiza a fila. Quick Attack tem prioridade maior e vem antes de Tackle; se a prioridade for igual, o aplicativo considera a Velocidade.",
                     "Quando Pikachu terminar sua tentativa, use Próximo turno para chegar à vez de Bulbasaur. Quando todos terminarem, use Encerrar rodada: o aplicativo aplica os efeitos finais e prepara uma nova volta.",
                     "A ordem e as escolhas ficam firmes durante essa volta. Uma mudança de Velocidade normalmente conta na próxima; se um plano ficar impossível, aguarde ou siga uma alternativa já combinada."
                 ],
@@ -272,7 +272,7 @@ export const RPG_RULE_SECTIONS = [
                 "id": "3.3",
                 "title": "Usar um movimento",
                 "plain": "Leia o movimento, escolha seu alvo e espere a vez. Dano, apoio e cura seguem procedimentos diferentes.",
-                "body": "Movimentos físicos usam Ataque contra Defesa. Movimentos especiais usam Ataque Especial contra Defesa Especial. Movimentos de status podem fortalecer, atrapalhar ou mudar a cena. Eles seguem seus próprios alvos, precisão, imunidades e efeitos; não recebem uma disputa de dano inventada.\n\nRecover e Swords Dance, por exemplo, agem no próprio usuário. Eles também esperam a vez do Pokémon. Escolher um movimento ainda não aplica seu efeito.\n\nPara calcular o dano de um movimento comum na mesa, comece pelo Poder do movimento: multiplique esse Poder pelos bônus de tipo próprio (STAB), efetividade e quaisquer modificadores válidos de crítico, habilidade, item, clima ou terreno; divida tudo por 10. Arredonde uma vez ao inteiro mais próximo, para baixo quando estiver exatamente no meio. Se o golpe acertou e o resultado positivo ficou menor que 1, use 1. Depois aplique a variação da regra 1.5 e o limite por impacto desta regra. Movimentos de dano fixo, nocaute direto e efeitos especiais seguem suas exceções.",
+                "body": "Movimentos físicos usam Ataque contra Defesa. Movimentos especiais usam Ataque Especial contra Defesa Especial. Movimentos de apoio podem fortalecer, atrapalhar ou mudar a cena. Eles seguem seus próprios alvos, precisão, imunidades e efeitos; não recebem uma disputa de dano inventada.\n\nRecover e Swords Dance, por exemplo, agem no próprio usuário. Eles também esperam a vez do Pokémon. Escolher um movimento ainda não aplica seu efeito.\n\nPara calcular o dano de um movimento comum na mesa, comece pelo Poder do movimento: multiplique esse Poder pelos bônus de tipo próprio (STAB), efetividade e quaisquer modificadores válidos de crítico, habilidade, item, clima ou terreno; divida tudo por 10. Arredonde uma vez ao inteiro mais próximo, para baixo quando estiver exatamente no meio. Se o golpe acertou e o resultado positivo ficou menor que 1, use 1. Depois aplique a variação da regra 1.5 e o limite por impacto desta regra. Movimentos de dano fixo, nocaute direto e efeitos especiais seguem suas exceções.",
                 "bullets": [
                     "Para causar dano, o atacante precisa superar a defesa. Empate ou resultado menor impedem o dano. Se o movimento acertou, um efeito secundário ainda pode funcionar.",
                     "Aplique cada efeito em quem a descrição manda: o usuário, o Pokémon escolhido, um grupo ou o campo.",
@@ -344,7 +344,7 @@ export const RPG_RULE_SECTIONS = [
                 "plain": "Cada Pokémon tem uma ação principal na sua vez. Uma tentativa válida usa essa ação mesmo quando falha.",
                 "body": "Na batalha, procure Agora para saber de quem é a vez. A defesa normal já faz parte da disputa e não custa outra ação.",
                 "bullets": [
-                    "Ação principal: use um movimento, faça um improviso importante ou troque de Pokémon. Prioridade só define a vez. No Campo dos Dados, Treino livre permite praticar; Rolar iniciativa começa uma batalha. Encerrar rodada não devolve o treino livre nem permite atacar antes da próxima iniciativa.",
+                    "Ação principal: use um movimento, faça um improviso importante ou troque de Pokémon. Prioridade só define a vez. No Campo dos Dados, Treino livre permite praticar; Definir a ordem começa uma batalha. Encerrar rodada não devolve o treino livre nem permite atacar antes da próxima iniciativa.",
                     "Tentativa válida: gasta a ação mesmo que o movimento erre, seja bloqueado ou uma condição impeça agir. Se a condição impedir a ação, não gaste PP. Uma escolha inválida, como um movimento sem PP, pode ser corrigida antes da tentativa e não gasta a ação.",
                     "Troca por escolha: declare Trocar Pokémon antes da iniciativa. Quem sai usa sua ação; quem entra ocupa esse lugar e não ganha outra ação nessa rodada. Substituir um parceiro desmaiado não gasta a ação da rodada seguinte. Os recursos de cada Pokémon continuam com ele.",
                     "Deslocamento: mover-se na mesma faixa pode acompanhar a ação. Atravessar uma faixa sob oposição ou conquistar uma posição importante pode exigir a ação e um teste. Combine isso antes de rolar.",
@@ -365,7 +365,7 @@ export const RPG_RULE_SECTIONS = [
                 "id": "3.8",
                 "title": "Encerrar a batalha e continuar",
                 "plain": "Quando o confronto terminar, conclua a rodada e registre suas consequências. Encerrar uma batalha não é recuperar todos os recursos.",
-                "body": "Depois de todos concluírem suas vezes, aplique os efeitos de fim de rodada e encerre o confronto. Termine transformações e cópias temporárias, remova estágios e efeitos voláteis e preserve os acontecimentos da aventura.\n\nHP, PP, condições persistentes, itens consumidos e proteções gastas continuam registrados. Encerre a batalha antes de conceder XP, descansar ou atualizar o crescimento dos parceiros. Mudar apenas a fase da cena não realiza esse encerramento.\n\nUma nova batalha começa quando há um novo confronto de verdade. Ela renova somente os recursos de uso por batalha; não cura HP, recupera PP, devolve itens nem permite repetir a recompensa do desafio anterior.",
+                "body": "Depois de todos concluírem suas vezes, aplique os efeitos de fim de rodada e encerre o confronto. Termine transformações e cópias temporárias, remova estágios e efeitos temporários e preserve os acontecimentos da aventura.\n\nHP, PP, condições persistentes, itens consumidos e proteções gastas continuam registrados. Encerre a batalha antes de conceder XP, descansar ou atualizar o crescimento dos parceiros. Mudar apenas a fase da cena não realiza esse encerramento.\n\nUma nova batalha começa quando há um novo confronto de verdade. Ela renova somente os recursos de uso por batalha; não cura HP, recupera PP, devolve itens nem permite repetir a recompensa do desafio anterior.",
                 "example": "Pikachu e Eevee param de lutar quando o resgate termina. O grupo conclui a rodada e registra o resultado. Pikachu continua ferido e com os PP que gastou. Agora podem receber a recompensa e procurar cuidados. Uma pausa na narração não reinicia o mesmo confronto para devolver a proteção.",
                 "steps": [
                     "Depois de concluir a rodada, use Encerrar batalha. Confira HP, PP, condição, itens e transformações de cada parceiro.",
@@ -568,33 +568,33 @@ export const RPG_RULE_SECTIONS = [
         "rules": [
             {
                 "id": "6.1",
-                "title": "Queimadura, paralisia, sono e outras condições",
-                "plain": "Uma condição principal pode mudar o que seu Pokémon consegue fazer. Aplique seu efeito no momento indicado, uma vez por tentativa.",
-                "body": "Um Pokémon tem uma condição principal por vez. Antes de agir, o jogo verifica seu efeito uma vez por tentativa, e não por alvo ou impacto. Se a condição impedir a ação, a vez é usada, mas não se gasta PP. Estas durações e chances são as usadas no RPG.",
+                "title": "Condições do Pokémon",
+                "plain": "Uma condição pode mudar o que seu Pokémon consegue fazer. Aplique seu efeito no momento indicado, uma vez por tentativa.",
+                "body": "Um Pokémon tem uma condição por vez. Antes de agir, o jogo verifica seu efeito uma vez por tentativa, e não por alvo ou impacto. Se a condição impedir a ação, a vez é usada, mas não se gasta PP. Estas durações e chances são as usadas no RPG.",
                 "bullets": [
-                    "Queimadura: o dano físico cai pela metade, salvo Guts ou Facade. No fim da rodada, perde uma parte em 16 do HP máximo.",
-                    "Paralisia: a Velocidade cai pela metade, salvo Quick Feet. Antes de agir, há 1 em 8 de chance de perder a ação. Não se cura sozinha.",
-                    "Sono: impede 1 ou 2 oportunidades de agir. Há 1 em 3 de chance de acordar antes da segunda; se isso não acontecer, acorda antes da terceira. Trocar de Pokémon guarda essa contagem. Rest tem duração própria; Early Bird reduz a duração; Snore e Sleep Talk permitem agir dormindo.",
-                    "Congelamento: antes de agir, há 25% de chance de descongelar. Se não acontecer nas duas primeiras oportunidades, descongela antes da terceira. Um movimento que descongela o usuário dispensa o teste. Dano do tipo Fire (Fogo) e efeitos próprios de descongelar também removem a condição.",
-                    "Veneno: no fim da rodada, perde uma parte em 8 do HP máximo. No envenenamento grave, começa em uma parte em 16 e aumenta mais uma parte em 16 por rodada, até 15 partes em 16. Trocar reinicia esse aumento, mas não cura o veneno."
+                    "Burn (queimadura): o dano físico cai pela metade, salvo Guts ou Facade. No fim da rodada, perde uma parte em 16 do HP máximo.",
+                    "Paralysis (paralisia): a Velocidade cai pela metade, salvo Quick Feet. Antes de agir, há 1 em 8 de chance de perder a ação. Não se cura sozinha.",
+                    "Sleep (sono): impede 1 ou 2 oportunidades de agir. Há 1 em 3 de chance de acordar antes da segunda; se isso não acontecer, acorda antes da terceira. Trocar de Pokémon guarda essa contagem. Rest tem duração própria; Early Bird reduz a duração; Snore e Sleep Talk permitem agir dormindo.",
+                    "Freeze (congelamento): antes de agir, há 25% de chance de descongelar. Se não acontecer nas duas primeiras oportunidades, descongela antes da terceira. Um movimento que descongela o usuário dispensa o teste. Dano do tipo Fire (Fogo) e efeitos próprios de descongelar também removem a condição.",
+                    "Poison e Badly Poisoned: no fim da rodada, perde uma parte em 8 do HP máximo. Em Badly Poisoned, começa em uma parte em 16 e aumenta mais uma parte em 16 por rodada, até 15 partes em 16. O aumento continua mesmo se uma habilidade impedir a perda de HP. Trocar reinicia esse aumento, mas não cura o veneno por si só."
                 ],
-                "example": "Jigglypuff usa Sing contra Eevee. Se o movimento acertar e puder adormecê-lo, Eevee recebe Sono. Na vez de Eevee, verifiquem a condição antes de gastar PP de Tackle. Se o sono impedir a ação, a vez termina sem gastar os PP daquele golpe.",
+                "example": "Jigglypuff usa Sing contra Eevee. Se o movimento acertar e puder adormecê-lo, Eevee recebe Sleep e fica dormindo. Na vez de Eevee, verifiquem a condição antes de gastar PP de Tackle. Se o sono impedir a ação, a vez termina sem gastar os PP daquele golpe.",
                 "steps": [
                     "Jigglypuff tenta Sing contra Eevee. Só se o efeito funcionar é que Eevee fica dormindo.",
                     "Quando chegar a vez de Eevee tentar Tackle, o aplicativo confere o sono antes do movimento. Se ele não puder agir, passa a vez sem gastar os PP de Tackle.",
-                    "Queimadura: pode enfraquecer o dano físico e tirar HP quando todos terminam suas vezes e a rodada é encerrada. Guts e Facade mantêm suas exceções.",
-                    "Paralisia: atrapalha a Velocidade e pode impedir uma tentativa de agir. Sono e congelamento também têm sua própria verificação de recuperação; trocar não apaga a contagem de sono.",
-                    "Veneno: é verificado ao encerrar a rodada, depois das vezes dos participantes. O envenenamento grave pode piorar com o tempo; trocar reinicia esse aumento, mas não cura a condição.",
-                    "Uma condição principal ocupa seu próprio espaço na ficha. Não repita a verificação para cada alvo de um mesmo movimento. Rest, Early Bird, Snore, Sleep Talk, Quick Feet e movimentos que descongelam respeitam suas descrições."
+                    "Burn (queimadura): pode enfraquecer o dano físico e tirar HP quando todos terminam suas vezes e a rodada é encerrada. Guts e Facade mantêm suas exceções.",
+                    "Paralysis (paralisia): atrapalha a Velocidade e pode impedir uma tentativa de agir. Sono e congelamento também têm sua própria verificação de recuperação; trocar não apaga a contagem de sono.",
+                    "Poison e Badly Poisoned: é verificado ao encerrar a rodada, depois das vezes dos participantes. O Badly Poisoned pode piorar com o tempo; trocar reinicia esse aumento, mas não cura a condição.",
+                    "Uma condição ocupa seu próprio espaço na ficha. Não repita a verificação para cada alvo de um mesmo movimento. Rest, Early Bird, Snore, Sleep Talk, Quick Feet e movimentos que descongelam respeitam suas descrições."
                 ],
                 "auditCase": "sleep",
                 "number": 29
             },
             {
                 "id": "6.2",
-                "title": "Veneno, clima e outros efeitos",
+                "title": "Poison, Badly Poisoned e efeitos finais",
                 "plain": "Veneno, clima e outros efeitos têm um momento próprio. Uma perda pequena pode não tirar HP naquela ocorrência e continuar ativa.",
-                "body": "Alguns efeitos tiram uma quantidade tão pequena de HP que ela não chega a um ponto inteiro. Se todos esses efeitos tirassem sempre 1 HP, ficariam fortes demais. Por isso, o MyOwnDex usa a parte inteira do dano e sorteia se há mais 1 HP a perder.\n\nA quantidade de HP vem do efeito que está ativo e do HP máximo do Pokémon. O aplicativo aplica a parte inteira que couber e sorteia apenas a parte que resta. O caso de Pikachu identifica a ficha e mostra resultados produzidos por esse cálculo. Não existe saldo escondido para cobrar depois.\n\nO resultado é sorteado uma vez, quando o efeito acontece. Consultar a prévia ou abrir o Diário não sorteia outra vez. Se perder 0 HP, o Pokémon ainda está afetado pela condição, e nenhuma proteção foi gasta. Imunidades, custos e momentos próprios de cada efeito continuam valendo.\n\nEm Dynamax e Gigantamax, esses efeitos proporcionais comuns usam o HP máximo de antes da transformação, salvo quando uma regra disser outra coisa. Essa maneira de lidar com números inteiros é uma adaptação do RPG.\n\nExemplo conferido da regra: o Pikachu do caso tem 3 HP máximos na escala do RPG. O veneno comum vale um oitavo desse máximo no fim da rodada. Com um dado de oito faces, resultados 1, 2 ou 3 tiram 1 HP; os outros não tiram HP naquela rodada. Mesmo no segundo resultado, Pikachu continua envenenado. Isto não é um valor fixo para outros Pokémon.",
+                "body": "Alguns efeitos tiram uma quantidade tão pequena de HP que ela não chega a um ponto inteiro. Se todos esses efeitos tirassem sempre 1 HP, ficariam fortes demais. Por isso, o MyOwnDex usa a parte inteira do dano e sorteia se há mais 1 HP a perder.\n\nA quantidade de HP vem do efeito que está ativo e do HP máximo do Pokémon. O aplicativo aplica a parte inteira que couber e sorteia apenas a parte que resta. O caso de Pikachu identifica a ficha e mostra resultados produzidos por esse cálculo. Não existe saldo escondido para cobrar depois.\n\nO resultado é sorteado uma vez, quando o efeito acontece. Consultar a prévia ou abrir o Diário não sorteia outra vez. Se perder 0 HP, o Pokémon ainda está afetado pela condição, e nenhuma proteção foi gasta. Imunidades, custos e momentos próprios de cada efeito continuam valendo.\n\nEm Dynamax e Gigantamax, esses efeitos proporcionais comuns usam o HP máximo de antes da transformação, salvo quando uma regra disser outra coisa. Essa maneira de lidar com números inteiros é uma adaptação do RPG.\n\nExemplo conferido da regra: o Pikachu do caso tem 3 HP máximos na escala do RPG. O Poison vale um oitavo desse máximo no fim da rodada. Com um dado de oito faces, resultados 1, 2 ou 3 tiram 1 HP; os outros não tiram HP naquela rodada. Mesmo no segundo resultado, Pikachu continua envenenado. Isto não é um valor fixo para outros Pokémon.",
                 "example": "Em Scarlet/Violet, Ekans usa Poison Sting contra Pikachu. Se acertar e conseguir envenená-lo, o impacto acontece primeiro. O veneno só age no fim da rodada. Pikachu pode não perder HP naquela aplicação e continuar envenenado; isso não é cura nem uma dívida guardada.",
                 "steps": [
                     "Na cena, Ekans usa Poison Sting e consegue envenenar Pikachu. O impacto do golpe e o veneno que continua depois são acontecimentos diferentes.",
@@ -605,6 +605,7 @@ export const RPG_RULE_SECTIONS = [
                     "O caso conferido abaixo foi executado no núcleo do aplicativo. Ele identifica as fichas, o impacto de Poison Sting e os resultados de encerrar a rodada."
                 ],
                 "auditCase": "poison",
+                "additionalAuditCases": ["poison-comparison"],
                 "number": 30
             },
             {
@@ -625,27 +626,27 @@ export const RPG_RULE_SECTIONS = [
                 "id": "6.4",
                 "title": "Quando os efeitos terminam",
                 "plain": "Acompanhe a duração de cada efeito. Um aumento de atributo, uma condição e um efeito do campo não terminam todos do mesmo jeito.",
-                "body": "Anote cada efeito separadamente: em quem age, quando começou e o que o encerra. Use estágios de −6 a +6 para Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão, conforme a regra 2.3; condições principais seguem a 6.1; confusão e hesitação seguem a 6.5.\n\nUma troca comum encerra os estágios e efeitos voláteis de quem sai. Sono, queimadura, paralisia e veneno não são curados apenas pela troca. O envenenamento grave conserva a condição, mas reinicia seu aumento. Efeitos que transferem ou conservam algo ao trocar seguem sua própria descrição.\n\nClima, terreno e outros efeitos de campo têm duração própria: não acabam só porque um Pokémon saiu. Ao terminar a rodada, aplique cada efeito no momento indicado e avance sua duração uma vez. Encerrar a batalha limpa os estados temporários dos Pokémon, preservando HP, PP, condições persistentes e itens gastos. O clima do lugar pode continuar na história; o Narrador acompanha a duração de clima e terreno separadamente.",
+                "body": "Anote cada efeito separadamente: em quem age, quando começou e o que o encerra. Use estágios de −6 a +6 para Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão, conforme a regra 2.3; condições seguem a 6.1; confusão e hesitação seguem a 6.5.\n\nUma troca comum encerra os estágios e efeitos temporários de quem sai. Sono, queimadura, paralisia e veneno não são curados apenas pela troca. Badly Poisoned conserva a condição, mas reinicia seu aumento. Efeitos que transferem ou conservam algo ao trocar seguem sua própria descrição.\n\nClima, terreno e outros efeitos de campo têm duração própria: não acabam só porque um Pokémon saiu. Ao terminar a rodada, aplique cada efeito no momento indicado e avance sua duração uma vez. Encerrar a batalha limpa os estados temporários dos Pokémon, preservando HP, PP, condições persistentes e itens gastos. O clima do lugar pode continuar na história; o Narrador acompanha a duração de clima e terreno separadamente.",
                 "example": "Geodude usa Defense Curl e fortalece sua Defesa. Uma troca comum encerra esses estágios, mas não cura um veneno que ele já tinha. Ao retornar, use a Defesa sem aquele aumento e mantenha a condição. Confiram cada efeito em vez de reiniciar a ficha inteira.",
                 "steps": [
-                    "Depois de Defense Curl de Geodude, acompanhe o estágio de Defesa separadamente da sua condição principal.",
-                    "Ao trocar Geodude normalmente, remova seus estágios e efeitos voláteis; mantenha HP, PP, item gasto e a condição persistente.",
+                    "Depois de Defense Curl de Geodude, acompanhe o estágio de Defesa separadamente da sua condição.",
+                    "Ao trocar Geodude normalmente, remova seus estágios e efeitos temporários; mantenha HP, PP, item gasto e a condição persistente.",
                     "Confira a duração do clima e dos outros efeitos do campo à parte. Mudar a fase da cena não encerra o confronto nem recupera os recursos."
                 ],
                 "number": 32
             },
             {
                 "id": "6.5",
-                "title": "Confusão e hesitação",
-                "plain": "Confusão e hesitação são efeitos separados da condição principal. Verifique a duração e a oportunidade de agir de cada um.",
-                "body": "São efeitos separados da condição principal, também chamados de efeitos voláteis. Cada um tem sua própria duração.",
+                "title": "Confusion e Flinch",
+                "plain": "Confusão e hesitação são efeitos separados da condição. Verifique a duração e a oportunidade de agir de cada um.",
+                "body": "São efeitos separados da condição, também chamados de efeitos temporários. Cada um tem sua própria duração.",
                 "bullets": [
-                    "Confusão: Dura de 2 a 5 oportunidades próprias de agir; o Pokémon se recupera antes da última. Enquanto estiver confuso, há 1 em 3 de chance de perder a ação e se atingir com um ataque físico sem tipo de poder 40. Use seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. Esse dano encerra a proteção geral contra hit kill. Sturdy, Focus Sash e outras proteções só funcionam quando suas próprias regras permitem. Trocar encerra a confusão.",
-                    "Hesitação: impede apenas a próxima ação da mesma rodada, se o Pokémon ainda não agiu. Trocar encerra o efeito."
+                    "Confusion (ficar confuso): Dura de 2 a 5 oportunidades próprias de agir; o Pokémon se recupera antes da última. Enquanto estiver confuso, há 1 em 3 de chance de perder a ação e se atingir com um ataque físico sem tipo de poder 40. Use seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. Esse dano encerra a proteção geral contra hit kill. Sturdy, Focus Sash e outras proteções só funcionam quando suas próprias regras permitem. Trocar encerra a confusão.",
+                    "Flinch (perder a vez): impede apenas a próxima ação da mesma rodada, se o Pokémon ainda não agiu. Trocar encerra o efeito."
                 ],
                 "example": "Golbat usa Supersonic em Pikachu. Se funcionar, Pikachu pode ficar confuso mesmo que já esteja envenenado. Na própria vez, resolva a confusão; no fim da rodada, resolva o veneno. Uma troca encerra a confusão, mas não cura esse veneno.",
                 "steps": [
-                    "Golbat tenta Supersonic contra Pikachu. Se funcionar, a confusão é anotada separadamente da condição principal.",
+                    "Golbat tenta Supersonic contra Pikachu. Se funcionar, a confusão é anotada separadamente da condição.",
                     "Quando Pikachu tentar agir, a confusão pode fazê-lo se atingir em vez de usar o movimento. O aplicativo usa os atributos dele para esse dano, sem inventar STAB, tipo ou crítico.",
                     "Esse dano no próprio Pokémon encerra a proteção geral de sobrevivência. Sturdy e Focus Sash só ajudam se suas regras específicas permitirem.",
                     "Trocar Pikachu por Bulbasaur termina a confusão de Pikachu. Se ele também estava envenenado, o veneno continua: Supersonic não foi a origem desse veneno.",
@@ -765,7 +766,7 @@ export const RPG_RULE_SECTIONS = [
                     "Conta do HP: some 30 ao nível Dynamax. Multiplique o HP por esse resultado, que vai de 30 a 40, e divida por 20. Arredonde o máximo para baixo e aumente o HP atual na mesma proporção inteira, sem curar o dano que já havia. A ficha mostra o HP de antes e o HP Max.",
                     "Ao terminar: entrar e sair sem receber dano ou cura conserva exatamente o HP de entrada. Se o HP mudou, o jogo converte a mudança de volta e arredonda para baixo. Um Pokémon consciente fica com pelo menos 1 HP; um desmaiado continua com 0.",
                     "Gigantamax: usa o mesmo aumento de HP e exige o fator Gigantamax e uma espécie compatível. Shedinja fica com 1 HP. Zacian, Zamazenta e Eternatus não usam Dynamax comum. Eternamax tem atributos próprios; não é só dobrar o HP.",
-                    "Movimentos: ataques viram Max Moves com prioridade 0; movimentos de status viram Max Guard com prioridade 4. Gastam PP do movimento original e usam efeitos próprios. Não copiam recuo, múltiplos acertos ou efeitos secundários do original.",
+                    "Movimentos: ataques viram Max Moves com prioridade 0; movimentos da categoria Status viram Max Guard com prioridade 4. Gastam PP do movimento original e usam efeitos próprios. Não copiam recuo, múltiplos acertos ou efeitos secundários do original.",
                     "Proteções e efeitos: não sofrem hesitação, nocaute direto, Low Kick, Grass Knot, Heavy Slam ou Heat Crash. Roar e Whirlwind falham. Efeitos percentuais comuns usam o HP máximo de antes da transformação."
                 ],
                 "example": "O Pikachu do caso conferido entra em Dynamax no nível Dynamax 10, com HP já reduzido. Seu HP máximo dobra e o atual acompanha a proporção; ele não fica curado. Ao terminar, converta de volta e preserve o dano real. Gigantamax também exige o fator compatível.",
@@ -773,7 +774,7 @@ export const RPG_RULE_SECTIONS = [
                     "Na batalha permitida de Sword/Shield, prepare Dynamax de Pikachu antes de rolar a iniciativa. O nível Dynamax pertence à ficha; ter esse nível não substitui a permissão de transformar.",
                     "A ficha mostra HP normal e HP Max. Pikachu fica maior, mas o dano que já havia continua contando. Ao voltar sem dano ou cura no meio, conserva exatamente o HP com que entrou.",
                     "Dynamax dura três voltas completas da batalha: cada Pokémon tem sua vez em cada volta. O contador avança quando o grupo escolhe Encerrar rodada; trocar também termina a transformação.",
-                    "Ataques se tornam Max Moves, e movimentos de apoio se tornam Max Guard. Eles usam PP do movimento original, com os próprios efeitos e prioridades.",
+                    "Ataques se tornam Max Moves, e movimentos da categoria Status se tornam Max Guard. Eles usam PP do movimento original, com os próprios efeitos e prioridades.",
                     "Gigantamax exige espécie e fator compatíveis. Shedinja conserva seu HP especial; Zacian, Zamazenta e Eternatus não recebem Dynamax comum. Eternamax é uma forma própria.",
                     "As imunidades de Max a hesitação, nocaute direto, golpes de peso e expulsões específicas continuam valendo. O caso conferido mostra a entrada e a volta de um Pikachu de teste."
                 ],

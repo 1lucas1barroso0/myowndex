@@ -68,7 +68,7 @@ export default function BattleGimmickPanel({snapshot,role,selectedTokenId,onSele
     };
     return <section className="battle-gimmick-panel" aria-label="Transformações especiais">
         <header>
-          <span><strong>Transformações de batalha</strong><small>Prepare a transformação antes de rolar a iniciativa.</small></span>
+          <span><strong>Transformações de batalha</strong><small>Prepare a transformação antes de definir a ordem da rodada.</small></span>
           <label className="gimmick-pokemon-choice">
             <span>Pokémon</span>
             <RoomSelect aria-label="Pokémon para transformar" value={token.id}

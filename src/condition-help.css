@@ -1,0 +1,18 @@
+/* Shared by the sheet, adventure, dice and rule book. */
+.condition-help { grid-column:1/-1; min-width:0; margin:.45rem 0; border:1px solid var(--ui-line,#cbd5e1); border-radius:.65rem; color:var(--ui-ink,#0f172a); background:var(--ui-panel,#f8fafc); }
+.condition-help > summary { min-height:44px; padding:.65rem .8rem; font-size:.9rem; font-weight:700; line-height:1.5; cursor:pointer; overflow-wrap:anywhere; }
+.condition-help > summary:focus-visible { outline:3px solid var(--ui-blue,#075985); outline-offset:3px; }
+.condition-help-content { padding:0 .8rem .8rem; font-size:.9rem; line-height:1.65; }
+.condition-help-content p { margin:.55rem 0 0; }
+.guide-condition-reference { margin:.8rem 0; }
+.guide-condition-reference > p { font-size:.9rem; }
+.guide-condition-comparison { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:.75rem; margin:1rem 0; }
+.guide-condition-comparison article { padding:.85rem; border:1px solid var(--ui-line,#cbd5e1); border-radius:.65rem; background:var(--ui-panel,#f8fafc); }
+.guide-condition-comparison h4 { margin:0 0 .5rem; font-size:1rem; font-weight:700; line-height:1.4; }
+.guide-condition-comparison p { margin:.5rem 0 0; font-size:.95rem; line-height:1.65; }
+.guide-condition-comparison > p { grid-column:1/-1; }
+.guide-word-help { margin:.8rem 0; }
+.guide-word-help > div { padding:.5rem 0; border-top:1px solid var(--ui-line,#cbd5e1); }
+.guide-word-help dt { font-weight:700; }
+.guide-word-help dd { margin:.2rem 0 0; line-height:1.6; }
+@media (max-width:600px) { .guide-condition-comparison { grid-template-columns:minmax(0,1fr); } }

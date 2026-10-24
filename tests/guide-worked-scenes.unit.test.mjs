@@ -39,7 +39,7 @@ test("rule 6.2 identifies official Poison Sting, the audited Pikachu and mutuall
     assert.match(w.como.join(" "),/3\/8/);
     assert.match(w.como.join(" "),/dado de oito faces/);
     assert.match(w.como.join(" "),/nunca aplique as duas/i);
-    assert.deepEqual(GUIDE_AUDIT_CASES.poison.rows.map(row=>row[1]),["3 de 3 HP","2 de 3 HP","Envenenado","2 de 3 HP","Envenenado","1 de 3 HP","Envenenado"]);
+    assert.deepEqual(GUIDE_AUDIT_CASES.poison.rows.map(row=>row[1]),["3 de 3 HP","2 de 3 HP","Poison","2 de 3 HP","Poison","1 de 3 HP","Poison"]);
 });
 
 test("worked examples are indexed and rendered in app and printable book, without redundant book button",()=>{

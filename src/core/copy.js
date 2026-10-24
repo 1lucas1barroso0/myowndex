@@ -64,15 +64,7 @@ export const formatCanonicalItemName = value => {
     }).join(" ");
 };
 
-export const RPG_STATUS_LABELS = Object.freeze({
-    "": "Sem condição",
-    burn: "Burn",
-    freeze: "Freeze",
-    paralysis: "Paralysis",
-    poison: "Poison",
-    "bad-poison": "Badly Poisoned",
-    sleep: "Sleep",
-});
+export { RPG_STATUS_LABELS } from './conditionHelp.js';
 
 export const formatCount = (value, singular, plural = `${singular}s`) => {
     const count = integerInRange(value, 0, MAX_SAFE_GAME_INTEGER, 0);

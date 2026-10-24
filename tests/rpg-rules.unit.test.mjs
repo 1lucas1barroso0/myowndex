@@ -30,7 +30,7 @@ test("trainer guide contains exactly 48 distinct rules across every canonical ch
     assert.ok(rule.body || rule.bullets?.length, `${rule.id} must contain its rule`);
     assert.ok(typeof rule.plain === "string" && rule.plain.length >= 40, `${rule.id} must start with a plain-language explanation`);
   }
-  assert.equal(RPG_RULE_SECTIONS[2].rules.some(rule => rule.title === "Proteção contra hit kill"), true);
+  assert.equal(RPG_RULE_SECTIONS[2].rules.some(rule => rule.id === "3.4" && rule.title === "Aguentar um golpe decisivo"), true);
 });
 
 test("volatile effects have their own rule without changing the current condition mechanics", () => {
@@ -39,7 +39,7 @@ test("volatile effects have their own rule without changing the current conditio
   const volatile = conditions.rules.find(rule => rule.id === "6.5");
   assert.equal(principal.bullets.length, 5);
   assert.doesNotMatch(principal.bullets.join(" "), /Confusão:|Hesitação:/);
-  assert.equal(volatile.title, "Efeitos voláteis");
+  assert.equal(volatile.title, "Confusão e hesitação");
   assert.equal(volatile.bullets.length, 2);
   assert.match(volatile.body, /separados da condição principal/);
   assert.match(volatile.bullets[0], /Dura de 2 a 5 oportunidades próprias/);

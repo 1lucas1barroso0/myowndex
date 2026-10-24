@@ -33,6 +33,7 @@ const GuideRule = React.memo(function GuideRule({ rule, searching, protectionRef
             </summary>
             <div className="guide-rule-body">
                 {rule.plain && <p className="guide-rule-lead">{formatRuleForReading(rule.plain)}</p>}
+                {rule.id !== "3.4" && rule.example && <p><strong>Por exemplo:</strong> {formatRuleForReading(rule.example)}</p>}
                 {rule.id !== "3.4" && rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
                 {rule.id === "3.4" ? (
                     <HitKillExplanation expanded={searching} />
@@ -81,6 +82,7 @@ export default function TrainerGuide({ experienceMode }) {
                         <h3 id="guide-reference-title">Regras da aventura</h3>
                         <span className="guide-rule-count">{ruleCount} regras</span>
                     </header>
+                    <p className="guide-introduction">Prepare seus Pokémon para a aventura! Conte o que quer tentar e consulte uma regra quando surgir uma dúvida. O MyOwnDex ajuda com as contas.</p>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
                         <input type="search" value={query} onChange={event => setQuery(event.target.value)} />
@@ -128,7 +130,7 @@ export default function TrainerGuide({ experienceMode }) {
                             </div>
                             <details className="guide-rounding-help">
                                 <summary>Como arredonda</summary>
-                                <p>A conversão escolhe o inteiro mais próximo. No empate, o atributo desce e o HP sobe. A meta de XP sempre arredonda para baixo.</p>
+                                <p>Escolha o número inteiro mais próximo. Se ficar exatamente no meio, o HP sobe e os outros atributos descem. A meta de XP sempre arredonda para baixo.</p>
                             </details>
                             <article className="guide-damage-limit-card" aria-label={`Limite comum de dano: ${formatNumberPtBr(normalizedLevel)}`}>
                                 <div className="guide-damage-limit-value">
@@ -139,14 +141,15 @@ export default function TrainerGuide({ experienceMode }) {
                                     <summary>Tipos e limite de dano</summary>
                                     <dl className="guide-effectiveness-cases">
                                         <div className="is-immune"><dt>Imune <b>0</b></dt><dd>O movimento não causa dano.</dd></div>
-                                        <div className="is-resistant"><dt>Resistente <b>50% ou 25%</b></dt><dd>O dano diminui. O teto-base continua {formatNumberPtBr(normalizedLevel)}.</dd></div>
-                                        <div className="is-neutral"><dt>Normal <b>×1</b></dt><dd>O limite por hit é {formatNumberPtBr(normalizedLevel)}.</dd></div>
-                                        <div className="is-effective"><dt>Superefetivo <b>×2 ou ×4</b></dt><dd>O dano e o limite aumentam. Neste nível, o teto vai a {formatNumberPtBr(normalizedLevel * 2)} ou {formatNumberPtBr(normalizedLevel * 4)}.</dd></div>
+                                        <div className="is-resistant"><dt>Resistente <b>50% ou 25%</b></dt><dd>O dano cai para metade ou um quarto. O limite inicial continua {formatNumberPtBr(normalizedLevel)}.</dd></div>
+                                        <div className="is-neutral"><dt>Normal <b>×1</b></dt><dd>O limite por impacto é {formatNumberPtBr(normalizedLevel)}.</dd></div>
+                                        <div className="is-effective"><dt>Superefetivo <b>×2 ou ×4</b></dt><dd>O dano e o limite aumentam. Neste nível, o limite vai a {formatNumberPtBr(normalizedLevel * 2)} ou {formatNumberPtBr(normalizedLevel * 4)}.</dd></div>
                                     </dl>
-                                    <p>Com vários tipos, fraquezas e resistências se combinam: duas fraquezas dão ×4; uma fraqueza e uma resistência dão ×1; duas resistências dão 25%. Uma imunidade mantém 0, salvo quando um efeito próprio a remove. Estágios positivos do atributo ofensivo também podem elevar o teto; críticos e movimentos de regra própria usam suas exceções.</p>
+                                    <p>Combine os tipos do alvo: duas fraquezas multiplicam por 4; uma fraqueza e uma resistência se equilibram; duas resistências deixam um quarto do dano. Uma imunidade mantém 0, salvo um efeito que a remova.</p>
+                                    <p>Aumentar os estágios do atributo usado no ataque também pode aumentar o limite na mesma proporção. Críticos e movimentos com regras próprias seguem suas exceções.</p>
                                 </details>
                             </article>
-                            <button type="button" className="guide-hit-kill-link room-secondary-button" onClick={showProtection}>Ver proteção contra hit kill</button>
+                            <button type="button" className="guide-hit-kill-link room-secondary-button" onClick={showProtection}>Como aguentar um golpe decisivo</button>
                         </div>
                     </details>
                     <details className="game-panel guide-mode-note">

@@ -230,7 +230,7 @@ try {
     await openDetails(conversion.locator('.guide-rounding-help'));
     await openDetails(conversion.locator('.guide-effectiveness-help'));
     await checkpoint('Guia: conversão, arredondamento e limite de dano', [320, 1280]);
-    await conversion.getByRole('button', { name: 'Ver proteção contra hit kill', exact: true }).click();
+    await conversion.getByRole('button', { name: 'Como aguentar um golpe decisivo', exact: true }).click();
     const protection = page.locator('.guide-rule-protection');
     await protection.locator('.guide-hit-kill-full-rule[open]').waitFor();
     assert.equal(await protection.locator(':scope > summary').evaluate(element => element === document.activeElement), true, 'The conversion link focuses the complete protection rule');

@@ -417,9 +417,9 @@ test("the adventure exposes every modifier and explains movement resolution", as
   assert.match(combat, /resolution\.defenseTest\?\.fumble/);
   assert.match(combat, /resolveCombatAction/);
   assert.match(await read("server/authoritativeActions.js"), /hitKillSurvivalGrace/);
-  assert.match(rules, /estágios de −6 a \+6 em Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão/);
-  assert.match(rules, /chance numérica, até 100%/);
-  assert.match(rules, /erro crítico da defesa/);
+  assert.match(rules, /estágios de −6 a \+6 para Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão/);
+  assert.match(rules, /Mesmo uma precisão de 100% pode mudar com os estágios de Precisão e Evasão/);
+  assert.match(rules, /erro crítico na defesa/);
   assert.match(rules, /Sturdy, Focus Sash e a reserva de sobrevivência seguem suas próprias regras/);
 });
 
@@ -494,8 +494,8 @@ test("Abilities and held items expose official context, lifecycle, narrative and
   assert.match(css, /Contrato de contraste 9\.5/);
   assert.match(css, /\.token-traits/);
   assert.match(css, /\.combat-trait-line/);
-  assert.match(rules, /precisa estar ativa e cumprir seu gatilho/);
-  assert.match(rules, /Um item pode estar ativo, consumido, removido, trocado ou restaurado/);
+  assert.match(rules, /precisa estar ativa e a situação descrita precisa acontecer/);
+  assert.match(rules, /Itens podem estar ativos, consumidos, removidos, trocados ou recuperados/);
 });
 
 test("the internal Guide is the canonical source and explains hit kill protection", async () => {
@@ -511,19 +511,19 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(guide, /Pesquisar regras/);
   assert.match(rules, /Proteção contra hit kill/);
   assert.match(rules, /três vezes seu HP máximo/);
-  assert.match(rules, /Uma vez por batalha/);
-  assert.match(rules, /Cura, troca e mudança de fase não renovam/);
-  assert.match(rules, /some os impactos diretos do mesmo movimento/);
-  assert.match(rules, /que alcançam o Pokémon depois de precisão/);
+  assert.match(rules, /uma vez por Pokémon em cada batalha/);
+  assert.match(rules, /Curar, trocar ou mudar de fase não renova/);
+  assert.match(rules, /Some o dano direto dos impactos do mesmo movimento/);
+  assert.match(rules, /que realmente chegaram ao Pokémon, depois da precisão/);
   assert.match(rules, /Tirar o próprio HP/);
-  assert.match(rules, /acerto crítico.*pode passar do limite comum/);
+  assert.match(rules, /Dano crítico:.*Ele pode passar do limite comum/);
   assert.match(rules, /regra oficial mais recente e corrigida/);
   assert.match(rules, /1 em 8 de chance de perder a ação/);
   assert.match(rules, /25% de chance de descongelar/);
   assert.match(localPanel, /lock\.current/);
   assert.match(localPanel, /entry\.id/);
-  assert.match(rules, /rola os dois lados/);
-  assert.match(rules, /sem precisar multiplicar números grandes/);
+  assert.match(rules, /cada lado multiplica essa soma pelo atributo original usado no teste/);
+  assert.match(rules, /O MyOwnDex faz essa conta/);
   assert.match(localPanel, /\["attribute","2d6","Teste"\]/);
   assert.doesNotMatch(localPanel, /Teste simples|Para testes simples/);
   assert.match(localPanel, /<LocalPokemonDice/);
@@ -532,7 +532,7 @@ test("the internal Guide is the canonical source and explains hit kill protectio
   assert.match(localPokemon, /"opponent","Oponente"/);
   assert.doesNotMatch(localPokemon, /Oponente selvagem/);
   assert.match(localPokemon, /CaptureAssistant/);
-  assert.match(rules, /Aventura e Dados seguem a mesma regra/);
+  assert.match(rules, /A regra é a mesma na Aventura e nos Dados/);
   assert.match(guide, /Atributo ÷ \{RPG_SCALE_DIVISOR\}/);
   assert.match(guide, /HP ÷ \{RPG_HP_DIVISOR\}/);
   assert.doesNotMatch(guide, /÷ 20/);

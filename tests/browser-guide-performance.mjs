@@ -52,7 +52,7 @@ try {
     await guide.getByLabel('Nível atual', { exact: true }).fill('20');
     assert.equal(await rule.evaluate(element => element.open), true, 'calculator updates preserve the manually opened rule');
     await searchFor('__nada_encontrado__');
-    await guide.getByRole('button', { name: 'Ver proteção contra hit kill', exact: true }).click();
+    await guide.getByRole('button', { name: 'Como aguentar um golpe decisivo', exact: true }).click();
     const protection = guide.locator('[data-rule-id="3.4"]');
     await page.waitForFunction(() => document.querySelector('[data-rule-id="3.4"]')?.open);
     assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);

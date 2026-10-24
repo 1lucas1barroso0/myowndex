@@ -104,7 +104,7 @@ export default function ExperienceAward({ onAward, disabled = false, winnerLevel
                 <div><dt>Reduções</dt><dd>{automatic.penalties ? `−${automatic.penalties}` : "0"}</dd></div>
                 <div><dt>Resultado automático</dt><dd>{automatic.xp} XP</dd></div>
             </dl>
-            <p className="experience-formula-note">Multiplique a XP-base e depois subtraia as reduções. A recompensa mínima é 1 XP. Cada XP recebido concede 2 EVs.</p>
+            <p className="experience-formula-note">Comece pela XP do desafio. Aplique o multiplicador e depois tire as reduções. A recompensa fica em pelo menos 1 XP. Cada XP recebida dá 2 EVs para treinar os atributos.</p>
             {automatic.reasons.length > 0 && <ul className="experience-reasons">{automatic.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
             </details>
             <details className="experience-manual-choice">

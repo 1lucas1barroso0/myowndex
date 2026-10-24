@@ -9,7 +9,7 @@ export const createGuideSearchIndex = sections => ({
         section,
         text: normalizeSearch(`${section.number} ${section.title} ${section.summary}`),
         rules: section.rules.map(rule => {
-            const text = [rule.id, rule.title, rule.body || "", ...(rule.bullets || [])].join(" ");
+            const text = [rule.id, rule.title, rule.plain || "", rule.example || "", rule.body || "", ...(rule.bullets || [])].join(" ");
             return { rule, text: normalizeSearch(`${text} ${legacySearchAliases(text)}`) };
         }),
     })),

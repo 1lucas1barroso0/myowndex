@@ -21,9 +21,9 @@ export default function NewBattleButton({ onStart, activeRound = false, disabled
     return <>
         <button type="button" className="room-secondary-button" disabled={disabled || busy || activeRound}
             onClick={() => { setFailure(""); setConfirming(true); }}>{ending ? "Encerrar batalha" : "Nova batalha"}</button>
-        {activeRound && <small>Termine a rodada antes de mudar o confronto.</small>}
+        {activeRound && <small>Termine a rodada antes de encerrar ou começar outra batalha.</small>}
         <ConfirmDialog busy={busy} open={confirming} title={ending ? "Encerrar esta batalha?" : "Começar uma nova batalha?"} tone="info"
-            description={`${ending ? "Termina as transformações e os efeitos temporários de combate. HP, PP, condições, XP e itens gastos continuam registrados. Não devolve proteções nem usos de técnicas." : "A rodada volta para 1, com novas ações e proteção contra hit kill. HP, PP, condições, amizade, XP e itens usados ficam como estão."}${failure ? ` ${failure}` : ""}`}
+            description={`${ending ? "A batalha termina, e as transformações e os efeitos temporários também. HP, PP, condições, XP e itens gastos continuam como estavam. Encerrar não devolve proteções nem usos de técnicas." : "A nova batalha começa na rodada 1, com novas ações e proteção contra hit kill. HP, PP, condições, Amizade, XP e itens usados ficam como estão."}${failure ? ` ${failure}` : ""}`}
             confirmLabel={busy ? "Preparando…" : ending ? "Encerrar confronto" : "Começar batalha"} onConfirm={() => void confirm()}
             onCancel={() => { if (!busy) setConfirming(false); }} />
     </>;

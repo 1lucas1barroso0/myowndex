@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.3.**
+**Versão atual: 2.1.4.**
+
+A 2.1.4 revisa a redação das 48 regras, com um resumo acolhedor e um exemplo concreto antes do detalhamento. Preserva IDs, ordem, mecânicas e valores da 2.1.3. A busca inclui resumos e exemplos. A explicação de sobrevivência vem da mesma regra no Guia e nos painéis; captura, XP, Amizade e avisos de batalha usam linguagem alinhada. Consulte `REGRAS-AMIGAVEIS-2.1.4.md` para escopo e verificação. Não reintroduzir jargão técnico ou tratar a adaptação como regra literal dos jogos oficiais.
 
 A 2.1.3 reúne a proteção pendente de aprendizado por espécie/jogo/nível e usa a mesma seleção ao gerar Pokémon ou adicioná-los à Box. Movimentos de evolução não são concedidos como aprendizado comum. A revisão dos deploys também alinha o ensaio de Amizade aos controles atuais e espera a lista de iniciativa ficar visível no retorno ao Campo. O relatório está em `REVISAO-DEPLOYS-2.1.3.md`.
 

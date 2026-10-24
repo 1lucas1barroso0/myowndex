@@ -16,15 +16,15 @@ export default function HitKillExplanation({ expanded = false }) {
             </div>
             <ol className="guide-hit-kill-flow" aria-label="Condições para a proteção agir">
                 <li><span className="guide-hit-kill-step" aria-hidden="true">1</span><div><strong>HP cheio</strong><span>No começo da ação.</span></div></li>
-                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>O golpe zeraria o HP</strong><span>O dano total da ação é menor que 3× o máximo.</span></div></li>
+                <li><span className="guide-hit-kill-step" aria-hidden="true">2</span><div><strong>O golpe zeraria o HP</strong><span>O dano direto total da ação é menor que três vezes o HP máximo.</span></div></li>
                 <li className="guide-hit-kill-outcome"><span className="guide-hit-kill-step" aria-hidden="true">3</span><div><strong>Continua com <b>1 HP</b></strong><span>A ação termina com 1 HP; a proteção é usada.</span></div></li>
             </ol>
-            <p className="guide-hit-kill-example"><strong>Exemplo:</strong> com 20 HP cheios e a proteção disponível, um dano de 30 deixa 1 HP. Um dano de 60 ou mais atravessa a proteção, mesmo sem crítico.</p>
+            <p className="guide-hit-kill-example"><strong>Por exemplo:</strong> {protectionRule?.example}</p>
             <details className="guide-hit-kill-full-rule" open={expanded}>
                 <summary>Regra completa</summary>
                 <div className="guide-hit-kill-canonical">
-                    {protectionRule?.body && <p>{protectionRule.body}</p>}
-                    <ul>{protectionRule?.bullets?.map(text => <li key={text}>{text}</li>)}</ul>
+                    {protectionRule?.body?.split(/\n\n+/).map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+                    {protectionRule?.bullets?.length > 0 && <ul>{protectionRule?.bullets?.map(text => <li key={text}>{text}</li>)}</ul>}
                 </div>
             </details>
         </div>

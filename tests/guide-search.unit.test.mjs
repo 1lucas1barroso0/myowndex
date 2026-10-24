@@ -14,15 +14,16 @@ test("indexed guide search preserves every rule, accents, section matches and di
         return sections.map(section => ({ ...section,
             rules: normalize(`${section.number} ${section.title} ${section.summary}`).includes(needle) ? section.rules
                 : section.rules.filter(rule => {
-                    const text = [rule.id, rule.title, rule.body || "", ...(rule.bullets || [])].join(" ");
+                    const text = [rule.id, rule.title, rule.plain || "", rule.example || "", rule.body || "", ...(rule.bullets || [])].join(" ");
                     const displayed = text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
                     return normalize(`${text} ${displayed}`).includes(needle);
                 }),
         })).filter(section => section.rules.length);
     };
-    const queries = ["", "  ", "AÇÃO", "acao", "dano", "12,5%", "1 em 8", "33,3%", "1 em 3", "3.4", "__sem_resultados__",
+    const queries = ["", "  ", "AÇÃO", "acao", "dano", "12,5%", "1 em 8", "33,3%", "1 em 3", "3.4", "galho errado", "__sem_resultados__",
         ...sections.flatMap(section => [section.title, section.summary, ...section.rules.map(rule => rule.title)])];
     for (const query of queries) assert.deepEqual(searchGuideSections(index, query), legacy(query), query);
+    assert.deepEqual(searchGuideSections(index, "galho errado").flatMap(section => section.rules.map(rule => rule.id)), ["1.3"]);
     assert.strictEqual(searchGuideSections(index, ""), sections);
     assert.equal(JSON.stringify(sections), before);
 });

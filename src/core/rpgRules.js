@@ -3,10 +3,10 @@ import { finiteNumberOrNull, integerInRange } from "./math.js";
 import { randomChoice, roll2D6, rollD6, rollD100 } from "./random.js";
 
 export const FUMBLE_SUGGESTIONS = Object.freeze([
-    "Perder uma posição favorável ou ficar exposto até a próxima ação.",
-    "Atingir o cenário e criar uma complicação que mude a cena.",
-    "Gastar um recurso adicional, como PP, item ou tempo, quando isso fizer sentido.",
-    "Dar ao oponente uma oportunidade imediata, sem retirar a decisão do Narrador.",
+    "Seu Pokémon pode perder uma boa posição ou ficar exposto até a próxima ação.",
+    "O movimento pode atingir o cenário e criar um novo problema.",
+    "A tentativa pode custar mais PP, um item ou tempo, se isso fizer sentido.",
+    "O oponente pode ganhar uma oportunidade. O Narrador decide como ela acontece.",
 ]);
 
 export const getFumbleSuggestion = random =>
@@ -46,435 +46,506 @@ export const RPG_RULE_SECTIONS = [
     {
         "id": "rolagens",
         "number": 1,
-        "title": "Rolagens e testes",
-        "summary": "Testes com 2d6, vantagem, críticos e chances percentuais.",
+        "title": "Dados e testes",
+        "summary": "Quando rolar, como usar vantagem e o que os dados mostram.",
         "rules": [
             {
                 "id": "1.1",
-                "title": "Testes básicos",
-                "plain": "Quando existe oposição, o MyOwnDex compara os dois lados e faz os cálculos; você acompanha a decisão pelos dados e pelo resultado.",
-                "body": "Role dois dados de seis lados: isso é 2d6. Em uma disputa entre Pokémon, escolha quem age e quem responde. O MyOwnDex rola os dois lados e usa os atributos, nível, IVs, EVs, natureza, estágios, condições, habilidades e itens de cada um. Aventura e Dados seguem a mesma regra.\n\nQuem age precisa superar quem se defende. Empate favorece a defesa. O jogo faz as contas proporcionais: você acompanha o resultado sem precisar multiplicar números grandes."
+                "title": "Vamos rolar os dados",
+                "plain": "Conte o que seu Pokémon quer fazer. Se houver uma disputa, os dados ajudam a descobrir o que acontece.",
+                "body": "2d6 quer dizer dois dados de seis lados. Role os dois e some os resultados. Numa disputa entre Pokémon, cada lado multiplica essa soma pelo atributo original usado no teste, com os ajustes que estiverem valendo. O MyOwnDex faz essa conta.\n\nPara conseguir o que tentou, quem age precisa superar a defesa. Se empatar, a defesa vence. O aplicativo considera atributos, nível, IVs, EVs, natureza, estágios, condições, habilidades e itens. A regra é a mesma na Aventura e nos Dados.",
+                "example": "Pikachu tenta alcançar um Pokémon que está fugindo. Os dois disputam Velocidade; se empatarem, Pikachu ainda não o alcança."
             },
             {
                 "id": "1.2",
                 "title": "Vantagem e desvantagem",
-                "plain": "Vantagem e Desvantagem mudam quais dois dados de 3d6 ficam no teste; elas não se acumulam.",
-                "body": "Uma boa preparação pode ajudar; um obstáculo pode atrapalhar. Combine isso antes de rolar.",
+                "plain": "Uma boa preparação pode ajudar na rolagem. Um obstáculo pode deixá-la mais difícil.",
+                "body": "O Narrador combina se há vantagem ou desvantagem antes de rolar.",
                 "bullets": [
-                    "Vantagem: role 3d6 e mantenha os dois maiores.",
-                    "Desvantagem: role 3d6 e mantenha os dois menores.",
-                    "Use apenas um modo. Duas vantagens não dão mais dados. Se houver vantagem e desvantagem juntas, use Normal."
-                ]
+                    "Vantagem: role três dados de seis lados e some os dois maiores.",
+                    "Desvantagem: role três dados de seis lados e some os dois menores.",
+                    "Normal: role apenas dois dados. Use este modo se houver vantagem e desvantagem juntas.",
+                    "Várias vantagens não dão mais dados. O mesmo vale para várias desvantagens."
+                ],
+                "example": "Com vantagem, os dados mostram 2, 4 e 6. Você fica com 4 e 6: total 10!"
             },
             {
                 "id": "1.3",
                 "title": "Acertos e erros críticos",
-                "plain": "Críticos só melhoram um sucesso que já aconteceu; erros críticos criam uma complicação, não um resultado impossível.",
-                "body": "Dois resultados iguais podem dar um momento especial à cena.",
+                "plain": "Dois 6 podem deixar um acerto ainda melhor! Dois 1 podem trazer uma complicação para a cena.",
+                "body": "Olhe os dois dados que ficaram no teste, mesmo quando você rolou três.",
                 "bullets": [
-                    "Dois 6 nos dados mantidos podem virar um acerto crítico. Primeiro, o ataque precisa vencer a defesa e alcançar o alvo. Empate, erro ou imunidade não viram sucesso só por causa dos dados.",
-                    "Um acerto crítico multiplica o dano por 3 e divide por 2 e pode passar do limite comum. A proteção contra hit kill ainda funciona quando seus requisitos são atendidos.",
-                    "Dois 1 nos dados mantidos são um erro crítico. O jogo sugere uma complicação; o grupo escolhe algo que faça sentido na cena.",
-                    "Um erro crítico da defesa pode trazer outra complicação, mas não remove sozinho a proteção contra hit kill.",
-                    "Perder uma posição favorável ou ficar exposto até a próxima ação.",
-                    "Atingir o cenário e criar uma complicação que mude a cena.",
-                    "Gastar um recurso adicional, como PP, item ou tempo, quando isso fizer sentido.",
-                    "Dar ao oponente uma oportunidade imediata, sem retirar a decisão do Narrador."
-                ]
+                    "Dois 6: o ataque pode ser crítico, mas primeiro precisa vencer a defesa e acertar o alvo. Um empate, erro ou imunidade não vira acerto por causa dos dados.",
+                    "Dano crítico: multiplique o dano por 3 e divida por 2. Ele pode passar do limite comum, mas ainda respeita a proteção contra hit kill.",
+                    "Dois 1: o Narrador e o grupo escolhem uma complicação que combine com a cena. Um erro crítico na defesa também pode complicar a situação; ele não retira a proteção contra hit kill sozinho.",
+                    "Seu Pokémon pode perder uma boa posição ou ficar exposto até a próxima ação.",
+                    "O movimento pode atingir o cenário e criar um novo problema.",
+                    "A tentativa pode custar mais PP, um item ou tempo, se isso fizer sentido.",
+                    "O oponente pode ganhar uma oportunidade. O Narrador decide como ela acontece."
+                ],
+                "example": "Um movimento atinge o galho errado. Agora a equipe precisa lidar com a passagem bloqueada!"
             },
             {
                 "id": "1.4",
-                "title": "Probabilidades e efeitos secundários",
-                "plain": "Chances percentuais usam d100, e uma boa vitória nos dados pode ajudar precisão ou efeitos secundários quando a regra permitir.",
-                "body": "Para uma chance inteira em porcentagem, role 1d100. Resultado igual ou menor que a chance é sucesso. Com vantagem, o jogo tenta duas vezes e fica com o melhor resultado; com desvantagem, fica com o pior. Chances exatas que o d100 não consegue representar são sorteadas sem aproximação.\n\nEm um ataque, vencer a disputa e somar pelo menos 2 a mais nos dados mantidos do que a defesa dá vantagem na precisão e nos efeitos secundários. Compare os dados, não o total dos atributos. O jogo verifica isso para você."
+                "title": "Testes de chance e efeitos extras",
+                "plain": "Alguns movimentos podem errar ou causar um efeito extra. O MyOwnDex faz o sorteio e mostra o resultado.",
+                "body": "1d100 é uma rolagem de 1 a 100. Se o resultado for igual ou menor que a chance, funciona. Com vantagem, faça duas tentativas e fique com a melhor; com desvantagem, fique com a pior. Quando a chance não cabe certinho no d100, o MyOwnDex usa um sorteio exato.\n\nUm ataque que vence a disputa ganha vantagem na precisão e nos efeitos secundários se a soma de seus dados mantidos for pelo menos 2 maior que a da defesa. Compare só os dados, sem os atributos. O aplicativo confere isso para você.",
+                "example": "Para uma chance de 30%, qualquer resultado de 1 a 30 no d100 é um sucesso."
             },
             {
                 "id": "1.5",
-                "title": "Variação de dano",
-                "plain": "O poder continua definindo o dano; um d6 só acrescenta uma pequena variação inteira.",
-                "body": "Depois dos modificadores e do arredondamento, role um d6 por impacto: 1 reduz um passo; 2 a 5 mantêm; 6 aumenta um passo. O passo é o dano-base dividido por 10, arredondado para baixo, mínimo 1. Base 6 resulta em 5, 6 ou 7. Base 20 resulta em 18, 20 ou 22. Base 1 permanece 1: não cria erro extra nem infla a média. Aplique depois o teto comum, exceto nas exceções já previstas.\n\nDano fixo, proporcional ao HP, custos, cura, recuo e residual não usam esse d6. Cada impacto e alvo têm seu próprio sorteio registrado uma vez; consulte o resultado sem rerrolar. O teto pode retirar a parte alta da distribuição. Esta é uma adaptação do RPG para valores inteiros."
+                "title": "Um pouquinho mais ou menos de dano",
+                "plain": "Um golpe pode sair um pouco mais forte ou mais fraco. A diferença é pequena e sempre usa números inteiros.",
+                "body": "Calcule o dano com seus modificadores e arredonde. Depois, role um d6 para cada impacto em cada alvo: de 2 a 5, o dano fica como está; com 1, diminui um passo; com 6, aumenta um passo.\n\nO passo é o dano-base dividido por 10, arredondado para baixo, com mínimo de 1. Dano-base 1 continua em 1. Depois aplique o limite comum de dano, salvo as exceções da regra do movimento. Esse limite pode cortar o aumento.\n\nCura, custos de HP, recuo, dano contínuo, dano fixo e dano baseado no HP não usam essa variação. O resultado é sorteado ao aplicar o impacto e fica registrado; consultá-lo outra vez não dá uma nova rolagem. Esta é uma adaptação do RPG.",
+                "example": "Se o dano-base é 6, o golpe pode causar 5, 6 ou 7. Se é 20, pode causar 18, 20 ou 22."
             }
         ]
     },
     {
         "id": "matematica",
         "number": 2,
-        "title": "Cálculos da aventura",
-        "summary": "HP por 8, demais atributos por 10, estágios, XP e valores inteiros.",
+        "title": "Os números da ficha",
+        "summary": "Entenda os atributos, os valores inteiros e o crescimento dos seus parceiros.",
         "rules": [
             {
                 "id": "2.1",
-                "title": "Construção dos atributos",
-                "plain": "Os atributos vêm dos mesmos elementos dos jogos, e o MyOwnDex monta o valor usado na aventura.",
-                "body": "Cada Pokémon tem suas próprias forças. Nível, IVs, EVs e natureza ajudam a definir seus atributos, como nos jogos. O MyOwnDex calcula esses valores; o Narrador também pode usar uma ficha já pronta."
+                "title": "As forças do seu Pokémon",
+                "plain": "Cada Pokémon tem suas próprias forças. O MyOwnDex monta os atributos para você acompanhar sua aventura.",
+                "body": "Nível, IVs, EVs e natureza ajudam a formar os atributos, como nos jogos. IVs são características naturais; EVs vêm do treinamento; a natureza também influencia esses valores. Você pode usar os cálculos do aplicativo ou uma ficha pronta combinada com o Narrador.\n\nHP são os pontos de vida: mostram quanto seu parceiro ainda aguenta antes de desmaiar. PP são os pontos de poder: mostram quantas vezes ele pode usar cada movimento.",
+                "example": "Um parceiro pode se destacar na Defesa, enquanto outro prefere usar seus ataques especiais."
             },
             {
                 "id": "2.2",
-                "title": "Escalas dos atributos",
-                "plain": "O RPG reduz números grandes para uma escala menor; o MyOwnDex aplica o arredondamento correto automaticamente.",
-                "body": "HP usa o valor original dividido por 8, arredondado ao inteiro mais próximo; uma metade exata sobe. Demais atributos e poder continuam divididos por 10; uma metade exata desce. Shedinja mantém 1 HP. Não existem HP, dano, cura, XP, EVs ou Amizade fracionários. Multiplicadores são razões: bônus de STAB comum significa multiplicar por 3 e dividir por 2 antes de arredondar.\n\nAmizade vai de 0 a 255 na referência original: no RPG, divida por 10 e arredonde para baixo, até 25. Efeitos pequenos seguem 6.2."
+                "title": "Números menores para jogar",
+                "plain": "No RPG, usamos números menores para facilitar as contas. O aplicativo faz essa conversão por você.",
+                "body": "Divida o HP original por 8. Divida os outros atributos e o poder dos movimentos por 10. Escolha o inteiro mais próximo: se ficar exatamente no meio, o HP sobe e os outros valores descem. Shedinja continua com 1 HP.\n\nHP, dano, cura, XP, EVs e Amizade não ficam quebrados. STAB é o bônus de usar um movimento do próprio tipo. Para o bônus comum, multiplique por 3 e divida por 2 antes de arredondar. A regra 6.2 explica os efeitos pequenos.\n\nA Amizade usa a escala de 0 a 255 na ficha original. No RPG, divida por 10 e arredonde para baixo: o máximo é 25.",
+                "example": "Um HP original de 20 vira 3 no RPG. Um atributo original de 15 vira 1."
             },
             {
                 "id": "2.3",
-                "title": "Estágios de atributos",
-                "plain": "Estágios de −6 a +6 fortalecem ou enfraquecem atributos antes da conversão para a escala do RPG.",
-                "body": "Um movimento pode fortalecer ou enfraquecer um atributo em estágios, de −6 a +6. O jogo ajusta o valor original antes de dividi-lo por 10. Precisão e Evasão também usam estágios. Os valores nunca caminham contra o estágio. Na escala pequena, estágios vizinhos podem mostrar o mesmo inteiro; o estágio continua registrado e um novo ajuste pode atravessar o próximo degrau. Exemplo: Ataque original 10 vira 1 no estágio 0; de +1 a +3 pode permanecer 2. Não se perde o estágio nem se soma um bônus inventado."
+                "title": "Atributos que sobem e descem",
+                "plain": "Um movimento pode aumentar ou diminuir um atributo durante a batalha. Cada mudança fica marcada na ficha.",
+                "body": "Essas mudanças são os estágios: vão de −6 a +6. O MyOwnDex ajusta o atributo original antes de passá-lo para a escala do RPG. Precisão e Evasão também têm estágios.\n\nÀs vezes, dois estágios mostram o mesmo número pequeno. A mudança não se perdeu: outro aumento pode alcançar o próximo número. O valor nunca anda para o lado contrário ao estágio.",
+                "example": "Um Ataque original de 10 vira 1 no RPG. Entre os estágios +1 e +3, ele pode continuar mostrando 2; os estágios seguem guardados."
             },
             {
                 "id": "2.4",
-                "title": "Zeros e limites mínimos",
-                "plain": "Zero continua sendo um valor válido, mas HP máximo e dano real respeitam seus mínimos.",
-                "body": "HP máximo é pelo menos 1; com 0 HP o Pokémon desmaia e fica fora de combate, sem morte automática. Dano direto positivo tem piso de 1. Erro, imunidade e bloqueio continuam em 0. Efeitos pequenos podem resultar em 0 naquela ocorrência, conforme 6.2; custos voluntários de HP continuam exigindo pelo menos 1. Nenhum mínimo ignora uma proteção."
+                "title": "Quando um valor chega a zero",
+                "plain": "Com 0 HP, o Pokémon desmaia e precisa de cuidados. Isso não significa que ele morreu.",
+                "body": "O HP máximo nunca fica abaixo de 1. Um dano direto que realmente acontece causa pelo menos 1 de dano. Um erro, uma imunidade ou um bloqueio pode causar 0.\n\nEfeitos pequenos também podem dar 0 naquela vez, como explica a regra 6.2. Isso não remove uma condição nem ignora uma proteção. Se uma escolha exige pagar HP, o custo continua sendo pelo menos 1.",
+                "example": "Um movimento que não afeta o tipo do alvo causa 0 de dano. Ele não ganha 1 de dano só por ter sido usado."
             },
             {
                 "id": "2.5",
-                "title": "Experiência e evolução",
-                "plain": "XP recompensa desafios reais, pode mudar conforme a dificuldade do confronto e também concede EVs sem duplicar recompensas.",
-                "body": "XP mostra o que o Pokémon aprendeu ao superar um desafio.",
+                "title": "Ganhar XP e subir de nível",
+                "plain": "Seus Pokémon aprendem ao superar desafios! O Narrador escolhe a recompensa e o MyOwnDex acompanha o crescimento.",
+                "body": "XP quer dizer experiência: o que seu parceiro aprende na jornada. Você pode ganhar XP ao vencer, capturar, negociar, resgatar ou descobrir algo. Se tudo isso resolveu o mesmo desafio, receba a recompensa uma vez só.",
                 "bullets": [
-                    "A meta é metade do próximo nível, arredondada para baixo. Ao atingir a meta, desconte só essa meta, suba e guarde a sobra. Repita enquanto ela pagar outro nível. Exemplo: nível 10, saldo 4, prêmio 3: paga 5 e chega ao nível 11 com 2 XP. Registre o prêmio depois da batalha; use Encerrar batalha após concluir a rodada. Mudar só a fase não libera XP. Transformações de batalha, inclusive Transform, terminam antes da recompensa; não recalcule a iniciativa em curso. Tera Shift é automático: Terapagos pode crescer fora de batalha, com os atributos das duas formas atualizados juntos.",
-                    "O Narrador escolhe a recompensa-base: 1 XP para um desafio comum, 2 para um importante e 3 para uma grande conquista. Fora de batalha, ela fica de 1 a 3. Repetir algo trivial ou sem risco não cria outro desafio.",
-                    "Na vitória em batalha, dobre a recompensa se ao menos um adversário tiver o dobro ou mais do maior nível do lado vencedor. Dobre também se o lado adversário tiver o dobro ou mais de Pokémon participantes. As duas condições juntas dão ×4. Compare os níveis de entrada na batalha e conte quem participou, incluindo quem saiu ou foi derrotado; quem ficou só no banco não conta.",
-                    "Se essas condições favorecerem o vencedor, cada uma tira 1 XP e não dá multiplicador. Em casos mistos, multiplique primeiro e subtraia depois e mantenha no mínimo 1 XP ao final. Exemplo: base 3, vencedor com vantagem de nível e adversários em dobro dão 3 ×2 − 1 = 5 XP.",
-                    "Vencer, capturar, negociar, resgatar ou descobrir podem resolver o mesmo desafio. Recompense esse desafio uma vez, não uma vez por botão, golpe ou resultado.",
-                    "A XP recebida já é inteira. Se o grupo usar uma recompensa coletiva, a divisão padrão é igual, com resultado arredondado para baixo; combine outra divisão antes de conceder. Cada Pokémon que contribuiu de maneira relevante e se expôs ao desafio recebe pelo menos 1 XP; só estar na Box ou entrar sem contribuir não basta. Esse piso é individual: base 1 dividida entre seis participantes válidos dá 1 XP para cada um, e não conserva um total fixo de 1 XP. Editar a XP atual corrige a ficha: não concede outra recompensa.",
-                    "Cada aquisição de XP entrega o dobro em EVs. Receber 3 XP, por exemplo, dá 6 EVs para distribuir: até 252 por atributo e 510 no total. A mesma recompensa registrada não entrega XP nem EVs duas vezes."
-                ]
+                    "Recompensa-base: 1 XP para um desafio comum, 2 para um importante e 3 para uma grande conquista. Fora de batalha, fique entre 1 e 3 XP. Repetir uma tarefa fácil e sem risco não cria outro desafio.",
+                    "Depois da batalha: termine a rodada e use Encerrar batalha antes de dar XP. Trocar apenas a fase não basta. Termine também as transformações, inclusive Transform. Tera Shift é automático: fora da batalha, Terapagos pode crescer com as duas formas atualizadas juntas. Não refaça uma iniciativa em andamento para atualizar atributos.",
+                    "Subir de nível: a meta é metade do próximo nível, arredondada para baixo. Ao alcançá-la, desconte a meta, suba e guarde a sobra. Se ainda tiver XP para outro nível, repita.",
+                    "Vitória difícil: dobre a recompensa se um adversário tiver pelo menos o dobro do maior nível do lado vencedor. Dobre também se houver pelo menos o dobro de Pokémon participantes no lado adversário. As duas situações juntas multiplicam por 4. Use os níveis de entrada e conte quem participou, mesmo que tenha saído ou desmaiado; ficar só no banco não conta.",
+                    "Vitória mais fácil: se o dobro do nível ou dos participantes favorecer o vencedor, tire 1 XP por situação, sem dar o multiplicador daquela situação. Quando houver uma vantagem de cada lado, multiplique primeiro e subtraia depois. A recompensa final fica em pelo menos 1 XP. Por exemplo: base 3, vantagem de nível do vencedor e adversários em dobro dão 3 × 2 − 1 = 5 XP.",
+                    "Recompensa do grupo: a XP recebida já é inteira. A divisão padrão é igual, com resultado arredondado para baixo; combinem outra divisão antes. Cada Pokémon que contribuiu de verdade e enfrentou o risco recebe pelo menos 1 XP. Assim, dividir uma recompensa-base de 1 entre seis participantes válidos dá 1 XP para cada um. Só entrar em campo ou ficar na Box não basta.",
+                    "Treinamento: cada XP recebida dá 2 EVs para distribuir. Receber 3 XP dá 6 EVs. São até 252 EVs por atributo e 510 ao todo. Registrar a mesma recompensa de novo não entrega XP ou EVs outra vez. Editar a XP atual serve para corrigir a ficha."
+                ],
+                "example": "No nível 10, seu Pokémon tem 4 XP e ganha mais 3. Ele usa 5 para chegar ao nível 11 e guarda 2 XP."
             }
         ]
     },
     {
         "id": "combate",
         "number": 3,
-        "title": "Combate e movimentos",
-        "summary": "Iniciativa, precisão, dano e liberdade de movimento na cena.",
+        "title": "Hora da batalha",
+        "summary": "Escolha sua ação, acompanhe a vez e descubra o resultado dos movimentos.",
         "rules": [
             {
                 "id": "3.1",
-                "title": "Ordem dos turnos",
-                "plain": "Cada rodada começa com escolhas, depois a iniciativa fixa a ordem até todos agirem e a rodada terminar.",
-                "body": "Antes da iniciativa, escolha um movimento, Trocar Pokémon, Improvisar / interagir, Tentar fugir ou Aguardar / passar a vez. Descreva um improviso com objetivo, benefício e risco nas notas da cena. Declarar não usa PP. Pode mudar até a iniciativa; depois dela, a escolha fica travada. Se o plano ficar impossível, pode aguardar ou cumprir uma alternativa já combinada, sem escolher outro ataque de graça.",
+                "title": "Quem joga primeiro?",
+                "plain": "Cada rodada é uma volta em que todos têm sua vez. Primeiro vocês escolhem as ações; depois o jogo organiza a ordem.",
+                "body": "Antes de rolar a iniciativa, escolha um movimento, Trocar Pokémon, Improvisar / interagir, Tentar fugir ou Aguardar / passar a vez. Escolher ainda não gasta PP. Você pode mudar até a iniciativa ser rolada.\n\nDepois disso, siga sua escolha. Se o plano ficar impossível, você pode aguardar ou seguir uma alternativa já combinada. Isso não libera outro ataque para escolher depois de ver a ordem.",
                 "bullets": [
-                    "Prioridade maior age primeiro: Protect (+4), Quick Attack (+1), Tackle (0). Valores negativos vêm depois de 0. Aguardar, improvisar, fugir e trocar usam 0. Prioridade não aumenta a Velocidade nem dá outra ação.",
-                    "Entre escolhas de mesma prioridade, o jogo rola 2d6 e usa a Velocidade atual, com seus modificadores. Se houver empate real, rola 1d6 só entre os empatados, repetindo até decidir.",
-                    "Habilidades ativas também contam: Prankster dá +1 a movimentos de status; Gale Wings dá +1 a Flying com HP cheio; Triage dá +3 aos movimentos de cura que sua regra permite. A prioridade aparece antes de rolar.",
-                    "Depois de rolar, a escolha e a ordem ficam firmes. Mudar a seleção não permite agir antes ou refazer a iniciativa. Mudanças de Velocidade entram na próxima rodada; efeitos que mudam a ordem de propósito seguem suas próprias regras.",
-                    "Próximo turno passa a vez. Depois do último, Encerrar rodada aplica os efeitos finais e libera novas escolhas. Escolha de novo e role a iniciativa da próxima rodada."
-                ]
+                    "Prioridade: movimentos de prioridade maior vêm primeiro. Protect tem +4, Quick Attack tem +1 e Tackle tem 0. Valores negativos vêm depois de 0. Aguardar, improvisar, fugir e trocar usam 0. Prioridade não aumenta a Velocidade nem dá outra ação.",
+                    "Mesma prioridade: o jogo rola 2d6 e usa a Velocidade atual, com seus ajustes. Se ainda houver empate, role 1d6 entre os empatados e repita até decidir.",
+                    "Habilidades: Prankster dá +1 a movimentos de status; Gale Wings dá +1 a movimentos do tipo Flying (Voador) com HP cheio; Triage dá +3 às curas que sua regra permite. A habilidade precisa estar ativa. Você vê a prioridade antes de rolar.",
+                    "Durante a rodada: a ordem fica como foi rolada. Uma mudança de Velocidade conta na próxima rodada, salvo um efeito que mude a ordem de propósito. Mudar a seleção não adianta sua vez.",
+                    "Para continuar: use Próximo turno depois da ação. No último turno, Encerrar rodada aplica os efeitos finais. Então escolha de novo e role a próxima iniciativa."
+                ],
+                "example": "Mesmo sendo mais lento, um Pokémon usando Quick Attack pode agir antes de outro que escolheu Tackle."
             },
             {
                 "id": "3.2",
-                "title": "Precisão",
-                "plain": "Precisão decide se um movimento alcança o alvo; o jogo aplica as alterações de Precisão e Evasão.",
-                "body": "A precisão responde: o movimento alcançou o alvo? Se a regra do movimento dispensa esse teste, não há rolagem. Se há uma chance numérica, até 100% pode mudar com Precisão e Evasão. No d100, igual ou menor que a chance ajustada é acerto.\n\nAo vencer a disputa com pelo menos 2 a mais na soma dos dados mantidos, o ataque ganha a segunda tentativa da regra 1.4."
+                "title": "O movimento acertou?",
+                "plain": "A precisão mostra a chance de um movimento alcançar o alvo. O MyOwnDex confere a rolagem e os ajustes.",
+                "body": "Alguns movimentos dispensam o teste de precisão. Os que têm uma chance numérica usam d100: igual ou menor que a chance ajustada é acerto. Mesmo uma precisão de 100% pode mudar com os estágios de Precisão e Evasão.\n\nSe o ataque vencer a disputa e a soma de seus dados mantidos for pelo menos 2 maior que a da defesa, ele ganha a segunda tentativa da regra 1.4.",
+                "example": "Se a chance final é 80%, tirar 80 acerta. Tirar 81 não acerta."
             },
             {
                 "id": "3.3",
-                "title": "Resolução de movimentos",
-                "plain": "Cada movimento usa o atributo, alvo e efeito que realmente possui; o jogo não inventa uma disputa onde ela não existe.",
-                "body": "Movimentos Físicos disputam Ataque contra Defesa. Especiais usam Ataque Especial contra Defesa Especial. Movimentos de status não fazem uma disputa de dano inventada: usam seus alvos, precisão, imunidades e efeitos próprios.\n\nRecover e Swords Dance agem sobre o usuário; não sobre o adversário. Eles também esperam sua vez e precisam ser resolvidos. Declarar ainda não aplica o efeito.",
+                "title": "Usar um movimento",
+                "plain": "Escolha o movimento e seu alvo. Cada movimento faz o que sua própria regra permite.",
+                "body": "Movimentos físicos usam Ataque contra Defesa. Movimentos especiais usam Ataque Especial contra Defesa Especial. Movimentos de status podem fortalecer, atrapalhar ou mudar a cena. Eles seguem seus próprios alvos, precisão, imunidades e efeitos; não recebem uma disputa de dano inventada.\n\nRecover e Swords Dance, por exemplo, agem no próprio usuário. Eles também esperam a vez do Pokémon. Escolher um movimento ainda não aplica seu efeito.",
                 "bullets": [
-                    "O atacante precisa superar a defesa para causar dano. Empate ou resultado menor impedem o dano. Se o movimento alcançou o alvo, seus efeitos secundários ainda podem funcionar.",
-                    "Cada efeito vai para o alvo que sua regra determina: usuário, Pokémon escolhido, grupo ou campo.",
-                    "O jogo combina poder, STAB, tipos e demais multiplicadores antes de arredondar uma vez. Depois aplica a variação inteira da regra 1.5 e o teto comum.",
-                    "O limite comum de dano por hit é o nível do atacante. No nível 10, o limite-base é 10. Superefetividade e estágios positivos do atributo ofensivo elevam esse teto proporcionalmente; críticos e movimentos de regra própria usam suas exceções. Resistência reduz o dano, mas não aumenta o teto."
-                ]
+                    "Para causar dano, o atacante precisa superar a defesa. Empate ou resultado menor impedem o dano. Se o movimento acertou, um efeito secundário ainda pode funcionar.",
+                    "Aplique cada efeito em quem a descrição manda: o usuário, o Pokémon escolhido, um grupo ou o campo.",
+                    "O jogo combina poder, STAB, tipos e outros bônus antes de arredondar uma vez. Depois vêm a pequena variação da regra 1.5 e o limite comum.",
+                    "O limite comum por impacto é o nível do atacante: no nível 10, começa em 10. Superefetividade e estágios positivos do atributo de ataque podem aumentar esse limite. Resistência diminui o dano, mas não aumenta o limite. Críticos e movimentos com regras próprias seguem suas exceções."
+                ],
+                "example": "Para fortalecer seu Pokémon com Swords Dance, escolha o próprio usuário. Você não precisa vencer a Defesa do adversário."
             },
             {
                 "id": "3.4",
-                "title": "Proteção contra hit kill",
-                "plain": "Uma vez por batalha, um Pokémon em condições adequadas pode sobreviver a um dano que o derrubaria, mas essa proteção tem limites claros.",
-                "body": "Uma vez por batalha, começando a ação com HP cheio e proteção disponível, some os impactos diretos do mesmo movimento que alcançam o Pokémon depois de precisão, bloqueios e teto. Se o total o derrotaria, mas for menor que três vezes seu HP máximo, ele termina o dano direto dessa ação com 1 HP. A proteção fica usada: os outros impactos da mesma ação não retiram esse último HP.\n\nShedinja não recebe essa proteção geral. Nocaute direto e total de pelo menos três vezes o máximo seguem suas exceções. Crítico não remove a proteção sozinho. Ações diferentes e efeitos de contato/residuais continuam separados. Sturdy, Focus Sash e a reserva de sobrevivência seguem suas próprias regras; a proteção geral não consome o item no mesmo movimento. Cura, troca e mudança de fase não renovam a proteção. Tirar o próprio HP a encerra nessa batalha."
+                "title": "Aguentar um golpe decisivo",
+                "plain": "Com HP cheio, seu Pokémon pode aguentar um golpe que o derrubaria e continuar com 1 HP!",
+                "body": "Esta é a Proteção contra hit kill do MyOwnDex, uma adaptação para o RPG. Ela pode ajudar uma vez por Pokémon em cada batalha. Ela precisa estar disponível quando a ação começa, com o HP cheio.\n\nSome o dano direto dos impactos do mesmo movimento que realmente chegaram ao Pokémon, depois da precisão, dos bloqueios e do limite de dano. Se esse total o derrubaria, mas for menor que três vezes seu HP máximo, ele termina o dano direto da ação com 1 HP. Os outros impactos dessa mesma ação não tiram esse último HP. A proteção fica usada.\n\nShedinja não tem esta proteção geral. Movimentos de nocaute direto e dano total de pelo menos três vezes o HP máximo seguem suas exceções. Um crítico sozinho não remove a proteção.\n\nOutras ações, efeitos de contato e dano contínuo são contados à parte. Sturdy, Focus Sash e a reserva de sobrevivência seguem suas próprias regras; usar a proteção geral não consome Focus Sash no mesmo movimento. Curar, trocar ou mudar de fase não renova a proteção. Tirar o próprio HP encerra essa proteção na batalha.",
+                "example": "Com 20 HP cheios e a proteção disponível, um dano de 30 deixa 1 HP. Um dano de 60 ou mais passa pela proteção. Isso vale mesmo sem um acerto crítico."
             },
             {
                 "id": "3.5",
-                "title": "Regras herdadas dos jogos",
-                "plain": "Quando este Guia não adapta algo, valem as regras Pokémon dos jogos e as exceções próprias de cada movimento, item ou habilidade.",
-                "body": "Os jogos Pokémon são a base. Tipos, STAB, imunidades, condições, recuo e drenagem seguem suas regras, com as adaptações deste Guia.\n\nNos movimentos comuns de 2 a 5 acertos, o RPG usa 35% para 2, 35% para 3, 15% para 4 e 15% para 5. Skill Link garante o máximo; Loaded Dice dá 4 ou 5 com chances iguais. Contagens fixas e movimentos especiais seguem sua própria regra. Sequências com precisão ou poder próprios e combinações com reações entre impactos exigem resolução guiada quando sinalizadas pelo painel. O cálculo automático é interrompido antes do gasto: o Narrador resolve a sequência e registra PP, dano, proteção e ação uma vez. Escolher um jogo para o repertório não muda silenciosamente as regras do RPG."
+                "title": "Quando vale a regra dos jogos",
+                "plain": "Os jogos Pokémon são nossa base. Quando o Guia muda uma regra para a mesa, ele explica essa mudança.",
+                "body": "Tipos, STAB, imunidades, condições, recuo e drenagem seguem suas regras, com as adaptações deste Guia. Escolher outro jogo para consultar movimentos não muda as regras do RPG.",
+                "bullets": [
+                    "Movimentos comuns de 2 a 5 acertos: o RPG usa 35% para 2, 35% para 3, 15% para 4 e 15% para 5.",
+                    "Skill Link: garante o máximo de acertos. Loaded Dice: dá 4 ou 5, com a mesma chance para cada resultado.",
+                    "Contagens fixas e movimentos especiais: siga a descrição própria. Quando a sequência exige precisão, poder ou reações diferentes entre impactos, o painel avisa que o Narrador precisa acompanhá-la.",
+                    "Sequência acompanhada pelo Narrador: o cálculo automático para antes de gastar recursos. Resolva e registre PP, dano, proteção e ação uma vez só."
+                ],
+                "example": "Um movimento de dois acertos continua acertando duas vezes. Ele não passa a usar o sorteio dos movimentos de 2 a 5 acertos."
             },
             {
                 "id": "3.6",
-                "title": "Posicionamento e espaço",
-                "plain": "A cena usa faixas simples de distância; posicionar o sprite organiza o campo, mas não cria movimento ou ações extras.",
-                "body": "Imagine a cena: Perto, Longe ou Muito Longe. Não é preciso contar quadradinhos. Alcance, obstáculos, área e Velocidade ajudam o grupo a decidir o que é possível.\n\nArrastar um sprite apenas organiza o campo: não dá movimento grátis, alcance maior ou outra ação. A equipe entra com o Pokémon escolhido; os outros ficam no banco. Trocar preserva HP, PP, condições, itens gastos e a proteção já usada ou perdida."
+                "title": "Onde seu Pokémon está?",
+                "plain": "Imagine a cena com seus amigos. O que está perto? O que ficou longe? O cenário ajuda a decidir o que dá para fazer.",
+                "body": "Use três distâncias simples: Perto, Longe e Muito Longe. Não precisa contar quadradinhos. Considere alcance, obstáculos, área e Velocidade.\n\nArrastar o desenho de um Pokémon só organiza o campo. Isso não dá deslocamento grátis, alcance maior ou outra ação. Traga o parceiro escolhido para o campo; os demais ficam no banco. Uma troca preserva HP, PP, condições, itens gastos e a proteção já usada ou perdida.",
+                "example": "Há um rio entre os dois lados. Mover o desenho do Pokémon na tela não faz ele atravessar o rio: o grupo combina como será a travessia."
             },
             {
                 "id": "3.7",
-                "title": "Ações, trocas e reações",
-                "plain": "Cada Pokémon tem uma ação principal por rodada; trocas, improvisos e reações respeitam a vez e suas permissões.",
-                "body": "Cada Pokémon tem sua vez, e a mesma ação não pode ser usada duas vezes.",
+                "title": "Sua vez de agir",
+                "plain": "Cada Pokémon ativo tem uma ação principal por rodada. Espere sua vez, faça sua escolha e continue a aventura.",
+                "body": "Na batalha, procure Agora para saber de quem é a vez. A defesa normal já faz parte da disputa e não custa outra ação.",
                 "bullets": [
-                    "Cada Pokémon ativo tem uma ação principal por rodada: usar um movimento, fazer um improviso importante ou cedê-la para trocar. Em batalha, espere aparecer Agora e ainda não ter gasto sua ação. Prioridade só define a vez. O Campo dos Dados começa como Treino livre; Rolar iniciativa inicia a batalha. Encerrar a rodada não devolve o treino nem libera ataques antes da próxima iniciativa.",
-                    "Uma tentativa válida gasta a ação mesmo se uma condição impedir o movimento, ele errar ou seu efeito for bloqueado. Se uma condição impede a ação, não se gasta PP. Uma escolha inválida, como um movimento sem PP, pode ser corrigida antes da tentativa e não gasta a ação.",
-                    "Para trocar por vontade própria, declare Trocar Pokémon antes da iniciativa. A troca usa a ação do Pokémon que sai. Quem entra ocupa esse lugar e não ganha outra ação na rodada. Substituir um Pokémon derrotado não gasta a ação da rodada seguinte. Os recursos de cada Pokémon continuam com ele.",
-                    "Mover-se dentro da mesma faixa pode acompanhar a ação. Cruzar uma faixa sob oposição ou conquistar uma posição decisiva pode exigir a ação e um teste. Combine alcance, terreno e Velocidade antes de rolar.",
-                    "Uma reação precisa ser permitida por movimento, habilidade, item ou situação. A defesa normal já faz parte da disputa: não é cobrada como outra ação.",
-                    "Aguardar, improvisar, fugir e trocar usam prioridade 0. Aguardar não produz efeito; improvisar exige objetivo e risco combinados antes da iniciativa. Nenhuma dessas escolhas guarda um ataque para decidir depois. Resolva e avance. Efeitos que dão outra ação ou mudam a ordem precisam de uma permissão própria; o Narrador registra a exceção no Diário da aventura."
-                ]
+                    "Ação principal: use um movimento, faça um improviso importante ou troque de Pokémon. Prioridade só define a vez. No Campo dos Dados, Treino livre permite praticar; Rolar iniciativa começa uma batalha. Encerrar rodada não devolve o treino livre nem permite atacar antes da próxima iniciativa.",
+                    "Tentativa válida: gasta a ação mesmo que o movimento erre, seja bloqueado ou uma condição impeça agir. Se a condição impedir a ação, não gaste PP. Uma escolha inválida, como um movimento sem PP, pode ser corrigida antes da tentativa e não gasta a ação.",
+                    "Troca por escolha: declare Trocar Pokémon antes da iniciativa. Quem sai usa sua ação; quem entra ocupa esse lugar e não ganha outra ação nessa rodada. Substituir um parceiro desmaiado não gasta a ação da rodada seguinte. Os recursos de cada Pokémon continuam com ele.",
+                    "Deslocamento: mover-se na mesma faixa pode acompanhar a ação. Atravessar uma faixa sob oposição ou conquistar uma posição importante pode exigir a ação e um teste. Combine isso antes de rolar.",
+                    "Reação: só acontece quando um movimento, habilidade, item ou situação permite. Ela não dá uma nova ação por conta própria.",
+                    "Aguardar, improvisar, fugir e trocar: usam prioridade 0. Aguardar passa a vez sem outro efeito. Para improvisar, combine objetivo e risco antes da iniciativa e anote o plano. Nenhuma dessas opções guarda um ataque para escolher depois. Se uma regra der outra ação ou mudar a ordem, o Narrador registra a exceção no Diário."
+                ],
+                "example": "Você troca Pikachu por Bulbasaur. Bulbasaur entra no lugar dele, mas não recebe um ataque extra nessa rodada."
             }
         ]
     },
     {
         "id": "treinador",
         "number": 4,
-        "title": "Treinador e jornada",
-        "summary": "Intervenções, captura, PP, cura e recursos.",
+        "title": "Seu Treinador na jornada",
+        "summary": "Capturar, usar itens, cuidar da equipe e preparar a próxima aventura.",
         "rules": [
             {
                 "id": "4.1",
-                "title": "Intervenções em combate",
-                "plain": "O Treinador pode intervir com item ou captura sem gastar a ação do Pokémon, mas só uma vez por rodada em batalha.",
-                "body": "Cada Treinador tem uma intervenção por rodada para item ou captura, sem gastar a ação do Pokémon. Use no começo do turno de um Pokémon sob seu controle, antes de verificar condições e executar a ação. Não interrompa dados ou dano já resolvidos para desfazê-los. Se controlar mais de um Pokémon, escolha uma dessas oportunidades; não ganha uma intervenção por parceiro. O gasto vale mesmo se a tentativa falhar. Aliados e oponentes seguem a mesma janela. Fora de batalha, valem o tempo e o risco da cena."
+                "title": "O Treinador também participa",
+                "plain": "Seu Treinador pode usar um item ou tentar uma captura. Isso não tira a ação do seu Pokémon.",
+                "body": "Cada Treinador tem uma intervenção por rodada em batalha. Use-a no começo do turno de um Pokémon sob seu controle, antes de verificar condições e fazer a ação. Se você controla vários parceiros, escolha uma dessas oportunidades: continua sendo uma intervenção.\n\nA intervenção é gasta mesmo se a tentativa falhar. Ela não interrompe uma rolagem ou um dano já resolvido para desfazer o resultado. Aliados e oponentes seguem o mesmo momento. Fora da batalha, considere o tempo e o risco da cena.",
+                "example": "No começo do turno de Pikachu, seu Treinador usa uma Potion. Depois, Pikachu ainda pode fazer sua própria ação."
             },
             {
                 "id": "4.2",
-                "title": "Capturas",
-                "plain": "Captura usa a taxa da espécie, HP, condição e Poké Ball; o MyOwnDex calcula a chance e registra o resultado.",
-                "body": "Ao terminar um confronto, o Narrador usa Encerrar batalha, depois de concluir a rodada. Isso termina transformações e efeitos temporários; não cura HP, não repõe PP, itens, proteção ou usos de técnicas. Trocar de fase sozinho não encerra o confronto. Nova batalha inicia outro confronto.\n\nSó capture um Pokémon selvagem, consciente e permitido na cena. Uma tentativa gasta a Poké Ball e a intervenção do Treinador em batalha, mesmo se falhar; não gasta a ação do Pokémon. O jogo calcula a chance adaptada do RPG.",
+                "title": "Vamos capturar um Pokémon!",
+                "plain": "Encontrou um Pokémon selvagem? Escolha uma Poké Ball e tente fazer dele seu novo parceiro!",
+                "body": "A captura comum precisa de um Pokémon selvagem, consciente e que possa ser capturado naquela cena. Em batalha, a tentativa usa uma Poké Ball e a intervenção do Treinador, mesmo se falhar. Ela não usa a ação do Pokémon.\n\nQuando um confronto terminar, conclua a rodada e use Encerrar batalha. Isso encerra transformações e efeitos temporários, mas não cura HP nem devolve PP, itens, proteção ou usos de técnicas. Só mudar a fase não encerra o confronto. Nova batalha começa outro.",
                 "bullets": [
-                    "Chance = 100 × taxa da espécie ÷ 255 × (3 × HP máximo − 2 × HP atual) ÷ (3 × HP máximo) × bônus da Ball × bônus da condição. O jogo arredonda para baixo e mantém de 1% a 100% quando a taxa é positiva. Taxa 0 não permite captura comum.",
-                    "Poké Ball, Premier, Luxury e Heal usam bônus 1. Great multiplica por 3 e divide por 2; Ultra dobra. Sono e congelamento multiplicam por 5 e dividem por 2; queimadura, paralisia e veneno multiplicam por 3 e dividem por 2. A conta só arredonda a chance final para baixo. Master Ball dispensa o teste, mas não permite capturar o parceiro de outro Treinador.",
-                    "No d100, igual ou menor que a chance é captura. A taxa vem da Pokédex; HP e condição vêm da cena. A vantagem de um ataque não passa para a captura.",
-                    "Registre as Balls na bolsa do Treinador. A tentativa retira uma junto com o resultado e a intervenção, mesmo se falhar; reenviar a mesma tentativa não gasta de novo. Uma Ball especial exige sua descrição própria. Encerre Dynamax, Gigantamax ou Eternamax antes de capturar; uma captura pós-raid precisa de um formato previamente definido. Registre o novo parceiro no PC."
-                ]
+                    "Chance de captura: o MyOwnDex usa a taxa da espécie, o HP, a condição e a Ball. A conta é 100 × taxa da espécie ÷ 255 × (3 × HP máximo − 2 × HP atual) ÷ (3 × HP máximo) × bônus da Ball × bônus da condição. Arredonde só o resultado final para baixo. Taxa positiva dá de 1% a 100%; taxa 0 não permite captura comum.",
+                    "Poké Balls: Poké Ball, Premier, Luxury e Heal usam bônus 1. Great multiplica por 3 e divide por 2. Ultra dobra. Balls especiais seguem sua própria descrição.",
+                    "Condições: sono e congelamento multiplicam por 5 e dividem por 2. Queimadura, paralisia e veneno multiplicam por 3 e dividem por 2.",
+                    "Resultado: no d100, igual ou menor que a chance é captura. A taxa vem da Pokédex; HP e condição vêm da cena. A vantagem de um ataque não passa para a captura. Master Ball dispensa o teste, mas não captura o parceiro de outro Treinador.",
+                    "Bolsa e PC: anote suas Balls na bolsa. O aplicativo retira uma e registra resultado e intervenção juntos. Repetir o mesmo registro não gasta outra Ball. Depois da captura, guarde seu novo parceiro no PC.",
+                    "Formas Max: termine Dynamax, Gigantamax ou Eternamax antes da captura. Para uma captura depois de uma raid, o grupo precisa combinar esse formato antes."
+                ],
+                "example": "Deixar um Pokémon selvagem com menos HP pode ajudar na captura. Levá-lo a 0 HP não ajuda: ele estará desmaiado."
             },
             {
                 "id": "4.3",
-                "title": "PP e Cura",
-                "plain": "HP, PP e condições continuam entre cenas até que alguma regra, descanso ou recurso realmente os recupere.",
+                "title": "Hora de descansar",
+                "plain": "Depois dos desafios, cuide da equipe! Descansar ou visitar um Centro Pokémon ajuda seus parceiros a seguir viagem.",
+                "body": "HP, PP, condições e itens gastos acompanham seus Pokémon. Encerrar uma sessão não restaura esses recursos. Trocar de cena, de parceiro ou de fase também não os recupera.",
                 "bullets": [
-                    "HP, PP, condições e itens consumidos acompanham a jornada. Cena, sessão, troca e mudança de fase não restauram recursos.",
-                    "Descanso curto: dez minutos seguros, uma vez por Pokémon entre descansos completos. Recupera um quarto do HP máximo, arredondado para baixo, mínimo 1, até o máximo. Exige estar consciente; não recupera PP, não cura condições e não renova proteções. O aplicativo registra o uso; mudar de fase ou trocar não o apaga.",
-                    "Descanso completo: oito horas seguras, ou atendimento completo em Centro Pokémon. Restaura HP e PP, trata condições comuns e libera outro descanso curto. Não repõe item consumido, dinheiro, Ball, amizade nem proteção da mesma batalha. Use Encerrar batalha depois de concluir a rodada; mudar só a fase não libera descanso. Transformações, inclusive Transform, e cópias temporárias de movimentos terminam antes do descanso; ferimentos narrativos exigem os cuidados combinados."
-                ]
+                    "Descanso curto: são dez minutos em segurança. Um Pokémon consciente recupera um quarto do HP máximo, arredondado para baixo, com mínimo de 1 e sem passar do máximo. Pode fazer isso uma vez entre descansos completos. Não recupera PP, não cura condições e não renova proteção. O uso fica registrado mesmo que você troque de fase ou de Pokémon.",
+                    "Descanso completo: são oito horas em segurança ou atendimento completo num Centro Pokémon. Recupera HP e PP, trata condições comuns e permite outro descanso curto. Não devolve itens consumidos, dinheiro, Balls, Amizade ou a proteção da mesma batalha.",
+                    "Antes do descanso: conclua a rodada e use Encerrar batalha. Mudar só a fase não basta. Termine as transformações, inclusive Transform, e as cópias temporárias de movimentos. Ferimentos da história precisam dos cuidados que o grupo combinou."
+                ],
+                "example": "Com máximo de 20 HP, um descanso curto recupera 5 HP. Para descansar assim de novo, primeiro faça um descanso completo."
             },
             {
                 "id": "4.4",
-                "title": "Recursos e dinheiro",
-                "plain": "Itens e dinheiro só mudam quando algo é ganho, gasto, recuperado ou corrigido de forma explícita.",
-                "body": "Guarde os itens e Pokédólares que ganhar e retire o que gastar. Um recurso consumido não pode ser usado de novo sem ser recuperado por uma regra que permita isso. O inventário acompanha a jornada; uma correção do Narrador serve para acertar o registro, não para criar recompensas repetidas."
+                "title": "Itens e Pokédólares",
+                "plain": "Guarde o que ganhar e marque o que gastar. Assim, você sempre sabe o que ainda pode levar para a aventura.",
+                "body": "Use a bolsa para acompanhar itens e Pokédólares. Um item consumido só volta se uma regra permitir recuperá-lo ou se você conseguir uma reposição. O Narrador pode corrigir um registro errado; essa correção não cria outra recompensa.",
+                "example": "Depois de usar sua última Potion, procure outra ou cuide da equipe de outro jeito antes de tentar usá-la novamente."
             }
         ]
     },
     {
         "id": "criacao",
         "number": 5,
-        "title": "Fichas e criação",
-        "summary": "Do conceito do Treinador aos dados completos de cada parceiro.",
+        "title": "Conheça seus parceiros",
+        "summary": "Prepare fichas, escolha movimentos e acompanhe a história de cada Pokémon.",
         "rules": [
             {
                 "id": "5.1",
-                "title": "Começando um Treinador",
-                "plain": "O Treinador começa por conceito e história; essas escolhas orientam especialidades e decisões durante a aventura.",
-                "body": "Quem é seu Treinador? Escolha nome, aparência, origem, objetivo e pessoas importantes para ele. Essas ideias ajudam a decidir suas escolhas e especialidades. Seu personagem pode descobrir novos caminhos durante a aventura."
+                "title": "Seu Treinador, sua história",
+                "plain": "Que tipo de aventura seu Treinador quer viver? Comece com uma ideia e deixe a história crescer com o grupo.",
+                "body": "Escolha nome, aparência, origem, objetivo e pessoas importantes para seu Treinador. Essas ideias ajudam a definir suas especialidades e suas decisões. Ele pode descobrir novos sonhos pelo caminho.",
+                "example": "Uma Treinadora quer conhecer Pokémon que vivem perto do mar. Esse sonho pode levar a equipe até uma nova ilha."
             },
             {
                 "id": "5.2",
-                "title": "Criando um Pokémon",
-                "plain": "Um Pokémon pode ser montado manualmente ou pelo Gerador, sempre com uma ficha que continue editável.",
-                "body": "Monte a ficha ou use o Gerador para começar.",
+                "title": "Preparar a ficha de um Pokémon",
+                "plain": "Escolha seu parceiro e prepare sua ficha. Você também pode começar pelo Gerador e ajustar o que precisar.",
+                "body": "A ficha guarda quem é o Pokémon e o que ele viveu na jornada.",
                 "bullets": [
-                    "Escolha espécie e forma, nível, natureza, habilidade, gênero, tipos, IVs, EVs e até quatro movimentos. Em Jogos, use as opções daquela edição. No RPG, o jogo escolhido define os movimentos; atributos, tipos e habilidades seguem a referência atual. Livre permite criar exceções de propósito.",
-                    "Anote o que acompanha o Pokémon: item, Poké Ball, Treinador original, amizade e notas da jornada.",
-                    "O MyOwnDex calcula os atributos. Se o grupo combinar um valor personalizado, registre essa escolha claramente. Uma transformação de batalha não deve apagar a ficha de origem."
-                ]
+                    "Dados do parceiro: espécie e forma, nível, natureza, habilidade, gênero, tipos, IVs, EVs e até quatro movimentos. Em Jogos, use as opções daquela edição. No RPG, o jogo escolhido define os movimentos; atributos, tipos e habilidades usam a referência atual. Livre permite criar exceções de propósito.",
+                    "Detalhes da jornada: anote item, Poké Ball, Treinador original, Amizade e o que aconteceu com esse parceiro.",
+                    "Atributos: o MyOwnDex faz as contas. Se o grupo combinar um valor personalizado, deixe essa escolha anotada. Uma transformação de batalha não apaga a ficha de origem."
+                ],
+                "example": "Dê um apelido ao seu parceiro e anote onde vocês se conheceram. Essa história continua com ele na Box e na aventura."
             },
             {
                 "id": "5.3",
-                "title": "Movimentos e repertório",
-                "plain": "O repertório respeita movimentos que o Pokémon pode conhecer no jogo escolhido, sem esconder as escolhas do jogador.",
-                "body": "Um Pokémon leva até quatro movimentos para a batalha. Ao aprender outro, escolha o que sai; trocar o repertório não dá uma ação nem recupera PP no meio do combate.\n\nConsulte o repertório do jogo escolhido. O mais recente disponível é o padrão; jogos anteriores continuam acessíveis. O movimento conserva seu nome original, alvos, precisão, PP, tipo e efeitos. Exceções combinadas ficam registradas."
+                "title": "Escolher os movimentos",
+                "plain": "Seu Pokémon leva até quatro movimentos para a batalha. Escolha os que combinam com ele e com o jogo de referência.",
+                "body": "Quando aprender outro movimento, escolha qual sai. Trocar os movimentos não dá outra ação nem recupera PP durante a batalha.\n\nConsulte o repertório do jogo escolhido. Jogos anteriores continuam disponíveis. Gerar Pokémon e Adicionar à Box usam a mesma seleção automática de movimentos aprendidos por nível. A opção automática procura o jogo mais recente com esse aprendizado. Uma escolha explícita de jogo continua valendo para aquele jogo.\n\nNv. 1 e Ao evoluir são aprendizados diferentes. Movimentos de evolução, Máquina, Tutor, Ovo ou Treinamento não entram como aprendizado comum automático. Em Champions, escolha os movimentos por treinamento na ficha. O movimento mantém nome original, alvos, precisão, PP, tipo e efeitos. Deixe exceções combinadas anotadas.",
+                "example": "Se o movimento aparece como Ao evoluir, isso não quer dizer que ele foi aprendido no nível 1."
             },
             {
                 "id": "5.4",
-                "title": "Progressão e evolução",
-                "plain": "Nível, evolução e Amizade mudam por acontecimentos definidos; progresso nunca apaga a identidade nem o histórico do Pokémon.",
+                "title": "Crescer e evoluir",
+                "plain": "Seu parceiro pode subir de nível e evoluir. Ele continua sendo o mesmo Pokémon, com sua história e suas escolhas.",
                 "bullets": [
-                    "Subir de nível desconta a meta, conserva a sobra e pode atravessar mais de um nível no mesmo prêmio. Os EVs consideram toda a XP recebida, uma vez. Nível 100 é o teto padrão; exceções livres precisam declarar seu próprio teto, até 200. No teto, conserve o saldo sem criar níveis extras. Subir não revive quem está com HP 0.",
-                    "Evoluir pode depender de nível, item, amizade, troca, lugar, horário ou outra condição. Preserve a ideia dos jogos; o grupo pode transformá-la em um momento equivalente da história.",
-                    "Evoluir não apaga apelido, vínculo, histórico, PP, condição ou escolhas registradas.",
-                    "Amizade segue acontecimentos e a regra 5.5; não sobe automaticamente por XP, nível ou fim de sessão."
-                ]
+                    "Níveis: ao subir, desconte a meta de XP e guarde a sobra. Uma recompensa pode dar mais de um nível. Os EVs usam toda a XP recebida, uma vez só. O limite padrão é nível 100; uma exceção em Livre pode combinar outro limite, até 200. No limite, guarde a XP sem criar mais níveis. Subir de nível não acorda um Pokémon com 0 HP.",
+                    "Evolução: pode pedir nível, item, Amizade, troca, lugar, horário ou outra condição. Preserve a ideia dos jogos; o grupo pode criar um momento equivalente na história.",
+                    "Seu parceiro continua com apelido, vínculo, histórico, PP, condição e escolhas registradas. Evoluir não apaga isso.",
+                    "Amizade: muda pelos acontecimentos da regra 5.5. Não aumenta automaticamente ao ganhar XP, subir de nível ou terminar a sessão."
+                ],
+                "example": "Uma troca importante para a evolução também pode ser um momento especial na história de vocês."
             },
             {
                 "id": "5.5",
                 "title": "Amizade e confiança",
-                "plain": "O vínculo cresce por acontecimentos significativos, com mudanças inteiras e sem recompensar repetição vazia.",
-                "body": "O Narrador pode conceder +5 por um cuidado significativo, +10 por um marco, +20 por uma virada importante; +50 fica para um acontecimento excepcional. Cuidados rotineiros somam no máximo +10 na sessão, sem limitar grandes marcos distintos. Conte cada acontecimento uma vez. Desmaiar, perder ou falhar não reduz amizade automaticamente; uma perda de confiança exige causa narrativa e conversa. Evoluções continuam consultando o valor original, de 0 a 255. Não se concedem salvamentos, críticos ou ações extras pelo vínculo sem regra própria."
+                "plain": "Cuidar, confiar e viver grandes momentos juntos fortalece o vínculo com seu Pokémon.",
+                "body": "O Narrador pode dar +5 por um cuidado significativo, +10 por um marco e +20 por uma grande virada. +50 fica para um acontecimento excepcional. Cuidados do dia a dia somam no máximo +10 por sessão; grandes marcos diferentes não entram nesse limite. Conte cada acontecimento uma vez.\n\nDesmaiar, perder ou falhar não reduz a Amizade automaticamente. Uma perda de confiança precisa fazer sentido na história e ser conversada. Evoluções usam o valor original, de 0 a 255. A Amizade não dá salvamentos, críticos ou ações extras sem uma regra que permita isso.",
+                "example": "Ajudar seu parceiro a enfrentar um medo pode fortalecer o vínculo. Se foi um cuidado significativo, o Narrador pode dar +5 de Amizade por esse acontecimento."
             }
         ]
     },
     {
         "id": "condicoes",
         "number": 6,
-        "title": "Condições, cura e efeitos",
-        "summary": "Como registrar consequências sem misturar dano direto e efeitos contínuos.",
+        "title": "Condições e cuidados",
+        "summary": "Acompanhe o que afeta seu parceiro e descubra como ajudá-lo.",
         "rules": [
             {
                 "id": "6.1",
-                "title": "Condições principais",
-                "plain": "Só uma condição principal fica ativa por vez, e cada uma tem efeito, duração e chance próprios.",
-                "body": "Uma condição principal por vez. O jogo verifica seu efeito antes da ação, uma vez por tentativa — não uma vez por alvo ou hit. Se impedir a ação, a vez é usada, mas não se gasta PP. Estas são as durações e chances adotadas pelo RPG.",
+                "title": "Queimadura, paralisia, sono e outras condições",
+                "plain": "Uma condição pode mudar o que seu Pokémon consegue fazer. Acompanhe o efeito e cuide dele quando puder.",
+                "body": "Um Pokémon tem uma condição principal por vez. Antes de agir, o jogo verifica seu efeito uma vez por tentativa, e não por alvo ou impacto. Se a condição impedir a ação, a vez é usada, mas não se gasta PP. Estas durações e chances são as usadas no RPG.",
                 "bullets": [
-                    "Queimadura: metade do dano físico, salvo Guts ou Facade; perde uma parte em 16 do HP máximo no fim da rodada.",
-                    "Paralisia: metade da Velocidade, salvo Quick Feet; antes de agir, há 1 em 8 de chance de perder a ação. Não se cura sozinha.",
-                    "Sono: impede 1 ou 2 oportunidades de agir. Há 1 em 3 de chance de acordar antes da segunda; se não acordar, desperta antes da terceira. Trocar guarda a contagem. Rest tem sua duração própria; Early Bird reduz a duração; Snore e Sleep Talk permitem agir dormindo.",
-                    "Congelamento: antes de agir, há 25% de chance de descongelar. Se não acontecer nas duas primeiras oportunidades, descongela antes da terceira. Um movimento que descongela o usuário dispensa o teste. Dano de Fire e efeitos próprios de descongelar também removem a condição.",
-                    "Veneno: perde uma parte em 8 do HP máximo ao fim da rodada. Envenenamento grave: começa em uma parte em 16 e aumenta mais uma parte em 16 por rodada, até 15 partes em 16. Trocar reinicia esse aumento; não cura o veneno."
-                ]
+                    "Queimadura: o dano físico cai pela metade, salvo Guts ou Facade. No fim da rodada, perde uma parte em 16 do HP máximo.",
+                    "Paralisia: a Velocidade cai pela metade, salvo Quick Feet. Antes de agir, há 1 em 8 de chance de perder a ação. Não se cura sozinha.",
+                    "Sono: impede 1 ou 2 oportunidades de agir. Há 1 em 3 de chance de acordar antes da segunda; se isso não acontecer, acorda antes da terceira. Trocar de Pokémon guarda essa contagem. Rest tem duração própria; Early Bird reduz a duração; Snore e Sleep Talk permitem agir dormindo.",
+                    "Congelamento: antes de agir, há 25% de chance de descongelar. Se não acontecer nas duas primeiras oportunidades, descongela antes da terceira. Um movimento que descongela o usuário dispensa o teste. Dano do tipo Fire (Fogo) e efeitos próprios de descongelar também removem a condição.",
+                    "Veneno: no fim da rodada, perde uma parte em 8 do HP máximo. No envenenamento grave, começa em uma parte em 16 e aumenta mais uma parte em 16 por rodada, até 15 partes em 16. Trocar reinicia esse aumento, mas não cura o veneno."
+                ],
+                "example": "Se o sono impedir seu Pokémon de agir, ele usa sua vez, mas os PP do movimento escolhido continuam como estavam."
             },
             {
                 "id": "6.2",
-                "title": "Dano contínuo e indireto",
-                "plain": "Dano de condição, clima, terreno e outros efeitos é resolvido fonte por fonte no momento correto da rodada.",
-                "body": "Resolva cada fonte no momento correto, sem piso universal de 1 HP. Separe a parte inteira da conta e sorteie o resto como chance de mais 1: 3 HP divididos por 16 significam 3 chances em 16 de perder 1 HP; nos demais resultados, perde 0 naquela ocorrência. Para 19 dividido por 16, perde 1, com 3 chances em 16 de perder mais 1. Nunca há HP fracionário, saldo oculto ou dívida entre rodadas.\n\nO sorteio acontece uma vez por fonte no resolvedor, com registro auditável; prévia e repetição da requisição não rerrolam. Fontes, imunidades, consumo e gatilhos continuam separados. Dano 0 não consome proteção; efeito ativo não se cura por ter resultado 0. Em Dynamax e Gigantamax, efeitos proporcionais comuns usam o HP máximo sem Max, salvo descrição específica. É uma adaptação inteira do RPG, não o piso de 1 do cartucho aplicado à escala reduzida."
+                "title": "Efeitos pequenos também contam",
+                "plain": "Veneno, clima e outros efeitos podem tirar pouco HP por vez. O MyOwnDex cuida dessas contas sem deixar números quebrados.",
+                "body": "Resolva cada efeito no seu momento. Não transforme todo resultado pequeno em 1 HP: isso faria alguns efeitos ficarem fortes demais. Use a parte inteira e sorteie a chance de mais 1.\n\nCom 3 HP para dividir por 16, há 3 chances em 16 de perder 1 HP; nas outras vezes, perde 0. Com 19 dividido por 16, perde 1 HP e tem 3 chances em 16 de perder mais 1. Não fica nenhum pedaço de HP para pagar depois.\n\nO MyOwnDex sorteia ao aplicar cada efeito e guarda o resultado. Abrir a prévia ou consultar o mesmo resultado não faz outro sorteio. Cada efeito continua respeitando suas imunidades, seus custos e o momento de acontecer. Dano 0 não gasta proteção e não cura uma condição ativa.\n\nEm Dynamax e Gigantamax, efeitos proporcionais comuns usam o HP máximo de antes da transformação, salvo uma regra específica. Esse jeito de trabalhar com números inteiros é uma adaptação do RPG.",
+                "example": "Um veneno pode tirar 0 HP numa rodada e continuar ativo. Seu Pokémon ainda está envenenado e precisa dos mesmos cuidados."
             },
             {
                 "id": "6.3",
-                "title": "Cura e recuperação",
-                "plain": "Cura respeita o HP máximo, e drenagem só recupera a partir do dano que realmente chegou ao alvo.",
-                "body": "Cura respeita o máximo e não revive sem permissão própria. Drenagem e recuo usam o dano realmente aplicado; recuo, drenagem e curas percentuais usam a resolução inteira de 6.2. Custos voluntários, como Substitute, conservam mínimo 1 e suas condições de pagamento: resultado 0 não compra um benefício gratuito. Cura não devolve PP, item ou proteção por conta própria."
+                "title": "Recuperar HP",
+                "plain": "Um movimento de cura ajuda seu Pokémon a recuperar HP, até o máximo que ele pode ter.",
+                "body": "Uma cura comum não revive um Pokémon desmaiado; isso precisa de uma regra que permita. Drenagem e recuo usam o dano que realmente foi aplicado. Eles e as curas percentuais seguem a conta inteira da regra 6.2.\n\nUma escolha com custo de HP, como Substitute, custa pelo menos 1 HP e exige poder pagar esse custo. Um resultado 0 não dá o benefício de graça. Curar HP não devolve PP, itens ou proteção por conta própria.",
+                "example": "Se um movimento drena metade do dano e tirou 8 HP do alvo, ele recupera 4 HP, sem passar do máximo do usuário."
             },
             {
                 "id": "6.4",
-                "title": "Empoderamentos e enfraquecimentos",
-                "plain": "Mudanças de atributos usam estágios e são recalculadas a partir do valor original, inclusive Precisão e Evasão.",
-                "body": "Fortalecer ou enfraquecer usa estágios de −6 a +6 em Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão. O jogo recalcula os atributos a partir do original antes da escala por 10. Precisão e Evasão mudam a chance de acerto. Unaware e outras habilidades ignoram somente os estágios que sua descrição determina."
+                "title": "Fortalecer ou enfraquecer atributos",
+                "plain": "Alguns movimentos ajudam seu parceiro a ficar mais forte. Outros atrapalham os atributos do adversário.",
+                "body": "Use os estágios de −6 a +6 para Ataque, Defesa, Ataque Especial, Defesa Especial, Velocidade, Precisão e Evasão. O MyOwnDex recalcula a partir do atributo original antes de dividir por 10.\n\nPrecisão e Evasão mudam a chance de acerto. Unaware e outras habilidades ignoram apenas os estágios que sua própria descrição manda ignorar.",
+                "example": "Um movimento pode subir a Defesa de seu parceiro. Marque o estágio; o aplicativo mostra o novo valor."
             },
             {
                 "id": "6.5",
-                "title": "Efeitos voláteis",
-                "plain": "Efeitos voláteis, como confusão e hesitação, podem coexistir com a condição principal e seguem sua própria duração.",
-                "body": "Confusão e hesitação são efeitos voláteis: separados da condição principal e podem existir junto dela.",
+                "title": "Confusão e hesitação",
+                "plain": "Confusão e hesitação podem atrapalhar uma ação, mesmo quando seu Pokémon já tem outra condição.",
+                "body": "São efeitos separados da condição principal, também chamados de efeitos voláteis. Cada um tem sua própria duração.",
                 "bullets": [
-                    "Confusão: Dura de 2 a 5 oportunidades próprias; antes da última, o Pokémon se recupera. Enquanto estiver ativa, há 1 em 3 de chance de perder a ação e atingir a si mesmo com um ataque físico sem tipo de poder 40. Usa seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. Esse dano encerra a proteção geral contra hit kill; Sturdy, Focus Sash e outras proteções só agem quando suas próprias regras permitem. Trocar encerra a confusão.",
-                    "Hesitação: impede apenas a próxima ação da mesma rodada, se o alvo ainda não agiu. Trocar encerra o efeito."
-                ]
+                    "Confusão: Dura de 2 a 5 oportunidades próprias de agir; o Pokémon se recupera antes da última. Enquanto estiver confuso, há 1 em 3 de chance de perder a ação e se atingir com um ataque físico sem tipo de poder 40. Use seu próprio Ataque, Defesa, nível e estágios, sem STAB, efetividade, crítico ou disputa adicional. Esse dano encerra a proteção geral contra hit kill. Sturdy, Focus Sash e outras proteções só funcionam quando suas próprias regras permitem. Trocar encerra a confusão.",
+                    "Hesitação: impede apenas a próxima ação da mesma rodada, se o Pokémon ainda não agiu. Trocar encerra o efeito."
+                ],
+                "example": "Seu parceiro pode estar envenenado e confuso ao mesmo tempo. Trocar tira a confusão, mas não cura o veneno."
             }
         ]
     },
     {
         "id": "recursos-pokemon",
         "number": 7,
-        "title": "Habilidades, itens e formas",
-        "summary": "Elementos canônicos preservados com liberdade para exceções registradas.",
+        "title": "O que torna cada Pokémon especial",
+        "summary": "Habilidades, itens, tipos e formas que fazem diferença na aventura.",
         "rules": [
             {
                 "id": "7.1",
-                "title": "Habilidades",
-                "plain": "Uma habilidade só age quando está ativa e seu gatilho acontece; escolhas continuam nas mãos de quem joga.",
-                "body": "Uma habilidade pode agir ao entrar em campo, receber contato, causar dano, mudar o clima ou chegar ao fim da rodada. Ela precisa estar ativa e cumprir seu gatilho; não basta estar escrita na ficha.\n\nIntimidate, Download, habilidades de clima e terreno, Sturdy, Adaptability, Technician, absorções, recuperação e mudanças de Velocidade entram nos cálculos. Imposter e Illusion mantêm suas regras próprias. O painel explica o efeito e deixa a descrição oficial disponível. Quando a habilidade oferece uma escolha de alvo, troca ou ordem, quem joga faz essa escolha."
+                "title": "As habilidades dos Pokémon",
+                "plain": "Uma habilidade pode fazer a diferença na hora certa! Confira quando ela funciona e o que ela permite.",
+                "body": "Habilidades podem agir ao entrar em campo, fazer contato, causar dano, mudar o clima ou chegar ao fim da rodada. A habilidade precisa estar ativa e a situação descrita precisa acontecer. Só estar escrita na ficha não basta.\n\nIntimidate, Download, habilidades de clima e terreno, Sturdy, Adaptability, Technician, absorções, recuperação e mudanças de Velocidade entram nos cálculos. Imposter e Illusion seguem suas próprias regras. O painel explica o efeito e mantém o texto de referência disponível. Se houver uma escolha de alvo, troca ou ordem, quem joga faz a escolha.",
+                "example": "Quando seu parceiro entra em campo, Intimidate pode diminuir o Ataque dos adversários. Confira se a habilidade está ativa e se o alvo pode ser afetado."
             },
             {
                 "id": "7.2",
-                "title": "Itens",
-                "plain": "Itens mantêm estado e origem: consumir, remover, trocar ou recuperar um item tem consequências persistentes.",
-                "body": "Um item pode estar ativo, consumido, removido, trocado ou restaurado. Se já foi consumido ou removido, não funciona de novo sem uma regra que o recupere.\n\nBerries, itens de escolha, Life Orb, Leftovers, Focus Sash, Weakness Policy, Air Balloon, sementes, orbes e modificadores entram no mesmo cálculo. Trick, Switcheroo, Knock Off, Thief, Covet, Fling, Recycle, Bug Bite, Pluck e Incinerate atualizam esse estado.\n\nA Box guarda qual era o equipamento de origem. Ao registrar o progresso, um item original consumido continua consumido: encerrar a cena não o repõe. Trocas temporárias não reescrevem esse equipamento; o consumo acompanha a origem do item. Uma regra como Recycle ou uma reposição registrada pode devolvê-lo."
+                "title": "Itens que acompanham seu parceiro",
+                "plain": "Um item pode ajudar muito, mas alguns são consumidos. Acompanhe o que seu Pokémon ainda está segurando.",
+                "body": "Itens podem estar ativos, consumidos, removidos, trocados ou recuperados. Um item consumido ou removido só funciona outra vez se alguma regra o devolver.\n\nBerries, itens de escolha, Life Orb, Leftovers, Focus Sash, Weakness Policy, Air Balloon, sementes, orbes e outros modificadores entram nos cálculos. Trick, Switcheroo, Knock Off, Thief, Covet, Fling, Recycle, Bug Bite, Pluck e Incinerate também atualizam o item.\n\nA Box guarda de quem era o equipamento. Um item original consumido continua consumido ao registrar o progresso. Uma troca temporária não muda o equipamento de origem na ficha; o consumo fica marcado na ficha de onde aquele item veio. Recycle ou uma reposição registrada pode devolvê-lo.",
+                "example": "Se seu Pokémon comeu a Berry, encerrar a cena não coloca outra no lugar. Será preciso recuperá-la ou conseguir uma nova."
             },
             {
                 "id": "7.3",
                 "title": "Variantes, formas e transformações",
-                "plain": "Uma variante identifica qual Pokémon está na ficha. Mudar a forma do mesmo Pokémon não apaga seu progresso.",
-                "body": "Variantes regionais e outras variantes separadas são identidades diferentes: o mesmo Pokémon não troca livremente entre elas. Diferenças só de aparência continuam agrupadas na Pokédex. Formas do mesmo Pokémon, Mega Evolution, Dynamax, Gigantamax e Terastallization mudam apenas o que suas regras permitem. Transformar não dá outra ação nem recupera recursos por conta própria.\n\nTransform copia aparência, tipos atuais, habilidade, atributos que não são HP, estágios e movimentos com 5 PP. Mantém HP, nível, item e progresso do usuário. Reverter não apaga sua ficha original.\n\nStance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast têm gatilhos próprios. O painel mostra o que muda e o que permanece."
+                "plain": "Seu Pokémon pode ter uma aparência ou uma forma especial. Cada uma muda apenas o que sua regra permite.",
+                "body": "Variantes regionais e outras variantes separadas são identidades diferentes. O mesmo parceiro não troca livremente entre elas. Diferenças só de aparência ficam agrupadas na Pokédex.\n\nFormas do mesmo Pokémon, Mega Evolution, Dynamax, Gigantamax e Terastallization seguem suas próprias regras. Transformar não dá outra ação nem recupera recursos por conta própria.\n\nTransform copia aparência, tipos atuais, habilidade, atributos que não são HP, estágios e movimentos com 5 PP. Mantém HP, nível, item e progresso do usuário. Ao voltar, a ficha original continua guardada.\n\nStance Change, Schooling, Shields Down, Zero to Hero, Hunger Switch, Gulp Missile, Zen Mode, Power Construct e Forecast mudam a forma em situações próprias. O painel mostra o que muda e o que permanece.",
+                "example": "Uma Mega Evolução é uma transformação de batalha. Ela não apaga o apelido, a história ou a ficha original de seu parceiro."
             },
             {
                 "id": "7.4",
-                "title": "Movimentos que copiam ou chamam outros",
-                "plain": "Movimentos que copiam ou chamam outros executam a regra do movimento obtido sem transformar essa cópia em repertório permanente.",
-                "body": "Sketch aprende permanentemente o último movimento observado que seja válido, no lugar de Sketch, inclusive na ficha vinculada. Mimic copia temporariamente com 5 PP; ao desfazer a cópia ou encerrar a cena, restaura o movimento e PP anteriores.\n\nMetronome, Copycat, Assist, Sleep Talk, Nature Power, Mirror Move, Me First e Instruct pedem o movimento que será chamado. Só a escolha original gasta PP. O movimento chamado usa essa mesma ação e vez: sua prioridade não cria outro turno nem refaz a iniciativa."
+                "title": "Copiar ou chamar um movimento",
+                "plain": "Alguns movimentos permitem usar outro movimento. A cópia só vira aprendizado permanente quando a regra diz isso.",
+                "body": "Sketch aprende permanentemente o último movimento observado que seja válido, no lugar de Sketch, inclusive na ficha vinculada. Mimic faz uma cópia temporária com 5 PP; ao desfazê-la ou encerrar a cena, voltam o movimento e os PP anteriores.\n\nMetronome, Copycat, Assist, Sleep Talk, Nature Power, Mirror Move, Me First e Instruct pedem o movimento que será usado. Só a escolha original gasta PP. O movimento chamado usa a mesma ação e a mesma vez; sua prioridade não cria outro turno nem muda a iniciativa.",
+                "example": "Usar Mimic para copiar um movimento não faz seu Pokémon aprendê-lo para sempre."
             },
             {
                 "id": "7.5",
                 "title": "Tipos, STAB e Terastallization",
-                "plain": "Tipos determinam imunidade, resistência, neutralidade e superefetividade; STAB e Terastallization são bônus separados.",
-                "body": "Tipos mostram a efetividade do movimento contra o alvo: imune causa 0; uma resistência aplica 50%; duas resistências, 25%; neutro vale ×1; superefetivo contra um tipo vale ×2; superefetivo contra os dois tipos vale ×4. Uma fraqueza e uma resistência juntas dão ×1. Use os tipos atuais do alvo. Uma imunidade continua em 0, salvo um efeito que a remova.\n\nSTAB é o bônus de usar um movimento do próprio tipo: normalmente multiplica o dano por 3 e divide por 2. Com Terastallization ativa, vale para um tipo original ou o Tera Type; se corresponder aos dois, é 2×. Adaptability ajusta esse bônus quando ativa. Sol, chuva e terrenos têm seus próprios efeitos, mostrados separadamente no resultado."
+                "plain": "Conhecer os tipos ajuda a escolher seu próximo movimento. Fraquezas, resistências e imunidades fazem diferença!",
+                "body": "Use os tipos atuais do alvo. Uma imunidade mantém o dano em 0, salvo um efeito que a remova.",
+                "bullets": [
+                    "Efetividade: uma resistência deixa metade do dano; duas deixam um quarto. Um acerto neutro mantém o dano. Uma fraqueza dobra; duas multiplicam por 4. Uma fraqueza e uma resistência se equilibram e mantêm o dano.",
+                    "STAB: é o bônus de usar um movimento do próprio tipo. Normalmente, multiplique o dano por 3 e divida por 2.",
+                    "Terastallization: o bônus vale para um tipo original ou para o tipo Tera. Se o movimento corresponder aos dois, o bônus dobra o dano. Adaptability ajusta o bônus quando está ativa.",
+                    "Clima e terreno: sol, chuva e terrenos têm seus próprios efeitos. O resultado mostra cada um separadamente."
+                ],
+                "example": "Contra um Pokémon com duas fraquezas ao movimento, o dano é multiplicado por 4. Se um dos tipos for imune, essa imunidade continua valendo."
             },
             {
                 "id": "7.6",
-                "title": "Ordem de resolução conectada",
-                "plain": "O jogo resolve cada ação numa ordem única para que dano, efeitos, custos, cura e nocaute não sejam aplicados duas vezes.",
-                "body": "Escolha o movimento e seu alvo; o jogo resolve uma vez, em ordem: permissões e condições, disputa quando houver, precisão e imunidades, cálculo e proteções, dano, efeitos secundários, contato, custos, cura e nocaute. O Diário da aventura guarda o resultado.\n\nAlvo, troca ou movimento chamado continuam sendo escolhas quando a própria regra permite. Um crítico só vale depois de acertar. Shield Dust, Covert Cloak e Sheer Force mexem nos efeitos secundários, não apagam efeitos principais nem custos do usuário."
+                "title": "O que acontece depois da escolha",
+                "plain": "Depois de escolher um movimento e um alvo, acompanhe o resultado. O MyOwnDex resolve cada ação uma vez.",
+                "body": "O jogo confere se a ação é permitida e se alguma condição impede agir. Depois verifica a disputa, quando houver, a precisão e as imunidades. Calcula o dano e as proteções, aplica dano, efeitos secundários, contato, custos, cura e nocaute. O Diário guarda o resultado.\n\nVocê continua escolhendo alvo, troca ou movimento chamado quando a regra permite. Um crítico só vale depois de acertar. Shield Dust, Covert Cloak e Sheer Force mudam efeitos secundários; não apagam efeitos principais nem custos do usuário.",
+                "example": "Você pode consultar o resultado no Diário sem gastar PP ou aplicar o dano outra vez."
             },
             {
                 "id": "7.7",
                 "title": "Dynamax e Gigantamax",
-                "plain": "Max aumenta temporariamente o HP, transforma movimentos e dura três rodadas; não dá outra ação.",
-                "body": "A permissão de usar Dynamax é separada do nível Dynamax. Nível 0 já é válido: multiplique o HP por 30 e divida por 20; cada nível acrescenta 1 ao numerador, até 40 no nível 10, que dobra o HP. Arredonde o máximo para baixo; aumente o atual na mesma proporção inteira, sem curar a ferida anterior. A ficha mostra HP-base e HP Max. Ao terminar, a referência de entrada e a mudança efetiva determinam o HP de volta: entrar e sair sem eventos conserva exatamente o HP. Com dano/cura, arredonde a conversão para baixo; consciente conserva mínimo 1, desmaiado continua 0.\n\nGigantamax usa o mesmo aumento de HP e exige fator e espécie compatíveis. Shedinja fica com 1. Zacian, Zamazenta e Eternatus não usam Dynamax comum. Eternamax tem atributos próprios de forma especial, não é um dobro universal.\n\nPrepare a transformação antes da iniciativa: mudar a forma não refaz uma ordem já rolada. Dynamax e Gigantamax compartilham um uso por Treinador por batalha. Duram três rodadas e terminam na troca. Ataques viram Max Moves de prioridade 0; status vira Max Guard de prioridade 4. Gastam PP do original e usam efeitos próprios, sem copiar recuo, multi-hit e efeitos secundários do original. Não sofrem hesitação, KO direto nem Low Kick, Grass Knot, Heavy Slam ou Heat Crash; Roar e Whirlwind falham. Efeitos percentuais comuns usam HP-base."
+                "plain": "Seu Pokémon fica enorme por três rodadas! O HP aumenta por um tempo e os movimentos também mudam.",
+                "body": "Prepare a transformação antes da iniciativa. Ela não refaz uma ordem já rolada e não dá outra ação. Dynamax e Gigantamax compartilham um uso por Treinador em cada batalha e terminam ao trocar de Pokémon.",
+                "bullets": [
+                    "HP: o nível Dynamax vai de 0 a 10. No nível 10, o HP dobra. Nível 0 também é válido. A permissão de usar Dynamax é uma escolha separada do nível Dynamax.",
+                    "Conta do HP: some 30 ao nível Dynamax. Multiplique o HP por esse resultado, que vai de 30 a 40, e divida por 20. Arredonde o máximo para baixo e aumente o HP atual na mesma proporção inteira, sem curar o dano que já havia. A ficha mostra o HP de antes e o HP Max.",
+                    "Ao terminar: entrar e sair sem receber dano ou cura conserva exatamente o HP de entrada. Se o HP mudou, o jogo converte a mudança de volta e arredonda para baixo. Um Pokémon consciente fica com pelo menos 1 HP; um desmaiado continua com 0.",
+                    "Gigantamax: usa o mesmo aumento de HP e exige o fator Gigantamax e uma espécie compatível. Shedinja fica com 1 HP. Zacian, Zamazenta e Eternatus não usam Dynamax comum. Eternamax tem atributos próprios; não é só dobrar o HP.",
+                    "Movimentos: ataques viram Max Moves com prioridade 0; movimentos de status viram Max Guard com prioridade 4. Gastam PP do movimento original e usam efeitos próprios. Não copiam recuo, múltiplos acertos ou efeitos secundários do original.",
+                    "Proteções e efeitos: não sofrem hesitação, nocaute direto, Low Kick, Grass Knot, Heavy Slam ou Heat Crash. Roar e Whirlwind falham. Efeitos percentuais comuns usam o HP máximo de antes da transformação."
+                ],
+                "example": "Com 20 de 20 HP e nível Dynamax 10, seu parceiro fica com 40 de 40. Se terminar sem dano ou cura, ele volta a 20 de 20."
             }
         ]
     },
     {
         "id": "mesa",
         "number": 8,
-        "title": "Condução da aventura",
-        "summary": "Papéis, decisões manuais, transparência e exceções.",
+        "title": "Jogar em grupo",
+        "summary": "Conte suas ideias, ajude seus amigos e encontrem novos caminhos juntos.",
         "rules": [
             {
                 "id": "8.1",
                 "title": "Narrador e jogadores",
-                "plain": "Narrador e jogadores têm papéis diferentes, mas todos usam o mesmo estado e as mesmas regras da aventura.",
-                "body": "O Narrador apresenta o mundo, acompanha a cena e ajuda a resolver dúvidas. Cada Jogador escolhe as ações e cuida dos seus Pokémon. Todos veem o mesmo estado da aventura. O Narrador confirma mudanças coletivas e registra exceções para ninguém jogar com uma regra diferente sem saber."
+                "plain": "A aventura é de todo o grupo. Cada pessoa participa das escolhas e ajuda a história a seguir em frente.",
+                "body": "O Narrador apresenta o mundo, acompanha a cena e ajuda a resolver dúvidas. Cada jogador escolhe o que seu Treinador tenta fazer e cuida de seus Pokémon. Todos acompanham os mesmos registros da aventura.\n\nO Narrador confirma mudanças que afetam o grupo e anota exceções para todos saberem como jogar.",
+                "example": "O Narrador descreve uma ponte quebrada. Cada jogador pode propor um jeito de ajudar a equipe a atravessar."
             },
             {
                 "id": "8.2",
-                "title": "Ajuda sem tirar a liberdade",
-                "plain": "O MyOwnDex automatiza respostas definidas sem escolher pelo jogador nem decidir consequências narrativas no lugar do grupo.",
-                "body": "O jogo faz as contas e resolve o que tem resposta definida. Você continua escolhendo o que seu personagem tenta fazer. Ideias criativas e consequências da história ficam com o grupo. Combine antes de rolar e registre uma exceção no Diário da aventura para aplicá-la do mesmo jeito depois."
+                "title": "O aplicativo ajuda; você escolhe",
+                "plain": "O MyOwnDex cuida das contas. Você e seus amigos continuam escolhendo o que tentar e como viver a aventura.",
+                "body": "O aplicativo resolve o que já tem uma resposta definida. Ideias criativas e consequências da história ficam com o grupo. Combine a ideia antes de rolar. Se houver uma exceção, anote no Diário para usá-la do mesmo jeito depois.",
+                "example": "O MyOwnDex pode resolver um teste. Ele não escolhe por você se seu Treinador vai ajudar um rival."
             },
             {
                 "id": "8.3",
-                "title": "Como resolver uma exceção",
-                "plain": "Quando surgir uma exceção, primeiro use este Guia, depois a regra oficial aplicável e, por último, uma decisão clara do grupo.",
-                "body": "Quando duas explicações parecem diferentes, siga esta ordem:",
+                "title": "E quando surgir uma dúvida?",
+                "plain": "Se uma situação não estiver clara, conversem antes dos dados. O Narrador ajuda o grupo a encontrar uma resposta justa.",
+                "body": "Quando duas explicações parecerem diferentes, confira nesta ordem:",
                 "bullets": [
-                    "Primeiro, use a adaptação explícita deste Guia para o modo RPG. Ela vale para todos os lados e não muda ao escolher um jogo antigo no catálogo.",
-                    "Onde o Guia não adapta a mecânica, use a regra oficial mais recente e corrigida disponível. Uma correção posterior vale mais que uma descrição antiga. Escolher uma referência histórica não troca as regras do RPG sem avisar o grupo.",
-                    "Tiers, banlists, cláusulas e regras de torneio não entram automaticamente no RPG. Aqui, a base é a mecânica Pokémon com aventura e narrativa, sem restrições competitivas importadas em silêncio.",
-                    "Resolva cada ação uma vez, na ordem da regra 7.6. Uma exceção não devolve PP, HP, item ou turno sem dizer claramente que devolve.",
-                    "Se a dúvida continuar, o Narrador combina uma solução clara antes da rolagem e a registra. A decisão vale igualmente para aliados e oponentes na mesma situação; não muda depois de ver os dados."
-                ]
+                    "Este Guia: use primeiro uma adaptação explícita do RPG. Ela vale para os dois lados e não muda só porque você consultou um jogo antigo.",
+                    "Os jogos: quando o Guia não adapta a regra, use a regra oficial mais recente e corrigida disponível. Uma correção mais nova vale mais que um texto antigo. Consultar um jogo histórico não troca as regras do RPG sem combinar com o grupo.",
+                    "Torneios: listas de Pokémon permitidos, banimentos, tiers e cláusulas de torneio não entram automaticamente na aventura. São regras de outros formatos.",
+                    "Cada ação acontece uma vez: siga a ordem da regra 7.6. Uma exceção não devolve PP, HP, item ou turno sem dizer que devolve.",
+                    "Dúvida que continua: o Narrador combina uma solução antes de rolar e anota. Aliados e oponentes seguem a mesma decisão na mesma situação. Não mude a regra depois de ver os dados."
+                ],
+                "example": "Antes de testar uma ideia nova, o grupo combina como ela funciona. O resultado dos dados não muda esse combinado."
             },
             {
                 "id": "8.4",
                 "title": "A regra de ouro",
-                "plain": "Criatividade pode abrir novas soluções, mas não cria recursos ou ações extras sem uma regra ou decisão combinada.",
-                "body": "Jogue uma aventura Pokémon: explore, imagine, cuide e descubra. Use o cenário, defesas criativas e combinações inesperadas. Combine o que a ideia tenta fazer antes de rolar. Criatividade abre caminhos; não dá recursos ou ações extras sem uma regra ou exceção combinada. As mesmas escolhas e limites valem para todos."
+                "plain": "Explore, imagine, cuide e descubra com seus Pokémon. As melhores ideias podem abrir novos caminhos para a equipe!",
+                "body": "Use o cenário, pense em defesas criativas e experimente combinações inesperadas. Conte o que sua ideia quer conseguir e combine como tentar antes dos dados.\n\nCriatividade não dá recursos ou ações extras sem uma regra ou uma exceção combinada. As mesmas escolhas e os mesmos limites valem para todos.",
+                "example": "Usar um movimento para ajudar num resgate pode ser tão importante para a aventura quanto vencer uma batalha."
             },
             {
                 "id": "8.5",
                 "title": "Testes do Treinador",
-                "plain": "Treinadores rolam 2d6 só quando existe dúvida e consequência; preparação e obstáculos podem dar Vantagem ou Desvantagem.",
-                "body": "Só role quando houver uma dúvida importante e algo em jogo. Diga o que quer fazer, o que atrapalha e o que pode acontecer. Um Treinador usa 2d6; não recebe atributos inventados de Pokémon.\n\nUma especialidade da sua história, boa preparação ou ajuda útil pode dar vantagem. Um obstáculo importante pode dar desvantagem. Várias ajudas não acrescentam dados; vantagem e desvantagem juntas usam Normal.\n\nComo referência de dificuldade, use 5 para favorável, 7 para exigente e 9 para muito difícil. O total precisa superar a dificuldade: empate não basta. O jogo calcula e mostra o resultado. Uma ação tranquila não pede dados; uma impossível pede outro plano."
+                "plain": "Seu Treinador também pode investigar, escalar e ajudar. Role os dados quando houver uma dúvida importante e algo em jogo.",
+                "body": "Diga o que quer fazer, o que atrapalha e o que pode acontecer. O Treinador rola 2d6; não usa atributos inventados de Pokémon. Uma ação tranquila não pede dados. Para uma ideia impossível, procure outro plano.\n\nUma especialidade da história, uma boa preparação ou uma ajuda útil pode dar vantagem. Um obstáculo importante pode dar desvantagem. Várias ajudas não acrescentam dados. Vantagem e desvantagem juntas usam Normal.\n\nO Narrador pode usar dificuldade 5 para uma situação favorável, 7 para uma exigente e 9 para uma muito difícil. O total precisa superar a dificuldade; empate não basta. O aplicativo mostra o resultado.",
+                "example": "Se a dificuldade é 7, você precisa de 8 ou mais nos dois dados para conseguir."
             },
             {
                 "id": "8.6",
-                "title": "Improvisação",
-                "plain": "Declare objetivo, benefício e risco antes dos dados; improvisar usa a ação.",
-                "body": "Uma ideia não prevista pode criar vantagem, desvantagem ou mudar posição/objetivo. Combine qual teste, custo, risco e alvo. Em batalha, usa a ação principal e PP se empregar um movimento. No sucesso, escolha um benefício coerente: Vantagem ou Desvantagem em um teste pertinente, consumida no uso e expirada até o fim da rodada seguinte; ou uma mudança concreta de posição/objetivo. Não soma dano completo e bônus gratuito, não acumula Vantagem, não substitui status ou estágios permanentes sem a regra correspondente. Ideia tranquila não exige teste; ideia impossível pede outro plano. Exemplo: Bulbasaur usa Vine Whip para firmar uma corda num galho. O Narrador confirma se o galho suporta o peso, combina o teste e o risco de cair; se houver dúvida, gasta a ação e o PP. Um sucesso pode dar Vantagem à travessia seguinte. Esse uso não causa também o dano de um ataque nem ignora a condição do galho."
+                "title": "Tentar uma ideia diferente",
+                "plain": "Quer usar um movimento de um jeito criativo? Conte seu plano e combine o que pode dar certo ou errado.",
+                "body": "Improvisar pode dar vantagem, causar desvantagem ou mudar uma posição ou um objetivo. Antes dos dados, combinem o teste, o custo, o risco e quem será afetado. Em batalha, use a ação principal; se usar um movimento, gaste PP também.\n\nNo sucesso, escolha um benefício que combine com a ideia: vantagem ou desvantagem em um teste relacionado, ou uma mudança concreta de posição ou objetivo. O bônus no teste vale uma vez e acaba, no máximo, no fim da rodada seguinte.\n\nO improviso não junta dano completo com um bônus grátis, não acumula vantagem e não cria uma condição ou estágios permanentes sem a regra correspondente. Uma ideia tranquila não exige teste; uma impossível pede outro plano.",
+                "example": "Bulbasaur usa Vine Whip para prender uma corda num galho. O Narrador confere o galho e combina o teste e o risco de cair. Um sucesso pode dar vantagem na próxima travessia, mas não causa também o dano de um ataque."
             },
             {
                 "id": "8.7",
-                "title": "Ajuda e testes coletivos",
-                "plain": "Agir em grupo pode ampliar o resultado, mas todos se expõem ao risco combinado.",
-                "body": "Para ajudar numa única tarefa, uma pessoa rola com Vantagem se a contribuição for útil; ajudantes compartilham o risco e usam sua ação em batalha. Para ação conjunta, cada participante cumpre seu papel e testa o atributo adequado. Um sucesso capaz resolve o objetivo compartilhado, mas papéis indispensáveis também precisam dar certo. Antes de qualquer dado, fixe quem participa, o papel pertinente de cada um, quais papéis são indispensáveis, o ganho coletivo e uma consequência agregada. Não acrescente participantes depois de conhecer os resultados nem aceite papéis sem contribuição para diluir as falhas. Se todos passam, não há custo por falha; se alguém falha, avance 1 passo do risco; se pelo menos metade falha, avance 2, nunca uma punição por pessoa. Uma única resolução por objetivo, sem várias tentativas grátis disfarçadas. Exemplo: três parceiros estabilizam uma ponte, sustentam a corda e guiam a passagem; sustentar é indispensável. Se esse papel passa e outro falha, o objetivo pode avançar com 1 passo de risco. Se o papel indispensável falha, a passagem não se completa, mesmo com os outros dois sucessos; o risco avança 1. Nova tentativa exige o custo ou a mudança de abordagem de 8.8."
+                "title": "Vamos ajudar uns aos outros",
+                "plain": "Trabalhar em equipe pode alcançar um resultado maior. Cada participante ajuda de verdade e compartilha o risco.",
+                "body": "Para ajudar uma pessoa numa tarefa, ela rola com vantagem se sua ajuda for útil. Ajudantes compartilham o risco e usam sua ação em batalha.\n\nNum plano em grupo, cada participante faz sua parte e testa o atributo adequado. Antes de qualquer dado, combinem quem participa, a tarefa de cada um, quais são indispensáveis, o resultado que buscam e o que pode dar errado. Uma tarefa indispensável precisa funcionar para o plano dar certo.\n\nUm sucesso numa tarefa que possa alcançar o objetivo comum já pode bastar, desde que as tarefas indispensáveis também funcionem. Se todos passam, não há custo por falha. Se alguém falha, o risco combinado avança 1 passo, como fazer barulho ou gastar mais tempo. Se pelo menos metade falha, avança 2 passos. Não cobre uma punição para cada pessoa.\n\nNão acrescente participantes depois de ver os resultados nem invente tarefas inúteis para diminuir o peso das falhas. Resolva o objetivo uma vez. Para tentar de novo, siga a regra 8.8.",
+                "example": "Três parceiros consertam uma ponte: estabilizar, sustentar a corda e guiar a passagem. Sustentar é indispensável. Se essa tarefa funcionar e uma outra falhar, a equipe pode passar com 1 passo de risco. Se sustentar falhar, a passagem não se completa e o risco avança 1. Com duas ou três falhas, avança 2."
             },
             {
                 "id": "8.8",
-                "title": "Repetição de tentativas",
-                "plain": "É possível tentar de novo, pagando tempo, recursos ou exposição.",
-                "body": "Uma falha muda a situação. Diga o novo custo antes de outra tentativa. Repetir imediatamente o mesmo plano, sem mudança relevante, sofre Desvantagem quando o risco permitir continuar; ela não se acumula. Preparação ou abordagem diferente remove essa penalidade, não o perigo já avançado. Se nada custa tempo ou risco e há chance real de sucesso, resolva o esforço sem uma sequência vazia de testes. Esta regra não penaliza ataques nem capturas comuns: eles já têm ação, PP, Balls e risco próprios."
+                "title": "Posso tentar de novo?",
+                "plain": "Você pode tentar outra vez. Pense no que mudou e no que a próxima tentativa pode custar.",
+                "body": "Uma falha muda a situação. Antes de tentar de novo, o Narrador explica o novo custo em tempo, recursos ou exposição ao perigo.\n\nSe você repetir imediatamente o mesmo plano sem uma mudança importante, use desvantagem quando ainda for possível continuar. Ela não se acumula. Preparar-se ou mudar de abordagem tira essa penalidade, mas não desfaz o perigo que já avançou.\n\nSe houver chance real de sucesso e nenhum custo ou risco, resolva o esforço sem uma sequência de rolagens repetidas. Essa regra não atrapalha ataques nem capturas comuns: eles já gastam ação, PP ou Balls e têm seus próprios riscos.",
+                "example": "Uma porta não abriu. Procurar outra entrada ou conseguir uma ferramenta muda o plano; repetir a mesma tentativa imediatamente traz desvantagem."
             },
             {
                 "id": "8.9",
-                "title": "Fuga e perseguição",
-                "plain": "Retirada é uma escolha real e usa a ação, com riscos definidos antes dos dados.",
-                "body": "Declare Fugir com prioridade 0. Em batalha, dispute Velocidade com quem impede a saída; empate favorece quem bloqueia. No sucesso, saia da cena de confronto e não continue atacando de fora. Na falha, a ação foi usada e a oposição continua podendo agir. Efeitos que impedem fuga conservam suas exceções.\n\nPara perseguição longa, use dois contadores inteiros de 0 a 3: Fuga e Perigo. Resolva uma disputa principal por rodada; sucesso avança Fuga, falha avança Perigo. Outros personagens podem ajudar ou remover obstáculos com suas ações, sem várias disputas principais. Ao chegar a 3, conclua a saída ou a consequência combinada. Repetir não zera os contadores."
+                "title": "Fugir ou perseguir",
+                "plain": "Às vezes, a melhor escolha é recuar. Combine a saída que a equipe procura e os riscos antes de rolar.",
+                "body": "Declare Tentar fugir com prioridade 0. Na batalha, dispute Velocidade com quem impede a saída. Empate favorece quem bloqueia. No sucesso, deixe a cena de confronto; você não continua atacando de fora. Na falha, sua ação foi usada e os oponentes ainda podem agir. Efeitos que impedem fuga mantêm suas próprias exceções.\n\nNuma perseguição longa, use dois marcadores de 0 a 3: Fuga e Perigo. Faça uma disputa principal por rodada. Sucesso aumenta Fuga em 1; falha aumenta Perigo em 1. Outros personagens podem ajudar ou remover obstáculos com suas ações, sem criar outras disputas principais.\n\nQuando um marcador chegar a 3, conclua a saída ou a consequência combinada. Tentar outra vez não zera os marcadores.",
+                "example": "A equipe procura a saída da caverna enquanto foge. Cada sucesso a aproxima da saída; cada falha aproxima o perigo que vocês combinaram."
             },
             {
                 "id": "8.10",
-                "title": "Chefes e protagonismo",
-                "plain": "Chefes usam o MyOwnDex; terreno, composição e objetivos criam o desafio.",
-                "body": "Não dobre atributos, ações ou barras só porque é chefe. Use repertório físico/especial, aliados, terreno, sinais de ataques importantes e objetivos de resgate, proteção ou retirada. Distribua pressão e oportunidades de contribuir; não torne uma defesa praticamente invencível a única tarefa. Fase não cura, devolve proteção ou concede turno. Antes da sessão, compare as duas defesas com os ataques disponíveis: Ataque original 10 contra Defesa original 60 nunca supera a disputa, nem com Vantagem; fraqueza de tipo só modifica o dano depois do acerto. Conserve a defesa e ofereça rotas compreensíveis por ataque especial, estágios, apoio, objetivos ou retirada. Não exija repetir um ataque sem chance real.\n\nUma raid é um formato declarado à parte: qualquer regra especial precisa de origem, limites e formas de resposta anunciados; não vira padrão do sistema. Não há multiplicador universal de chefe validado. Observe em mesa tempo por turno, escolhas, reviravoltas e participação. Simulações medem funcionamento e consequências mecânicas; diversão, emoção e protagonismo exigem pessoas jogando."
+                "title": "Desafios para toda a equipe",
+                "plain": "Uma grande batalha deve dar a cada parceiro uma chance de ajudar. Preparação, apoio e boas ideias também fazem diferença!",
+                "body": "Para o Narrador: um chefe usa as mesmas regras. Não dobre atributos, ações ou barras de HP só por ele ser um chefe. Prepare movimentos físicos e especiais, aliados, terreno e sinais de ataques importantes. Inclua objetivos como resgatar, proteger ou recuar.\n\nAntes de jogar, compare as duas defesas com os ataques da equipe. Ataque original 10 contra Defesa original 60 nunca vence essa disputa, nem com vantagem. A fraqueza de tipo só muda o dano depois de acertar. Preserve a Defesa e ofereça caminhos claros: ataque especial, estágios, apoio, outro objetivo ou retirada. Não peça para repetir um ataque sem chance de funcionar.\n\nMudar a fase não cura, não devolve proteção e não dá outro turno. Uma raid, ou batalha especial em grupo, é um formato à parte: o grupo precisa conhecer antes as regras especiais, seus limites, de onde vêm e como responder a elas. Não existe um bônus universal de chefe.\n\nDurante a sessão, observe se todos conseguem escolher, agir e contribuir. Ajustar a aventura com pessoas jogando ajuda a perceber o que está divertido e o que precisa melhorar.",
+                "example": "Enquanto um parceiro segura o adversário, outro pode proteger um Pokémon em perigo. Os dois ajudam a equipe a alcançar o objetivo."
             }
         ]
     }

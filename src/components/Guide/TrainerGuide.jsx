@@ -67,7 +67,8 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
     const auditText = normalizeForGuide(getGuideAuditText(rule.auditCase));
     const mainMatch = mainText.includes(searched);
     const contextMatchOnly = searching && !mainMatch && contextText.includes(searched);
-    const technicalMatchOnly = searching && !mainMatch && !contextMatchOnly && (detailsText.includes(searched) || auditText.includes(searched));
+    const auditedNumberMatch = searching && /\d/.test(searched) && auditText.includes(searched);
+    const technicalMatchOnly = auditedNumberMatch || (searching && !mainMatch && !contextMatchOnly && (detailsText.includes(searched) || auditText.includes(searched)));
     return (
         <details ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
             <summary>

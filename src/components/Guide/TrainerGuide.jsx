@@ -3,6 +3,7 @@ import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
 import { GUIDE_PLAYER_SCENES } from "../../core/guidePlayerScenes.js";
+import { GUIDE_RULE_CONTEXTS } from "../../core/guideRuleContexts.js";
 import { createGuideSearchIndex, formatRuleForReading, searchGuideSections } from "../../core/guideSearch.js";
 import { integerInRange } from "../../core/math.js";
 import { formatNumberPtBr, RPG_HP_DIVISOR, RPG_SCALE_DIVISOR } from "../../core/mechanics.js";
@@ -38,8 +39,11 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
     const searching = Boolean(query.trim());
     const searched = normalizeForGuide(query.trim());
     const mainText = normalizeForGuide([rule.title, rule.plain, GUIDE_PLAYER_SCENES[rule.id]].join(" "));
+    const contextText = normalizeForGuide(GUIDE_RULE_CONTEXTS[rule.id]);
     const detailsText = normalizeForGuide([rule.body, ...(rule.bullets || [])].join(" "));
-    const detailMatchOnly = searching && !mainText.includes(searched) && detailsText.includes(searched);
+    const mainMatch = mainText.includes(searched);
+    const contextMatchOnly = searching && !mainMatch && contextText.includes(searched);
+    const technicalMatchOnly = searching && !mainMatch && !contextMatchOnly && detailsText.includes(searched);
     return (
         <details ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
             <summary>
@@ -52,9 +56,13 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
                 {rule.id === "3.4" ? (
                     <HitKillExplanation expanded={searching} />
                 ) : (rule.body || rule.bullets) && (
-                    <details className="guide-rule-full-rule" open={detailMatchOnly}>
-                        <summary>Ver detalhes da regra</summary>
-                        <div className="guide-rule-details-content"><p className="guide-detail-intro">O MyOwnDex faz estas contas. Consulte os números e as exceções quando precisar.</p><RuleDetails rule={rule} /></div>
+                    <details className="guide-rule-full-rule" open={contextMatchOnly || technicalMatchOnly}>
+                        <summary>Entenda melhor</summary>
+                        <p className="guide-rule-context">{GUIDE_RULE_CONTEXTS[rule.id]}</p>
+                        <details className="guide-rule-technical" open={technicalMatchOnly}>
+                            <summary>Conferir números e exceções</summary>
+                            <div className="guide-rule-details-content"><RuleDetails rule={rule} /></div>
+                        </details>
                     </details>
                 )}
             </div>
@@ -101,7 +109,7 @@ export default function TrainerGuide({ experienceMode }) {
                         <h3 id="guide-reference-title">Regras da aventura</h3>
                         <span className="guide-rule-count">{ruleCount} regras</span>
                     </header>
-                    <p className="guide-introduction">Veja o que acontece e siga a aventura. Os Pokémon mantêm suas características dos jogos; algumas regras foram adaptadas para este RPG. O MyOwnDex cuida das contas.</p>
+                    <p className="guide-introduction">Veja o que acontece com cada Pokémon e como jogar. O MyOwnDex cuida das contas. Quando uma regra for diferente dos jogos oficiais, ela será apresentada como uma adaptação deste RPG.</p>
                     <p className="guide-basic-terms">HP é a energia do Pokémon. PP indica quantas vezes ele pode usar um movimento. XP é a experiência que ganha na aventura.</p>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>

@@ -20,7 +20,7 @@ export const GUIDE_WORKED_SCENES_5_6 = Object.freeze({
       "Ao colocar Amora na Box ou trazê-la de volta, preserve sua identidade, HP, PP, condições, item e história. Atualize apenas o que realmente mudou."
     ],
     "resultado": "Amora continua sendo o mesmo Eevee, com os recursos e experiências anteriores, dentro ou fora da equipe.",
-    "porQue": "A ficha registra um personagem com continuidade, não um cartão descartável de estatísticas."
+    "porQue": "A ficha registra um companheiro com continuidade, recursos e origem própria, não um cartão descartável de estatísticas."
   },
   "5.3": {
     "quando": "Quando um Pokémon aprende um movimento, evolui ou recebe uma técnica por máquina, tutor, ovo ou outro método permitido. A origem depende da edição escolhida.",
@@ -53,7 +53,7 @@ export const GUIDE_WORKED_SCENES_5_6 = Object.freeze({
       "Registre o motivo e a mudança apenas uma vez. Ao evoluir por Amizade, consulte o valor original da ficha, não somente sua exibição simplificada no RPG."
     ],
     "resultado": "A Amizade de Pikachu pode crescer de maneira rastreável; desmaiar em batalha ou falhar numa tentativa não reduz o vínculo automaticamente.",
-    "porQue": "Relações avançam por acontecimentos narrados, não pela repetição de botões ou XP."
+    "porQue": "Relações avançam por acontecimentos narrados e cuidados relevantes, não pela repetição de botões ou pelo ganho automático de XP."
   },
   "6.1": {
     "quando": "Assim que um Pokémon recebe uma condição válida e, depois, nos momentos previstos por ela: antes de agir ou no fim da rodada. Um Pokémon só tem uma condição principal por vez.",
@@ -98,7 +98,7 @@ export const GUIDE_WORKED_SCENES_5_6 = Object.freeze({
       "Respeite o limite de +6 estágios e as habilidades que realmente ignoram estágios específicos. Uma troca ou fim de batalha pode encerrar ajustes temporários conforme a regra da cena."
     ],
     "resultado": "Geodude pode resistir melhor a Tackle depois de Defense Curl, sem ganhar HP nem uma segunda vez.",
-    "porQue": "Cada estágio precisa afetar exatamente o atributo e o alvo indicados pelo movimento."
+    "porQue": "Cada estágio precisa afetar exatamente o atributo e o alvo indicados pelo movimento; Defesa e Defesa Especial não são intercambiáveis."
   },
   "6.5": {
     "quando": "Quando um Pokémon recebe Confusão ou Hesitação, que são efeitos temporários separados da condição principal, e quando chega sua oportunidade de agir.",

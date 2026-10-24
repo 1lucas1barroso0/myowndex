@@ -40,7 +40,7 @@ function RuleCanonicalText({ rule }) {
 function WorkedScene({ id }) {
     const example = GUIDE_WORKED_SCENES[id];
     if (!example) return null;
-    return <section className="guide-worked-scene" aria-label="Exemplo completo explicado">
+    return <section className={id === "3.4" ? "guide-worked-scene" : "guide-worked-scene guide-rule-story"} aria-label="Exemplo completo explicado">
         <h5>Um exemplo explicado, do começo ao fim</h5>
         <div className="guide-worked-part"><h6>Quando esta regra entra em ação?</h6><p>{example.quando}</p></div>
         <div className="guide-worked-part"><h6>Quem faz o quê?</h6><p>{example.cena}</p></div>

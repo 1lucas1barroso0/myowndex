@@ -31,7 +31,7 @@ export const GUIDE_RULE_CONTEXTS = Object.freeze({
   "6.2": "Em Scarlet/Violet, Ekans pode usar Poison Sting em Pikachu. Se acertar e o veneno acontecer, o efeito continua nas rodadas seguintes. O MyOwnDex confere a perda de HP; perder 0 HP numa rodada não significa ter sido curado.",
   "6.3": "Se Bulbasaur aprendeu Giga Drain pela TM disponível no jogo escolhido, ele pode recuperar HP depois de causar dano a Eevee. Um erro, uma imunidade ou dano 0 não gera recuperação a partir de dano inexistente.",
   "6.4": "Defense Curl aumenta a Defesa do próprio Geodude, não a de Pikachu. A mudança fica registrada até uma regra desfazê-la; ela não equivale a recuperar HP.",
-  "6.5": "Se Golbat acertar Supersonic em Pikachu, Pikachu pode ficar confuso. Caso também esteja envenenado, trocar por Bulbasaur encerra a confusão, mas não cura o veneno.",
+  "6.5": "Em HeartGold/SoulSilver, se Golbat acertar Supersonic em Pikachu, Pikachu pode ficar confuso. Caso também esteja envenenado, trocar por Bulbasaur encerra a confusão, mas não cura o veneno.",
   "7.1": "Gyarados ativa Intimidate ao entrar em campo, se a habilidade estiver funcionando. Confira quais adversários foram afetados; ela não diminui o Ataque de quem estiver protegido desse efeito.",
   "7.2": "Quando Eevee perde HP e sua Oran Berry é ativada, ele a consome para se recuperar. O item fica gasto depois da batalha; não reaparece apenas porque o turno acabou.",
   "7.3": "Mega Venusaur exige Venusaurite, Key Stone e uma batalha com Mega Evolução permitida. Ele continua sendo Venusaur; a transformação não oferece uma ação extra ou uma cura por si só.",

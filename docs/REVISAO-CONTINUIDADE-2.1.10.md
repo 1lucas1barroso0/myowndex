@@ -10,6 +10,8 @@ O teste agora compara os identificadores publicados com todos os identificadores
 
 A primeira execução dessa conferência local também identificou um pressuposto do teste: metadados de compartilhamento apontam para a origem pública canônica mesmo em um artefato local. O teste exige essa origem canônica somente para a imagem compartilhada, mantém os ícones na origem testada e confere os bytes de todas as imagens no próprio artefato. Não aceita uma origem externa arbitrária nem busca a imagem da produção para aprovar a cópia local. A conferência completa agora roda logo após iniciar o servidor de QA.
 
+A execução seguinte chegou ao fim do fluxo e encontrou uma dependência desnecessária: a consulta de visitante sem login tentava inicializar o banco e retornava 503 no ambiente local sem banco. A resposta de visitante agora informa `account: null` e o limite de armazenamento sem acessar o banco. Cookies malformados são limpos. Uma credencial com formato válido continua exigindo banco e autenticação, e a indisponibilidade não a transforma em visitante nem apaga a sessão. A conferência exige 200 tanto localmente quanto em produção; nenhuma exceção de teste foi criada para aceitar 503.
+
 ## Casos que ensinam a acompanhar os acontecimentos
 
 Veneno e variação de dano mostram resultados alternativos, partindo do mesmo estado. Sono e Dynamax mostram acontecimentos em sequência. Essa diferença agora aparece antes dos valores, sem exigir abrir a ficha técnica. A busca inclui essas novas explicações e abre o caso correspondente.

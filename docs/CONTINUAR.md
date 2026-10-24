@@ -2,7 +2,7 @@
 
 **Versão atual: 2.1.10.**
 
-A 2.1.10 diferencia resultados alternativos de sequências nos casos conferidos de veneno, variação de dano, sono e Dynamax. Corrige a conferência de produção que ainda esperava 40 regras: compara todos os identificadores canônicos e executa o mesmo fluxo também antes da publicação. Consulte `REVISAO-CONTINUIDADE-2.1.10.md`.
+A 2.1.10 diferencia resultados alternativos de sequências nos casos conferidos de veneno, variação de dano, sono e Dynamax. Corrige a conferência de produção que ainda esperava 40 regras: compara todos os identificadores canônicos e executa o mesmo fluxo também antes da publicação. A consulta de visitante sem login responde sem banco; credenciais válidas continuam exigindo autenticação completa. Consulte `REVISAO-CONTINUIDADE-2.1.10.md`.
 
 A 2.1.9 revisa as 48 regras com passos de jogo e casos numéricos reproduzidos. Retira exemplos abstratos do Guia e centraliza cenas e contextos na regra canônica. Uma intervenção por item pode ser registrada no mesmo controle de oportunidade da captura, sem aplicar cura ou retirar itens automaticamente. Consulte `REVISAO-DEPLOYS-2.1.9.md`.
 

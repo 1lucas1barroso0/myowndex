@@ -34,6 +34,10 @@ Reviravoltas devem nascer das escolhas, do cenário, das capacidades dos Pokémo
 
 Não criar modos separados por idade nem retirar os detalhes já disponíveis com base neste documento. Organizar a explicação em uma leitura inicial clara e aprofundamento acessível, conservando as escolhas de RPG, Jogos e Livre existentes.
 
+Os exemplos devem parecer cenas de uma aventura Pokémon, com escolhas e consequências fáceis de imaginar. Usar espécies e formas legítimas, movimentos que aquele Pokémon pode aprender, habilidades que pode ter e interações compatíveis com tipos, condições, itens e evolução. Conferir o jogo de referência quando o aprendizado depender dele; um movimento de TM não vira aprendizado automático por nível. Não misturar a identidade da forma de Kanto com a de Alola.
+
+Não apresentar exemplos como exercícios de aritmética, tabelas de dano ou sequências de fórmulas. A primeira leitura explica o que o jogador tenta e o que acontece; as contas e exceções extensas ficam no detalhamento consultável. Um improviso narrativo deve respeitar corpo, alcance e capacidades do parceiro, usar a ação e os recursos devidos e ser combinado com o Narrador. Ele não deve parecer um efeito adicional oficial do movimento.
+
 ## Critério para aceitar uma mudança
 
 Antes de aprovar uma regra, dado ou fluxo, verificar:

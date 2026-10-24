@@ -24,6 +24,13 @@ function RuleBullet({ text }) {
     ) : readable;
 }
 
+function RuleDetails({ rule }) {
+    return <>
+        {rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
+        {rule.bullets && <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>}
+    </>;
+}
+
 const GuideRule = React.memo(function GuideRule({ rule, searching, protectionRef }) {
     return (
         <details ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
@@ -34,10 +41,14 @@ const GuideRule = React.memo(function GuideRule({ rule, searching, protectionRef
             <div className="guide-rule-body">
                 {rule.plain && <p className="guide-rule-lead">{formatRuleForReading(rule.plain)}</p>}
                 {rule.id !== "3.4" && rule.example && <p><strong>Por exemplo:</strong> {formatRuleForReading(rule.example)}</p>}
-                {rule.id !== "3.4" && rule.body && rule.body.split(/\n\n+/).map(paragraph => <p key={paragraph}>{formatRuleForReading(paragraph)}</p>)}
                 {rule.id === "3.4" ? (
                     <HitKillExplanation expanded={searching} />
-                ) : rule.bullets && <ul>{rule.bullets.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>}
+                ) : rule.collapsibleDetails ? (
+                    <details className="guide-rule-full-rule" open={searching}>
+                        <summary>Ver a regra completa</summary>
+                        <div className="guide-rule-details-content"><RuleDetails rule={rule} /></div>
+                    </details>
+                ) : <RuleDetails rule={rule} />}
             </div>
         </details>
     );
@@ -82,7 +93,7 @@ export default function TrainerGuide({ experienceMode }) {
                         <h3 id="guide-reference-title">Regras da aventura</h3>
                         <span className="guide-rule-count">{ruleCount} regras</span>
                     </header>
-                    <p className="guide-introduction">Prepare seus Pokémon para a aventura! Conte o que quer tentar e consulte uma regra quando surgir uma dúvida. O MyOwnDex ajuda com as contas.</p>
+                    <p className="guide-introduction">Imagine a cena com seus Pokémon e consulte uma regra quando surgir uma dúvida. Nos exemplos, os parceiros já conhecem os movimentos usados. O MyOwnDex cuida das contas.</p>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
                         <input type="search" value={query} onChange={event => setQuery(event.target.value)} />

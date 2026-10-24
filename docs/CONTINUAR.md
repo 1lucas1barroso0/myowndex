@@ -1,6 +1,8 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.4.**
+**Versão atual: 2.1.5.**
+
+A 2.1.5 troca exemplos de contas por cenas com Pokémon, movimentos e ações compatíveis, mantendo nomes originais e o jogo de referência quando necessário. Dezesseis regras com contas ou exceções mais extensas oferecem o texto completo sob demanda, depois da explicação e do exemplo. O Guia e os painéis de sobrevivência continuam usando a mesma fonte. Consulte `EXEMPLOS-LEGITIMOS-2.1.5.md`. Nenhuma função de cálculo, recompensa, dado de espécie ou ficha salva foi alterada.
 
 A 2.1.4 revisa a redação das 48 regras, com um resumo acolhedor e um exemplo concreto antes do detalhamento. Preserva IDs, ordem, mecânicas e valores da 2.1.3. A busca inclui resumos e exemplos. A explicação de sobrevivência vem da mesma regra no Guia e nos painéis; captura, XP, Amizade e avisos de batalha usam linguagem alinhada. Consulte `REGRAS-AMIGAVEIS-2.1.4.md` para escopo e verificação. Não reintroduzir jargão técnico ou tratar a adaptação como regra literal dos jogos oficiais.
 

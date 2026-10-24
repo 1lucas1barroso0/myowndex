@@ -370,10 +370,10 @@ export const RPG_RULE_SECTIONS = [
             },
             {
                 "id": "6.2",
-                "title": "Efeitos pequenos também contam",
-                "plain": "Veneno, clima e outros efeitos podem tirar pouco HP por vez. O MyOwnDex cuida dessas contas sem deixar números quebrados.",
+                "title": "Veneno, clima e outros efeitos",
+                "plain": "Veneno e clima podem tirar HP aos poucos. O MyOwnDex mostra o resultado de cada rodada e lembra os efeitos que continuam ativos.",
                 "body": "Resolva cada efeito no seu momento. Não transforme todo resultado pequeno em 1 HP: isso faria alguns efeitos ficarem fortes demais. Use a parte inteira e sorteie a chance de mais 1.\n\nCom 3 HP para dividir por 16, há 3 chances em 16 de perder 1 HP; nas outras vezes, perde 0. Com 19 dividido por 16, perde 1 HP e tem 3 chances em 16 de perder mais 1. Não fica nenhum pedaço de HP para pagar depois.\n\nO MyOwnDex sorteia ao aplicar cada efeito e guarda o resultado. Abrir a prévia ou consultar o mesmo resultado não faz outro sorteio. Cada efeito continua respeitando suas imunidades, seus custos e o momento de acontecer. Dano 0 não gasta proteção e não cura uma condição ativa.\n\nEm Dynamax e Gigantamax, efeitos proporcionais comuns usam o HP máximo de antes da transformação, salvo uma regra específica. Esse jeito de trabalhar com números inteiros é uma adaptação do RPG.",
-                "example": "No RPG, o veneno pode passar uma rodada sem tirar HP de Pikachu. Ele ainda está envenenado e precisa dos mesmos cuidados.",
+                "example": "Pikachu está envenenado. Em uma rodada, ele pode continuar com o mesmo HP, mas o veneno não desaparece.",
                 "collapsibleDetails": true
             },
             {

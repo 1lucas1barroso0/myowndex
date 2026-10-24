@@ -54,7 +54,7 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
                 ) : (rule.body || rule.bullets) && (
                     <details className="guide-rule-full-rule" open={detailMatchOnly}>
                         <summary>Ver detalhes da regra</summary>
-                        <div className="guide-rule-details-content"><RuleDetails rule={rule} /></div>
+                        <div className="guide-rule-details-content"><p className="guide-detail-intro">O MyOwnDex faz estas contas. Consulte os números e as exceções quando precisar.</p><RuleDetails rule={rule} /></div>
                     </details>
                 )}
             </div>
@@ -101,7 +101,8 @@ export default function TrainerGuide({ experienceMode }) {
                         <h3 id="guide-reference-title">Regras da aventura</h3>
                         <span className="guide-rule-count">{ruleCount} regras</span>
                     </header>
-                    <p className="guide-introduction">Encontre uma regra, veja o que acontece e siga a aventura. Quando precisar, abra os detalhes. O MyOwnDex cuida das contas.</p>
+                    <p className="guide-introduction">Veja o que acontece e siga a aventura. Os Pokémon mantêm suas características dos jogos; algumas regras foram adaptadas para este RPG. O MyOwnDex cuida das contas.</p>
+                    <p className="guide-basic-terms">HP é a energia do Pokémon. PP indica quantas vezes ele pode usar um movimento. XP é a experiência que ganha na aventura.</p>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
                         <input type="search" value={query} onChange={event => setQuery(event.target.value)} />

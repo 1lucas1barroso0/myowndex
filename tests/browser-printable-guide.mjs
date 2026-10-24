@@ -16,11 +16,13 @@ try {
   assert.deepEqual(ids,expectedIds);
   assert.equal(await page.locator(".book-procedure").count(),48);
   assert.equal(await page.locator(".book-canonical").count(),48);
+  assert.equal(await page.locator(".book-worked-example").count(),48);
   for (const rule of RPG_RULE_SECTIONS.flatMap(section=>section.rules)) {
     const card=page.locator(`#regra-${rule.id.replace(".","-")}`);
     assert.ok((await card.locator(".book-procedure li").count())>=2,`Paper procedure ${rule.id}`);
     const body=await card.locator(".book-procedure").innerText();
     assert.ok(body.includes(GUIDE_PAPER_STEPS[rule.id][0]),`Manual content ${rule.id}`);
+    assert.equal(await card.locator(".book-worked-example h5").count(),5,`All questions present for ${rule.id}`);
     if(rule.body)assert.ok((await card.locator(".book-canonical").innerText()).includes(rule.body.split(/\\n\\s*\\n/)[0]),`Full rule ${rule.id}`);
   }
   for(const width of [320,390,768,1280]) {

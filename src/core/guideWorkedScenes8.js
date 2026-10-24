@@ -37,11 +37,11 @@ export const GUIDE_WORKED_SCENES_8 = Object.freeze({
     "quando": "Sempre que alguém propõe um plano criativo ou um objetivo diferente de simplesmente derrotar um oponente.",
     "cena": "Eevee encontra Pikachu perdido numa trilha. Ajudá-lo a chegar em segurança pode completar um desafio importante sem nenhum ataque. A recompensa, se houver, reconhece o desafio inteiro.",
     "como": [
-      "O jogador explica o que Eevee faz para guiar Pikachu e que sinais usa na trilha.",
+      "O jogador explica como Eevee pretende guiar Pikachu, quais sinais consegue reconhecer na trilha e se há alguma ameaça que dificulte o resgate.",
       "Se não há risco real de se perder, o Narrador narra a volta sem exigir vários testes. Se a tempestade apagar a trilha, combine a incerteza e as consequências antes de rolar.",
       "Quando Pikachu chegar em segurança, registre o desfecho e uma recompensa apropriada se o Narrador julgar merecida, sem pagar XP novamente por cada pequena etapa da mesma ajuda."
     ],
-    "resultado": "O encontro muda a jornada por cuidado e exploração, não por um combate obrigatório.",
+    "resultado": "O encontro muda a jornada por cuidado e exploração; não é preciso vencer uma batalha para que a ajuda de Eevee importe.",
     "porQue": "A aventura Pokémon valoriza amizade e descoberta, enquanto criatividade continua submetida a custos e limites justos."
   },
   "8.5": {

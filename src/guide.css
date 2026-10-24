@@ -1,7 +1,7 @@
 /* The guide uses one reading hierarchy at every width. Shared battle help is below. */
 html .app-root.game-edition.handheld-edition .trainer-guide { container:trainer-guide / inline-size !important; min-width:0 !important; }
-html .app-root.game-edition.handheld-edition .guide-hero { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:1rem !important; width:min(100%,64rem) !important; margin:0 auto 1rem !important; padding:0 !important; border:0 !important; background:transparent !important; box-shadow:none !important; }
-html .app-root.game-edition.handheld-edition .guide-hero h2 { margin:0 !important; font-size:clamp(1.5rem,4vw,2.2rem) !important; line-height:1.25 !important; }
+html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:1rem !important; min-height:0 !important; width:min(100%,64rem) !important; margin:0 auto 1rem !important; padding:0 !important; border:0 !important; background:transparent !important; box-shadow:none !important; }
+html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero h2 { margin:0 !important; font-size:clamp(1.5rem,4vw,2.2rem) !important; line-height:1.25 !important; }
 html .app-root.game-edition.handheld-edition .guide-layout { display:grid !important; grid-template-columns:minmax(0,1fr) !important; grid-template-areas:"rules" "tools" !important; gap:1rem !important; width:min(100%,64rem) !important; margin:auto !important; align-items:start !important; }
 html .app-root.game-edition.handheld-edition .guide-reference { grid-area:rules !important; min-width:0 !important; padding:clamp(.85rem,3vw,1.75rem) !important; }
 html .app-root.game-edition.handheld-edition .guide-panel-heading { display:flex !important; align-items:baseline !important; justify-content:space-between !important; flex-wrap:wrap !important; gap:.5rem !important; margin:0 0 .65rem !important; }
@@ -14,7 +14,7 @@ html .app-root.game-edition.handheld-edition .guide-terms-inline strong { color:
 html .app-root.game-edition.handheld-edition .guide-search { display:grid !important; gap:.4rem !important; margin:.8rem 0 .65rem !important; font-size:.9rem !important; font-weight:700 !important; }
 html .app-root.game-edition.handheld-edition .guide-search input { width:100% !important; min-width:0 !important; min-height:46px !important; padding:.65rem .8rem !important; color:var(--ui-ink) !important; background:var(--ui-panel) !important; font:inherit !important; font-size:1rem !important; font-weight:400 !important; }
 html .app-root.game-edition.handheld-edition .guide-chapters { display:flex !important; flex-wrap:wrap !important; gap:.4rem !important; margin:0 0 1.1rem !important; }
-html .app-root.game-edition.handheld-edition .guide-chapters button { flex:0 1 auto !important; min-width:0 !important; min-height:44px !important; padding:.55rem .75rem !important; font-size:.85rem !important; line-height:1.3 !important; border:1px solid var(--ui-line) !important; color:var(--ui-ink) !important; background:var(--ui-panel) !important; box-shadow:none !important; }
+html .app-root.game-edition.handheld-edition .guide-chapters button { width:auto !important; flex:0 1 auto !important; min-width:0 !important; min-height:44px !important; padding:.55rem .75rem !important; font-size:.85rem !important; line-height:1.3 !important; border:1px solid var(--ui-line) !important; color:var(--ui-ink) !important; background:var(--ui-panel) !important; box-shadow:none !important; }
 html .app-root.game-edition.handheld-edition .guide-chapters button[aria-pressed="true"] { border-color:var(--journey-teal) !important; box-shadow:inset 0 -2px var(--journey-teal) !important; font-weight:800 !important; }
 html .app-root.game-edition.handheld-edition .guide-search-result { margin:0 0 .8rem !important; color:var(--ui-muted) !important; font-size:.9rem !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-list { display:grid !important; gap:1.5rem !important; }
@@ -123,3 +123,7 @@ html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical ul { disp
 html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical :is(p,li) { color: var(--ui-ink) !important; font-size: .95rem !important; font-weight: 400 !important; line-height: 1.75 !important; }
 html .app-root.game-edition.handheld-edition .guide-hit-kill-canonical li::marker { color: var(--journey-teal); }
 html .app-root.game-edition.handheld-edition .guide-rule-protection { scroll-margin-top: 1rem; }
+
+html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero::after { display:none !important; }
+html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero .pokemon-companion { width:76px !important; height:76px !important; min-width:76px !important; flex:0 0 76px !important; }
+html .app-root.game-edition.handheld-edition .trainer-guide .guide-hero .pokemon-companion > .pokemon-sized-sprite { width:100% !important; height:100% !important; }

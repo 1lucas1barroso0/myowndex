@@ -18,6 +18,13 @@ try {
     await search.waitFor();
     assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
     assert.deepEqual((await guide.locator('.guide-rule-card').evaluateAll(cards => cards.map(card => card.dataset.ruleId))).sort(), expectedRuleIds);
+    const subjects = await guide.locator('.guide-chapters button').evaluateAll(buttons => buttons.map(button => ({
+        width: button.getBoundingClientRect().width, height: button.getBoundingClientRect().height,
+        parent: button.parentElement.getBoundingClientRect().width,
+    })));
+    assert.ok(subjects.every(button => button.width < button.parent / 2 && button.height >= 44), 'subjects stay compact and touch accessible');
+    assert.ok(await guide.locator('.guide-hero').evaluate(element => element.getBoundingClientRect().height <= 100), 'the guide header leaves room for reading');
+
     assert.equal(await guide.locator('.guide-short-example').count(), expectedRuleIds.length, 'every rule has a concise Pokémon example');
     assert.equal(await guide.locator('.guide-worked-scene').count(), 0, 'full scenes mount only on demand');
     const smallEffects = guide.locator('[data-rule-id="6.2"]');

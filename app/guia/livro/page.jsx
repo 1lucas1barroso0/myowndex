@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RPG_RULE_SECTIONS } from "../../../src/core/rpgRules.js";
 import { GUIDE_PAPER_STEPS } from "../../../src/core/guidePaperSteps.js";
+import { GUIDE_WORKED_SCENES } from "../../../src/core/guideWorkedScenes.js";
 import { GUIDE_AUDIT_CASES } from "../../../src/data/guide-audit-cases.js";
 import PrintBookButton from "./PrintBookButton.jsx";
 import "./livro.css";
@@ -14,9 +15,18 @@ const count = RPG_RULE_SECTIONS.reduce((total, section) => total + section.rules
 
 function RuleBookEntry({ rule }) {
     const audit = rule.auditCase && GUIDE_AUDIT_CASES[rule.auditCase];
+    const worked = GUIDE_WORKED_SCENES[rule.id];
     return <article id={`regra-${rule.id.replace(".", "-")}`} className="book-rule">
         <h3><span>{rule.id}</span> {rule.title}</h3>
         {rule.plain && <p className="book-rule-lead">{rule.plain}</p>}
+        {worked && <section className="book-worked-example" aria-label="Exemplo completo">
+            <h4>Exemplo explicado do começo ao fim</h4>
+            <h5>Quando acontece?</h5><p>{worked.quando}</p>
+            <h5>Quem faz o quê?</h5><p>{worked.cena}</p>
+            <h5>Como resolver?</h5><ol>{worked.como.map(step => <li key={step}>{step}</li>)}</ol>
+            <h5>O que acontece depois?</h5><p>{worked.resultado}</p>
+            <h5>Por quê?</h5><p>{worked.porQue}</p>
+        </section>}
         <section className="book-procedure" aria-label={`Como aplicar a regra ${rule.id} sem aplicativo`}>
             <h4>Como resolver na mesa</h4>
             <ol>{GUIDE_PAPER_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
@@ -26,7 +36,7 @@ function RuleBookEntry({ rule }) {
             {rule.body?.split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
             {rule.bullets?.length > 0 && <ul>{rule.bullets.map(text => <li key={text}>{text}</li>)}</ul>}
         </section>
-        {rule.example && <p className="book-example"><strong>Exemplo com Pokémon:</strong> {rule.example}</p>}
+        {!worked && rule.example && <p className="book-example"><strong>Exemplo com Pokémon:</strong> {rule.example}</p>}
         {audit && <aside className="book-audit" aria-label="Resultado reproduzido da regra">
             <h4>Um caso conferido</h4>
             <p><strong>{audit.title}.</strong> {audit.reference}.</p>

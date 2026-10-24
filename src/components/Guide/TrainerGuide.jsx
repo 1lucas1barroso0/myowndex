@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
@@ -6,6 +5,7 @@ import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
 import GuideAuditCase from './GuideAuditCase.jsx';
 import { GUIDE_PLAYER_SCENES } from "../../core/guidePlayerScenes.js";
 import { GUIDE_PAPER_STEPS } from "../../core/guidePaperSteps.js";
+import { GUIDE_WORKED_SCENES } from "../../core/guideWorkedScenes.js";
 import { GUIDE_RULE_CONTEXTS } from "../../core/guideRuleContexts.js";
 import { createGuideSearchIndex, formatRuleForReading, getGuideAuditText, searchGuideSections } from "../../core/guideSearch.js";
 import { integerInRange } from "../../core/math.js";
@@ -37,6 +37,19 @@ function RuleCanonicalText({ rule }) {
     </section>;
 }
 
+function WorkedScene({ id }) {
+    const example = GUIDE_WORKED_SCENES[id];
+    if (!example) return null;
+    return <section className={id === "3.4" ? "guide-worked-scene" : "guide-worked-scene guide-rule-story"} aria-label="Exemplo completo explicado">
+        <h5>Um exemplo explicado, do começo ao fim</h5>
+        <div className="guide-worked-part"><h6>Quando esta regra entra em ação?</h6><p>{example.quando}</p></div>
+        <div className="guide-worked-part"><h6>Quem faz o quê?</h6><p>{example.cena}</p></div>
+        <div className="guide-worked-part"><h6>O que fazer, em ordem?</h6><ol>{example.como.map(step => <li key={step}>{step}</li>)}</ol></div>
+        <div className="guide-worked-part"><h6>O que acontece depois?</h6><p>{example.resultado}</p></div>
+        <div className="guide-worked-part"><h6>Por que essa regra funciona assim?</h6><p>{example.porQue}</p></div>
+    </section>;
+}
+
 function RuleDetails({ rule }) {
     return <>
         <ul>{rule.steps.map(item => <li key={item}><RuleBullet text={item} /></li>)}</ul>
@@ -48,13 +61,14 @@ const normalizeForGuide = text => String(text).normalize("NFD").replace(/[\u0300
 const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) {
     const searching = Boolean(query.trim());
     const searched = normalizeForGuide(query.trim());
-    const mainText = normalizeForGuide([rule.title, rule.plain, GUIDE_PLAYER_SCENES[rule.id]].join(" "));
+    const mainText = normalizeForGuide([rule.title, rule.plain, GUIDE_PLAYER_SCENES[rule.id], ...Object.values(GUIDE_WORKED_SCENES[rule.id]).flat()].join(" "));
     const contextText = normalizeForGuide(GUIDE_RULE_CONTEXTS[rule.id]);
     const detailsText = normalizeForGuide([rule.body || "", ...(rule.bullets || []), ...GUIDE_PAPER_STEPS[rule.id], ...rule.steps].join(" "));
     const auditText = normalizeForGuide(getGuideAuditText(rule.auditCase));
     const mainMatch = mainText.includes(searched);
     const contextMatchOnly = searching && !mainMatch && contextText.includes(searched);
-    const technicalMatchOnly = searching && !mainMatch && !contextMatchOnly && (detailsText.includes(searched) || auditText.includes(searched));
+    const auditedNumberMatch = searching && /\d/.test(searched) && auditText.includes(searched);
+    const technicalMatchOnly = auditedNumberMatch || (searching && !mainMatch && !contextMatchOnly && (detailsText.includes(searched) || auditText.includes(searched)));
     return (
         <details ref={rule.id === "3.4" ? protectionRef : undefined} className={`guide-rule-card${rule.id === "3.4" ? " guide-rule-protection" : ""}`} data-rule-id={rule.id} open={searching}>
             <summary>
@@ -63,7 +77,7 @@ const GuideRule = React.memo(function GuideRule({ rule, query, protectionRef }) 
             </summary>
             <div className="guide-rule-body">
                 {rule.plain && <p className="guide-rule-lead">{formatRuleForReading(rule.plain)}</p>}
-                {rule.id !== "3.4" && <p className="guide-rule-story"><strong>Exemplo de aventura:</strong> {GUIDE_PLAYER_SCENES[rule.id]}</p>}
+                <WorkedScene id={rule.id} />
                 <section className="guide-rule-paper-play" aria-label="Como resolver sem aplicativo">
                     <h5>Para jogar na mesa</h5>
                     <ol>{GUIDE_PAPER_STEPS[rule.id].map(step => <li key={step}>{step}</li>)}</ol>
@@ -120,15 +134,13 @@ export default function TrainerGuide({ experienceMode }) {
                         <h3 id="guide-reference-title">Regras da aventura</h3>
                         <span className="guide-rule-count">{ruleCount} regras</span>
                     </header>
-                    <p className="guide-introduction">As 48 regras explicam como jogar com fichas, dados e imaginação. Você também pode usar o MyOwnDex para fazer as contas e registrar a aventura. As adaptações do RPG são identificadas nas próprias regras.</p>
-                    <dl className="guide-quick-terms" aria-label="Palavras básicas do jogo">
-                        <div><dt>HP</dt><dd>Pontos de vida.</dd></div>
-                        <div><dt>PP</dt><dd>Usos restantes de cada movimento.</dd></div>
-                        <div><dt>XP</dt><dd>Experiência para crescer.</dd></div>
-                        <div><dt>Turno</dt><dd>A vez de um Pokémon.</dd></div>
-                        <div><dt>Rodada</dt><dd>Quando todos completam suas vezes.</dd></div>
-                    </dl>
-                    <Link className="guide-book-link room-secondary-button" href="/guia/livro">Ler o livro completo ou imprimir</Link>
+                    <p className="guide-introduction">Encontre quando cada regra vale, quem participa e o que acontece, com cenas de Pokémon explicadas passo a passo. Você pode jogar com fichas e dados; o MyOwnDex facilita os cálculos.</p>
+                    <div className="guide-terms-inline" aria-label="Termos básicos">
+                        <span><strong>HP</strong> pontos de vida</span>
+                        <span><strong>PP</strong> usos do movimento</span>
+                        <span><strong>XP</strong> experiência</span>
+                    </div>
+                    <p className="guide-turn-note"><strong>Turno</strong> é a vez de um Pokémon. <strong>Rodada</strong> termina depois que todos tiverem sua vez.</p>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
                         <input type="search" value={query} onChange={event => setQuery(event.target.value)} />

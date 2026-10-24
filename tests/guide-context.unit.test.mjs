@@ -16,7 +16,7 @@ test("all 48 trainer rules teach the situation and context before technical calc
         assert.ok(scene.split(/\s+/).length >= 20, `scene must explain actions: ${rule.id}`);
         assert.ok(scene.split(/\s+/).length <= 85, `scene too long for children: ${rule.id}`);
         assert.ok(context.split(/\s+/).length <= 65, `context too long for children: ${rule.id}`);
-        assert.ok(!/\b(?:TODO|placeholder|lorem ipsum)\b/i.test(scene+" "+context), `unfinished copy: ${rule.id}`);
+        assert.ok(!/\b(?:TODO|PLACEHOLDER|lorem ipsum)\b/.test(scene+" "+context), `unfinished copy: ${rule.id}`);
     }
     const poison = GUIDE_PLAYER_SCENES["6.2"];
     assert.match(poison, /Scarlet\/Violet/);

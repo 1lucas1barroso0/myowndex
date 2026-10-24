@@ -29,12 +29,17 @@ html .app-root.game-edition.handheld-edition .guide-rule-card > summary { displa
 html .app-root.game-edition.handheld-edition .guide-rule-id { flex: 0 0 2.25rem !important; margin: 0 !important; padding: 0 !important; color: var(--journey-teal) !important; font-size: .9rem !important; font-weight: 650 !important; font-variant-numeric: tabular-nums; }
 html .app-root.game-edition.handheld-edition .guide-rule-card > summary > strong { flex: 1 !important; min-width: 0 !important; font-size: inherit !important; font-weight: inherit !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-card[open] > summary { color: var(--journey-teal) !important; }
-html .app-root.game-edition.handheld-edition .guide-rule-body { min-width: 0 !important; max-width: 68ch !important; padding: .4rem .3rem 1.4rem !important; color: var(--ui-ink) !important; font-size: 1.025rem !important; line-height: 1.75 !important; font-weight: 400 !important; overflow-wrap: break-word !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-body { min-width: 0 !important; max-width: min(100%,80ch) !important; padding: .4rem .3rem 1.4rem !important; color: var(--ui-ink) !important; font-size: 1.025rem !important; line-height: 1.75 !important; font-weight: 400 !important; overflow-wrap: break-word !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body :is(p,li) { font-size: inherit !important; font-weight: inherit !important; line-height: inherit !important; color: inherit !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body p { margin: 0 0 1rem !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body ul { display: grid !important; gap: .85rem !important; margin: 0 !important; padding: 0 0 0 1.3rem !important; list-style: disc !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body li { padding-left: .25rem !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body li::marker { color: var(--journey-teal); }
+html .app-root.game-edition.handheld-edition .guide-rule-body .guide-rule-example { color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-body .guide-rule-play { margin: .7rem 0 0 !important; padding: .8rem 1rem !important; border-left: 3px solid var(--journey-teal) !important; border-radius: .35rem !important; background: color-mix(in srgb,var(--journey-teal) 7%,var(--ui-panel)) !important; line-height: 1.65 !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-play strong { font-weight: 750 !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-details-content { padding: .65rem .9rem .15rem !important; border-radius: .35rem !important; background: var(--ui-raised) !important; color: var(--ui-muted) !important; font-size: .94rem !important; line-height: 1.7 !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-details-content p:last-child { margin-bottom: .6rem !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body li > strong { color: var(--ui-ink) !important; font-weight: 750 !important; }
 html .app-root.game-edition.handheld-edition .guide-tools { grid-area: tools !important; display: grid !important; gap: 1.25rem !important; min-width: 0 !important; align-content: start !important; }
 html .app-root.game-edition.handheld-edition :is(.guide-calculator,.guide-mode-note) { padding: 0 clamp(1rem,3vw,1.5rem) !important; }

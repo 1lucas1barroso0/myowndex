@@ -20,6 +20,8 @@ try {
     await field.press(key);
     assert.equal(await field.evaluate(el=>document.activeElement===el),true,'Movement input retains focus on narrow screens');
   }
+  await field.press('Enter');
+  assert.equal(await field.evaluate(el=>document.activeElement===el),true,'Enter must not dismiss the movement keyboard');
   await field.fill('tackle');
   const card=editor.locator('.editor-move-field').first();
   await card.locator('.editor-move-description > summary').waitFor({timeout:30000});

@@ -2,6 +2,8 @@ import { revealInScrollArea } from "../../core/scroll.js";
 import React, { useId, useMemo, useRef, useState } from "react";
 import PokemonCompanion from "../Shared/PokemonCompanion.jsx";
 import HitKillExplanation from "../Shared/HitKillExplanation.jsx";
+import PaperCalculations from "./PaperCalculations.jsx";
+import { getGuideLevelProgress } from "../../core/guideMath.js";
 import GuideAuditCase from './GuideAuditCase.jsx';
 import { GUIDE_PLAYER_SCENES } from "../../core/guidePlayerScenes.js";
 import { GUIDE_PAPER_STEPS } from "../../core/guidePaperSteps.js";
@@ -12,8 +14,6 @@ import { integerInRange } from "../../core/math.js";
 import { formatNumberPtBr, RPG_HP_DIVISOR, RPG_SCALE_DIVISOR } from "../../core/mechanics.js";
 import {
     EXPERIENCE_MODES,
-    getDamageCeiling,
-    getNextLevelXp,
     getRpgScale,
     RPG_RULE_SECTIONS,
 } from "../../core/rpgRules.js";
@@ -103,7 +103,8 @@ export default function TrainerGuide({ experienceMode }) {
     const scaleLabelId = useId(), scaleResultId = useId(), levelLabelId = useId(), levelResultId = useId();
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
     const searching = Boolean(query.trim());
-    const normalizedLevel = getDamageCeiling(level);
+    const progress = getGuideLevelProgress(level, experienceMode);
+    const normalizedLevel = progress.level;
     const showProtection = () => {
         setQuery("");
         window.requestAnimationFrame(() => {
@@ -183,8 +184,8 @@ export default function TrainerGuide({ experienceMode }) {
                                 </label>
                                 <label className="guide-number-field">
                                     <span className="guide-field-label" id={levelLabelId}>Nível atual</span>
-                                    <input aria-labelledby={levelLabelId} aria-describedby={levelResultId} type="number" min="1" max="200" step="1" value={level} onChange={event => setLevel(event.target.value)} onBlur={() => { if (level !== "") setLevel(normalizedLevel); }} />
-                                    <span className="guide-field-value" id={levelResultId}>{level === "" ? "Informe o nível da ficha." : normalizedLevel >= 200 ? "Nível máximo" : <>XP até o próximo: <strong>{formatNumberPtBr(getNextLevelXp(level))}</strong></>}</span>
+                                    <input aria-labelledby={levelLabelId} aria-describedby={levelResultId} type="number" min="1" max={progress.cap} step="1" value={level} onChange={event => setLevel(event.target.value)} onBlur={() => { if (level !== "") setLevel(normalizedLevel); }} />
+                                    <span className="guide-field-value" id={levelResultId}>{level === "" ? "Informe o nível da ficha." : progress.requiredXp === null ? `Nível máximo · ${progress.cap}` : <>XP até o próximo: <strong>{formatNumberPtBr(progress.requiredXp)}</strong></>}</span>
                                 </label>
                             </div>
                             <details className="guide-rounding-help">
@@ -211,6 +212,7 @@ export default function TrainerGuide({ experienceMode }) {
                             <button type="button" className="guide-hit-kill-link room-secondary-button" onClick={showProtection}>Como aguentar um golpe decisivo</button>
                         </div>
                     </details>
+                    <details className="game-panel guide-mode-note"><summary>Contas para jogar na mesa</summary><PaperCalculations /></details>
                     <details className="game-panel guide-mode-note">
                         <summary>Regras em uso: {selectedMode.shortLabel}</summary>
                         <p>{selectedMode.description}</p>

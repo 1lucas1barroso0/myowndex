@@ -3,6 +3,7 @@ import test from "node:test";
 import { createGuideSearchIndex, getGuideAuditText, searchGuideSections } from "../src/core/guideSearch.js";
 import { RPG_RULE_SECTIONS } from "../src/core/rpgRules.js";
 import { GUIDE_PLAYER_SCENES } from "../src/core/guidePlayerScenes.js";
+import { GUIDE_PAPER_STEPS } from "../src/core/guidePaperSteps.js";
 import { GUIDE_RULE_CONTEXTS } from "../src/core/guideRuleContexts.js";
 
 test("indexed guide search preserves every rule, accents, section matches and displayed proportions", () => {
@@ -19,7 +20,7 @@ test("indexed guide search preserves every rule, accents, section matches and di
         return sections.map(section => ({ ...section,
             rules: normalize(`${section.number} ${section.title} ${section.summary}`).includes(needle) ? section.rules
                 : section.rules.filter(rule => {
-                    const text = [rule.id, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", GUIDE_RULE_CONTEXTS[rule.id] || "", ...rule.steps, getGuideAuditText(rule.auditCase)].join(" ");
+                    const text = [rule.id, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", GUIDE_RULE_CONTEXTS[rule.id] || "", ...GUIDE_PAPER_STEPS[rule.id], rule.body || "", ...(rule.bullets || []), ...rule.steps, getGuideAuditText(rule.auditCase)].join(" ");
                     const displayed = text.replace(/1 em 8/g, "12,5%").replace(/1 em 3/g, "≈ 33,3%");
                     return normalize(`${text} ${displayed}`).includes(needle);
                 }),

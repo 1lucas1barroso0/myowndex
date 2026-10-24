@@ -1,6 +1,6 @@
 # Estado atual do MyOwnDex
 
-**Versão atual: 2.1.10.**
+**Versão atual: 2.1.11.**\n\nA 2.1.11 deixa cada regra legível como instrução completa, com passos para jogar em papel antes dos detalhes opcionais da automação, e oferece um livro de leitura/impressão em `/guia/livro`. Busca, exemplos, fórmulas originais, casos auditados e PWA mantidos; nenhuma alteração no motor ou nos dados salvos. Consulte `GUIA-DE-MESA-2.1.11.md`.
 
 A 2.1.10 diferencia resultados alternativos de sequências nos casos conferidos de veneno, variação de dano, sono e Dynamax. Corrige a conferência de produção que ainda esperava 40 regras: compara todos os identificadores canônicos e executa o mesmo fluxo também antes da publicação. A consulta de visitante sem login responde sem banco; credenciais válidas continuam exigindo autenticação completa. Consulte `REVISAO-CONTINUIDADE-2.1.10.md`.
 

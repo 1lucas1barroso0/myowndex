@@ -1,0 +1,41 @@
+/* Livro de leitura e impressão independente do layout do aplicativo. */
+body:has(.book-reader) { background:#F8FAFC !important; }
+.book-reader { background:#fff; }
+
+.book-reader { --book-ink:#0F172A; --book-accent:#075985; --book-line:#CBD5E1; box-sizing:border-box; width:min(100% - 2rem,54rem); margin:0 auto; padding:1.25rem 0 5rem; color:var(--book-ink); font-family:Arial,Helvetica,sans-serif; line-height:1.65; font-size:1rem; overflow-wrap:break-word; }
+.book-reader *, .book-reader *::before, .book-reader *::after { box-sizing:border-box; }
+.book-reader h1,.book-reader h2,.book-reader h3,.book-reader h4 { color:var(--book-ink); line-height:1.3; margin:0 0 .65rem; font-weight:750; }
+.book-reader p { margin:0 0 .9rem; }
+.book-reader ul,.book-reader ol { padding-left:1.55rem; margin:.4rem 0 1.1rem; }
+.book-reader li { padding-left:.12rem; margin:.3rem 0; }
+.book-reader a { color:var(--book-accent); }
+.book-reader .book-toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem; margin-bottom:2rem; }
+.book-reader .book-print-button { min-height:44px; padding:.65rem 1rem; background:#075985; border:2px solid #075985; color:white; font:inherit; font-weight:700; border-radius:.65rem; cursor:pointer; }
+.book-reader .book-print-button:focus-visible,.book-reader a:focus-visible { outline:3px solid #EF4444; outline-offset:3px; }
+.book-reader .book-cover { padding:2rem 0 1.4rem; border-top:6px solid #EF4444; border-bottom:2px solid var(--book-line); }
+.book-reader .book-eyebrow { font-size:.83rem; text-transform:uppercase; letter-spacing:.07em; font-weight:700; }
+.book-reader .book-cover h1 { font-size:clamp(2rem,7vw,3.2rem); }
+.book-reader .book-subtitle { font-size:1.15rem; font-weight:700; }
+.book-reader .book-start, .book-reader .book-contents, .book-reader .book-chapter { margin-top:2rem; }
+.book-reader .book-start, .book-reader .book-contents { border-bottom:1px solid var(--book-line); padding-bottom:1.4rem; }
+.book-reader .book-start h2, .book-reader .book-contents h2 { font-size:1.5rem; }
+.book-reader .book-chapter-header { border-bottom:2px solid var(--book-accent); padding-bottom:.65rem; }
+.book-reader .book-chapter-header h2 { font-size:1.65rem; }
+.book-reader .book-rule { border-bottom:1px solid var(--book-line); padding:1.4rem 0 1.7rem; break-inside:auto; }
+.book-reader .book-rule h3 { font-size:1.27rem; }
+.book-reader .book-rule h3 span { color:var(--book-accent); }
+.book-reader .book-rule h4 { font-size:1rem; margin:.8rem 0 .35rem; }
+.book-reader .book-rule-lead { font-weight:650; }
+.book-reader .book-procedure { background:#F0FDFF; padding:.65rem 1rem; border-left:3px solid var(--book-accent); border-radius:.35rem; }
+.book-reader .book-procedure ol { margin-bottom:.45rem; }
+.book-reader .book-canonical { margin-top:1.2rem; }
+.book-reader .book-example { margin-top:1rem; border-top:1px dotted var(--book-line); padding-top:.7rem; }
+.book-reader .book-audit { padding:.85rem 1rem; margin-top:1rem; border:1px solid var(--book-line); border-radius:.4rem; }
+.book-reader .book-audit dl { margin:.4rem 0; }
+.book-reader .book-audit dl > div { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,.7fr); gap:.5rem; padding:.3rem 0; border-bottom:1px dotted var(--book-line); }
+.book-reader .book-audit dt,.book-reader .book-audit dd { margin:0; }
+.book-reader .book-audit dd { font-weight:700; }
+.book-reader .book-footnote { font-size:.85rem; }
+.book-reader .book-end { margin-top:2rem; font-size:.9rem; }
+@media (max-width:480px) { .book-reader { width:calc(100% - 1.4rem); } .book-reader .book-audit dl > div { grid-template-columns:minmax(0,1fr); gap:.1rem; } .book-reader .book-cover { padding-top:1rem; } }
+@media print { @page { size:A4; margin:15mm 17mm; } html,body { background:white !important; color:#000 !important; } .book-reader { width:100%; max-width:none; margin:0; padding:0; font-size:10.5pt; line-height:1.47; color:#000; } .book-reader .book-toolbar { display:none !important; } .book-reader .book-cover { break-after:page; border-top-color:#000; } .book-reader .book-chapter { break-before:page; } .book-reader .book-rule h3,.book-reader .book-rule h4,.book-reader .book-chapter-header { break-after:avoid; } .book-reader .book-procedure,.book-reader .book-audit { background:white !important; border-color:#777; } .book-reader .book-audit dl > div { break-inside:avoid; } .book-reader a { color:inherit; text-decoration:none; } .book-reader .book-contents { break-after:page; } .book-reader .book-contents li { margin:.15rem 0; } }

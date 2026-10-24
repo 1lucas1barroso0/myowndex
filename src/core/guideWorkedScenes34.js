@@ -9,7 +9,7 @@ export const GUIDE_WORKED_SCENES_3_4 = Object.freeze({
       "Execute a primeira ação, depois a seguinte, sem refazer a ordem no meio da rodada por uma mudança comum de Velocidade. Quando todos terminarem, aplique efeitos de fim de rodada e só depois anunciem os próximos movimentos."
     ],
     "resultado": "Pikachu tem a primeira vez por causa da prioridade; Bulbasaur só tenta Tackle quando sua vez chegar e se ainda puder agir.",
-    "porQue": "Prioridade define a vez, não aumenta a Velocidade nem concede um golpe extra."
+    "porQue": "Prioridade define quem age antes, não aumenta a Velocidade, não cria uma ação extra e não garante que o movimento acertará."
   },
   "3.2": {
     "quando": "Quando um movimento com precisão verificável é tentado. A precisão é uma etapa diferente da disputa de ataque e da efetividade dos tipos.",
@@ -53,7 +53,7 @@ export const GUIDE_WORKED_SCENES_3_4 = Object.freeze({
       "Para outro movimento cuja descrição prevê 2 a 5 impactos variáveis, use a distribuição da regra completa: resultados de 2 ou 3 são mais prováveis que 4 ou 5. Skill Link e Loaded Dice mudam o sorteio quando ativos."
     ],
     "resultado": "Double Kick pode acertar duas vezes sem gastar duas ações; se uma sequência exigir condução do Narrador, anote custo e efeitos uma única vez.",
-    "porQue": "Quantidade fixa e variável são características distintas da identidade de cada movimento."
+    "porQue": "Quantidade fixa e variável são características distintas da identidade de cada movimento, e precisam respeitar suas exceções e custos."
   },
   "3.6": {
     "quando": "Quando alguém quer mudar de faixa de distância ou atingir algo que pode estar fora do alcance. Isso também vale quando um Pokémon recebe uma ameaça de longe.",
@@ -118,7 +118,7 @@ export const GUIDE_WORKED_SCENES_3_4 = Object.freeze({
       "Se a utilização for válida, risque uma unidade e aplique somente o efeito legítimo da Potion, sem inventar cura adicional. Em combate, siga a intervenção da regra 4.1.",
       "Se o Treinador comprar outra Potion, registre a saída de Pokédólares e a entrada do item. Não devolva o item antigo ao encerrar a rodada ou descansar."
     ],
-    "resultado": "A bolsa mostra uma Potion a menos depois da cura e impede reutilizar a mesma unidade.",
+    "resultado": "A bolsa mostra uma Potion a menos depois da cura de Pikachu e impede reutilizar a mesma unidade em outra rodada sem reposição.",
     "porQue": "Itens e dinheiro representam recursos reais da jornada; registrar seu consumo evita repetições e ganhos sem origem."
   }
 });

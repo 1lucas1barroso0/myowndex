@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { RPG_RULE_SECTIONS } from "../../../src/core/rpgRules.js";
 import { GUIDE_PAPER_STEPS } from "../../../src/core/guidePaperSteps.js";
 import { GUIDE_AUDIT_CASES } from "../../../src/data/guide-audit-cases.js";
@@ -39,7 +40,7 @@ function RuleBookEntry({ rule }) {
 
 export default function LivroDeRegras() {
     return <main className="book-reader">
-        <div className="book-toolbar"><a href="/">Voltar ao MyOwnDex</a><PrintBookButton /></div>
+        <div className="book-toolbar"><Link href="/">Voltar ao MyOwnDex</Link><PrintBookButton /></div>
         <header className="book-cover">
             <p className="book-eyebrow">MyOwnDex · RPG de aventura Pokémon</p>
             <h1>Livro de regras</h1>

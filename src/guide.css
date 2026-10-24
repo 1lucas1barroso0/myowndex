@@ -1,9 +1,9 @@
 /* Rule reading follows the Fate Toolkit's fluid gutters, comfortable line length,
    and optional full explanations. Rule text and numbering stay intact. */
 html .app-root.game-edition.handheld-edition .trainer-guide { container: trainer-guide / inline-size; min-width: 0 !important; }
-html .app-root.game-edition.handheld-edition .guide-hero { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; margin: 0 0 1.5rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+html .app-root.game-edition.handheld-edition .guide-hero { width: min(100%, 72rem) !important; margin-inline: auto !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; margin: 0 0 1.5rem !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 html .app-root.game-edition.handheld-edition .guide-hero h2 { margin: 0 !important; font-size: clamp(1.8rem,4vw,2.5rem) !important; line-height: 1.25 !important; }
-html .app-root.game-edition.handheld-edition .guide-layout { display: grid !important; grid-template-columns: minmax(0,1fr) !important; grid-template-areas: "tools" "rules" !important; align-items: start !important; gap: clamp(1.25rem,3vw,2rem) !important; margin: 0 !important; }
+html .app-root.game-edition.handheld-edition .guide-layout { display: grid !important; grid-template-columns: minmax(0,1fr) !important; grid-template-areas: "tools" "rules" !important; align-items: start !important; gap: clamp(1.25rem,3vw,2rem) !important; width: min(100%, 72rem) !important; margin: 0 auto !important; }
 html .app-root.game-edition.handheld-edition .guide-reference { grid-area: rules !important; min-width: 0 !important; padding: clamp(1rem,3vw,2rem) !important; }
 html .app-root.game-edition.handheld-edition .guide-panel-heading { display: flex !important; flex-wrap: wrap !important; align-items: baseline !important; justify-content: space-between !important; gap: .65rem 1rem !important; margin-bottom: 1.5rem !important; }
 html .app-root.game-edition.handheld-edition .guide-panel-heading h3 { margin: 0 !important; font-size: 1.35rem !important; line-height: 1.35 !important; }
@@ -35,9 +35,9 @@ html .app-root.game-edition.handheld-edition .guide-rule-body p { margin: 0 0 1r
 html .app-root.game-edition.handheld-edition .guide-rule-body ul { display: grid !important; gap: .85rem !important; margin: 0 !important; padding: 0 0 0 1.3rem !important; list-style: disc !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body li { padding-left: .25rem !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body li::marker { color: var(--journey-teal); }
-html .app-root.game-edition.handheld-edition .guide-rule-body .guide-rule-example { color: var(--ui-ink) !important; }
-html .app-root.game-edition.handheld-edition .guide-rule-body .guide-rule-play { margin: .7rem 0 0 !important; padding: .8rem 1rem !important; border-left: 3px solid var(--journey-teal) !important; border-radius: .35rem !important; background: color-mix(in srgb,var(--journey-teal) 7%,var(--ui-panel)) !important; line-height: 1.65 !important; }
-html .app-root.game-edition.handheld-edition .guide-rule-play strong { font-weight: 750 !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-body .guide-rule-story { color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-body .guide-rule-story { margin-top: .8rem !important; max-width: 74ch !important; line-height: 1.75 !important; }
+html .app-root.game-edition.handheld-edition .guide-rule-body .guide-rule-lead { max-width: 74ch !important; padding: .35rem 0 !important; border: 0 !important; background: transparent !important; font-weight: 650 !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-details-content { padding: .65rem .9rem .15rem !important; border-radius: .35rem !important; background: var(--ui-raised) !important; color: var(--ui-muted) !important; font-size: .94rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-details-content p:last-child { margin-bottom: .6rem !important; }
 html .app-root.game-edition.handheld-edition .guide-rule-body li > strong { color: var(--ui-ink) !important; font-weight: 750 !important; }
@@ -103,7 +103,7 @@ html .app-root.game-edition.handheld-edition .guide-rule-protection { scroll-mar
 html .app-root.game-edition.handheld-edition .guide-mode-note p { max-width: 68ch !important; margin: 0 !important; padding: .4rem 0 1.25rem !important; color: var(--ui-muted) !important; font-size: .95rem !important; line-height: 1.7 !important; }
 html .app-root.game-edition.handheld-edition .guide-empty { padding: .5rem 0 1rem !important; color: var(--ui-muted) !important; font-size: 1rem !important; line-height: 1.7 !important; }
 @container trainer-guide (min-width: 60rem) {
-  html .app-root.game-edition.handheld-edition .guide-layout { grid-template-columns: minmax(0,1.7fr) minmax(18rem,1fr) !important; grid-template-areas: "rules tools" !important; }
+  html .app-root.game-edition.handheld-edition .guide-layout { grid-template-columns: minmax(0,1fr) !important; grid-template-areas: "tools" "rules" !important; }
 }
 
 /* Give long titles a full line in narrow guides without splitting words. */

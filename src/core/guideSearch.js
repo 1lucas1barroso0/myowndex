@@ -17,7 +17,7 @@ export const createGuideSearchIndex = sections => ({
         section,
         text: normalizeSearch(`${section.number} ${section.title} ${section.summary}`),
         rules: section.rules.map(rule => {
-            const text = [rule.id, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", GUIDE_RULE_CONTEXTS[rule.id] || "", ...rule.steps, getGuideAuditText(rule.auditCase)].join(" ");
+            const text = [rule.id, rule.title, rule.plain || "", GUIDE_PLAYER_SCENES[rule.id] || "", GUIDE_RULE_CONTEXTS[rule.id] || "", ...GUIDE_PAPER_STEPS[rule.id], rule.body || "", ...(rule.bullets || []), ...rule.steps, getGuideAuditText(rule.auditCase)].join(" ");
             return { rule, text: normalizeSearch(`${text} ${legacySearchAliases(text)}`) };
         }),
     })),

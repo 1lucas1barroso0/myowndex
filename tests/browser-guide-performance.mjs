@@ -32,6 +32,10 @@ try {
         await search.fill(value);
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     };
+    await searchFor('possibilidades para o veneno');
+    assert.equal(await guide.locator('[data-rule-id="6.2"] [data-audit-case="poison"]').evaluate(element=>element.open),true,'search opens the explanation of alternative outcomes');
+    assert.match(await guide.locator('[data-audit-case="poison"] .guide-audit-intro').innerText(),/não aplique os dois na mesma rodada/);
+    await searchFor('');
     for (const theme of ['Claro', 'Escuro']) {
         await page.getByRole('radio', { name: theme, exact: true }).click();
         for (const width of [320, 390, 768, 1280, 1440]) {

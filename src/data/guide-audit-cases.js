@@ -106,6 +106,7 @@ export const GUIDE_AUDIT_CASES = {
   "damage": {
     "title": "Thunder Shock de Pikachu em Eevee",
     "reference": "RPG; pequena variação de um ataque",
+    "intro": "Os resultados abaixo mostram possibilidades para o mesmo Thunder Shock. Cada uma começa com Eevee de HP cheio. Não são ataques seguidos.",
     "setup": "Pikachu e Eevee de teste no nível 20, Hardy, IVs 31, nenhum EV e sem itens. As três execuções abaixo começam com Eevee saudável; são alternativas, não três ataques aplicados seguidos. Pikachu vence a disputa sem crítico.",
     "rows": [
       [
@@ -133,6 +134,7 @@ export const GUIDE_AUDIT_CASES = {
   "sleep": {
     "title": "Eevee dorme quando chega sua vez de tentar Tackle",
     "reference": "RPG; sono sem Rest, Early Bird ou movimento que permita agir dormindo",
+    "intro": "Aqui acompanhamos uma sequência: Eevee tenta agir quando chega sua vez. Entre uma tentativa e outra, os demais Pokémon também têm suas vezes.",
     "setup": "Eevee de teste está dormindo. Cada linha representa outra vez de Eevee, depois de os demais participantes terem suas próprias vezes. Esta execução sorteou a duração maior de sono do RPG.",
     "rows": [
       [
@@ -155,6 +157,7 @@ export const GUIDE_AUDIT_CASES = {
   "poison": {
     "title": "Ekans usa Poison Sting em Pikachu",
     "reference": "RPG; movimentos de Scarlet/Violet",
+    "intro": "Depois do golpe, Pikachu está com 2 de 3 HP. A seguir, mostramos duas possibilidades para o veneno ao encerrar a rodada. São resultados alternativos; não aplique os dois na mesma rodada. Pikachu continua envenenado nos dois casos.",
     "setup": "Pikachu e Ekans de teste: nível 5, natureza Hardy, IVs 31 em todos os atributos e nenhum EV. Ekans conhece Poison Sting; Pikachu não segura item.",
     "rows": [
       [
@@ -170,16 +173,20 @@ export const GUIDE_AUDIT_CASES = {
         "Envenenado"
       ],
       [
-        "Encerrar rodada: sorteio sem perda de HP",
+        "Uma possibilidade ao encerrar a rodada: sem perda de HP",
         "2 de 3 HP"
       ],
       [
-        "A condição depois desse sorteio",
+        "A condição nessa possibilidade",
         "Envenenado"
       ],
       [
-        "Encerrar rodada: sorteio com perda de HP",
+        "Outra possibilidade ao encerrar a mesma rodada: com perda de HP",
         "1 de 3 HP"
+      ],
+      [
+        "A condição nessa outra possibilidade",
+        "Envenenado"
       ]
     ],
     "sources": [
@@ -222,6 +229,7 @@ export const GUIDE_AUDIT_CASES = {
   "max": {
     "title": "Pikachu usa Dynamax e volta sem receber outro efeito",
     "reference": "RPG; transformação de Sword/Shield permitida pelo Narrador",
+    "intro": "Acompanhe o mesmo Pikachu antes, durante e depois de Dynamax. Neste caso, ele não recebe dano nem cura enquanto está gigante. O HP temporário acaba quando volta ao normal.",
     "setup": "Pikachu de teste no nível 20, natureza Hardy, IVs 31, nenhum EV e nível Dynamax 10. Já perdeu HP antes de se transformar.",
     "rows": [
       [

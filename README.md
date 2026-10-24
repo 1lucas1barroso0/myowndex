@@ -42,7 +42,7 @@ O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da V
 
 O atualizador confere a integridade dos arquivos, valida o código e conduz a publicação. Uma falha identifica a etapa interrompida e preserva a pasta de trabalho. Credenciais ficam fora do repositório. Consulte [docs/AUTOMACAO.md](docs/AUTOMACAO.md) para o procedimento e a remoção da integração de hospedagem antiga.
 
-A versão atual é **2.1.9**, com as 48 regras revistas como procedimentos de jogo, definições concretas de vez e rodada e casos numéricos reproduzidos pelo núcleo do aplicativo. Cenas e contextos derivam de uma fonte comum; Guia, busca e ajuda de batalha acompanham a mesma explicação. A intervenção por item compartilha o limite da captura, sem simular cura automática. Cálculos, espécies e dados salvos são preservados. Veja [docs/REVISAO-DEPLOYS-2.1.9.md](docs/REVISAO-DEPLOYS-2.1.9.md).
+A versão atual é **2.1.10**. Os casos conferidos do Guia distinguem resultados alternativos de acontecimentos em sequência. A conferência da publicação compara os identificadores das regras com a fonte canônica e também roda antes de publicar, sem alterar contas ou aventuras. As 48 regras, espécies, fichas e cálculos do RPG foram preservados.
 
 
 A revisão 2.0.52 reduz serializações e manutenção repetida do cache público, indexa consultas numéricas de catálogo e a pesquisa do Guia e reutiliza os cartões de regras. Limites, ordem de uso, funcionamento offline e dados dos jogadores permanecem preservados. Veja [a medição e a validação](docs/DESEMPENHO-2.0.52.md).

@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {isPokemonSpriteSource2D} from '../src/core/pokemonSpriteSources.js';
 import fs from 'node:fs';
 import packageJson from '../package.json' with {type:'json'};
+import {RPG_RULE_SECTIONS} from '../src/core/rpgRules.js';
+const expectedRuleIds=RPG_RULE_SECTIONS.flatMap(section=>section.rules.map(rule=>String(rule.id))).sort();
 const {chromium}=await import(process.env.MYOWNDEX_PLAYWRIGHT_MODULE || 'playwright');
 const baseUrl=process.env.MYOWNDEX_SMOKE_URL || 'https://myowndex.vercel.app';
 const expectedVersion=packageJson.version;
@@ -115,7 +117,7 @@ try{
  await auditReversibleForm();
  await auditCosmeticForm();
  await page.locator('#pokemon-search').fill('');
- await page.getByRole('button',{name:'Abrir o Guia do Treinador',exact:true}).click();await page.locator('.guide-rule-card').first().waitFor();assert.equal(await page.locator('.guide-rule-card').count(),40);report.push({label:'All forty rules are present',rules:40});
+ await page.getByRole('button',{name:'Abrir o Guia do Treinador',exact:true}).click();await page.locator('.guide-rule-card').first().waitFor();const actualRuleIds=(await page.locator('.guide-rule-card').evaluateAll(cards=>cards.map(card=>card.dataset.ruleId))).sort();assert.deepEqual(actualRuleIds,expectedRuleIds,'Every published rule matches the canonical guide');report.push({label:'All canonical rules are present',rules:actualRuleIds.length,ruleIds:actualRuleIds});
  await page.getByRole('button',{name:'Abrir Dados',exact:true}).click();const dice=page.getByRole('dialog',{name:'Dados',exact:true});await dice.getByRole('button',{name:'Rolar 2d6',exact:true}).click();await dice.locator('.local-dice-result').waitFor();await check('Guest local roll');await page.getByRole('button',{name:'Fechar dados',exact:true}).click();
  await page.getByRole('button',{name:'Gerar Pokémon',exact:true}).first().click();await page.locator('.generator-options').waitFor();await check('Generator');await page.getByRole('button',{name:'Fechar gerador',exact:true}).click();
  await page.getByRole('button',{name:'Entrar ou criar conta',exact:true}).click();const account=page.locator('.account-dialog');

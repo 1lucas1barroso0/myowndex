@@ -21,7 +21,7 @@ try {
     assert.equal(await guide.locator('.guide-rule-story').count(), expectedRuleIds.length - 1, 'every ordinary rule has a practical instruction; 3.4 has its illustrated component');
     const smallEffects = guide.locator('[data-rule-id="6.2"]');
     await smallEffects.locator(':scope > summary').click();
-    await smallEffects.locator('.guide-rule-story').getByText('Pikachu está envenenado', { exact: false }).waitFor();
+    assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Pikachu está envenenado/);
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
     assert.equal(await smallEffects.getByText('Com 3 HP para dividir por 16', { exact: false }).isVisible(), false, 'advanced arithmetic stays optional');
     await smallEffects.locator(':scope > summary').click();
@@ -60,8 +60,8 @@ try {
     await rule.locator(':scope > summary').click();
     assert.equal(await rule.evaluate(element => element.open), true);
     const fullRule = rule.locator('.guide-rule-full-rule');
-    assert.equal(await fullRule.evaluate(element => element.open), false, 'the example comes before the optional detailed rule');
-    await rule.getByText('Por exemplo:', { exact: true }).waitFor();
+    assert.equal(await fullRule.evaluate(element => element.open), false, 'the readable scene comes before optional details');
+    assert.match(await rule.locator('.guide-rule-story').innerText(), /Pikachu quer alcançar um Pidgey/);
     await fullRule.locator(':scope > summary').press('Enter');
     assert.equal(await fullRule.evaluate(element => element.open), true, 'the full rule remains available from the keyboard');
     await guide.locator('.guide-calculator > summary').click();

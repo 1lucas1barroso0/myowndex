@@ -18,12 +18,12 @@ try {
     await search.waitFor();
     assert.equal(await guide.locator('.guide-rule-card').count(), expectedRuleIds.length);
     assert.deepEqual((await guide.locator('.guide-rule-card').evaluateAll(cards => cards.map(card => card.dataset.ruleId))).sort(), expectedRuleIds);
-    assert.equal(await guide.locator('.guide-rule-story').count(), expectedRuleIds.length - 1, 'every ordinary rule has a practical instruction; 3.4 has its illustrated component');
+    assert.equal(await guide.locator('.guide-rule-story').count(), expectedRuleIds.length - 1, 'every ordinary rule has an actual Pokémon scene; 3.4 has its own illustrated explanation');
     const smallEffects = guide.locator('[data-rule-id="6.2"]');
     await smallEffects.locator(':scope > summary').click();
     assert.match(await smallEffects.locator('.guide-rule-story').innerText(), /Pikachu está envenenado/);
     assert.equal(await smallEffects.locator('.guide-rule-full-rule').evaluate(element => element.open), false, 'a reader sees the answer before formulas');
-    assert.equal(await smallEffects.getByText('Com 3 HP para dividir por 16', { exact: false }).isVisible(), false, 'advanced arithmetic stays optional');
+    assert.equal(await smallEffects.getByText('Imagine um efeito de 3 partes em 16 de HP', { exact: false }).isVisible(), false, 'advanced arithmetic stays optional');
     await smallEffects.locator(':scope > summary').click();
     const searchFor = async value => {
         await search.fill(value);
@@ -44,7 +44,7 @@ try {
             assert.ok(await guide.locator('.guide-rule-card').count() > 0);
             await searchFor('veneno');
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), false, 'common search terms do not reveal equations');
-            await searchFor('Com 3 HP para dividir por 16');
+            await searchFor('Imagine um efeito de 3 partes em 16 de HP');
             assert.equal(await guide.locator('[data-rule-id="6.2"] .guide-rule-full-rule').evaluate(element => element.open), true, 'search reveals a match found only in the advanced rule');
             await searchFor('__nada_encontrado__');
             await guide.getByText('Nenhuma regra encontrada. Tente outro termo.', { exact: true }).waitFor();

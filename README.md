@@ -32,10 +32,10 @@ Para aventuras compartilhadas, copie `.env.example` para `.env.local` e configur
 
 ## Atualizar pelo Linux
 
-Baixe `myowndex-v2.2-linux.sh`, abra o terminal na pasta do download e execute:
+Baixe `myowndex-v2.3-linux.sh`, abra o terminal na pasta do download e execute:
 
 ```bash
-bash myowndex-v2.2-linux.sh
+bash myowndex-v2.3-linux.sh
 ```
 
 O arquivo inclui o projeto completo. Reaproveita os seus logins do GitHub e da Vercel e os bancos já configurados. Você não precisa criar outra conta Turso, copiar tokens, extrair um arquivo ZIP ou migrar salas.

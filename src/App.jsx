@@ -570,7 +570,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const filteredEntryCount = useMemo(() => new Set(filteredSpecies.map(dexEntryNumber)).size, [filteredSpecies]);
     const filteredVariantCount = useMemo(() => filteredSpecies.filter(entry => entry.isPrimarySpecies === false).length, [filteredSpecies]);
 
-    const { gridRef, moreRef, loadMore } = useDexWindow({ active: view === "pokedex", total: filteredSpecies.length, limit, setLimit });
+    const { gridRef, moreRef, loadMore } = useDexWindow({ active: teamsBooted && modeBooted && view === "pokedex", total: filteredSpecies.length, limit, setLimit });
 
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 

@@ -1,6 +1,10 @@
-# Estado atual — MyOwnDex 2.2.1
+# Estado atual — MyOwnDex 2.3.0
 
-**Versão atual: 2.2.1.**
+**Versão atual: 2.3.0.**
+
+Branch em revisão; produção aguarda aprovação. Grade progressiva medida pela tela, descoberta opcional, registros em português e orientações contextuais. Consulte `REVISAO-2.3.0.md`.
+
+## Revisão anterior — 2.2.1
 
 A revisão 2.2.1 preserva os nomes oficiais, compartilha ajuda de condições, explica Poison e Badly Poisoned, simplifica a primeira leitura das 50 regras e corrige interações de condições com habilidades e Berries. O Noctowl fica mais legível no cabeçalho compacto.
 

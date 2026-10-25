@@ -944,8 +944,8 @@ html .pokemon-companion > .pokemon-sized-sprite{
   transform:none !important;
 }
 html .app-root.game-edition.handheld-edition :is(.adventure-intro,.guide-hero,.dex-heading) .pokemon-companion{
-  width:clamp(7rem,15vw,9.5rem) !important;
-  height:clamp(7rem,15vw,9.5rem) !important;
+  width:96px !important;
+  height:96px !important;
 }
 html .app-root.game-edition.handheld-edition .pc-sidebar-heading .pokemon-companion{
   width:clamp(6.5rem,13vw,8.5rem) !important;

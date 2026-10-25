@@ -196,10 +196,10 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
                 onClick={() => onLocal({ title, narratorName })}
             >
                 <GameIcon name="adventure" /><span>
-                    <strong>Começar uma aventura local</strong>
+                    <strong>Começar uma aventura local</strong><small>Jogue neste dispositivo, sem convite.</small>
                 </span>
             </button>
-                <h3>Com seu grupo</h3>
+                <h3>Com seu grupo</h3><p>O Narrador descreve o mundo. Cada Jogador decide o que seu Treinador e seus Pokémon fazem.</p>
                 <div className="room-entry-choices" role="group" aria-label="Escolha seu papel na aventura">
                     <button type="button" aria-label="Criar uma aventura em grupo" aria-pressed={entry === "narrator"} aria-expanded={entry === "narrator"} aria-controls={`${entryId}-narrator`} disabled={busy} onClick={() => setEntry(entry === "narrator" ? null : "narrator")}><GameIcon name="adventure" /><span><strong>Narrador</strong><small>Criar aventura</small></span></button>
                     <button type="button" aria-label="Entrar via convite" aria-pressed={entry === "player"} aria-expanded={entry === "player"} aria-controls={`${entryId}-player`} disabled={busy} onClick={() => setEntry(entry === "player" ? null : "player")}><GameIcon name="dex" /><span><strong>Jogador</strong><small>Entrar via convite</small></span></button>

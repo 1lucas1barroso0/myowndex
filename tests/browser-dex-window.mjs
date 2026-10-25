@@ -45,6 +45,8 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         await page.waitForFunction(columns => document.querySelector('.dex-count')?.textContent.startsWith('60 ') && document.querySelectorAll('.dex-entry').length % columns === 0, resetColumns);
         await search.fill('61-120');
         await page.waitForFunction(columns => document.querySelectorAll('.dex-entry').length % columns === 0 && document.querySelector('.dex-number')?.textContent.includes('0061'), resetColumns);
+        await search.fill('121-180');
+        await page.waitForFunction(columns => document.querySelectorAll('.dex-entry').length % columns === 0 && document.querySelector('.dex-number')?.textContent.includes('0121'), resetColumns);
         await page.setViewportSize({ width: 1280, height: 900 });
         await search.fill('1-19');
         await page.waitForFunction(() => document.querySelector('.dex-count')?.textContent.startsWith('19 '));
@@ -64,9 +66,16 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         await page.getByRole('button', { name: 'Fechar registro da Pokédex', exact: true }).click();
         assert.equal(await search.inputValue(), '1-19', 'Exploration keeps the search');
         await search.fill('');
-        await page.locator('.dex-load-more').waitFor();
+        await page.waitForFunction(() => {
+            const grid = document.querySelector('.dex-grid'), card = grid?.firstElementChild;
+            if (!card || !document.querySelector('.dex-count')?.textContent.startsWith('1025 ')) return false;
+            const style = getComputedStyle(grid), columns = style.gridTemplateColumns.split(/\s+/).length;
+            const row = card.getBoundingClientRect().height + (parseFloat(style.rowGap) || 0);
+            return grid.children.length >= columns * (Math.ceil(document.querySelector('#main-content').clientHeight / row) + 1) && grid.children.length % columns === 0;
+        });
         const before = await page.locator('.dex-entry').count();
-        await page.locator('.dex-load-more').scrollIntoViewIfNeeded();
+        assert.ok(before < 1025, 'The cleared search keeps progressive loading');
+        await page.locator('#main-content').press('End');
         await page.waitForFunction(before => document.querySelectorAll('.dex-entry').length > before, before);
         await page.getByRole('button', { name: 'Abrir o Guia do Treinador', exact: true }).click();
         await page.getByRole('searchbox', { name: 'Pesquisar regras', exact: true }).fill('Poison');

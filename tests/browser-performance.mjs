@@ -39,7 +39,14 @@ try {
     });
     assert.equal(await search.inputValue(), "pikachu");
     await search.fill("");
-    await page.waitForFunction(() => document.querySelectorAll(".dex-entry").length >= 12 && document.querySelectorAll(".dex-entry").length < 100);
+    await page.waitForFunction(() => {
+        const grid = document.querySelector('.dex-grid'), card = grid?.firstElementChild;
+        if (!card || !document.querySelector('.dex-count')?.textContent.startsWith('1025 ')) return false;
+        const style = getComputedStyle(grid), columns = style.gridTemplateColumns.split(/\s+/).length;
+        const row = card.getBoundingClientRect().height + (parseFloat(style.rowGap) || 0);
+        const required = columns * (Math.ceil(document.querySelector('#main-content').clientHeight / row) + 1);
+        return grid.children.length >= required && grid.children.length % columns === 0 && grid.children.length < 100;
+    });
     for (const [width, height] of [[320,653],[390,844],[768,844],[1440,900],[844,390]]) {
         await page.setViewportSize({width, height});
         if (width <= 700) await page.locator(".app-curtain-grip").press("End");

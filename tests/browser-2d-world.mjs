@@ -247,6 +247,9 @@ try {
     const openingStart = performance.now();
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: 'Consultar Bulbasaur na Pokédex', exact: true }).waitFor();
+    // Keep the same sixty real partners in this stress audit, independent of the responsive initial window.
+    while (await page.locator('.dex-entry').count() < 60) await page.getByRole('button', { name: 'Mostrar mais Pokémon', exact: true }).click();
+    await page.locator('#main-content').evaluate(element => { element.scrollTop = 0; });
     await settleSprites();
     const openingMs = Math.round(performance.now() - openingStart), initial = await visibleSpriteState();
     assert.ok(initial.mounted >= 60, 'The performance audit mounts a real full catalogue page');

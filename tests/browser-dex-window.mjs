@@ -30,15 +30,27 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         }
         // A different search can have the same result count and row height.
         // Resetting its window must still complete the last loaded row.
-        await page.setViewportSize({ width: 1280, height: 390 });
+        let resetColumns;
+        for (const width of [1100, 1000, 900, 1400, 1600]) {
+            await page.setViewportSize({ width, height: 390 });
+            resetColumns = await page.locator('.dex-grid').evaluate(grid => getComputedStyle(grid).gridTemplateColumns.split(/\s+/).length);
+            if (12 % resetColumns) break;
+        }
+        assert.ok(12 % resetColumns, 'Exercise a width where the initial window needs a completed row');
         const search = page.locator('#pokemon-search');
-        await search.fill('1-13');
-        await page.waitForFunction(() => document.querySelectorAll('.dex-entry').length === 13);
-        await search.fill('14-26');
-        await page.waitForFunction(() => document.querySelectorAll('.dex-entry').length === 13 && document.querySelector('.dex-number')?.textContent.includes('0014'));
+        await search.fill('1-60');
+        await page.waitForFunction(columns => document.querySelector('.dex-count')?.textContent.startsWith('60 ') && document.querySelectorAll('.dex-entry').length % columns === 0, resetColumns);
+        await search.fill('61-120');
+        await page.waitForFunction(columns => document.querySelectorAll('.dex-entry').length % columns === 0 && document.querySelector('.dex-number')?.textContent.includes('0061'), resetColumns);
         await page.setViewportSize({ width: 1280, height: 900 });
         await search.fill('1-19');
-        await page.waitForFunction(() => document.querySelectorAll('.dex-entry').length === 19);
+        await page.waitForFunction(() => document.querySelector('.dex-count')?.textContent.startsWith('19 '));
+        while (await page.locator('.dex-entry').count() < 19) {
+            const loaded = await page.locator('.dex-entry').count();
+            await page.locator('#main-content').press('End');
+            await page.waitForFunction(loaded => document.querySelectorAll('.dex-entry').length > loaded, loaded);
+        }
+        assert.equal(await page.locator('.dex-entry').count(), 19);
         assert.equal(await page.getByRole('button', { name: 'Mostrar mais Pokémon', exact: true }).count(), 0);
         await page.locator('.dex-discovery > summary').click();
         await page.getByRole('button', { name: 'Conhecer Bulbasaur', exact: true }).click();
@@ -70,5 +82,8 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         assert.equal(await page.locator('.pc-partner-card').count(), 1, 'Optional account does not interrupt the prepared team');
         assert.deepEqual(errors, []);
         console.log(`${name}: responsive rows, progressive scrolling, completed filter, bilingual record, preserved search and 50 rules verified.`);
+    } catch (error) {
+        console.error(name, await page.url(), await page.evaluate(() => ({ cards: document.querySelectorAll('.dex-entry').length, columns: document.querySelector('.dex-grid') && getComputedStyle(document.querySelector('.dex-grid')).gridTemplateColumns, search: document.querySelector('#pokemon-search')?.value, first: document.querySelector('.dex-number')?.textContent })));
+        throw error;
     } finally { await context.close(); await browser.close(); }
 }

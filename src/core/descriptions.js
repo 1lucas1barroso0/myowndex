@@ -255,7 +255,7 @@ export const describeSpecies = (species, pokemon) => {
     const habitat = asSlug(species?.habitat?.name);
     if (habitat) facts.push(`Habitat associado: ${HABITAT_COPY[habitat] || formatName(habitat).toLowerCase()}.`);
     const growth = asSlug(species?.growth_rate?.name);
-    if (growth) facts.push(`Ritmo de crescimento: ${GROWTH_COPY[growth] || formatName(growth).toLowerCase()}.`);
+    if (growth) facts.push(`Ritmo de crescimento: ${GROWTH_COPY[growth] || formatName(growth).toLowerCase()}; indica a experiência necessária para subir de nível, não o tamanho do Pokémon.`);
     const captureRate = finiteNumberOrNull(species?.capture_rate);
     if (captureRate != null) {
         facts.push(`Taxa de captura dos jogos: ${captureRate} em 255; números maiores representam capturas mais fáceis, antes dos bônus da Poké Ball e da condição do alvo.`);

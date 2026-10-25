@@ -34,7 +34,7 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         assert.equal(await page.getByRole('button', { name: 'Mostrar mais Pokémon', exact: true }).count(), 0);
         await page.locator('.dex-discovery > summary').click();
         await page.getByRole('button', { name: 'Conhecer Bulbasaur', exact: true }).click();
-        await page.locator('.species-description > p').waitFor();
+        await page.locator('.species-description > p[lang="pt-BR"]').waitFor();
         assert.equal(await page.locator('.species-description > p').getAttribute('lang'), 'pt-BR');
         await page.getByRole('button', { name: 'Ver registro original em inglês', exact: true }).click();
         assert.equal(await page.locator('.species-description > p').getAttribute('lang'), 'en');
@@ -48,6 +48,7 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         await page.getByRole('button', { name: 'Abrir o Guia do Treinador', exact: true }).click();
         await page.getByRole('searchbox', { name: 'Pesquisar regras', exact: true }).fill('Poison');
         await page.getByRole('button', { name: 'Ver todas as regras', exact: true }).click();
+        await page.waitForFunction(() => document.querySelectorAll('.guide-rule-card').length === 50);
         assert.equal(await page.locator('.guide-rule-card').count(), 50);
         assert.deepEqual(errors, []);
         console.log(`${name}: responsive rows, progressive scrolling, completed filter, bilingual record, preserved search and 50 rules verified.`);

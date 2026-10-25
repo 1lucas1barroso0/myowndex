@@ -755,8 +755,8 @@ html .app-root.game-edition.handheld-edition .guide-hero::after{
 }
 html .app-root.game-edition.handheld-edition .dex-heading{
   display:grid !important;
-  grid-template-columns:minmax(0,1fr) auto;
-  grid-template-areas:"title partner" "count partner";
+  grid-template-columns:minmax(0,1fr) auto 96px;
+  grid-template-areas:"title count partner";
   align-items:center !important;
   gap:.35rem 1rem !important;
   margin-bottom:1rem !important;
@@ -768,6 +768,12 @@ html .app-root.game-edition.handheld-edition .dex-heading::after{
   inset:auto 1rem .55rem 1rem !important;
   height:3px !important;
   background:linear-gradient(90deg,var(--joy-red) 0 22%,var(--joy-gold) 22% 45%,var(--joy-teal) 45% 68%,var(--joy-blue) 68% 90%,transparent 90%) !important;
+}
+@media (max-width:640px){
+  html .app-root.game-edition.handheld-edition .dex-heading{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"title partner" "count partner";
+  }
 }
 html .app-root.game-edition.handheld-edition .dex-title{ grid-area:title; }
 html .app-root.game-edition.handheld-edition .dex-count{ grid-area:count; justify-self:start; }

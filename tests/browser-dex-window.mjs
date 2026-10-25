@@ -28,7 +28,15 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
             const identities = await page.locator('.dex-entry-main').evaluateAll(cards => cards.map(card => card.getAttribute('aria-label')));
             assert.equal(new Set(identities).size, identities.length, 'No duplicate or invented cards');
         }
+        // A different search can have the same result count and row height.
+        // Resetting its window must still complete the last loaded row.
+        await page.setViewportSize({ width: 1280, height: 390 });
         const search = page.locator('#pokemon-search');
+        await search.fill('1-13');
+        await page.waitForFunction(() => document.querySelectorAll('.dex-entry').length === 13);
+        await search.fill('14-26');
+        await page.waitForFunction(() => document.querySelectorAll('.dex-entry').length === 13 && document.querySelector('.dex-number')?.textContent.includes('0014'));
+        await page.setViewportSize({ width: 1280, height: 900 });
         await search.fill('1-19');
         await page.waitForFunction(() => document.querySelectorAll('.dex-entry').length === 19);
         assert.equal(await page.getByRole('button', { name: 'Mostrar mais Pokémon', exact: true }).count(), 0);

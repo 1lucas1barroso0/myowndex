@@ -30,7 +30,7 @@ export default function useDexWindow({ active, total, limit, setLimit }) {
         window.visualViewport?.addEventListener("resize", measure);
         measure();
         return () => { cancelAnimationFrame(frame); resize.disconnect(); window.visualViewport?.removeEventListener("resize", measure); };
-    }, [active, total, setLimit]);
+    }, [active, total, limit, setLimit]);
     useEffect(() => {
         if (!active || !moreRef.current || limit >= total) return;
         const button = moreRef.current;

@@ -411,7 +411,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                         </div>
                         
                         <section className="record-stats" aria-labelledby={`${recordId}-stats-title`}>
-                            <h3 id={`${recordId}-stats-title`}>{isTTRPG ? "Atributos do RPG" : "Atributos base"}<span aria-hidden="true">▰ ▰ ▰</span></h3>
+                            <h3 id={`${recordId}-stats-title`}>{isTTRPG ? "Atributos base no RPG" : "Atributos base"}<span aria-hidden="true">▰ ▰ ▰</span></h3>
                             {formData.stats?.map(s => {
                                 if (!s.stat?.name) return null;
                                 const val = isTTRPG ? convertToTTRPG(s.base_stat, s.stat.name === "hp") : (s.base_stat || 0);
@@ -429,7 +429,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                 );
                             })}
                             <div className="record-stat-total">
-                                <span>{isTTRPG ? "Total no RPG" : "Total de atributos base"}</span>
+                                <span>{isTTRPG ? "Total base no RPG" : "Total de atributos base"}</span>
                                 <strong>{bst}</strong>
                             </div>
                             <StatHelp className="record-reference-help" />

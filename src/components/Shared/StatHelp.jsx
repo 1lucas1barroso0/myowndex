@@ -4,6 +4,7 @@ import React from "react";
 export default function StatHelp({ className }) {
     return <details className={className}>
         <summary>Entender os atributos</summary>
+        <p>A Pokédex mostra os atributos base, para comparar espécies. A ficha calcula os valores do seu parceiro com seu nível, suas características naturais e seu treinamento.</p>
         <ul>
             <li><strong>HP:</strong> energia do Pokémon. Com zero HP, ele fica fora de combate.</li>
             <li><strong>Ataque e Defesa:</strong> força e proteção em movimentos físicos, como Tackle.</li>

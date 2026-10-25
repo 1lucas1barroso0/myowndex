@@ -50,6 +50,15 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         await page.getByRole('button', { name: 'Ver todas as regras', exact: true }).click();
         await page.waitForFunction(() => document.querySelectorAll('.guide-rule-card').length === 50);
         assert.equal(await page.locator('.guide-rule-card').count(), 50);
+        await page.getByRole('button', { name: 'Abrir o PC do Bill', exact: true }).click();
+        await page.getByRole('button', { name: 'Abrir primeira Box', exact: true }).click();
+        await page.getByRole('button', { name: '+ Adicionar Pokémon', exact: true }).click();
+        await page.getByRole('button', { name: 'Consultar Bulbasaur na Pokédex', exact: true }).click();
+        await page.getByRole('button', { name: 'Adicionar à equipe', exact: false }).click();
+        await page.getByRole('button', { name: 'Abrir ficha de Bulbasaur, nível 5', exact: true }).waitFor();
+        await page.getByRole('button', { name: 'Entrar ou criar conta', exact: true }).click();
+        await page.getByRole('button', { name: 'Continuar sem conta', exact: true }).click();
+        assert.equal(await page.locator('.pc-partner-card').count(), 1, 'Optional account does not interrupt the prepared team');
         assert.deepEqual(errors, []);
         console.log(`${name}: responsive rows, progressive scrolling, completed filter, bilingual record, preserved search and 50 rules verified.`);
     } finally { await context.close(); await browser.close(); }

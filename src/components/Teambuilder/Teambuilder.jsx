@@ -488,7 +488,7 @@ export default function Teambuilder({ envProps }) {
 
                         </div>
 
-                        {!occupiedSlots && <p className="pc-box-empty">Escolha um espaço vazio para adicionar seu primeiro Pokémon.</p>}
+                        {!occupiedSlots && <p className="pc-box-empty">Use Adicionar Pokémon para abrir a Pokédex. Escolha um parceiro, abra a ficha e use Adicionar à equipe.</p>}
 
                         {editingSlot !== null && active.pokemon?.[editingSlot] && (
                             <div className="pc-editor-region">

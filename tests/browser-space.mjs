@@ -228,6 +228,8 @@ try {
         await appearance(theme);
         await openRecord('Bulbasaur');
         const description = page.locator('.species-description');
+        assert.equal(await description.locator('p').first().getAttribute('lang'), 'pt-BR', 'Portuguese opens first');
+        await page.getByRole('button', { name: 'Ver registro original em inglês', exact: true }).click();
         const original = normalize(await description.locator('p').first().innerText());
         assert.match(original, /seed|plant|back/i, 'the original English catalog record must be visible');
         assert.match(await page.locator('.record-measurements').innerText(), /70 cm/);

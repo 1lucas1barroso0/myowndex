@@ -420,7 +420,7 @@ export default function Teambuilder({ envProps }) {
             <section className="pc-content">
                 {!active && <div className="pc-empty-state">
                     <h2>Seus parceiros, suas equipes</h2>
-                    <p>Organize seus Pokémon em Boxes e leve sua equipe para a aventura.</p>
+                    <p>Cada Box reúne até seis Pokémon. Abra uma para escolher seus parceiros e preparar a equipe.</p>
                     <button type="button" onClick={createTeam} className="room-primary-button">Abrir primeira Box</button>
                 </div>}
                 {active && (
@@ -488,7 +488,7 @@ export default function Teambuilder({ envProps }) {
 
                         </div>
 
-                        {!occupiedSlots && <p className="pc-box-empty">Nenhum Pokémon nesta Box.</p>}
+                        {!occupiedSlots && <p className="pc-box-empty">Use Adicionar Pokémon para abrir a Pokédex. Escolha um parceiro, abra a ficha e use Adicionar à equipe.</p>}
 
                         {editingSlot !== null && active.pokemon?.[editingSlot] && (
                             <div className="pc-editor-region">

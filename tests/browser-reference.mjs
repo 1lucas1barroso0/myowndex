@@ -62,6 +62,8 @@ try {
     await openRecord('Bulbasaur');
     await page.getByLabel('Registro de', { exact: true }).waitFor({ timeout: 30000 });
     assert.equal(await page.getByLabel('Registro de', { exact: true }).inputValue(), 'auto');
+    assert.equal(normalize(await text().innerText()), normalize(cleanDescription(pair(canonical[0])[1])), 'The paired Portuguese record opens first');
+    await setLanguage('EN');
     assert.equal(normalize(await text().innerText()), normalize(cleanDescription(pair(canonical[0])[0])));
     await setLanguage('PT');
     assert.equal(normalize(await text().innerText()), normalize(cleanDescription(pair(canonical[0])[1])));

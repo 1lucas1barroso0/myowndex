@@ -95,7 +95,7 @@ html .app-root.game-edition.handheld-edition :is(.room-error,.status-notice){ bo
 lively partners and a clearly marked selection. */
 html .app-root.game-edition.handheld-edition .dex-heading{ display: flex !important; align-items: center !important; flex-wrap: wrap !important; gap: .8rem !important; padding-bottom: 1rem !important; margin-bottom: 1rem !important; border-bottom: 3px solid var(--module-color) !important; }
 html .app-root.game-edition.handheld-edition .dex-title{ margin-right: auto !important; }
-html .app-root.game-edition.handheld-edition .dex-title h2{ font-size: clamp(1.8rem,4vw,2.5rem) !important; font-weight: 900 !important; margin: 0 !important; color: var(--ui-ink) !important; }
+html .app-root.game-edition.handheld-edition .dex-title h2{ font-size: clamp(1.6rem,3vw,2rem) !important; font-weight: 900 !important; margin: 0 !important; color: var(--ui-ink) !important; }
 html .app-root.game-edition.handheld-edition .dex-companion{ width: 112px !important; height: 112px !important; }
 html .app-root.game-edition.handheld-edition .dex-companion img{ width: 100% !important; height: 100% !important; object-fit: contain !important; animation: none !important; }
 html .app-root.game-edition.handheld-edition .dex-count{ color: var(--ui-muted) !important; font-size: .9rem !important; font-variant-numeric: tabular-nums !important; }

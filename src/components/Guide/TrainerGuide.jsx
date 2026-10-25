@@ -95,6 +95,7 @@ export default function TrainerGuide({ experienceMode }) {
     const [scaleValue, setScaleValue] = useState("");
     const [level, setLevel] = useState("");
     const protectionRef = useRef(null);
+    const searchRef = useRef(null);
     const scaleLabelId = useId(), scaleResultId = useId(), levelLabelId = useId(), levelResultId = useId();
     const selectedMode = EXPERIENCE_MODES[experienceMode] || EXPERIENCE_MODES.rpg;
     const searching = Boolean(query.trim());
@@ -155,13 +156,13 @@ export default function TrainerGuide({ experienceMode }) {
                     </details>
                     <label className="guide-search">
                         <span>Pesquisar regras</span>
-                        <input type="search" value={query} onChange={event => setQuery(event.target.value)} />
+                        <input ref={searchRef} type="search" value={query} onChange={event => setQuery(event.target.value)} />
                     </label>
                     <nav className="guide-chapters" aria-label="Assuntos do guia">
                         <button type="button" className="room-secondary-button" aria-pressed={!chapter} onClick={() => setChapter("")}>Todos</button>
                         {RPG_RULE_SECTIONS.map(section => <button key={section.id} type="button" className="room-secondary-button" aria-pressed={chapter === section.id} onClick={() => setChapter(section.id)}>{section.shortTitle || section.title}</button>)}
                     </nav>
-                    {(searching || chapter) && <p className="guide-search-result" role="status">{visibleRuleCount} {visibleRuleCount === 1 ? "regra encontrada" : "regras encontradas"}</p>}
+                    {(searching || chapter) && <p className="guide-search-result" role="status">{visibleRuleCount} {visibleRuleCount === 1 ? "regra encontrada" : "regras encontradas"} <button type="button" className="room-secondary-button" onClick={() => { setQuery(""); setChapter(""); searchRef.current?.focus({ preventScroll: true }); }}>Ver todas as regras</button></p>}
                     <div className="guide-rule-list">
                         {visibleSections.map(section => (
                             <section key={section.id} className="guide-topic" aria-labelledby={`guide-topic-${section.id}`}>

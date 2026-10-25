@@ -1,3 +1,4 @@
+import StatHelp from "../Shared/StatHelp.jsx";
 import ConditionHelp from "../Shared/ConditionHelp.jsx";
 import { resolveExperienceProgress } from "../../core/integerRules.js";
 import { getReferenceBattleMechanics } from "../../core/referenceGames.js";
@@ -574,15 +575,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     const value = calculateStat(base, pk.evs?.[name] ?? 0, pk.ivs?.[name] ?? 31, pk.level, getMulti(name), name === "hp", pk.species?.name);
                     return <div key={name}><dt>{STAT_MAP[name] || name}</dt><dd>{isTTRPG ? convertToTTRPG(value, name === "hp") : value}</dd></div>;
                 })}</dl>
-                <details className="editor-move-description editor-stat-help">
-                    <summary>Entender os atributos</summary>
-                    <ul>
-                        <li><strong>HP:</strong> energia do Pokémon. Com zero HP, ele fica fora de combate.</li>
-                        <li><strong>Ataque e Defesa:</strong> força e proteção contra movimentos físicos.</li>
-                        <li><strong>Ataque Especial e Defesa Especial:</strong> força e proteção contra movimentos especiais.</li>
-                        <li><strong>Velocidade:</strong> ajuda a definir a ordem dos turnos.</li>
-                    </ul>
-                </details>
+                <StatHelp className="editor-move-description editor-stat-help" />
             </section>
             <details className="editor-disclosure pokemon-training-panel">
                 <summary>
@@ -597,7 +590,7 @@ export default function PokemonEditor({ pk, updatePk, envProps }) {
                     </div>
                     <details className="editor-move-description editor-training-help">
                         <summary>O que são IVs e EVs?</summary>
-                        <p><strong>IVs</strong> são as características naturais do Pokémon. <strong>EVs</strong> são pontos ganhos com treinamento. Ambos influenciam seus atributos.</p>
+                        <p><strong>IVs</strong> são as características naturais do Pokémon. <strong>EVs</strong> são pontos ganhos com treinamento. Ambos influenciam seus atributos. Você não precisa mudar esses valores para começar a jogar. Os EVs podem somar até 510; cada atributo pode receber até 252.</p>
                     </details>
                     <div className="pokemon-stat-list">{pk.species?.stats?.map(stat => {
                         const name = stat.stat?.name; if (!name) return null;

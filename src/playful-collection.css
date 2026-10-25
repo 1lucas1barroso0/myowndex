@@ -388,7 +388,7 @@ html .app-root.game-edition.handheld-edition .pc-box-button-heading > span:first
 
 /* 2.0.11: collection density follows available space, never forcing card squeeze. */
 html .app-root.game-edition.handheld-edition .dex-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)) !important;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)) !important;
   align-items: stretch;
 }
 html .app-root.game-edition.handheld-edition .dex-entry,
@@ -425,7 +425,7 @@ html .app-root.game-edition.handheld-edition .dex-generations > * {
 }
 @media (orientation: landscape) and (max-height: 500px) {
   html .app-root.game-edition.handheld-edition .dex-grid {
-    grid-template-columns: repeat(auto-fit,minmax(12rem,1fr)) !important;
+    grid-template-columns: repeat(auto-fill,minmax(12rem,1fr)) !important;
   }
 }
 

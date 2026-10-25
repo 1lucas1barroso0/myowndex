@@ -20,6 +20,7 @@ import GameStyleControl from "./components/Shared/GameStyleControl.jsx";
 import PokemonSprite from "./components/Shared/PokemonSprite.jsx";
 import PokemonCompanion from "./components/Shared/PokemonCompanion.jsx";
 import GameIcon from "./components/Shared/GameIcon.jsx";
+import useDexWindow from "./components/Pokedex/useDexWindow.js";
 import DexFilters from "./components/Pokedex/DexFilters.jsx";
 import { dexEntryFavoriteKeys, dexEntryGeneration, dexEntryNumber, dexEntryRegion, selectDexSpecies, urlForView, viewFromUrl } from "./core/dexCollection.js";
 import { buildDexCatalogue } from "./core/dexCatalogue.js";
@@ -42,13 +43,14 @@ function OpeningScreen() {
 const DestinationOpening = ({ label, error, retry }) => error
     ? <div className="view-opening"><p role="alert">Não foi possível abrir esta tela agora.</p><button type="button" className="room-secondary-button" onClick={retry}>Tentar novamente</button></div>
     : <p className="view-opening" role="status">{label}</p>;
+const ToolOpening = props => <div className="tool-opening"><DestinationOpening {...props} /></div>;
 const TrainerGuide = dynamic(() => import("./components/Guide/TrainerGuide.jsx"), { loading: props => <DestinationOpening {...props} label="Abrindo o Guia do Treinador…" /> });
-const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: () => null });
+const PokemonModal = dynamic(() => import("./components/Pokedex/PokemonModal.jsx"), { loading: props => <ToolOpening {...props} label="Abrindo a ficha do Pokémon…" /> });
 const Teambuilder = dynamic(() => import("./components/Teambuilder/Teambuilder.jsx"), { loading: props => <DestinationOpening {...props} label="Abrindo o PC do Bill…" /> });
 const RpgRoom = dynamic(() => import("./components/Room/RpgRoom.jsx"), { loading: props => <DestinationOpening {...props} label="Abrindo sua aventura…" /> });
-const AccountModal = dynamic(() => import("./components/Account/AccountModal.jsx"), { loading: () => null });
-const LocalDiceDialog = dynamic(() => import("./components/Shared/LocalDiceDialog.jsx"), { loading: () => null });
-const GeneratorModal = dynamic(() => import("./components/Generator/GeneratorModal.jsx"), { loading: () => null });
+const AccountModal = dynamic(() => import("./components/Account/AccountModal.jsx"), { loading: props => <ToolOpening {...props} label="Abrindo sua conta…" /> });
+const LocalDiceDialog = dynamic(() => import("./components/Shared/LocalDiceDialog.jsx"), { loading: props => <ToolOpening {...props} label="Abrindo os dados…" /> });
+const GeneratorModal = dynamic(() => import("./components/Generator/GeneratorModal.jsx"), { loading: props => <ToolOpening {...props} label="Abrindo o gerador…" /> });
 
 const PokemonCard = React.memo(function PokemonCard({ species, onSelect, favorite, onFavorite }) {
     const dexNumber = dexEntryNumber(species);
@@ -90,7 +92,9 @@ const StatusNotice = ({ tone = "blue", children, onClose, actionLabel, onAction 
     );
 };
 
+const destinationPreloads = new Map();
 const preloadDestination = target => {
+    if (destinationPreloads.has(target)) return;
     const load = {
         room: () => import("./components/Room/RpgRoom.jsx"),
         teambuilder: () => import("./components/Teambuilder/Teambuilder.jsx"),
@@ -100,7 +104,7 @@ const preloadDestination = target => {
         account: () => import("./components/Account/AccountModal.jsx"),
         pokemon: () => import("./components/Pokedex/PokemonModal.jsx"),
     }[target];
-    load?.().catch(() => {}); // Opening still uses the normal error boundary/retry.
+    if (load) destinationPreloads.set(target, load().catch(() => { destinationPreloads.delete(target); }));
 };
 
 // Keep pointer previews local: dragging the header must not render the game.
@@ -194,7 +198,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const [searchTerm, setSearchTerm] = useState("");
     const [experienceMode, setExperienceMode] = useState("rpg");
     const [modeBooted, setModeBooted] = useState(false);
-    const [limit, setLimit] = useState(60);
+    const [limit, setLimit] = useState(12);
     const [selectedEntry, setSelectedEntry] = useState(null);
     const [diceOpen, setDiceOpen] = useState(false);
     const [diceRoomContext, setDiceRoomContext] = useState(null);
@@ -566,6 +570,8 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const filteredEntryCount = useMemo(() => new Set(filteredSpecies.map(dexEntryNumber)).size, [filteredSpecies]);
     const filteredVariantCount = useMemo(() => filteredSpecies.filter(entry => entry.isPrimarySpecies === false).length, [filteredSpecies]);
 
+    const { gridRef, moreRef, loadMore } = useDexWindow({ active: teamsBooted && modeBooted && view === "pokedex", total: filteredSpecies.length, limit, setLimit });
+
     const visible = useMemo(() => filteredSpecies.slice(0, limit), [filteredSpecies, limit]);
 
     const handleOpenPokedex = useCallback(() => setView("pokedex"), [setView]);
@@ -573,7 +579,7 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
     const handleOpenGuide = useCallback(() => setView("guide"), [setView]);
     const handleSearchInputChange = useCallback(event => {
         setSearchInput(event.target.value);
-        setLimit(60);
+        setLimit(12);
     }, []);
 
     const integrateTeam = useCallback((formData, genderRate, formIdentity = null) => {
@@ -698,28 +704,36 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                     ) : view === "pokedex" ? (
                             <>
                                 <header className="dex-heading">
-                                    <div className="dex-title"><h2>Pokédex Nacional</h2></div>
+                                    <div className="dex-title"><h2>Pokédex Nacional</h2><p>Escolha um Pokémon para conhecer seus tipos, movimentos e evoluções.</p></div>
                                     <PokemonCompanion place="pokedex" className="dex-companion" eager />
                                     <span className="dex-count" role="status">{formatDexResultCount(filteredEntryCount, filteredVariantCount, dexVariantMode)}</span>
                                 </header>
+                                <details className="dex-discovery">
+                                    <summary>Ideias para explorar</summary>
+                                    <p>Abra uma ficha e escolha o que quer descobrir. Seus filtros continuam guardados.</p>
+                                    <div>{[["pikachu", "Conhecer Pikachu"], ["eevee", "Explorar as evoluções de Eevee"], ["bulbasaur", "Conhecer Bulbasaur"]].map(([name, label]) => {
+                                        const entry = species.find(candidate => candidate.name === name);
+                                        return entry && <button key={name} type="button" className="room-secondary-button" onClick={() => setSelectedEntry(entry)}>{label}</button>;
+                                    })}</div>
+                                </details>
                                 <div className="dex-toolbar">
                                     <label className="dex-search"><span className="dex-search-label">Buscar por nome, número ou intervalo</span><GameIcon name="dex" /><input id="pokemon-search" type="search" value={searchInput} onChange={handleSearchInputChange} inputMode="search" /></label>
-                                    <button type="button" className={`dex-filter ${onlyFavorites ? "is-active" : ""}`} aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setLimit(60); }}><GameIcon name="star" />Favoritos <span>{favorites.length}</span></button>
-                                    <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(60); }}><option value="number" aria-label="Número crescente">Número ↑</option><option value="reverse" aria-label="Número decrescente">Número ↓</option><option value="name" aria-label="Nome de A a Z">Nome A–Z</option></select></label>
+                                    <button type="button" className={`dex-filter ${onlyFavorites ? "is-active" : ""}`} aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(value => !value); setLimit(12); }}><GameIcon name="star" />Favoritos <span>{favorites.length}</span></button>
+                                    <label className="dex-sort"><span className="sr-only">Ordenar Pokémon</span><select value={dexOrder} onChange={event => { setDexOrder(event.target.value); setLimit(12); }}><option value="number" aria-label="Número crescente">Número ↑</option><option value="reverse" aria-label="Número decrescente">Número ↓</option><option value="name" aria-label="Nome de A a Z">Nome A–Z</option></select></label>
                                 </div>
                                 <DexFilters
                                     generation={dexGeneration}
-                                    onGenerationChange={value => { setDexGeneration(value); setLimit(60); }}
+                                    onGenerationChange={value => { setDexGeneration(value); setLimit(12); }}
                                     types={dexTypes}
-                                    onTypesChange={value => { setDexTypes(value); setLimit(60); }}
+                                    onTypesChange={value => { setDexTypes(value); setLimit(12); }}
                                     regions={dexRegions}
-                                    onRegionsChange={value => { setDexRegions(value); setLimit(60); }}
+                                    onRegionsChange={value => { setDexRegions(value); setLimit(12); }}
                                     variantMode={dexVariantMode}
-                                    onVariantModeChange={value => { setDexVariantMode(value); setLimit(60); }}
+                                    onVariantModeChange={value => { setDexVariantMode(value); setLimit(12); }}
                                     minNumber={dexMinNumber}
-                                    onMinNumberChange={value => { setDexMinNumber(value); setLimit(60); }}
+                                    onMinNumberChange={value => { setDexMinNumber(value); setLimit(12); }}
                                     maxNumber={dexMaxNumber}
-                                    onMaxNumberChange={value => { setDexMaxNumber(value); setLimit(60); }}
+                                    onMaxNumberChange={value => { setDexMaxNumber(value); setLimit(12); }}
                                     onReset={() => {
                                         setDexGeneration("all");
                                         setDexTypes([]);
@@ -727,12 +741,12 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                         setDexVariantMode("grouped");
                                         setDexMinNumber("");
                                         setDexMaxNumber("");
-                                        setLimit(60);
+                                        setLimit(12);
                                     }}
                                 />
                                 {dexError && <StatusNotice tone="amber" actionLabel="Tentar novamente" onAction={() => setDexAttempt(value => value + 1)}>{dexError}</StatusNotice>}
                                 {visible.length ? (
-                                    <div className="dex-grid">
+                                    <div className="dex-grid" ref={gridRef}>
                                         {visible.map(entry => {
                                             const favorite = dexEntryFavoriteKeys(entry).some(key => favorites.includes(key));
                                             return <PokemonCard key={entry.formKey || entry.name} species={entry} onSelect={setSelectedEntry} favorite={favorite} onFavorite={toggleFavorite} />;
@@ -749,11 +763,11 @@ function AppExperience({ client, onAccountOpen, onFlushReady, initialView, onNav
                                         setDexVariantMode("grouped");
                                         setDexMinNumber("");
                                         setDexMaxNumber("");
-                                        setLimit(60);
+                                        setLimit(12);
                                     }}>Limpar filtros</button></div>
                                 )}
                                 {limit < filteredSpecies.length && (
-                                    <button type="button" onClick={() => setLimit(value => value + 60)} className="dex-load-more room-secondary-button">
+                                    <button type="button" ref={moreRef} onClick={loadMore} className="dex-load-more room-secondary-button">
                                         Mostrar mais Pokémon
                                     </button>
                                 )}

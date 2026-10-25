@@ -58,6 +58,7 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         await page.getByRole('button', { name: 'Ver todas as regras', exact: true }).click();
         await page.waitForFunction(() => document.querySelectorAll('.guide-rule-card').length === 50);
         assert.equal(await page.locator('.guide-rule-card').count(), 50);
+        assert.equal(await page.getByRole('searchbox', { name: 'Pesquisar regras', exact: true }).evaluate(input => input === document.activeElement), true, 'Reset keeps keyboard focus at the search');
         await page.getByRole('button', { name: 'Abrir o PC do Bill', exact: true }).click();
         await page.getByRole('button', { name: 'Abrir primeira Box', exact: true }).click();
         await page.getByRole('button', { name: '+ Adicionar Pokémon', exact: true }).click();

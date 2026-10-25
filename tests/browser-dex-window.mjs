@@ -38,6 +38,9 @@ for (const [name, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
         }
         assert.ok(12 % resetColumns, 'Exercise a width where the initial window needs a completed row');
         const search = page.locator('#pokemon-search');
+        await search.fill('25');
+        await page.waitForFunction(() => document.querySelectorAll('.dex-entry').length === 1);
+        assert.equal(await page.locator('.dex-grid').evaluate(grid => grid.firstElementChild.getBoundingClientRect().width < grid.getBoundingClientRect().width / 2), true, 'A real single result keeps its card width instead of stretching across the grid');
         await search.fill('1-60');
         await page.waitForFunction(columns => document.querySelector('.dex-count')?.textContent.startsWith('60 ') && document.querySelectorAll('.dex-entry').length % columns === 0, resetColumns);
         await search.fill('61-120');

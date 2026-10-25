@@ -161,7 +161,7 @@ export default function TrainerGuide({ experienceMode }) {
                         <button type="button" className="room-secondary-button" aria-pressed={!chapter} onClick={() => setChapter("")}>Todos</button>
                         {RPG_RULE_SECTIONS.map(section => <button key={section.id} type="button" className="room-secondary-button" aria-pressed={chapter === section.id} onClick={() => setChapter(section.id)}>{section.shortTitle || section.title}</button>)}
                     </nav>
-                    {(searching || chapter) && <p className="guide-search-result" role="status">{visibleRuleCount} {visibleRuleCount === 1 ? "regra encontrada" : "regras encontradas"}</p>}
+                    {(searching || chapter) && <p className="guide-search-result" role="status">{visibleRuleCount} {visibleRuleCount === 1 ? "regra encontrada" : "regras encontradas"} <button type="button" className="room-secondary-button" onClick={() => { setQuery(""); setChapter(""); }}>Ver todas as regras</button></p>}
                     <div className="guide-rule-list">
                         {visibleSections.map(section => (
                             <section key={section.id} className="guide-topic" aria-labelledby={`guide-topic-${section.id}`}>

@@ -135,10 +135,12 @@ try {
     const record = page.locator('.record-shell');
     await record.getByRole('button', { name: /Adicionar à equipe/ }).waitFor();
     await checkpoint('Pokédex: perfil, habilidades e evolução', [320, 1280]);
-    const translation = record.getByRole('button', { name: 'Ver tradução do registro em português', exact: true });
+    const translation = record.getByRole('button', { name: 'Ver registro original em inglês', exact: true });
     if (await translation.count()) {
-        await translation.click();
         assert.equal(await record.locator('.species-description p').getAttribute('lang'), 'pt-BR');
+        await translation.click();
+        assert.equal(await record.locator('.species-description p').getAttribute('lang'), 'en');
+        await record.getByRole('button', { name: 'Ver tradução do registro em português', exact: true }).click();
         await checkpoint('Pokédex: registro em português');
     }
     await record.getByRole('tab', { name: 'Tipos', exact: true }).click();

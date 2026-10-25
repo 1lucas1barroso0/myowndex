@@ -39,7 +39,7 @@ try {
     });
     assert.equal(await search.inputValue(), "pikachu");
     await search.fill("");
-    await page.waitForFunction(() => document.querySelectorAll(".dex-entry").length === 60);
+    await page.waitForFunction(() => document.querySelectorAll(".dex-entry").length >= 12 && document.querySelectorAll(".dex-entry").length < 100);
     for (const [width, height] of [[320,653],[390,844],[768,844],[1440,900],[844,390]]) {
         await page.setViewportSize({width, height});
         if (width <= 700) await page.locator(".app-curtain-grip").press("End");

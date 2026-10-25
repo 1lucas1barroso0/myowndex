@@ -74,7 +74,7 @@ jobs:
             sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
           fi
           npm install --no-save --package-lock=false playwright@1.56.1 axe-core@4.11.1
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium firefox
       - name: Compilar para QA real
         run: npm run build
       - name: Subir MyOwnDex local
@@ -159,6 +159,12 @@ jobs:
           set -o pipefail
           timeout --signal=TERM --kill-after=15s 420s node tests/browser-responsive.mjs | tee /tmp/myowndex-responsive.log
           echo "Matriz responsiva concluída."
+      - name: Conferir grade progressiva e descoberta no Chromium e Firefox
+        if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
+        env:
+          MYOWNDEX_PLAYWRIGHT_MODULE: playwright
+          MYOWNDEX_SMOKE_URL: http://127.0.0.1:3000
+        run: node tests/browser-dex-window.mjs
       - name: Conferir coleção completa e navegação com CPU reduzida
         if: ${{ !cancelled() && steps.browser-server.outcome == 'success' }}
         env:

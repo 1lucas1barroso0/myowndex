@@ -160,7 +160,7 @@ function Lobby({ defaultInvite, savedSession, accountRooms = [], busy, error, on
             <section className="room-lobby-hero adventure-intro">
                 <div>
                     <h2>Aventuras</h2>
-                    <p>Escolha como começar sua aventura.</p>
+                    <p>Conte suas ideias, explore com seus Pokémon e decida o próximo passo.</p>
                 </div>
                 <PokemonCompanion place="adventure" eager />
             </section>

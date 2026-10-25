@@ -1,3 +1,4 @@
+import StatHelp from "../Shared/StatHelp.jsx";
 import { formatGameFactor } from "../../core/integerRules.js";
 import { formatPokemonHeight, formatPokemonWeight } from "../../core/measurements.js";
 import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -53,7 +54,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
     const [appearanceAttempt, setAppearanceAttempt] = useState(0);
     const [evoChain, setEvoChain] = useState([]);
     const [tab, setTab] = useState("stats");
-    const [recordLanguage, setRecordLanguage] = useState('en');
+    const [recordLanguage, setRecordLanguage] = useState('pt-BR');
     const [recordVersion, setRecordVersion] = useState('auto');
     const [learnsetVersion, setLearnsetVersion] = useState('auto');
     const [recordHistory, setRecordHistory] = useState([]);
@@ -90,7 +91,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
         setLoadError("");
         setEvolutionStatus("loading");
         setTab("stats");
-        setRecordLanguage('en');
+        setRecordLanguage('pt-BR');
         setRecordVersion('auto');
         setLearnsetVersion('auto');
         setRecordHistory([]);
@@ -431,10 +432,7 @@ export default function PokemonModal({ speciesUrl, initialForm = null, onClose, 
                                 <span>{isTTRPG ? "Total no RPG" : "Total de atributos base"}</span>
                                 <strong>{bst}</strong>
                             </div>
-                            <details className="record-reference-help">
-                                <summary>Entender os atributos</summary>
-                                <p><strong>HP</strong> é a energia do Pokémon. <strong>Ataque e Defesa</strong> são usados em movimentos físicos; <strong>Ataque Especial e Defesa Especial</strong>, em movimentos especiais. <strong>Velocidade</strong> ajuda a definir a ordem dos turnos.</p>
-                            </details>
+                            <StatHelp className="record-reference-help" />
                         </section>
                     </div>
                 </div>

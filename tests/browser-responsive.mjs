@@ -200,6 +200,7 @@ async function auditRepeatedMotionPreferences(){
  const sprites=page.locator('.dex-entry-main .pokemon-sized-sprite');
  const visited=new Set();
  const recordLoaded=async()=>{for(const index of await sprites.evaluateAll(frames=>frames.flatMap((frame,index)=>{const image=frame.querySelector('img');return image?.complete&&image.naturalWidth>0&&image.naturalHeight>0?[index]:[]})))visited.add(index);};
+ while(await sprites.count()<60) await page.getByRole('button',{name:'Mostrar mais Pokémon',exact:true}).click();
  const count=await sprites.count();
  assert.ok(count>=60,'Repeated motion changes are tested with at least sixty mounted Pokémon');
  for(let index=0;index<count;index+=8){

@@ -30,7 +30,7 @@ html .generator-heading .pokemon-companion.companion-compact { width:80px; heigh
 .generator-customize[open] { display:grid; gap:1rem; padding-bottom:1rem; }
 .generator-dialog .generator-checkbox { display:flex; gap:.65rem; align-items:center; min-height:44px; font-weight:400; }
 .generator-dialog input[type="checkbox"] { width:22px; height:22px; flex:none; margin:0; accent-color:var(--ui-blue); }
-.generator-results { min-width:0; border-left:1px solid var(--ui-line); padding:clamp(1rem,3vw,1.7rem); background:var(--ui-canvas); }
+.generator-results { min-width:0; padding:clamp(1rem,3vw,1.7rem); background:var(--ui-canvas); }
 .generator-dialog.is-preparing .generator-results { border-left:0; border-top:1px solid var(--ui-line); padding:1rem clamp(1rem,3vw,1.8rem); background:var(--ui-panel); }
 .generator-dialog.is-preparing .generator-results:empty { display:none; }
 .generator-dialog.is-preparing .generator-results > :last-child { margin-bottom:0; }

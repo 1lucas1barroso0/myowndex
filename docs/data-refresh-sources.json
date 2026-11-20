@@ -7,7 +7,7 @@
     },
     "showdown": {
       "repository": "smogon/pokemon-showdown",
-      "commit": "5b88c476113d51a939bddbcd00b5cd182a5d8058"
+      "commit": "f1040ecb5f5dba252e0e351e392dc409a5089ace"
     },
     "go": {
       "repository": "PokeMiners/pogo_assets",

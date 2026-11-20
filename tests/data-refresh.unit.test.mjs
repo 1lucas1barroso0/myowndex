@@ -7,6 +7,15 @@ import { getMoveReferenceForMode } from '../src/core/referenceGames.js';
 import { getSpecialMoveBlockReason } from '../src/core/specialMechanics.js';
 import { moveLearnMethodLabel, isOrdinaryLevelUpMove } from '../src/core/moveLearnMethods.js';
 import { applyMoveConsequences } from '../src/core/automation.js';
+import { verifyPublication } from '../scripts/verificar-publicacao-dados.mjs';
+
+test('publication requires both the expected version and the deployed source revision', async () => {
+    const result = await verifyPublication({ version: '2.3.1', revision: 'new', pause: async () => {},
+        fetcher: async () => ({ ok: true, json: async () => ({ version: '2.3.1', revision: 'new' }) }) });
+    assert.equal(result.revision, 'new');
+    await assert.rejects(verifyPublication({ version: '2.3.1', revision: 'new', attempts: 1,
+        fetcher: async () => ({ ok: true, json: async () => ({ version: '2.3.1', revision: 'old' }) }) }), /not confirmed/);
+});
 
 test('a source callback change blocks unattended refresh before changing any pin', () => {
     const result = spawnSync('python3', ['-c', `

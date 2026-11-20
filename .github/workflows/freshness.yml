@@ -1,6 +1,11 @@
 name: Atualizar dados Pokémon
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/freshness.yml
+      - scripts/atualizar-dados.py
   workflow_dispatch:
   schedule:
     - cron: "17 10 * * *"
@@ -47,6 +52,7 @@ jobs:
           npm test
           npm run lint
           npm run typecheck
+          npm audit --omit=dev --audit-level=moderate
           npm run build
       - name: Publicar dados validados sem sobrescrever alterações concorrentes
         if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main'
@@ -60,6 +66,7 @@ jobs:
           git push origin HEAD:main
           # GITHUB_TOKEN pushes do not trigger other Actions workflows.
           gh workflow run quality.yml --ref main
+          node scripts/verificar-publicacao-dados.mjs
       - name: Registrar falha sem modificar produção
         if: failure()
         run: |

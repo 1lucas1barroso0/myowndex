@@ -21,3 +21,7 @@ Jogos históricos continuam com seus valores e aprendizados próprios. Novos mov
 ## Limites verificáveis
 
 Uma fonte comunitária pode demorar a incorporar uma notícia oficial; a revisão de anúncios cobre essa diferença. Uma nova geração pode exigir novos índices, limites, sprites e regras: o workflow interrompe ao encontrar estrutura desconhecida, e a revisão trata a adaptação. Não há garantia de disponibilidade ininterrupta de GitHub, fontes, automações ou Vercel; falhas devem ser identificadas e corrigidas, sem afirmar atualização concluída antes de conferir a produção.
+
+A rotina também roda quando seu workflow ou atualizador muda, permitindo conferir a configuração imediatamente. Depois de enviar uma atualização de dados, verifica `/api/version` em produção: a versão e a revisão Git precisam coincidir com a entrega. Uma versão antiga no ar não é tratada como publicação concluída.
+
+Na revisão de 20/11/2026, as fontes foram regeneradas, 375 traduções novas foram preparadas e outras 211 foram reaproveitadas após conferir equivalência de pontuação. Nihil Light passou a integrar o catálogo disponível na PokéAPI. Foram corrigidos PP de Champions com cache frio, Last Resort como único movimento e o recuo de Struggle após acerto sem dano. O patch futuro de dezembro permanece pendente. Next.js e sua configuração de lint foram atualizados para 16.4.6, com auditoria de produção sem vulnerabilidades reportadas. Os testes de regras/dados, lint, tipos, build e comparação das 51 fontes passaram antes da publicação.

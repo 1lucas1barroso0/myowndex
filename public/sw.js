@@ -1,4 +1,4 @@
-const CACHE_NAME = "myowndex-shell-v2.3.0";
+const CACHE_NAME = "myowndex-shell-v2.3.1";
 const CACHE_PREFIX = "myowndex-shell-";
 const ASSET_CACHE_NAME = "myowndex-assets-v3";
 const ASSET_CACHE_PREFIX = "myowndex-assets-";

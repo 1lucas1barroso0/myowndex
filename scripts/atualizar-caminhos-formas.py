@@ -14,13 +14,13 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN = '6fd69dfe90465ba96534f6816fc817737d1f97f6'
+PIN = '193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8'
 BASE = f'https://raw.githubusercontent.com/PokeAPI/pokeapi/{PIN}/data/v2/csv/'
 SOURCES = {
-    'pokemon': '16c81c33188b0eac403aa2f759fcbe9e42c611f722d263f5b5a6a5bff9f8ce6b',
+    'pokemon': 'eb8a7f59134bf3763a0f3072a7794cb097413e6f6027c380a92dd8d63082ab80',
     'pokemon_species': 'e66e2eeb25fd3836b0ebab6bf87bbf01960aa3c0555e2bac495fa8393c5e0c45',
     'pokemon_forms': '99bf8f7ad4dc1f2e291357a090cef6a575623ec3cbf9030d0e33656e6e608ae2',
-    'pokemon_evolution': 'e78be51c8805551fffccd5551a556e752e4a76ff1b52482b53b409dd3882e1dd',
+    'pokemon_evolution': 'a7a57fe79c076264e4895c889a736114ee57061d539ead236d8ab2e9ac3a5efa',
 }
 
 

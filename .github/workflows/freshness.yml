@@ -1,4 +1,4 @@
-name: Verificar fontes atuais
+name: Atualizar dados Pokémon
 
 on:
   workflow_dispatch:
@@ -6,11 +6,17 @@ on:
     - cron: "17 10 * * *"
 
 permissions:
-  contents: read
+  contents: write
+  actions: write
+
+concurrency:
+  group: myowndex-data-refresh
+  cancel-in-progress: false
 
 jobs:
   freshness:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - name: Baixar o código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 · Node 24
@@ -18,7 +24,43 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0 · Node 24
         with:
           node-version: "24"
-      - name: Comparar fontes versionadas com upstream
+          cache: npm
+      - name: Regenerar dados das fontes atuais
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run freshness
+        run: python3 scripts/atualizar-dados.py
+      - name: Identificar mudanças
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Atualizar versão e shell offline
+        if: steps.changes.outputs.changed == 'true'
+        run: node scripts/preparar-versao-dados.mjs
+      - name: Instalar dependências verificadas
+        if: steps.changes.outputs.changed == 'true'
+        run: npm ci
+      - name: Validar regras, dados, tipos e compilação
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          npm test
+          npm run lint
+          npm run typecheck
+          npm run build
+      - name: Publicar dados validados sem sobrescrever alterações concorrentes
+        if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts src/data public/catalog docs package.json package-lock.json public/sw.js README.md
+          git commit -m 'Atualiza dados Pokémon e referências verificadas'
+          git push origin HEAD:main
+          # GITHUB_TOKEN pushes do not trigger other Actions workflows.
+          gh workflow run quality.yml --ref main
+      - name: Registrar falha sem modificar produção
+        if: failure()
+        run: |
+          echo 'A atualização foi interrompida; produção preservada. Consulte a revisão diária do MyOwnDex para completar fontes, traduções ou mecânicas.' >> "$GITHUB_STEP_SUMMARY"

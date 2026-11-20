@@ -25,7 +25,7 @@ test('current move deltas match the pinned catalogue and leave API data and Engl
     const catalogue = JSON.parse(await fs.readFile(new URL('../public/catalog/v1/move.json', import.meta.url), 'utf8'));
     const overrides = JSON.parse(await fs.readFile(new URL('../src/data/champions-move-overrides.json', import.meta.url), 'utf8'));
     const deltas = Object.entries(catalogue.entries).filter(([, entry]) => entry.battleData?.champions);
-    assert.equal(deltas.length, 45);
+    assert.equal(deltas.length, 46);
     assert.deepEqual(overrides.moves, Object.fromEntries(deltas.map(([name, entry]) => [name, entry.battleData.champions])));
     const raw = { ...fixture('protect', 'user'), effect_entries: [{ language: { name: 'en' }, effect: 'Original official text.' }] };
     const old = structuredClone(raw);

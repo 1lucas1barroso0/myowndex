@@ -124,65 +124,65 @@
   "sources": {
     "go-apk-en": {
       "repository": "PokeMiners/pogo_assets",
-      "commit": "8353f3c4451f4b9154684222ce55128b8a33c7e4",
+      "commit": "db10df75d6f6f92018d9786af0aecc238fecc4ef",
       "path": "Texts/Latest APK/English.txt",
-      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/8353f3c4451f4b9154684222ce55128b8a33c7e4/Texts/Latest%20APK/English.txt",
+      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/db10df75d6f6f92018d9786af0aecc238fecc4ef/Texts/Latest%20APK/English.txt",
       "sha256": "1f9b1ff0b456498e542f1b222df94ae20ab76bc8ce53775c0ca64911b707e79b",
       "bytes": 3817972
     },
     "go-apk-pt": {
       "repository": "PokeMiners/pogo_assets",
-      "commit": "8353f3c4451f4b9154684222ce55128b8a33c7e4",
+      "commit": "db10df75d6f6f92018d9786af0aecc238fecc4ef",
       "path": "Texts/Latest APK/BrazilianPortuguese.txt",
-      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/8353f3c4451f4b9154684222ce55128b8a33c7e4/Texts/Latest%20APK/BrazilianPortuguese.txt",
+      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/db10df75d6f6f92018d9786af0aecc238fecc4ef/Texts/Latest%20APK/BrazilianPortuguese.txt",
       "sha256": "1c1a2fd80873299356168c0c7d9374adc8f38976d228732c3db928043b0748ab",
       "bytes": 4044780
     },
     "go-remote-en": {
       "repository": "PokeMiners/pogo_assets",
-      "commit": "8353f3c4451f4b9154684222ce55128b8a33c7e4",
+      "commit": "db10df75d6f6f92018d9786af0aecc238fecc4ef",
       "path": "Texts/Latest Remote/English.txt",
-      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/8353f3c4451f4b9154684222ce55128b8a33c7e4/Texts/Latest%20Remote/English.txt",
+      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/db10df75d6f6f92018d9786af0aecc238fecc4ef/Texts/Latest%20Remote/English.txt",
       "sha256": "66b711325a3c21a188bf1870e55f98a0c9546bff8deee7e7ed63b18270c1b1eb",
       "bytes": 55806
     },
     "go-remote-pt": {
       "repository": "PokeMiners/pogo_assets",
-      "commit": "8353f3c4451f4b9154684222ce55128b8a33c7e4",
+      "commit": "db10df75d6f6f92018d9786af0aecc238fecc4ef",
       "path": "Texts/Latest Remote/BrazilianPortuguese.txt",
-      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/8353f3c4451f4b9154684222ce55128b8a33c7e4/Texts/Latest%20Remote/BrazilianPortuguese.txt",
+      "url": "https://raw.githubusercontent.com/PokeMiners/pogo_assets/db10df75d6f6f92018d9786af0aecc238fecc4ef/Texts/Latest%20Remote/BrazilianPortuguese.txt",
       "sha256": "a95ab3aa12a45a640b6bc4cebd333e76f4a2826f1a6f8a1b89340120bd1226c8",
       "bytes": 57856
     },
     "api-flavors": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "6fd69dfe90465ba96534f6816fc817737d1f97f6",
+      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8",
       "path": "data/v2/csv/pokemon_species_flavor_text.csv",
-      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/6fd69dfe90465ba96534f6816fc817737d1f97f6/data/v2/csv/pokemon_species_flavor_text.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8/data/v2/csv/pokemon_species_flavor_text.csv",
       "sha256": "c341e602ab623084fef4c44ca4a174938e617802cfcf2deec830d824f688dc69",
       "bytes": 9206001
     },
     "api-species": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "6fd69dfe90465ba96534f6816fc817737d1f97f6",
+      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8",
       "path": "data/v2/csv/pokemon_species.csv",
-      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/6fd69dfe90465ba96534f6816fc817737d1f97f6/data/v2/csv/pokemon_species.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8/data/v2/csv/pokemon_species.csv",
       "sha256": "e66e2eeb25fd3836b0ebab6bf87bbf01960aa3c0555e2bac495fa8393c5e0c45",
       "bytes": 56884
     },
     "api-pokemon": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "6fd69dfe90465ba96534f6816fc817737d1f97f6",
+      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8",
       "path": "data/v2/csv/pokemon.csv",
-      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/6fd69dfe90465ba96534f6816fc817737d1f97f6/data/v2/csv/pokemon.csv",
-      "sha256": "16c81c33188b0eac403aa2f759fcbe9e42c611f722d263f5b5a6a5bff9f8ce6b",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8/data/v2/csv/pokemon.csv",
+      "sha256": "eb8a7f59134bf3763a0f3072a7794cb097413e6f6027c380a92dd8d63082ab80",
       "bytes": 47082
     },
     "api-versions": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "6fd69dfe90465ba96534f6816fc817737d1f97f6",
+      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8",
       "path": "data/v2/csv/versions.csv",
-      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/6fd69dfe90465ba96534f6816fc817737d1f97f6/data/v2/csv/versions.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8/data/v2/csv/versions.csv",
       "sha256": "70083465865a6a69a9aad2be3fc3915078c6ff740f14a090b1367d8ec9cfc3cd",
       "bytes": 907
     }

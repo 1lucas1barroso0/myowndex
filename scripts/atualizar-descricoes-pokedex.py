@@ -15,8 +15,8 @@ import urllib.request
 from pathlib import Path
 
 OUTPUT = Path(__file__).resolve().parents[1] / 'src/data'
-GO_SHA = '8353f3c4451f4b9154684222ce55128b8a33c7e4'
-API_SHA = '6fd69dfe90465ba96534f6816fc817737d1f97f6'
+GO_SHA = 'db10df75d6f6f92018d9786af0aecc238fecc4ef'
+API_SHA = '193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8'
 SOURCES = {
     'go-apk-en': ('PokeMiners/pogo_assets', GO_SHA, 'Texts/Latest APK/English.txt'),
     'go-apk-pt': ('PokeMiners/pogo_assets', GO_SHA, 'Texts/Latest APK/BrazilianPortuguese.txt'),

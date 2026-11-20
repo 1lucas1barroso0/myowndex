@@ -26,6 +26,7 @@ export const moveLearnMethodLabel = detail => {
     if (method === "tutor") return "Tutor";
     if (method === "egg") return "Ovo";
     if (method === "train") return "Treinamento";
+    if (method === "reminder") return "Relembrar movimento";
     return formatName(method || "Outro");
 };
 

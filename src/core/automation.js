@@ -977,7 +977,7 @@ export const applyMoveConsequences = ({
             attacker.currentHp = clamp(before + requested, 0, Math.max(1, asNumber(attacker.maxHp, 1)));
             healed = Math.max(0, attacker.currentHp - before);
         }
-    } else if (damageHit && damage > 0 && drain < 0) {
+    } else if (damageHit && (damage > 0 || moveName === "struggle") && drain < 0) {
         const ability = isAbilityActive(attacker) ? traitSlug(attacker.ability) : "";
         if (moveName !== "struggle" && ["rock-head", "magic-guard"].includes(ability)) {
             attacker = recordTraitEvent(attacker, { kind: "ability", sourceId: ability, label: "Recuo impedido", detail: `${formatName(ability)} impediu o recuo de ${formatName(moveName)}`, round });

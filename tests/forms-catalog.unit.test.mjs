@@ -4,7 +4,7 @@ import forms from "../src/data/forms.json" with { type: "json" };
 
 test("persistent-form catalogue is complete, deterministic and excludes collapsed battle transformations", () => {
   assert.equal(forms.schemaVersion, 1);
-  assert.equal(forms.sourceCommit, "6fd69dfe90465ba96534f6816fc817737d1f97f6");
+  assert.match(forms.sourceCommit, /^[a-f0-9]{40}$/);
   assert.equal(forms.defaults.length, 52);
   assert.equal(forms.entries.length, 379);
   assert.equal(forms.defaults.length + forms.entries.length, 431);

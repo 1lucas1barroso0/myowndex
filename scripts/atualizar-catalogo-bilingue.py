@@ -20,8 +20,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / 'public/catalog/v1'
-PIN = '6fd69dfe90465ba96534f6816fc817737d1f97f6'
-SHOWDOWN_PIN = '8476966bb71714001e836571e41723219c4c2dd3'
+PIN = '193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8'
+SHOWDOWN_PIN = '5b88c476113d51a939bddbcd00b5cd182a5d8058'
 CSV_ROOT = f'https://raw.githubusercontent.com/PokeAPI/pokeapi/{PIN}/data/v2/csv/'
 FILES = ['versions', 'version_groups', 'pokemon_species_names', 'pokemon_species_flavor_text',
          'ability_names', 'ability_prose', 'abilities', 'ability_flavor_text',
@@ -91,10 +91,19 @@ def refine_portuguese(english, portuguese):
     return text
 
 
+def showdown_download(url):
+    # A content-addressed source URL includes the exact commit, so different
+    # revisions never share this development-only cache entry.
+    path = SOURCE_CACHE / ('showdown-' + hashlib.sha256(url.encode()).hexdigest() + '.ts')
+    if not path.exists():
+        path.write_bytes(urllib.request.urlopen(url, timeout=60).read())
+    return path.read_bytes()
+
+
 def showdown(kind):
     plural = {'ability': 'abilities', 'move': 'moves', 'item': 'items'}[kind]
     url = f'https://raw.githubusercontent.com/smogon/pokemon-showdown/{SHOWDOWN_PIN}/data/text/{plural}.ts'
-    raw = urllib.request.urlopen(url, timeout=60).read()
+    raw = showdown_download(url)
     # Parse only literal text fields, never execute code from a downloaded file.
     result = {}
     entry = None
@@ -141,7 +150,7 @@ def showdown_move_metadata():
     def retrieve(item):
         context, path = item
         url = f'https://raw.githubusercontent.com/smogon/pokemon-showdown/{SHOWDOWN_PIN}/{path}'
-        raw = urllib.request.urlopen(url, timeout=60).read()
+        raw = showdown_download(url)
         values = {}
         current = None
         for line in raw.decode().splitlines():
@@ -361,7 +370,13 @@ def main():
                 found.append([record['version'], text_key(en), 27])
     reviewed_path = ROOT / 'scripts/catalogo-ajustes-pt.json'
     reviewed = json.loads(reviewed_path.read_text()) if reviewed_path.exists() else {}
-    assert not set(reviewed).difference(english), 'An editorial review must correspond to an actual pinned English source'
+    obsolete = sorted(set(reviewed).difference(english))
+    missing = sorted(english.difference(translations).difference(reviewed))
+    if obsolete or missing:
+        report = SOURCE_CACHE / 'editorial-review.json'
+        report.write_text(json.dumps({'obsolete': obsolete, 'missing': missing}, ensure_ascii=False, indent=2) + '\n')
+        if obsolete:
+            raise RuntimeError(f'{len(obsolete)} editorial reviews no longer match the source. Review {report}.')
     translations.update(reviewed)
     translations = prepare_translations(sorted(english), translations, names, args.translate_missing)
     all_texts = {text_key(text): [text, translations[text]] for text in sorted(english)}

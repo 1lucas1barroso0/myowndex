@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 
 const here = new URL("./", import.meta.url);
 const read = name => readFile(new URL(name, here), "utf8");
@@ -32,6 +33,11 @@ const sources = [
       "data/v2/csv/pokemon.csv",
       "data/v2/csv/pokemon_forms.csv",
       "data/v2/csv/pokemon_evolution.csv",
+      "data/v2/csv/pokemon_stats.csv",
+      "data/v2/csv/pokemon_abilities.csv",
+      "data/v2/csv/pokemon_moves.csv",
+      "data/v2/csv/pokemon_move_methods.csv",
+      "data/v2/csv/pokemon_move_method_prose.csv",
       "data/v2/csv/types.csv",
       "data/v2/csv/pokemon_types.csv",
       "data/v2/csv/pokemon_types_past.csv",
@@ -83,6 +89,8 @@ const sources = [
       "data/mods/gen7/moves.ts",
       "data/mods/gen8/moves.ts",
       "data/mods/champions/moves.ts",
+      "data/mods/champions/abilities.ts",
+      "data/mods/champions/scripts.ts",
       "data/mods/gen7letsgo/moves.ts",
       "data/mods/gen8bdsp/moves.ts",
       "data/mods/gen3/scripts.ts",
@@ -100,6 +108,12 @@ const headers = {
 
 const encodePath = path => path.split("/").map(encodeURIComponent).join("/");
 const blobSha = async ({ repository, path, ref }) => {
+  if (!token) {
+    const response = await fetch(`https://raw.githubusercontent.com/${repository}/${ref}/${encodePath(path)}`, { signal: AbortSignal.timeout(60000) });
+    if (!response.ok) throw new Error(`${repository}/${path} @ ${ref}: HTTP ${response.status}`);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    return createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+  }
   const url = `https://api.github.com/repos/${repository}/contents/${encodePath(path)}?ref=${encodeURIComponent(ref)}`;
   const response = await fetch(url, { headers });
   if (!response.ok) throw new Error(`${repository}/${path} @ ${ref}: HTTP ${response.status}`);

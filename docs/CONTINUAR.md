@@ -1,6 +1,6 @@
 # Estado atual — MyOwnDex 2.3.0
 
-**Versão atual: 2.3.0.**
+**Versão atual: 2.3.1.**
 
 Branch em revisão; produção aguarda aprovação. Grade progressiva medida pela tela, descoberta opcional, registros em português e orientações contextuais. Consulte `REVISAO-2.3.0.md`.
 

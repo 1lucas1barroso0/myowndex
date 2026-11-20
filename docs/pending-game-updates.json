@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "updates": [
+    {
+      "id": "champions-2026-12-02",
+      "game": "champions",
+      "announcedOn": "2026-11-18",
+      "scheduledMaintenanceDate": "2026-12-02",
+      "effectiveAt": null,
+      "status": "announced",
+      "activationPolicy": "Confirm official completion of maintenance before activation. A date alone does not confirm deployment. Apply only to Champions and the default current reference, preserving historical games.",
+      "source": "https://www.pokemon.com/us/news/pokemon-champions-balance-patch-update-december-2026",
+      "evidence": "Official Pokémon announcement supplied as three screenshots on 2026-11-20; cross-checked against published patch notes. No official maintenance completion yet.",
+      "moves": {
+        "screech": { "accuracy": { "before": 85, "after": 100 } },
+        "rock-slide": { "accuracy": { "before": 90, "after": 95 }, "flinchChance": { "before": 30, "after": 20 } },
+        "steel-wing": { "accuracy": { "before": 90, "after": 100 } },
+        "metal-sound": { "accuracy": { "before": 85, "after": 100 } },
+        "frost-breath": { "accuracy": { "before": 90, "after": 100 } }
+      },
+      "learnsetAdditions": {
+        "psych-up": ["alakazam", "starmie", "mr-mime", "mawile", "altaria", "castform", "absol", "roserade", "weavile", "rotom", "rotom-heat", "rotom-wash", "rotom-frost", "rotom-fan", "rotom-mow", "liepard", "musharna", "audino", "cofagrigus", "slurpuff", "drampa", "annihilape"],
+        "slack-off": ["emboar"],
+        "roost": ["beedrill", "hydreigon"],
+        "tailwind": ["emolga"],
+        "wonder-room": ["umbreon"],
+        "play-rough": ["vaporeon", "jolteon", "flareon", "espeon", "umbreon", "leafeon", "glaceon"]
+      },
+      "abilities": {
+        "flash-fire": "Grant Fire Boost on activation; preserve Fire Boost through Mega Evolution.",
+        "stalwart": "Retain redirection bypass; additionally ignore targets' substitutes when using moves."
+      },
+      "requiredValidation": ["Cold and warm cache", "Local and authoritative battle resolution", "Explicit Champions in Jogos and current default", "Historical game isolation", "Move accuracy and Rock Slide secondary chance", "Learnset identity and Train acquisition; no invented level-up", "Ability suppression, Mega Evolution, Substitute and switch-out reset", "Paired EN/PT reference text", "Version and production verification"]
+    }
+  ]
+}

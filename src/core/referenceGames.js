@@ -82,7 +82,7 @@ export const getMoveAtVersion = (move, selectedVersion) => {
         if (metadata.pp != null) result.pp = metadata.pp;
         if (metadata.priority != null) result.priority = metadata.priority;
     }
-    return result;
+    return row?.[1] === 'champions' ? getCurrentMoveReference(result) : result;
 };
 
 /** The preferred game determines the move's PP, accuracy, power and effects

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "pokeapi": {
+      "repository": "PokeAPI/pokeapi",
+      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8"
+    },
+    "showdown": {
+      "repository": "smogon/pokemon-showdown",
+      "commit": "5b88c476113d51a939bddbcd00b5cd182a5d8058"
+    },
+    "go": {
+      "repository": "PokeMiners/pogo_assets",
+      "commit": "db10df75d6f6f92018d9786af0aecc238fecc4ef"
+    }
+  },
+  "policy": "Published only after tests, typecheck and build. Missing translations require editorial completion. Announced patches are not activated by calendar date alone."
+}

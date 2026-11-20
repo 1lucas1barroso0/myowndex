@@ -11,11 +11,11 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN = '6fd69dfe90465ba96534f6816fc817737d1f97f6'
+PIN = '193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8'
 BASE = f'https://raw.githubusercontent.com/PokeAPI/pokeapi/{PIN}/data/v2/csv/'
 SOURCES = {
     'pokemon_species': 'e66e2eeb25fd3836b0ebab6bf87bbf01960aa3c0555e2bac495fa8393c5e0c45',
-    'pokemon': '16c81c33188b0eac403aa2f759fcbe9e42c611f722d263f5b5a6a5bff9f8ce6b',
+    'pokemon': 'eb8a7f59134bf3763a0f3072a7794cb097413e6f6027c380a92dd8d63082ab80',
     'types': '37f039c8d722f47d51ba1c5c5ecf9b7007235b1a9a1af2827645c777b70307c8',
     'pokemon_types': 'f1fc4bfd657a034ea3bf6972423b10276424aa068577b304a78a08996425ba05',
     'pokemon_types_past': '02553c38e3871f99c7ed809b944066fea3f42ef6bccd4daba19274aca01fbff0',

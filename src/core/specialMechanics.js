@@ -695,7 +695,7 @@ export const getSpecialMoveBlockReason = ({ move, attacker, defender, round } = 
     if (name === "last-resort") {
         const required = asArray(attacker?.moves).map(slug).filter(moveName => moveName && moveName !== "last-resort");
         const used = new Set(normalizeSpecialState(attacker?.specialState).history.map(entry => entry.moveName));
-        if (required.some(moveName => !used.has(moveName))) return "os outros movimentos precisam ter sido usados antes";
+        if (!required.length || required.some(moveName => !used.has(moveName))) return "os outros movimentos precisam ter sido usados antes";
     }
     if (name === "transform") {
         if (normalizeSpecialState(attacker?.specialState).transform) return "o usuário já está transformado";

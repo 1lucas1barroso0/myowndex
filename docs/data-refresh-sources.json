@@ -3,7 +3,7 @@
   "sources": {
     "pokeapi": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8"
+      "commit": "cd5f6c6232f23430aa6089896d96230f5f7ecef4"
     },
     "showdown": {
       "repository": "smogon/pokemon-showdown",

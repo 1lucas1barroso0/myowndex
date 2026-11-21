@@ -156,33 +156,33 @@
     },
     "api-flavors": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8",
+      "commit": "cd5f6c6232f23430aa6089896d96230f5f7ecef4",
       "path": "data/v2/csv/pokemon_species_flavor_text.csv",
-      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8/data/v2/csv/pokemon_species_flavor_text.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/cd5f6c6232f23430aa6089896d96230f5f7ecef4/data/v2/csv/pokemon_species_flavor_text.csv",
       "sha256": "c341e602ab623084fef4c44ca4a174938e617802cfcf2deec830d824f688dc69",
       "bytes": 9206001
     },
     "api-species": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8",
+      "commit": "cd5f6c6232f23430aa6089896d96230f5f7ecef4",
       "path": "data/v2/csv/pokemon_species.csv",
-      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8/data/v2/csv/pokemon_species.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/cd5f6c6232f23430aa6089896d96230f5f7ecef4/data/v2/csv/pokemon_species.csv",
       "sha256": "e66e2eeb25fd3836b0ebab6bf87bbf01960aa3c0555e2bac495fa8393c5e0c45",
       "bytes": 56884
     },
     "api-pokemon": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8",
+      "commit": "cd5f6c6232f23430aa6089896d96230f5f7ecef4",
       "path": "data/v2/csv/pokemon.csv",
-      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8/data/v2/csv/pokemon.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/cd5f6c6232f23430aa6089896d96230f5f7ecef4/data/v2/csv/pokemon.csv",
       "sha256": "eb8a7f59134bf3763a0f3072a7794cb097413e6f6027c380a92dd8d63082ab80",
       "bytes": 47082
     },
     "api-versions": {
       "repository": "PokeAPI/pokeapi",
-      "commit": "193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8",
+      "commit": "cd5f6c6232f23430aa6089896d96230f5f7ecef4",
       "path": "data/v2/csv/versions.csv",
-      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8/data/v2/csv/versions.csv",
+      "url": "https://raw.githubusercontent.com/PokeAPI/pokeapi/cd5f6c6232f23430aa6089896d96230f5f7ecef4/data/v2/csv/versions.csv",
       "sha256": "70083465865a6a69a9aad2be3fc3915078c6ff740f14a090b1367d8ec9cfc3cd",
       "bytes": 907
     }

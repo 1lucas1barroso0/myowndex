@@ -12,7 +12,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN = '193d8d4fbb57cf962e3f7c1ce5299a6fe847b3f8'
+PIN = 'cd5f6c6232f23430aa6089896d96230f5f7ecef4'
 BASE = f'https://raw.githubusercontent.com/PokeAPI/pokeapi/{PIN}/data/v2/csv/'
 COLLAPSED_REVERSIBLE_FORMS = {
     'shaymin-sky', 'hoopa-unbound',

@@ -12,25 +12,225 @@
       "source": "https://www.pokemon.com/us/news/pokemon-champions-balance-patch-update-december-2026",
       "evidence": "Official Pokémon announcement supplied as three screenshots on 2026-11-20; cross-checked against published patch notes. No official maintenance completion yet.",
       "moves": {
-        "screech": { "accuracy": { "before": 85, "after": 100 } },
-        "rock-slide": { "accuracy": { "before": 90, "after": 95 }, "flinchChance": { "before": 30, "after": 20 } },
-        "steel-wing": { "accuracy": { "before": 90, "after": 100 } },
-        "metal-sound": { "accuracy": { "before": 85, "after": 100 } },
-        "frost-breath": { "accuracy": { "before": 90, "after": 100 } }
+        "screech": {
+          "accuracy": {
+            "before": 85,
+            "after": 100
+          }
+        },
+        "rock-slide": {
+          "accuracy": {
+            "before": 90,
+            "after": 95
+          },
+          "flinchChance": {
+            "before": 30,
+            "after": 20
+          }
+        },
+        "steel-wing": {
+          "accuracy": {
+            "before": 90,
+            "after": 100
+          }
+        },
+        "metal-sound": {
+          "accuracy": {
+            "before": 85,
+            "after": 100
+          }
+        },
+        "frost-breath": {
+          "accuracy": {
+            "before": 90,
+            "after": 100
+          }
+        }
       },
       "learnsetAdditions": {
-        "psych-up": ["alakazam", "starmie", "mr-mime", "mawile", "altaria", "castform", "absol", "roserade", "weavile", "rotom", "rotom-heat", "rotom-wash", "rotom-frost", "rotom-fan", "rotom-mow", "liepard", "musharna", "audino", "cofagrigus", "slurpuff", "drampa", "annihilape"],
-        "slack-off": ["emboar"],
-        "roost": ["beedrill", "hydreigon"],
-        "tailwind": ["emolga"],
-        "wonder-room": ["umbreon"],
-        "play-rough": ["vaporeon", "jolteon", "flareon", "espeon", "umbreon", "leafeon", "glaceon"]
+        "psych-up": [
+          "alakazam",
+          "starmie",
+          "mr-mime",
+          "mawile",
+          "altaria",
+          "castform",
+          "absol",
+          "roserade",
+          "weavile",
+          "rotom",
+          "rotom-heat",
+          "rotom-wash",
+          "rotom-frost",
+          "rotom-fan",
+          "rotom-mow",
+          "liepard",
+          "musharna",
+          "audino",
+          "cofagrigus",
+          "slurpuff",
+          "drampa",
+          "annihilape"
+        ],
+        "slack-off": [
+          "emboar"
+        ],
+        "roost": [
+          "beedrill",
+          "hydreigon"
+        ],
+        "tailwind": [
+          "emolga"
+        ],
+        "wonder-room": [
+          "umbreon"
+        ],
+        "play-rough": [
+          "vaporeon",
+          "jolteon",
+          "flareon",
+          "espeon",
+          "umbreon",
+          "leafeon",
+          "glaceon"
+        ]
       },
       "abilities": {
         "flash-fire": "Grant Fire Boost on activation; preserve Fire Boost through Mega Evolution.",
         "stalwart": "Retain redirection bypass; additionally ignore targets' substitutes when using moves."
       },
-      "requiredValidation": ["Cold and warm cache", "Local and authoritative battle resolution", "Explicit Champions in Jogos and current default", "Historical game isolation", "Move accuracy and Rock Slide secondary chance", "Learnset identity and Train acquisition; no invented level-up", "Ability suppression, Mega Evolution, Substitute and switch-out reset", "Paired EN/PT reference text", "Version and production verification"]
+      "requiredValidation": [
+        "Cold and warm cache",
+        "Local and authoritative battle resolution",
+        "Explicit Champions in Jogos and current default",
+        "Historical game isolation",
+        "Move accuracy and Rock Slide secondary chance",
+        "Learnset identity and Train acquisition; no invented level-up",
+        "Ability suppression, Mega Evolution, Substitute and switch-out reset",
+        "Paired EN/PT reference text",
+        "Version and production verification"
+      ]
+    },
+    {
+      "id": "champions-regulation-m-d-2026-12-02",
+      "game": "champions",
+      "announcedOn": "2026-11-25",
+      "status": "announced",
+      "effectiveAt": null,
+      "source": "https://news.pokemon-home.com/en/page/878.html",
+      "sources": [
+        {
+          "url": "https://news.pokemon-home.com/en/page/878.html",
+          "kind": "official",
+          "verification": "Directly read: eligibility, mechanics, UTC duration, full details pending."
+        },
+        {
+          "url": "https://www.pokemon.com/us/news/regulation-set-m-d-is-coming-to-pokemon-champions",
+          "kind": "official",
+          "verification": "Article located; full text inaccessible in this audit. Counts corroborated by Nintendo Life and Serebii."
+        },
+        {
+          "url": "https://x.com/poke_times/status/2125409433165451488",
+          "kind": "official-social",
+          "verification": "Direct access returned 403. Heatran Ability corroborated by Serebii and Pokemon-France; official Japanese post also indexed in a public mirror."
+        },
+        {
+          "url": "https://x.com/poke_times/status/2125409263161835885",
+          "kind": "official-social",
+          "verification": "Direct access returned 403. Tatsugiri Ability corroborated by Serebii and Pokemon-France; official Japanese post also indexed in a public mirror."
+        },
+        {
+          "url": "https://serebii.net/news/2026/25-November-2026.shtml",
+          "kind": "corroboration"
+        },
+        {
+          "url": "https://www.nintendolife.com/news/2026/11/pokemon-champions-is-adding-four-more-mega-evolutions-in-a-new-update-next-week",
+          "kind": "corroboration"
+        },
+        {
+          "url": "https://www.pokemon-france.com/pt/news/pokemon-champions-regulation-set-m-d-traz-mega-heatran-dondozo-e-mega-tatsugiri/",
+          "kind": "corroboration"
+        }
+      ],
+      "announcedRegulationWindow": {
+        "start": "2026-12-02T02:00:00Z",
+        "end": "2027-03-03T01:59:00Z",
+        "source": "https://news.pokemon-home.com/en/page/878.html",
+        "note": "Use the directly read HOME announcement. A US article transcription in secondary reporting gives different PST dates; recheck official timing before activation."
+      },
+      "roster": {
+        "announcedNewPokemonCount": 24,
+        "announcedNewMegaEvolutionCount": 4,
+        "confirmedPokemon": [
+          "heatran",
+          "dondozo",
+          "tatsugiri"
+        ],
+        "confirmedMegaSpecies": [
+          "heatran-mega",
+          "tatsugiri-mega"
+        ],
+        "retainsPreviousRegulations": [
+          "M-A",
+          "M-B",
+          "M-C"
+        ],
+        "completeRosterPublished": false,
+        "rosterCheckPath": [
+          "Recruit",
+          "Recruit Pokémon",
+          "Roster Info"
+        ],
+        "countingCaution": "Do not infer two unnamed Mega species from the count of four: Tatsugiri has three forms. Verify the official roster and counting convention."
+      },
+      "megaAbilities": [
+        {
+          "pokemon": "heatran-mega",
+          "ability": "water-compaction",
+          "effect": {
+            "trigger": "Takes damage from a Water-type move",
+            "stat": "defense",
+            "stages": 2
+          },
+          "notes": "Does not establish Water immunity. Preserve the incoming damage and check post-hit activation."
+        },
+        {
+          "pokemon": "tatsugiri-mega",
+          "forms": [
+            "curly",
+            "droopy",
+            "stretchy"
+          ],
+          "abilityJapanese": "とくじょう",
+          "abilityEnglish": null,
+          "effect": {
+            "trigger": "Each entry into battle",
+            "stat": "special-attack",
+            "stages": 1
+          },
+          "notes": "No verified official English name in this audit. Do not promote fan translations such as Premium Grade to an official identifier. Verify the Mega Evolution trigger and re-entry interactions before implementation."
+        }
+      ],
+      "mechanics": {
+        "megaEvolutionsPerBattle": 1,
+        "requiresHeldMegaStone": true
+      },
+      "activationPolicy": "Keep announced information in this register; do not silently enable unreleased Champions eligibility or battle effects. Announced data can be shown with its pending status. Preserve historical game rules and existing personal data.",
+      "openItems": [
+        "Complete 24-Pokémon roster and exact form counting",
+        "Official English name and identifier of Tatsugiri's new Ability",
+        "Exact timing and maintenance completion",
+        "Actual move pools, stats, Mega Stones and game data",
+        "Tatsugiri entry/Mega Evolution/Commander interactions",
+        "Heatran Water Compaction and Flash Fire/Fire Boost persistence interactions"
+      ],
+      "requiredValidation": [
+        "Check all three Tatsugiri forms separately",
+        "Review local and authoritative battle behavior",
+        "Check suppression, stat caps, repeated entry and Mega Evolution",
+        "Retain original historical references",
+        "Confirm deployment before reporting implementation complete"
+      ]
     }
   ]
 }
